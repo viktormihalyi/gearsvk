@@ -58,7 +58,7 @@ std::vector<const char*> GLFWWindowProvider::GetExtensions () const
     ASSERT (glfwExtensionCount != 0);
 
     std::vector<const char*> result;
-    for (int i = 0; i < glfwExtensionCount; ++i) {
+    for (uint32_t i = 0; i < glfwExtensionCount; ++i) {
         result.push_back (glfwExtensions[i]);
     }
     return result;

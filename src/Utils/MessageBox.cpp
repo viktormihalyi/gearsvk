@@ -38,7 +38,7 @@ Result Show (const std::string& title, const std::string& message)
         return Result::Error;
     }
 
-    if (buttonIndex < 0 || buttonIndex > buttons.size () - 1) {
+    if (buttonIndex < 0 || buttonIndex > static_cast<int> (buttons.size ()) - 1) {
         return Result::Error;
     }
 
