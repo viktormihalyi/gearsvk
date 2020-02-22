@@ -2,3 +2,6 @@
 .vscode/
 build/
 out/
+cmake-build-debug/
+.idea/
+**/*.spv
