@@ -20,6 +20,15 @@ GLFWWindowProvider::GLFWWindowProvider ()
 
     glfwSwapInterval (0);
 
+
+    int           monitorCount = 0;
+    GLFWmonitor** monitors     = glfwGetMonitors (&monitorCount);
+    for (int i = 0; i < monitorCount; ++i) {
+        GLFWmonitor* monitor     = monitors[i];
+        const char*  monitorName = glfwGetMonitorName (monitor);
+        std::string  mo (monitorName);
+    }
+
     window = reinterpret_cast<void*> (glfwCreateWindow (800, 600, "test", nullptr, nullptr));
     if (ERROR (window == nullptr)) {
         std::cerr << "failed to create window" << std::endl;
