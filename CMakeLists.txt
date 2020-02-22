@@ -11,10 +11,12 @@ set (TARGET_NAME Tutorial)
 
 add_executable (${TARGET_NAME}
     src/Utils/Assert.cpp
+    src/Utils/ImageLoader.cpp
     src/Utils/Logger.cpp
     src/Utils/MessageBox.cpp
     src/Utils/SourceLocation.cpp
     src/Utils/Utils.cpp
+    src/VulkanWrapper/ShaderModule.cpp
     src/main.cpp
     src/GLFWWindowProvider.cpp
 )
@@ -23,7 +25,7 @@ target_include_directories (${TARGET_NAME} PRIVATE
     "C:\\VulkanSDK\\1.1.130.0\\Include"
     "C:\\glfw-3.3.1.bin.WIN64\\include"
     "C:\\SDL2-2.0.10\\include"
-    "${googletest_SOURCE_DIR}/googletest/include"
+    "C:\\glm-0.9.9.7"
 )
 
 target_link_directories (${TARGET_NAME} PRIVATE
@@ -38,6 +40,7 @@ target_compile_definitions (${TARGET_NAME} PRIVATE
 
 target_include_directories (${TARGET_NAME} PRIVATE
     src
+    src/VulkanWrapper
     src/Utils
 )
 

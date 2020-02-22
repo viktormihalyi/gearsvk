@@ -75,7 +75,7 @@ public:
         AppendToFile (std::string ("[DEBUG ") + GetCurrentTimeString () + "] " + message);
     }
 };
-FileLogger* FileLogger::instance;
+
 
 class ConsoleLogger final : public Logger {
     SINGLETON (ConsoleLogger);
@@ -96,27 +96,26 @@ public:
         std::cout << "[DEBUG " << GetCurrentTimeString () << "] " << message << std::endl;
     }
 };
-ConsoleLogger* ConsoleLogger::instance;
 
 
 void Error (const std::string& message)
 {
     if constexpr (LOGGERLEVEL <= Logger::LogLevel::Error) {
-        LOGGERIMPL::GetInstance ()->ErrorImpl (message);
+        LOGGERIMPL::Instance ().ErrorImpl (message);
     }
 }
 
 void Info (const std::string& message)
 {
     if constexpr (LOGGERLEVEL <= Logger::LogLevel::Info) {
-        LOGGERIMPL::GetInstance ()->InfoImpl (message);
+        LOGGERIMPL::Instance ().InfoImpl (message);
     }
 }
 
 void Debug (const std::string& message)
 {
     if constexpr (LOGGERLEVEL <= Logger::LogLevel::Debug) {
-        LOGGERIMPL::GetInstance ()->DebugImpl (message);
+        LOGGERIMPL::Instance ().DebugImpl (message);
     }
 }
 

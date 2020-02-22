@@ -18,6 +18,8 @@ GLFWWindowProvider::GLFWWindowProvider ()
     glfwWindowHint (GLFW_RESIZABLE, GLFW_FALSE);
     // glfwWindowHint (GLFW_VISIBLE, GLFW_FALSE);
 
+    glfwSwapInterval (0);
+
     window = reinterpret_cast<void*> (glfwCreateWindow (800, 600, "test", nullptr, nullptr));
     if (ERROR (window == nullptr)) {
         std::cerr << "failed to create window" << std::endl;
@@ -39,7 +41,7 @@ void* GLFWWindowProvider::GetHandle () const
 }
 
 
-void GLFWWindowProvider::DoEventLoop ()
+void GLFWWindowProvider::DoEventLoop (const DrawCallback& drawCallback)
 {
     if (ERROR (window == nullptr)) {
         return;
@@ -47,6 +49,10 @@ void GLFWWindowProvider::DoEventLoop ()
 
     while (!glfwWindowShouldClose (reinterpret_cast<GLFWwindow*> (window))) {
         glfwPollEvents ();
+
+        drawCallback ();
+
+        glfwWaitEvents ();
     }
 }
 
@@ -67,11 +73,11 @@ std::vector<const char*> GLFWWindowProvider::GetExtensions () const
 
 VkSurfaceKHR GLFWWindowProvider::CreateSurface (VkInstance instance) const
 {
-    VkSurfaceKHR surface;
+    VkSurfaceKHR surface = VK_NULL_HANDLE;
 
     VkResult result = glfwCreateWindowSurface (instance, reinterpret_cast<GLFWwindow*> (window), nullptr, &surface);
     if (result != VK_SUCCESS) {
-        return VK_NULL_HANDLE;
+        throw std::runtime_error ("Failed to create glfw surface");
     }
 
     return surface;
