@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include "Assert.hpp"
+#include "Timer.hpp"
 #include <iostream>
 
 
@@ -18,15 +19,12 @@ GLFWWindowProvider::GLFWWindowProvider ()
     glfwWindowHint (GLFW_RESIZABLE, GLFW_FALSE);
     // glfwWindowHint (GLFW_VISIBLE, GLFW_FALSE);
 
-    glfwSwapInterval (0);
-
-
     int           monitorCount = 0;
     GLFWmonitor** monitors     = glfwGetMonitors (&monitorCount);
     for (int i = 0; i < monitorCount; ++i) {
         GLFWmonitor* monitor     = monitors[i];
         const char*  monitorName = glfwGetMonitorName (monitor);
-        std::string  mo (monitorName);
+        std::cout << std::to_string (i + 1) << ". monitor: " << std::string (monitorName) << std::endl;
     }
 
     window = reinterpret_cast<void*> (glfwCreateWindow (800, 600, "test", nullptr, nullptr));
@@ -60,8 +58,6 @@ void GLFWWindowProvider::DoEventLoop (const DrawCallback& drawCallback)
         glfwPollEvents ();
 
         drawCallback ();
-
-        glfwWaitEvents ();
     }
 }
 
