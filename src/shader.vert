@@ -7,6 +7,10 @@ layout(binding = 0) uniform UniformBufferObject {
     mat4 proj;
 } ubo;
 
+layout(binding = 2) uniform Time {
+    float time[10];
+};
+
 layout(location = 0) in vec2 inPosition;
 layout(location = 1) in vec3 inColor;
 

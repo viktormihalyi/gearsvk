@@ -20,6 +20,16 @@
 
 #include <vulkan/vulkan.h>
 
+#include <nlohmann/json.hpp>
+
+#include <glm/glm.hpp>
+
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
+
+using json = nlohmann::json;
+
+
 constexpr int MAX_FRAMES_IN_FLIGHT = 4;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
@@ -614,7 +624,9 @@ PipelineCreateResult CreateGraphicsPipeline (
 }
 
 
-VkShaderModule CreateShaderModule (VkDevice device, const std::filesystem::path& binaryFilePath)
+VkShaderModule CreateShaderModule (VkDevice                                    device,
+                                   const std::filesystem::path&                binaryFilePath,
+                                   const std::optional<std::filesystem::path>& reflectionFilePath = std::nullopt)
 {
     std::optional<std::vector<char>> bytecode = Utils::ReadBinaryFile (binaryFilePath);
     if (ERROR (!bytecode.has_value ())) {
@@ -629,6 +641,27 @@ VkShaderModule CreateShaderModule (VkDevice device, const std::filesystem::path&
     VkShaderModule result = VK_NULL_HANDLE;
     if (ERROR (vkCreateShaderModule (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create shader module");
+    }
+
+    if (reflectionFilePath.has_value ()) {
+        std::optional<std::string> reflectionJsonText = Utils::ReadTextFile (*reflectionFilePath);
+        if (ERROR (!reflectionJsonText.has_value ())) {
+            throw std::runtime_error ("failed to read reflection file");
+        }
+
+        json reflectionJson = json::parse (*reflectionJsonText);
+        for (const auto& ubo : reflectionJson["ubos"]) {
+            size_t uniformSize    = ubo["block_size"];
+            size_t uniformSet     = ubo["set"];
+            size_t uniformBinding = ubo["binding"];
+            std::cout << ubo["name"] << std::endl;
+            for (const auto& member : reflectionJson["types"][ubo["type"].get<std::string> ()]["members"]) {
+                std::cout << "\t" << member["name"] << std::endl;
+                std::cout << "\t" << member["offset"] << std::endl;
+                std::cout << "\t" << member["type"] << std::endl;
+            }
+        }
+        std::cout << *reflectionFilePath << std::endl;
     }
 
     return result;
@@ -698,6 +731,7 @@ struct Buffer {
     VkBuffer       buffer;
     VkDeviceMemory memory;
 };
+
 
 
 Buffer CreateBufferMemory (VkPhysicalDevice physicalDevice, VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags)
@@ -807,8 +841,97 @@ void UpdateUniformBuffer (VkDevice device, VkDeviceMemory memory, const Swapchai
 }
 
 
+struct PhysicalDevice {
+    QueueFamilies queueFamilies;
+
+    void CreateQueueFamilyIndices ();
+    void CreateLogicalDevice ();
+};
+
+struct LogicalDevice {
+    PhysicalDevice physicalDevice;
+    VkDevice       device;
+
+    void AllocateMemory ();
+    void CreateBuffer ();
+    void CreateImageView ();
+};
+
+struct Pipeline {
+};
+
+#include "ShaderReflection.hpp"
+#include <shaderc/shaderc.hpp>
+#include <spirv_cross.hpp>
+#include <spirv_reflect.hpp>
+
+
+static shaderc_shader_kind GetShaderKindFromExtension (const std::string& extension)
+{
+    if (extension == ".vert") {
+        return shaderc_vertex_shader;
+    } else if (extension == ".frag") {
+        return shaderc_fragment_shader;
+    } else if (extension == ".geom") {
+        return shaderc_geometry_shader;
+    } else if (extension == ".comp") {
+        return shaderc_compute_shader;
+    } else if (extension == ".tesc") {
+        return shaderc_tess_control_shader;
+    } else if (extension == ".tese") {
+        return shaderc_tess_evaluation_shader;
+    } else {
+        ERROR (true);
+        return shaderc_vertex_shader;
+    }
+}
+
+
+using SPIRVBinary = std::vector<uint32_t>;
+
+std::optional<SPIRVBinary> CompileShader (const std::filesystem::path& fileLocation,
+                                          shaderc_optimization_level   optimizationLevel = shaderc_optimization_level_zero)
+{
+    std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
+    if (ERROR (!fileContents.has_value ())) {
+        return std::nullopt;
+    }
+
+    shaderc::Compiler       compiler;
+    shaderc::CompileOptions options;
+
+    options.AddMacroDefinition ("MY_DEFINE", "1");
+    options.SetOptimizationLevel (optimizationLevel);
+    options.SetGenerateDebugInfo ();
+
+    const shaderc_shader_kind shaderKind = GetShaderKindFromExtension (fileLocation.extension ().u8string ());
+
+    // #define DEBUG_COMPILE_ALL
+
+    shaderc::SpvCompilationResult binaryResult = compiler.CompileGlslToSpv (*fileContents, shaderKind, fileLocation.u8string ().c_str (), options);
+    std::vector<uint32_t>         binary (binaryResult.cbegin (), binaryResult.cend ());
+
+    if (binaryResult.GetCompilationStatus () != shaderc_compilation_status_success) {
+        return std::nullopt;
+    }
+
+#ifdef DEBUG_COMPILE_ALL
+    shaderc::AssemblyCompilationResult           asemblyResult      = compiler.CompileGlslToSpvAssembly (*fileContents, shaderKind, fileLocation.u8string ().c_str (), options);
+    shaderc::PreprocessedSourceCompilationResult preprocessedResult = compiler.PreprocessGlsl (*fileContents, shaderKind, fileLocation.u8string ().c_str (), options);
+
+    std::string assembly (asemblyResult.cbegin (), asemblyResult.cend ());
+    std::string preps (preprocessedResult.cbegin (), preprocessedResult.cend ());
+#endif
+
+    return binary;
+}
+
+
 int main (int argc, char* argv[])
 {
+    std::optional<SPIRVBinary> binary = CompileShader (Utils::PROJECT_ROOT / "src" / "shader.vert");
+
+
     std::cout << Utils::PROJECT_ROOT.u8string () << std::endl;
 
     uint32_t apiVersion;
@@ -890,7 +1013,9 @@ int main (int argc, char* argv[])
 
     std::vector<VkImageView> swapChainImageViews = CreateSwapchainImageViews (device, swapchain);
 
-    VkShaderModule vertexShaderModule = CreateShaderModule (device, Utils::PROJECT_ROOT / "src" / "shader.vert.spv");
+    VkShaderModule vertexShaderModule = CreateShaderModule (device,
+                                                            Utils::PROJECT_ROOT / "src" / "shader.vert.spv",
+                                                            Utils::PROJECT_ROOT / "src" / "shader.vert.refl");
     ASSERT (vertexShaderModule != VK_NULL_HANDLE);
 
     VkShaderModule fragmentShaderModule = CreateShaderModule (device, Utils::PROJECT_ROOT / "src" / "shader.frag.spv");
@@ -933,6 +1058,12 @@ int main (int argc, char* argv[])
 
     std::vector<Buffer> uniformBuffers;
 
+    struct PipelineUniforms {
+        VkDeviceMemory                   memory;
+        void*                            mapped;
+        std::vector<Gears::UniformBlock> uniforms;
+    };
+
     const size_t uniformBufferSize = sizeof (UniformBufferObject);
     for (int i = 0; i < swapChainImageViews.size (); ++i) {
         uniformBuffers.push_back (CreateBufferMemory (
@@ -940,6 +1071,17 @@ int main (int argc, char* argv[])
             uniformBufferSize,
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
+    }
+
+    if (binary) {
+        Gears::ShaderReflection refl (*binary);
+        for (const auto& u : refl.GeUniformData ()) {
+            uniformBuffers.push_back (CreateBufferMemory (
+                physicalDevice, device,
+                u.blockSize,
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
+        }
     }
 
 
