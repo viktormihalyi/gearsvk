@@ -23,12 +23,13 @@ add_executable (${TARGET_NAME}
     src/ShaderReflection.cpp
 )
 
+find_package(Vulkan)
+
 target_include_directories (${TARGET_NAME} PRIVATE
     "C:\\VulkanSDK\\1.1.130.0\\Include"
-    "C:\\glfw-3.3.1.bin.WIN64\\include"
     "C:\\SDL2-2.0.10\\include"
-    "C:\\glm-0.9.9.7"
 
+    external/glfw/include
     external/json/single_include
     external/glm
     external/VulkanMemoryAllocator/src
@@ -36,7 +37,6 @@ target_include_directories (${TARGET_NAME} PRIVATE
 
 target_link_directories (${TARGET_NAME} PRIVATE
     "C:\\VulkanSDK\\1.1.130.0\\Lib"
-    "C:\\glfw-3.3.1.bin.WIN64\\lib-vc2019"
     "C:\\SDL2-2.0.10\\lib\\x64"
 )
 
@@ -52,28 +52,43 @@ target_include_directories (${TARGET_NAME} PRIVATE
 
 target_link_libraries (${TARGET_NAME}
     vulkan-1
-    glfw3
     SDL2
 )
 
-set (DSPIRV_CROSS_STATIC ON)
+set (SPIRV_SKIP_TESTS ON CACHE BOOL "" FORCE)
+set (SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "" FORCE)
+
+set (SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
+set (SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+set (SPIRV_CROSS_ENABLE_HLSL OFF CACHE BOOL "" FORCE)
+set (SPIRV_CROSS_ENABLE_MSL OFF CACHE BOOL "" FORCE)
+
+set (SHADERC_SKIP_TESTS ON CACHE BOOL "" FORCE)
+
+set (BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+
+set (GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set (GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set (GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 # external libs
+add_subdirectory (external/googletest)
+
 add_subdirectory (external/SPIRV-Headers)
 add_subdirectory (external/SPIRV-Tools)
 add_subdirectory (external/SPIRV-Cross)
-add_subdirectory (external/googletest)
 add_subdirectory (external/glslang)
 add_subdirectory (external/shaderc)
+add_subdirectory (external/glfw)
 
 
 target_include_directories (${TARGET_NAME} PRIVATE
     external/shaderc/libshaderc/include
-    external/shaderc/libshaderc_spvc/include
     external/SPIRV-Cross
 )
 
 target_link_libraries (${TARGET_NAME}
+    glfw
     shaderc
     spirv-cross-core
     spirv-cross-glsl

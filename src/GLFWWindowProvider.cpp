@@ -11,6 +11,10 @@
 GLFWWindowProvider::GLFWWindowProvider ()
     : window (nullptr)
 {
+    // settings
+    const bool useFullscreen = false;
+    const bool hideMouse     = false;
+
     glfwInit ();
 
     ASSERT (glfwVulkanSupported () == GLFW_TRUE);
@@ -19,19 +23,91 @@ GLFWWindowProvider::GLFWWindowProvider ()
     glfwWindowHint (GLFW_RESIZABLE, GLFW_FALSE);
     // glfwWindowHint (GLFW_VISIBLE, GLFW_FALSE);
 
-    int           monitorCount = 0;
-    GLFWmonitor** monitors     = glfwGetMonitors (&monitorCount);
-    for (int i = 0; i < monitorCount; ++i) {
-        GLFWmonitor* monitor     = monitors[i];
-        const char*  monitorName = glfwGetMonitorName (monitor);
-        std::cout << std::to_string (i + 1) << ". monitor: " << std::string (monitorName) << std::endl;
+    // monitor settings
+
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor ();
+    glfwSetMonitorCallback ([] (GLFWmonitor* monitor, int event) {
+        if (event == GLFW_CONNECTED) {
+            std::cout << "connected" << std::endl;
+        } else if (event == GLFW_DISCONNECTED) {
+            std::cout << "disconnected" << std::endl;
+        }
+    });
+
+    int width_mm, height_mm;
+    glfwGetMonitorPhysicalSize (primaryMonitor, &width_mm, &height_mm);
+
+    float xscale, yscale;
+    glfwGetMonitorContentScale (primaryMonitor, &xscale, &yscale);
+
+    int virtual_xpos, virtual_ypos;
+    glfwGetMonitorPos (primaryMonitor, &virtual_xpos, &virtual_ypos);
+
+    int xpos, ypos, width, height;
+    glfwGetMonitorWorkarea (primaryMonitor, &xpos, &ypos, &width, &height);
+
+    const GLFWgammaramp* gammaRamp = glfwGetGammaRamp (primaryMonitor);
+
+    int          windowWidth  = 800;
+    int          windowHeight = 600;
+    GLFWmonitor* usedMonitor  = nullptr;
+
+    if (useFullscreen) {
+        const GLFWvidmode* mode = glfwGetVideoMode (primaryMonitor);
+        windowWidth             = mode->width;
+        windowHeight            = mode->height;
+        usedMonitor             = primaryMonitor;
     }
 
-    window = reinterpret_cast<void*> (glfwCreateWindow (800, 600, "test", nullptr, nullptr));
-    if (ERROR (window == nullptr)) {
-        std::cerr << "failed to create window" << std::endl;
-        exit (EXIT_FAILURE);
+    GLFWwindow* glfwWindow = glfwCreateWindow (windowWidth, windowHeight, "test", usedMonitor, nullptr);
+    if (ERROR (glfwWindow == nullptr)) {
+        throw std::runtime_error ("failed to create window");
     }
+
+    // window settings
+
+    glfwSetWindowUserPointer (glfwWindow, this);
+    std::cout << std::boolalpha << "glfwRawMouseMotionSupported is " << (glfwRawMouseMotionSupported () == GLFW_TRUE) << std::endl;
+    if (hideMouse) {
+        glfwSetInputMode (glfwWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // GLFW_CURSOR_DISABLED
+    }
+
+    // callbacks
+
+    glfwSetKeyCallback (glfwWindow, [] (GLFWwindow* window, int key, int scancode, int action, int mods) {
+        GLFWWindowProvider* self = static_cast<GLFWWindowProvider*> (glfwGetWindowUserPointer (window));
+
+        const char* keyName = glfwGetKeyName (key, 0);
+        std::cout << "glfwSetKeyCallback, key: " << key << " (" << (keyName != nullptr ? keyName : "???") << "), scancode: " << scancode << ", action: " << action << ", mods: " << mods << std::endl;
+
+        if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
+            glfwSetWindowShouldClose (window, GLFW_TRUE);
+        }
+    });
+
+
+    glfwSetCursorPosCallback (glfwWindow, [] (GLFWwindow* window, double xpos, double ypos) {
+        GLFWWindowProvider* self = static_cast<GLFWWindowProvider*> (glfwGetWindowUserPointer (window));
+
+        std::cout << "glfwSetCursorPosCallback, xpos: " << xpos << ", ypos: " << ypos << std::endl;
+    });
+
+
+    glfwSetMouseButtonCallback (glfwWindow, [] (GLFWwindow* window, int button, int action, int mods) {
+        GLFWWindowProvider* self = static_cast<GLFWWindowProvider*> (glfwGetWindowUserPointer (window));
+
+        std::cout << "glfwSetMouseButtonCallback, button: " << button << ", action: " << action << ", mods: " << mods << std::endl;
+    });
+
+
+    glfwSetScrollCallback (glfwWindow, [] (GLFWwindow* window, double xoffset, double yoffset) {
+        GLFWWindowProvider* self = static_cast<GLFWWindowProvider*> (glfwGetWindowUserPointer (window));
+
+        std::cout << "glfwSetScrollCallback, xoffset: " << xoffset << ", yoffset: " << yoffset << std::endl;
+    });
+
+
+    window = reinterpret_cast<void*> (glfwWindow);
 }
 
 
@@ -79,6 +155,8 @@ std::vector<const char*> GLFWWindowProvider::GetExtensions () const
 VkSurfaceKHR GLFWWindowProvider::CreateSurface (VkInstance instance) const
 {
     VkSurfaceKHR surface = VK_NULL_HANDLE;
+
+    ASSERT (window != nullptr);
 
     VkResult result = glfwCreateWindowSurface (instance, reinterpret_cast<GLFWwindow*> (window), nullptr, &surface);
     if (result != VK_SUCCESS) {

@@ -66,34 +66,6 @@ void DestroyDebugUtilsMessengerEXT (VkInstance                   instance,
     }
 }
 
-#include <functional>
-
-template<typename SourceType, typename DestType>
-static std::set<DestType> ToSet (const std::vector<SourceType>& vec)
-{
-    std::set<DestType> result;
-    std::transform (std::begin (vec), std::end (vec), std::inserter (result, std::end (result)), [] (const SourceType& x) {
-        return DestType (x);
-    });
-    return result;
-}
-
-template<typename SourceType, typename DestType>
-static std::set<DestType> ToSet (const std::vector<SourceType>& vec, const std::function<DestType (const SourceType&)>& converter)
-{
-    std::set<DestType> result;
-    std::transform (std::begin (vec), std::end (vec), std::inserter (result, std::end (result)), converter);
-    return result;
-}
-
-template<typename T>
-static std::set<T> SetDiff (const std::set<T>& left, const std::set<T>& right)
-{
-    std::set<T> diff;
-    std::set_difference (std::begin (left), std::end (left), std::begin (right), std::end (right), std::inserter (diff, std::end (diff)));
-    return diff;
-}
-
 
 struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR        capabilities;
@@ -179,8 +151,8 @@ VkPhysicalDevice CreatePhysicalDevice (VkInstance instance, const std::set<std::
         vkGetPhysicalDeviceFeatures (device, &deviceFeatures);
 
         // check if the device supports all requested extensions
-        const std::set<std::string> supportedDeviceExtensionSet   = ToSet<VkExtensionProperties, std::string> (supportedDeviceExtensions, extensionNameAccessor);
-        const std::set<std::string> unsupportedDeviceExtensionSet = SetDiff (requestedDeviceExtensionSet, supportedDeviceExtensionSet);
+        const std::set<std::string> supportedDeviceExtensionSet   = Utils::ToSet<VkExtensionProperties, std::string> (supportedDeviceExtensions, extensionNameAccessor);
+        const std::set<std::string> unsupportedDeviceExtensionSet = Utils::SetDiff (requestedDeviceExtensionSet, supportedDeviceExtensionSet);
 
         if (unsupportedDeviceExtensionSet.empty ()) {
             physicalDeviceIndex = i;
@@ -200,7 +172,7 @@ VkPhysicalDevice CreatePhysicalDevice (VkInstance instance, const std::set<std::
 
 VkInstance CreateInstance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers)
 {
-    const std::set<std::string> requiredExtensionSet = ToSet<const char*, std::string> (instanceExtensions);
+    const std::set<std::string> requiredExtensionSet = Utils::ToSet<const char*, std::string> (instanceExtensions);
 
     // supported extensions
     std::set<std::string> supportedExtensionSet;
@@ -210,19 +182,19 @@ VkInstance CreateInstance (const std::vector<const char*>& instanceExtensions, c
         std::vector<VkExtensionProperties> supportedExtensions (extensionCount);
         vkEnumerateInstanceExtensionProperties (nullptr, &extensionCount, supportedExtensions.data ());
 
-        supportedExtensionSet = ToSet<VkExtensionProperties, std::string> (supportedExtensions, extensionNameAccessor);
+        supportedExtensionSet = Utils::ToSet<VkExtensionProperties, std::string> (supportedExtensions, extensionNameAccessor);
     }
 
     // check if the required extensions are supported
     {
-        const std::set<std::string> unsupportedExtensionSet = SetDiff (requiredExtensionSet, supportedExtensionSet);
+        const std::set<std::string> unsupportedExtensionSet = Utils::SetDiff (requiredExtensionSet, supportedExtensionSet);
         if (ERROR (!unsupportedExtensionSet.empty ())) {
             throw std::runtime_error ("not all instance extensions are supported");
         }
     }
 
 
-    std::set<std::string> requiredValidationLayerSet = ToSet<const char*, std::string> (instanceLayers);
+    std::set<std::string> requiredValidationLayerSet = Utils::ToSet<const char*, std::string> (instanceLayers);
 
     // supported validation layers
     std::set<std::string> supportedValidationLayerSet;
@@ -233,12 +205,12 @@ VkInstance CreateInstance (const std::vector<const char*>& instanceExtensions, c
         std::vector<VkLayerProperties> availableLayers (layerCount);
         vkEnumerateInstanceLayerProperties (&layerCount, availableLayers.data ());
 
-        supportedValidationLayerSet = ToSet<VkLayerProperties, std::string> (availableLayers, layerNameAccessor);
+        supportedValidationLayerSet = Utils::ToSet<VkLayerProperties, std::string> (availableLayers, layerNameAccessor);
     }
 
     // check if the required validation layers are supported
     {
-        const std::set<std::string> unsupportedValidationLayerSet = SetDiff (requiredValidationLayerSet, supportedValidationLayerSet);
+        const std::set<std::string> unsupportedValidationLayerSet = Utils::SetDiff (requiredValidationLayerSet, supportedValidationLayerSet);
         if (ERROR (!unsupportedValidationLayerSet.empty ())) {
             throw std::runtime_error ("not all validation layers are supported");
         }
@@ -624,52 +596,6 @@ PipelineCreateResult CreateGraphicsPipeline (
 }
 
 
-VkShaderModule CreateShaderModule (VkDevice                                    device,
-                                   const std::filesystem::path&                binaryFilePath,
-                                   const std::optional<std::filesystem::path>& reflectionFilePath = std::nullopt)
-{
-    std::optional<std::vector<char>> bytecode = Utils::ReadBinaryFile (binaryFilePath);
-    if (ERROR (!bytecode.has_value ())) {
-        throw std::runtime_error ("failed to read shader bytecode");
-    }
-
-    VkShaderModuleCreateInfo createInfo = {};
-    createInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize                 = static_cast<uint32_t> (bytecode->size ());
-    createInfo.pCode                    = reinterpret_cast<const uint32_t*> (bytecode->data ());
-
-    VkShaderModule result = VK_NULL_HANDLE;
-    if (ERROR (vkCreateShaderModule (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
-        throw std::runtime_error ("failed to create shader module");
-    }
-
-    if (reflectionFilePath.has_value ()) {
-        std::optional<std::string> reflectionJsonText = Utils::ReadTextFile (*reflectionFilePath);
-        if (ERROR (!reflectionJsonText.has_value ())) {
-            throw std::runtime_error ("failed to read reflection file");
-        }
-
-        json reflectionJson = json::parse (*reflectionJsonText);
-        for (const auto& ubo : reflectionJson["ubos"]) {
-            size_t uniformSize    = ubo["block_size"];
-            size_t uniformSet     = ubo["set"];
-            size_t uniformBinding = ubo["binding"];
-            std::cout << ubo["name"] << std::endl;
-            for (const auto& member : reflectionJson["types"][ubo["type"].get<std::string> ()]["members"]) {
-                std::cout << "\t" << member["name"] << std::endl;
-                std::cout << "\t" << member["offset"] << std::endl;
-                std::cout << "\t" << member["type"] << std::endl;
-            }
-        }
-        std::cout << *reflectionFilePath << std::endl;
-    }
-
-    return result;
-}
-
-#include <glm/glm.hpp>
-
-
 struct Vertex {
     glm::vec2 position;
     glm::vec3 color;
@@ -731,7 +657,6 @@ struct Buffer {
     VkBuffer       buffer;
     VkDeviceMemory memory;
 };
-
 
 
 Buffer CreateBufferMemory (VkPhysicalDevice physicalDevice, VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags)
@@ -897,6 +822,8 @@ std::optional<SPIRVBinary> CompileShader (const std::filesystem::path& fileLocat
         return std::nullopt;
     }
 
+    std::cout << "compiling " << fileLocation.string () << "... ";
+
     shaderc::Compiler       compiler;
     shaderc::CompileOptions options;
 
@@ -923,7 +850,36 @@ std::optional<SPIRVBinary> CompileShader (const std::filesystem::path& fileLocat
     std::string preps (preprocessedResult.cbegin (), preprocessedResult.cend ());
 #endif
 
+    std::cout << "done" << std::endl;
+
     return binary;
+}
+
+
+VkShaderModule CreateShaderModule (VkDevice device, const std::vector<uint32_t>& binary)
+{
+    VkShaderModuleCreateInfo createInfo = {};
+    createInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize                 = static_cast<uint32_t> (binary.size () * (sizeof (uint32_t) / sizeof (char))); // size must be in bytes
+    createInfo.pCode                    = reinterpret_cast<const uint32_t*> (binary.data ());
+
+    VkShaderModule result = VK_NULL_HANDLE;
+    if (ERROR (vkCreateShaderModule (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
+        throw std::runtime_error ("failed to create shader module");
+    }
+
+    return result;
+}
+
+
+VkShaderModule CompileAndCreateShaderModule (VkDevice device, const std::filesystem::path& fileLocation)
+{
+    std::optional<SPIRVBinary> binary = CompileShader (fileLocation);
+    if (ERROR (!binary.has_value ())) {
+        throw std::runtime_error ("failed to compile shader");
+    }
+
+    return CreateShaderModule (device, *binary);
 }
 
 
@@ -975,9 +931,13 @@ int main (int argc, char* argv[])
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
-    const std::set<std::string> requestedDeviceExtensionSet = ToSet<const char*, std::string> (requestedDeviceExtensions);
+    const std::set<std::string> requestedDeviceExtensionSet = Utils::ToSet<const char*, std::string> (requestedDeviceExtensions);
 
     const VkPhysicalDevice physicalDevice = CreatePhysicalDevice (instance, requestedDeviceExtensionSet);
+
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties (physicalDevice, &deviceProperties);
+    std::cout << deviceProperties.deviceName << std::endl;
 
     const QueueFamilies queueFamilyIndices = CreateQueueFamilyIndices (physicalDevice, surface);
 
@@ -1013,12 +973,10 @@ int main (int argc, char* argv[])
 
     std::vector<VkImageView> swapChainImageViews = CreateSwapchainImageViews (device, swapchain);
 
-    VkShaderModule vertexShaderModule = CreateShaderModule (device,
-                                                            Utils::PROJECT_ROOT / "src" / "shader.vert.spv",
-                                                            Utils::PROJECT_ROOT / "src" / "shader.vert.refl");
+    VkShaderModule vertexShaderModule = CompileAndCreateShaderModule (device, Utils::PROJECT_ROOT / "src" / "shader.vert");
     ASSERT (vertexShaderModule != VK_NULL_HANDLE);
 
-    VkShaderModule fragmentShaderModule = CreateShaderModule (device, Utils::PROJECT_ROOT / "src" / "shader.frag.spv");
+    VkShaderModule fragmentShaderModule = CompileAndCreateShaderModule (device, Utils::PROJECT_ROOT / "src" / "shader.frag");
     ASSERT (fragmentShaderModule != VK_NULL_HANDLE);
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo       = {};
