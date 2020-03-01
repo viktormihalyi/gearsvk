@@ -17,8 +17,8 @@ public:
 
 class TimerScope {
 private:
-    TimerObserver&                                     observer;
-    std::chrono::time_point<std::chrono::steady_clock> startTime;
+    TimerObserver&                                              observer;
+    std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 
 public:
     TimerScope (TimerObserver& observer)

@@ -46,6 +46,30 @@ std::set<T> SetDiff (const std::set<T>& left, const std::set<T>& right)
     return diff;
 }
 
+
+template<typename SourceType, typename DestinationType>
+std::vector<DestinationType> ConvertToHandles (const std::vector<std::unique_ptr<SourceType>>& src)
+{
+    std::vector<DestinationType> result;
+    for (const std::unique_ptr<SourceType>& s : src) {
+        ASSERT (s != nullptr);
+        result.push_back (static_cast<DestinationType> (*s));
+    }
+    return result;
+}
+
+
+template<typename SourceType, typename DestinationType>
+std::vector<DestinationType> ConvertToHandles (const std::vector<std::reference_wrapper<SourceType>>& src)
+{
+    std::vector<DestinationType> result;
+    for (const std::reference_wrapper<SourceType>& s : src) {
+        result.push_back (static_cast<DestinationType> (s.get ()));
+    }
+    return result;
+}
+
+
 } // namespace Utils
 
 #endif
