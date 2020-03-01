@@ -11,8 +11,11 @@
 #include "ImageView.hpp"
 #include "Instance.hpp"
 #include "PhysicalDevice.hpp"
+#include "ShaderModule.hpp"
 #include "Surface.hpp"
 #include "Swapchain.hpp"
+
+#include "ShaderReflection.hpp"
 
 #include <array>
 #include <cstdint>
@@ -424,109 +427,8 @@ void UpdateUniformBuffer (VkDevice device, VkDeviceMemory memory, const Swapchai
 }
 
 
-#include "ShaderReflection.hpp"
-#include <shaderc/shaderc.hpp>
-#include <spirv_cross.hpp>
-#include <spirv_reflect.hpp>
-
-
-static shaderc_shader_kind GetShaderKindFromExtension (const std::string& extension)
-{
-    if (extension == ".vert") {
-        return shaderc_vertex_shader;
-    } else if (extension == ".frag") {
-        return shaderc_fragment_shader;
-    } else if (extension == ".geom") {
-        return shaderc_geometry_shader;
-    } else if (extension == ".comp") {
-        return shaderc_compute_shader;
-    } else if (extension == ".tesc") {
-        return shaderc_tess_control_shader;
-    } else if (extension == ".tese") {
-        return shaderc_tess_evaluation_shader;
-    } else {
-        ERROR (true);
-        return shaderc_vertex_shader;
-    }
-}
-
-
-using SPIRVBinary = std::vector<uint32_t>;
-
-std::optional<SPIRVBinary> CompileShader (const std::filesystem::path& fileLocation,
-                                          shaderc_optimization_level   optimizationLevel = shaderc_optimization_level_zero)
-{
-    std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
-    if (ERROR (!fileContents.has_value ())) {
-        return std::nullopt;
-    }
-
-    std::cout << "compiling " << fileLocation.string () << "... ";
-
-    shaderc::Compiler       compiler;
-    shaderc::CompileOptions options;
-
-    options.AddMacroDefinition ("MY_DEFINE", "1");
-    options.SetOptimizationLevel (optimizationLevel);
-    options.SetGenerateDebugInfo ();
-
-    const shaderc_shader_kind shaderKind = GetShaderKindFromExtension (fileLocation.extension ().u8string ());
-
-    // #define DEBUG_COMPILE_ALL
-
-    shaderc::SpvCompilationResult binaryResult = compiler.CompileGlslToSpv (*fileContents, shaderKind, fileLocation.u8string ().c_str (), options);
-    std::vector<uint32_t>         binary (binaryResult.cbegin (), binaryResult.cend ());
-
-    if (binaryResult.GetCompilationStatus () != shaderc_compilation_status_success) {
-        return std::nullopt;
-    }
-
-#ifdef DEBUG_COMPILE_ALL
-    shaderc::AssemblyCompilationResult           asemblyResult      = compiler.CompileGlslToSpvAssembly (*fileContents, shaderKind, fileLocation.u8string ().c_str (), options);
-    shaderc::PreprocessedSourceCompilationResult preprocessedResult = compiler.PreprocessGlsl (*fileContents, shaderKind, fileLocation.u8string ().c_str (), options);
-
-    std::string assembly (asemblyResult.cbegin (), asemblyResult.cend ());
-    std::string preps (preprocessedResult.cbegin (), preprocessedResult.cend ());
-#endif
-
-    std::cout << "done" << std::endl;
-
-    return binary;
-}
-
-
-VkShaderModule CreateShaderModule (VkDevice device, const std::vector<uint32_t>& binary)
-{
-    VkShaderModuleCreateInfo createInfo = {};
-    createInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize                 = static_cast<uint32_t> (binary.size () * (sizeof (uint32_t) / sizeof (char))); // size must be in bytes
-    createInfo.pCode                    = reinterpret_cast<const uint32_t*> (binary.data ());
-
-    VkShaderModule result = VK_NULL_HANDLE;
-    if (ERROR (vkCreateShaderModule (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
-        throw std::runtime_error ("failed to create shader module");
-    }
-
-    return result;
-}
-
-
-VkShaderModule CompileAndCreateShaderModule (VkDevice device, const std::filesystem::path& fileLocation)
-{
-    std::optional<SPIRVBinary> binary = CompileShader (fileLocation);
-    if (ERROR (!binary.has_value ())) {
-        throw std::runtime_error ("failed to compile shader");
-    }
-
-    return CreateShaderModule (device, *binary);
-}
-
-
 int main (int argc, char* argv[])
 {
-    std::optional<SPIRVBinary> binary = CompileShader (Utils::PROJECT_ROOT / "src" / "shader.vert");
-
-
     std::cout << Utils::PROJECT_ROOT.u8string () << std::endl;
 
     uint32_t apiVersion;
@@ -595,26 +497,12 @@ int main (int argc, char* argv[])
     UploadToHostCoherent (device, stagingBuffer.memory, vertices.data (), bufferSize);
 
 
-    VkShaderModule vertexShaderModule = CompileAndCreateShaderModule (device, Utils::PROJECT_ROOT / "src" / "shader.vert");
-    ASSERT (vertexShaderModule != VK_NULL_HANDLE);
+    ShaderModule vertexShaderModule (device, Utils::PROJECT_ROOT / "src" / "shader.vert");
+    ShaderModule fragmentShaderModule (device, Utils::PROJECT_ROOT / "src" / "shader.frag");
 
-    VkShaderModule fragmentShaderModule = CompileAndCreateShaderModule (device, Utils::PROJECT_ROOT / "src" / "shader.frag");
-    ASSERT (fragmentShaderModule != VK_NULL_HANDLE);
-
-    VkPipelineShaderStageCreateInfo vertShaderStageInfo       = {};
-    vertShaderStageInfo.sType                                 = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vertShaderStageInfo.stage                                 = VK_SHADER_STAGE_VERTEX_BIT;
-    vertShaderStageInfo.module                                = vertexShaderModule;
-    vertShaderStageInfo.pName                                 = "main";
-    VkPipelineShaderStageCreateInfo fragShaderStageInfo       = {};
-    fragShaderStageInfo.sType                                 = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    fragShaderStageInfo.stage                                 = VK_SHADER_STAGE_FRAGMENT_BIT;
-    fragShaderStageInfo.module                                = fragmentShaderModule;
-    fragShaderStageInfo.pName                                 = "main";
-    std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {vertShaderStageInfo, fragShaderStageInfo};
-
-    std::vector<VkVertexInputBindingDescription>   vibds = {Vertex::GetBindingDescription ()};
-    std::vector<VkVertexInputAttributeDescription> viads = Vertex::GetAttributeDescriptions ();
+    std::vector<VkPipelineShaderStageCreateInfo>   shaderStages = {vertexShaderModule.GetShaderStageCreateInfo (), fragmentShaderModule.GetShaderStageCreateInfo ()};
+    std::vector<VkVertexInputBindingDescription>   vibds        = {Vertex::GetBindingDescription ()};
+    std::vector<VkVertexInputAttributeDescription> viads        = Vertex::GetAttributeDescriptions ();
 
 
     VkDescriptorSetLayoutBinding uboLayoutBinding = {};
@@ -652,18 +540,6 @@ int main (int argc, char* argv[])
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
     }
-
-    if (binary) {
-        Gears::ShaderReflection refl (*binary);
-        for (const auto& u : refl.GeUniformData ()) {
-            uniformBuffers.push_back (CreateBufferMemory (
-                physicalDevice, device,
-                u.blockSize,
-                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
-        }
-    }
-
 
     VkDescriptorPoolSize poolSize       = {};
     poolSize.type                       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -880,9 +756,6 @@ int main (int argc, char* argv[])
     });
 
     vkDeviceWaitIdle (device);
-
-    vkDestroyShaderModule (device, vertexShaderModule, nullptr);
-    vkDestroyShaderModule (device, fragmentShaderModule, nullptr);
 
     vkDestroyBuffer (device, stagingBuffer.buffer, nullptr);
     vkDestroyBuffer (device, vertexBuffer.buffer, nullptr);
