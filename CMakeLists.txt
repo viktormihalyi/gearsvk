@@ -17,7 +17,6 @@ add_executable (${TARGET_NAME}
     src/Utils/MessageBox.cpp
     src/Utils/SourceLocation.cpp
     src/Utils/Utils.cpp
-    src/VulkanWrapper/ShaderModule.cpp
     src/main.cpp
     src/GLFWWindowProvider.cpp
     src/ShaderReflection.cpp
