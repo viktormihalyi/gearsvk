@@ -497,8 +497,8 @@ int main (int argc, char* argv[])
     UploadToHostCoherent (device, stagingBuffer.memory, vertices.data (), bufferSize);
 
 
-    ShaderModule vertexShaderModule (device, Utils::PROJECT_ROOT / "src" / "shader.vert");
-    ShaderModule fragmentShaderModule (device, Utils::PROJECT_ROOT / "src" / "shader.frag");
+    ShaderModule vertexShaderModule (device, Utils::PROJECT_ROOT / "shaders" / "shader.vert");
+    ShaderModule fragmentShaderModule (device, Utils::PROJECT_ROOT / "shaders" / "shader.frag");
 
     std::vector<VkPipelineShaderStageCreateInfo>   shaderStages = {vertexShaderModule.GetShaderStageCreateInfo (), fragmentShaderModule.GetShaderStageCreateInfo ()};
     std::vector<VkVertexInputBindingDescription>   vibds        = {Vertex::GetBindingDescription ()};

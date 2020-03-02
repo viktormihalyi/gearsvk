@@ -5,6 +5,7 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
+#include <iostream>
 #include <shaderc/shaderc.hpp>
 #include <spirv_cross.hpp>
 #include <spirv_reflect.hpp>
