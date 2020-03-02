@@ -10,8 +10,8 @@
 
 class Swapchain : public Noncopyable {
 private:
-    VkPhysicalDevice physicalDevice;
-    VkDevice         device;
+    const VkPhysicalDevice physicalDevice;
+    const VkDevice         device;
 
 public:
     // TODO private
@@ -22,8 +22,8 @@ public:
         VkExtent2D         extent;
     };
 
-    SwapchainCreateResult                   result;
-    std::vector<std::unique_ptr<ImageView>> imageViews;
+    const SwapchainCreateResult                   result;
+    const std::vector<std::unique_ptr<ImageView>> imageViews;
 
 private:
     struct SwapChainSupportDetails {
@@ -36,7 +36,7 @@ private:
     static VkSurfaceFormatKHR ChooseSwapSurfaceFormat (const std::vector<VkSurfaceFormatKHR>& formats)
     {
         if (ERROR (formats.empty ())) {
-            return {};
+            throw std::runtime_error ("empty surface format array");
         }
 
         for (const VkSurfaceFormatKHR& availableFormat : formats) {
@@ -45,9 +45,7 @@ private:
             }
         }
 
-        ERROR (true);
-
-        return formats[0];
+        throw std::runtime_error ("failed to choose swapchain surface format");
     }
 
 
@@ -57,7 +55,7 @@ private:
             throw std::runtime_error ("empty present modes array");
         }
 
-        for (const VkPresentModeKHR& availablePresentMode : modes) {
+        for (VkPresentModeKHR availablePresentMode : modes) {
             if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) { // use VK_PRESENT_MODE_FIFO_KHR for frame limiting ??
                 return availablePresentMode;
             }
