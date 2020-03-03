@@ -19,6 +19,7 @@
 #include "Framebuffer.hpp"
 #include "ImageView.hpp"
 #include "Instance.hpp"
+#include "MemoryMapping.hpp"
 #include "PhysicalDevice.hpp"
 #include "Pipeline.hpp"
 #include "PipelineLayout.hpp"
@@ -70,11 +71,20 @@ struct PipelineCreateResultU {
 };
 
 
+struct VertexInfoBase {
+    virtual std::vector<VkVertexInputBindingDescription>   GetBindingDescriptions () const   = 0;
+    virtual std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions () const = 0;
+};
+
 struct Vertex {
+    static const std::unique_ptr<VertexInfoBase> info;
+
     glm::vec2 position;
     glm::vec3 color;
+};
 
-    static VkVertexInputBindingDescription GetBindingDescription ()
+struct VertexInfo : public VertexInfoBase {
+    std::vector<VkVertexInputBindingDescription> GetBindingDescriptions () const override
     {
         VkVertexInputBindingDescription bindingDescription = {};
 
@@ -82,10 +92,10 @@ struct Vertex {
         bindingDescription.stride    = sizeof (Vertex);
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-        return bindingDescription;
+        return {bindingDescription};
     }
 
-    static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions ()
+    std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions () const override
     {
         std::vector<VkVertexInputAttributeDescription> result;
 
@@ -111,6 +121,8 @@ struct Vertex {
     }
 };
 
+const std::unique_ptr<VertexInfoBase> Vertex::info = std::make_unique<VertexInfo> ();
+
 
 uint32_t FindMemoryType (VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
@@ -130,19 +142,23 @@ uint32_t FindMemoryType (VkPhysicalDevice physicalDevice, uint32_t typeFilter, V
 struct BufferMemoryU {
     std::unique_ptr<Buffer>       buffer;
     std::unique_ptr<DeviceMemory> memory;
+    uint32_t                      bufferSize;
+    uint32_t                      allocatedSize;
 };
 
 
 BufferMemoryU CreateBufferMemoryU (VkPhysicalDevice physicalDevice, VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags)
 {
     BufferMemoryU result;
-    result.buffer = std::make_unique<Buffer> (device, bufferSize, usageFlags);
+    result.bufferSize = bufferSize;
+    result.buffer     = std::make_unique<Buffer> (device, bufferSize, usageFlags);
 
     VkMemoryRequirements memRequirements = {};
     vkGetBufferMemoryRequirements (device, *result.buffer, &memRequirements);
     uint32_t memoryTypeIndex = FindMemoryType (physicalDevice, memRequirements.memoryTypeBits, propertyFlags);
 
-    result.memory = std::make_unique<DeviceMemory> (device, memRequirements.size, memoryTypeIndex);
+    result.memory        = std::make_unique<DeviceMemory> (device, memRequirements.size, memoryTypeIndex);
+    result.allocatedSize = memRequirements.size;
 
     if (ERROR (vkBindBufferMemory (device, *result.buffer, *result.memory, 0) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to bind buffer memory");
@@ -187,37 +203,6 @@ void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPo
 }
 
 
-class MemoryMapping : public Noncopyable {
-private:
-    const VkDevice       device;
-    const VkDeviceMemory memory;
-
-    void* mappedMemory;
-
-public:
-    MemoryMapping (VkDevice device, VkDeviceMemory memory, uint32_t offset, uint32_t size)
-        : device (device)
-        , memory (memory)
-        , mappedMemory (nullptr)
-
-    {
-        if (ERROR (vkMapMemory (device, memory, offset, size, 0, &mappedMemory) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to map memory");
-        }
-    }
-
-    ~MemoryMapping ()
-    {
-        vkUnmapMemory (device, memory);
-    }
-
-    void* Get () const
-    {
-        return mappedMemory;
-    }
-};
-
-
 void UploadToHostCoherent (VkDevice device, VkDeviceMemory memory, uint32_t offset, const void* data, size_t bytes)
 {
     MemoryMapping mapping (device, memory, offset, bytes);
@@ -237,24 +222,26 @@ struct UBOTime {
 };
 
 
-void UpdateUniformBuffer (VkDevice device, VkDeviceMemory memory, float asp, uint32_t currentImage)
+static UniformBufferObject GetMPV (float asp)
 {
     static auto startTime = std::chrono::high_resolution_clock::now ();
 
     auto  currentTime = std::chrono::high_resolution_clock::now ();
     float time        = std::chrono::duration<float, std::chrono::seconds::period> (currentTime - startTime).count ();
 
-    Utils::DummyTimerLogger logger;
-    {
-        Utils::TimerScope timerScope (logger);
+    UniformBufferObject ubo = {};
+    ubo.m                   = glm::rotate (glm::mat4 (1.0f), time * glm::radians (90.0f), glm::vec3 (0.0f, 0.0f, 1.0f));
+    ubo.v                   = glm::lookAt (glm::vec3 (2.0f, 2.0f, 2.0f), glm::vec3 (0.0f, 0.0f, 0.0f), glm::vec3 (0.0f, 0.0f, 1.0f));
+    ubo.p                   = glm::perspective (glm::radians (45.0f), asp, 0.1f, 10.0f);
+    ubo.p[1][1] *= -1;
+    return ubo;
+}
 
-        UniformBufferObject ubo = {};
-        ubo.m                   = glm::rotate (glm::mat4 (1.0f), time * glm::radians (90.0f), glm::vec3 (0.0f, 0.0f, 1.0f));
-        ubo.v                   = glm::lookAt (glm::vec3 (2.0f, 2.0f, 2.0f), glm::vec3 (0.0f, 0.0f, 0.0f), glm::vec3 (0.0f, 0.0f, 1.0f));
-        ubo.p                   = glm::perspective (glm::radians (45.0f), asp, 0.1f, 10.0f);
-        ubo.p[1][1] *= -1;
-        UploadToHostCoherent (device, memory, 0, &ubo, sizeof (ubo));
-    }
+
+void UpdateUniformBuffer (VkDevice device, VkDeviceMemory memory, float asp, uint32_t currentImage)
+{
+    UniformBufferObject ubo = GetMPV (asp);
+    UploadToHostCoherent (device, memory, 0, &ubo, sizeof (ubo));
 }
 
 
@@ -355,10 +342,6 @@ int main (int argc, char* argv[])
         }
     };
 
-    struct VertexBase {
-        virtual std::vector<VkVertexInputBindingDescription> GetBindingDescriptions () const   = 0;
-        virtual std::vector<VkVertexInputBindingDescription> GetAttributeDescriptions () const = 0;
-    };
 
     Shader theShader;
     theShader.vertexShader   = std::make_unique<ShaderModule> (device, Utils::PROJECT_ROOT / "shaders" / "shader.vert");
@@ -366,8 +349,20 @@ int main (int argc, char* argv[])
 
     Gears::ShaderReflection refl (theShader.vertexShader->binary);
 
+    struct UniformData {
+        // one for each swapchain image
+        std::vector<BufferMemoryU>                  buffers;
+        std::vector<std::unique_ptr<MemoryMapping>> mapping;
+
+        Gears::UniformBlock reflection;
+    };
+
+    std::unordered_map<std::string, UniformData> uniforms;
+
     std::vector<VkDescriptorSetLayoutBinding> uboLayoutBindings;
     for (const auto& ubo : refl.GeUniformData ()) {
+        uniforms[ubo.name].reflection = ubo;
+
         VkDescriptorSetLayoutBinding uboLayoutBinding = {};
         uboLayoutBinding.binding                      = ubo.binding;
         uboLayoutBinding.descriptorCount              = 1;
@@ -375,48 +370,20 @@ int main (int argc, char* argv[])
         uboLayoutBinding.pImmutableSamplers           = nullptr;
         uboLayoutBinding.stageFlags                   = VK_SHADER_STAGE_VERTEX_BIT;
         uboLayoutBindings.push_back (uboLayoutBinding);
+
+        for (int i = 0; i < swapchain.GetImageCount (); ++i) {
+            BufferMemoryU b = CreateBufferMemoryU (
+                physicalDevice, device,
+                ubo.blockSize,
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+            uniforms[ubo.name].mapping.push_back (std::make_unique<MemoryMapping> (device, *b.memory, 0, b.bufferSize));
+            uniforms[ubo.name].buffers.push_back (std::move (b));
+        }
     }
 
-    DescriptorSetLayout layout_wt (device, uboLayoutBindings);
-
-
-    std::vector<VkPipelineShaderStageCreateInfo>   shaderStages = theShader.GetShaderStages ();
-    std::vector<VkVertexInputBindingDescription>   vibds        = {Vertex::GetBindingDescription ()};
-    std::vector<VkVertexInputAttributeDescription> viads        = Vertex::GetAttributeDescriptions ();
-
-
-    VkDescriptorSetLayoutBinding uboLayoutBinding1 = {};
-    uboLayoutBinding1.binding                      = 0;
-    uboLayoutBinding1.descriptorCount              = 1;
-    uboLayoutBinding1.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding1.pImmutableSamplers           = nullptr;
-    uboLayoutBinding1.stageFlags                   = VK_SHADER_STAGE_VERTEX_BIT;
-
-    VkDescriptorSetLayoutBinding uboLayoutBinding2 = {};
-    uboLayoutBinding2.binding                      = 1;
-    uboLayoutBinding2.descriptorCount              = 1;
-    uboLayoutBinding2.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding2.pImmutableSamplers           = nullptr;
-    uboLayoutBinding2.stageFlags                   = VK_SHADER_STAGE_VERTEX_BIT;
-
-    DescriptorSetLayout layout (device, {uboLayoutBinding1, uboLayoutBinding2});
-
-    std::vector<BufferMemoryU> uniformBuffers;
-    std::vector<BufferMemoryU> uniformBuffersTime;
-
-
-    for (int i = 0; i < swapchain.GetImageCount (); ++i) {
-        uniformBuffers.push_back (CreateBufferMemoryU (
-            physicalDevice, device,
-            sizeof (UniformBufferObject),
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
-        uniformBuffersTime.push_back (CreateBufferMemoryU (
-            physicalDevice, device,
-            sizeof (UBOTime),
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
-    }
+    DescriptorSetLayout layout (device, uboLayoutBindings);
 
     DescriptorPool descriptorPool (device, swapchain.GetImageCount (), swapchain.GetImageCount ());
 
@@ -427,42 +394,34 @@ int main (int argc, char* argv[])
 
     const std::vector<VkDescriptorSet> descriptorSetsHandles = Utils::ConvertToHandles<DescriptorSet, VkDescriptorSet> (descriptorSets);
 
-    for (size_t i = 0; i < swapchain.GetImageCount (); ++i) {
-        VkDescriptorBufferInfo bufferInfo;
-        bufferInfo.buffer = *uniformBuffers[i].buffer;
-        bufferInfo.offset = 0;
-        bufferInfo.range  = sizeof (UniformBufferObject);
 
-        VkDescriptorBufferInfo bufferInfo2;
-        bufferInfo2.buffer = *uniformBuffersTime[i].buffer;
-        bufferInfo2.offset = 0;
-        bufferInfo2.range  = sizeof (UBOTime);
+    for (const auto& [uboName, uboData] : uniforms) {
+        for (size_t i = 0; i < swapchain.GetImageCount (); ++i) {
+            VkDescriptorBufferInfo bufferInfo;
+            bufferInfo.buffer = *uboData.buffers[i].buffer;
+            bufferInfo.offset = 0;
+            bufferInfo.range  = uboData.buffers[i].bufferSize;
 
-        VkWriteDescriptorSet descriptorWrite = {};
-        descriptorWrite.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.dstSet               = *descriptorSets[i];
-        descriptorWrite.dstBinding           = 0;
-        descriptorWrite.dstArrayElement      = 0;
-        descriptorWrite.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrite.descriptorCount      = 1;
-        descriptorWrite.pBufferInfo          = &bufferInfo;
-        descriptorWrite.pImageInfo           = nullptr; // Optional
-        descriptorWrite.pTexelBufferView     = nullptr; // Optional
+            VkWriteDescriptorSet descriptorWrite = {};
+            descriptorWrite.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet               = *descriptorSets[i];
+            descriptorWrite.dstBinding           = uniforms[uboName].reflection.binding;
+            descriptorWrite.dstArrayElement      = 0;
+            descriptorWrite.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrite.descriptorCount      = 1;
+            descriptorWrite.pBufferInfo          = &bufferInfo;
+            descriptorWrite.pImageInfo           = nullptr; // Optional
+            descriptorWrite.pTexelBufferView     = nullptr; // Optional
 
-        VkWriteDescriptorSet descriptorWrite2 = {};
-        descriptorWrite2.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite2.dstSet               = *descriptorSets[i];
-        descriptorWrite2.dstBinding           = 1;
-        descriptorWrite2.dstArrayElement      = 0;
-        descriptorWrite2.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrite2.descriptorCount      = 1;
-        descriptorWrite2.pBufferInfo          = &bufferInfo2;
-        descriptorWrite2.pImageInfo           = nullptr; // Optional
-        descriptorWrite2.pTexelBufferView     = nullptr; // Optional
-
-        vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
-        vkUpdateDescriptorSets (device, 1, &descriptorWrite2, 0, nullptr);
+            vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
+        }
     }
+
+
+    std::vector<VkPipelineShaderStageCreateInfo>   shaderStages = theShader.GetShaderStages ();
+    std::vector<VkVertexInputBindingDescription>   vibds        = Vertex::info->GetBindingDescriptions ();
+    std::vector<VkVertexInputAttributeDescription> viads        = Vertex::info->GetAttributeDescriptions ();
+
 
     VkAttachmentDescription colorAttachment = {};
     colorAttachment.format                  = swapchain.surfaceFormat.format;
@@ -623,9 +582,11 @@ int main (int argc, char* argv[])
         // Mark the image as now being in use by this frame
         imagesInFlight[imageIndex] = *inFlightFences[currentFrame];
 
-        UpdateUniformBuffer (device, *uniformBuffers[imageIndex].memory, static_cast<float> (swapchain.extent.width) / swapchain.extent.height, imageIndex);
+        UniformBufferObject ubo = GetMPV (static_cast<float> (swapchain.extent.width) / swapchain.extent.height);
+        memcpy (uniforms["UniformBufferObject"].mapping[imageIndex]->Get (), &ubo, sizeof (ubo));
+
         float t = 1.0f;
-        UploadToHostCoherent (device, *uniformBuffersTime[imageIndex].memory, 0, &t, sizeof (t));
+        memcpy (uniforms["Time"].mapping[imageIndex]->Get (), &t, sizeof (t));
 
         VkSemaphore waitSemaphores[]   = {*imageAvailableSemaphore[currentFrame]};
         VkSemaphore signalSemaphores[] = {*renderFinishedSemaphore[currentFrame]};
