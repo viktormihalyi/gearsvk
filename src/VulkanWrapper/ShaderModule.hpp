@@ -3,6 +3,7 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
+#include "ShaderReflection.hpp"
 #include "Utils.hpp"
 
 #include <iostream>
@@ -13,11 +14,15 @@
 
 class ShaderModule : public Noncopyable {
 private:
-    const VkDevice        device;
-    VkShaderModule        handle;
-    std::filesystem::path fileLocation;
-
     using SPIRVBinary = std::vector<uint32_t>;
+
+    const VkDevice              device;
+    VkShaderModule              handle;
+    const std::filesystem::path fileLocation;
+
+public:
+    SPIRVBinary binary;
+private:
 
     static VkShaderStageFlagBits GetShaderStageFromExtension (const std::string& extension)
     {
@@ -116,22 +121,19 @@ private:
         return result;
     }
 
-    static VkShaderModule CompileAndCreateShaderModule (VkDevice device, const std::filesystem::path& fileLocation)
+public:
+    ShaderModule (VkDevice device, const std::filesystem::path& fileLocation)
+        : device (device)
+        , fileLocation (fileLocation)
     {
         std::optional<SPIRVBinary> binary = CompileShader (fileLocation);
         if (ERROR (!binary.has_value ())) {
             throw std::runtime_error ("failed to compile shader");
         }
 
-        return CreateShaderModule (device, *binary);
-    }
+        this->binary = *binary;
 
-public:
-    ShaderModule (VkDevice device, const std::filesystem::path& fileLocation)
-        : device (device)
-        , handle (CompileAndCreateShaderModule (device, fileLocation))
-        , fileLocation (fileLocation)
-    {
+        handle = CreateShaderModule (device, *binary);
     }
 
     ~ShaderModule ()

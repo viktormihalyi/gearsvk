@@ -2,15 +2,28 @@
 #include "GLFWWindowProvider.hpp"
 #include "Logger.hpp"
 #include "Noncopyable.hpp"
-#include "ShaderModule.hpp"
 #include "Timer.hpp"
 #include "Utils.hpp"
 
+// from VulkanWrapper
+#include "Buffer.hpp"
+#include "CommandBuffer.hpp"
+#include "CommandPool.hpp"
+#include "DebugUtilsMessenger.hpp"
+#include "DescriptorPool.hpp"
+#include "DescriptorSet.hpp"
+#include "DescriptorSetLayout.hpp"
 #include "Device.hpp"
+#include "DeviceMemory.hpp"
+#include "Fence.hpp"
 #include "Framebuffer.hpp"
 #include "ImageView.hpp"
 #include "Instance.hpp"
 #include "PhysicalDevice.hpp"
+#include "Pipeline.hpp"
+#include "PipelineLayout.hpp"
+#include "RenderPass.hpp"
+#include "Semaphore.hpp"
 #include "ShaderModule.hpp"
 #include "Surface.hpp"
 #include "Swapchain.hpp"
@@ -32,15 +45,9 @@
 
 #include <vulkan/vulkan.h>
 
-#include <nlohmann/json.hpp>
-
-#include <glm/glm.hpp>
 
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
-
-using json = nlohmann::json;
-
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 4;
 
@@ -55,245 +62,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
     return VK_FALSE;
 }
 
-VkResult CreateDebugUtilsMessengerEXT (VkInstance                                instance,
-                                       const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-                                       const VkAllocationCallbacks*              pAllocator,
-                                       VkDebugUtilsMessengerEXT*                 pDebugMessenger)
-{
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr (instance, "vkCreateDebugUtilsMessengerEXT");
-    if (func != nullptr) {
-        return func (instance, pCreateInfo, pAllocator, pDebugMessenger);
-    } else {
-        return VK_ERROR_EXTENSION_NOT_PRESENT;
-    }
-}
 
-
-void DestroyDebugUtilsMessengerEXT (VkInstance                   instance,
-                                    VkDebugUtilsMessengerEXT     debugMessenger,
-                                    const VkAllocationCallbacks* pAllocator)
-{
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr (instance, "vkDestroyDebugUtilsMessengerEXT");
-    if (func != nullptr) {
-        func (instance, debugMessenger, pAllocator);
-    }
-}
-
-
-struct PipelineCreateResult {
-    VkPipeline       handle;
-    VkRenderPass     renderPass;
-    VkPipelineLayout pipelineLayout;
+struct PipelineCreateResultU {
+    std::unique_ptr<Pipeline>       handle;
+    std::unique_ptr<RenderPass>     renderPass;
+    std::unique_ptr<PipelineLayout> pipelineLayout;
 };
-
-
-class PipelineLayout : public Noncopyable {
-private:
-    const VkDevice         device;
-    const VkPipelineLayout handle;
-
-    static VkPipelineLayout CreatePipelineLayout (VkDevice device, const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts)
-    {
-        VkPipelineLayout handle;
-
-        VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-        pipelineLayoutInfo.sType                      = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount             = static_cast<uint32_t> (descriptorSetLayouts.size ());
-        pipelineLayoutInfo.pSetLayouts                = descriptorSetLayouts.data ();
-        pipelineLayoutInfo.pushConstantRangeCount     = 0;       // Optional
-        pipelineLayoutInfo.pPushConstantRanges        = nullptr; // Optional
-
-        PipelineCreateResult result;
-
-        if (ERROR (vkCreatePipelineLayout (device, &pipelineLayoutInfo, nullptr, &handle) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to create pipeline layout");
-        }
-
-        return handle;
-    }
-
-public:
-    PipelineLayout (VkDevice device, const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts)
-        : device (device)
-        , handle (CreatePipelineLayout (device, descriptorSetLayouts))
-    {
-    }
-
-    ~PipelineLayout ()
-    {
-        vkDestroyPipelineLayout (device, handle, nullptr);
-    }
-
-    operator VkPipelineLayout () const
-    {
-        return handle;
-    }
-};
-
-
-PipelineCreateResult CreateGraphicsPipeline (
-    VkDevice                                              device,
-    Swapchain::SwapchainCreateResult                      swapchain,
-    const std::vector<VkPipelineShaderStageCreateInfo>&   shaderStages,
-    const std::vector<VkVertexInputBindingDescription>&   vertexBindingDescriptions,
-    const std::vector<VkVertexInputAttributeDescription>& vertexAttributeDescriptions,
-    const std::vector<VkDescriptorSetLayout>&             descriptorSetLayouts)
-{
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-    pipelineLayoutInfo.sType                      = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount             = static_cast<uint32_t> (descriptorSetLayouts.size ());
-    pipelineLayoutInfo.pSetLayouts                = descriptorSetLayouts.data ();
-    pipelineLayoutInfo.pushConstantRangeCount     = 0;       // Optional
-    pipelineLayoutInfo.pPushConstantRanges        = nullptr; // Optional
-
-    PipelineCreateResult result;
-
-    if (ERROR (vkCreatePipelineLayout (device, &pipelineLayoutInfo, nullptr, &result.pipelineLayout) != VK_SUCCESS)) {
-        throw std::runtime_error ("failed to create pipeline layout");
-    }
-
-
-    std::vector<VkDynamicState> dynamicStates = {
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_LINE_WIDTH,
-    };
-
-
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo     = {};
-    vertexInputInfo.sType                                    = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount            = static_cast<uint32_t> (vertexBindingDescriptions.size ());
-    vertexInputInfo.pVertexBindingDescriptions               = vertexBindingDescriptions.data ();
-    vertexInputInfo.vertexAttributeDescriptionCount          = static_cast<uint32_t> (vertexAttributeDescriptions.size ());
-    vertexInputInfo.pVertexAttributeDescriptions             = vertexAttributeDescriptions.data ();
-    VkPipelineInputAssemblyStateCreateInfo inputAssembly     = {};
-    inputAssembly.sType                                      = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssembly.topology                                   = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    inputAssembly.primitiveRestartEnable                     = VK_FALSE;
-    VkViewport viewport                                      = {};
-    viewport.x                                               = 0.0f;
-    viewport.y                                               = 0.0f;
-    viewport.width                                           = static_cast<float> (swapchain.extent.width);
-    viewport.height                                          = static_cast<float> (swapchain.extent.height);
-    viewport.minDepth                                        = 0.0f;
-    viewport.maxDepth                                        = 1.0f;
-    VkRect2D scissor                                         = {};
-    scissor.offset                                           = {0, 0};
-    scissor.extent                                           = swapchain.extent;
-    VkPipelineViewportStateCreateInfo viewportState          = {};
-    viewportState.sType                                      = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    viewportState.viewportCount                              = 1;
-    viewportState.pViewports                                 = &viewport;
-    viewportState.scissorCount                               = 1;
-    viewportState.pScissors                                  = &scissor;
-    VkPipelineRasterizationStateCreateInfo rasterizer        = {};
-    rasterizer.sType                                         = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    rasterizer.depthClampEnable                              = VK_FALSE;
-    rasterizer.rasterizerDiscardEnable                       = VK_FALSE;
-    rasterizer.polygonMode                                   = VK_POLYGON_MODE_FILL;
-    rasterizer.lineWidth                                     = 1.0f;
-    rasterizer.cullMode                                      = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace                                     = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    rasterizer.depthBiasEnable                               = VK_FALSE;
-    rasterizer.depthBiasConstantFactor                       = 0.0f; // Optional
-    rasterizer.depthBiasClamp                                = 0.0f; // Optional
-    rasterizer.depthBiasSlopeFactor                          = 0.0f; // Optional
-    VkPipelineMultisampleStateCreateInfo multisampling       = {};
-    multisampling.sType                                      = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisampling.sampleShadingEnable                        = VK_FALSE;
-    multisampling.rasterizationSamples                       = VK_SAMPLE_COUNT_1_BIT;
-    multisampling.minSampleShading                           = 1.0f;     // Optional
-    multisampling.pSampleMask                                = nullptr;  // Optional
-    multisampling.alphaToCoverageEnable                      = VK_FALSE; // Optional
-    multisampling.alphaToOneEnable                           = VK_FALSE; // Optional
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-    colorBlendAttachment.colorWriteMask                      = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    colorBlendAttachment.blendEnable                         = VK_TRUE;
-    colorBlendAttachment.srcColorBlendFactor                 = VK_BLEND_FACTOR_SRC_ALPHA;
-    colorBlendAttachment.dstColorBlendFactor                 = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    colorBlendAttachment.colorBlendOp                        = VK_BLEND_OP_ADD;
-    colorBlendAttachment.srcAlphaBlendFactor                 = VK_BLEND_FACTOR_ONE;
-    colorBlendAttachment.dstAlphaBlendFactor                 = VK_BLEND_FACTOR_ZERO;
-    colorBlendAttachment.alphaBlendOp                        = VK_BLEND_OP_ADD;
-    VkPipelineColorBlendStateCreateInfo colorBlending        = {};
-    colorBlending.sType                                      = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-    colorBlending.logicOpEnable                              = VK_FALSE;
-    colorBlending.logicOp                                    = VK_LOGIC_OP_COPY; // Optional
-    colorBlending.attachmentCount                            = 1;
-    colorBlending.pAttachments                               = &colorBlendAttachment;
-    colorBlending.blendConstants[0]                          = 0.0f; // Optional
-    colorBlending.blendConstants[1]                          = 0.0f; // Optional
-    colorBlending.blendConstants[2]                          = 0.0f; // Optional
-    colorBlending.blendConstants[3]                          = 0.0f; // Optional
-    VkPipelineDynamicStateCreateInfo dynamicState            = {};
-    dynamicState.sType                                       = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    dynamicState.dynamicStateCount                           = static_cast<uint32_t> (dynamicStates.size ());
-    dynamicState.pDynamicStates                              = dynamicStates.data ();
-
-
-    VkAttachmentDescription colorAttachment = {};
-    colorAttachment.format                  = swapchain.surfaceFormat.format;
-    colorAttachment.samples                 = VK_SAMPLE_COUNT_1_BIT;
-    colorAttachment.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachment.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachment.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    colorAttachment.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    colorAttachment.initialLayout           = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachment.finalLayout             = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-    VkAttachmentReference colorAttachmentRef = {};
-    colorAttachmentRef.attachment            = 0;
-    colorAttachmentRef.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    VkSubpassDescription subpass = {};
-    subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments    = &colorAttachmentRef;
-
-    VkSubpassDependency dependency = {};
-    dependency.srcSubpass          = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass          = 0;
-    dependency.srcStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.srcAccessMask       = 0;
-    dependency.dstStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.dstAccessMask       = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-    VkRenderPassCreateInfo renderPassInfo = {};
-    renderPassInfo.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount        = 1;
-    renderPassInfo.pAttachments           = &colorAttachment;
-    renderPassInfo.subpassCount           = 1;
-    renderPassInfo.pSubpasses             = &subpass;
-    renderPassInfo.dependencyCount        = 1;
-    renderPassInfo.pDependencies          = &dependency;
-
-    if (ERROR (vkCreateRenderPass (device, &renderPassInfo, nullptr, &result.renderPass) != VK_SUCCESS)) {
-        throw std::runtime_error ("failed to create renderpass");
-    }
-
-    VkGraphicsPipelineCreateInfo pipelineInfo = {};
-    pipelineInfo.sType                        = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.stageCount                   = static_cast<uint32_t> (shaderStages.size ());
-    pipelineInfo.pStages                      = shaderStages.data ();
-    pipelineInfo.pVertexInputState            = &vertexInputInfo;
-    pipelineInfo.pInputAssemblyState          = &inputAssembly;
-    pipelineInfo.pViewportState               = &viewportState;
-    pipelineInfo.pRasterizationState          = &rasterizer;
-    pipelineInfo.pMultisampleState            = &multisampling;
-    pipelineInfo.pDepthStencilState           = nullptr; // Optional
-    pipelineInfo.pColorBlendState             = &colorBlending;
-    pipelineInfo.pDynamicState                = nullptr; // Optional
-    pipelineInfo.layout                       = result.pipelineLayout;
-    pipelineInfo.renderPass                   = result.renderPass;
-    pipelineInfo.subpass                      = 0;
-    pipelineInfo.basePipelineHandle           = VK_NULL_HANDLE; // Optional
-    pipelineInfo.basePipelineIndex            = -1;             // Optional
-
-    if (ERROR (vkCreateGraphicsPipelines (device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &result.handle) != VK_SUCCESS)) {
-        throw std::runtime_error ("failed to create pipeline");
-    }
-
-    return result;
-}
 
 
 struct Vertex {
@@ -353,43 +127,28 @@ uint32_t FindMemoryType (VkPhysicalDevice physicalDevice, uint32_t typeFilter, V
 }
 
 
-struct BufferMemory {
-    VkBuffer       buffer;
-    VkDeviceMemory memory;
+struct BufferMemoryU {
+    std::unique_ptr<Buffer>       buffer;
+    std::unique_ptr<DeviceMemory> memory;
 };
 
 
-BufferMemory CreateBufferMemory (VkPhysicalDevice physicalDevice, VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags)
+BufferMemoryU CreateBufferMemoryU (VkPhysicalDevice physicalDevice, VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags)
 {
-    BufferMemory result = {};
-
-    VkBufferCreateInfo bufferInfo = {};
-    bufferInfo.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size               = bufferSize;
-    bufferInfo.usage              = usageFlags;
-    bufferInfo.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
-
-    if (ERROR (vkCreateBuffer (device, &bufferInfo, nullptr, &result.buffer) != VK_SUCCESS)) {
-        throw std::runtime_error ("failed to create buffer");
-    }
+    BufferMemoryU result;
+    result.buffer = std::make_unique<Buffer> (device, bufferSize, usageFlags);
 
     VkMemoryRequirements memRequirements = {};
-    vkGetBufferMemoryRequirements (device, result.buffer, &memRequirements);
+    vkGetBufferMemoryRequirements (device, *result.buffer, &memRequirements);
+    uint32_t memoryTypeIndex = FindMemoryType (physicalDevice, memRequirements.memoryTypeBits, propertyFlags);
 
-    VkMemoryAllocateInfo allocInfo = {};
-    allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize       = memRequirements.size;
-    allocInfo.memoryTypeIndex      = FindMemoryType (physicalDevice, memRequirements.memoryTypeBits, propertyFlags);
+    result.memory = std::make_unique<DeviceMemory> (device, memRequirements.size, memoryTypeIndex);
 
-    if (ERROR (vkAllocateMemory (device, &allocInfo, nullptr, &result.memory) != VK_SUCCESS)) {
-        throw std::runtime_error ("failed to allocate memory");
-    }
-
-    if (ERROR (vkBindBufferMemory (device, result.buffer, result.memory, 0) != VK_SUCCESS)) {
+    if (ERROR (vkBindBufferMemory (device, *result.buffer, *result.memory, 0) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to bind buffer memory");
     }
 
-    return result;
+    return std::move (result);
 }
 
 
@@ -428,15 +187,43 @@ void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPo
 }
 
 
-void UploadToHostCoherent (VkDevice device, VkDeviceMemory memory, const void* data, size_t bytes)
-{
-    void* mappedMemory = nullptr;
-    if (ERROR (vkMapMemory (device, memory, 0, bytes, 0, &mappedMemory) != VK_SUCCESS)) {
-        throw std::runtime_error ("failed to map memory");
+class MemoryMapping : public Noncopyable {
+private:
+    const VkDevice       device;
+    const VkDeviceMemory memory;
+
+    void* mappedMemory;
+
+public:
+    MemoryMapping (VkDevice device, VkDeviceMemory memory, uint32_t offset, uint32_t size)
+        : device (device)
+        , memory (memory)
+        , mappedMemory (nullptr)
+
+    {
+        if (ERROR (vkMapMemory (device, memory, offset, size, 0, &mappedMemory) != VK_SUCCESS)) {
+            throw std::runtime_error ("failed to map memory");
+        }
     }
-    memcpy (mappedMemory, data, bytes);
-    vkUnmapMemory (device, memory);
+
+    ~MemoryMapping ()
+    {
+        vkUnmapMemory (device, memory);
+    }
+
+    void* Get () const
+    {
+        return mappedMemory;
+    }
+};
+
+
+void UploadToHostCoherent (VkDevice device, VkDeviceMemory memory, uint32_t offset, const void* data, size_t bytes)
+{
+    MemoryMapping mapping (device, memory, offset, bytes);
+    memcpy (mapping.Get (), data, bytes);
 }
+
 
 struct UniformBufferObject {
     glm::mat4 m;
@@ -445,7 +232,12 @@ struct UniformBufferObject {
 };
 
 
-void UpdateUniformBuffer (VkDevice device, VkDeviceMemory memory, const Swapchain::SwapchainCreateResult& swapchain, uint32_t currentImage)
+struct UBOTime {
+    float time;
+};
+
+
+void UpdateUniformBuffer (VkDevice device, VkDeviceMemory memory, float asp, uint32_t currentImage)
 {
     static auto startTime = std::chrono::high_resolution_clock::now ();
 
@@ -459,9 +251,9 @@ void UpdateUniformBuffer (VkDevice device, VkDeviceMemory memory, const Swapchai
         UniformBufferObject ubo = {};
         ubo.m                   = glm::rotate (glm::mat4 (1.0f), time * glm::radians (90.0f), glm::vec3 (0.0f, 0.0f, 1.0f));
         ubo.v                   = glm::lookAt (glm::vec3 (2.0f, 2.0f, 2.0f), glm::vec3 (0.0f, 0.0f, 0.0f), glm::vec3 (0.0f, 0.0f, 1.0f));
-        ubo.p                   = glm::perspective (glm::radians (45.0f), swapchain.extent.width / static_cast<float> (swapchain.extent.height), 0.1f, 10.0f);
+        ubo.p                   = glm::perspective (glm::radians (45.0f), asp, 0.1f, 10.0f);
         ubo.p[1][1] *= -1;
-        UploadToHostCoherent (device, memory, &ubo, sizeof (ubo));
+        UploadToHostCoherent (device, memory, 0, &ubo, sizeof (ubo));
     }
 }
 
@@ -484,7 +276,7 @@ int main (int argc, char* argv[])
     uint32_t apiVersion;
     vkEnumerateInstanceVersion (&apiVersion);
 
-    WindowProviderUPtr windowProvider = std::make_unique<GLFWWindowProvider> ();
+    std::unique_ptr<WindowProvider> windowProvider = std::make_unique<GLFWWindowProvider> ();
 
     // platform required extensionss
     std::vector<const char*> extensions;
@@ -503,20 +295,7 @@ int main (int argc, char* argv[])
 
     Instance instance (extensions, validationLayers);
 
-    VkDebugUtilsMessengerEXT debugMessenger;
-    {
-        VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
-        createInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity                    = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        createInfo.messageType                        = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback                    = debugCallback;
-        createInfo.pUserData                          = nullptr;
-
-        VkResult result = CreateDebugUtilsMessengerEXT (instance, &createInfo, nullptr, &debugMessenger);
-        if (result != VK_SUCCESS) {
-            return EXIT_FAILURE;
-        }
-    }
+    DebugUtilsMessenger debugMessenger (instance, debugCallback);
 
     Surface        surface (instance, windowProvider->CreateSurface (instance));
     PhysicalDevice physicalDevice (instance, surface, Utils::ToSet<const char*, std::string> (requestedDeviceExtensions));
@@ -532,183 +311,132 @@ int main (int argc, char* argv[])
 
     const size_t bufferSize = vertices.size () * sizeof (Vertex);
 
-    BufferMemory stagingBuffer = CreateBufferMemory (
+    BufferMemoryU stagingBuffer = CreateBufferMemoryU (
         physicalDevice, device,
         bufferSize,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-    BufferMemory vertexBuffer = CreateBufferMemory (
+    BufferMemoryU vertexBuffer = CreateBufferMemoryU (
         physicalDevice, device,
         bufferSize,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    UploadToHostCoherent (device, stagingBuffer.memory, vertices.data (), bufferSize);
+    UploadToHostCoherent (device, *stagingBuffer.memory, 0, vertices.data (), bufferSize);
 
 
-    ShaderModule vertexShaderModule (device, Utils::PROJECT_ROOT / "shaders" / "shader.vert");
-    ShaderModule fragmentShaderModule (device, Utils::PROJECT_ROOT / "shaders" / "shader.frag");
+    struct Shader {
+        std::unique_ptr<ShaderModule> vertexShader;
+        std::unique_ptr<ShaderModule> fragmentShader;
+        std::unique_ptr<ShaderModule> geometryShader;
+        std::unique_ptr<ShaderModule> tessellationEvaluationShader;
+        std::unique_ptr<ShaderModule> tessellationControlShader;
+        std::unique_ptr<ShaderModule> computeShader;
 
-    std::vector<VkPipelineShaderStageCreateInfo>   shaderStages = {vertexShaderModule.GetShaderStageCreateInfo (), fragmentShaderModule.GetShaderStageCreateInfo ()};
+        std::vector<VkPipelineShaderStageCreateInfo> GetShaderStages () const
+        {
+            std::vector<VkPipelineShaderStageCreateInfo> result;
+
+            if (vertexShader != nullptr)
+                result.push_back (vertexShader->GetShaderStageCreateInfo ());
+            if (fragmentShader != nullptr)
+                result.push_back (fragmentShader->GetShaderStageCreateInfo ());
+            if (geometryShader != nullptr)
+                result.push_back (geometryShader->GetShaderStageCreateInfo ());
+            if (tessellationEvaluationShader != nullptr)
+                result.push_back (tessellationEvaluationShader->GetShaderStageCreateInfo ());
+            if (tessellationControlShader != nullptr)
+                result.push_back (tessellationControlShader->GetShaderStageCreateInfo ());
+            if (computeShader != nullptr)
+                result.push_back (computeShader->GetShaderStageCreateInfo ());
+
+            return result;
+        }
+    };
+
+    struct VertexBase {
+        virtual std::vector<VkVertexInputBindingDescription> GetBindingDescriptions () const   = 0;
+        virtual std::vector<VkVertexInputBindingDescription> GetAttributeDescriptions () const = 0;
+    };
+
+    Shader theShader;
+    theShader.vertexShader   = std::make_unique<ShaderModule> (device, Utils::PROJECT_ROOT / "shaders" / "shader.vert");
+    theShader.fragmentShader = std::make_unique<ShaderModule> (device, Utils::PROJECT_ROOT / "shaders" / "shader.frag");
+
+    Gears::ShaderReflection refl (theShader.vertexShader->binary);
+
+    std::vector<VkDescriptorSetLayoutBinding> uboLayoutBindings;
+    for (const auto& ubo : refl.GeUniformData ()) {
+        VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+        uboLayoutBinding.binding                      = ubo.binding;
+        uboLayoutBinding.descriptorCount              = 1;
+        uboLayoutBinding.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.pImmutableSamplers           = nullptr;
+        uboLayoutBinding.stageFlags                   = VK_SHADER_STAGE_VERTEX_BIT;
+        uboLayoutBindings.push_back (uboLayoutBinding);
+    }
+
+    DescriptorSetLayout layout_wt (device, uboLayoutBindings);
+
+
+    std::vector<VkPipelineShaderStageCreateInfo>   shaderStages = theShader.GetShaderStages ();
     std::vector<VkVertexInputBindingDescription>   vibds        = {Vertex::GetBindingDescription ()};
     std::vector<VkVertexInputAttributeDescription> viads        = Vertex::GetAttributeDescriptions ();
 
-    class DescriptorSetLayout : public Noncopyable {
-    private:
-        const VkDevice              device;
-        const VkDescriptorSetLayout handle;
 
-        static VkDescriptorSetLayout CreateDescriptorSetLayout (VkDevice device, const std::vector<VkDescriptorSetLayoutBinding>& bindings)
-        {
-            VkDescriptorSetLayout handle;
+    VkDescriptorSetLayoutBinding uboLayoutBinding1 = {};
+    uboLayoutBinding1.binding                      = 0;
+    uboLayoutBinding1.descriptorCount              = 1;
+    uboLayoutBinding1.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding1.pImmutableSamplers           = nullptr;
+    uboLayoutBinding1.stageFlags                   = VK_SHADER_STAGE_VERTEX_BIT;
 
-            VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-            layoutInfo.sType                           = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-            layoutInfo.bindingCount                    = static_cast<uint32_t> (bindings.size ());
-            layoutInfo.pBindings                       = bindings.data ();
+    VkDescriptorSetLayoutBinding uboLayoutBinding2 = {};
+    uboLayoutBinding2.binding                      = 1;
+    uboLayoutBinding2.descriptorCount              = 1;
+    uboLayoutBinding2.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding2.pImmutableSamplers           = nullptr;
+    uboLayoutBinding2.stageFlags                   = VK_SHADER_STAGE_VERTEX_BIT;
 
-            if (ERROR (vkCreateDescriptorSetLayout (device, &layoutInfo, nullptr, &handle) != VK_SUCCESS)) {
-                throw std::runtime_error ("failed to create descriptor set layout!");
-            }
+    DescriptorSetLayout layout (device, {uboLayoutBinding1, uboLayoutBinding2});
 
-            return handle;
-        }
+    std::vector<BufferMemoryU> uniformBuffers;
+    std::vector<BufferMemoryU> uniformBuffersTime;
 
-    public:
-        DescriptorSetLayout (VkDevice device, const std::vector<VkDescriptorSetLayoutBinding>& bindings)
-            : device (device)
-            , handle (CreateDescriptorSetLayout (device, bindings))
-        {
-        }
 
-        ~DescriptorSetLayout ()
-        {
-            vkDestroyDescriptorSetLayout (device, handle, nullptr);
-        }
-
-        operator VkDescriptorSetLayout () const
-        {
-            return handle;
-        }
-    };
-
-    VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-    uboLayoutBinding.binding                      = 0;
-    uboLayoutBinding.descriptorCount              = 1;
-    uboLayoutBinding.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.pImmutableSamplers           = nullptr;
-    uboLayoutBinding.stageFlags                   = VK_SHADER_STAGE_VERTEX_BIT;
-
-    DescriptorSetLayout layout (device, {uboLayoutBinding});
-
-    std::vector<BufferMemory> uniformBuffers;
-
-    struct PipelineUniforms {
-        VkDeviceMemory                   memory;
-        void*                            mapped;
-        std::vector<Gears::UniformBlock> uniforms;
-    };
-
-    const size_t uniformBufferSize = sizeof (UniformBufferObject);
-    for (int i = 0; i < swapchain.imageViews.size (); ++i) {
-        uniformBuffers.push_back (CreateBufferMemory (
+    for (int i = 0; i < swapchain.GetImageCount (); ++i) {
+        uniformBuffers.push_back (CreateBufferMemoryU (
             physicalDevice, device,
-            uniformBufferSize,
+            sizeof (UniformBufferObject),
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
+        uniformBuffersTime.push_back (CreateBufferMemoryU (
+            physicalDevice, device,
+            sizeof (UBOTime),
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
     }
 
-    class DescriptorPool : public Noncopyable {
-    private:
-        const VkDevice         device;
-        const VkDescriptorPool handle;
-
-        static VkDescriptorPool CreateDescriptorPool (VkDevice device, uint32_t descriptorCount, uint32_t maxSets)
-        {
-            VkDescriptorPool handle;
-
-            VkDescriptorPoolSize poolSize = {};
-            poolSize.type                 = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            poolSize.descriptorCount      = descriptorCount;
-
-            VkDescriptorPoolCreateInfo poolInfo = {};
-            poolInfo.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            poolInfo.poolSizeCount              = 1;
-            poolInfo.pPoolSizes                 = &poolSize;
-            poolInfo.maxSets                    = maxSets;
-
-            VkDescriptorPool descriptorPool;
-            if (ERROR (vkCreateDescriptorPool (device, &poolInfo, nullptr, &handle) != VK_SUCCESS)) {
-                throw std::runtime_error ("failed to create descriptor pool");
-            }
-
-            return handle;
-        }
-
-    public:
-        DescriptorPool (VkDevice device, uint32_t descriptorCount, uint32_t maxSets)
-            : device (device)
-            , handle (CreateDescriptorPool (device, descriptorCount, maxSets))
-        {
-        }
-
-        ~DescriptorPool ()
-        {
-            vkDestroyDescriptorPool (device, handle, nullptr);
-        }
-
-        operator VkDescriptorPool () const
-        {
-            return handle;
-        }
-    };
-
-    DescriptorPool descriptorPool (device, swapchain.imageViews.size (), swapchain.imageViews.size ());
-
-    class DescriptorSet : public Noncopyable {
-    private:
-        const VkDevice  device;
-        VkDescriptorSet handle;
-
-    public:
-        DescriptorSet (VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout layout)
-            : device (device)
-            , handle (VK_NULL_HANDLE)
-        {
-            VkDescriptorSetAllocateInfo allocInfo = {};
-            allocInfo.sType                       = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            allocInfo.descriptorPool              = descriptorPool;
-            allocInfo.descriptorSetCount          = 1;
-            allocInfo.pSetLayouts                 = &layout;
-
-            if (vkAllocateDescriptorSets (device, &allocInfo, &handle) != VK_SUCCESS) {
-                throw std::runtime_error ("failed to allocate descriptor sets!");
-            }
-        }
-
-        ~DescriptorSet ()
-        {
-        }
-
-        operator VkDescriptorSet () const
-        {
-            return handle;
-        }
-    };
+    DescriptorPool descriptorPool (device, swapchain.GetImageCount (), swapchain.GetImageCount ());
 
     std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
-    for (int i = 0; i < swapchain.imageViews.size (); ++i) {
+    for (int i = 0; i < swapchain.GetImageCount (); ++i) {
         descriptorSets.push_back (std::make_unique<DescriptorSet> (device, descriptorPool, layout));
     }
 
     const std::vector<VkDescriptorSet> descriptorSetsHandles = Utils::ConvertToHandles<DescriptorSet, VkDescriptorSet> (descriptorSets);
 
-    for (size_t i = 0; i < swapchain.imageViews.size (); i++) {
-        VkDescriptorBufferInfo bufferInfo = {};
-        bufferInfo.buffer                 = uniformBuffers[i].buffer;
-        bufferInfo.offset                 = 0;
-        bufferInfo.range                  = sizeof (UniformBufferObject);
+    for (size_t i = 0; i < swapchain.GetImageCount (); ++i) {
+        VkDescriptorBufferInfo bufferInfo;
+        bufferInfo.buffer = *uniformBuffers[i].buffer;
+        bufferInfo.offset = 0;
+        bufferInfo.range  = sizeof (UniformBufferObject);
+
+        VkDescriptorBufferInfo bufferInfo2;
+        bufferInfo2.buffer = *uniformBuffersTime[i].buffer;
+        bufferInfo2.offset = 0;
+        bufferInfo2.range  = sizeof (UBOTime);
 
         VkWriteDescriptorSet descriptorWrite = {};
         descriptorWrite.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -721,95 +449,72 @@ int main (int argc, char* argv[])
         descriptorWrite.pImageInfo           = nullptr; // Optional
         descriptorWrite.pTexelBufferView     = nullptr; // Optional
 
+        VkWriteDescriptorSet descriptorWrite2 = {};
+        descriptorWrite2.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite2.dstSet               = *descriptorSets[i];
+        descriptorWrite2.dstBinding           = 1;
+        descriptorWrite2.dstArrayElement      = 0;
+        descriptorWrite2.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite2.descriptorCount      = 1;
+        descriptorWrite2.pBufferInfo          = &bufferInfo2;
+        descriptorWrite2.pImageInfo           = nullptr; // Optional
+        descriptorWrite2.pTexelBufferView     = nullptr; // Optional
+
         vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
+        vkUpdateDescriptorSets (device, 1, &descriptorWrite2, 0, nullptr);
     }
 
-    PipelineCreateResult graphicsPipeline = CreateGraphicsPipeline (device, swapchain.result, shaderStages, vibds, viads, {layout});
-    ASSERT (graphicsPipeline.handle != VK_NULL_HANDLE);
+    VkAttachmentDescription colorAttachment = {};
+    colorAttachment.format                  = swapchain.surfaceFormat.format;
+    colorAttachment.samples                 = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachment.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout           = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.finalLayout             = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    VkAttachmentReference colorAttachmentRef = {};
+    colorAttachmentRef.attachment            = 0;
+    colorAttachmentRef.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass = {};
+    subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments    = &colorAttachmentRef;
+
+    VkSubpassDependency dependency = {};
+    dependency.srcSubpass          = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass          = 0;
+    dependency.srcStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask       = 0;
+    dependency.dstStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask       = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+    VkRenderPassCreateInfo renderPassInfo = {};
+    renderPassInfo.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount        = 1;
+    renderPassInfo.pAttachments           = &colorAttachment;
+    renderPassInfo.subpassCount           = 1;
+    renderPassInfo.pSubpasses             = &subpass;
+    renderPassInfo.dependencyCount        = 1;
+    renderPassInfo.pDependencies          = &dependency;
+
+    RenderPass     renderPass (device, {colorAttachment}, {subpass}, {dependency});
+    PipelineLayout pipelineLayout (device, {layout});
+    Pipeline       pipeline (device, swapchain.extent.width, swapchain.extent.height, pipelineLayout, renderPass, shaderStages, vibds, viads);
 
     std::vector<std::unique_ptr<Framebuffer>> swapChainFramebuffers;
 
     for (size_t i = 0; i < swapchain.imageViews.size (); i++) {
         swapChainFramebuffers.push_back (std::make_unique<Framebuffer> (
             device,
-            graphicsPipeline.renderPass,
+            renderPass,
             std::vector<std::reference_wrapper<ImageView>> {*swapchain.imageViews[i]},
-            swapchain.result.extent.width,
-            swapchain.result.extent.height));
+            swapchain.extent.width,
+            swapchain.extent.height));
     }
 
-    class CommandPool : Noncopyable {
-    private:
-        const VkDevice      device;
-        const VkCommandPool handle;
-
-        static VkCommandPool CreateCommandPool (VkDevice device, uint32_t queueIndex)
-        {
-            VkCommandPool handle;
-
-            VkCommandPoolCreateInfo commandPoolInfo = {};
-            commandPoolInfo.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-            commandPoolInfo.queueFamilyIndex        = queueIndex;
-            commandPoolInfo.flags                   = 0;
-            if (ERROR (vkCreateCommandPool (device, &commandPoolInfo, nullptr, &handle) != VK_SUCCESS)) {
-                throw std::runtime_error ("failed to create commandpool");
-            }
-
-            return handle;
-        }
-
-    public:
-        CommandPool (VkDevice device, uint32_t queueIndex)
-            : device (device)
-            , handle (CreateCommandPool (device, queueIndex))
-        {
-        }
-
-        ~CommandPool ()
-        {
-            vkDestroyCommandPool (device, handle, nullptr);
-        }
-
-        operator VkCommandPool () const
-        {
-            return handle;
-        }
-    };
-
-    class CommandBuffer : public Noncopyable {
-    private:
-        const VkCommandBuffer handle;
-
-        static VkCommandBuffer CreateCommandBuffer (VkDevice device, VkCommandPool commandPool)
-        {
-            VkCommandBuffer             handle;
-            VkCommandBufferAllocateInfo commandBufferAllocInfo = {};
-            commandBufferAllocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-            commandBufferAllocInfo.commandPool                 = commandPool;
-            commandBufferAllocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            commandBufferAllocInfo.commandBufferCount          = 1;
-
-            if (ERROR (vkAllocateCommandBuffers (device, &commandBufferAllocInfo, &handle) != VK_SUCCESS)) {
-                throw std::runtime_error ("failed to allocate command buffer");
-            }
-            return handle;
-        }
-
-    public:
-        CommandBuffer (VkDevice device, VkCommandPool commandPool)
-            : handle (CreateCommandBuffer (device, commandPool))
-        {
-        }
-
-        ~CommandBuffer ()
-        {
-        }
-
-        operator VkCommandBuffer () const
-        {
-            return handle;
-        }
-    };
 
     CommandPool commandPool (device, *physicalDevice.queueFamilies.graphics);
 
@@ -831,22 +536,22 @@ int main (int argc, char* argv[])
 
         VkRenderPassBeginInfo renderPassInfo = {};
         renderPassInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass            = graphicsPipeline.renderPass;
+        renderPassInfo.renderPass            = renderPass;
         renderPassInfo.framebuffer           = *swapChainFramebuffers[i];
         renderPassInfo.renderArea.offset     = {0, 0};
-        renderPassInfo.renderArea.extent     = swapchain.result.extent;
+        renderPassInfo.renderArea.extent     = swapchain.extent;
         renderPassInfo.clearValueCount       = 1;
         renderPassInfo.pClearValues          = &clearColor;
 
         vkCmdBeginRenderPass (*commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline (*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.handle);
+        vkCmdBindPipeline (*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-        VkBuffer     vertexBuffers[] = {vertexBuffer.buffer};
+        VkBuffer     vertexBuffers[] = {*vertexBuffer.buffer};
         VkDeviceSize offsets[]       = {0};
         vkCmdBindVertexBuffers (*commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        vkCmdBindDescriptorSets (*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.pipelineLayout, 0, 1, &descriptorSetsHandles[i], 0, nullptr);
+        vkCmdBindDescriptorSets (*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSetsHandles[i], 0, nullptr);
 
         vkCmdDraw (*commandBuffer, 4, 1, 0, 0);
 
@@ -861,74 +566,6 @@ int main (int argc, char* argv[])
 
     const std::vector<VkCommandBuffer> cmdBufferHandles = Utils::ConvertToHandles<CommandBuffer, VkCommandBuffer> (commandBuffers);
 
-    class Semaphore : public Noncopyable {
-    private:
-        const VkDevice    device;
-        const VkSemaphore handle;
-
-        static VkSemaphore CreateSemaphore (VkDevice device)
-        {
-            VkSemaphore           handle;
-            VkSemaphoreCreateInfo semaphoreInfo = {};
-            semaphoreInfo.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-            if (ERROR (vkCreateSemaphore (device, &semaphoreInfo, nullptr, &handle) != VK_SUCCESS)) {
-                throw std::runtime_error ("failed to create semaphore");
-            }
-            return handle;
-        }
-
-    public:
-        Semaphore (VkDevice device)
-            : device (device)
-            , handle (CreateSemaphore (device))
-        {
-        }
-
-        ~Semaphore ()
-        {
-            vkDestroySemaphore (device, handle, nullptr);
-        }
-
-        operator VkSemaphore () const
-        {
-            return handle;
-        }
-    };
-
-    class Fence : public Noncopyable {
-    private:
-        const VkDevice device;
-        const VkFence  handle;
-
-        static VkFence CreateFence (VkDevice device)
-        {
-            VkFence           handle;
-            VkFenceCreateInfo fenceInfo = {};
-            fenceInfo.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-            fenceInfo.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
-            if (ERROR (vkCreateFence (device, &fenceInfo, nullptr, &handle) != VK_SUCCESS)) {
-                throw std::runtime_error ("failed to create fence");
-            }
-            return handle;
-        }
-
-    public:
-        Fence (VkDevice device)
-            : device (device)
-            , handle (CreateFence (device))
-        {
-        }
-
-        ~Fence ()
-        {
-            vkDestroyFence (device, handle, nullptr);
-        }
-
-        operator VkFence () const
-        {
-            return handle;
-        }
-    };
 
     std::vector<std::unique_ptr<Semaphore>> imageAvailableSemaphore;
     std::vector<std::unique_ptr<Semaphore>> renderFinishedSemaphore;
@@ -944,15 +581,30 @@ int main (int argc, char* argv[])
     const std::vector<VkFence> inFlightFenceHandles = Utils::ConvertToHandles<Fence, VkFence> (inFlightFences);
 
 
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
-    vkGetDeviceQueue (device, *physicalDevice.queueFamilies.graphics, 0, &graphicsQueue);
-    vkGetDeviceQueue (device, *physicalDevice.queueFamilies.presentation, 0, &presentQueue);
+    class Queue : public Noncopyable {
+    private:
+        VkQueue handle;
 
-    CopyBuffer (device, graphicsQueue, commandPool, stagingBuffer.buffer, vertexBuffer.buffer, bufferSize);
+    public:
+        Queue (VkDevice device, uint32_t index)
+        {
+            vkGetDeviceQueue (device, index, 0, &handle); // TODO another index
+        }
+
+        operator VkQueue () const
+        {
+            return handle;
+        }
+    };
+
+
+    Queue graphicsQueue (device, *physicalDevice.queueFamilies.graphics);
+    Queue presentQueue (device, *physicalDevice.queueFamilies.presentation);
+
+    CopyBuffer (device, graphicsQueue, commandPool, *stagingBuffer.buffer, *vertexBuffer.buffer, bufferSize);
 
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    VkSwapchainKHR       swapChains[] = {swapchain.result.handle};
+    VkSwapchainKHR       swapChains[] = {swapchain};
 
     std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime = std::chrono::high_resolution_clock::now ();
 
@@ -962,7 +614,7 @@ int main (int argc, char* argv[])
         vkResetFences (device, 1, &inFlightFenceHandles[currentFrame]);
 
         uint32_t imageIndex = 0;
-        vkAcquireNextImageKHR (device, swapchain.result.handle, UINT64_MAX, *imageAvailableSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
+        vkAcquireNextImageKHR (device, swapchain, UINT64_MAX, *imageAvailableSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
         // Check if a previous frame is using this image (i.e. there is its fence to wait on)
         if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
@@ -971,7 +623,9 @@ int main (int argc, char* argv[])
         // Mark the image as now being in use by this frame
         imagesInFlight[imageIndex] = *inFlightFences[currentFrame];
 
-        UpdateUniformBuffer (device, uniformBuffers[imageIndex].memory, swapchain.result, imageIndex);
+        UpdateUniformBuffer (device, *uniformBuffers[imageIndex].memory, static_cast<float> (swapchain.extent.width) / swapchain.extent.height, imageIndex);
+        float t = 1.0f;
+        UploadToHostCoherent (device, *uniformBuffersTime[imageIndex].memory, 0, &t, sizeof (t));
 
         VkSemaphore waitSemaphores[]   = {*imageAvailableSemaphore[currentFrame]};
         VkSemaphore signalSemaphores[] = {*renderFinishedSemaphore[currentFrame]};
@@ -1013,17 +667,6 @@ int main (int argc, char* argv[])
     });
 
     vkDeviceWaitIdle (device);
-
-    vkDestroyBuffer (device, stagingBuffer.buffer, nullptr);
-    vkDestroyBuffer (device, vertexBuffer.buffer, nullptr);
-
-    vkDestroyPipeline (device, graphicsPipeline.handle, nullptr);
-
-    vkDestroyRenderPass (device, graphicsPipeline.renderPass, nullptr);
-
-    vkDestroyPipelineLayout (device, graphicsPipeline.pipelineLayout, nullptr);
-
-    DestroyDebugUtilsMessengerEXT (instance, debugMessenger, nullptr);
 
     return EXIT_SUCCESS;
 }

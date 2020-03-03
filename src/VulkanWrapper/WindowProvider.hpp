@@ -9,8 +9,6 @@
 #include <vulkan/vulkan.h>
 
 
-DEFINE_PTR (WindowProvider);
-
 class WindowProvider {
 public:
     using DrawCallback = std::function<void ()>;

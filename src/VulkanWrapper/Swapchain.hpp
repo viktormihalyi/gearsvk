@@ -12,18 +12,21 @@ class Swapchain : public Noncopyable {
 private:
     const VkPhysicalDevice physicalDevice;
     const VkDevice         device;
+    const VkSwapchainKHR   handle;
+
+    uint32_t imageCount;
 
 public:
-    // TODO private
-    struct SwapchainCreateResult {
-        VkSwapchainKHR     handle;
-        VkSurfaceFormatKHR surfaceFormat;
-        VkPresentModeKHR   presentMode;
-        VkExtent2D         extent;
-    };
+    VkSurfaceFormatKHR surfaceFormat;
+    VkPresentModeKHR   presentMode;
+    VkExtent2D         extent;
 
-    const SwapchainCreateResult                   result;
     const std::vector<std::unique_ptr<ImageView>> imageViews;
+
+    uint32_t GetImageCount () const
+    {
+        return imageCount;
+    }
 
 private:
     struct SwapChainSupportDetails {
@@ -78,7 +81,11 @@ private:
         }
     }
 
-    static SwapchainCreateResult CreateSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices)
+    static VkSwapchainKHR CreateSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices,
+                                           VkSurfaceFormatKHR& surfaceFormat,
+                                           VkPresentModeKHR&   presentMode,
+                                           VkExtent2D&         extent,
+                                           uint32_t&           imageCount)
     {
         if (ERROR (!queueFamilyIndices.IsValid ())) {
             throw std::runtime_error ("bad indices");
@@ -95,13 +102,11 @@ private:
         details.presentModes.resize (presentModeCount);
         vkGetPhysicalDeviceSurfacePresentModesKHR (physicalDevice, surface, &presentModeCount, details.presentModes.data ());
 
-        SwapchainCreateResult result;
+        surfaceFormat = ChooseSwapSurfaceFormat (details.formats);
+        presentMode   = ChooseSwapPresentMode (details.presentModes);
+        extent        = ChooseSwapExtent (details.capabilities);
 
-        result.surfaceFormat = ChooseSwapSurfaceFormat (details.formats);
-        result.presentMode   = ChooseSwapPresentMode (details.presentModes);
-        result.extent        = ChooseSwapExtent (details.capabilities);
-
-        uint32_t imageCount = details.capabilities.minImageCount + 1;
+        imageCount = details.capabilities.minImageCount + 1;
         if (details.capabilities.maxImageCount > 0 && imageCount > details.capabilities.maxImageCount) {
             imageCount = details.capabilities.maxImageCount;
         }
@@ -110,9 +115,9 @@ private:
         createInfo.sType                    = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         createInfo.surface                  = surface;
         createInfo.minImageCount            = imageCount;
-        createInfo.imageFormat              = result.surfaceFormat.format;
-        createInfo.imageColorSpace          = result.surfaceFormat.colorSpace;
-        createInfo.imageExtent              = result.extent;
+        createInfo.imageFormat              = surfaceFormat.format;
+        createInfo.imageColorSpace          = surfaceFormat.colorSpace;
+        createInfo.imageExtent              = extent;
         createInfo.imageArrayLayers         = 1;
         createInfo.imageUsage               = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
@@ -128,28 +133,30 @@ private:
         }
         createInfo.preTransform   = details.capabilities.currentTransform;
         createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        createInfo.presentMode    = result.presentMode;
+        createInfo.presentMode    = presentMode;
         createInfo.clipped        = VK_TRUE;
         createInfo.oldSwapchain   = VK_NULL_HANDLE;
 
-        if (ERROR (vkCreateSwapchainKHR (device, &createInfo, nullptr, &result.handle) != VK_SUCCESS)) {
+        VkSwapchainKHR result;
+
+        if (ERROR (vkCreateSwapchainKHR (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create swapchain");
         }
 
         return result;
     }
 
-    static std::vector<std::unique_ptr<ImageView>> CreateSwapchainImageViews (VkDevice device, SwapchainCreateResult swapchain)
+    static std::vector<std::unique_ptr<ImageView>> CreateSwapchainImageViews (VkDevice device, VkSwapchainKHR swapchain, VkFormat format)
     {
         uint32_t imageCount;
-        vkGetSwapchainImagesKHR (device, swapchain.handle, &imageCount, nullptr);
+        vkGetSwapchainImagesKHR (device, swapchain, &imageCount, nullptr);
         std::vector<VkImage> swapChainImages (imageCount);
-        vkGetSwapchainImagesKHR (device, swapchain.handle, &imageCount, swapChainImages.data ());
+        vkGetSwapchainImagesKHR (device, swapchain, &imageCount, swapChainImages.data ());
 
         std::vector<std::unique_ptr<ImageView>> result;
 
         for (size_t i = 0; i < swapChainImages.size (); ++i) {
-            result.push_back (std::make_unique<ImageView> (device, swapChainImages[i], swapchain.surfaceFormat.format));
+            result.push_back (std::make_unique<ImageView> (device, swapChainImages[i], format));
         }
 
         return result;
@@ -164,19 +171,19 @@ public:
     Swapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices)
         : physicalDevice (physicalDevice)
         , device (device)
-        , result (CreateSwapchain (physicalDevice, device, surface, queueFamilyIndices))
-        , imageViews (CreateSwapchainImageViews (device, result))
+        , handle (CreateSwapchain (physicalDevice, device, surface, queueFamilyIndices, surfaceFormat, presentMode, extent, imageCount))
+        , imageViews (CreateSwapchainImageViews (device, handle, surfaceFormat.format))
     {
     }
 
     ~Swapchain ()
     {
-        vkDestroySwapchainKHR (device, result.handle, nullptr);
+        vkDestroySwapchainKHR (device, handle, nullptr);
     }
 
     operator VkSwapchainKHR () const
     {
-        return result.handle;
+        return handle;
     }
 };
 
