@@ -348,74 +348,98 @@ int main (int argc, char* argv[])
     theShader.fragmentShader = std::make_unique<ShaderModule> (device, Utils::PROJECT_ROOT / "shaders" / "shader.frag");
 
     Gears::ShaderReflection refl (theShader.vertexShader->binary);
+    Gears::ShaderReflection reflf (theShader.fragmentShader->binary);
 
-    struct UniformData {
-        // one for each swapchain image
-        std::vector<BufferMemoryU>                  buffers;
-        std::vector<std::unique_ptr<MemoryMapping>> mapping;
+    class UniformReflection {
+    private:
+        struct UniformData {
+            // one for each swapchain image
+            std::vector<BufferMemoryU>                  buffers;
+            std::vector<std::unique_ptr<MemoryMapping>> mappings;
 
-        Gears::UniformBlock reflection;
+            Gears::UniformBlock reflection;
+        };
+
+        std::unordered_map<std::string, UniformData> uniforms;
+        std::unique_ptr<DescriptorSetLayout>         layout;
+        DescriptorPool                               descriptorPool;
+        std::vector<std::unique_ptr<DescriptorSet>>  descriptorSets;
+
+    public:
+        UniformReflection (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t imageCount, const std::vector<Gears::UniformBlock>& uniformBlocks)
+            : descriptorPool (device, imageCount, imageCount)
+        {
+            std::vector<VkDescriptorSetLayoutBinding> uboLayoutBindings;
+            for (const Gears::UniformBlock& ubo : uniformBlocks) {
+                uniforms[ubo.name].reflection = ubo;
+
+                VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+                uboLayoutBinding.binding                      = ubo.binding;
+                uboLayoutBinding.descriptorCount              = 1;
+                uboLayoutBinding.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                uboLayoutBinding.pImmutableSamplers           = nullptr;
+                uboLayoutBinding.stageFlags                   = VK_SHADER_STAGE_ALL_GRAPHICS;
+                uboLayoutBindings.push_back (uboLayoutBinding);
+
+                for (int i = 0; i < imageCount; ++i) {
+                    BufferMemoryU b = CreateBufferMemoryU (
+                        physicalDevice, device,
+                        ubo.blockSize,
+                        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+                    uniforms[ubo.name].mappings.push_back (std::make_unique<MemoryMapping> (device, *b.memory, 0, b.bufferSize));
+                    uniforms[ubo.name].buffers.push_back (std::move (b));
+                }
+            }
+            layout = std::make_unique<DescriptorSetLayout> (device, uboLayoutBindings);
+
+
+            for (int i = 0; i < imageCount; ++i) {
+                descriptorSets.push_back (std::make_unique<DescriptorSet> (device, descriptorPool, *layout));
+            }
+
+
+            for (const auto& [uboName, uboData] : uniforms) {
+                for (size_t i = 0; i < imageCount; ++i) {
+                    VkDescriptorBufferInfo bufferInfo;
+                    bufferInfo.buffer = *uboData.buffers[i].buffer;
+                    bufferInfo.offset = 0;
+                    bufferInfo.range  = uboData.buffers[i].bufferSize;
+
+                    VkWriteDescriptorSet descriptorWrite = {};
+                    descriptorWrite.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                    descriptorWrite.dstSet               = *descriptorSets[i];
+                    descriptorWrite.dstBinding           = uniforms[uboName].reflection.binding;
+                    descriptorWrite.dstArrayElement      = 0;
+                    descriptorWrite.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                    descriptorWrite.descriptorCount      = 1;
+                    descriptorWrite.pBufferInfo          = &bufferInfo;
+                    descriptorWrite.pImageInfo           = nullptr; // Optional
+                    descriptorWrite.pTexelBufferView     = nullptr; // Optional
+
+                    vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
+                }
+            }
+        }
+
+        UniformData& operator[] (const std::string& name)
+        {
+            return uniforms[name];
+        }
+
+        const DescriptorSet& GetDescriptorSet (uint32_t index) const
+        {
+            return *descriptorSets[index];
+        }
+
+        const DescriptorSetLayout& GetLayout () const
+        {
+            return *layout;
+        }
     };
 
-    std::unordered_map<std::string, UniformData> uniforms;
-
-    std::vector<VkDescriptorSetLayoutBinding> uboLayoutBindings;
-    for (const auto& ubo : refl.GeUniformData ()) {
-        uniforms[ubo.name].reflection = ubo;
-
-        VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-        uboLayoutBinding.binding                      = ubo.binding;
-        uboLayoutBinding.descriptorCount              = 1;
-        uboLayoutBinding.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        uboLayoutBinding.pImmutableSamplers           = nullptr;
-        uboLayoutBinding.stageFlags                   = VK_SHADER_STAGE_VERTEX_BIT;
-        uboLayoutBindings.push_back (uboLayoutBinding);
-
-        for (int i = 0; i < swapchain.GetImageCount (); ++i) {
-            BufferMemoryU b = CreateBufferMemoryU (
-                physicalDevice, device,
-                ubo.blockSize,
-                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-            uniforms[ubo.name].mapping.push_back (std::make_unique<MemoryMapping> (device, *b.memory, 0, b.bufferSize));
-            uniforms[ubo.name].buffers.push_back (std::move (b));
-        }
-    }
-
-    DescriptorSetLayout layout (device, uboLayoutBindings);
-
-    DescriptorPool descriptorPool (device, swapchain.GetImageCount (), swapchain.GetImageCount ());
-
-    std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
-    for (int i = 0; i < swapchain.GetImageCount (); ++i) {
-        descriptorSets.push_back (std::make_unique<DescriptorSet> (device, descriptorPool, layout));
-    }
-
-    const std::vector<VkDescriptorSet> descriptorSetsHandles = Utils::ConvertToHandles<DescriptorSet, VkDescriptorSet> (descriptorSets);
-
-
-    for (const auto& [uboName, uboData] : uniforms) {
-        for (size_t i = 0; i < swapchain.GetImageCount (); ++i) {
-            VkDescriptorBufferInfo bufferInfo;
-            bufferInfo.buffer = *uboData.buffers[i].buffer;
-            bufferInfo.offset = 0;
-            bufferInfo.range  = uboData.buffers[i].bufferSize;
-
-            VkWriteDescriptorSet descriptorWrite = {};
-            descriptorWrite.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrite.dstSet               = *descriptorSets[i];
-            descriptorWrite.dstBinding           = uniforms[uboName].reflection.binding;
-            descriptorWrite.dstArrayElement      = 0;
-            descriptorWrite.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descriptorWrite.descriptorCount      = 1;
-            descriptorWrite.pBufferInfo          = &bufferInfo;
-            descriptorWrite.pImageInfo           = nullptr; // Optional
-            descriptorWrite.pTexelBufferView     = nullptr; // Optional
-
-            vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
-        }
-    }
+    UniformReflection uniformReflection (physicalDevice, device, swapchain.GetImageCount (), refl.GeUniformData ());
 
 
     std::vector<VkPipelineShaderStageCreateInfo>   shaderStages = theShader.GetShaderStages ();
@@ -460,7 +484,7 @@ int main (int argc, char* argv[])
     renderPassInfo.pDependencies          = &dependency;
 
     RenderPass     renderPass (device, {colorAttachment}, {subpass}, {dependency});
-    PipelineLayout pipelineLayout (device, {layout});
+    PipelineLayout pipelineLayout (device, {uniformReflection.GetLayout ()});
     Pipeline       pipeline (device, swapchain.extent.width, swapchain.extent.height, pipelineLayout, renderPass, shaderStages, vibds, viads);
 
     std::vector<std::unique_ptr<Framebuffer>> swapChainFramebuffers;
@@ -510,7 +534,8 @@ int main (int argc, char* argv[])
         VkDeviceSize offsets[]       = {0};
         vkCmdBindVertexBuffers (*commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        vkCmdBindDescriptorSets (*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSetsHandles[i], 0, nullptr);
+        VkDescriptorSet ds = uniformReflection.GetDescriptorSet (i);
+        vkCmdBindDescriptorSets (*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &ds, 0, nullptr);
 
         vkCmdDraw (*commandBuffer, 4, 1, 0, 0);
 
@@ -583,10 +608,10 @@ int main (int argc, char* argv[])
         imagesInFlight[imageIndex] = *inFlightFences[currentFrame];
 
         UniformBufferObject ubo = GetMPV (static_cast<float> (swapchain.extent.width) / swapchain.extent.height);
-        memcpy (uniforms["UniformBufferObject"].mapping[imageIndex]->Get (), &ubo, sizeof (ubo));
+        memcpy (uniformReflection["UniformBufferObject"].mappings[imageIndex]->Get (), &ubo, sizeof (ubo));
 
         float t = 1.0f;
-        memcpy (uniforms["Time"].mapping[imageIndex]->Get (), &t, sizeof (t));
+        memcpy (uniformReflection["Time"].mappings[imageIndex]->Get (), &t, sizeof (t));
 
         VkSemaphore waitSemaphores[]   = {*imageAvailableSemaphore[currentFrame]};
         VkSemaphore signalSemaphores[] = {*renderFinishedSemaphore[currentFrame]};
