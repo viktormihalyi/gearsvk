@@ -23,6 +23,7 @@
 #include "PhysicalDevice.hpp"
 #include "Pipeline.hpp"
 #include "PipelineLayout.hpp"
+#include "Queue.hpp"
 #include "RenderPass.hpp"
 #include "Semaphore.hpp"
 #include "ShaderModule.hpp"
@@ -64,17 +65,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
 }
 
 
-struct PipelineCreateResultU {
-    std::unique_ptr<Pipeline>       handle;
-    std::unique_ptr<RenderPass>     renderPass;
-    std::unique_ptr<PipelineLayout> pipelineLayout;
-};
-
-
 struct VertexInfoBase {
     virtual std::vector<VkVertexInputBindingDescription>   GetBindingDescriptions () const   = 0;
     virtual std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions () const = 0;
 };
+
 
 struct Vertex {
     static const std::unique_ptr<VertexInfoBase> info;
@@ -82,6 +77,7 @@ struct Vertex {
     glm::vec2 position;
     glm::vec3 color;
 };
+
 
 struct VertexInfo : public VertexInfoBase {
     std::vector<VkVertexInputBindingDescription> GetBindingDescriptions () const override
@@ -120,6 +116,7 @@ struct VertexInfo : public VertexInfoBase {
         return result;
     }
 };
+
 
 const std::unique_ptr<VertexInfoBase> Vertex::info = std::make_unique<VertexInfo> ();
 
@@ -170,14 +167,7 @@ BufferMemoryU CreateBufferMemoryU (VkPhysicalDevice physicalDevice, VkDevice dev
 
 void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
-    VkCommandBufferAllocateInfo allocInfo = {};
-    allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool                 = commandPool;
-    allocInfo.commandBufferCount          = 1;
-
-    VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers (device, &allocInfo, &commandBuffer);
+    CommandBuffer commandBuffer (device, commandPool);
 
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -191,15 +181,14 @@ void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPo
 
     vkEndCommandBuffer (commandBuffer);
 
-    VkSubmitInfo submitInfo       = {};
-    submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers    = &commandBuffer;
+    VkSubmitInfo submitInfo         = {};
+    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount   = 1;
+    VkCommandBuffer cmdBufferHandle = commandBuffer;
+    submitInfo.pCommandBuffers      = &cmdBufferHandle;
 
     vkQueueSubmit (graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle (graphicsQueue);
-
-    vkFreeCommandBuffers (device, commandPool, 1, &commandBuffer);
 }
 
 
@@ -235,13 +224,6 @@ static UniformBufferObject GetMPV (float asp)
     ubo.p                   = glm::perspective (glm::radians (45.0f), asp, 0.1f, 10.0f);
     ubo.p[1][1] *= -1;
     return ubo;
-}
-
-
-void UpdateUniformBuffer (VkDevice device, VkDeviceMemory memory, float asp, uint32_t currentImage)
-{
-    UniformBufferObject ubo = GetMPV (asp);
-    UploadToHostCoherent (device, memory, 0, &ubo, sizeof (ubo));
 }
 
 
@@ -313,13 +295,13 @@ int main (int argc, char* argv[])
     UploadToHostCoherent (device, *stagingBuffer.memory, 0, vertices.data (), bufferSize);
 
 
-    struct Shader {
-        std::unique_ptr<ShaderModule> vertexShader;
-        std::unique_ptr<ShaderModule> fragmentShader;
-        std::unique_ptr<ShaderModule> geometryShader;
-        std::unique_ptr<ShaderModule> tessellationEvaluationShader;
-        std::unique_ptr<ShaderModule> tessellationControlShader;
-        std::unique_ptr<ShaderModule> computeShader;
+    struct ShaderPipeline {
+        ShaderModule::U vertexShader;
+        ShaderModule::U fragmentShader;
+        ShaderModule::U geometryShader;
+        ShaderModule::U tessellationEvaluationShader;
+        ShaderModule::U tessellationControlShader;
+        ShaderModule::U computeShader;
 
         std::vector<VkPipelineShaderStageCreateInfo> GetShaderStages () const
         {
@@ -343,12 +325,12 @@ int main (int argc, char* argv[])
     };
 
 
-    Shader theShader;
-    theShader.vertexShader   = std::make_unique<ShaderModule> (device, Utils::PROJECT_ROOT / "shaders" / "shader.vert");
-    theShader.fragmentShader = std::make_unique<ShaderModule> (device, Utils::PROJECT_ROOT / "shaders" / "shader.frag");
+    ShaderPipeline theShader;
+    theShader.vertexShader   = ShaderModule::CreateFromSource (device, Utils::PROJECT_ROOT / "shaders" / "shader.vert");
+    theShader.fragmentShader = ShaderModule::CreateFromSource (device, Utils::PROJECT_ROOT / "shaders" / "shader.frag");
 
-    Gears::ShaderReflection refl (theShader.vertexShader->binary);
-    Gears::ShaderReflection reflf (theShader.fragmentShader->binary);
+    Gears::ShaderReflection refl (theShader.vertexShader->GetBinary ());
+    Gears::ShaderReflection reflf (theShader.fragmentShader->GetBinary ());
 
     class UniformReflection {
     private:
@@ -563,23 +545,6 @@ int main (int argc, char* argv[])
     }
 
     const std::vector<VkFence> inFlightFenceHandles = Utils::ConvertToHandles<Fence, VkFence> (inFlightFences);
-
-
-    class Queue : public Noncopyable {
-    private:
-        VkQueue handle;
-
-    public:
-        Queue (VkDevice device, uint32_t index)
-        {
-            vkGetDeviceQueue (device, index, 0, &handle); // TODO another index
-        }
-
-        operator VkQueue () const
-        {
-            return handle;
-        }
-    };
 
 
     Queue graphicsQueue (device, *physicalDevice.queueFamilies.graphics);

@@ -14,8 +14,9 @@ namespace Utils {
 
 extern const std::filesystem::path PROJECT_ROOT;
 
-std::optional<std::string>       ReadTextFile (const std::filesystem::path& filePath);
-std::optional<std::vector<char>> ReadBinaryFile (const std::filesystem::path& filePath);
+std::optional<std::string>           ReadTextFile (const std::filesystem::path& filePath);
+std::optional<std::vector<char>>     ReadBinaryFile (const std::filesystem::path& filePath);
+std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem::path& filePath);
 
 
 template<typename SourceType, typename DestType>

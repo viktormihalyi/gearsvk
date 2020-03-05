@@ -61,4 +61,10 @@ std::optional<std::vector<char>> ReadBinaryFile (const std::filesystem::path& fi
     return OpenAndReadFile<std::vector<char>> (filePath);
 }
 
+
+std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem::path& filePath)
+{
+    return OpenAndReadFile<std::vector<uint32_t>> (filePath);
+}
+
 } // namespace Utils

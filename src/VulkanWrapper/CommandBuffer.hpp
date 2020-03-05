@@ -10,6 +10,8 @@
 
 class CommandBuffer : public Noncopyable {
 private:
+    const VkDevice        device;
+    const VkCommandPool   commandPool;
     const VkCommandBuffer handle;
 
     static VkCommandBuffer CreateCommandBuffer (VkDevice device, VkCommandPool commandPool)
@@ -31,12 +33,15 @@ public:
     USING_PTR (CommandBuffer);
 
     CommandBuffer (VkDevice device, VkCommandPool commandPool)
-        : handle (CreateCommandBuffer (device, commandPool))
+        : device (device)
+        , commandPool (commandPool)
+        , handle (CreateCommandBuffer (device, commandPool))
     {
     }
 
     ~CommandBuffer ()
     {
+        vkFreeCommandBuffers (device, commandPool, 1, &handle);
     }
 
     operator VkCommandBuffer () const

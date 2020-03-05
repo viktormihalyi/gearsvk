@@ -16,9 +16,9 @@ private:
     static VkDeviceMemory CreateDeviceMemory (VkDevice device, size_t allocationSize, uint32_t memoryTypeIndex)
     {
         VkMemoryAllocateInfo allocInfo = {};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = allocationSize;
-        allocInfo.memoryTypeIndex = memoryTypeIndex;
+        allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize       = allocationSize;
+        allocInfo.memoryTypeIndex      = memoryTypeIndex;
 
         VkDeviceMemory result;
         if (ERROR (vkAllocateMemory (device, &allocInfo, nullptr, &result) != VK_SUCCESS)) {

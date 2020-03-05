@@ -38,6 +38,8 @@ private:
     }
 
 public:
+    USING_PTR (Device);
+
     Device (VkPhysicalDevice physicalDevice, uint32_t graphicsQueueFamilyIndex, const std::vector<const char*>& requestedDeviceExtensions)
         : handle (CreateLogicalDevice (physicalDevice, graphicsQueueFamilyIndex, requestedDeviceExtensions))
     {
