@@ -137,10 +137,10 @@ uint32_t FindMemoryType (VkPhysicalDevice physicalDevice, uint32_t typeFilter, V
 
 
 struct BufferMemoryU {
-    std::unique_ptr<Buffer>       buffer;
-    std::unique_ptr<DeviceMemory> memory;
-    uint32_t                      bufferSize;
-    uint32_t                      allocatedSize;
+    Buffer::U       buffer;
+    DeviceMemory::U memory;
+    uint32_t        bufferSize;
+    uint32_t        allocatedSize;
 };
 
 
@@ -148,13 +148,13 @@ BufferMemoryU CreateBufferMemoryU (VkPhysicalDevice physicalDevice, VkDevice dev
 {
     BufferMemoryU result;
     result.bufferSize = bufferSize;
-    result.buffer     = std::make_unique<Buffer> (device, bufferSize, usageFlags);
+    result.buffer     = Buffer::Create (device, bufferSize, usageFlags);
 
     VkMemoryRequirements memRequirements = {};
     vkGetBufferMemoryRequirements (device, *result.buffer, &memRequirements);
     uint32_t memoryTypeIndex = FindMemoryType (physicalDevice, memRequirements.memoryTypeBits, propertyFlags);
 
-    result.memory        = std::make_unique<DeviceMemory> (device, memRequirements.size, memoryTypeIndex);
+    result.memory        = DeviceMemory::Create (device, memRequirements.size, memoryTypeIndex);
     result.allocatedSize = memRequirements.size;
 
     if (ERROR (vkBindBufferMemory (device, *result.buffer, *result.memory, 0) != VK_SUCCESS)) {
@@ -227,17 +227,6 @@ static UniformBufferObject GetMPV (float asp)
 }
 
 
-template<typename T>
-std::vector<std::reference_wrapper<T>> To (const std::vector<std::unique_ptr<T>>& src)
-{
-    std::vector<std::reference_wrapper<T>> result;
-    for (const auto& a : src) {
-        result.push_back (a);
-    }
-    return result;
-}
-
-
 int main (int argc, char* argv[])
 {
     std::cout << Utils::PROJECT_ROOT.u8string () << std::endl;
@@ -245,7 +234,7 @@ int main (int argc, char* argv[])
     uint32_t apiVersion;
     vkEnumerateInstanceVersion (&apiVersion);
 
-    std::unique_ptr<WindowProvider> windowProvider = std::make_unique<GLFWWindowProvider> ();
+    WindowProvider::U windowProvider = GLFWWindowProvider::Create ();
 
     // platform required extensionss
     std::vector<const char*> extensions;
@@ -336,16 +325,16 @@ int main (int argc, char* argv[])
     private:
         struct UniformData {
             // one for each swapchain image
-            std::vector<BufferMemoryU>                  buffers;
-            std::vector<std::unique_ptr<MemoryMapping>> mappings;
+            std::vector<BufferMemoryU>    buffers;
+            std::vector<MemoryMapping::U> mappings;
 
             Gears::UniformBlock reflection;
         };
 
         std::unordered_map<std::string, UniformData> uniforms;
-        std::unique_ptr<DescriptorSetLayout>         layout;
+        DescriptorSetLayout::U                       layout;
         DescriptorPool                               descriptorPool;
-        std::vector<std::unique_ptr<DescriptorSet>>  descriptorSets;
+        std::vector<DescriptorSet::U>                descriptorSets;
 
     public:
         UniformReflection (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t imageCount, const std::vector<Gears::UniformBlock>& uniformBlocks)
@@ -370,15 +359,15 @@ int main (int argc, char* argv[])
                         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-                    uniforms[ubo.name].mappings.push_back (std::make_unique<MemoryMapping> (device, *b.memory, 0, b.bufferSize));
+                    uniforms[ubo.name].mappings.push_back (MemoryMapping::Create (device, *b.memory, 0, b.bufferSize));
                     uniforms[ubo.name].buffers.push_back (std::move (b));
                 }
             }
-            layout = std::make_unique<DescriptorSetLayout> (device, uboLayoutBindings);
+            layout = DescriptorSetLayout::Create (device, uboLayoutBindings);
 
 
             for (int i = 0; i < imageCount; ++i) {
-                descriptorSets.push_back (std::make_unique<DescriptorSet> (device, descriptorPool, *layout));
+                descriptorSets.push_back (DescriptorSet::Create (device, descriptorPool, *layout));
             }
 
 
@@ -469,10 +458,10 @@ int main (int argc, char* argv[])
     PipelineLayout pipelineLayout (device, {uniformReflection.GetLayout ()});
     Pipeline       pipeline (device, swapchain.extent.width, swapchain.extent.height, pipelineLayout, renderPass, shaderStages, vibds, viads);
 
-    std::vector<std::unique_ptr<Framebuffer>> swapChainFramebuffers;
+    std::vector<Framebuffer::U> swapChainFramebuffers;
 
     for (size_t i = 0; i < swapchain.imageViews.size (); i++) {
-        swapChainFramebuffers.push_back (std::make_unique<Framebuffer> (
+        swapChainFramebuffers.push_back (Framebuffer::Create (
             device,
             renderPass,
             std::vector<std::reference_wrapper<ImageView>> {*swapchain.imageViews[i]},
@@ -483,10 +472,10 @@ int main (int argc, char* argv[])
 
     CommandPool commandPool (device, *physicalDevice.queueFamilies.graphics);
 
-    std::vector<std::unique_ptr<CommandBuffer>> commandBuffers;
+    std::vector<CommandBuffer::U> commandBuffers;
 
     for (size_t i = 0; i < swapChainFramebuffers.size (); i++) {
-        std::unique_ptr<CommandBuffer> commandBuffer = std::make_unique<CommandBuffer> (device, commandPool);
+        CommandBuffer::U commandBuffer = CommandBuffer::Create (device, commandPool);
 
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -524,7 +513,7 @@ int main (int argc, char* argv[])
         vkCmdEndRenderPass (*commandBuffer);
 
         if (ERROR (vkEndCommandBuffer (*commandBuffer) != VK_SUCCESS)) {
-            return EXIT_FAILURE;
+            throw std::runtime_error ("failed to end commandbuffer");
         }
 
         commandBuffers.push_back (std::move (commandBuffer));
@@ -533,15 +522,15 @@ int main (int argc, char* argv[])
     const std::vector<VkCommandBuffer> cmdBufferHandles = Utils::ConvertToHandles<CommandBuffer, VkCommandBuffer> (commandBuffers);
 
 
-    std::vector<std::unique_ptr<Semaphore>> imageAvailableSemaphore;
-    std::vector<std::unique_ptr<Semaphore>> renderFinishedSemaphore;
-    std::vector<std::unique_ptr<Fence>>     inFlightFences;
-    std::vector<VkFence>                    imagesInFlight (swapchain.imageViews.size ());
+    std::vector<Semaphore::U> imageAvailableSemaphore;
+    std::vector<Semaphore::U> renderFinishedSemaphore;
+    std::vector<Fence::U>     inFlightFences;
+    std::vector<VkFence>      imagesInFlight (swapchain.imageViews.size ());
 
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-        imageAvailableSemaphore.push_back (std::make_unique<Semaphore> (device));
-        renderFinishedSemaphore.push_back (std::make_unique<Semaphore> (device));
-        inFlightFences.push_back (std::make_unique<Fence> (device));
+        imageAvailableSemaphore.push_back (Semaphore::Create (device));
+        renderFinishedSemaphore.push_back (Semaphore::Create (device));
+        inFlightFences.push_back (Fence::Create (device));
     }
 
     const std::vector<VkFence> inFlightFenceHandles = Utils::ConvertToHandles<Fence, VkFence> (inFlightFences);

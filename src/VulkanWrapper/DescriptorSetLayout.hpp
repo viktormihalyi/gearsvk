@@ -5,7 +5,9 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
+#include "Ptr.hpp"
 #include "Utils.hpp"
+
 
 class DescriptorSetLayout : public Noncopyable {
 private:
@@ -29,6 +31,8 @@ private:
     }
 
 public:
+    USING_PTR (DescriptorSetLayout);
+
     DescriptorSetLayout (VkDevice device, const std::vector<VkDescriptorSetLayoutBinding>& bindings)
         : device (device)
         , handle (CreateDescriptorSetLayout (device, bindings))

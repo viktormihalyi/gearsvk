@@ -29,6 +29,8 @@ private:
     }
 
 public:
+    USING_PTR (Buffer);
+
     Buffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags)
         : device (device)
         , handle (CreateBuffer (device, bufferSize, usageFlags))

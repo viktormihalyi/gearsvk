@@ -4,6 +4,7 @@
 #include "Assert.hpp"
 #include "ImageView.hpp"
 #include "Noncopyable.hpp"
+#include "Ptr.hpp"
 #include "Utils.hpp"
 
 #include <vulkan/vulkan.h>
@@ -17,6 +18,8 @@ private:
     const uint32_t height;
 
 public:
+    USING_PTR (Framebuffer);
+
     Framebuffer (VkDevice device, VkRenderPass renderPass, const std::vector<std::reference_wrapper<ImageView>>& attachments, uint32_t width, uint32_t height)
         : Framebuffer (device, renderPass, Utils::ConvertToHandles<ImageView, VkImageView> (attachments), width, height)
     {

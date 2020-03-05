@@ -5,6 +5,7 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
+#include "Ptr.hpp"
 #include "Utils.hpp"
 
 class Fence : public Noncopyable {
@@ -25,6 +26,8 @@ private:
     }
 
 public:
+    USING_PTR (Fence);
+
     Fence (VkDevice device)
         : device (device)
         , handle (CreateFence (device))

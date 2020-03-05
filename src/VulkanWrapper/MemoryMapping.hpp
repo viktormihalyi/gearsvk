@@ -3,9 +3,11 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Noncopyable.hpp"
-#include "Utils.hpp"
 #include "Assert.hpp"
+#include "Noncopyable.hpp"
+#include "Ptr.hpp"
+#include "Utils.hpp"
+
 
 class MemoryMapping : public Noncopyable {
 private:
@@ -15,6 +17,8 @@ private:
     void* mappedMemory;
 
 public:
+    USING_PTR (MemoryMapping);
+
     MemoryMapping (VkDevice device, VkDeviceMemory memory, uint32_t offset, uint32_t size)
         : device (device)
         , memory (memory)

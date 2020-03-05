@@ -1,6 +1,7 @@
 #ifndef WINDOWPROVIDER_HPP
 #define WINDOWPROVIDER_HPP
 
+#include "Noncopyable.hpp"
 #include "Ptr.hpp"
 
 #include <functional>
@@ -9,8 +10,10 @@
 #include <vulkan/vulkan.h>
 
 
-class WindowProvider {
+class WindowProvider : public Noncopyable {
 public:
+    USING_PTR (WindowProvider);
+
     using DrawCallback = std::function<void ()>;
 
     virtual ~WindowProvider ()

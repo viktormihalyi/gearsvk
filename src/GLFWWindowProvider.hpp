@@ -11,6 +11,8 @@ private:
     void* window;
 
 public:
+    USING_PTR (GLFWWindowProvider);
+
     GLFWWindowProvider ();
     ~GLFWWindowProvider () override;
 

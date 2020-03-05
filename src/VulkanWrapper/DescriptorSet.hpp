@@ -5,17 +5,22 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
+#include "Ptr.hpp"
 #include "Utils.hpp"
 
 
 class DescriptorSet : public Noncopyable {
 private:
-    const VkDevice  device;
-    VkDescriptorSet handle;
+    const VkDevice         device;
+    const VkDescriptorPool descriptorPool;
+    VkDescriptorSet        handle;
 
 public:
+    USING_PTR (DescriptorSet);
+
     DescriptorSet (VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout layout)
         : device (device)
+        , descriptorPool (descriptorPool)
         , handle (VK_NULL_HANDLE)
     {
         VkDescriptorSetAllocateInfo allocInfo = {};
@@ -31,6 +36,8 @@ public:
 
     ~DescriptorSet ()
     {
+        // only free for VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
+        // vkFreeDescriptorSets (device, descriptorPool, 1, &handle);
     }
 
     operator VkDescriptorSet () const

@@ -5,6 +5,7 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
+#include "Ptr.hpp"
 #include "Utils.hpp"
 
 class Semaphore : public Noncopyable {
@@ -24,6 +25,8 @@ private:
     }
 
 public:
+    USING_PTR (Semaphore);
+
     Semaphore (VkDevice device)
         : device (device)
         , handle (CreateSemaphore (device))

@@ -29,6 +29,8 @@ private:
     }
 
 public:
+    USING_PTR (DeviceMemory);
+
     DeviceMemory (VkDevice device, size_t allocationSize, uint32_t memoryTypeIndex)
         : device (device)
         , handle (CreateDeviceMemory (device, allocationSize, memoryTypeIndex))
