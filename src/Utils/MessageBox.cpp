@@ -33,7 +33,7 @@ Result Show (const std::string& title, const std::string& message)
         nullptr, // colorscheme
     };
 
-    int buttonIndex;
+    int buttonIndex = -1;
     if (SDL_ShowMessageBox (&messageBoxData, &buttonIndex) < 0) {
         return Result::Error;
     }

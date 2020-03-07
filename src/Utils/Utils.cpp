@@ -5,14 +5,17 @@
 
 namespace Utils {
 
+std::filesystem::path GetProjectRoot ()
+{
 #ifdef PROJECT_ROOT_FULL_PATH
-const std::filesystem::path PROJECT_ROOT (PROJECT_ROOT_FULL_PATH);
+    static const std::filesystem::path projectRoot (PROJECT_ROOT_FULL_PATH);
+    return projectRoot;
 #else
 #error "no project root path defined"
 #endif
+}
 
-
-template<typename T, typename IteratorType = char>
+template<typename T>
 static T ReadOpenedFile (std::ifstream& file)
 {
     if (ERROR (!file.is_open ())) {
@@ -24,14 +27,14 @@ static T ReadOpenedFile (std::ifstream& file)
     result.reserve (file.tellg ());
     file.seekg (0, std::ios::beg);
 
-    result.assign (std::istreambuf_iterator<IteratorType> (file),
-                   std::istreambuf_iterator<IteratorType> ());
+    result.assign (std::istreambuf_iterator<char> (file),
+                   std::istreambuf_iterator<char> ());
 
     return result;
 }
 
 
-template<typename T, typename IteratorType = char>
+template<typename T>
 static std::optional<T> OpenAndReadFile (const std::filesystem::path& filePath)
 {
     std::ifstream file (filePath, std::ios::binary);
@@ -40,7 +43,7 @@ static std::optional<T> OpenAndReadFile (const std::filesystem::path& filePath)
         return std::nullopt;
     }
 
-    T result = ReadOpenedFile<T, IteratorType> (file);
+    T result = ReadOpenedFile<T> (file);
 
     if (ERROR (file.fail ())) {
         return std::nullopt;

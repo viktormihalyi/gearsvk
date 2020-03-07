@@ -7,67 +7,41 @@ project (GearsVk)
 
 find_package (Vulkan)
 
-# external libs
-
-set (SPIRV_SKIP_TESTS ON CACHE BOOL "" FORCE)
-set (SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "" FORCE)
-
-set (SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
-set (SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
-set (SPIRV_CROSS_ENABLE_HLSL OFF CACHE BOOL "" FORCE)
-set (SPIRV_CROSS_ENABLE_MSL OFF CACHE BOOL "" FORCE)
-
-set (SHADERC_SKIP_TESTS ON CACHE BOOL "" FORCE)
-
-set (BUILD_GMOCK OFF CACHE BOOL "" FORCE)
-
-set (GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set (GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set (GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
-add_subdirectory (external/googletest)
-
-add_subdirectory (external/SPIRV-Headers)
-add_subdirectory (external/SPIRV-Tools)
-add_subdirectory (external/SPIRV-Cross)
-add_subdirectory (external/glslang)
-add_subdirectory (external/shaderc)
-add_subdirectory (external/glfw)
-
-
+if (${Vulkan_FOUND})
+    message ("Vulkan lib found at "${Vulkan_LIBRARIES})
+    message ("Vulkan headers found at "${Vulkan_INCLUDE_DIRS})
+else ()
+    error ()
+endif ()
 
 add_definitions (-D_CRT_SECURE_NO_WARNINGS)
-
 
 set (TARGET_NAME GearsVk)
 set (TARGET_TEST_NAME GearsVkTest)
 
+include (
+    cmake/external.cmake
+    cmake/Utils.cmake
+)
 
 set (COMMON_SOURCE_FILES
-    src/Utils/Assert.cpp
-    src/Utils/ImageLoader.cpp
-    src/Utils/Logger.cpp
-    src/Utils/MessageBox.cpp
-    src/Utils/SourceLocation.cpp
-    src/Utils/Utils.cpp
     src/VulkanWrapper/ShaderModule.cpp
-    src/GLFWWindowProvider.cpp
-    src/ShaderReflection.cpp
+    src/GearsVk/GLFWWindowProvider.cpp
+    src/GearsVk/ShaderReflection.cpp
 )
 
 add_executable (${TARGET_NAME}
     ${COMMON_SOURCE_FILES}
-    src/main.cpp
+    src/GearsVk/main.cpp
 )
 
 add_executable (${TARGET_TEST_NAME}
     ${COMMON_SOURCE_FILES}
-    src/tests/TestMain.cpp
+    src/Tests/TestMain.cpp
 )
 
 set (EXTRNAL_INCLUDES
-    "C:\\VulkanSDK\\1.1.130.0\\Include"
-    "C:\\SDL2-2.0.10\\include"
+    ${Vulkan_INCLUDE_DIRS}
 
     external/glfw/include
     external/json/single_include
@@ -78,18 +52,19 @@ set (EXTRNAL_INCLUDES
 )
 
 set (EXTRNAL_LINKS
-    "C:\\VulkanSDK\\1.1.130.0\\Lib"
     "C:\\SDL2-2.0.10\\lib\\x64"
 )
 
 set (COMMON_INCLUDES
     src
+    src/GearsVk
     src/VulkanWrapper
     src/Utils
 )
 
 set (COMMON_LINKS
-    vulkan-1
+    ${Vulkan_LIBRARIES}
+    GearsVkUtils
     SDL2
     glfw
     shaderc
@@ -97,8 +72,8 @@ set (COMMON_LINKS
     spirv-cross-glsl
     spirv-cross-reflect
 )
+
 set (COMMON_COMPILER_DEFINES
-    PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
 )
 
 target_include_directories (${TARGET_NAME} PRIVATE ${EXTRNAL_INCLUDES})

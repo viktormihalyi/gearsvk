@@ -421,7 +421,7 @@ int main (int argc, char* argv[])
         present->inputs.push_back (*finalTarget);
     }
 
-    std::cout << Utils::PROJECT_ROOT.u8string () << std::endl;
+    std::cout << Utils::GetProjectRoot ().u8string () << std::endl;
 
     uint32_t apiVersion;
     vkEnumerateInstanceVersion (&apiVersion);
@@ -514,8 +514,8 @@ int main (int argc, char* argv[])
 
 
     ShaderPipeline theShader;
-    theShader.vertexShader   = ShaderModule::CreateFromSource (device, Utils::PROJECT_ROOT / "shaders" / "shader.vert");
-    theShader.fragmentShader = ShaderModule::CreateFromSource (device, Utils::PROJECT_ROOT / "shaders" / "shader.frag");
+    theShader.vertexShader   = ShaderModule::CreateFromSource (device, Utils::GetProjectRoot () / "shaders" / "shader.vert");
+    theShader.fragmentShader = ShaderModule::CreateFromSource (device, Utils::GetProjectRoot () / "shaders" / "shader.frag");
 
 
     struct ImgInfo {

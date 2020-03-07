@@ -1,6 +1,8 @@
 #ifndef ASSERT_HPP
 #define ASSERT_HPP
 
+#include "UtilsDLLExport.hpp"
+
 #include "SourceLocation.hpp"
 
 #ifndef NDEBUG
@@ -17,8 +19,10 @@ namespace Utils {
 
 namespace detail {
 
+GEARSVK_UTILS_API
 bool DebugAssertFunc (bool condition, const char* message, const char* conditionString, const SourceLocation& location);
 
+GEARSVK_UTILS_API
 bool DebugErrorFunc (bool condition, const char* message, const char* conditionString, const SourceLocation& location);
 
 } // namespace detail
