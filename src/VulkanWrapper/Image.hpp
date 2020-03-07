@@ -18,9 +18,9 @@ private:
 public:
     USING_PTR (Image);
 
-    Image (VkDevice device, uint32_t width, uint32_t height, VkImageUsageFlags usage)
+    Image (VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage)
         : device (device)
-        , format (VK_FORMAT_R8G8B8A8_SRGB)
+        , format (format)
     {
         VkImageCreateInfo imageInfo = {};
         imageInfo.sType             = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -31,7 +31,7 @@ public:
         imageInfo.mipLevels         = 1;
         imageInfo.arrayLayers       = 1;
         imageInfo.format            = format;
-        imageInfo.tiling            = VK_IMAGE_TILING_LINEAR;
+        imageInfo.tiling            = tiling;
         imageInfo.initialLayout     = VK_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage             = usage;
         imageInfo.samples           = VK_SAMPLE_COUNT_1_BIT;
@@ -82,7 +82,11 @@ public:
             sourceStage      = VK_PIPELINE_STAGE_TRANSFER_BIT;
             destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
         } else {
-            throw std::invalid_argument ("unsupported layout transition!");
+            // TODO
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask = 0;
+            sourceStage           = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+            destinationStage      = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
         }
 
         vkCmdPipelineBarrier (

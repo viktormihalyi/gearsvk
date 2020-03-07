@@ -44,6 +44,26 @@ public:
         vkFreeCommandBuffers (device, commandPool, 1, &handle);
     }
 
+    void Begin () const
+    {
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags                    = 0;       // Optional
+        beginInfo.pInheritanceInfo         = nullptr; // Optional
+
+        if (ERROR (vkBeginCommandBuffer (handle, &beginInfo) != VK_SUCCESS)) {
+            throw std::runtime_error ("begin failed");
+        }
+    }
+
+
+    void End () const
+    {
+        if (ERROR (vkEndCommandBuffer (handle) != VK_SUCCESS)) {
+            throw std::runtime_error ("end failed");
+        }
+    }
+
     operator VkCommandBuffer () const
     {
         return handle;

@@ -29,9 +29,11 @@
 #include "Sampler.hpp"
 #include "Semaphore.hpp"
 #include "ShaderModule.hpp"
+#include "SingleTimeCommand.hpp"
 #include "Surface.hpp"
 #include "Swapchain.hpp"
 
+#include "ShaderPipeline.hpp"
 #include "ShaderReflection.hpp"
 
 #include <array>
@@ -168,50 +170,6 @@ BufferMemory CreateBufferMemory (VkPhysicalDevice physicalDevice, VkDevice devic
 }
 
 
-class SingleTimeCommand final : public Noncopyable {
-private:
-    const VkDevice      device;
-    const VkCommandPool commandPool;
-    const VkQueue       queue;
-    const CommandBuffer commandBuffer;
-
-public:
-    SingleTimeCommand (VkDevice device, VkCommandPool commandPool, VkQueue queue)
-        : device (device)
-        , queue (queue)
-        , commandPool (commandPool)
-        , commandBuffer (device, commandPool)
-    {
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-        if (ERROR (vkBeginCommandBuffer (commandBuffer, &beginInfo) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to begin one time commandbuffer");
-        }
-    }
-
-    ~SingleTimeCommand ()
-    {
-        if (ERROR (vkEndCommandBuffer (commandBuffer) != VK_SUCCESS)) {
-            return;
-        }
-
-        VkCommandBuffer handle = commandBuffer;
-
-        VkSubmitInfo submitInfo       = {};
-        submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers    = &handle;
-
-        vkQueueSubmit (queue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle (queue);
-    }
-
-    operator VkCommandBuffer () const { return commandBuffer; }
-};
-
-
 void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
     SingleTimeCommand commandBuffer (device, commandPool, graphicsQueue);
@@ -282,7 +240,6 @@ void TransitionImageLayout (VkDevice device, VkQueue graphicsQueue, VkCommandPoo
 
 struct BufferImage {
     Image::U        image;
-    Buffer::U       buffer;
     DeviceMemory::U memory;
 };
 
@@ -308,11 +265,10 @@ BufferImage CreateImage (VkPhysicalDevice physicalDevice, VkDevice device, uint3
     BufferImage result;
     {
         BufferMemory deviceLocalMemory = CreateBufferMemory (physicalDevice, device, imageSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        result.buffer                  = std::move (deviceLocalMemory.buffer);
         result.memory                  = std::move (deviceLocalMemory.memory);
     }
 
-    result.image = Image::Create (device, width, height, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    result.image = Image::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
     if (ERROR (vkBindImageMemory (device, *result.image, *result.memory, 0) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to bind buffer memory");
@@ -481,36 +437,6 @@ int main (int argc, char* argv[])
 
     MemoryMapping mapping (device, *stagingBuffer.memory, 0, bufferSize);
     mapping.Copy (vertices);
-
-
-    struct ShaderPipeline {
-        ShaderModule::U vertexShader;
-        ShaderModule::U fragmentShader;
-        ShaderModule::U geometryShader;
-        ShaderModule::U tessellationEvaluationShader;
-        ShaderModule::U tessellationControlShader;
-        ShaderModule::U computeShader;
-
-        std::vector<VkPipelineShaderStageCreateInfo> GetShaderStages () const
-        {
-            std::vector<VkPipelineShaderStageCreateInfo> result;
-
-            if (vertexShader != nullptr)
-                result.push_back (vertexShader->GetShaderStageCreateInfo ());
-            if (fragmentShader != nullptr)
-                result.push_back (fragmentShader->GetShaderStageCreateInfo ());
-            if (geometryShader != nullptr)
-                result.push_back (geometryShader->GetShaderStageCreateInfo ());
-            if (tessellationEvaluationShader != nullptr)
-                result.push_back (tessellationEvaluationShader->GetShaderStageCreateInfo ());
-            if (tessellationControlShader != nullptr)
-                result.push_back (tessellationControlShader->GetShaderStageCreateInfo ());
-            if (computeShader != nullptr)
-                result.push_back (computeShader->GetShaderStageCreateInfo ());
-
-            return result;
-        }
-    };
 
 
     ShaderPipeline theShader;
@@ -707,14 +633,7 @@ int main (int argc, char* argv[])
     for (size_t i = 0; i < swapChainFramebuffers.size (); i++) {
         CommandBuffer::U commandBuffer = CommandBuffer::Create (device, commandPool);
 
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags                    = 0;       // Optional
-        beginInfo.pInheritanceInfo         = nullptr; // Optional
-
-        if (ERROR (vkBeginCommandBuffer (*commandBuffer, &beginInfo) != VK_SUCCESS)) {
-            return EXIT_FAILURE;
-        }
+        commandBuffer->Begin ();
 
         VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -741,9 +660,7 @@ int main (int argc, char* argv[])
 
         vkCmdEndRenderPass (*commandBuffer);
 
-        if (ERROR (vkEndCommandBuffer (*commandBuffer) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to end commandbuffer");
-        }
+        commandBuffer->End ();
 
         commandBuffers.push_back (std::move (commandBuffer));
     }

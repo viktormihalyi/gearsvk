@@ -17,13 +17,18 @@ private:
 
     static VkInstance CreateInstance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers)
     {
-        std::cout << "creating instance with extensions:" << std::endl;
-        for (const auto& a : instanceExtensions) {
-            std::cout << "\t" << a << std::endl;
+        std::cout << "creating instance" << std::endl;
+        if (!instanceExtensions.empty ()) {
+            std::cout << "with extensions:" << std::endl;
+            for (const auto& a : instanceExtensions) {
+                std::cout << "\t" << a << std::endl;
+            }
         }
-        std::cout << "and with layers:" << std::endl;
-        for (const auto& a : instanceLayers) {
-            std::cout << "\t" << a << std::endl;
+        if (!instanceLayers.empty ()) {
+            std::cout << "with layers:" << std::endl;
+            for (const auto& a : instanceLayers) {
+                std::cout << "\t" << a << std::endl;
+            }
         }
 
         auto extensionNameAccessor = [] (const VkExtensionProperties& props) { return props.extensionName; };

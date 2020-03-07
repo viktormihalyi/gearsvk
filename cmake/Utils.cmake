@@ -1,4 +1,3 @@
-
 set (TARGET_NAME_UTILS GearsVkUtils)
 
 add_library (${TARGET_NAME_UTILS} SHARED

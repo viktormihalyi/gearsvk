@@ -12,11 +12,11 @@ class Device : public Noncopyable {
 private:
     VkDevice handle;
 
-    static VkDevice CreateLogicalDevice (VkPhysicalDevice physicalDevice, uint32_t graphicsQueueFamilyIndex, const std::vector<const char*>& requestedDeviceExtensions)
+    static VkDevice CreateLogicalDevice (VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, const std::vector<const char*>& requestedDeviceExtensions)
     {
         VkDeviceQueueCreateInfo queueCreateInfo = {};
         queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex        = graphicsQueueFamilyIndex;
+        queueCreateInfo.queueFamilyIndex        = queueFamilyIndex;
         queueCreateInfo.queueCount              = 1;
         float queuePriority                     = 1.0f;
         queueCreateInfo.pQueuePriorities        = &queuePriority;
@@ -25,8 +25,8 @@ private:
 
         VkDeviceCreateInfo createInfo      = {};
         createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.pQueueCreateInfos       = &queueCreateInfo;
         createInfo.queueCreateInfoCount    = 1;
+        createInfo.pQueueCreateInfos       = &queueCreateInfo;
         createInfo.pEnabledFeatures        = &deviceFeatures;
         createInfo.enabledExtensionCount   = static_cast<uint32_t> (requestedDeviceExtensions.size ());
         createInfo.ppEnabledExtensionNames = requestedDeviceExtensions.data ();
@@ -40,8 +40,8 @@ private:
 public:
     USING_PTR (Device);
 
-    Device (VkPhysicalDevice physicalDevice, uint32_t graphicsQueueFamilyIndex, const std::vector<const char*>& requestedDeviceExtensions)
-        : handle (CreateLogicalDevice (physicalDevice, graphicsQueueFamilyIndex, requestedDeviceExtensions))
+    Device (VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, const std::vector<const char*>& requestedDeviceExtensions)
+        : handle (CreateLogicalDevice (physicalDevice, queueFamilyIndex, requestedDeviceExtensions))
     {
     }
 

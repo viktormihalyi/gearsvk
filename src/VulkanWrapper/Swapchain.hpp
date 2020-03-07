@@ -87,10 +87,6 @@ private:
                                            VkExtent2D&         extent,
                                            uint32_t&           imageCount)
     {
-        if (ERROR (!queueFamilyIndices.IsValid ())) {
-            throw std::runtime_error ("bad indices");
-        }
-
         SwapChainSupportDetails details;
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR (physicalDevice, surface, &details.capabilities);
         uint32_t formatCount = 0;

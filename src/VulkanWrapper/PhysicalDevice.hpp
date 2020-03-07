@@ -8,6 +8,36 @@
 #include <vulkan/vulkan.h>
 
 
+class QueueFamilyProvider {
+public:
+    virtual uint32_t GetGraphics () = 0;
+    virtual uint32_t GetPresentation () = 0;
+    virtual uint32_t GetCompute () = 0;
+    virtual uint32_t GetTransfer () = 0;
+};
+
+
+class QueueFamilyAcceptor {
+public:
+    using Acceptor = std::function<std::optional<uint32_t> (const std::vector<VkQueueFamilyProperties>&)>;
+
+    Acceptor graphicsAcceptor;
+    Acceptor presentationAcceptor;
+    Acceptor computeAcceptor;
+    Acceptor transferAcceptor;
+
+    QueueFamilyAcceptor (const Acceptor& graphicsAcceptor,
+                         const Acceptor& presentationAcceptor,
+                         const Acceptor& computeAcceptor,
+                         const Acceptor& transferAcceptor)
+        : graphicsAcceptor (graphicsAcceptor)
+        , presentationAcceptor (presentationAcceptor)
+        , computeAcceptor (computeAcceptor)
+        , transferAcceptor (transferAcceptor)
+    {
+    }
+};
+
 class PhysicalDevice : public Noncopyable {
 private:
     VkPhysicalDevice handle;
@@ -16,11 +46,8 @@ public:
     struct QueueFamilies {
         std::optional<uint32_t> graphics;
         std::optional<uint32_t> presentation;
-
-        bool IsValid () const
-        {
-            return graphics.has_value () && presentation.has_value ();
-        }
+        std::optional<uint32_t> transfer;
+        std::optional<uint32_t> compute;
     };
 
     // TODO private
@@ -49,16 +76,30 @@ private:
                 result.presentation = i;
             }
 
-            if (result.IsValid ()) {
-                break;
-            }
-
             i++;
         }
 
-        if (ERROR (!result.IsValid ())) {
+        if (ERROR (!result.graphics.has_value () && !result.presentation.has_value ())) {
             throw std::runtime_error ("failed to find queue family indices");
         }
+
+        return result;
+    }
+
+    static QueueFamilies FindQueueFamilyIndices (VkPhysicalDevice physicalDevice, const QueueFamilyAcceptor& acceptor)
+    {
+        QueueFamilies result;
+
+        uint32_t queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties (physicalDevice, &queueFamilyCount, nullptr);
+        std::vector<VkQueueFamilyProperties> queueFamilies (queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties (physicalDevice, &queueFamilyCount, queueFamilies.data ());
+
+
+        result.graphics     = acceptor.graphicsAcceptor (queueFamilies);
+        result.presentation = acceptor.presentationAcceptor (queueFamilies);
+        result.compute      = acceptor.computeAcceptor (queueFamilies);
+        result.transfer     = acceptor.transferAcceptor (queueFamilies);
 
         return result;
     }
@@ -113,6 +154,12 @@ public:
     PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet)
         : handle (CreatePhysicalDevice (instance, requestedDeviceExtensionSet))
         , queueFamilies (CreateQueueFamilyIndices (handle, surface))
+    {
+    }
+
+    PhysicalDevice (VkInstance instance, const std::set<std::string>& requestedDeviceExtensionSet, const QueueFamilyAcceptor& acceptor)
+        : handle (CreatePhysicalDevice (instance, requestedDeviceExtensionSet))
+        , queueFamilies (FindQueueFamilyIndices (handle, acceptor))
     {
     }
 

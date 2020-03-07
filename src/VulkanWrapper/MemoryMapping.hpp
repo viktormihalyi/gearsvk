@@ -63,6 +63,8 @@ public:
 
         memcpy (mappedMemory, reinterpret_cast<const char*> (data) + offset, size);
     }
+
+    void* Get () const { return mappedMemory; }
 };
 
 #endif

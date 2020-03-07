@@ -49,6 +49,7 @@ set (EXTRNAL_INCLUDES
     external/VulkanMemoryAllocator/src
     external/shaderc/libshaderc/include
     external/SPIRV-Cross
+    external/stb
 )
 
 set (EXTRNAL_LINKS
