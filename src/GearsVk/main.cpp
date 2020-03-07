@@ -243,15 +243,21 @@ struct BufferImage {
     DeviceMemory::U memory;
 };
 
+DeviceMemory::U AllocateImageMemory (VkPhysicalDevice physicalDevice, VkDevice device, VkImage image, VkMemoryPropertyFlags propertyFlags)
+{
+    VkMemoryRequirements memRequirements = {};
+    vkGetImageMemoryRequirements (device, image, &memRequirements);
+    uint32_t memoryTypeIndex = FindMemoryType (physicalDevice, memRequirements.memoryTypeBits, propertyFlags);
+
+    return DeviceMemory::Create (device, memRequirements.size, memoryTypeIndex);
+}
 
 BufferImage CreateImage (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool)
 {
-    const uint32_t imageSize = width * height * 4;
 
-    const BufferMemory stagingMemory = CreateBufferMemory (physicalDevice, device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
+    BufferMemory stagingMemory = CreateBufferMemory (physicalDevice, device, width * height * 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     {
-        MemoryMapping                       bm (device, *stagingMemory.memory, 0, imageSize);
+        MemoryMapping                       bm (device, *stagingMemory.memory, 0, width * height * 4);
         std::vector<std::array<uint8_t, 4>> pixels (width * height);
         for (uint32_t y = 0; y < height; ++y) {
             for (uint32_t x = 0; x < width; ++x) {
@@ -263,12 +269,8 @@ BufferImage CreateImage (VkPhysicalDevice physicalDevice, VkDevice device, uint3
     }
 
     BufferImage result;
-    {
-        BufferMemory deviceLocalMemory = CreateBufferMemory (physicalDevice, device, imageSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        result.memory                  = std::move (deviceLocalMemory.memory);
-    }
-
-    result.image = Image::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    result.image = Image::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    result.memory = AllocateImageMemory (physicalDevice, device, *result.image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     if (ERROR (vkBindImageMemory (device, *result.image, *result.memory, 0) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to bind buffer memory");
