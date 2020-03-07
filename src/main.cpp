@@ -17,6 +17,7 @@
 #include "DeviceMemory.hpp"
 #include "Fence.hpp"
 #include "Framebuffer.hpp"
+#include "Image.hpp"
 #include "ImageView.hpp"
 #include "Instance.hpp"
 #include "MemoryMapping.hpp"
@@ -25,6 +26,7 @@
 #include "PipelineLayout.hpp"
 #include "Queue.hpp"
 #include "RenderPass.hpp"
+#include "Sampler.hpp"
 #include "Semaphore.hpp"
 #include "ShaderModule.hpp"
 #include "Surface.hpp"
@@ -60,7 +62,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     void*                                       pUserData)
 {
-    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+    std::cerr << "validation layer: " << pCallbackData->pMessageIdName << ": " << pCallbackData->pMessage << std::endl;
     return VK_FALSE;
 }
 
@@ -136,7 +138,7 @@ uint32_t FindMemoryType (VkPhysicalDevice physicalDevice, uint32_t typeFilter, V
 }
 
 
-struct BufferMemoryU {
+struct BufferMemory {
     Buffer::U       buffer;
     DeviceMemory::U memory;
     uint32_t        bufferSize;
@@ -144,9 +146,9 @@ struct BufferMemoryU {
 };
 
 
-BufferMemoryU CreateBufferMemoryU (VkPhysicalDevice physicalDevice, VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags)
+BufferMemory CreateBufferMemory (VkPhysicalDevice physicalDevice, VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags)
 {
-    BufferMemoryU result;
+    BufferMemory result;
     result.bufferSize = bufferSize;
     result.buffer     = Buffer::Create (device, bufferSize, usageFlags);
 
@@ -165,39 +167,85 @@ BufferMemoryU CreateBufferMemoryU (VkPhysicalDevice physicalDevice, VkDevice dev
 }
 
 
+class SingleTimeCommand final : public Noncopyable {
+private:
+    const VkDevice      device;
+    const VkCommandPool commandPool;
+    const VkQueue       queue;
+    const CommandBuffer commandBuffer;
+
+public:
+    SingleTimeCommand (VkDevice device, VkCommandPool commandPool, VkQueue queue)
+        : device (device)
+        , queue (queue)
+        , commandPool (commandPool)
+        , commandBuffer (device, commandPool)
+    {
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        if (ERROR (vkBeginCommandBuffer (commandBuffer, &beginInfo) != VK_SUCCESS)) {
+            throw std::runtime_error ("failed to begin one time commandbuffer");
+        }
+    }
+
+    ~SingleTimeCommand ()
+    {
+        if (ERROR (vkEndCommandBuffer (commandBuffer) != VK_SUCCESS)) {
+            return;
+        }
+
+        VkCommandBuffer handle = commandBuffer;
+
+        VkSubmitInfo submitInfo       = {};
+        submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers    = &handle;
+
+        vkQueueSubmit (queue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle (queue);
+    }
+
+    operator VkCommandBuffer () const { return commandBuffer; }
+};
+
+
 void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
-    CommandBuffer commandBuffer (device, commandPool);
-
-    VkCommandBufferBeginInfo beginInfo = {};
-    beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-    vkBeginCommandBuffer (commandBuffer, &beginInfo);
+    SingleTimeCommand commandBuffer (device, commandPool, graphicsQueue);
 
     VkBufferCopy copyRegion = {};
     copyRegion.size         = size;
     vkCmdCopyBuffer (commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-
-    vkEndCommandBuffer (commandBuffer);
-
-    VkSubmitInfo submitInfo         = {};
-    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount   = 1;
-    VkCommandBuffer cmdBufferHandle = commandBuffer;
-    submitInfo.pCommandBuffers      = &cmdBufferHandle;
-
-    vkQueueSubmit (graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle (graphicsQueue);
 }
 
 
-void UploadToHostCoherent (VkDevice device, VkDeviceMemory memory, uint32_t offset, const void* data, size_t bytes)
+void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
 {
-    MemoryMapping mapping (device, memory, offset, bytes);
-    mapping.Copy (data, bytes, 0);
-}
+    SingleTimeCommand commandBuffer (device, commandPool, graphicsQueue);
 
+    VkBufferImageCopy region = {};
+    region.bufferOffset      = 0;
+    region.bufferRowLength   = 0;
+    region.bufferImageHeight = 0;
+
+    region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel       = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount     = 1;
+
+    region.imageOffset = {0, 0, 0};
+    region.imageExtent = {width, height, 1};
+
+    vkCmdCopyBufferToImage (
+        commandBuffer,
+        buffer,
+        image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &region);
+}
 
 struct UniformBufferObject {
     glm::mat4 m;
@@ -227,8 +275,131 @@ static UniformBufferObject GetMPV (float asp)
 }
 
 
+void TransitionImageLayout (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout)
+{
+    SingleTimeCommand commandBuffer (device, commandPool, graphicsQueue);
+    image.CmdTransitionImageLayout (commandBuffer, oldLayout, newLayout);
+}
+
+struct BufferImage {
+    Image::U        image;
+    DeviceMemory::U memory;
+};
+
+
+BufferImage CreateBufferImage (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkMemoryPropertyFlags propertyFlags)
+{
+    BufferImage result;
+    result.image = Image::Create (device, width, height);
+
+    VkMemoryRequirements memRequirements = {};
+    vkGetImageMemoryRequirements (device, *result.image, &memRequirements);
+    uint32_t memoryTypeIndex = FindMemoryType (physicalDevice, memRequirements.memoryTypeBits, propertyFlags);
+
+    result.memory = DeviceMemory::Create (device, memRequirements.size, memoryTypeIndex);
+
+    if (ERROR (vkBindImageMemory (device, *result.image, *result.memory, 0) != VK_SUCCESS)) {
+        throw std::runtime_error ("failed to bind buffer memory");
+    }
+
+    return std::move (result);
+}
+
+
+namespace RenderGraph {
+
+
+class Resource : public Noncopyable {
+public:
+    USING_PTR (Resource);
+
+    uint32_t version;
+};
+
+class ImageResource : public Resource {
+public:
+    USING_PTR (ImageResource);
+
+    VkImage imageHandle;
+};
+
+struct Operation : public Noncopyable {
+    USING_PTR (Operation);
+
+    std::vector<Resource::Ref> inputs;
+    std::vector<Resource::Ref> outputs;
+
+    virtual void Execute () {}
+};
+
+struct PresentOperation final : public Operation {
+};
+
+struct Render1ToTextureOperation final : public Operation {
+    void Execute () override
+    {
+    }
+};
+
+class Graph final : public Noncopyable {
+public:
+    USING_PTR (Graph);
+
+    std::vector<Resource::U>  resources;
+    std::vector<Operation::U> operations;
+};
+} // namespace RenderGraph
+
+
 int main (int argc, char* argv[])
 {
+    {
+        using namespace RenderGraph;
+        Graph graph;
+
+        Resource::U depthBuffer    = Resource::Create ();
+        Resource::U depthBuffer2   = Resource::Create ();
+        Resource::U gbuffer1       = Resource::Create ();
+        Resource::U gbuffer2       = Resource::Create ();
+        Resource::U gbuffer3       = Resource::Create ();
+        Resource::U debugOutput    = Resource::Create ();
+        Resource::U lightingBuffer = Resource::Create ();
+        Resource::U finalTarget    = Resource::Create ();
+
+        Operation::U depthPass   = Operation::Create ();
+        Operation::U gbufferPass = Operation::Create ();
+        Operation::U debugView   = Operation::Create ();
+        Operation::U move        = Operation::Create ();
+        Operation::U lighting    = Operation::Create ();
+        Operation::U post        = Operation::Create ();
+        Operation::U present     = Operation::Create ();
+
+        depthPass->outputs.push_back (*depthBuffer);
+
+        gbufferPass->inputs.push_back (*depthBuffer);
+        gbufferPass->outputs.push_back (*depthBuffer2);
+        gbufferPass->outputs.push_back (*gbuffer1);
+        gbufferPass->outputs.push_back (*gbuffer2);
+        gbufferPass->outputs.push_back (*gbuffer3);
+
+        debugView->inputs.push_back (*gbuffer3);
+        debugView->outputs.push_back (*debugOutput);
+
+        lighting->inputs.push_back (*depthBuffer);
+        lighting->inputs.push_back (*gbuffer1);
+        lighting->inputs.push_back (*gbuffer2);
+        lighting->inputs.push_back (*gbuffer3);
+        lighting->outputs.push_back (*lightingBuffer);
+
+        post->inputs.push_back (*lightingBuffer);
+        post->outputs.push_back (*finalTarget);
+
+        move->inputs.push_back (*debugOutput);
+        move->outputs.push_back (*finalTarget);
+
+        present->inputs.push_back (*finalTarget);
+    }
+
     std::cout << Utils::PROJECT_ROOT.u8string () << std::endl;
 
     uint32_t apiVersion;
@@ -268,20 +439,38 @@ int main (int argc, char* argv[])
     };
 
     const size_t bufferSize = vertices.size () * sizeof (Vertex);
+    /*
+    BufferImage bimage = CreateBufferImage (physicalDevice, device, 512, 512, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-    BufferMemoryU stagingBuffer = CreateBufferMemoryU (
+    {
+        MemoryMapping                       bm (device, *bimage.memory, 0, 512 * 512 * 4);
+        std::vector<std::array<uint8_t, 4>> pixels (512 * 512);
+        for (uint32_t y = 0; y < 512; ++y) {
+            for (uint32_t x = 0; x < 512; ++x) {
+                pixels[y * 512 + x] = {0, 0, 0, 0};
+            }
+        }
+
+        bm.Copy (pixels);
+    }
+    ImageView bimageView (device, *bimage.image);
+    */
+
+
+    BufferMemory stagingBuffer = CreateBufferMemory (
         physicalDevice, device,
         bufferSize,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-    BufferMemoryU vertexBuffer = CreateBufferMemoryU (
+    BufferMemory vertexBuffer = CreateBufferMemory (
         physicalDevice, device,
         bufferSize,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    UploadToHostCoherent (device, *stagingBuffer.memory, 0, vertices.data (), bufferSize);
+    MemoryMapping mapping (device, *stagingBuffer.memory, 0, bufferSize);
+    mapping.Copy (vertices);
 
 
     struct ShaderPipeline {
@@ -318,42 +507,53 @@ int main (int argc, char* argv[])
     theShader.vertexShader   = ShaderModule::CreateFromSource (device, Utils::PROJECT_ROOT / "shaders" / "shader.vert");
     theShader.fragmentShader = ShaderModule::CreateFromSource (device, Utils::PROJECT_ROOT / "shaders" / "shader.frag");
 
-    Gears::ShaderReflection refl (theShader.vertexShader->GetBinary ());
-    Gears::ShaderReflection reflf (theShader.fragmentShader->GetBinary ());
 
-    class UniformReflection {
+    struct ImgInfo {
+        VkDescriptorImageInfo imageInfo;
+        uint32_t              binding;
+    };
+
+    class UBOReflection {
     private:
-        struct UniformData {
+        struct UniformDataForSwapchain {
             // one for each swapchain image
-            std::vector<BufferMemoryU>    buffers;
+            std::vector<BufferMemory>     buffers;
             std::vector<MemoryMapping::U> mappings;
 
-            Gears::UniformBlock reflection;
+            Gears::UniformData::Block reflection;
         };
 
-        std::unordered_map<std::string, UniformData> uniforms;
-        DescriptorSetLayout::U                       layout;
-        DescriptorPool                               descriptorPool;
-        std::vector<DescriptorSet::U>                descriptorSets;
+        DescriptorPool::U      descriptorPool;
+        DescriptorSetLayout::U layout;
+
+        std::unordered_map<std::string, UniformDataForSwapchain> uniforms;
+
+        // one for each swapchain
+        std::vector<DescriptorSet::U> descriptorSets;
 
     public:
-        UniformReflection (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t imageCount, const std::vector<Gears::UniformBlock>& uniformBlocks)
-            : descriptorPool (device, imageCount, 0, imageCount)
+        UBOReflection (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t imageCount, const Gears::UniformData& uniformData, const std::vector<ImgInfo>& imageInfos = {})
         {
-            std::vector<VkDescriptorSetLayoutBinding> uboLayoutBindings;
-            for (const Gears::UniformBlock& ubo : uniformBlocks) {
+            const uint32_t maxSets = imageCount;
+            descriptorPool         = DescriptorPool::Create (device,
+                                                     imageCount * (uniformData.ubos.size ()),
+                                                     imageCount * (uniformData.samplers.size ()),
+                                                     maxSets);
+
+
+            std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
+
+            for (const Gears::UniformData::Sampler& s : uniformData.samplers) {
+                layoutBindings.push_back (s.GetDescriptorSetLayoutBinding ());
+            }
+
+            for (const Gears::UniformData::Block& ubo : uniformData.ubos) {
                 uniforms[ubo.name].reflection = ubo;
 
-                VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-                uboLayoutBinding.binding                      = ubo.binding;
-                uboLayoutBinding.descriptorCount              = 1;
-                uboLayoutBinding.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                uboLayoutBinding.pImmutableSamplers           = nullptr;
-                uboLayoutBinding.stageFlags                   = VK_SHADER_STAGE_ALL_GRAPHICS;
-                uboLayoutBindings.push_back (uboLayoutBinding);
+                layoutBindings.push_back (ubo.GetDescriptorSetLayoutBinding ());
 
                 for (int i = 0; i < imageCount; ++i) {
-                    BufferMemoryU b = CreateBufferMemoryU (
+                    BufferMemory b = CreateBufferMemory (
                         physicalDevice, device,
                         ubo.blockSize,
                         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -363,13 +563,12 @@ int main (int argc, char* argv[])
                     uniforms[ubo.name].buffers.push_back (std::move (b));
                 }
             }
-            layout = DescriptorSetLayout::Create (device, uboLayoutBindings);
 
+            layout = DescriptorSetLayout::Create (device, layoutBindings);
 
             for (int i = 0; i < imageCount; ++i) {
-                descriptorSets.push_back (DescriptorSet::Create (device, descriptorPool, *layout));
+                descriptorSets.push_back (DescriptorSet::Create (device, *descriptorPool, *layout));
             }
-
 
             for (const auto& [uboName, uboData] : uniforms) {
                 for (size_t i = 0; i < imageCount; ++i) {
@@ -378,30 +577,33 @@ int main (int argc, char* argv[])
                     bufferInfo.offset = 0;
                     bufferInfo.range  = uboData.buffers[i].bufferSize;
 
-                    VkWriteDescriptorSet descriptorWrite = {};
-                    descriptorWrite.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                    descriptorWrite.dstSet               = *descriptorSets[i];
-                    descriptorWrite.dstBinding           = uniforms[uboName].reflection.binding;
-                    descriptorWrite.dstArrayElement      = 0;
-                    descriptorWrite.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                    descriptorWrite.descriptorCount      = 1;
-                    descriptorWrite.pBufferInfo          = &bufferInfo;
-                    descriptorWrite.pImageInfo           = nullptr; // Optional
-                    descriptorWrite.pTexelBufferView     = nullptr; // Optional
+                    descriptorSets[i]->WriteOneBufferInfo (uniforms[uboName].reflection.binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, bufferInfo);
+                }
+            }
 
-                    vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
+            for (const auto& imageInfo : imageInfos) {
+                for (const auto& set : descriptorSets) {
+                    set->WriteOneImageInfo (imageInfo.binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.imageInfo);
                 }
             }
         }
 
-        UniformData& operator[] (const std::string& name)
+        UniformDataForSwapchain& operator[] (const std::string& name)
         {
             return uniforms[name];
         }
 
-        const DescriptorSet& GetDescriptorSet (uint32_t index) const
+        MemoryMapping& operator() (const std::string& name, uint32_t imageIndex)
         {
-            return *descriptorSets[index];
+            return *uniforms[name].mappings[imageIndex];
+        }
+
+        void CmdBindSet (const CommandBuffer& commandBuffer, const PipelineLayout& pipelineLayout, uint32_t index) const
+        {
+            VkDescriptorSet ds = *descriptorSets[index];
+            vkCmdBindDescriptorSets (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0,
+                                     1, &ds,
+                                     0, nullptr);
         }
 
         const DescriptorSetLayout& GetLayout () const
@@ -410,7 +612,20 @@ int main (int argc, char* argv[])
         }
     };
 
-    UniformReflection uniformReflection (physicalDevice, device, swapchain.GetImageCount (), refl.GeUniformData ());
+    Gears::ShaderReflection refl (theShader.vertexShader->GetBinary ());
+    Gears::ShaderReflection reflf (theShader.fragmentShader->GetBinary ());
+    //Gears::ShaderReflection reflfU ({theShader.vertexShader->GetBinary (), theShader.fragmentShader->GetBinary ()});
+
+    //Sampler s (device);
+    //
+    //ImgInfo imgInfo               = {};
+    //imgInfo.imageInfo.sampler     = s;
+    //imgInfo.imageInfo.imageView   = bimageView;
+    //imgInfo.imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    //imgInfo.binding               = 4;
+
+    //UBOReflection uniformReflection (physicalDevice, device, swapchain.GetImageCount (), refl.Get (), {imgInfo});
+    //UBOReflection uniformReflectionFr (physicalDevice, device, swapchain.GetImageCount (), reflf.Get (), {});
 
 
     std::vector<VkPipelineShaderStageCreateInfo>   shaderStages = theShader.GetShaderStages ();
@@ -455,7 +670,7 @@ int main (int argc, char* argv[])
     renderPassInfo.pDependencies          = &dependency;
 
     RenderPass     renderPass (device, {colorAttachment}, {subpass}, {dependency});
-    PipelineLayout pipelineLayout (device, {uniformReflection.GetLayout ()});
+    PipelineLayout pipelineLayout (device, {/*uniformReflectionFr.GetLayout ()*/});
     Pipeline       pipeline (device, swapchain.extent.width, swapchain.extent.height, pipelineLayout, renderPass, shaderStages, vibds, viads);
 
     std::vector<Framebuffer::U> swapChainFramebuffers;
@@ -505,8 +720,7 @@ int main (int argc, char* argv[])
         VkDeviceSize offsets[]       = {0};
         vkCmdBindVertexBuffers (*commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        VkDescriptorSet ds = uniformReflection.GetDescriptorSet (i);
-        vkCmdBindDescriptorSets (*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &ds, 0, nullptr);
+        //uniformReflectionFr.CmdBindSet (*commandBuffer, pipelineLayout, i);
 
         vkCmdDraw (*commandBuffer, 4, 1, 0, 0);
 
@@ -539,6 +753,9 @@ int main (int argc, char* argv[])
     Queue graphicsQueue (device, *physicalDevice.queueFamilies.graphics);
     Queue presentQueue (device, *physicalDevice.queueFamilies.presentation);
 
+    //TransitionImageLayout (device, graphicsQueue, commandPool, *bimage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    //TransitionImageLayout (device, graphicsQueue, commandPool, *bimage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    //
     CopyBuffer (device, graphicsQueue, commandPool, *stagingBuffer.buffer, *vertexBuffer.buffer, bufferSize);
 
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -560,12 +777,10 @@ int main (int argc, char* argv[])
         }
         // Mark the image as now being in use by this frame
         imagesInFlight[imageIndex] = *inFlightFences[currentFrame];
-
-        UniformBufferObject ubo = GetMPV (static_cast<float> (swapchain.extent.width) / swapchain.extent.height);
-        uniformReflection["UniformBufferObject"].mappings[imageIndex]->Copy (ubo);
-
-        float t = 1.0f;
-        uniformReflection["Time"].mappings[imageIndex]->Copy (t);
+        /*
+        uniformReflectionFr ("UniformBufferObject", imageIndex).Copy (ubo);
+        uniformReflection ("Time", imageIndex).Copy (t);
+        */
 
         VkSemaphore waitSemaphores[]   = {*imageAvailableSemaphore[currentFrame]};
         VkSemaphore signalSemaphores[] = {*renderFinishedSemaphore[currentFrame]};
