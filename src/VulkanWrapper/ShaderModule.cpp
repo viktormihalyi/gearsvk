@@ -96,7 +96,7 @@ static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<uin
 {
     VkShaderModuleCreateInfo createInfo = {};
     createInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize                 = static_cast<uint32_t> (binary.size () * (sizeof (uint32_t) / sizeof (char))); // size must be in bytes
+    createInfo.codeSize                 = static_cast<uint32_t> (binary.size () * sizeof (uint32_t)); // size must be in bytes
     createInfo.pCode                    = reinterpret_cast<const uint32_t*> (binary.data ());
 
     VkShaderModule result = VK_NULL_HANDLE;
@@ -119,6 +119,7 @@ ShaderModule::ShaderModule (ReadMode mode, VkDevice device, VkShaderModule handl
 
 ShaderModule::U ShaderModule::CreateFromBinary (VkDevice device, const std::filesystem::path& fileLocation)
 {
+    std::optional<std::vector<char>> binaryC = Utils::ReadBinaryFile (fileLocation);
     std::optional<std::vector<uint32_t>> binary = Utils::ReadBinaryFile4Byte (fileLocation);
     if (ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to read shader");

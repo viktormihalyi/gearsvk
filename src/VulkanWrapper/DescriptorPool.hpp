@@ -17,8 +17,10 @@ private:
         VkDescriptorPool handle;
 
         std::vector<VkDescriptorPoolSize> poolSizes = {};
-        poolSizes.push_back ({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCountUbo });
-        poolSizes.push_back ({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler });
+        if (descriptorCountUbo > 0)
+            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCountUbo });
+        if (descriptorCountSampler > 0)
+            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler });
 
         VkDescriptorPoolCreateInfo poolInfo = {};
         poolInfo.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;

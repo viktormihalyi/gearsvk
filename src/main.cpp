@@ -62,7 +62,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     void*                                       pUserData)
 {
-    std::cerr << "validation layer: " << pCallbackData->pMessageIdName << ": " << pCallbackData->pMessage << std::endl;
+    std::cerr << "validation layer: " << pCallbackData->pMessageIdName << ": " << pCallbackData->pMessage << std::endl
+              << std::endl;
     return VK_FALSE;
 }
 
@@ -225,18 +226,16 @@ void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool co
 {
     SingleTimeCommand commandBuffer (device, commandPool, graphicsQueue);
 
-    VkBufferImageCopy region = {};
-    region.bufferOffset      = 0;
-    region.bufferRowLength   = 0;
-    region.bufferImageHeight = 0;
-
+    VkBufferImageCopy region               = {};
+    region.bufferOffset                    = 0;
+    region.bufferRowLength                 = 0;
+    region.bufferImageHeight               = 0;
     region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
     region.imageSubresource.mipLevel       = 0;
     region.imageSubresource.baseArrayLayer = 0;
     region.imageSubresource.layerCount     = 1;
-
-    region.imageOffset = {0, 0, 0};
-    region.imageExtent = {width, height, 1};
+    region.imageOffset                     = {0, 0, 0};
+    region.imageExtent                     = {width, height, 1};
 
     vkCmdCopyBufferToImage (
         commandBuffer,
@@ -283,24 +282,46 @@ void TransitionImageLayout (VkDevice device, VkQueue graphicsQueue, VkCommandPoo
 
 struct BufferImage {
     Image::U        image;
+    Buffer::U       buffer;
     DeviceMemory::U memory;
 };
 
 
-BufferImage CreateBufferImage (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkMemoryPropertyFlags propertyFlags)
+BufferImage CreateImage (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool)
 {
+    const uint32_t imageSize = width * height * 4;
+
+    const BufferMemory stagingMemory = CreateBufferMemory (physicalDevice, device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    {
+        MemoryMapping                       bm (device, *stagingMemory.memory, 0, imageSize);
+        std::vector<std::array<uint8_t, 4>> pixels (width * height);
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                pixels[y * width + x] = {127, 127, 127, 127};
+            }
+        }
+
+        bm.Copy (pixels);
+    }
+
     BufferImage result;
-    result.image = Image::Create (device, width, height);
+    {
+        BufferMemory deviceLocalMemory = CreateBufferMemory (physicalDevice, device, imageSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        result.buffer                  = std::move (deviceLocalMemory.buffer);
+        result.memory                  = std::move (deviceLocalMemory.memory);
+    }
 
-    VkMemoryRequirements memRequirements = {};
-    vkGetImageMemoryRequirements (device, *result.image, &memRequirements);
-    uint32_t memoryTypeIndex = FindMemoryType (physicalDevice, memRequirements.memoryTypeBits, propertyFlags);
-
-    result.memory = DeviceMemory::Create (device, memRequirements.size, memoryTypeIndex);
+    result.image = Image::Create (device, width, height, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
     if (ERROR (vkBindImageMemory (device, *result.image, *result.memory, 0) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to bind buffer memory");
     }
+
+    TransitionImageLayout (device, queue, commandPool, *result.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    CopyBufferToImage (device, queue, commandPool, *stagingMemory.buffer, *result.image, width, height);
+    TransitionImageLayout (device, queue, commandPool, *result.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
 
     return std::move (result);
 }
@@ -431,6 +452,11 @@ int main (int argc, char* argv[])
     Device         device (physicalDevice, *physicalDevice.queueFamilies.graphics, requestedDeviceExtensions);
     Swapchain      swapchain (physicalDevice, device, surface);
 
+    Queue graphicsQueue (device, *physicalDevice.queueFamilies.graphics);
+    Queue presentQueue (device, *physicalDevice.queueFamilies.presentation);
+
+    CommandPool commandPool (device, *physicalDevice.queueFamilies.graphics);
+
     const std::vector<Vertex> vertices = {
         Vertex {{-1.f, +1.f}, {1.f, 0.f, 0.f}},
         Vertex {{+1.f, -1.f}, {0.f, 1.f, 0.f}},
@@ -439,22 +465,6 @@ int main (int argc, char* argv[])
     };
 
     const size_t bufferSize = vertices.size () * sizeof (Vertex);
-    /*
-    BufferImage bimage = CreateBufferImage (physicalDevice, device, 512, 512, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-    {
-        MemoryMapping                       bm (device, *bimage.memory, 0, 512 * 512 * 4);
-        std::vector<std::array<uint8_t, 4>> pixels (512 * 512);
-        for (uint32_t y = 0; y < 512; ++y) {
-            for (uint32_t x = 0; x < 512; ++x) {
-                pixels[y * 512 + x] = {0, 0, 0, 0};
-            }
-        }
-
-        bm.Copy (pixels);
-    }
-    ImageView bimageView (device, *bimage.image);
-    */
 
 
     BufferMemory stagingBuffer = CreateBufferMemory (
@@ -532,7 +542,12 @@ int main (int argc, char* argv[])
         std::vector<DescriptorSet::U> descriptorSets;
 
     public:
-        UBOReflection (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t imageCount, const Gears::UniformData& uniformData, const std::vector<ImgInfo>& imageInfos = {})
+        UBOReflection (
+            VkPhysicalDevice            physicalDevice,
+            VkDevice                    device,
+            uint32_t                    imageCount,
+            const Gears::UniformData&   uniformData,
+            const std::vector<ImgInfo>& imageInfos = {})
         {
             const uint32_t maxSets = imageCount;
             descriptorPool         = DescriptorPool::Create (device,
@@ -616,15 +631,17 @@ int main (int argc, char* argv[])
     Gears::ShaderReflection reflf (theShader.fragmentShader->GetBinary ());
     //Gears::ShaderReflection reflfU ({theShader.vertexShader->GetBinary (), theShader.fragmentShader->GetBinary ()});
 
-    //Sampler s (device);
-    //
-    //ImgInfo imgInfo               = {};
-    //imgInfo.imageInfo.sampler     = s;
-    //imgInfo.imageInfo.imageView   = bimageView;
-    //imgInfo.imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    //imgInfo.binding               = 4;
+    BufferImage bimage = CreateImage (physicalDevice, device, 512, 512, graphicsQueue, commandPool);
+    ImageView   bimageView (device, *bimage.image);
+    Sampler     s (device);
 
-    //UBOReflection uniformReflection (physicalDevice, device, swapchain.GetImageCount (), refl.Get (), {imgInfo});
+    ImgInfo imgInfo               = {};
+    imgInfo.imageInfo.sampler     = s;
+    imgInfo.imageInfo.imageView   = bimageView;
+    imgInfo.imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imgInfo.binding               = 2;
+
+    UBOReflection uniformReflection (physicalDevice, device, swapchain.GetImageCount (), refl.Get (), {imgInfo});
     //UBOReflection uniformReflectionFr (physicalDevice, device, swapchain.GetImageCount (), reflf.Get (), {});
 
 
@@ -670,7 +687,7 @@ int main (int argc, char* argv[])
     renderPassInfo.pDependencies          = &dependency;
 
     RenderPass     renderPass (device, {colorAttachment}, {subpass}, {dependency});
-    PipelineLayout pipelineLayout (device, {/*uniformReflectionFr.GetLayout ()*/});
+    PipelineLayout pipelineLayout (device, {uniformReflection.GetLayout ()});
     Pipeline       pipeline (device, swapchain.extent.width, swapchain.extent.height, pipelineLayout, renderPass, shaderStages, vibds, viads);
 
     std::vector<Framebuffer::U> swapChainFramebuffers;
@@ -684,8 +701,6 @@ int main (int argc, char* argv[])
             swapchain.extent.height));
     }
 
-
-    CommandPool commandPool (device, *physicalDevice.queueFamilies.graphics);
 
     std::vector<CommandBuffer::U> commandBuffers;
 
@@ -720,7 +735,7 @@ int main (int argc, char* argv[])
         VkDeviceSize offsets[]       = {0};
         vkCmdBindVertexBuffers (*commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        //uniformReflectionFr.CmdBindSet (*commandBuffer, pipelineLayout, i);
+        uniformReflection.CmdBindSet (*commandBuffer, pipelineLayout, i);
 
         vkCmdDraw (*commandBuffer, 4, 1, 0, 0);
 
@@ -750,12 +765,6 @@ int main (int argc, char* argv[])
     const std::vector<VkFence> inFlightFenceHandles = Utils::ConvertToHandles<Fence, VkFence> (inFlightFences);
 
 
-    Queue graphicsQueue (device, *physicalDevice.queueFamilies.graphics);
-    Queue presentQueue (device, *physicalDevice.queueFamilies.presentation);
-
-    //TransitionImageLayout (device, graphicsQueue, commandPool, *bimage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    //TransitionImageLayout (device, graphicsQueue, commandPool, *bimage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    //
     CopyBuffer (device, graphicsQueue, commandPool, *stagingBuffer.buffer, *vertexBuffer.buffer, bufferSize);
 
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -777,10 +786,10 @@ int main (int argc, char* argv[])
         }
         // Mark the image as now being in use by this frame
         imagesInFlight[imageIndex] = *inFlightFences[currentFrame];
-        /*
-        uniformReflectionFr ("UniformBufferObject", imageIndex).Copy (ubo);
+        UniformBufferObject ubo    = GetMPV (1.4);
+        uniformReflection ("UniformBufferObject", imageIndex).Copy (ubo);
+        float t = 0.5f;
         uniformReflection ("Time", imageIndex).Copy (t);
-        */
 
         VkSemaphore waitSemaphores[]   = {*imageAvailableSemaphore[currentFrame]};
         VkSemaphore signalSemaphores[] = {*renderFinishedSemaphore[currentFrame]};
@@ -813,7 +822,7 @@ int main (int argc, char* argv[])
         auto   currentTime     = std::chrono::high_resolution_clock::now ();
         auto   elapsedNanosecs = (std::chrono::duration_cast<std::chrono::nanoseconds> (currentTime - lastDrawTime)).count ();
         double elapsedSecs     = elapsedNanosecs * 1e-9;
-        std::cout << "fps: " << 1.0 / elapsedSecs << std::endl;
+        //std::cout << "fps: " << 1.0 / elapsedSecs << std::endl;
         lastDrawTime = currentTime;
 
         vkQueuePresentKHR (presentQueue, &presentInfo);

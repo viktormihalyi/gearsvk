@@ -81,7 +81,7 @@ public:
             result.descriptorCount              = 1;
             result.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             result.pImmutableSamplers           = nullptr;
-            result.stageFlags                   = VK_SHADER_STAGE_FRAGMENT_BIT;
+            result.stageFlags                   = VK_SHADER_STAGE_ALL_GRAPHICS;
             return result;
         }
     };
@@ -97,7 +97,7 @@ public:
             result.descriptorCount              = 1;
             result.descriptorType               = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             result.pImmutableSamplers           = nullptr;
-            result.stageFlags                   = VK_SHADER_STAGE_FRAGMENT_BIT;
+            result.stageFlags                   = VK_SHADER_STAGE_ALL_GRAPHICS;
             return result;
         }
     };

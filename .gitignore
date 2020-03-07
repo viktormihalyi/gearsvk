@@ -5,4 +5,5 @@ build/
 out/
 cmake-build-debug/
 .idea/
+enc_temp_folder/
 **/*.spv

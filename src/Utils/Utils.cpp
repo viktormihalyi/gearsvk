@@ -12,7 +12,7 @@ const std::filesystem::path PROJECT_ROOT (PROJECT_ROOT_FULL_PATH);
 #endif
 
 
-template<typename T>
+template<typename T, typename IteratorType = char>
 static T ReadOpenedFile (std::ifstream& file)
 {
     if (ERROR (!file.is_open ())) {
@@ -24,14 +24,14 @@ static T ReadOpenedFile (std::ifstream& file)
     result.reserve (file.tellg ());
     file.seekg (0, std::ios::beg);
 
-    result.assign (std::istreambuf_iterator<char> (file),
-                   std::istreambuf_iterator<char> ());
+    result.assign (std::istreambuf_iterator<IteratorType> (file),
+                   std::istreambuf_iterator<IteratorType> ());
 
     return result;
 }
 
 
-template<typename T>
+template<typename T, typename IteratorType = char>
 static std::optional<T> OpenAndReadFile (const std::filesystem::path& filePath)
 {
     std::ifstream file (filePath, std::ios::binary);
@@ -40,7 +40,7 @@ static std::optional<T> OpenAndReadFile (const std::filesystem::path& filePath)
         return std::nullopt;
     }
 
-    T result = ReadOpenedFile<T> (file);
+    T result = ReadOpenedFile<T, IteratorType> (file);
 
     if (ERROR (file.fail ())) {
         return std::nullopt;
@@ -64,7 +64,22 @@ std::optional<std::vector<char>> ReadBinaryFile (const std::filesystem::path& fi
 
 std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem::path& filePath)
 {
-    return OpenAndReadFile<std::vector<uint32_t>> (filePath);
+    std::optional<std::vector<char>> readResult = OpenAndReadFile<std::vector<char>> (filePath);
+    if (!readResult.has_value ()) {
+        return std::nullopt;
+    }
+
+    ASSERT (readResult->size () % 4 == 0);
+    uint32_t binarySize = readResult->size () / 4;
+    while (binarySize % 4 != 0) {
+        ++binarySize;
+    }
+    std::vector<uint32_t> result (binarySize);
+    memset (result.data (), 0, result.size () * sizeof (uint32_t));
+
+    memcpy (result.data (), readResult->data (), readResult->size ());
+
+    return result;
 }
 
 } // namespace Utils

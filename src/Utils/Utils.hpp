@@ -1,9 +1,11 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <algorithm>
 #include <cstddef>
 #include <filesystem>
 #include <functional>
+#include <iterator>
 #include <optional>
 #include <set>
 #include <string>
