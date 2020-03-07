@@ -3,6 +3,8 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
+#include "Ptr.hpp"
+#include "Image.hpp"
 #include "Utils.hpp"
 
 #include <vulkan/vulkan.h>
@@ -10,11 +12,15 @@
 class ImageView : public Noncopyable {
 private:
     const VkDevice device;
+    const VkFormat format;
     VkImageView    handle;
 
 public:
+    USING_PTR (ImageView);
+
     ImageView (VkDevice device, VkImage image, VkFormat format)
         : device (device)
+        , format (format)
     {
         VkImageViewCreateInfo createInfo           = {};
         createInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -37,15 +43,19 @@ public:
         }
     }
 
+    ImageView (VkDevice device, const Image& image)
+        : ImageView (device, image, image.GetFormat ())
+    {
+    }
+
     ~ImageView ()
     {
         vkDestroyImageView (device, handle, nullptr);
     }
 
-    operator VkImageView () const
-    {
-        return handle;
-    }
+    VkFormat GetFormat () const { return format; }
+
+    operator VkImageView () const { return handle; }
 };
 
 #endif

@@ -12,18 +12,18 @@ private:
     const VkDevice         device;
     const VkDescriptorPool handle;
 
-    static VkDescriptorPool CreateDescriptorPool (VkDevice device, uint32_t descriptorCount, uint32_t maxSets)
+    static VkDescriptorPool CreateDescriptorPool (VkDevice device, uint32_t descriptorCountUbo, uint32_t descriptorCountSampler, uint32_t maxSets)
     {
         VkDescriptorPool handle;
 
-        VkDescriptorPoolSize poolSize = {};
-        poolSize.type                 = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSize.descriptorCount      = descriptorCount;
+        std::vector<VkDescriptorPoolSize> poolSizes = {};
+        poolSizes.push_back ({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCountUbo });
+        poolSizes.push_back ({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler });
 
         VkDescriptorPoolCreateInfo poolInfo = {};
         poolInfo.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount              = 1;
-        poolInfo.pPoolSizes                 = &poolSize;
+        poolInfo.poolSizeCount              = static_cast<uint32_t> (poolSizes.size ());
+        poolInfo.pPoolSizes                 = poolSizes.data ();
         poolInfo.maxSets                    = maxSets;
 
         VkDescriptorPool descriptorPool;
@@ -35,9 +35,11 @@ private:
     }
 
 public:
-    DescriptorPool (VkDevice device, uint32_t descriptorCount, uint32_t maxSets)
+    USING_PTR (DescriptorPool);
+
+    DescriptorPool (VkDevice device, uint32_t descriptorCountUbo, uint32_t descriptorCountSampler, uint32_t maxSets)
         : device (device)
-        , handle (CreateDescriptorPool (device, descriptorCount, maxSets))
+        , handle (CreateDescriptorPool (device, descriptorCountUbo, descriptorCountSampler, maxSets))
     {
     }
 

@@ -8,6 +8,8 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
+#include "DescriptorPool.hpp"
+#include "DescriptorSetLayout.hpp"
 
 class DescriptorSet : public Noncopyable {
 private:
@@ -34,10 +36,46 @@ public:
         }
     }
 
+    DescriptorSet (VkDevice device, const DescriptorPool& descriptorPool, const DescriptorSetLayout& layout)
+        : DescriptorSet (device, descriptorPool.operator VkDescriptorPool (), layout)
+    {
+    }
+
     ~DescriptorSet ()
     {
         // only free for VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
         // vkFreeDescriptorSets (device, descriptorPool, 1, &handle);
+    }
+
+    void WriteOneBufferInfo (uint32_t binding, VkDescriptorType descriptorType, const VkDescriptorBufferInfo& bufferInfo) const
+    {
+        VkWriteDescriptorSet descriptorWrite = {};
+        descriptorWrite.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet               = handle;
+        descriptorWrite.dstBinding           = binding;
+        descriptorWrite.dstArrayElement      = 0;
+        descriptorWrite.descriptorType       = descriptorType;
+        descriptorWrite.descriptorCount      = 1;
+        descriptorWrite.pBufferInfo          = &bufferInfo;
+        descriptorWrite.pImageInfo           = nullptr;
+        descriptorWrite.pTexelBufferView     = nullptr;
+        vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
+    }
+
+
+    void WriteOneImageInfo (uint32_t binding, VkDescriptorType descriptorType, const VkDescriptorImageInfo& imageInfo) const
+    {
+        VkWriteDescriptorSet descriptorWrite = {};
+        descriptorWrite.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet               = handle;
+        descriptorWrite.dstBinding           = binding;
+        descriptorWrite.dstArrayElement      = 0;
+        descriptorWrite.descriptorType       = descriptorType;
+        descriptorWrite.descriptorCount      = 1;
+        descriptorWrite.pBufferInfo          = nullptr;
+        descriptorWrite.pImageInfo           = &imageInfo;
+        descriptorWrite.pTexelBufferView     = nullptr;
+        vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
     }
 
     operator VkDescriptorSet () const

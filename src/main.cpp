@@ -195,7 +195,7 @@ void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPo
 void UploadToHostCoherent (VkDevice device, VkDeviceMemory memory, uint32_t offset, const void* data, size_t bytes)
 {
     MemoryMapping mapping (device, memory, offset, bytes);
-    memcpy (mapping.Get (), data, bytes);
+    mapping.Copy (data, bytes, 0);
 }
 
 
@@ -338,7 +338,7 @@ int main (int argc, char* argv[])
 
     public:
         UniformReflection (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t imageCount, const std::vector<Gears::UniformBlock>& uniformBlocks)
-            : descriptorPool (device, imageCount, imageCount)
+            : descriptorPool (device, imageCount, 0, imageCount)
         {
             std::vector<VkDescriptorSetLayoutBinding> uboLayoutBindings;
             for (const Gears::UniformBlock& ubo : uniformBlocks) {
@@ -562,10 +562,10 @@ int main (int argc, char* argv[])
         imagesInFlight[imageIndex] = *inFlightFences[currentFrame];
 
         UniformBufferObject ubo = GetMPV (static_cast<float> (swapchain.extent.width) / swapchain.extent.height);
-        memcpy (uniformReflection["UniformBufferObject"].mappings[imageIndex]->Get (), &ubo, sizeof (ubo));
+        uniformReflection["UniformBufferObject"].mappings[imageIndex]->Copy (ubo);
 
         float t = 1.0f;
-        memcpy (uniformReflection["Time"].mappings[imageIndex]->Get (), &t, sizeof (t));
+        uniformReflection["Time"].mappings[imageIndex]->Copy (t);
 
         VkSemaphore waitSemaphores[]   = {*imageAvailableSemaphore[currentFrame]};
         VkSemaphore signalSemaphores[] = {*renderFinishedSemaphore[currentFrame]};

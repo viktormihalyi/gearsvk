@@ -21,7 +21,7 @@ public:
     VkPresentModeKHR   presentMode;
     VkExtent2D         extent;
 
-    const std::vector<std::unique_ptr<ImageView>> imageViews;
+    const std::vector<ImageView::U> imageViews;
 
     uint32_t GetImageCount () const
     {
@@ -146,17 +146,17 @@ private:
         return result;
     }
 
-    static std::vector<std::unique_ptr<ImageView>> CreateSwapchainImageViews (VkDevice device, VkSwapchainKHR swapchain, VkFormat format)
+    static std::vector<ImageView::U> CreateSwapchainImageViews (VkDevice device, VkSwapchainKHR swapchain, VkFormat format)
     {
         uint32_t imageCount;
         vkGetSwapchainImagesKHR (device, swapchain, &imageCount, nullptr);
         std::vector<VkImage> swapChainImages (imageCount);
         vkGetSwapchainImagesKHR (device, swapchain, &imageCount, swapChainImages.data ());
 
-        std::vector<std::unique_ptr<ImageView>> result;
+        std::vector<ImageView::U> result;
 
         for (size_t i = 0; i < swapChainImages.size (); ++i) {
-            result.push_back (std::make_unique<ImageView> (device, swapChainImages[i], format));
+            result.push_back (ImageView::Create (device, swapChainImages[i], format));
         }
 
         return result;

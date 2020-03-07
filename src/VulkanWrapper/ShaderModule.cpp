@@ -74,6 +74,7 @@ static std::optional<std::vector<uint32_t>> CompileShader (const std::filesystem
     std::vector<uint32_t>         binary (binaryResult.cbegin (), binaryResult.cend ());
 
     if (binaryResult.GetCompilationStatus () != shaderc_compilation_status_success) {
+        std::cout << binaryResult.GetErrorMessage () << std::endl;
         return std::nullopt;
     }
 
