@@ -2,6 +2,7 @@
 #include "GLFWWindowProvider.hpp"
 #include "Logger.hpp"
 #include "Noncopyable.hpp"
+#include "SDLWindowProvider.hpp"
 #include "Timer.hpp"
 #include "Utils.hpp"
 
@@ -64,7 +65,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     void*                                       pUserData)
 {
-    std::cerr << "validation layer: " << pCallbackData->pMessageIdName << ": " << pCallbackData->pMessage << std::endl
+    std::cout << "validation layer: " << pCallbackData->pMessageIdName << ": " << pCallbackData->pMessage << std::endl
               << std::endl;
     return VK_FALSE;
 }
@@ -254,7 +255,6 @@ DeviceMemory::U AllocateImageMemory (VkPhysicalDevice physicalDevice, VkDevice d
 
 BufferImage CreateImage (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool)
 {
-
     BufferMemory stagingMemory = CreateBufferMemory (physicalDevice, device, width * height * 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     {
         MemoryMapping                       bm (device, *stagingMemory.memory, 0, width * height * 4);
@@ -269,7 +269,7 @@ BufferImage CreateImage (VkPhysicalDevice physicalDevice, VkDevice device, uint3
     }
 
     BufferImage result;
-    result.image = Image::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    result.image  = Image::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
     result.memory = AllocateImageMemory (physicalDevice, device, *result.image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     if (ERROR (vkBindImageMemory (device, *result.image, *result.memory, 0) != VK_SUCCESS)) {
@@ -384,7 +384,7 @@ int main (int argc, char* argv[])
     uint32_t apiVersion;
     vkEnumerateInstanceVersion (&apiVersion);
 
-    WindowProvider::U windowProvider = GLFWWindowProvider::Create ();
+    WindowProvider::U windowProvider = SDLWindowProvider::Create ();
 
     // platform required extensionss
     std::vector<const char*> extensions;
@@ -442,8 +442,8 @@ int main (int argc, char* argv[])
 
 
     ShaderPipeline theShader;
-    theShader.vertexShader   = ShaderModule::CreateFromSource (device, Utils::GetProjectRoot () / "shaders" / "shader.vert");
-    theShader.fragmentShader = ShaderModule::CreateFromSource (device, Utils::GetProjectRoot () / "shaders" / "shader.frag");
+    theShader.vertexShader   = ShaderModule::CreateFromSource (device, Utils::GetProjectRoot () / "shaders" / "test.vert");
+    theShader.fragmentShader = ShaderModule::CreateFromSource (device, Utils::GetProjectRoot () / "shaders" / "test.frag");
 
 
     struct ImgInfo {
@@ -569,7 +569,8 @@ int main (int argc, char* argv[])
     imgInfo.imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     imgInfo.binding               = 2;
 
-    UBOReflection uniformReflection (physicalDevice, device, swapchain.GetImageCount (), refl.Get (), {imgInfo});
+    //UBOReflection uniformReflection (physicalDevice, device, swapchain.GetImageCount (), refl.Get (), {imgInfo});
+
     //UBOReflection uniformReflectionFr (physicalDevice, device, swapchain.GetImageCount (), reflf.Get (), {});
 
 
@@ -614,8 +615,9 @@ int main (int argc, char* argv[])
     renderPassInfo.dependencyCount        = 1;
     renderPassInfo.pDependencies          = &dependency;
 
-    RenderPass     renderPass (device, {colorAttachment}, {subpass}, {dependency});
-    PipelineLayout pipelineLayout (device, {uniformReflection.GetLayout ()});
+    RenderPass renderPass (device, {colorAttachment}, {subpass}, {dependency});
+    //PipelineLayout pipelineLayout (device, { uniformReflection.GetLayout () });
+    PipelineLayout pipelineLayout (device, {});
     Pipeline       pipeline (device, swapchain.extent.width, swapchain.extent.height, pipelineLayout, renderPass, shaderStages, vibds, viads);
 
     std::vector<Framebuffer::U> swapChainFramebuffers;
@@ -656,9 +658,9 @@ int main (int argc, char* argv[])
         VkDeviceSize offsets[]       = {0};
         vkCmdBindVertexBuffers (*commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        uniformReflection.CmdBindSet (*commandBuffer, pipelineLayout, i);
+        //uniformReflection.CmdBindSet (*commandBuffer, pipelineLayout, i);
 
-        vkCmdDraw (*commandBuffer, 4, 1, 0, 0);
+        vkCmdDraw (*commandBuffer, 3, 1, 0, 0);
 
         vkCmdEndRenderPass (*commandBuffer);
 
@@ -705,10 +707,10 @@ int main (int argc, char* argv[])
         }
         // Mark the image as now being in use by this frame
         imagesInFlight[imageIndex] = *inFlightFences[currentFrame];
-        UniformBufferObject ubo    = GetMPV (1.4);
-        uniformReflection ("UniformBufferObject", imageIndex).Copy (ubo);
-        float t = 0.5f;
-        uniformReflection ("Time", imageIndex).Copy (t);
+        //UniformBufferObject ubo    = GetMPV (1.4);
+        //uniformReflection ("UniformBufferObject", imageIndex).Copy (ubo);
+        //float t = 0.5f;
+        //uniformReflection ("Time", imageIndex).Copy (t);
 
         VkSemaphore waitSemaphores[]   = {*imageAvailableSemaphore[currentFrame]};
         VkSemaphore signalSemaphores[] = {*renderFinishedSemaphore[currentFrame]};

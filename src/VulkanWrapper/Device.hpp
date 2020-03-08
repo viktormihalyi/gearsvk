@@ -3,6 +3,7 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
+#include "Ptr.hpp"
 #include "Utils.hpp"
 
 #include <vulkan/vulkan.h>
@@ -10,7 +11,8 @@
 
 class Device : public Noncopyable {
 private:
-    VkDevice handle;
+    const VkPhysicalDevice physicalDevice;
+    VkDevice               handle;
 
     static VkDevice CreateLogicalDevice (VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, const std::vector<const char*>& requestedDeviceExtensions)
     {
@@ -33,18 +35,35 @@ private:
         createInfo.enabledLayerCount       = 0;
 
         VkDevice device = VK_NULL_HANDLE;
-        vkCreateDevice (physicalDevice, &createInfo, nullptr, &device);
+        if (vkCreateDevice (physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+            throw std::runtime_error ("failed to create device");
+        }
         return device;
     }
+
+    uint32_t FindMemoryType (uint32_t typeFilter, VkMemoryPropertyFlags properties) const
+    {
+        VkPhysicalDeviceMemoryProperties memProperties = {};
+        vkGetPhysicalDeviceMemoryProperties (physicalDevice, &memProperties);
+
+        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+            if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+                return i;
+            }
+        }
+
+        throw std::runtime_error ("failed to find suitable memory type!");
+    }
+
 
 public:
     USING_PTR (Device);
 
     Device (VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, const std::vector<const char*>& requestedDeviceExtensions)
-        : handle (CreateLogicalDevice (physicalDevice, queueFamilyIndex, requestedDeviceExtensions))
+        : physicalDevice (physicalDevice)
+        , handle (CreateLogicalDevice (physicalDevice, queueFamilyIndex, requestedDeviceExtensions))
     {
     }
-
 
     ~Device ()
     {
@@ -54,6 +73,25 @@ public:
     operator VkDevice () const
     {
         return handle;
+    }
+
+    struct AllocateInfo {
+        uint32_t size;
+        uint32_t memoryTypeIndex;
+    };
+
+    AllocateInfo GetImageAllocateInfo (VkImage image, VkMemoryPropertyFlags propertyFlags) const
+    {
+        VkMemoryRequirements memRequirements = {};
+        vkGetImageMemoryRequirements (handle, image, &memRequirements);
+        return {static_cast<uint32_t> (memRequirements.size), FindMemoryType (memRequirements.memoryTypeBits, propertyFlags)};
+    }
+
+    AllocateInfo GetBufferAllocateInfo (VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) const
+    {
+        VkMemoryRequirements memRequirements = {};
+        vkGetBufferMemoryRequirements (handle, buffer, &memRequirements);
+        return {static_cast<uint32_t> (memRequirements.size), FindMemoryType (memRequirements.memoryTypeBits, propertyFlags)};
     }
 };
 

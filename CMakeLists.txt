@@ -27,6 +27,7 @@ include (
 set (COMMON_SOURCE_FILES
     src/VulkanWrapper/ShaderModule.cpp
     src/GearsVk/GLFWWindowProvider.cpp
+    src/GearsVk/SDLWindowProvider.cpp
     src/GearsVk/ShaderReflection.cpp
 )
 
@@ -42,6 +43,8 @@ add_executable (${TARGET_TEST_NAME}
 
 set (EXTRNAL_INCLUDES
     ${Vulkan_INCLUDE_DIRS}
+
+    "C:\\SDL2-2.0.10\\include"
 
     external/glfw/include
     external/json/single_include

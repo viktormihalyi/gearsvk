@@ -22,6 +22,10 @@ private:
         if (descriptorCountSampler > 0)
             poolSizes.push_back ({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler });
 
+        if (ERROR (poolSizes.empty ())) {
+            return VK_NULL_HANDLE;
+        }
+
         VkDescriptorPoolCreateInfo poolInfo = {};
         poolInfo.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolInfo.poolSizeCount              = static_cast<uint32_t> (poolSizes.size ());

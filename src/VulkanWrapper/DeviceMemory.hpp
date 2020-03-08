@@ -9,6 +9,10 @@
 
 
 class DeviceMemory : public Noncopyable {
+public:
+    static constexpr VkMemoryPropertyFlags GPU = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    static constexpr VkMemoryPropertyFlags CPU = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
 private:
     const VkDevice       device;
     const VkDeviceMemory handle;
@@ -34,6 +38,11 @@ public:
     DeviceMemory (VkDevice device, size_t allocationSize, uint32_t memoryTypeIndex)
         : device (device)
         , handle (CreateDeviceMemory (device, allocationSize, memoryTypeIndex))
+    {
+    }
+
+    DeviceMemory (VkDevice device, Device::AllocateInfo allocateInfo)
+        : DeviceMemory (device, allocateInfo.size, allocateInfo.memoryTypeIndex)
     {
     }
 
