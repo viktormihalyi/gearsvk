@@ -14,6 +14,8 @@ private:
     const VkDevice device;
     const VkFormat format;
     VkImage        handle;
+    uint32_t       width;
+    uint32_t       height;
 
 public:
     USING_PTR (Image);
@@ -21,6 +23,8 @@ public:
     Image (VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage)
         : device (device)
         , format (format)
+        , width (width)
+        , height (height)
     {
         VkImageCreateInfo imageInfo = {};
         imageInfo.sType             = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -48,6 +52,8 @@ public:
     }
 
     VkFormat GetFormat () const { return format; }
+    uint32_t GetWidth () const { return width; }
+    uint32_t GetHeight () const { return height; }
 
     void CmdTransitionImageLayout (VkCommandBuffer commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const
     {

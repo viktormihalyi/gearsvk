@@ -31,6 +31,8 @@ private:
     }
 
 public:
+    USING_PTR (PipelineLayout);
+
     PipelineLayout (VkDevice device, const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts)
         : device (device)
         , handle (CreatePipelineLayout (device, descriptorSetLayouts))

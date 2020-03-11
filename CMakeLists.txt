@@ -46,6 +46,7 @@ set (EXTRNAL_INCLUDES
 
     "C:\\SDL2-2.0.10\\include"
 
+    external/googletest/googletest/include
     external/glfw/include
     external/json/single_include
     external/glm
@@ -75,6 +76,7 @@ set (COMMON_LINKS
     spirv-cross-core
     spirv-cross-glsl
     spirv-cross-reflect
+    gtest
 )
 
 set (COMMON_COMPILER_DEFINES

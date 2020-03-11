@@ -13,9 +13,12 @@ private:
     VkPipeline     handle;
 
 public:
+    USING_PTR (Pipeline);
+
     Pipeline (VkDevice                                              device,
               uint32_t                                              width,
               uint32_t                                              height,
+              uint32_t                                              attachmentCount,
               VkPipelineLayout                                      pipelineLayout,
               VkRenderPass                                          renderPass,
               const std::vector<VkPipelineShaderStageCreateInfo>&   shaderStages,
@@ -78,20 +81,21 @@ public:
         colorBlendAttachment.srcAlphaBlendFactor                 = VK_BLEND_FACTOR_ONE;
         colorBlendAttachment.dstAlphaBlendFactor                 = VK_BLEND_FACTOR_ZERO;
         colorBlendAttachment.alphaBlendOp                        = VK_BLEND_OP_ADD;
-        VkPipelineColorBlendStateCreateInfo colorBlending        = {};
-        colorBlending.sType                                      = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        colorBlending.logicOpEnable                              = VK_FALSE;
-        colorBlending.logicOp                                    = VK_LOGIC_OP_COPY; // Optional
-        colorBlending.attachmentCount                            = 1;
-        colorBlending.pAttachments                               = &colorBlendAttachment;
-        colorBlending.blendConstants[0]                          = 0.0f; // Optional
-        colorBlending.blendConstants[1]                          = 0.0f; // Optional
-        colorBlending.blendConstants[2]                          = 0.0f; // Optional
-        colorBlending.blendConstants[3]                          = 0.0f; // Optional
-        VkPipelineDynamicStateCreateInfo dynamicState            = {};
-        dynamicState.sType                                       = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-        dynamicState.dynamicStateCount                           = 0;
-        dynamicState.pDynamicStates                              = nullptr;
+        std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments (attachmentCount, colorBlendAttachment);
+        VkPipelineColorBlendStateCreateInfo              colorBlending = {};
+        colorBlending.sType                                            = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        colorBlending.logicOpEnable                                    = VK_FALSE;
+        colorBlending.logicOp                                          = VK_LOGIC_OP_COPY; // Optional
+        colorBlending.attachmentCount                                  = attachmentCount;
+        colorBlending.pAttachments                                     = colorBlendAttachments.data ();
+        colorBlending.blendConstants[0]                                = 0.0f; // Optional
+        colorBlending.blendConstants[1]                                = 0.0f; // Optional
+        colorBlending.blendConstants[2]                                = 0.0f; // Optional
+        colorBlending.blendConstants[3]                                = 0.0f; // Optional
+        VkPipelineDynamicStateCreateInfo dynamicState                  = {};
+        dynamicState.sType                                             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dynamicState.dynamicStateCount                                 = 0;
+        dynamicState.pDynamicStates                                    = nullptr;
 
 
         VkGraphicsPipelineCreateInfo pipelineInfo = {};

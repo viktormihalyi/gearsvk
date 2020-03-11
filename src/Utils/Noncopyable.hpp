@@ -3,7 +3,8 @@
 
 class Noncopyable {
 public:
-    Noncopyable () = default;
+    Noncopyable ()          = default;
+    virtual ~Noncopyable () = default;
 
     Noncopyable (Noncopyable&)  = delete;
     Noncopyable (Noncopyable&&) = delete;

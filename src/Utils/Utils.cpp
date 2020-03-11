@@ -3,6 +3,7 @@
 
 #include <fstream>
 
+
 namespace Utils {
 
 std::filesystem::path GetProjectRoot ()
@@ -14,6 +15,7 @@ std::filesystem::path GetProjectRoot ()
 #error "no project root path defined"
 #endif
 }
+
 
 template<typename T>
 static T ReadOpenedFile (std::ifstream& file)

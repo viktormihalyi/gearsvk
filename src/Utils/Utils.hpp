@@ -14,6 +14,9 @@
 #include <vector>
 
 
+#define PROJECT_ROOT ::Utils::GetProjectRoot ()
+
+
 namespace Utils {
 
 GEARSVK_UTILS_API

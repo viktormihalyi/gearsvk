@@ -13,6 +13,8 @@ private:
     VkRenderPass   handle;
 
 public:
+    USING_PTR (RenderPass);
+
     RenderPass (VkDevice                                    device,
                 const std::vector<VkAttachmentDescription>& attachments,
                 const std::vector<VkSubpassDescription>&    subpasses,
