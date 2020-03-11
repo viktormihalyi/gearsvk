@@ -3,6 +3,7 @@
 
 #include "VulkanWrapper.hpp"
 
+#include <thread>
 #include <vector>
 #include <vulkan/vulkan.h>
 
@@ -13,6 +14,8 @@ struct ShaderPipeline {
     ShaderModule::U tessellationEvaluationShader;
     ShaderModule::U tessellationControlShader;
     ShaderModule::U computeShader;
+
+    USING_PTR (ShaderPipeline);
 
     std::vector<VkPipelineShaderStageCreateInfo> GetShaderStages () const
     {
@@ -32,6 +35,42 @@ struct ShaderPipeline {
             result.push_back (computeShader->GetShaderStageCreateInfo ());
 
         return result;
+    }
+
+    ShaderModule::U& GetShaderByExtension (const std::string& extension)
+    {
+        if (extension == ".vert") {
+            return vertexShader;
+        } else if (extension == ".frag") {
+            return fragmentShader;
+        } else if (extension == ".tese") {
+            return tessellationEvaluationShader;
+        } else if (extension == ".tesc") {
+            return tessellationControlShader;
+        } else if (extension == ".comp") {
+            return computeShader;
+        }
+
+        ERROR (true);
+        throw std::runtime_error ("bad shader extension");
+    }
+
+    void AddShader (VkDevice device, const std::filesystem::path& shaderPath)
+    {
+        GetShaderByExtension (shaderPath.extension ().u8string ()) = ShaderModule::CreateFromSource (device, shaderPath);
+    }
+
+    void AddShaders (VkDevice device, const std::vector<std::filesystem::path>& shaderPath)
+    {
+        std::vector<std::thread> threads;
+        for (const std::filesystem::path& p : shaderPath) {
+            threads.emplace_back ([=] () {
+                AddShader (device, p);
+            });
+        }
+        for (std::thread& t : threads) {
+            t.join ();
+        }
     }
 
     RenderPass::U renderPass;

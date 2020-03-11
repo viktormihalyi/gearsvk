@@ -13,11 +13,12 @@ private:
     const VkDevice    device;
     const VkSemaphore handle;
 
-    static VkSemaphore CreateSemaphore (VkDevice device)
+    static VkSemaphore CreateSemaphore (VkDevice device, bool signaledByDefault)
     {
         VkSemaphore           handle;
         VkSemaphoreCreateInfo semaphoreInfo = {};
         semaphoreInfo.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        semaphoreInfo.flags                 = (signaledByDefault) ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
         if (ERROR (vkCreateSemaphore (device, &semaphoreInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create semaphore");
         }
@@ -27,9 +28,9 @@ private:
 public:
     USING_PTR (Semaphore);
 
-    Semaphore (VkDevice device)
+    Semaphore (VkDevice device, bool signaledByDefault = false)
         : device (device)
-        , handle (CreateSemaphore (device))
+        , handle (CreateSemaphore (device, signaledByDefault))
     {
     }
 

@@ -399,6 +399,7 @@ public:
     AllocatedImage image;
     ImageView::U   imageView;
     Sampler::U     sampler;
+    Semaphore      semaphore;
 
     USING_PTR (Resource);
 
@@ -406,6 +407,7 @@ public:
         : image (device, Image::Create (device, 512, 512, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT), DeviceMemory::GPU)
         , imageView (ImageView::Create (device, *image.image, image.image->GetFormat ()))
         , sampler (Sampler::Create (device))
+        , semaphore (device)
     {
         TransitionImageLayout (device, queue, commandPool, *image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
     }
@@ -423,11 +425,16 @@ struct Operation : public Noncopyable {
     std::vector<InputBinding>  inputBindings;
     std::vector<OutputBinding> outputBindings;
 
+    std::vector<VkSemaphore> waitSemaphores;
+    std::vector<VkSemaphore> signalSemaphores;
+
+    CommandBuffer::U commandBuffer;
+    VkCommandBuffer  commandBufferHandle;
+
     virtual ~Operation () {}
 
-    virtual void Compile ()                              = 0;
-    virtual void Execute (VkCommandBuffer commandBuffer) = 0;
-    virtual void Bind (VkCommandBuffer commandBuffer)    = 0;
+    virtual void Compile () = 0;
+    virtual void Record ()  = 0;
 
     void AddInput (uint32_t binding, const Resource::Ref& res)
     {
@@ -435,6 +442,7 @@ struct Operation : public Noncopyable {
 
         inputs.push_back (res);
         inputBindings.push_back (binding);
+        waitSemaphores.push_back (res.get ().semaphore);
     }
 
     void AddOutput (uint32_t binding, const Resource::Ref& res)
@@ -443,6 +451,51 @@ struct Operation : public Noncopyable {
 
         outputs.push_back (res);
         outputBindings.push_back (binding);
+        signalSemaphores.push_back (res.get ().semaphore);
+    }
+
+
+    std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const
+    {
+        std::vector<VkAttachmentDescription> result;
+        for (const auto& t : outputBindings) {
+            result.push_back (t.attachmentDescription);
+        }
+        return result;
+    }
+
+    std::vector<VkAttachmentReference> GetAttachmentReferences () const
+    {
+        std::vector<VkAttachmentReference> result;
+        for (const auto& t : outputBindings) {
+            result.push_back (t.attachmentReference);
+        }
+        return result;
+    }
+
+    std::vector<VkImageView> GetOutputImageViews () const
+    {
+        std::vector<VkImageView> result;
+        for (const auto& t : outputs) {
+            result.push_back (*t.get ().imageView);
+        }
+        return result;
+    }
+
+    VkSubmitInfo GetSubmitInfo () const
+    {
+        VkPipelineStageFlags stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+        VkSubmitInfo result         = {};
+        result.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        result.waitSemaphoreCount   = waitSemaphores.size ();
+        result.pWaitSemaphores      = waitSemaphores.data ();
+        result.pWaitDstStageMask    = &stage;
+        result.commandBufferCount   = 1;
+        result.pCommandBuffers      = &commandBufferHandle;
+        result.signalSemaphoreCount = signalSemaphores.size ();
+        result.pSignalSemaphores    = signalSemaphores.data ();
+        return result;
     }
 };
 
@@ -456,54 +509,94 @@ struct RenderOperation final : public Operation {
 
     const VkDevice device;
 
+    ShaderPipeline         pipeline;
+    Framebuffer::U         framebuffer;
     DescriptorPool::U      descriptorPool;
     DescriptorSet::U       descriptorSet;
     DescriptorSetLayout::U descriptorSetLayout;
 
-    RenderOperation (VkDevice device)
+    RenderOperation (VkDevice device, VkCommandPool commandPool, const std::vector<std::filesystem::path>& shaders)
         : device (device)
     {
+        commandBuffer       = CommandBuffer::Create (device, commandPool);
+        commandBufferHandle = *commandBuffer;
+        pipeline.AddShaders (device, shaders);
     }
 
     virtual void Compile () override
     {
-        if (inputBindings.empty ()) {
-            return;
-        }
-
         std::vector<VkDescriptorSetLayoutBinding> layout;
         for (auto& inputBinding : inputBindings) {
             layout.push_back (inputBinding.descriptor);
         }
 
         descriptorSetLayout = DescriptorSetLayout::Create (device, layout);
-        descriptorPool      = DescriptorPool::Create (device, 0, inputBindings.size (), 1);
-        descriptorSet       = DescriptorSet::Create (device, *descriptorPool, *descriptorSetLayout);
 
-        for (uint32_t i = 0; i < inputs.size (); ++i) {
-            Resource& r = inputs[i];
-            descriptorSet->WriteOneImageInfo (
-                inputBindings[i].binding,
-                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                {*r.sampler, *r.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL});
+        if (!inputBindings.empty ()) {
+            descriptorPool = DescriptorPool::Create (device, 0, inputBindings.size (), 1);
+            descriptorSet  = DescriptorSet::Create (device, *descriptorPool, *descriptorSetLayout);
+
+            for (uint32_t i = 0; i < inputs.size (); ++i) {
+                Resource& r = inputs[i];
+                descriptorSet->WriteOneImageInfo (
+                    inputBindings[i].binding,
+                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                    {*r.sampler, *r.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL});
+            }
         }
+
+        pipeline.Compile (device, 512, 512, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions ());
+
+        framebuffer = Framebuffer::Create (device, *pipeline.renderPass, GetOutputImageViews (), 512, 512);
     }
 
-    virtual void Execute (VkCommandBuffer commandBuffer) override {}
-    virtual void Bind (VkCommandBuffer commandBuffer) override {}
+    virtual void Record () override
+    {
+        commandBuffer->Begin ();
+
+        VkClearValue              clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+        std::vector<VkClearValue> clearValues (outputs.size (), clearColor);
+
+        VkRenderPassBeginInfo renderPassBeginInfo = {};
+        renderPassBeginInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassBeginInfo.renderPass            = *pipeline.renderPass;
+        renderPassBeginInfo.framebuffer           = *framebuffer;
+        renderPassBeginInfo.renderArea.offset     = {0, 0};
+        renderPassBeginInfo.renderArea.extent     = {512, 512};
+        renderPassBeginInfo.clearValueCount       = clearValues.size ();
+        renderPassBeginInfo.pClearValues          = clearValues.data ();
+
+        vkCmdBeginRenderPass (*commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        vkCmdBindPipeline (*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline.pipeline);
+
+        if (descriptorSet) {
+            VkDescriptorSet dsHandle = *descriptorSet;
+
+            vkCmdBindDescriptorSets (*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline.pipelineLayout, 0,
+                                     1, &dsHandle,
+                                     0, nullptr);
+        }
+        vkCmdDraw (*commandBuffer, 3, 1, 0, 0);
+        vkCmdEndRenderPass (*commandBuffer);
+
+        commandBuffer->End ();
+    }
 };
 
 class Graph final : public Noncopyable {
 public:
     USING_PTR (Graph);
 
+    VkDevice      device;
+    VkCommandPool commandPool;
+
     std::vector<Resource::U>  resources;
     std::vector<Operation::U> operations;
 
-    CommandBuffer commandBuffer;
-
     Graph (VkDevice device, VkCommandPool commandPool)
-        : commandBuffer (device, commandPool)
+        : device (device)
+        , commandPool (commandPool)
     {
     }
 
@@ -525,16 +618,23 @@ public:
             op->Compile ();
         }
 
-        commandBuffer.Begin ();
-
         for (auto& op : operations) {
-            op->Bind (commandBuffer);
-            op->Execute (commandBuffer);
+            op->Record ();
         }
+    }
 
-        commandBuffer.End ();
+    void Submit (VkQueue queue)
+    {
+        std::vector<VkSubmitInfo> submitInfos;
+
+        for (auto& a : operations) {
+            submitInfos.push_back (a->GetSubmitInfo ());
+        }
+        vkQueueSubmit (queue, submitInfos.size (), submitInfos.data (), VK_NULL_HANDLE);
+        vkQueueWaitIdle (queue);
     }
 };
+
 } // namespace RenderGraph
 
 
@@ -578,21 +678,21 @@ int main ()
             Resource::Ref lightingBuffer = graph.CreateResource (Resource::Create (device, graphicsQueue, commandPool));
             Resource::Ref finalTarget    = graph.CreateResource (Resource::Create (device, graphicsQueue, commandPool));
 
-            Operation::Ref depthPass   = graph.CreateOperation (RenderOperation::Create (device));
-            Operation::Ref gbufferPass = graph.CreateOperation (RenderOperation::Create (device));
-            Operation::Ref debugView   = graph.CreateOperation (RenderOperation::Create (device));
-            Operation::Ref move        = graph.CreateOperation (RenderOperation::Create (device));
-            Operation::Ref lighting    = graph.CreateOperation (RenderOperation::Create (device));
-            Operation::Ref post        = graph.CreateOperation (RenderOperation::Create (device));
-            Operation::Ref present     = graph.CreateOperation (RenderOperation::Create (device));
+            Operation::Ref depthPass   = graph.CreateOperation (RenderOperation::Create (device, commandPool, std::vector<std::filesystem::path> {}));
+            Operation::Ref gbufferPass = graph.CreateOperation (RenderOperation::Create (device, commandPool, std::vector<std::filesystem::path> {}));
+            Operation::Ref debugView   = graph.CreateOperation (RenderOperation::Create (device, commandPool, std::vector<std::filesystem::path> {}));
+            Operation::Ref move        = graph.CreateOperation (RenderOperation::Create (device, commandPool, std::vector<std::filesystem::path> {}));
+            Operation::Ref lighting    = graph.CreateOperation (RenderOperation::Create (device, commandPool, std::vector<std::filesystem::path> {}));
+            Operation::Ref post        = graph.CreateOperation (RenderOperation::Create (device, commandPool, std::vector<std::filesystem::path> {}));
+            Operation::Ref present     = graph.CreateOperation (RenderOperation::Create (device, commandPool, std::vector<std::filesystem::path> {}));
 
             depthPass.get ().AddOutput (0, depthBuffer);
 
             gbufferPass.get ().AddInput (0, depthBuffer);
-            gbufferPass.get ().AddOutput (1, depthBuffer2);
-            gbufferPass.get ().AddOutput (2, gbuffer1);
-            gbufferPass.get ().AddOutput (3, gbuffer2);
-            gbufferPass.get ().AddOutput (4, gbuffer3);
+            gbufferPass.get ().AddOutput (0, depthBuffer2);
+            gbufferPass.get ().AddOutput (1, gbuffer1);
+            gbufferPass.get ().AddOutput (2, gbuffer2);
+            gbufferPass.get ().AddOutput (3, gbuffer3);
 
             debugView.get ().AddInput (0, gbuffer3);
             debugView.get ().AddOutput (0, debugOutput);
@@ -611,8 +711,22 @@ int main ()
 
             present.get ().AddInput (0, finalTarget);
 
-            graph.Compile ();
+            //graph.Compile ();
         }
+
+        Graph          graph (device, commandPool);
+        Resource::Ref  presented = graph.CreateResource (Resource::Create (device, graphicsQueue, commandPool));
+        Operation::Ref dummyPass = graph.CreateOperation (RenderOperation::Create (device, commandPool, std::vector<std::filesystem::path> {
+                                                                                                            PROJECT_ROOT / "shaders" / "test.vert",
+                                                                                                            PROJECT_ROOT / "shaders" / "test.frag",
+                                                                                                        }));
+        dummyPass.get ().AddOutput (0, presented);
+
+        graph.Compile ();
+        graph.Submit (graphicsQueue);
+
+
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *presented.get ().image.image, "graph.png").join ();
 
         InputTextureStore inputs;
         inputs.textures.push_back (InputTexture::Create (device, graphicsQueue, commandPool, 512, 512, 0));
@@ -629,42 +743,9 @@ int main ()
             descSet.WriteOneImageInfo (t->binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, {*t->sampler, *t->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL});
         }
 
-
-        auto                 refs    = outputs.GetAttachmentReferences ();
-        VkSubpassDescription subpass = {};
-        subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpass.colorAttachmentCount = outputs.textures.size ();
-        subpass.pColorAttachments    = refs.data ();
-
-        VkSubpassDependency dependency = {};
-        dependency.srcSubpass          = 0;
-        dependency.dstSubpass          = 0;
-        dependency.srcStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.srcAccessMask       = 0;
-        dependency.dstStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.dstAccessMask       = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-        VkRenderPassCreateInfo renderPassInfo = {};
-        renderPassInfo.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassInfo.attachmentCount        = outputs.textures.size ();
-        renderPassInfo.pAttachments           = outputs.GetAttachmentDescriptions ().data ();
-        renderPassInfo.subpassCount           = 1;
-        renderPassInfo.pSubpasses             = &subpass;
-        renderPassInfo.dependencyCount        = 1;
-        renderPassInfo.pDependencies          = &dependency;
-
         ShaderPipeline shaders;
-
-        std::thread s1 ([&] () {
-            shaders.vertexShader = ShaderModule::CreateFromSource (device, PROJECT_ROOT / "shaders" / "test.vert");
-        });
-        std::thread s2 ([&] () {
-            shaders.fragmentShader = ShaderModule::CreateFromSource (device, PROJECT_ROOT / "shaders" / "test.frag");
-        });
-
-        s1.join ();
-        s2.join ();
-
+        shaders.AddShaders (device, {PROJECT_ROOT / "shaders" / "test.vert",
+                                     PROJECT_ROOT / "shaders" / "test.frag"});
         shaders.Compile (device, 512, 512, descLayout, outputs.GetAttachmentReferences (), outputs.GetAttachmentDescriptions ());
 
 
