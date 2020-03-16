@@ -10,15 +10,15 @@
 
 class Semaphore : public Noncopyable {
 private:
-    const VkDevice    device;
-    const VkSemaphore handle;
+    const VkDevice device;
+    VkSemaphore    handle;
 
-    static VkSemaphore CreateSemaphore (VkDevice device, bool signaledByDefault)
+    static VkSemaphore CreateSemaphore (VkDevice device)
     {
         VkSemaphore           handle;
         VkSemaphoreCreateInfo semaphoreInfo = {};
         semaphoreInfo.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        semaphoreInfo.flags                 = (signaledByDefault) ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
+        semaphoreInfo.flags                 = 0;
         if (ERROR (vkCreateSemaphore (device, &semaphoreInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create semaphore");
         }
@@ -28,15 +28,16 @@ private:
 public:
     USING_PTR (Semaphore);
 
-    Semaphore (VkDevice device, bool signaledByDefault = false)
+    Semaphore (VkDevice device)
         : device (device)
-        , handle (CreateSemaphore (device, signaledByDefault))
+        , handle (CreateSemaphore (device))
     {
     }
 
     ~Semaphore ()
     {
         vkDestroySemaphore (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkSemaphore () const

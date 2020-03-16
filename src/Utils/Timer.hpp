@@ -1,7 +1,6 @@
 #ifndef UTILS_TIMER
 #define UTILS_TIMER
 
-#include "UtilsDLLExport.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -9,7 +8,7 @@
 
 namespace Utils {
 
-class GEARSVK_UTILS_API TimerObserver {
+class TimerObserver {
 public:
     using Duration = std::chrono::duration<double>;
 
@@ -17,7 +16,7 @@ public:
 };
 
 
-class GEARSVK_UTILS_API TimerScope {
+class TimerScope {
 private:
     TimerObserver&                                              observer;
     std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
@@ -36,7 +35,7 @@ public:
 };
 
 
-class GEARSVK_UTILS_API DummyTimerLogger final : public TimerObserver {
+class DummyTimerLogger final : public TimerObserver {
 private:
     void TimerEnded (Duration) override
     {
@@ -44,7 +43,7 @@ private:
 };
 
 
-class GEARSVK_UTILS_API TimerLogger final : public TimerObserver {
+class TimerLogger final : public TimerObserver {
 private:
     std::string name;
 

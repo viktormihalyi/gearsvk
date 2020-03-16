@@ -12,7 +12,7 @@ class Swapchain : public Noncopyable {
 private:
     const VkPhysicalDevice physicalDevice;
     const VkDevice         device;
-    const VkSwapchainKHR   handle;
+    VkSwapchainKHR         handle;
 
     uint32_t imageCount;
 
@@ -175,6 +175,7 @@ public:
     ~Swapchain ()
     {
         vkDestroySwapchainKHR (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkSwapchainKHR () const

@@ -1,11 +1,18 @@
-cmake_minimum_required (VERSION 3.15)
+cmake_minimum_required (VERSION 3.15.1)
 
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED True)
 
+set (PROJECT_NAME GearsVk)
+set (TARGET_NAME ${PROJECT_NAME})
+set (TARGET_TEST_NAME ${PROJECT_NAME}Test)
+
 project (GearsVk)
 
-find_package (Vulkan)
+set (SDL2_INCLUDE_DIR "C:\\SDL2-2.0.10\\include")
+set (SDL2_LIB_DIR "C:\\SDL2-2.0.10\\lib\\x64")
+
+find_package (Vulkan REQUIRED)
 
 if (${Vulkan_FOUND})
     message ("Vulkan lib found at "${Vulkan_LIBRARIES})
@@ -16,15 +23,18 @@ endif ()
 
 add_definitions (-D_CRT_SECURE_NO_WARNINGS)
 
-set (TARGET_NAME GearsVk)
-set (TARGET_TEST_NAME GearsVkTest)
-
 include (
     cmake/external.cmake
-    cmake/Utils.cmake
 )
 
 set (COMMON_SOURCE_FILES
+    src/Utils/Assert.cpp
+    src/Utils/Logger.cpp
+    src/Utils/MessageBox.cpp
+    src/Utils/SourceLocation.cpp
+    src/Utils/Utils.cpp
+    src/VulkanWrapper/VulkanUtils.cpp
+    src/VulkanWrapper/DebugUtilsMessenger.cpp
     src/VulkanWrapper/ShaderModule.cpp
     src/GearsVk/GLFWWindowProvider.cpp
     src/GearsVk/SDLWindowProvider.cpp
@@ -41,11 +51,17 @@ add_executable (${TARGET_TEST_NAME}
     src/Tests/TestMain.cpp
 )
 
+target_compile_definitions (${TARGET_NAME} PRIVATE
+    PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+)
+
+target_compile_definitions (${TARGET_TEST_NAME} PRIVATE
+    PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+)
+
 set (EXTRNAL_INCLUDES
     ${Vulkan_INCLUDE_DIRS}
-
-    "C:\\SDL2-2.0.10\\include"
-
+    ${SDL2_INCLUDE_DIR}
     external/googletest/googletest/include
     external/glfw/include
     external/json/single_include
@@ -57,19 +73,19 @@ set (EXTRNAL_INCLUDES
 )
 
 set (EXTRNAL_LINKS
-    "C:\\SDL2-2.0.10\\lib\\x64"
+    ${SDL2_LIB_DIR}
 )
 
 set (COMMON_INCLUDES
     src
     src/GearsVk
+    src/GearsVk/RenderGraph
     src/VulkanWrapper
     src/Utils
 )
 
 set (COMMON_LINKS
     ${Vulkan_LIBRARIES}
-    GearsVkUtils
     SDL2
     glfw
     shaderc

@@ -9,21 +9,32 @@
 
 class DescriptorPool : public Noncopyable {
 private:
-    const VkDevice         device;
-    const VkDescriptorPool handle;
+    const VkDevice   device;
+    VkDescriptorPool handle;
 
     static VkDescriptorPool CreateDescriptorPool (VkDevice device, uint32_t descriptorCountUbo, uint32_t descriptorCountSampler, uint32_t maxSets)
     {
         VkDescriptorPool handle;
 
+
+        return handle;
+    }
+
+public:
+    USING_PTR (DescriptorPool);
+
+    DescriptorPool (VkDevice device, uint32_t descriptorCountUbo, uint32_t descriptorCountSampler, uint32_t maxSets)
+        : device (device)
+        , handle (VK_NULL_HANDLE)
+    {
         std::vector<VkDescriptorPoolSize> poolSizes = {};
         if (descriptorCountUbo > 0)
-            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCountUbo });
+            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCountUbo});
         if (descriptorCountSampler > 0)
-            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler });
+            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler});
 
         if (ERROR (poolSizes.empty ())) {
-            return VK_NULL_HANDLE;
+            throw std::runtime_error ("empty pool");
         }
 
         VkDescriptorPoolCreateInfo poolInfo = {};
@@ -36,22 +47,12 @@ private:
         if (ERROR (vkCreateDescriptorPool (device, &poolInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create descriptor pool");
         }
-
-        return handle;
-    }
-
-public:
-    USING_PTR (DescriptorPool);
-
-    DescriptorPool (VkDevice device, uint32_t descriptorCountUbo, uint32_t descriptorCountSampler, uint32_t maxSets)
-        : device (device)
-        , handle (CreateDescriptorPool (device, descriptorCountUbo, descriptorCountSampler, maxSets))
-    {
     }
 
     ~DescriptorPool ()
     {
         vkDestroyDescriptorPool (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkDescriptorPool () const

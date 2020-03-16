@@ -113,6 +113,7 @@ public:
     ~Instance ()
     {
         vkDestroyInstance (handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkInstance () const

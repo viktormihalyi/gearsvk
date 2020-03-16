@@ -1,6 +1,7 @@
 #ifndef SHADERPIPELINE_HPP
 #define SHADERPIPELINE_HPP
 
+#include "Timer.hpp"
 #include "VulkanWrapper.hpp"
 
 #include <thread>

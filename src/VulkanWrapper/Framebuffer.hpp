@@ -40,7 +40,6 @@ public:
         framebufferInfo.height                  = height;
         framebufferInfo.layers                  = 1;
 
-
         VkResult result = vkCreateFramebuffer (device, &framebufferInfo, nullptr, &handle);
         if (ERROR (result != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create framebuffer");
@@ -50,6 +49,7 @@ public:
     ~Framebuffer ()
     {
         vkDestroyFramebuffer (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     const size_t GetWidth () const

@@ -45,6 +45,7 @@ public:
     ~Sampler ()
     {
         vkDestroySampler (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkSampler () const { return handle; }

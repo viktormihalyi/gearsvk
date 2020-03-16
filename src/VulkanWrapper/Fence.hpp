@@ -11,32 +11,27 @@
 class Fence : public Noncopyable {
 private:
     const VkDevice device;
-    const VkFence  handle;
-
-    static VkFence CreateFence (VkDevice device)
-    {
-        VkFence           handle;
-        VkFenceCreateInfo fenceInfo = {};
-        fenceInfo.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceInfo.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
-        if (ERROR (vkCreateFence (device, &fenceInfo, nullptr, &handle) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to create fence");
-        }
-        return handle;
-    }
+    VkFence        handle;
 
 public:
     USING_PTR (Fence);
 
     Fence (VkDevice device)
         : device (device)
-        , handle (CreateFence (device))
+        , handle (VK_NULL_HANDLE)
     {
+        VkFenceCreateInfo fenceInfo = {};
+        fenceInfo.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceInfo.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
+        if (ERROR (vkCreateFence (device, &fenceInfo, nullptr, &handle) != VK_SUCCESS)) {
+            throw std::runtime_error ("failed to create fence");
+        }
     }
 
     ~Fence ()
     {
         vkDestroyFence (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkFence () const

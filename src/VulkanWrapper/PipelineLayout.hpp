@@ -9,8 +9,8 @@
 
 class PipelineLayout : public Noncopyable {
 private:
-    const VkDevice         device;
-    const VkPipelineLayout handle;
+    const VkDevice   device;
+    VkPipelineLayout handle;
 
     static VkPipelineLayout CreatePipelineLayout (VkDevice device, const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts)
     {
@@ -42,6 +42,7 @@ public:
     ~PipelineLayout ()
     {
         vkDestroyPipelineLayout (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkPipelineLayout () const

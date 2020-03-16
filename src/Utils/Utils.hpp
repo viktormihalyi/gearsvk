@@ -1,8 +1,6 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include "UtilsDLLExport.hpp"
-
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
@@ -19,16 +17,12 @@
 
 namespace Utils {
 
-GEARSVK_UTILS_API
 std::filesystem::path GetProjectRoot ();
 
-GEARSVK_UTILS_API
 std::optional<std::string> ReadTextFile (const std::filesystem::path& filePath);
 
-GEARSVK_UTILS_API
 std::optional<std::vector<char>> ReadBinaryFile (const std::filesystem::path& filePath);
 
-GEARSVK_UTILS_API
 std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem::path& filePath);
 
 

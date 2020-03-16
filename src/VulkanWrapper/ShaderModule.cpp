@@ -49,16 +49,10 @@ static shaderc_shader_kind GetShaderKindFromExtension (const std::string& extens
 }
 
 
-static std::optional<std::vector<uint32_t>> CompileShader (const std::filesystem::path& fileLocation,
-                                                           shaderc_optimization_level   optimizationLevel = shaderc_optimization_level_zero)
+static std::optional<std::vector<uint32_t>> CompileShaderFromString (const std::string&         shaderSource,
+                                                                     shaderc_shader_kind        shaderKind,
+                                                                     shaderc_optimization_level optimizationLevel = shaderc_optimization_level_zero)
 {
-    std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
-    if (ERROR (!fileContents.has_value ())) {
-        return std::nullopt;
-    }
-
-    std::cout << "compiling " << fileLocation.string () << "... ";
-
     shaderc::Compiler       compiler;
     shaderc::CompileOptions options;
 
@@ -66,11 +60,9 @@ static std::optional<std::vector<uint32_t>> CompileShader (const std::filesystem
     options.SetOptimizationLevel (optimizationLevel);
     options.SetGenerateDebugInfo ();
 
-    const shaderc_shader_kind shaderKind = GetShaderKindFromExtension (fileLocation.extension ().u8string ());
-
     // #define DEBUG_COMPILE_ALL
 
-    shaderc::SpvCompilationResult binaryResult = compiler.CompileGlslToSpv (*fileContents, shaderKind, fileLocation.u8string ().c_str (), options);
+    shaderc::SpvCompilationResult binaryResult = compiler.CompileGlslToSpv (shaderSource, shaderKind, shaderSource.c_str (), options);
     std::vector<uint32_t>         binary (binaryResult.cbegin (), binaryResult.cend ());
 
     if (binaryResult.GetCompilationStatus () != shaderc_compilation_status_success) {
@@ -89,6 +81,29 @@ static std::optional<std::vector<uint32_t>> CompileShader (const std::filesystem
     std::cout << "done" << std::endl;
 
     return binary;
+}
+
+
+static std::optional<std::vector<uint32_t>> CompileShaderFromFile (const std::filesystem::path& fileLocation,
+                                                                   shaderc_optimization_level   optimizationLevel = shaderc_optimization_level_zero)
+{
+    std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
+    if (ERROR (!fileContents.has_value ())) {
+        return std::nullopt;
+    }
+
+    std::cout << "compiling " << fileLocation.string () << "... ";
+
+    shaderc::Compiler       compiler;
+    shaderc::CompileOptions options;
+
+    options.AddMacroDefinition ("MY_DEFINE", "1");
+    options.SetOptimizationLevel (optimizationLevel);
+    options.SetGenerateDebugInfo ();
+
+    const shaderc_shader_kind shaderKind = GetShaderKindFromExtension (fileLocation.extension ().u8string ());
+
+    return CompileShaderFromString (*fileContents, shaderKind, optimizationLevel);
 }
 
 
@@ -119,8 +134,8 @@ ShaderModule::ShaderModule (ReadMode mode, VkDevice device, VkShaderModule handl
 
 ShaderModule::U ShaderModule::CreateFromBinary (VkDevice device, const std::filesystem::path& fileLocation)
 {
-    std::optional<std::vector<char>> binaryC = Utils::ReadBinaryFile (fileLocation);
-    std::optional<std::vector<uint32_t>> binary = Utils::ReadBinaryFile4Byte (fileLocation);
+    std::optional<std::vector<char>>     binaryC = Utils::ReadBinaryFile (fileLocation);
+    std::optional<std::vector<uint32_t>> binary  = Utils::ReadBinaryFile4Byte (fileLocation);
     if (ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to read shader");
     }
@@ -133,7 +148,7 @@ ShaderModule::U ShaderModule::CreateFromBinary (VkDevice device, const std::file
 
 ShaderModule::U ShaderModule::CreateFromSource (VkDevice device, const std::filesystem::path& fileLocation)
 {
-    std::optional<std::vector<uint32_t>> binary = CompileShader (fileLocation);
+    std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation);
     if (ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }
@@ -143,9 +158,44 @@ ShaderModule::U ShaderModule::CreateFromSource (VkDevice device, const std::file
     return ShaderModule::Create (ReadMode::Source, device, handle, fileLocation, *binary);
 }
 
+
+static shaderc_shader_kind ShaderKindToShaderc (ShaderModule::ShaderKind shaderKind)
+{
+    switch (shaderKind) {
+        case ShaderModule::ShaderKind::Vertex:
+            return shaderc_vertex_shader;
+        case ShaderModule::ShaderKind::Fragment:
+            return shaderc_fragment_shader;
+        case ShaderModule::ShaderKind::TessellationControl:
+            return shaderc_tess_control_shader;
+        case ShaderModule::ShaderKind::TessellationEvaluation:
+            return shaderc_tess_evaluation_shader;
+        case ShaderModule::ShaderKind::Geometry:
+            return shaderc_geometry_shader;
+        case ShaderModule::ShaderKind::Compute:
+            return shaderc_compute_shader;
+    }
+
+    throw std::runtime_error ("unexpected shader kind");
+}
+
+
+ShaderModule::U ShaderModule::CreateFromString (VkDevice device, const std::string& shaderSource, ShaderKind shaderKind)
+{
+    std::optional<std::vector<uint32_t>> binary = CompileShaderFromString (shaderSource, ShaderKindToShaderc (shaderKind));
+    if (ERROR (!binary.has_value ())) {
+        throw std::runtime_error ("failed to compile shader");
+    }
+
+    VkShaderModule handle = CreateShaderModule (device, *binary);
+
+    return ShaderModule::Create (ReadMode::String, device, handle, "", *binary);
+}
+
 ShaderModule::~ShaderModule ()
 {
     vkDestroyShaderModule (device, handle, nullptr);
+    handle = VK_NULL_HANDLE;
 }
 
 
@@ -162,5 +212,6 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 
 void ShaderModule::Reload ()
 {
+    ASSERT (readMode != ReadMode::String);
     throw std::runtime_error ("unimplemented");
 }

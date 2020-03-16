@@ -12,35 +12,30 @@
 class Buffer : public Noncopyable {
 private:
     const VkDevice device;
-    const VkBuffer handle;
-
-    static VkBuffer CreateBuffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags)
-    {
-        VkBufferCreateInfo bufferInfo = {};
-        bufferInfo.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.size               = bufferSize;
-        bufferInfo.usage              = usageFlags;
-        bufferInfo.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
-
-        VkBuffer result;
-        if (ERROR (vkCreateBuffer (device, &bufferInfo, nullptr, &result) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to create buffer");
-        }
-        return result;
-    }
+    VkBuffer handle;
 
 public:
     USING_PTR (Buffer);
 
     Buffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags)
         : device (device)
-        , handle (CreateBuffer (device, bufferSize, usageFlags))
+        , handle (VK_NULL_HANDLE)
     {
+        VkBufferCreateInfo bufferInfo = {};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = bufferSize;
+        bufferInfo.usage = usageFlags;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        if (ERROR (vkCreateBuffer (device, &bufferInfo, nullptr, &handle) != VK_SUCCESS)) {
+            throw std::runtime_error ("failed to create buffer");
+        }
     }
 
     ~Buffer ()
     {
         vkDestroyBuffer (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkBuffer () const

@@ -13,16 +13,27 @@
 
 
 class ShaderModule : public Noncopyable {
+public:
+    enum class ShaderKind {
+        Vertex,
+        Fragment,
+        TessellationControl,
+        TessellationEvaluation,
+        Geometry,
+        Compute,
+    };
+
 private:
     enum class ReadMode {
         Source,
-        Binary
+        Binary,
+        String,
     };
 
     const ReadMode readMode;
 
     const VkDevice              device;
-    const VkShaderModule        handle;
+    VkShaderModule              handle;
     const std::vector<uint32_t> binary;
 
     const std::filesystem::path fileLocation;
@@ -36,6 +47,7 @@ public:
 
     static ShaderModule::U CreateFromSource (VkDevice device, const std::filesystem::path& fileLocation);
     static ShaderModule::U CreateFromBinary (VkDevice device, const std::filesystem::path& fileLocation);
+    static ShaderModule::U CreateFromString (VkDevice device, const std::string& shaderSource, ShaderKind shaderKind);
 
     virtual ~ShaderModule ();
 

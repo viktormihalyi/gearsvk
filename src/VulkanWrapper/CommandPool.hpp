@@ -9,13 +9,14 @@
 
 class CommandPool : public Noncopyable {
 private:
-    const VkDevice      device;
-    const VkCommandPool handle;
+    const VkDevice device;
+    VkCommandPool  handle;
 
-    static VkCommandPool CreateCommandPool (VkDevice device, uint32_t queueIndex)
+public:
+    CommandPool (VkDevice device, uint32_t queueIndex)
+        : device (device)
+        , handle (VK_NULL_HANDLE)
     {
-        VkCommandPool handle;
-
         VkCommandPoolCreateInfo commandPoolInfo = {};
         commandPoolInfo.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         commandPoolInfo.queueFamilyIndex        = queueIndex;
@@ -23,20 +24,12 @@ private:
         if (ERROR (vkCreateCommandPool (device, &commandPoolInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create commandpool");
         }
-
-        return handle;
-    }
-
-public:
-    CommandPool (VkDevice device, uint32_t queueIndex)
-        : device (device)
-        , handle (CreateCommandPool (device, queueIndex))
-    {
     }
 
     ~CommandPool ()
     {
         vkDestroyCommandPool (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkCommandPool () const

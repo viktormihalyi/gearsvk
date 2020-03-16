@@ -20,6 +20,7 @@ public:
     ~Surface ()
     {
         vkDestroySurfaceKHR (instance, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkSurfaceKHR () const

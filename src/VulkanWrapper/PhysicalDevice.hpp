@@ -163,6 +163,11 @@ public:
     {
     }
 
+    ~PhysicalDevice ()
+    {
+        handle = VK_NULL_HANDLE;
+    }
+
     operator VkPhysicalDevice () const
     {
         return handle;

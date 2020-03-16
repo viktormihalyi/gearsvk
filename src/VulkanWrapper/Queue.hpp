@@ -17,6 +17,11 @@ public:
         vkGetDeviceQueue (device, index, 0, &handle); // TODO another index
     }
 
+    ~Queue ()
+    {
+        handle = VK_NULL_HANDLE;
+    }
+
     operator VkQueue () const
     {
         return handle;

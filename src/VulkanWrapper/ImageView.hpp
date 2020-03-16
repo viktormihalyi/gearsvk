@@ -2,9 +2,9 @@
 #define IMAGEVIEW_HPP
 
 #include "Assert.hpp"
+#include "Image.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
-#include "Image.hpp"
 #include "Utils.hpp"
 
 #include <vulkan/vulkan.h>
@@ -21,6 +21,7 @@ public:
     ImageView (VkDevice device, VkImage image, VkFormat format)
         : device (device)
         , format (format)
+        , handle (VK_NULL_HANDLE)
     {
         VkImageViewCreateInfo createInfo           = {};
         createInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -51,6 +52,7 @@ public:
     ~ImageView ()
     {
         vkDestroyImageView (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     VkFormat GetFormat () const { return format; }

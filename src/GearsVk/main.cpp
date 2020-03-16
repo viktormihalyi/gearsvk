@@ -33,6 +33,7 @@
 #include "SingleTimeCommand.hpp"
 #include "Surface.hpp"
 #include "Swapchain.hpp"
+#include "VulkanUtils.hpp"
 
 #include "ShaderPipeline.hpp"
 #include "ShaderReflection.hpp"
@@ -181,30 +182,6 @@ void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPo
 }
 
 
-void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
-{
-    SingleTimeCommand commandBuffer (device, commandPool, graphicsQueue);
-
-    VkBufferImageCopy region               = {};
-    region.bufferOffset                    = 0;
-    region.bufferRowLength                 = 0;
-    region.bufferImageHeight               = 0;
-    region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-    region.imageSubresource.mipLevel       = 0;
-    region.imageSubresource.baseArrayLayer = 0;
-    region.imageSubresource.layerCount     = 1;
-    region.imageOffset                     = {0, 0, 0};
-    region.imageExtent                     = {width, height, 1};
-
-    vkCmdCopyBufferToImage (
-        commandBuffer,
-        buffer,
-        image,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1,
-        &region);
-}
-
 struct UniformBufferObject {
     glm::mat4 m;
     glm::mat4 v;
@@ -232,12 +209,6 @@ static UniformBufferObject GetMPV (float asp)
     return ubo;
 }
 
-
-void TransitionImageLayout (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout)
-{
-    SingleTimeCommand commandBuffer (device, commandPool, graphicsQueue);
-    image.CmdTransitionImageLayout (commandBuffer, oldLayout, newLayout);
-}
 
 struct BufferImage {
     Image::U        image;
@@ -526,7 +497,7 @@ int main (int argc, char* argv[])
     RenderPass renderPass (device, {colorAttachment}, {subpass}, {dependency});
     //PipelineLayout pipelineLayout (device, { uniformReflection.GetLayout () });
     PipelineLayout pipelineLayout (device, {});
-    Pipeline       pipeline (device, swapchain.extent.width, swapchain.extent.height, pipelineLayout, renderPass, shaderStages, vibds, viads);
+    Pipeline       pipeline (device, swapchain.extent.width, swapchain.extent.height, 1, pipelineLayout, renderPass, shaderStages, vibds, viads);
 
     std::vector<Framebuffer::U> swapChainFramebuffers;
 

@@ -22,6 +22,7 @@ public:
 
     Image (VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage)
         : device (device)
+        , handle (VK_NULL_HANDLE)
         , format (format)
         , width (width)
         , height (height)
@@ -41,7 +42,7 @@ public:
         imageInfo.samples           = VK_SAMPLE_COUNT_1_BIT;
         imageInfo.sharingMode       = VK_SHARING_MODE_EXCLUSIVE;
 
-        if (vkCreateImage (device, &imageInfo, nullptr, &handle) != VK_SUCCESS) {
+        if (ERROR (vkCreateImage (device, &imageInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create image!");
         }
     }
@@ -49,6 +50,7 @@ public:
     ~Image ()
     {
         vkDestroyImage (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     VkFormat GetFormat () const { return format; }

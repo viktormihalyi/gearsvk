@@ -38,6 +38,7 @@ public:
     ~RenderPass ()
     {
         vkDestroyRenderPass (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkRenderPass () const

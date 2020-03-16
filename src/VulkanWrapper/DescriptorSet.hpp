@@ -45,6 +45,7 @@ public:
     {
         // only free for VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
         // vkFreeDescriptorSets (device, descriptorPool, 1, &handle);
+        handle = VK_NULL_HANDLE;
     }
 
     void WriteOneBufferInfo (uint32_t binding, VkDescriptorType descriptorType, const VkDescriptorBufferInfo& bufferInfo) const

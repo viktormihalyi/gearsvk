@@ -11,13 +11,17 @@
 
 class DescriptorSetLayout : public Noncopyable {
 private:
-    const VkDevice              device;
-    const VkDescriptorSetLayout handle;
+    const VkDevice        device;
+    VkDescriptorSetLayout handle;
 
-    static VkDescriptorSetLayout CreateDescriptorSetLayout (VkDevice device, const std::vector<VkDescriptorSetLayoutBinding>& bindings)
+
+public:
+    USING_PTR (DescriptorSetLayout);
+
+    DescriptorSetLayout (VkDevice device, const std::vector<VkDescriptorSetLayoutBinding>& bindings)
+        : device (device)
+        , handle (VK_NULL_HANDLE)
     {
-        VkDescriptorSetLayout handle;
-
         VkDescriptorSetLayoutCreateInfo layoutInfo = {};
         layoutInfo.sType                           = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount                    = static_cast<uint32_t> (bindings.size ());
@@ -26,22 +30,12 @@ private:
         if (ERROR (vkCreateDescriptorSetLayout (device, &layoutInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create descriptor set layout!");
         }
-
-        return handle;
-    }
-
-public:
-    USING_PTR (DescriptorSetLayout);
-
-    DescriptorSetLayout (VkDevice device, const std::vector<VkDescriptorSetLayoutBinding>& bindings)
-        : device (device)
-        , handle (CreateDescriptorSetLayout (device, bindings))
-    {
     }
 
     ~DescriptorSetLayout ()
     {
         vkDestroyDescriptorSetLayout (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
     }
 
     operator VkDescriptorSetLayout () const
