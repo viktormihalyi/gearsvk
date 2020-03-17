@@ -6,6 +6,7 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 
+#include <array>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -70,10 +71,8 @@ AllocatedImage CreateImage (const Device& device, uint32_t width, uint32_t heigh
 }
 
 
-std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::string& filePath)
+static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image)
 {
-    std::cout << "saving an image to" << filePath << std::endl;
-
     const uint32_t width  = image.GetWidth ();
     const uint32_t height = image.GetHeight ();
 
@@ -100,16 +99,60 @@ std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommand
             &imageCopyRegion);
     }
 
-    std::vector<uint8_t> mapped (width * height * 4);
+    return dst;
+}
+
+
+// copy image to cpu and compare with a reference
+bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::filesystem::path& expectedImage)
+{
+    const uint32_t width  = image.GetWidth ();
+    const uint32_t height = image.GetHeight ();
+
+    AllocatedImage dst = CreateCopyImageOnCPU (device, queue, commandPool, image);
+
+
+    std::vector<std::array<uint8_t, 4>> mapped (width * height);
 
     {
         MemoryMapping mapping (device, *dst.memory, 0, width * height * 4);
-        memcpy (mapped.data (), mapping.Get (), width * height * 4);
+        std::memcpy (mapped.data (), mapping.Get (), width * height * 4);
+    }
+
+    std::vector<std::array<uint8_t, 4>> expected (width * height);
+    int                                 expectedWidth, expectedHeight, expectedComponents;
+    unsigned char*                      exepctedData = stbi_load (expectedImage.u8string ().c_str (), &expectedWidth, &expectedHeight, &expectedComponents, STBI_rgb_alpha);
+    if (ERROR (expectedWidth != width || expectedHeight != height || expectedComponents != 4)) {
+        stbi_image_free (exepctedData);
+        return false;
+    }
+
+    std::memcpy (expected.data (), exepctedData, width * height * 4);
+    stbi_image_free (exepctedData);
+
+    return std::memcmp (expected.data (), mapped.data (), width * height * 4) == 0;
+}
+
+
+std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::filesystem::path& filePath)
+{
+    std::cout << "saving an image to" << filePath << std::endl;
+
+    const uint32_t width  = image.GetWidth ();
+    const uint32_t height = image.GetHeight ();
+
+    AllocatedImage dst = CreateCopyImageOnCPU (device, queue, commandPool, image);
+
+    std::vector<std::array<uint8_t, 4>> mapped (width * height);
+
+    {
+        MemoryMapping mapping (device, *dst.memory, 0, width * height * 4);
+        std::memcpy (mapped.data (), mapping.Get (), width * height * 4);
     }
 
     return std::thread ([=] () {
         std::cout << "writing... " << std::endl;
-        stbi_write_png (filePath.c_str (), width, height, 4, mapped.data (), width * 4);
+        stbi_write_png (filePath.u8string ().c_str (), width, height, 4, mapped.data (), width * 4);
         std::cout << "done" << std::endl;
     });
 };

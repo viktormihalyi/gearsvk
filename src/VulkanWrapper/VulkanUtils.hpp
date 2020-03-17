@@ -11,6 +11,7 @@
 
 
 #include <array>
+#include <filesystem>
 #include <thread>
 
 struct AllocatedImage {
@@ -45,7 +46,9 @@ void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool co
 
 AllocatedImage CreateImage (const Device& device, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool);
 
-std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::string& filePath);
+bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::filesystem::path& expectedImage);
+
+std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::filesystem::path& filePath);
 
 
 #endif

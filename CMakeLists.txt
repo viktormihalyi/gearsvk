@@ -36,6 +36,9 @@ set (COMMON_SOURCE_FILES
     src/VulkanWrapper/VulkanUtils.cpp
     src/VulkanWrapper/DebugUtilsMessenger.cpp
     src/VulkanWrapper/ShaderModule.cpp
+    src/GearsVk/RenderGraph/RenderGraph.cpp
+    src/GearsVk/RenderGraph/Resource.cpp
+    src/GearsVk/RenderGraph/Operation.cpp
     src/GearsVk/GLFWWindowProvider.cpp
     src/GearsVk/SDLWindowProvider.cpp
     src/GearsVk/ShaderReflection.cpp

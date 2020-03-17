@@ -48,13 +48,13 @@ TEST_F (VulkanTestEnvironment, DISABLED_RenderGraphConnectionTest)
     Resource::Ref lightingBuffer = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
     Resource::Ref finalTarget    = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
 
-    Operation::Ref depthPass   = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, std::vector<std::filesystem::path> {}));
-    Operation::Ref gbufferPass = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, std::vector<std::filesystem::path> {}));
-    Operation::Ref debugView   = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, std::vector<std::filesystem::path> {}));
-    Operation::Ref move        = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, std::vector<std::filesystem::path> {}));
-    Operation::Ref lighting    = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, std::vector<std::filesystem::path> {}));
-    Operation::Ref post        = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, std::vector<std::filesystem::path> {}));
-    Operation::Ref present     = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, std::vector<std::filesystem::path> {}));
+    Operation::Ref depthPass   = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {}));
+    Operation::Ref gbufferPass = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {}));
+    Operation::Ref debugView   = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {}));
+    Operation::Ref move        = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {}));
+    Operation::Ref lighting    = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {}));
+    Operation::Ref post        = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {}));
+    Operation::Ref present     = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {}));
 
     depthPass.get ().AddOutput (0, depthBuffer);
 
@@ -89,11 +89,18 @@ TEST_F (VulkanTestEnvironment, CompileTest)
     CommandPool& commandPool = GetCommandPool ();
 
     Graph graph (device, commandPool, 2048, 2048);
-    graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, std::vector<std::filesystem::path> {
-                                                                                                    PROJECT_ROOT / "shaders" / "test.vert",
-                                                                                                    PROJECT_ROOT / "shaders" / "test.frag",
-                                                                                                }));
+    graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {
+                                                                                                       PROJECT_ROOT / "shaders" / "test.vert",
+                                                                                                       PROJECT_ROOT / "shaders" / "test.frag",
+                                                                                                   }));
 }
+
+template<typename DestinationType, typename SourceType>
+std::reference_wrapper<DestinationType> DynamicRefCast (std::reference_wrapper<SourceType>& source)
+{
+    return std::reference_wrapper<DestinationType> (dynamic_cast<DestinationType&> (source.get ()));
+}
+
 
 TEST_F (VulkanTestEnvironment, RenderGraphUseTest)
 {
@@ -101,18 +108,49 @@ TEST_F (VulkanTestEnvironment, RenderGraphUseTest)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetQueue ();
 
-    Graph         graph (device, commandPool, 2048, 2048);
+    Graph graph (device, commandPool, 512, 512);
+
     Resource::Ref presented = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
     Resource::Ref green     = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
     Resource::Ref red       = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
+    Resource::Ref finalImg  = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
 
-    Operation::Ref dummyPass = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, std::vector<std::filesystem::path> {
-                                                                                                                               PROJECT_ROOT / "shaders" / "test.vert",
-                                                                                                                               PROJECT_ROOT / "shaders" / "test.frag",
-                                                                                                                           }));
-    dummyPass.get ().AddInput (0, green);
-    dummyPass.get ().AddOutput (0, presented);
-    dummyPass.get ().AddOutput (1, red);
+    Operation::Ref dummyPass = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {
+                                                                                                                                  PROJECT_ROOT / "shaders" / "test.vert",
+                                                                                                                                  PROJECT_ROOT / "shaders" / "test.frag",
+                                                                                                                              }));
+
+    Operation::Ref secondPass = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 6, std::vector<std::filesystem::path> {
+                                                                                                                                   PROJECT_ROOT / "shaders" / "fullscreenquad.vert",
+                                                                                                                                   PROJECT_ROOT / "shaders" / "fullscreenquad.frag",
+                                                                                                                               }));
+    struct GraphConnection {
+        enum class Type {
+            Input,
+            Output
+        };
+        Type           type;
+        Operation::Ref operation;
+        uint32_t       binding;
+        Resource::Ref  resource;
+    };
+
+    GraphConnection connections[] = {
+        {GraphConnection::Type::Input, dummyPass, 0, green},
+        {GraphConnection::Type::Output, dummyPass, 0, presented},
+        {GraphConnection::Type::Output, dummyPass, 1, red},
+
+        {GraphConnection::Type::Input, secondPass, 0, red},
+        {GraphConnection::Type::Output, secondPass, 0, finalImg},
+    };
+
+    for (auto c : connections) {
+        if (c.type == GraphConnection::Type::Input) {
+            c.operation.get ().AddInput (c.binding, c.resource);
+        } else {
+            c.operation.get ().AddOutput (c.binding, c.resource);
+        }
+    }
 
     graph.Compile ();
 
@@ -128,12 +166,15 @@ TEST_F (VulkanTestEnvironment, RenderGraphUseTest)
     vkDeviceWaitIdle (GetDevice ());
 
     std::thread saveThreads[] = {
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (green.get ()).image.image, "green.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (presented.get ()).image.image, "presented.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (red.get ()).image.image, "red.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (green.get ()).image.image, PROJECT_ROOT / "green.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (presented.get ()).image.image, PROJECT_ROOT / "presented.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (red.get ()).image.image, PROJECT_ROOT / "red.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (finalImg.get ()).image.image, PROJECT_ROOT / "final.png"),
     };
     for (auto& t : saveThreads) {
         t.join ();
         std::cout << "saved" << std::endl;
     }
+
+    ASSERT_TRUE (AreImagesEqual (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (presented.get ()).image.image, PROJECT_ROOT / "black.png"));
 }
