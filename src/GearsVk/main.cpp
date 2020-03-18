@@ -60,15 +60,13 @@
 constexpr int MAX_FRAMES_IN_FLIGHT = 4;
 
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
+static void debugCallback (
     VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT             messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void*                                       pUserData)
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData)
 {
     std::cout << "validation layer: " << pCallbackData->pMessageIdName << ": " << pCallbackData->pMessage << std::endl
               << std::endl;
-    return VK_FALSE;
 }
 
 

@@ -12,6 +12,15 @@ private:
     const VkInstance         instance;
     VkDebugUtilsMessengerEXT handle;
 
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
+        VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT             messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+        void*                                       userData);
+
+    using Callback = std::function<void (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+                                         VkDebugUtilsMessageTypeFlagsEXT             messageType,
+                                         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData)>;
 
 public:
     struct Settings {
@@ -28,7 +37,9 @@ public:
     static const Settings defaultSettings;
     static const Settings noPerformance;
 
-    DebugUtilsMessenger (VkInstance instance, PFN_vkDebugUtilsMessengerCallbackEXT callback, const Settings& settings = defaultSettings);
+    Callback callback;
+
+    DebugUtilsMessenger (VkInstance instance, const Callback& callback, const Settings& settings = defaultSettings);
 
     ~DebugUtilsMessenger ();
 

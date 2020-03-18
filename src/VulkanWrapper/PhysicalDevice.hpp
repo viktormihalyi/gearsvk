@@ -4,16 +4,17 @@
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
+#include "VulkanUtils.hpp"
 
 #include <vulkan/vulkan.h>
 
 
 class QueueFamilyProvider {
 public:
-    virtual uint32_t GetGraphics () = 0;
+    virtual uint32_t GetGraphics ()     = 0;
     virtual uint32_t GetPresentation () = 0;
-    virtual uint32_t GetCompute () = 0;
-    virtual uint32_t GetTransfer () = 0;
+    virtual uint32_t GetCompute ()      = 0;
+    virtual uint32_t GetTransfer ()     = 0;
 };
 
 
@@ -127,6 +128,9 @@ private:
 
             VkPhysicalDeviceProperties deviceProperties;
             vkGetPhysicalDeviceProperties (device, &deviceProperties);
+
+            std::cout << "device" << i << " api version: " << GetVersionString (deviceProperties.apiVersion) << std::endl;
+            std::cout << "device" << i << " driver version: " << GetVersionString (deviceProperties.driverVersion) << std::endl;
 
             VkPhysicalDeviceFeatures deviceFeatures;
             vkGetPhysicalDeviceFeatures (device, &deviceFeatures);

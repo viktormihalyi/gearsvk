@@ -10,6 +10,9 @@
 
 
 class Image : public Noncopyable {
+public:
+    static const VkImageLayout INITIAL_LAYOUT = VK_IMAGE_LAYOUT_UNDEFINED;
+
 private:
     const VkDevice device;
     const VkFormat format;
@@ -37,7 +40,7 @@ public:
         imageInfo.arrayLayers       = 1;
         imageInfo.format            = format;
         imageInfo.tiling            = tiling;
-        imageInfo.initialLayout     = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageInfo.initialLayout     = INITIAL_LAYOUT;
         imageInfo.usage             = usage;
         imageInfo.samples           = VK_SAMPLE_COUNT_1_BIT;
         imageInfo.sharingMode       = VK_SHARING_MODE_EXCLUSIVE;

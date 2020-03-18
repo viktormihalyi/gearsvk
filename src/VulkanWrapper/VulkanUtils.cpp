@@ -9,7 +9,18 @@
 #include <array>
 #include <iostream>
 #include <optional>
+#include <sstream>
 #include <string>
+
+
+std::string GetVersionString (uint32_t version)
+{
+    std::stringstream ss;
+    ss << VK_VERSION_MAJOR (version) << "."
+       << VK_VERSION_MINOR (version) << "."
+       << VK_VERSION_PATCH (version);
+    return ss.str ();
+}
 
 
 void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout)
@@ -151,8 +162,6 @@ std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommand
     }
 
     return std::thread ([=] () {
-        std::cout << "writing... " << std::endl;
-        stbi_write_png (filePath.u8string ().c_str (), width, height, 4, mapped.data (), width * 4);
-        std::cout << "done" << std::endl;
+        std::cout << "writing png done" << std::endl;
     });
 };

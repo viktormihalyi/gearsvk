@@ -2,6 +2,7 @@
 #define VULKANTESTENVIRONMENT_HPP
 
 #include "Ptr.hpp"
+#include "TerminalColors.hpp"
 #include "VulkanWrapper.hpp"
 
 #include "gtest/gtest.h"
@@ -23,17 +24,18 @@ auto acceptWithFlag = [] (VkQueueFlagBits flagbits) {
     };
 };
 
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
+static void debugCallback (
     VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT             messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void*                                       pUserData)
+    const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
-    std::cout << "validation layer: " << pCallbackData->pMessageIdName << ": " << pCallbackData->pMessage << std::endl
+    using namespace TerminalColors;
+    std::cout << RED << "validation layer: "
+              << YELLOW << callbackData->pMessageIdName << ": "
+              << RESET << callbackData->pMessage
+              << std::endl
               << std::endl;
-    //std::cout << "validation layer" << std::endl;
-    return VK_FALSE;
+    FAIL ();
 }
 
 

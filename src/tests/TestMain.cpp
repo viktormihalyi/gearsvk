@@ -39,14 +39,14 @@ TEST_F (VulkanTestEnvironment, DISABLED_RenderGraphConnectionTest)
 
     Graph graph (device, commandPool, 512, 512);
 
-    Resource::Ref depthBuffer    = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
-    Resource::Ref depthBuffer2   = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
-    Resource::Ref gbuffer1       = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
-    Resource::Ref gbuffer2       = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
-    Resource::Ref gbuffer3       = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
-    Resource::Ref debugOutput    = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
-    Resource::Ref lightingBuffer = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
-    Resource::Ref finalTarget    = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
+    Resource::Ref depthBuffer    = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, std::nullopt, std::nullopt));
+    Resource::Ref depthBuffer2   = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, std::nullopt, std::nullopt));
+    Resource::Ref gbuffer1       = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, std::nullopt, std::nullopt));
+    Resource::Ref gbuffer2       = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, std::nullopt, std::nullopt));
+    Resource::Ref gbuffer3       = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, std::nullopt, std::nullopt));
+    Resource::Ref debugOutput    = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, std::nullopt, std::nullopt));
+    Resource::Ref lightingBuffer = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, std::nullopt, std::nullopt));
+    Resource::Ref finalTarget    = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, std::nullopt, std::nullopt));
 
     Operation::Ref depthPass   = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {}));
     Operation::Ref gbufferPass = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {}));
@@ -110,10 +110,10 @@ TEST_F (VulkanTestEnvironment, RenderGraphUseTest)
 
     Graph graph (device, commandPool, 512, 512);
 
-    Resource::Ref presented = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
-    Resource::Ref green     = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
-    Resource::Ref red       = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
-    Resource::Ref finalImg  = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool));
+    Resource::Ref presented = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, std::nullopt, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+    Resource::Ref green     = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, std::nullopt));
+    Resource::Ref red       = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+    Resource::Ref finalImg  = graph.CreateResource (ImageResource::Create (graph.GetGraphInfo (), device, graphicsQueue, commandPool, std::nullopt, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
 
     Operation::Ref dummyPass = graph.CreateOperation (RenderOperation::Create (graph.GetGraphInfo (), device, commandPool, 3, std::vector<std::filesystem::path> {
                                                                                                                                   PROJECT_ROOT / "shaders" / "test.vert",
@@ -164,6 +164,11 @@ TEST_F (VulkanTestEnvironment, RenderGraphUseTest)
 
     vkQueueWaitIdle (GetQueue ());
     vkDeviceWaitIdle (GetDevice ());
+
+    TransitionImageLayout (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (green.get ()).image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (presented.get ()).image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (red.get ()).image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (finalImg.get ()).image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
     std::thread saveThreads[] = {
         SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (green.get ()).image.image, PROJECT_ROOT / "green.png"),

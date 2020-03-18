@@ -4,12 +4,15 @@
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
+#include "VulkanUtils.hpp"
 
 #include <iostream>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <vulkan/vulkan.h>
+
 
 class Instance : public Noncopyable {
 private:
@@ -17,6 +20,10 @@ private:
 
     static VkInstance CreateInstance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers)
     {
+        uint32_t apiVersion;
+        vkEnumerateInstanceVersion (&apiVersion);
+        std::cout << "instance api version: " << GetVersionString (apiVersion) << std::endl;
+
         std::cout << "creating instance" << std::endl;
         if (!instanceExtensions.empty ()) {
             std::cout << "with extensions:" << std::endl;

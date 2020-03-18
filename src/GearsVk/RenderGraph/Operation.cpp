@@ -25,11 +25,11 @@ OutputBinding::OutputBinding (uint32_t binding)
     attachmentDescription.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
     attachmentDescription.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachmentDescription.initialLayout  = VK_IMAGE_LAYOUT_GENERAL; // TODO
-    attachmentDescription.finalLayout    = VK_IMAGE_LAYOUT_GENERAL; // TODO
+    attachmentDescription.initialLayout  = Image::INITIAL_LAYOUT;                    // TODO
+    attachmentDescription.finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // TODO
 
     attachmentReference.attachment = binding;
-    attachmentReference.layout     = VK_IMAGE_LAYOUT_GENERAL; // TODO
+    attachmentReference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // TODO
 }
 
 
@@ -105,7 +105,16 @@ RenderOperation::RenderOperation (const GraphInfo& graphInfo, VkDevice device, V
 {
     ASSERT (!shaders.empty ());
 
+
+    std::cout << "compiling ";
+    for (auto& s : shaders) {
+        std::cout << s.u8string () << " ";
+    }
+    std::cout << "... ";
+
     pipeline.AddShaders (device, shaders);
+
+    std::cout << "done" << std::endl;
 }
 
 

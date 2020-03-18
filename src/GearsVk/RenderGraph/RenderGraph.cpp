@@ -45,10 +45,18 @@ void Graph::Compile ()
     cmdBuf = CommandBuffer::Create (device, commandPool);
     cmdBuf->Begin ();
     for (auto& op : operations) {
+        for (auto& inputResource : op->inputs) {
+            inputResource.get ().BindRead (*cmdBuf);
+        }
+        for (auto& outputResource : op->outputs) {
+            outputResource.get ().BindWrite (*cmdBuf);
+        }
+
         op->Record (*cmdBuf);
 
         if (&op != &operations.back ()) {
             VkMemoryBarrier memoryBarrier = {};
+            memoryBarrier.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
             memoryBarrier.srcAccessMask   = VK_ACCESS_SHADER_WRITE_BIT;
             memoryBarrier.dstAccessMask   = VK_ACCESS_SHADER_READ_BIT;
 
@@ -57,9 +65,9 @@ void Graph::Compile ()
                 VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // srcStageMask
                 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,    // dstStageMask
                 0,
-                1, &memoryBarrier, // memory barriers
-                0, nullptr,        // buffer memory barriers
-                0, nullptr         // image barriers
+                0, nullptr, //&memoryBarrier, // memory barriers
+                0, nullptr, // buffer memory barriers
+                0, nullptr  // image barriers
             );
         }
     }

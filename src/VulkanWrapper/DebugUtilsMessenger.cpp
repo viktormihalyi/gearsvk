@@ -50,9 +50,24 @@ static void DestroyDebugUtilsMessengerEXT (VkInstance                   instance
 }
 
 
-DebugUtilsMessenger::DebugUtilsMessenger (VkInstance instance, PFN_vkDebugUtilsMessengerCallbackEXT callback, const Settings& settings)
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsMessenger::debugCallback (
+    VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT             messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+    void*                                       userData)
+{
+    if (ASSERT (userData != nullptr)) {
+        reinterpret_cast<DebugUtilsMessenger*> (userData)->callback (messageSeverity, messageType, callbackData);
+    }
+
+    return VK_FALSE;
+}
+
+
+DebugUtilsMessenger::DebugUtilsMessenger (VkInstance instance, const Callback& callback, const Settings& settings)
     : instance (instance)
     , handle (VK_NULL_HANDLE)
+    , callback (callback)
 {
     VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
     createInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -68,8 +83,8 @@ DebugUtilsMessenger::DebugUtilsMessenger (VkInstance instance, PFN_vkDebugUtilsM
         ((settings.validation) ? VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT : 0) |
         ((settings.perforamnce) ? VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT : 0);
 
-    createInfo.pfnUserCallback = callback;
-    createInfo.pUserData       = nullptr;
+    createInfo.pfnUserCallback = debugCallback;
+    createInfo.pUserData       = this;
 
     VkResult result = CreateDebugUtilsMessengerEXT (instance, &createInfo, nullptr, &handle);
     if (result != VK_SUCCESS) {

@@ -66,7 +66,7 @@ static std::optional<std::vector<uint32_t>> CompileShaderFromString (const std::
     std::vector<uint32_t>         binary (binaryResult.cbegin (), binaryResult.cend ());
 
     if (binaryResult.GetCompilationStatus () != shaderc_compilation_status_success) {
-        std::cout << binaryResult.GetErrorMessage () << std::endl;
+        std::cerr << binaryResult.GetErrorMessage () << std::endl;
         return std::nullopt;
     }
 
@@ -77,8 +77,6 @@ static std::optional<std::vector<uint32_t>> CompileShaderFromString (const std::
     std::string assembly (asemblyResult.cbegin (), asemblyResult.cend ());
     std::string preps (preprocessedResult.cbegin (), preprocessedResult.cend ());
 #endif
-
-    std::cout << "done" << std::endl;
 
     return binary;
 }
@@ -91,8 +89,6 @@ static std::optional<std::vector<uint32_t>> CompileShaderFromFile (const std::fi
     if (ERROR (!fileContents.has_value ())) {
         return std::nullopt;
     }
-
-    std::cout << "compiling " << fileLocation.string () << "... ";
 
     shaderc::Compiler       compiler;
     shaderc::CompileOptions options;

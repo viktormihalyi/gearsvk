@@ -3,7 +3,6 @@
 
 layout (location = 0) in vec2 textureCoords;
 layout (location = 0) out vec4 outColor;
-layout (location = 1) out vec4 outColors[16];
 
 layout (binding = 0) uniform sampler2D sampl;
 

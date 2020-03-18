@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <functional>
 #include <iterator>
+#include <mutex>
 #include <optional>
 #include <set>
 #include <string>
@@ -16,6 +17,9 @@
 
 
 namespace Utils {
+
+extern std::mutex coutMutex;
+
 
 std::filesystem::path GetProjectRoot ();
 

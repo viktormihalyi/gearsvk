@@ -6,6 +6,9 @@
 
 namespace Utils {
 
+std::mutex coutMutex;
+
+
 std::filesystem::path GetProjectRoot ()
 {
 #ifdef PROJECT_ROOT_FULL_PATH

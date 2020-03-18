@@ -14,6 +14,10 @@
 #include <filesystem>
 #include <thread>
 
+
+std::string GetVersionString (uint32_t version);
+
+
 struct AllocatedImage {
     Image::U        image;
     DeviceMemory::U memory;
