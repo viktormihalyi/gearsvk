@@ -162,6 +162,7 @@ std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommand
     }
 
     return std::thread ([=] () {
+        stbi_write_png (filePath.u8string ().c_str (), width, height, 4, mapped.data (), width * 4);
         std::cout << "writing png done" << std::endl;
     });
 };

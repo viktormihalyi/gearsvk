@@ -129,9 +129,6 @@ private:
             VkPhysicalDeviceProperties deviceProperties;
             vkGetPhysicalDeviceProperties (device, &deviceProperties);
 
-            std::cout << "device" << i << " api version: " << GetVersionString (deviceProperties.apiVersion) << std::endl;
-            std::cout << "device" << i << " driver version: " << GetVersionString (deviceProperties.driverVersion) << std::endl;
-
             VkPhysicalDeviceFeatures deviceFeatures;
             vkGetPhysicalDeviceFeatures (device, &deviceFeatures);
 

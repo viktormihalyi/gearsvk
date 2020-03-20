@@ -3,10 +3,10 @@
 
 namespace RenderGraph {
 
-
-Graph::Graph (VkDevice device, VkCommandPool commandPool, uint32_t width, uint32_t height)
+Graph::Graph (VkDevice device, VkCommandPool commandPool, uint32_t framesInFlight, uint32_t width, uint32_t height)
     : device (device)
     , commandPool (commandPool)
+    , framesInFlight (framesInFlight)
     , width (width)
     , height (height)
 {
@@ -22,14 +22,14 @@ GraphInfo Graph::GetGraphInfo () const
 }
 
 
-Resource::Ref Graph::CreateResource (Resource::U&& resource)
+Resource& Graph::CreateResource (Resource::U&& resource)
 {
     resources.push_back (std::move (resource));
     return *resources[resources.size () - 1];
 }
 
 
-Operation::Ref Graph::CreateOperation (Operation::U&& resource)
+Operation& Graph::CreateOperation (Operation::U&& resource)
 {
     operations.push_back (std::move (resource));
     return *operations[operations.size () - 1];
@@ -42,42 +42,52 @@ void Graph::Compile ()
         op->Compile ();
     }
 
-    cmdBuf = CommandBuffer::Create (device, commandPool);
-    cmdBuf->Begin ();
-    for (auto& op : operations) {
-        for (auto& inputResource : op->inputs) {
-            inputResource.get ().BindRead (*cmdBuf);
-        }
-        for (auto& outputResource : op->outputs) {
-            outputResource.get ().BindWrite (*cmdBuf);
-        }
+    commandBuffers.resize (framesInFlight);
 
-        op->Record (*cmdBuf);
+    for (uint32_t frameIndex = 0; frameIndex < framesInFlight; ++frameIndex) {
+        CommandBuffer::U& currentCommandBuffer = commandBuffers[frameIndex];
 
-        if (&op != &operations.back ()) {
-            VkMemoryBarrier memoryBarrier = {};
-            memoryBarrier.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-            memoryBarrier.srcAccessMask   = VK_ACCESS_SHADER_WRITE_BIT;
-            memoryBarrier.dstAccessMask   = VK_ACCESS_SHADER_READ_BIT;
+        currentCommandBuffer = CommandBuffer::Create (device, commandPool);
+        currentCommandBuffer->Begin ();
+        for (auto& op : operations) {
+            for (auto& inputResource : op->inputs) {
+                inputResource.get ().BindRead (*currentCommandBuffer);
+            }
+            for (auto& outputResource : op->outputs) {
+                outputResource.get ().BindWrite (*currentCommandBuffer);
+            }
 
-            vkCmdPipelineBarrier (
-                *cmdBuf,
-                VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // srcStageMask
-                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,    // dstStageMask
-                0,
-                0, nullptr, //&memoryBarrier, // memory barriers
-                0, nullptr, // buffer memory barriers
-                0, nullptr  // image barriers
-            );
+            op->Record (*currentCommandBuffer);
+
+            if (&op != &operations.back ()) {
+                VkMemoryBarrier memoryBarrier = {};
+                memoryBarrier.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+                memoryBarrier.srcAccessMask   = VK_ACCESS_SHADER_WRITE_BIT;
+                memoryBarrier.dstAccessMask   = VK_ACCESS_SHADER_READ_BIT;
+
+                vkCmdPipelineBarrier (
+                    *currentCommandBuffer,
+                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // srcStageMask
+                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,    // dstStageMask
+                    0,
+                    0, nullptr, //&memoryBarrier, // memory barriers
+                    0, nullptr, // buffer memory barriers
+                    0, nullptr  // image barriers
+                );
+            }
         }
+        currentCommandBuffer->End ();
     }
-    cmdBuf->End ();
 }
 
 
-void Graph::Submit (VkQueue queue)
+void Graph::Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores, const std::vector<VkSemaphore>& signalSemaphores)
 {
-    VkCommandBuffer cmdHdl = *cmdBuf;
+    if (ERROR (frameIndex >= framesInFlight)) {
+        return;
+    }
+
+    VkCommandBuffer cmdHdl = *commandBuffers[frameIndex];
 
     VkSubmitInfo result         = {};
     result.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;

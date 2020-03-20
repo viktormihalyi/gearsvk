@@ -3,6 +3,7 @@
 
 #include "Ptr.hpp"
 #include "TerminalColors.hpp"
+#include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 
 #include "gtest/gtest.h"
@@ -24,10 +25,10 @@ auto acceptWithFlag = [] (VkQueueFlagBits flagbits) {
     };
 };
 
-static void debugCallback (
-    VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT             messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
+
+static void debugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+                           VkDebugUtilsMessageTypeFlagsEXT             messageType,
+                           const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
     using namespace TerminalColors;
     std::cout << RED << "validation layer: "
@@ -39,6 +40,7 @@ static void debugCallback (
 }
 
 
+// common for all test cases
 class TestEnvironment final {
 public:
     Instance            instance;
@@ -50,15 +52,22 @@ public:
         , messenger (instance, debugCallback, DebugUtilsMessenger::noPerformance)
         , physicalDevice (instance, {}, {acceptWithFlag (VK_QUEUE_GRAPHICS_BIT), acceptAnything, acceptAnything, acceptAnything})
     {
-        std::cout << std::endl;
-    }
+        uint32_t apiVersion;
+        vkEnumerateInstanceVersion (&apiVersion);
+        std::cout << "instance api version: " << GetVersionString (apiVersion) << std::endl;
 
-    virtual ~TestEnvironment () {}
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties (physicalDevice, &deviceProperties);
+
+        std::cout << "physical device api version: " << GetVersionString (deviceProperties.apiVersion) << std::endl;
+        std::cout << "physical device driver version: " << GetVersionString (deviceProperties.driverVersion) << std::endl;
+    }
 
     USING_PTR (TestEnvironment);
 };
 
 
+// unique for each test case
 class TestCase final {
 public:
     Device      device;
@@ -71,8 +80,6 @@ public:
         , commandPool (device, *env.physicalDevice.queueFamilies.graphics)
     {
     }
-
-    virtual ~TestCase () {}
 
     USING_PTR (TestCase);
 };
@@ -106,6 +113,21 @@ protected:
     virtual void TearDown () override
     {
         testCase.reset ();
+    }
+
+    void CompareImages (const std::string& imageName, const Image& image, std::optional<VkImageLayout> transitionFrom = std::nullopt)
+    {
+        if (transitionFrom.has_value ()) {
+            TransitionImageLayout (GetDevice (), GetQueue (), GetCommandPool (), image, *transitionFrom, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+        }
+
+        const bool imagesMatch = AreImagesEqual (GetDevice (), GetQueue (), GetCommandPool (), image, PROJECT_ROOT / ("expected_" + imageName + ".png"));
+
+        EXPECT_TRUE (imagesMatch);
+
+        if (!imagesMatch) {
+            SaveImageToFileAsync (GetDevice (), GetQueue (), GetCommandPool (), image, PROJECT_ROOT / ("actual_" + imageName + ".png")).join ();
+        }
     }
 };
 

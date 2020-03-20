@@ -168,7 +168,9 @@ void RenderOperation::Record (VkCommandBuffer commandBuffer)
                                  1, &dsHandle,
                                  0, nullptr);
     }
+
     vkCmdDraw (commandBuffer, vertexCount, 1, 0, 0);
+
     vkCmdEndRenderPass (commandBuffer);
 }
 

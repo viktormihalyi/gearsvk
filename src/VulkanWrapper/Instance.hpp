@@ -20,24 +20,6 @@ private:
 
     static VkInstance CreateInstance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers)
     {
-        uint32_t apiVersion;
-        vkEnumerateInstanceVersion (&apiVersion);
-        std::cout << "instance api version: " << GetVersionString (apiVersion) << std::endl;
-
-        std::cout << "creating instance" << std::endl;
-        if (!instanceExtensions.empty ()) {
-            std::cout << "with extensions:" << std::endl;
-            for (const auto& a : instanceExtensions) {
-                std::cout << "\t" << a << std::endl;
-            }
-        }
-        if (!instanceLayers.empty ()) {
-            std::cout << "with layers:" << std::endl;
-            for (const auto& a : instanceLayers) {
-                std::cout << "\t" << a << std::endl;
-            }
-        }
-
         auto extensionNameAccessor = [] (const VkExtensionProperties& props) { return props.extensionName; };
         auto layerNameAccessor     = [] (const VkLayerProperties& props) { return props.layerName; };
 
