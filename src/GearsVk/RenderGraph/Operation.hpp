@@ -58,33 +58,33 @@ struct Operation : public Noncopyable {
 struct PresentOperation final : public Operation {
 };
 
-
-struct LambdaOperation final : public Operation {
-public:
-    ShaderPipeline         pipeline;
-    Framebuffer::U         framebuffer;
-    DescriptorPool::U      descriptorPool;
-    DescriptorSet::U       descriptorSet;
-    DescriptorSetLayout::U descriptorSetLayout;
-    const GraphInfo        graphInfo;
-
-    std::function<void ()>                compileFunc;
-    std::function<void (VkCommandBuffer)> recordFunc;
-
-    LambdaOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, const std::vector<std::filesystem::path>& shaders,
-                     const std::function<void ()>&               compileFunc,
-                     const std::function<void (VkCommandBuffer)> recordFunc);
-
-    virtual void Compile () { compileFunc (); }
-    virtual void Record (VkCommandBuffer commandBuffer) { recordFunc (commandBuffer); }
-};
+//
+//struct LambdaOperation final : public Operation {
+//public:
+//    ShaderPipeline         pipeline;
+//    Framebuffer::U         framebuffer;
+//    DescriptorPool::U      descriptorPool;
+//    DescriptorSet::U       descriptorSet;
+//    DescriptorSetLayout::U descriptorSetLayout;
+//    const GraphInfo        graphInfo;
+//
+//    std::function<void ()>                compileFunc;
+//    std::function<void (VkCommandBuffer)> recordFunc;
+//
+//    LambdaOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, const std::vector<std::filesystem::path>& shaders,
+//                     const std::function<void ()>&               compileFunc,
+//                     const std::function<void (VkCommandBuffer)> recordFunc);
+//
+//    virtual void Compile () { compileFunc (); }
+//    virtual void Record (VkCommandBuffer commandBuffer) { recordFunc (commandBuffer); }
+//};
 
 struct RenderOperation final : public Operation {
     USING_PTR (RenderOperation);
 
     const VkDevice device;
 
-    ShaderPipeline         pipeline;
+    ShaderPipeline::U      pipeline;
     Framebuffer::U         framebuffer;
     DescriptorPool::U      descriptorPool;
     DescriptorSet::U       descriptorSet;
@@ -93,7 +93,8 @@ struct RenderOperation final : public Operation {
     const uint32_t         vertexCount;
 
     RenderOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, const std::vector<std::filesystem::path>& shaders);
-
+    RenderOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, ShaderPipeline::U&& shaderPipiline);
+    
     virtual ~RenderOperation () {}
 
     virtual void Compile () override;

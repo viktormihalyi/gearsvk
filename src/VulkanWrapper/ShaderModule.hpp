@@ -36,11 +36,12 @@ private:
     VkShaderModule              handle;
     const std::vector<uint32_t> binary;
 
+    const ShaderKind            shaderKind;
     const std::filesystem::path fileLocation;
 
 private:
     // private ctor, use factories
-    ShaderModule (ReadMode mode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary);
+    ShaderModule (ShaderKind shaderKind, ReadMode mode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary);
 
 public:
     USING_PTR (ShaderModule);

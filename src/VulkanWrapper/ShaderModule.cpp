@@ -3,49 +3,83 @@
 #include "ShaderReflection.hpp"
 #include "Utils.hpp"
 
+#include <array>
 #include <iostream>
 #include <shaderc/shaderc.hpp>
 #include <spirv_cross.hpp>
 #include <spirv_reflect.hpp>
 
 
-static VkShaderStageFlagBits GetShaderStageFromExtension (const std::string& extension)
-{
-    if (extension == ".vert") {
-        return VK_SHADER_STAGE_VERTEX_BIT;
-    } else if (extension == ".frag") {
-        return VK_SHADER_STAGE_FRAGMENT_BIT;
-    } else if (extension == ".geom") {
-        return VK_SHADER_STAGE_GEOMETRY_BIT;
-    } else if (extension == ".comp") {
-        return VK_SHADER_STAGE_COMPUTE_BIT;
-    } else if (extension == ".tesc") {
-        return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-    } else if (extension == ".tese") {
-        return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-    }
+class ShaderKindInfo final {
+public:
+    const shaderc_shader_kind      shc;
+    const std::string              extension;
+    const VkShaderStageFlagBits    vkflag;
+    const ShaderModule::ShaderKind shaderKind;
 
-    throw std::runtime_error ("unexpected extension");
+private:
+    ShaderKindInfo () = default;
+
+public:
+    static const ShaderKindInfo FromExtension (const std::string&);
+    static const ShaderKindInfo FromVk (VkShaderStageFlagBits);
+    static const ShaderKindInfo FromShaderc (shaderc_shader_kind);
+    static const ShaderKindInfo FromShaderKind (ShaderModule::ShaderKind);
+
+private:
+    static const ShaderKindInfo Find (const std::function<bool (const ShaderKindInfo&)>&);
+    static const ShaderKindInfo vert, tesc, tese, geom, frag, comp;
+
+    static const std::array<ShaderKindInfo, 2> allShaderKinds;
+};
+
+const ShaderKindInfo ShaderKindInfo::vert {shaderc_vertex_shader, ".vert", VK_SHADER_STAGE_VERTEX_BIT, ShaderModule::ShaderKind::Vertex};
+const ShaderKindInfo ShaderKindInfo::tesc {shaderc_tess_control_shader, ".tesc", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, ShaderModule::ShaderKind::TessellationControl};
+const ShaderKindInfo ShaderKindInfo::tese {shaderc_tess_evaluation_shader, ".tese", VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, ShaderModule::ShaderKind::TessellationEvaluation};
+const ShaderKindInfo ShaderKindInfo::geom {shaderc_geometry_shader, ".geom", VK_SHADER_STAGE_GEOMETRY_BIT, ShaderModule::ShaderKind::Geometry};
+const ShaderKindInfo ShaderKindInfo::frag {shaderc_fragment_shader, ".frag", VK_SHADER_STAGE_FRAGMENT_BIT, ShaderModule::ShaderKind::Fragment};
+const ShaderKindInfo ShaderKindInfo::comp {shaderc_compute_shader, ".comp", VK_SHADER_STAGE_COMPUTE_BIT, ShaderModule::ShaderKind::Compute};
+
+const std::array<ShaderKindInfo, 2> ShaderKindInfo::allShaderKinds ({ShaderKindInfo::vert, ShaderKindInfo::frag});
+
+
+const ShaderKindInfo ShaderKindInfo::Find (const std::function<bool (const ShaderKindInfo&)>& callback)
+{
+    for (auto& s : allShaderKinds) {
+        if (callback (s)) {
+            return s;
+        }
+    }
+    throw std::runtime_error ("couldnt find shader info");
+}
+
+const ShaderKindInfo ShaderKindInfo::FromExtension (const std::string& ext)
+{
+    return Find ([&] (auto& s) {
+        return s.extension == ext;
+    });
+}
+
+const ShaderKindInfo ShaderKindInfo::FromVk (VkShaderStageFlagBits flag)
+{
+    return Find ([&] (auto& s) {
+        return s.vkflag == flag;
+    });
 }
 
 
-static shaderc_shader_kind GetShaderKindFromExtension (const std::string& extension)
+const ShaderKindInfo ShaderKindInfo::FromShaderc (shaderc_shader_kind sc)
 {
-    if (extension == ".vert") {
-        return shaderc_vertex_shader;
-    } else if (extension == ".frag") {
-        return shaderc_fragment_shader;
-    } else if (extension == ".geom") {
-        return shaderc_geometry_shader;
-    } else if (extension == ".comp") {
-        return shaderc_compute_shader;
-    } else if (extension == ".tesc") {
-        return shaderc_tess_control_shader;
-    } else if (extension == ".tese") {
-        return shaderc_tess_evaluation_shader;
-    }
+    return Find ([&] (auto& s) {
+        return s.shc == sc;
+    });
+}
 
-    throw std::runtime_error ("unexpected extension");
+const ShaderKindInfo ShaderKindInfo::FromShaderKind (ShaderModule::ShaderKind sk)
+{
+    return Find ([&] (auto& s) {
+        return s.shaderKind == sk;
+    });
 }
 
 
@@ -97,7 +131,7 @@ static std::optional<std::vector<uint32_t>> CompileShaderFromFile (const std::fi
     options.SetOptimizationLevel (optimizationLevel);
     options.SetGenerateDebugInfo ();
 
-    const shaderc_shader_kind shaderKind = GetShaderKindFromExtension (fileLocation.extension ().u8string ());
+    const shaderc_shader_kind shaderKind = ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shc;
 
     return CompileShaderFromString (*fileContents, shaderKind, optimizationLevel);
 }
@@ -118,8 +152,9 @@ static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<uin
     return result;
 }
 
-ShaderModule::ShaderModule (ReadMode mode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary)
+ShaderModule::ShaderModule (ShaderModule::ShaderKind shaderKind, ReadMode mode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary)
     : readMode (readMode)
+    , shaderKind (shaderKind)
     , device (device)
     , handle (handle)
     , fileLocation (fileLocation)
@@ -138,7 +173,7 @@ ShaderModule::U ShaderModule::CreateFromBinary (VkDevice device, const std::file
 
     VkShaderModule handle = CreateShaderModule (device, *binary);
 
-    return ShaderModule::Create (ReadMode::Binary, device, handle, fileLocation, *binary);
+    return ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::Binary, device, handle, fileLocation, *binary);
 }
 
 
@@ -151,41 +186,20 @@ ShaderModule::U ShaderModule::CreateFromSource (VkDevice device, const std::file
 
     VkShaderModule handle = CreateShaderModule (device, *binary);
 
-    return ShaderModule::Create (ReadMode::Source, device, handle, fileLocation, *binary);
-}
-
-
-static shaderc_shader_kind ShaderKindToShaderc (ShaderModule::ShaderKind shaderKind)
-{
-    switch (shaderKind) {
-        case ShaderModule::ShaderKind::Vertex:
-            return shaderc_vertex_shader;
-        case ShaderModule::ShaderKind::Fragment:
-            return shaderc_fragment_shader;
-        case ShaderModule::ShaderKind::TessellationControl:
-            return shaderc_tess_control_shader;
-        case ShaderModule::ShaderKind::TessellationEvaluation:
-            return shaderc_tess_evaluation_shader;
-        case ShaderModule::ShaderKind::Geometry:
-            return shaderc_geometry_shader;
-        case ShaderModule::ShaderKind::Compute:
-            return shaderc_compute_shader;
-    }
-
-    throw std::runtime_error ("unexpected shader kind");
+    return ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::Source, device, handle, fileLocation, *binary);
 }
 
 
 ShaderModule::U ShaderModule::CreateFromString (VkDevice device, const std::string& shaderSource, ShaderKind shaderKind)
 {
-    std::optional<std::vector<uint32_t>> binary = CompileShaderFromString (shaderSource, ShaderKindToShaderc (shaderKind));
+    std::optional<std::vector<uint32_t>> binary = CompileShaderFromString (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind).shc);
     if (ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }
 
     VkShaderModule handle = CreateShaderModule (device, *binary);
 
-    return ShaderModule::Create (ReadMode::String, device, handle, "", *binary);
+    return ShaderModule::Create (shaderKind, ReadMode::String, device, handle, "", *binary);
 }
 
 ShaderModule::~ShaderModule ()
@@ -199,7 +213,7 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 {
     VkPipelineShaderStageCreateInfo result = {};
     result.sType                           = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    result.stage                           = GetShaderStageFromExtension (fileLocation.extension ().u8string ());
+    result.stage                           = ShaderKindInfo::FromShaderKind (shaderKind).vkflag;
     result.module                          = handle;
     result.pName                           = "main";
     return result;

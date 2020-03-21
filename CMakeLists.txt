@@ -3,14 +3,17 @@ cmake_minimum_required (VERSION 3.15.1)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED True)
 
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 set (PROJECT_NAME GearsVk)
 set (TARGET_NAME ${PROJECT_NAME})
 set (TARGET_TEST_NAME ${PROJECT_NAME}Test)
 
 project (GearsVk)
 
-set (SDL2_INCLUDE_DIR "C:\\SDL2-2.0.10\\include")
-set (SDL2_LIB_DIR "C:\\SDL2-2.0.10\\lib\\x64")
+set (SDL2_INCLUDE_DIR "C:\\Dev\\SDL2-2.0.12\\include")
+set (SDL2_LIB_DIR "C:\\Dev\\SDL2-2.0.12\\lib\\x64")
 
 find_package (Vulkan REQUIRED)
 

@@ -83,19 +83,19 @@ std::vector<VkImageView> Operation::GetOutputImageViews () const
 
     return result;
 }
-
-
-LambdaOperation::LambdaOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, const std::vector<std::filesystem::path>& shaders,
-                                  const std::function<void ()>&               compileFunc,
-                                  const std::function<void (VkCommandBuffer)> recordFunc)
-    : graphInfo (graphInfo)
-    , compileFunc (compileFunc)
-    , recordFunc (recordFunc)
-{
-    ASSERT (!shaders.empty ());
-
-    pipeline.AddShaders (device, shaders);
-}
+//
+//
+//LambdaOperation::LambdaOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, const std::vector<std::filesystem::path>& shaders,
+//                                  const std::function<void ()>&               compileFunc,
+//                                  const std::function<void (VkCommandBuffer)> recordFunc)
+//    : graphInfo (graphInfo)
+//    , compileFunc (compileFunc)
+//    , recordFunc (recordFunc)
+//{
+//    ASSERT (!shaders.empty ());
+//
+//    pipeline.AddShaders (device, shaders);
+//}
 
 
 RenderOperation::RenderOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, const std::vector<std::filesystem::path>& shaders)
@@ -112,9 +112,19 @@ RenderOperation::RenderOperation (const GraphInfo& graphInfo, VkDevice device, V
     }
     std::cout << "... ";
 
-    pipeline.AddShaders (device, shaders);
+    pipeline = ShaderPipeline::Create (device);
+    pipeline->AddShaders (device, shaders);
 
     std::cout << "done" << std::endl;
+}
+
+
+RenderOperation::RenderOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, ShaderPipeline::U&& shaderPipeline)
+    : graphInfo (graphInfo)
+    , device (device)
+    , vertexCount (vertexCount)
+    , pipeline (std::move (shaderPipeline))
+{
 }
 
 
@@ -137,9 +147,9 @@ void RenderOperation::Compile ()
         }
     }
 
-    pipeline.Compile (device, graphInfo.width, graphInfo.height, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions ());
+    pipeline->Compile (device, graphInfo.width, graphInfo.height, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions ());
 
-    framebuffer = Framebuffer::Create (device, *pipeline.renderPass, GetOutputImageViews (), graphInfo.width, graphInfo.height);
+    framebuffer = Framebuffer::Create (device, *pipeline->renderPass, GetOutputImageViews (), graphInfo.width, graphInfo.height);
 }
 
 
@@ -150,7 +160,7 @@ void RenderOperation::Record (VkCommandBuffer commandBuffer)
 
     VkRenderPassBeginInfo renderPassBeginInfo = {};
     renderPassBeginInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassBeginInfo.renderPass            = *pipeline.renderPass;
+    renderPassBeginInfo.renderPass            = *pipeline->renderPass;
     renderPassBeginInfo.framebuffer           = *framebuffer;
     renderPassBeginInfo.renderArea.offset     = {0, 0};
     renderPassBeginInfo.renderArea.extent     = {graphInfo.width, graphInfo.height};
@@ -159,12 +169,12 @@ void RenderOperation::Record (VkCommandBuffer commandBuffer)
 
     vkCmdBeginRenderPass (commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline.pipeline);
+    vkCmdBindPipeline (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline->pipeline);
 
     if (descriptorSet) {
         VkDescriptorSet dsHandle = *descriptorSet;
 
-        vkCmdBindDescriptorSets (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline.pipelineLayout, 0,
+        vkCmdBindDescriptorSets (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline->pipelineLayout, 0,
                                  1, &dsHandle,
                                  0, nullptr);
     }

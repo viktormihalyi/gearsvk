@@ -117,20 +117,22 @@ static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue,
 // copy image to cpu and compare with a reference
 bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::filesystem::path& expectedImage)
 {
-    const uint32_t width  = image.GetWidth ();
-    const uint32_t height = image.GetHeight ();
+    const uint32_t width      = image.GetWidth ();
+    const uint32_t height     = image.GetHeight ();
+    const uint32_t pixelCount = width * height;
+    const uint32_t byteCount  = pixelCount * 4;
 
     AllocatedImage dst = CreateCopyImageOnCPU (device, queue, commandPool, image);
 
 
-    std::vector<std::array<uint8_t, 4>> mapped (width * height);
+    std::vector<std::array<uint8_t, 4>> mapped (pixelCount);
 
     {
-        MemoryMapping mapping (device, *dst.memory, 0, width * height * 4);
-        std::memcpy (mapped.data (), mapping.Get (), width * height * 4);
+        MemoryMapping mapping (device, *dst.memory, 0, byteCount);
+        std::memcpy (mapped.data (), mapping.Get (), byteCount);
     }
 
-    std::vector<std::array<uint8_t, 4>> expected (width * height);
+    std::vector<std::array<uint8_t, 4>> expected (pixelCount);
     int                                 expectedWidth, expectedHeight, expectedComponents;
     unsigned char*                      exepctedData = stbi_load (expectedImage.u8string ().c_str (), &expectedWidth, &expectedHeight, &expectedComponents, STBI_rgb_alpha);
     if (ERROR (expectedWidth != width || expectedHeight != height || expectedComponents != 4)) {
@@ -138,10 +140,10 @@ bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandP
         return false;
     }
 
-    std::memcpy (expected.data (), exepctedData, width * height * 4);
+    std::memcpy (expected.data (), exepctedData, byteCount);
     stbi_image_free (exepctedData);
 
-    return std::memcmp (expected.data (), mapped.data (), width * height * 4) == 0;
+    return std::memcmp (expected.data (), mapped.data (), byteCount) == 0;
 }
 
 

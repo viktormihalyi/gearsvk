@@ -18,6 +18,13 @@ struct ShaderPipeline {
 
     USING_PTR (ShaderPipeline);
 
+    VkDevice device;
+
+    ShaderPipeline (VkDevice device)
+        : device (device)
+    {
+    }
+
     std::vector<VkPipelineShaderStageCreateInfo> GetShaderStages () const
     {
         std::vector<VkPipelineShaderStageCreateInfo> result;
@@ -60,6 +67,17 @@ struct ShaderPipeline {
     {
         GetShaderByExtension (shaderPath.extension ().u8string ()) = ShaderModule::CreateFromSource (device, shaderPath);
     }
+
+    void AddVertexShader (const std::string& source)
+    {
+        vertexShader = ShaderModule::CreateFromString (device, source, ShaderModule::ShaderKind::Vertex);
+    }
+
+    void AddFragmentShader (const std::string& source)
+    {
+        fragmentShader = ShaderModule::CreateFromString (device, source, ShaderModule::ShaderKind::Fragment);
+    }
+
 
     void AddShaders (VkDevice device, const std::vector<std::filesystem::path>& shaderPath)
     {
