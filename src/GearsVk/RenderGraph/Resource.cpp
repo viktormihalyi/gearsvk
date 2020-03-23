@@ -3,8 +3,19 @@
 
 namespace RenderGraph {
 
-ImageResource::ImageResource (const GraphInfo& graphInfo, const Device& device, VkQueue queue, VkCommandPool commandPool, std::optional<VkImageLayout> layoutRead, std::optional<VkImageLayout> layoutWrite)
-    : image (device, Image::Create (device, graphInfo.width, graphInfo.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT), DeviceMemory::GPU)
+
+SingleImageResource::SingleImageResource (VkDevice device, Image::U&& image)
+    : image (std::move (image))
+    , imageView (ImageView::Create (device, *this->image.image, this->image.image->GetFormat ()))
+    , sampler (Sampler::Create (device))
+    , layoutRead (std::nullopt)
+    , layoutWrite (VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+{
+}
+
+
+SingleImageResource::SingleImageResource (const GraphSettings& graphSettings, const Device& device, VkQueue queue, VkCommandPool commandPool, std::optional<VkImageLayout> layoutRead, std::optional<VkImageLayout> layoutWrite)
+    : image (device, Image::Create (device, graphSettings.width, graphSettings.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT), DeviceMemory::GPU)
     , imageView (ImageView::Create (device, *image.image, image.image->GetFormat ()))
     , sampler (Sampler::Create (device))
     , layoutRead (layoutRead)
@@ -13,7 +24,7 @@ ImageResource::ImageResource (const GraphInfo& graphInfo, const Device& device, 
 }
 
 
-void ImageResource::WriteToDescriptorSet (const DescriptorSet& descriptorSet, uint32_t binding) const
+void SingleImageResource::WriteToDescriptorSet (const DescriptorSet& descriptorSet, uint32_t binding) const
 {
     descriptorSet.WriteOneImageInfo (
         binding,
@@ -22,7 +33,7 @@ void ImageResource::WriteToDescriptorSet (const DescriptorSet& descriptorSet, ui
 }
 
 
-void ImageResource::BindRead (VkCommandBuffer commandBuffer)
+void SingleImageResource::BindRead (VkCommandBuffer commandBuffer)
 {
     ASSERT (layoutRead.has_value ());
     VkImageLayout previousLayout = (layoutWrite.has_value ()) ? *layoutWrite : Image::INITIAL_LAYOUT;
@@ -30,18 +41,24 @@ void ImageResource::BindRead (VkCommandBuffer commandBuffer)
 }
 
 
-void ImageResource::BindWrite (VkCommandBuffer commandBuffer)
+void SingleImageResource::BindWrite (VkCommandBuffer commandBuffer)
 {
     ASSERT (layoutWrite.has_value ());
     image.image->CmdTransitionImageLayout (commandBuffer, Image::INITIAL_LAYOUT, *layoutWrite);
 }
 
 
-void ResourceVisitor::Visit (Resource& res, const std::function<void (ImageResource&)>& imageResourceTypeCallback)
+void ResourceVisitor::Visit (Resource&                                            res,
+                             const std::function<void (ImageResource&)>&          imageResourceTypeCallback,
+                             const std::function<void (SwapchainImageResource&)>& swapchainImageResourceTypeCallback
+    )
 {
-    ImageResource* imageType = dynamic_cast<ImageResource*> (&res);
+    ImageResource*          imageType          = dynamic_cast<ImageResource*> (&res);
+    SwapchainImageResource* swapchainImageType = dynamic_cast<SwapchainImageResource*> (&res);
     if (imageType != nullptr) {
         imageResourceTypeCallback (*imageType);
+    } else if (swapchainImageType != nullptr) {
+        swapchainImageResourceTypeCallback (*swapchainImageType);
     } else {
         BREAK ("unexpected resource type");
         throw std::runtime_error ("unexpected resource type");

@@ -42,8 +42,9 @@ struct Operation : public Noncopyable {
 
     virtual ~Operation () {}
 
-    virtual void Compile ()                             = 0;
-    virtual void Record (VkCommandBuffer commandBuffer) = 0;
+    virtual void Compile ()                                                  = 0;
+    virtual void Record (uint32_t frameIndex, VkCommandBuffer commandBuffer) = 0;
+    virtual void Submit (uint32_t frameIndex) {}
 
     void AddInput (uint32_t binding, const Resource::Ref& res);
     void AddOutput (uint32_t binding, const Resource::Ref& res);
@@ -51,12 +52,9 @@ struct Operation : public Noncopyable {
 
     std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const;
     std::vector<VkAttachmentReference>   GetAttachmentReferences () const;
-    std::vector<VkImageView>             GetOutputImageViews () const;
+    std::vector<VkImageView>             GetOutputImageViews (uint32_t frameIndex) const;
 };
 
-
-struct PresentOperation final : public Operation {
-};
 
 //
 //struct LambdaOperation final : public Operation {
@@ -66,12 +64,12 @@ struct PresentOperation final : public Operation {
 //    DescriptorPool::U      descriptorPool;
 //    DescriptorSet::U       descriptorSet;
 //    DescriptorSetLayout::U descriptorSetLayout;
-//    const GraphInfo        graphInfo;
+//    const GraphInfo        graphSettings;
 //
 //    std::function<void ()>                compileFunc;
 //    std::function<void (VkCommandBuffer)> recordFunc;
 //
-//    LambdaOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, const std::vector<std::filesystem::path>& shaders,
+//    LambdaOperation (const GraphInfo& graphSettings, VkDevice device, VkCommandPool commandPool, const std::vector<std::filesystem::path>& shaders,
 //                     const std::function<void ()>&               compileFunc,
 //                     const std::function<void (VkCommandBuffer)> recordFunc);
 //
@@ -85,21 +83,55 @@ struct RenderOperation final : public Operation {
     const VkDevice device;
 
     ShaderPipeline::U      pipeline;
-    Framebuffer::U         framebuffer;
     DescriptorPool::U      descriptorPool;
-    DescriptorSet::U       descriptorSet;
     DescriptorSetLayout::U descriptorSetLayout;
-    const GraphInfo        graphInfo;
     const uint32_t         vertexCount;
+    const GraphSettings    graphSettings;
 
-    RenderOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, const std::vector<std::filesystem::path>& shaders);
-    RenderOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, ShaderPipeline::U&& shaderPipiline);
-    
+    std::vector<Framebuffer::U>   framebuffers;
+    std::vector<DescriptorSet::U> descriptorSets;
+
+    RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, const std::vector<std::filesystem::path>& shaders);
+    RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, ShaderPipeline::U&& shaderPipiline);
+
     virtual ~RenderOperation () {}
-
     virtual void Compile () override;
+    virtual void Record (uint32_t imageIndex, VkCommandBuffer commandBuffer) override;
+};
 
-    virtual void Record (VkCommandBuffer commandBuffer) override;
+
+struct PresentOperation final : public Operation {
+    const Swapchain&               swapchain;
+    VkQueue                        presentQueue;
+    const std::vector<VkSemaphore> waitSemaphores;
+
+    PresentOperation (const Swapchain& swapchain, VkQueue presentQueue, const std::vector<VkSemaphore>& waitSemaphores)
+        : swapchain (swapchain)
+        , presentQueue (presentQueue)
+        , waitSemaphores (waitSemaphores)
+    {
+    }
+    USING_PTR (PresentOperation);
+
+    virtual ~PresentOperation () {}
+    virtual void Compile () override {}
+    virtual void Record (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
+
+    virtual void Submit (uint32_t imageIndex) override
+    {
+        VkSwapchainKHR swapchains[] = {swapchain};
+
+        VkPresentInfoKHR presentInfo   = {};
+        presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.waitSemaphoreCount = waitSemaphores.size ();
+        presentInfo.pWaitSemaphores    = waitSemaphores.data ();
+        presentInfo.swapchainCount     = 1;
+        presentInfo.pSwapchains        = swapchains;
+        presentInfo.pImageIndices      = &imageIndex;
+        presentInfo.pResults           = nullptr; // Optional
+
+        vkQueuePresentKHR (presentQueue, &presentInfo);
+    }
 };
 
 } // namespace RenderGraph

@@ -6,33 +6,22 @@
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 
-#include "GraphInfo.hpp"
+#include "GraphSettings.hpp"
 
 namespace RenderGraph {
 
-class Resource : public Noncopyable {
+class SingleResource : public Noncopyable {
 public:
-    enum class ReadUsage {
-        ShaderReadOnly,
-        Present
-    };
+    USING_PTR_ABSTRACT (SingleResource);
 
-    enum class WriteUsage {
-        ColorAttachment,
-        TransferDestination,
-    };
-
-    USING_PTR_ABSTRACT (Resource);
-
-    virtual ~Resource () {}
-
+    virtual ~SingleResource () {}
     virtual void WriteToDescriptorSet (const DescriptorSet& descriptorSet, uint32_t binding) const = 0;
-
-    virtual void BindRead (VkCommandBuffer commandBuffer)  = 0;
-    virtual void BindWrite (VkCommandBuffer commandBuffer) = 0;
+    virtual void BindRead (VkCommandBuffer commandBuffer)                                          = 0;
+    virtual void BindWrite (VkCommandBuffer commandBuffer)                                         = 0;
 };
 
-struct ImageResource final : public Resource {
+
+struct SingleImageResource final : public SingleResource {
     AllocatedImage image;
     ImageView::U   imageView;
     Sampler::U     sampler;
@@ -47,22 +36,87 @@ struct ImageResource final : public Resource {
     std::optional<VkImageLayout> layoutRead;
     std::optional<VkImageLayout> layoutWrite;
 
-    USING_PTR (ImageResource);
+    USING_PTR (SingleImageResource);
 
-    ImageResource (const GraphInfo& graphInfo, const Device& device, VkQueue queue, VkCommandPool commandPool, std::optional<VkImageLayout> layoutRead, std::optional<VkImageLayout> layoutWrite);
+    SingleImageResource (VkDevice device, Image::U&& image);
 
-    virtual ~ImageResource () {}
+    SingleImageResource (const GraphSettings& graphSettings, const Device& device, VkQueue queue, VkCommandPool commandPool, std::optional<VkImageLayout> layoutRead, std::optional<VkImageLayout> layoutWrite);
+
+    virtual ~SingleImageResource () {}
 
     virtual void WriteToDescriptorSet (const DescriptorSet& descriptorSet, uint32_t binding) const override;
 
-    virtual void BindRead (VkCommandBuffer commandBuffer);
-    virtual void BindWrite (VkCommandBuffer commandBuffer);
+    virtual void BindRead (VkCommandBuffer commandBuffer) override;
+    virtual void BindWrite (VkCommandBuffer commandBuffer) override;
+};
+
+
+class Resource : public Noncopyable {
+public:
+    USING_PTR_ABSTRACT (Resource);
+
+    virtual ~Resource () {}
+    virtual void WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const = 0;
+    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                          = 0;
+    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                         = 0;
+};
+
+
+class ImageResource : public Resource {
+public:
+    std::vector<SingleImageResource::U> images;
+
+public:
+    USING_PTR (ImageResource);
+
+    ImageResource (const GraphSettings& graphSettings, const Device& device, VkQueue queue, VkCommandPool commandPool, std::optional<VkImageLayout> layoutRead, std::optional<VkImageLayout> layoutWrite)
+    {
+        for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
+            images.push_back (SingleImageResource::Create (graphSettings, device, queue, commandPool, layoutRead, layoutWrite));
+        }
+    }
+
+    virtual ~ImageResource () {}
+    virtual void WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override { images[imageIndex]->WriteToDescriptorSet (descriptorSet, binding); }
+    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindRead (commandBuffer); }
+    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindWrite (commandBuffer); }
+};
+
+
+class SwapchainImageResource : public Resource {
+public:
+    std::vector<ImageView::U> imageViews;
+
+public:
+    USING_PTR (SwapchainImageResource);
+    SwapchainImageResource (VkDevice device, Swapchain& swapchain)
+    {
+        uint32_t imageCount;
+        vkGetSwapchainImagesKHR (device, swapchain, &imageCount, nullptr);
+        std::vector<VkImage> swapChainImages (imageCount);
+        vkGetSwapchainImagesKHR (device, swapchain, &imageCount, swapChainImages.data ());
+
+        for (size_t i = 0; i < swapChainImages.size (); ++i) {
+            imageViews.push_back (ImageView::Create (device, swapChainImages[i], swapchain.surfaceFormat.format));
+        }
+    }
+
+    virtual ~SwapchainImageResource ()
+    {
+    }
+
+    virtual void WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override {}
+    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
+    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
 };
 
 
 struct ResourceVisitor final {
 public:
-    static void Visit (Resource& res, const std::function<void (ImageResource&)>& imageResourceTypeCallback);
+    static void Visit (
+        Resource&                                            res,
+        const std::function<void (ImageResource&)>&          imageResourceTypeCallback,
+        const std::function<void (SwapchainImageResource&)>& swapchainImageResourceTypeCallback);
 };
 
 } // namespace RenderGraph

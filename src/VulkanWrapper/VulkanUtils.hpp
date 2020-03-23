@@ -28,6 +28,11 @@ struct AllocatedImage {
     {
         vkBindImageMemory (device, *this->image, *memory, 0);
     }
+
+    AllocatedImage (Image::U&& image)
+        : image (std::move (image))
+    {
+    }
 };
 
 

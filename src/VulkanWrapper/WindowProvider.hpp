@@ -25,6 +25,9 @@ public:
 
     virtual std::vector<const char*> GetExtensions () const                    = 0;
     virtual VkSurfaceKHR             CreateSurface (VkInstance instance) const = 0;
+
+    virtual uint32_t GetWidth () const  = 0;
+    virtual uint32_t GetHeight () const = 0;
 };
 
 #endif

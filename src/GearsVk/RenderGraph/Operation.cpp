@@ -19,14 +19,14 @@ OutputBinding::OutputBinding (uint32_t binding)
     , attachmentDescription ({})
     , attachmentReference ({})
 {
-    attachmentDescription.format         = VK_FORMAT_R8G8B8A8_SRGB;
+    attachmentDescription.format         = VK_FORMAT_B8G8R8A8_UNORM; // TODO 
     attachmentDescription.samples        = VK_SAMPLE_COUNT_1_BIT;
     attachmentDescription.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
     attachmentDescription.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
     attachmentDescription.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachmentDescription.initialLayout  = Image::INITIAL_LAYOUT;                    // TODO
-    attachmentDescription.finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // TODO
+    attachmentDescription.initialLayout  = Image::INITIAL_LAYOUT;           // TODO
+    attachmentDescription.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // TODO
 
     attachmentReference.attachment = binding;
     attachmentReference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // TODO
@@ -69,26 +69,30 @@ std::vector<VkAttachmentReference> Operation::GetAttachmentReferences () const
     return result;
 }
 
-std::vector<VkImageView> Operation::GetOutputImageViews () const
+std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) const
 {
     std::vector<VkImageView> result;
 
     auto onImage = [&] (ImageResource& res) {
-        result.push_back (*res.imageView);
+        result.push_back (*res.images[frameIndex]->imageView);
+    };
+
+    auto onSwapchainImage = [&] (SwapchainImageResource& res) {
+        result.push_back (*res.imageViews[frameIndex]);
     };
 
     for (const auto& o : outputs) {
-        ResourceVisitor::Visit (o, onImage);
+        ResourceVisitor::Visit (o, onImage, onSwapchainImage);
     }
 
     return result;
 }
 //
 //
-//LambdaOperation::LambdaOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, const std::vector<std::filesystem::path>& shaders,
+//LambdaOperation::LambdaOperation (const GraphInfo& graphSettings, VkDevice device, VkCommandPool commandPool, const std::vector<std::filesystem::path>& shaders,
 //                                  const std::function<void ()>&               compileFunc,
 //                                  const std::function<void (VkCommandBuffer)> recordFunc)
-//    : graphInfo (graphInfo)
+//    : graphSettings (graphSettings)
 //    , compileFunc (compileFunc)
 //    , recordFunc (recordFunc)
 //{
@@ -98,8 +102,8 @@ std::vector<VkImageView> Operation::GetOutputImageViews () const
 //}
 
 
-RenderOperation::RenderOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, const std::vector<std::filesystem::path>& shaders)
-    : graphInfo (graphInfo)
+RenderOperation::RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, const std::vector<std::filesystem::path>& shaders)
+    : graphSettings (graphSettings)
     , device (device)
     , vertexCount (vertexCount)
 {
@@ -119,8 +123,8 @@ RenderOperation::RenderOperation (const GraphInfo& graphInfo, VkDevice device, V
 }
 
 
-RenderOperation::RenderOperation (const GraphInfo& graphInfo, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, ShaderPipeline::U&& shaderPipeline)
-    : graphInfo (graphInfo)
+RenderOperation::RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, ShaderPipeline::U&& shaderPipeline)
+    : graphSettings (graphSettings)
     , device (device)
     , vertexCount (vertexCount)
     , pipeline (std::move (shaderPipeline))
@@ -138,22 +142,29 @@ void RenderOperation::Compile ()
     descriptorSetLayout = DescriptorSetLayout::Create (device, layout);
 
     if (!inputBindings.empty ()) {
-        descriptorPool = DescriptorPool::Create (device, 0, inputBindings.size (), 1);
-        descriptorSet  = DescriptorSet::Create (device, *descriptorPool, *descriptorSetLayout);
+        descriptorPool = DescriptorPool::Create (device, 0, inputBindings.size () * graphSettings.framesInFlight, graphSettings.framesInFlight);
 
-        for (uint32_t i = 0; i < inputs.size (); ++i) {
-            Resource& r = inputs[i];
-            r.WriteToDescriptorSet (*descriptorSet, inputBindings[i].binding);
+        for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
+            DescriptorSet::U descriptorSet = DescriptorSet::Create (device, *descriptorPool, *descriptorSetLayout);
+
+            for (uint32_t i = 0; i < inputs.size (); ++i) {
+                Resource& r = inputs[i];
+                r.WriteToDescriptorSet (frameIndex, *descriptorSet, inputBindings[i].binding);
+            }
+
+            descriptorSets.push_back (std::move (descriptorSet));
         }
     }
 
-    pipeline->Compile (device, graphInfo.width, graphInfo.height, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions ());
+    pipeline->Compile (device, graphSettings.width, graphSettings.height, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions ());
 
-    framebuffer = Framebuffer::Create (device, *pipeline->renderPass, GetOutputImageViews (), graphInfo.width, graphInfo.height);
+    for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
+        framebuffers.push_back (Framebuffer::Create (device, *pipeline->renderPass, GetOutputImageViews (frameIndex), graphSettings.width, graphSettings.height));
+    }
 }
 
 
-void RenderOperation::Record (VkCommandBuffer commandBuffer)
+void RenderOperation::Record (uint32_t frameIndex, VkCommandBuffer commandBuffer)
 {
     VkClearValue              clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
     std::vector<VkClearValue> clearValues (outputs.size (), clearColor);
@@ -161,9 +172,9 @@ void RenderOperation::Record (VkCommandBuffer commandBuffer)
     VkRenderPassBeginInfo renderPassBeginInfo = {};
     renderPassBeginInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassBeginInfo.renderPass            = *pipeline->renderPass;
-    renderPassBeginInfo.framebuffer           = *framebuffer;
+    renderPassBeginInfo.framebuffer           = *framebuffers[frameIndex];
     renderPassBeginInfo.renderArea.offset     = {0, 0};
-    renderPassBeginInfo.renderArea.extent     = {graphInfo.width, graphInfo.height};
+    renderPassBeginInfo.renderArea.extent     = {graphSettings.width, graphSettings.height};
     renderPassBeginInfo.clearValueCount       = clearValues.size ();
     renderPassBeginInfo.pClearValues          = clearValues.data ();
 
@@ -171,8 +182,8 @@ void RenderOperation::Record (VkCommandBuffer commandBuffer)
 
     vkCmdBindPipeline (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline->pipeline);
 
-    if (descriptorSet) {
-        VkDescriptorSet dsHandle = *descriptorSet;
+    if (!descriptorSets.empty ()) {
+        VkDescriptorSet dsHandle = *descriptorSets[frameIndex];
 
         vkCmdBindDescriptorSets (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline->pipelineLayout, 0,
                                  1, &dsHandle,

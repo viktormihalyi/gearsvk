@@ -8,7 +8,9 @@
 
 class SDLWindowProvider final : public WindowProvider {
 private:
-    void* window;
+    void*    window;
+    uint32_t width;
+    uint32_t height;
 
 public:
     USING_PTR (SDLWindowProvider);
@@ -22,6 +24,9 @@ public:
     std::vector<const char*> GetExtensions () const override;
 
     VkSurfaceKHR CreateSurface (VkInstance instance) const override;
+
+    virtual uint32_t GetWidth () const override { return width; }
+    virtual uint32_t GetHeight () const override { return height; }
 };
 
 #endif

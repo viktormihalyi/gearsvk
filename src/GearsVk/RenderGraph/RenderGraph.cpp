@@ -3,22 +3,11 @@
 
 namespace RenderGraph {
 
-Graph::Graph (VkDevice device, VkCommandPool commandPool, uint32_t framesInFlight, uint32_t width, uint32_t height)
+Graph::Graph (VkDevice device, VkCommandPool commandPool, GraphSettings settings)
     : device (device)
     , commandPool (commandPool)
-    , framesInFlight (framesInFlight)
-    , width (width)
-    , height (height)
+    , settings (settings)
 {
-}
-
-
-GraphInfo Graph::GetGraphInfo () const
-{
-    GraphInfo g;
-    g.width  = width;
-    g.height = height;
-    return g;
 }
 
 
@@ -42,22 +31,22 @@ void Graph::Compile ()
         op->Compile ();
     }
 
-    commandBuffers.resize (framesInFlight);
+    commandBuffers.resize (settings.framesInFlight);
 
-    for (uint32_t frameIndex = 0; frameIndex < framesInFlight; ++frameIndex) {
+    for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
         CommandBuffer::U& currentCommandBuffer = commandBuffers[frameIndex];
 
         currentCommandBuffer = CommandBuffer::Create (device, commandPool);
         currentCommandBuffer->Begin ();
         for (auto& op : operations) {
             for (auto& inputResource : op->inputs) {
-                inputResource.get ().BindRead (*currentCommandBuffer);
+                inputResource.get ().BindRead (frameIndex, *currentCommandBuffer);
             }
             for (auto& outputResource : op->outputs) {
-                outputResource.get ().BindWrite (*currentCommandBuffer);
+                outputResource.get ().BindWrite (frameIndex, *currentCommandBuffer);
             }
 
-            op->Record (*currentCommandBuffer);
+            op->Record (frameIndex, *currentCommandBuffer);
 
             if (&op != &operations.back ()) {
                 VkMemoryBarrier memoryBarrier = {};
@@ -83,30 +72,30 @@ void Graph::Compile ()
 
 void Graph::Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores, const std::vector<VkSemaphore>& signalSemaphores)
 {
-    if (ERROR (frameIndex >= framesInFlight)) {
+    if (ERROR (frameIndex >= settings.framesInFlight)) {
         return;
     }
 
     VkCommandBuffer cmdHdl = *commandBuffers[frameIndex];
 
+    // TODO
+    std::vector<VkPipelineStageFlags> waitDstStageMasks (3, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+
     VkSubmitInfo result         = {};
     result.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    result.waitSemaphoreCount   = 0;
-    result.pWaitSemaphores      = nullptr;
-    result.pWaitDstStageMask    = 0;
+    result.waitSemaphoreCount   = waitSemaphores.size ();
+    result.pWaitSemaphores      = waitSemaphores.data ();
+    result.pWaitDstStageMask    = waitDstStageMasks.data ();
     result.commandBufferCount   = 1;
     result.pCommandBuffers      = &cmdHdl;
-    result.signalSemaphoreCount = 0;
-    result.pSignalSemaphores    = nullptr;
+    result.signalSemaphoreCount = signalSemaphores.size ();
+    result.pSignalSemaphores    = signalSemaphores.data ();
+
     vkQueueSubmit (queue, 1, &result, nullptr);
 
-    //std::vector<VkSubmitInfo> submitInfos;
-    //
-    //for (auto& a : operations) {
-    //    submitInfos.push_back (a->GetSubmitInfo ());
-    //}
-    //vkQueueSubmit (queue, submitInfos.size (), submitInfos.data (), VK_NULL_HANDLE);
-    //vkQueueWaitIdle (queue);
+    for (auto& op : operations) {
+        op->Submit (frameIndex);
+    }
 }
 
 } // namespace RenderGraph

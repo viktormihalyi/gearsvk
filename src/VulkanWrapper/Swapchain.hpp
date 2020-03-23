@@ -21,7 +21,10 @@ public:
     VkPresentModeKHR   presentMode;
     VkExtent2D         extent;
 
-    const std::vector<ImageView::U> imageViews;
+    std::vector<VkImage>        images;
+    std::vector<ImageView::U>   imageViews;
+    std::vector<Framebuffer::U> framebuffers;
+
 
     uint32_t GetImageCount () const
     {
@@ -59,7 +62,7 @@ private:
         }
 
         for (VkPresentModeKHR availablePresentMode : modes) {
-            if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) { // use VK_PRESENT_MODE_FIFO_KHR for frame limiting ??
+            if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) { // use VK_PRESENT_MODE_FIFO_KHR for frame limiting ??
                 return availablePresentMode;
             }
         }
@@ -118,22 +121,22 @@ private:
         createInfo.imageUsage               = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
         uint32_t queueFamilyIndicesData[] = {*queueFamilyIndices.graphics, *queueFamilyIndices.presentation};
-        if (ERROR (*queueFamilyIndices.graphics != *queueFamilyIndices.presentation)) {
-            createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
-            createInfo.queueFamilyIndexCount = 2;
-            createInfo.pQueueFamilyIndices   = queueFamilyIndicesData;
-        } else {
-            createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
-            createInfo.queueFamilyIndexCount = 0;       // Optional
-            createInfo.pQueueFamilyIndices   = nullptr; // Optional
-        }
+        //if (ERROR (*queueFamilyIndices.graphics != *queueFamilyIndices.presentation)) {
+        createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+        createInfo.queueFamilyIndexCount = 1;
+        createInfo.pQueueFamilyIndices   = queueFamilyIndicesData;
+        //} else {
+        //    createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+        //    createInfo.queueFamilyIndexCount = 0;       // Optional
+        //    createInfo.pQueueFamilyIndices   = nullptr; // Optional
+        //}
         createInfo.preTransform   = details.capabilities.currentTransform;
         createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         createInfo.presentMode    = presentMode;
         createInfo.clipped        = VK_TRUE;
         createInfo.oldSwapchain   = VK_NULL_HANDLE;
 
-        VkSwapchainKHR result;
+        VkSwapchainKHR result = VK_NULL_HANDLE;
 
         if (ERROR (vkCreateSwapchainKHR (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create swapchain");
@@ -170,6 +173,10 @@ public:
         , handle (CreateSwapchain (physicalDevice, device, surface, queueFamilyIndices, surfaceFormat, presentMode, extent, imageCount))
         , imageViews (CreateSwapchainImageViews (device, handle, surfaceFormat.format))
     {
+        uint32_t imageCount;
+        vkGetSwapchainImagesKHR (device, handle, &imageCount, nullptr);
+        images.resize (imageCount);
+        vkGetSwapchainImagesKHR (device, handle, &imageCount, images.data ());
     }
 
     ~Swapchain ()

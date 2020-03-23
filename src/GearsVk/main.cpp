@@ -252,9 +252,9 @@ BufferImage CreateImage (VkPhysicalDevice physicalDevice, VkDevice device, uint3
 
     return std::move (result);
 }
+/*
 
-
-int main (int argc, char* argv[])
+int main_OLD (int argc, char* argv[])
 {
     std::cout << Utils::GetProjectRoot ().u8string () << std::endl;
 
@@ -284,7 +284,7 @@ int main (int argc, char* argv[])
 
     Surface        surface (instance, windowProvider->CreateSurface (instance));
     PhysicalDevice physicalDevice (instance, surface, Utils::ToSet<const char*, std::string> (requestedDeviceExtensions));
-    Device         device (physicalDevice, *physicalDevice.queueFamilies.graphics, requestedDeviceExtensions);
+    Device         device (physicalDevice, {*physicalDevice.queueFamilies.graphics, *physicalDevice.queueFamilies.presentation}, requestedDeviceExtensions);
     Swapchain      swapchain (physicalDevice, device, surface);
 
     Queue graphicsQueue (device, *physicalDevice.queueFamilies.graphics);
@@ -318,7 +318,7 @@ int main (int argc, char* argv[])
     mapping.Copy (vertices);
 
 
-    ShaderPipeline theShader;
+    ShaderPipeline theShader (device);
     theShader.vertexShader   = ShaderModule::CreateFromSource (device, Utils::GetProjectRoot () / "shaders" / "test.vert");
     theShader.fragmentShader = ShaderModule::CreateFromSource (device, Utils::GetProjectRoot () / "shaders" / "test.frag");
 
@@ -570,6 +570,7 @@ int main (int argc, char* argv[])
 
     std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime = std::chrono::high_resolution_clock::now ();
 
+
     size_t currentFrame = 0;
     windowProvider->DoEventLoop ([&] () {
         vkWaitForFences (device, 1, &inFlightFenceHandles[currentFrame], VK_TRUE, UINT64_MAX);
@@ -631,4 +632,112 @@ int main (int argc, char* argv[])
     vkDeviceWaitIdle (device);
 
     return EXIT_SUCCESS;
+}
+
+
+*/
+#include "GraphSettings.hpp"
+#include "Operation.hpp"
+#include "RenderGraph.hpp"
+#include "Resource.hpp"
+#include "tests/VulkanTestEnvironment.hpp"
+
+int main (int argc, char* argv[])
+{
+    WindowProvider::U windowProvider = SDLWindowProvider::Create ();
+
+    std::vector<const char*> extensions;
+    {
+        extensions = windowProvider->GetExtensions ();
+        extensions.push_back (VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
+    Instance instance (extensions, {"VK_LAYER_KHRONOS_validation"});
+
+    Surface surface (instance, windowProvider->CreateSurface (instance));
+
+    TestEnvironment testenv (instance, surface);
+    TestCase        testcase (testenv);
+
+    Device&      device        = testcase.device;
+    CommandPool& commandPool   = testcase.commandPool;
+    Queue&       graphicsQueue = testcase.queue;
+
+    Swapchain swapchain (testenv.physicalDevice, device, surface);
+
+    using namespace RenderGraph;
+    Graph graph (device, commandPool, GraphSettings (2, windowProvider->GetWidth (), windowProvider->GetHeight ()));
+
+    Resource& red       = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings (), device, graphicsQueue, commandPool, std::nullopt, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+    Resource& presented = graph.CreateResource (SwapchainImageResource::Create (device, swapchain));
+
+    auto sp = ShaderPipeline::Create (device);
+    sp->AddVertexShader (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec2 textureCoords;
+
+vec2 uvs[6] = vec2[] (
+    vec2 (0.f, 0.f),
+    vec2 (0.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (0.f, 0.f),
+    vec2 (1.f, 0.f)
+);
+
+vec2 positions[6] = vec2[] (
+    vec2 (-1.f, -1.f),
+    vec2 (-1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (-1.f, -1.f),
+    vec2 (+1.f, -1.f)
+);
+
+
+void main() {
+    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
+    textureCoords = uvs[gl_VertexIndex];
+}
+    )");
+
+    sp->AddFragmentShader (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (1, 0, 0, 1);
+}
+    )");
+
+    RenderOperation& redFillOperation = dynamic_cast<RenderOperation&> (graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (),
+                                                                                                                        device,
+                                                                                                                        commandPool,
+                                                                                                                        6,
+                                                                                                                        std::move (sp))));
+
+    Operation& presentOp = graph.CreateOperation (PresentOperation::Create (swapchain, graphicsQueue, std::vector<VkSemaphore> {}));
+
+    graph.AddConnections ({
+        {GraphConnection::Type::Output, redFillOperation, 0, presented},
+    });
+
+    graph.Compile ();
+
+    Semaphore s (device);
+
+    windowProvider->DoEventLoop ([&] () {
+        uint32_t imageIndex = 0;
+        vkAcquireNextImageKHR (device, swapchain, UINT64_MAX, s, VK_NULL_HANDLE, &imageIndex);
+        graph.Submit (graphicsQueue, imageIndex, {s});
+
+        vkQueueWaitIdle (graphicsQueue);
+        vkDeviceWaitIdle (device);
+    });
+
+    vkQueueWaitIdle (graphicsQueue);
+    vkDeviceWaitIdle (device);
 }

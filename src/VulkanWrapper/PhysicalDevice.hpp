@@ -20,7 +20,7 @@ public:
 
 class QueueFamilyAcceptor {
 public:
-    using Acceptor = std::function<std::optional<uint32_t> (const std::vector<VkQueueFamilyProperties>&)>;
+    using Acceptor = std::function<std::optional<uint32_t> (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>&)>;
 
     Acceptor graphicsAcceptor;
     Acceptor presentationAcceptor;
@@ -87,7 +87,7 @@ private:
         return result;
     }
 
-    static QueueFamilies FindQueueFamilyIndices (VkPhysicalDevice physicalDevice, const QueueFamilyAcceptor& acceptor)
+    static QueueFamilies FindQueueFamilyIndices (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const QueueFamilyAcceptor& acceptor)
     {
         QueueFamilies result;
 
@@ -96,11 +96,10 @@ private:
         std::vector<VkQueueFamilyProperties> queueFamilies (queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties (physicalDevice, &queueFamilyCount, queueFamilies.data ());
 
-
-        result.graphics     = acceptor.graphicsAcceptor (queueFamilies);
-        result.presentation = acceptor.presentationAcceptor (queueFamilies);
-        result.compute      = acceptor.computeAcceptor (queueFamilies);
-        result.transfer     = acceptor.transferAcceptor (queueFamilies);
+        result.graphics     = acceptor.graphicsAcceptor (physicalDevice, surface, queueFamilies);
+        result.presentation = acceptor.presentationAcceptor (physicalDevice, surface, queueFamilies);
+        result.compute      = acceptor.computeAcceptor (physicalDevice, surface, queueFamilies);
+        result.transfer     = acceptor.transferAcceptor (physicalDevice, surface, queueFamilies);
 
         return result;
     }
@@ -152,15 +151,9 @@ private:
     }
 
 public:
-    PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet)
+    PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet, const QueueFamilyAcceptor& acceptor)
         : handle (CreatePhysicalDevice (instance, requestedDeviceExtensionSet))
-        , queueFamilies (CreateQueueFamilyIndices (handle, surface))
-    {
-    }
-
-    PhysicalDevice (VkInstance instance, const std::set<std::string>& requestedDeviceExtensionSet, const QueueFamilyAcceptor& acceptor)
-        : handle (CreatePhysicalDevice (instance, requestedDeviceExtensionSet))
-        , queueFamilies (FindQueueFamilyIndices (handle, acceptor))
+        , queueFamilies (FindQueueFamilyIndices (handle, surface, acceptor))
     {
     }
 

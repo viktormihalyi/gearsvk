@@ -9,11 +9,25 @@
 #include "gtest/gtest.h"
 
 
-auto acceptAnything = [] (const std::vector<VkQueueFamilyProperties>&) { return 0; };
+auto dontCare = [] (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>&) -> std::optional<uint32_t> { return std::nullopt; };
 
+auto acceptPresentSupport = [] (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>& queueFamilies) -> std::optional<uint32_t> {
+    uint32_t i = 0;
+    for (const VkQueueFamilyProperties& queueFamily : queueFamilies) {
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR (physicalDevice, i, surface, &presentSupport);
+        if (presentSupport) {
+            return i;
+        }
+
+        i++;
+    }
+
+    return std::nullopt;
+};
 
 auto acceptWithFlag = [] (VkQueueFlagBits flagbits) {
-    return [&] (const std::vector<VkQueueFamilyProperties>& props) -> std::optional<uint32_t> {
+    return [=] (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>& props) -> std::optional<uint32_t> {
         uint32_t i = 0;
         for (const auto& p : props) {
             if (p.queueFlags & flagbits) {
@@ -26,9 +40,9 @@ auto acceptWithFlag = [] (VkQueueFlagBits flagbits) {
 };
 
 
-static void debugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
-                           VkDebugUtilsMessageTypeFlagsEXT             messageType,
-                           const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
+static void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+                               VkDebugUtilsMessageTypeFlagsEXT             messageType,
+                               const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
     using namespace TerminalColors;
     std::cout << RED << "validation layer: "
@@ -39,18 +53,26 @@ static void debugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSe
     FAIL ();
 }
 
+// common for all test cases
+class TestInstance final : public Instance {
+public:
+    TestInstance ()
+        : Instance ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, {"VK_LAYER_KHRONOS_validation"})
+    {
+    }
+
+    USING_PTR (TestInstance);
+};
 
 // common for all test cases
 class TestEnvironment final {
 public:
-    Instance            instance;
     DebugUtilsMessenger messenger;
     PhysicalDevice      physicalDevice;
 
-    TestEnvironment ()
-        : instance ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, {"VK_LAYER_KHRONOS_validation"})
-        , messenger (instance, debugCallback, DebugUtilsMessenger::noPerformance)
-        , physicalDevice (instance, {}, {acceptWithFlag (VK_QUEUE_GRAPHICS_BIT), acceptAnything, acceptAnything, acceptAnything})
+    TestEnvironment (Instance& instance, VkSurfaceKHR surface = VK_NULL_HANDLE)
+        : messenger (instance, testDebugCallback, DebugUtilsMessenger::noPerformance)
+        , physicalDevice (instance, surface, {}, {acceptWithFlag (VK_QUEUE_GRAPHICS_BIT), acceptPresentSupport, dontCare, dontCare})
     {
         uint32_t apiVersion;
         vkEnumerateInstanceVersion (&apiVersion);
@@ -75,7 +97,7 @@ public:
     CommandPool commandPool;
 
     TestCase (const TestEnvironment& env)
-        : device (env.physicalDevice, *env.physicalDevice.queueFamilies.graphics, {})
+        : device (env.physicalDevice, {*env.physicalDevice.queueFamilies.graphics}, {VK_KHR_SWAPCHAIN_EXTENSION_NAME})
         , queue (device, *env.physicalDevice.queueFamilies.graphics)
         , commandPool (device, *env.physicalDevice.queueFamilies.graphics)
     {
@@ -87,6 +109,7 @@ public:
 
 class VulkanTestEnvironment : public ::testing::Test {
 protected:
+    static TestInstance::U    instance;
     static TestEnvironment::U env;
     TestCase::U               testCase;
 
@@ -97,12 +120,14 @@ protected:
 
     static void SetUpTestSuite ()
     {
-        env = TestEnvironment::Create ();
+        instance = TestInstance::Create ();
+        env      = TestEnvironment::Create (*instance);
     }
 
     static void TearDownTestSuite ()
     {
         env.reset ();
+        instance.reset ();
     }
 
     virtual void SetUp () override
@@ -132,5 +157,6 @@ protected:
 };
 
 TestEnvironment::U VulkanTestEnvironment::env;
+TestInstance::U    VulkanTestEnvironment::instance;
 
 #endif

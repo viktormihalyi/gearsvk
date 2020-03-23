@@ -11,6 +11,8 @@
 
 SDLWindowProvider::SDLWindowProvider ()
     : window (nullptr)
+    , width (800)
+    , height (600)
 {
     if (ERROR (SDL_Init (SDL_INIT_VIDEO) != 0)) {
         throw std::runtime_error ("sdl init failed");
@@ -18,7 +20,7 @@ SDLWindowProvider::SDLWindowProvider ()
 
     window = SDL_CreateWindow ("vulkantest",
                                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                               800, 600,
+                               width, height,
                                SDL_WINDOW_VULKAN);
 }
 

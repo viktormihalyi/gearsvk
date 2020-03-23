@@ -6,7 +6,7 @@
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 
-#include "GraphInfo.hpp"
+#include "GraphSettings.hpp"
 #include "Operation.hpp"
 #include "Resource.hpp"
 
@@ -28,21 +28,19 @@ class Graph final : public Noncopyable {
 public:
     USING_PTR (Graph);
 
-    VkDevice      device;
-    VkCommandPool commandPool;
+    const VkDevice      device;
+    const VkCommandPool commandPool;
 
     std::vector<CommandBuffer::U> commandBuffers;
 
     std::vector<Resource::U>  resources;
     std::vector<Operation::U> operations;
 
-    uint32_t framesInFlight;
-    uint32_t width;
-    uint32_t height;
+    const GraphSettings settings;
 
-    Graph (VkDevice device, VkCommandPool commandPool, uint32_t framesInFlight, uint32_t width, uint32_t height);
+    Graph (VkDevice device, VkCommandPool commandPool, GraphSettings settings);
 
-    GraphInfo GetGraphInfo () const;
+    GraphSettings GetGraphSettings () const { return settings; }
 
     Resource&  CreateResource (Resource::U&& resource);
     Operation& CreateOperation (Operation::U&& resource);
@@ -62,6 +60,7 @@ public:
     void Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores = {}, const std::vector<VkSemaphore>& signalSemaphores = {});
 
 }; // namespace RenderGraph
+
 
 } // namespace RenderGraph
 

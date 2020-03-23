@@ -32,23 +32,27 @@ private:
 public:
     USING_PTR (Device);
 
-    Device (VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, const std::vector<const char*>& requestedDeviceExtensions)
+    Device (VkPhysicalDevice physicalDevice, std::vector<uint32_t> queueFamilyIndices, const std::vector<const char*>& requestedDeviceExtensions)
         : physicalDevice (physicalDevice)
         , handle (VK_NULL_HANDLE)
     {
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex        = queueFamilyIndex;
-        queueCreateInfo.queueCount              = 1;
-        float queuePriority                     = 1.0f;
-        queueCreateInfo.pQueuePriorities        = &queuePriority;
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        for (uint32_t queueFamilyIndex : queueFamilyIndices) {
+            VkDeviceQueueCreateInfo queueCreateInfo = {};
+            queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueCreateInfo.queueFamilyIndex        = queueFamilyIndex;
+            queueCreateInfo.queueCount              = 1;
+            float queuePriority                     = 1.0f;
+            queueCreateInfo.pQueuePriorities        = &queuePriority;
+            queueCreateInfos.push_back (queueCreateInfo);
+        }
 
         VkPhysicalDeviceFeatures deviceFeatures = {};
 
         VkDeviceCreateInfo createInfo      = {};
         createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.queueCreateInfoCount    = 1;
-        createInfo.pQueueCreateInfos       = &queueCreateInfo;
+        createInfo.queueCreateInfoCount    = queueCreateInfos.size ();
+        createInfo.pQueueCreateInfos       = queueCreateInfos.data ();
         createInfo.pEnabledFeatures        = &deviceFeatures;
         createInfo.enabledExtensionCount   = static_cast<uint32_t> (requestedDeviceExtensions.size ());
         createInfo.ppEnabledExtensionNames = requestedDeviceExtensions.data ();
