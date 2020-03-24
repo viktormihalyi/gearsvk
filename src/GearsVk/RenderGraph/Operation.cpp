@@ -27,7 +27,7 @@ OutputBinding::OutputBinding (uint32_t binding, VkFormat format, VkImageLayout f
     attachmentDescription.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
     attachmentDescription.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachmentDescription.initialLayout  = Image::INITIAL_LAYOUT;           // TODO
+    attachmentDescription.initialLayout  = Image::INITIAL_LAYOUT; // TODO
     attachmentDescription.finalLayout    = finalLayout;
 
     attachmentReference.attachment = binding;
@@ -42,6 +42,7 @@ void Operation::AddInput (uint32_t binding, const Resource::Ref& res)
     inputs.push_back (res);
     inputBindings.push_back (InputBinding (binding));
 }
+
 
 void Operation::AddOutput (uint32_t binding, VkFormat format, VkImageLayout finalLayout, const Resource::Ref& res)
 {

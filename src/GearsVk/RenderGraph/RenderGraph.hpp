@@ -19,17 +19,17 @@ struct InputConnection final {
 };
 
 struct OutputConnection final {
-    Operation&    operation;
-    uint32_t      binding;
-    Resource&     resource;
-    VkFormat      format;
-    VkImageLayout finalLayout;
+    Operation& operation;
+    uint32_t   binding;
+    Resource&  resource;
 };
 
 
 class Graph final : public Noncopyable {
 public:
     USING_PTR (Graph);
+
+    bool compiled;
 
     const VkDevice      device;
     const VkCommandPool commandPool;
@@ -49,16 +49,8 @@ public:
     Operation& CreateOperation (Operation::U&& resource);
 
 
-    void AddConnection (InputConnection& c)
-    {
-        c.operation.AddInput (c.binding, c.resource);
-    }
-
-
-    void AddConnection (OutputConnection& c)
-    {
-        c.operation.AddOutput (c.binding, c.format, c.finalLayout, c.resource);
-    }
+    void AddConnection (InputConnection& c);
+    void AddConnection (OutputConnection& c);
 
     void Compile ();
     void Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores = {}, const std::vector<VkSemaphore>& signalSemaphores = {});

@@ -22,7 +22,7 @@ public:
 
 
 struct SingleImageResource final : public SingleResource {
-    static const VkFormat FORMAT = VK_FORMAT_R8G8B8A8_SRGB;
+    static const VkFormat Format = VK_FORMAT_R8G8B8A8_SRGB;
 
     AllocatedImage image;
     ImageView::U   imageView;
@@ -53,14 +53,21 @@ struct SingleImageResource final : public SingleResource {
 };
 
 
+struct OutputConnectionInfo {
+    VkFormat      format;
+    VkImageLayout finalLayout;
+};
+
+
 class Resource : public Noncopyable {
 public:
     USING_PTR_ABSTRACT (Resource);
 
     virtual ~Resource () {}
-    virtual void WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const = 0;
-    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                          = 0;
-    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                         = 0;
+    virtual void                 WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const = 0;
+    virtual void                 BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                          = 0;
+    virtual void                 BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                         = 0;
+    virtual OutputConnectionInfo GetOutputConnectionInfo () const                                                                       = 0;
 };
 
 
@@ -78,20 +85,26 @@ public:
         }
     }
 
+    virtual OutputConnectionInfo GetOutputConnectionInfo () const override
+    {
+        return {SingleImageResource::Format, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+    }
+
     virtual ~ImageResource () {}
     virtual void WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override { images[imageIndex]->WriteToDescriptorSet (descriptorSet, binding); }
     virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindRead (commandBuffer); }
     virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindWrite (commandBuffer); }
 };
 
-
 class SwapchainImageResource : public Resource {
 public:
+    Swapchain&                swapchain;
     std::vector<ImageView::U> imageViews;
 
 public:
     USING_PTR (SwapchainImageResource);
     SwapchainImageResource (VkDevice device, Swapchain& swapchain)
+        : swapchain (swapchain)
     {
         uint32_t imageCount;
         vkGetSwapchainImagesKHR (device, swapchain, &imageCount, nullptr);
@@ -107,18 +120,25 @@ public:
     {
     }
 
+    virtual OutputConnectionInfo GetOutputConnectionInfo () const override
+    {
+        return {swapchain.surfaceFormat.format, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
+    }
+
     virtual void WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override {}
     virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
     virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
 };
 
-
 struct ResourceVisitor final {
+private:
+    template<typename T>
+    using VisitorCallback = const std::function<void (T&)>&;
+
 public:
-    static void Visit (
-        Resource&                                            res,
-        const std::function<void (ImageResource&)>&          imageResourceTypeCallback,
-        const std::function<void (SwapchainImageResource&)>& swapchainImageResourceTypeCallback);
+    static void Visit (Resource&,
+                       VisitorCallback<ImageResource>,
+                       VisitorCallback<SwapchainImageResource>);
 };
 
 } // namespace RenderGraph

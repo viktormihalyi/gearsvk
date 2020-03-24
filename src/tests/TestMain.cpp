@@ -56,30 +56,30 @@ TEST_F (VulkanTestEnvironment, DISABLED_RenderGraphConnectionTest)
     Operation& post        = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (), device, commandPool, 3, std::vector<std::filesystem::path> {}));
     Operation& present     = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (), device, commandPool, 3, std::vector<std::filesystem::path> {}));
 
-    depthPass.AddOutput (0, depthBuffer);
-
-    gbufferPass.AddInput (0, depthBuffer);
-    gbufferPass.AddOutput (0, depthBuffer2);
-    gbufferPass.AddOutput (1, gbuffer1);
-    gbufferPass.AddOutput (2, gbuffer2);
-    gbufferPass.AddOutput (3, gbuffer3);
-
-    debugView.AddInput (0, gbuffer3);
-    debugView.AddOutput (0, debugOutput);
-
-    lighting.AddInput (0, depthBuffer);
-    lighting.AddInput (1, gbuffer1);
-    lighting.AddInput (2, gbuffer2);
-    lighting.AddInput (3, gbuffer3);
-    lighting.AddOutput (0, lightingBuffer);
-
-    post.AddInput (0, lightingBuffer);
-    post.AddOutput (0, finalTarget);
-
-    move.AddInput (0, debugOutput);
-    move.AddOutput (0, finalTarget);
-
-    present.AddInput (0, finalTarget);
+    // depthPass.AddOutput (0, depthBuffer);
+    //
+    // gbufferPass.AddInput (0, depthBuffer);
+    // gbufferPass.AddOutput (0, depthBuffer2);
+    // gbufferPass.AddOutput (1, gbuffer1);
+    // gbufferPass.AddOutput (2, gbuffer2);
+    // gbufferPass.AddOutput (3, gbuffer3);
+    //
+    // debugView.AddInput (0, gbuffer3);
+    // debugView.AddOutput (0, debugOutput);
+    //
+    // lighting.AddInput (0, depthBuffer);
+    // lighting.AddInput (1, gbuffer1);
+    // lighting.AddInput (2, gbuffer2);
+    // lighting.AddInput (3, gbuffer3);
+    // lighting.AddOutput (0, lightingBuffer);
+    //
+    // post.AddInput (0, lightingBuffer);
+    // post.AddOutput (0, finalTarget);
+    //
+    // move.AddInput (0, debugOutput);
+    // move.AddOutput (0, finalTarget);
+    //
+    // present.AddInput (0, finalTarget);
 }
 
 
@@ -161,9 +161,7 @@ void main () {
                                                                                   6,
                                                                                   std::move (sp)));
 
-    graph.AddConnections ({
-        {GraphConnection::Type::Output, redFillOperation, 0, red},
-    });
+    graph.AddConnection (OutputConnection {redFillOperation, 0, red});
 
     graph.Compile ();
 
@@ -202,33 +200,14 @@ TEST_F (VulkanTestEnvironment, RenderGraphUseTest)
                                                                                                                                        PROJECT_ROOT / "shaders" / "fullscreenquad.vert",
                                                                                                                                        PROJECT_ROOT / "shaders" / "fullscreenquad.frag",
                                                                                                                                    }));
-    struct GraphConnection {
-        enum class Type {
-            Input,
-            Output
-        };
-        Type           type;
-        Operation::Ref operation;
-        uint32_t       binding;
-        Resource::Ref  resource;
-    };
 
-    GraphConnection connections[] = {
-        {GraphConnection::Type::Input, dummyPass, 0, green},
-        {GraphConnection::Type::Output, dummyPass, 0, presented},
-        {GraphConnection::Type::Output, dummyPass, 1, red},
 
-        {GraphConnection::Type::Input, secondPass, 0, red},
-        {GraphConnection::Type::Output, secondPass, 0, finalImg},
-    };
+    graph.AddConnection (InputConnection {dummyPass, 0, green});
+    graph.AddConnection (OutputConnection {dummyPass, 0, presented});
+    graph.AddConnection (OutputConnection {dummyPass, 1, red});
 
-    for (auto c : connections) {
-        if (c.type == GraphConnection::Type::Input) {
-            c.operation.get ().AddInput (c.binding, c.resource);
-        } else {
-            c.operation.get ().AddOutput (c.binding, c.resource);
-        }
-    }
+    graph.AddConnection (InputConnection {secondPass, 0, red});
+    graph.AddConnection (OutputConnection {secondPass, 0, finalImg});
 
     graph.Compile ();
 

@@ -656,7 +656,7 @@ int main (int argc, char* argv[])
     Surface surface (instance, windowProvider->CreateSurface (instance));
 
     TestEnvironment testenv (instance, surface);
-    TestCase        testcase (testenv);
+    TestCase        testcase (testenv, {VK_KHR_SWAPCHAIN_EXTENSION_NAME});
 
     Device&      device        = testcase.device;
     CommandPool& commandPool   = testcase.commandPool;
@@ -724,8 +724,8 @@ void main () {
 
     Operation& presentOp = graph.CreateOperation (PresentOperation::Create (swapchain, graphicsQueue, std::vector<VkSemaphore> {}));
 
-    graph.AddConnection (OutputConnection {redFillOperation, 0, presented, swapchain.surfaceFormat.format, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR});
-    graph.AddConnection (OutputConnection {redFillOperation, 1, presentedCopy, SingleImageResource::Format, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+    graph.AddConnection (OutputConnection {redFillOperation, 0, presented});
+    graph.AddConnection (OutputConnection {redFillOperation, 1, presentedCopy});
 
     graph.Compile ();
 

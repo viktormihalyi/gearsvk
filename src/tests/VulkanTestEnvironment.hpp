@@ -9,9 +9,17 @@
 #include "gtest/gtest.h"
 
 
-auto dontCare = [] (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>&) -> std::optional<uint32_t> { return std::nullopt; };
+std::optional<uint32_t> dontCare (VkPhysicalDevice, VkSurfaceKHR, const std::vector<VkQueueFamilyProperties>&)
+{
+    return std::nullopt;
+}
 
-auto acceptPresentSupport = [] (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>& queueFamilies) -> std::optional<uint32_t> {
+std::optional<uint32_t> acceptPresentSupport (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>& queueFamilies)
+{
+    if (surface == VK_NULL_HANDLE) {
+        return std::nullopt;
+    }
+
     uint32_t i = 0;
     for (const VkQueueFamilyProperties& queueFamily : queueFamilies) {
         VkBool32 presentSupport = false;
@@ -24,10 +32,12 @@ auto acceptPresentSupport = [] (VkPhysicalDevice physicalDevice, VkSurfaceKHR su
     }
 
     return std::nullopt;
-};
+}
 
-auto acceptWithFlag = [] (VkQueueFlagBits flagbits) {
-    return [=] (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>& props) -> std::optional<uint32_t> {
+
+auto acceptWithFlag (VkQueueFlagBits flagbits)
+{
+    return [=] (VkPhysicalDevice, VkSurfaceKHR, const std::vector<VkQueueFamilyProperties>& props) -> std::optional<uint32_t> {
         uint32_t i = 0;
         for (const auto& p : props) {
             if (p.queueFlags & flagbits) {
@@ -37,7 +47,7 @@ auto acceptWithFlag = [] (VkQueueFlagBits flagbits) {
         }
         return std::nullopt;
     };
-};
+}
 
 
 static void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
@@ -96,8 +106,8 @@ public:
     Queue       queue;
     CommandPool commandPool;
 
-    TestCase (const TestEnvironment& env)
-        : device (env.physicalDevice, {*env.physicalDevice.queueFamilies.graphics}, {VK_KHR_SWAPCHAIN_EXTENSION_NAME})
+    TestCase (const TestEnvironment& env, const std::vector<const char*>& deviceExtenions = {})
+        : device (env.physicalDevice, {*env.physicalDevice.queueFamilies.graphics}, deviceExtenions)
         , queue (device, *env.physicalDevice.queueFamilies.graphics)
         , commandPool (device, *env.physicalDevice.queueFamilies.graphics)
     {

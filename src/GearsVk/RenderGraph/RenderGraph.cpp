@@ -7,12 +7,15 @@ Graph::Graph (VkDevice device, VkCommandPool commandPool, GraphSettings settings
     : device (device)
     , commandPool (commandPool)
     , settings (settings)
+    , compiled (false)
 {
 }
 
 
 Resource& Graph::CreateResource (Resource::U&& resource)
 {
+    compiled = false;
+
     resources.push_back (std::move (resource));
     return *resources[resources.size () - 1];
 }
@@ -20,6 +23,8 @@ Resource& Graph::CreateResource (Resource::U&& resource)
 
 Operation& Graph::CreateOperation (Operation::U&& resource)
 {
+    compiled = false;
+
     operations.push_back (std::move (resource));
     return *operations[operations.size () - 1];
 }
@@ -67,11 +72,34 @@ void Graph::Compile ()
         }
         currentCommandBuffer->End ();
     }
+
+    compiled = true;
+}
+
+
+void Graph::AddConnection (InputConnection& c)
+{
+    compiled = false;
+
+    c.operation.AddInput (c.binding, c.resource);
+}
+
+
+void Graph::AddConnection (OutputConnection& c)
+{
+    compiled = false;
+
+    OutputConnectionInfo info = c.resource.GetOutputConnectionInfo ();
+    c.operation.AddOutput (c.binding, info.format, info.finalLayout, c.resource);
 }
 
 
 void Graph::Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores, const std::vector<VkSemaphore>& signalSemaphores)
 {
+    if (ERROR (!compiled)) {
+        return;
+    }
+
     if (ERROR (frameIndex >= settings.framesInFlight)) {
         return;
     }

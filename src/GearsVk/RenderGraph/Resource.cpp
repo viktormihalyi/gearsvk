@@ -15,7 +15,7 @@ SingleImageResource::SingleImageResource (VkDevice device, Image::U&& image)
 
 
 SingleImageResource::SingleImageResource (const GraphSettings& graphSettings, const Device& device, VkQueue queue, VkCommandPool commandPool, std::optional<VkImageLayout> layoutRead, std::optional<VkImageLayout> layoutWrite)
-    : image (device, Image::Create (device, graphSettings.width, graphSettings.height, FORMAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT), DeviceMemory::GPU)
+    : image (device, Image::Create (device, graphSettings.width, graphSettings.height, Format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT), DeviceMemory::GPU)
     , imageView (ImageView::Create (device, *image.image, image.image->GetFormat ()))
     , sampler (Sampler::Create (device))
     , layoutRead (layoutRead)
@@ -48,9 +48,9 @@ void SingleImageResource::BindWrite (VkCommandBuffer commandBuffer)
 }
 
 
-void ResourceVisitor::Visit (Resource&                                            res,
-                             const std::function<void (ImageResource&)>&          imageResourceTypeCallback,
-                             const std::function<void (SwapchainImageResource&)>& swapchainImageResourceTypeCallback)
+void ResourceVisitor::Visit (Resource&                               res,
+                             VisitorCallback<ImageResource>          imageResourceTypeCallback,
+                             VisitorCallback<SwapchainImageResource> swapchainImageResourceTypeCallback)
 {
     ImageResource*          imageType          = dynamic_cast<ImageResource*> (&res);
     SwapchainImageResource* swapchainImageType = dynamic_cast<SwapchainImageResource*> (&res);
