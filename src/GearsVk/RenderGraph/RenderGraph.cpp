@@ -94,7 +94,7 @@ void Graph::Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSema
     vkQueueSubmit (queue, 1, &result, nullptr);
 
     for (auto& op : operations) {
-        op->Submit (frameIndex);
+        op->OnPostSubmit (frameIndex);
     }
 }
 

@@ -24,8 +24,10 @@ struct OutputBinding {
     uint32_t                binding;
     VkAttachmentDescription attachmentDescription;
     VkAttachmentReference   attachmentReference;
+    VkFormat                format;
+    VkImageLayout           finalLayout;
 
-    OutputBinding (uint32_t binding);
+    OutputBinding (uint32_t binding, VkFormat format, VkImageLayout finalLayout);
 
     bool operator== (const InputBinding& other) const { return binding == other.binding; }
 };
@@ -44,10 +46,10 @@ struct Operation : public Noncopyable {
 
     virtual void Compile ()                                                  = 0;
     virtual void Record (uint32_t frameIndex, VkCommandBuffer commandBuffer) = 0;
-    virtual void Submit (uint32_t frameIndex) {}
+    virtual void OnPostSubmit (uint32_t frameIndex) {}
 
     void AddInput (uint32_t binding, const Resource::Ref& res);
-    void AddOutput (uint32_t binding, const Resource::Ref& res);
+    void AddOutput (uint32_t binding, VkFormat format, VkImageLayout finalLayout, const Resource::Ref& res);
 
 
     std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const;
@@ -117,7 +119,7 @@ struct PresentOperation final : public Operation {
     virtual void Compile () override {}
     virtual void Record (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
 
-    virtual void Submit (uint32_t imageIndex) override
+    virtual void OnPostSubmit (uint32_t imageIndex) override
     {
         VkSwapchainKHR swapchains[] = {swapchain};
 

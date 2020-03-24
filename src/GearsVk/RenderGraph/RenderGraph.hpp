@@ -12,15 +12,18 @@
 
 namespace RenderGraph {
 
-struct GraphConnection final {
-    enum class Type {
-        Input,
-        Output
-    };
-    Type       type;
+struct InputConnection final {
     Operation& operation;
     uint32_t   binding;
     Resource&  resource;
+};
+
+struct OutputConnection final {
+    Operation&    operation;
+    uint32_t      binding;
+    Resource&     resource;
+    VkFormat      format;
+    VkImageLayout finalLayout;
 };
 
 
@@ -45,15 +48,16 @@ public:
     Resource&  CreateResource (Resource::U&& resource);
     Operation& CreateOperation (Operation::U&& resource);
 
-    void AddConnections (const std::vector<GraphConnection>& connections)
+
+    void AddConnection (InputConnection& c)
     {
-        for (const GraphConnection& c : connections) {
-            if (c.type == GraphConnection::Type::Input) {
-                c.operation.AddInput (c.binding, c.resource);
-            } else {
-                c.operation.AddOutput (c.binding, c.resource);
-            }
-        }
+        c.operation.AddInput (c.binding, c.resource);
+    }
+
+
+    void AddConnection (OutputConnection& c)
+    {
+        c.operation.AddOutput (c.binding, c.format, c.finalLayout, c.resource);
     }
 
     void Compile ();

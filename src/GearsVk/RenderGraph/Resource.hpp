@@ -22,6 +22,8 @@ public:
 
 
 struct SingleImageResource final : public SingleResource {
+    static const VkFormat FORMAT = VK_FORMAT_R8G8B8A8_SRGB;
+
     AllocatedImage image;
     ImageView::U   imageView;
     Sampler::U     sampler;

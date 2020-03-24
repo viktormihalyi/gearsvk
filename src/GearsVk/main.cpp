@@ -667,9 +667,6 @@ int main (int argc, char* argv[])
     using namespace RenderGraph;
     Graph graph (device, commandPool, GraphSettings (2, windowProvider->GetWidth (), windowProvider->GetHeight ()));
 
-    Resource& red       = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings (), device, graphicsQueue, commandPool, std::nullopt, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
-    Resource& presented = graph.CreateResource (SwapchainImageResource::Create (device, swapchain));
-
     auto sp = ShaderPipeline::Create (device);
     sp->AddVertexShader (R"(
 #version 450
@@ -707,23 +704,28 @@ void main() {
 #extension GL_ARB_separate_shader_objects : enable
 
 layout (location = 0) out vec4 outColor;
+layout (location = 1) out vec4 outCopy;
 
 void main () {
-    outColor = vec4 (1, 0, 0, 1);
+    vec4 result = vec4 (1, 0, 0, 1);
+    outColor = result;
+    outCopy = result;
 }
     )");
 
-    RenderOperation& redFillOperation = dynamic_cast<RenderOperation&> (graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                                                                                        device,
-                                                                                                                        commandPool,
-                                                                                                                        6,
-                                                                                                                        std::move (sp))));
+    Resource& presentedCopy = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings (), device, graphicsQueue, commandPool, std::nullopt, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+    Resource& presented     = graph.CreateResource (SwapchainImageResource::Create (device, swapchain));
+
+    Operation& redFillOperation = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (),
+                                                                                  device,
+                                                                                  commandPool,
+                                                                                  6,
+                                                                                  std::move (sp)));
 
     Operation& presentOp = graph.CreateOperation (PresentOperation::Create (swapchain, graphicsQueue, std::vector<VkSemaphore> {}));
 
-    graph.AddConnections ({
-        {GraphConnection::Type::Output, redFillOperation, 0, presented},
-    });
+    graph.AddConnection (OutputConnection {redFillOperation, 0, presented, swapchain.surfaceFormat.format, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR});
+    graph.AddConnection (OutputConnection {redFillOperation, 1, presentedCopy, SingleImageResource::Format, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
 
     graph.Compile ();
 

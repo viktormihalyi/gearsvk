@@ -14,22 +14,24 @@ InputBinding::InputBinding (uint32_t binding)
 }
 
 
-OutputBinding::OutputBinding (uint32_t binding)
+OutputBinding::OutputBinding (uint32_t binding, VkFormat format, VkImageLayout finalLayout)
     : binding (binding)
     , attachmentDescription ({})
     , attachmentReference ({})
+    , format (format)
+    , finalLayout (finalLayout)
 {
-    attachmentDescription.format         = VK_FORMAT_B8G8R8A8_UNORM; // TODO 
+    attachmentDescription.format         = format;
     attachmentDescription.samples        = VK_SAMPLE_COUNT_1_BIT;
     attachmentDescription.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
     attachmentDescription.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
     attachmentDescription.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     attachmentDescription.initialLayout  = Image::INITIAL_LAYOUT;           // TODO
-    attachmentDescription.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // TODO
+    attachmentDescription.finalLayout    = finalLayout;
 
     attachmentReference.attachment = binding;
-    attachmentReference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // TODO
+    attachmentReference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 }
 
 
@@ -38,15 +40,15 @@ void Operation::AddInput (uint32_t binding, const Resource::Ref& res)
     ASSERT (std::find (inputBindings.begin (), inputBindings.end (), binding) == inputBindings.end ());
 
     inputs.push_back (res);
-    inputBindings.push_back (binding);
+    inputBindings.push_back (InputBinding (binding));
 }
 
-void Operation::AddOutput (uint32_t binding, const Resource::Ref& res)
+void Operation::AddOutput (uint32_t binding, VkFormat format, VkImageLayout finalLayout, const Resource::Ref& res)
 {
     ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
 
     outputs.push_back (res);
-    outputBindings.push_back (binding);
+    outputBindings.push_back (OutputBinding (binding, format, finalLayout));
 }
 
 
