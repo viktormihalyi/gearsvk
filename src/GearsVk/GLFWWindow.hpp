@@ -1,20 +1,20 @@
-#ifndef GLFWWINDOWPROVIDER_HPP
-#define GLFWWINDOWPROVIDER_HPP
+#ifndef GLFWWINDOW_HPP
+#define GLFWWINDOW_HPP
 
-#include "WindowProvider.hpp"
+#include "WindowBase.hpp"
 
 #include <optional>
 #include <vector>
 
-class GLFWWindowProvider final : public WindowProvider {
+class GLFWWindow final : public WindowBase {
 private:
     void* window;
 
 public:
-    USING_PTR (GLFWWindowProvider);
+    USING_PTR (GLFWWindow);
 
-    GLFWWindowProvider ();
-    ~GLFWWindowProvider () override;
+    GLFWWindow ();
+    ~GLFWWindow () override;
 
     void  DoEventLoop (const DrawCallback&) override;
     void* GetHandle () const override;

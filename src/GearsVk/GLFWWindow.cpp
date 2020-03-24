@@ -1,4 +1,4 @@
-#include "GLFWWindowProvider.hpp"
+#include "GLFWWindow.hpp"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -8,7 +8,7 @@
 #include <iostream>
 
 
-GLFWWindowProvider::GLFWWindowProvider ()
+GLFWWindow::GLFWWindow ()
     : window (nullptr)
 {
     // settings
@@ -75,7 +75,7 @@ GLFWWindowProvider::GLFWWindowProvider ()
     // callbacks
 
     glfwSetKeyCallback (glfwWindow, [] (GLFWwindow* window, int key, int scancode, int action, int mods) {
-        GLFWWindowProvider* self = static_cast<GLFWWindowProvider*> (glfwGetWindowUserPointer (window));
+        GLFWWindow* self = static_cast<GLFWWindow*> (glfwGetWindowUserPointer (window));
 
         const char* keyName = glfwGetKeyName (key, 0);
         std::cout << "glfwSetKeyCallback, key: " << key << " (" << (keyName != nullptr ? keyName : "???") << "), scancode: " << scancode << ", action: " << action << ", mods: " << mods << std::endl;
@@ -87,21 +87,21 @@ GLFWWindowProvider::GLFWWindowProvider ()
 
 
     glfwSetCursorPosCallback (glfwWindow, [] (GLFWwindow* window, double xpos, double ypos) {
-        GLFWWindowProvider* self = static_cast<GLFWWindowProvider*> (glfwGetWindowUserPointer (window));
+        GLFWWindow* self = static_cast<GLFWWindow*> (glfwGetWindowUserPointer (window));
 
         std::cout << "glfwSetCursorPosCallback, xpos: " << xpos << ", ypos: " << ypos << std::endl;
     });
 
 
     glfwSetMouseButtonCallback (glfwWindow, [] (GLFWwindow* window, int button, int action, int mods) {
-        GLFWWindowProvider* self = static_cast<GLFWWindowProvider*> (glfwGetWindowUserPointer (window));
+        GLFWWindow* self = static_cast<GLFWWindow*> (glfwGetWindowUserPointer (window));
 
         std::cout << "glfwSetMouseButtonCallback, button: " << button << ", action: " << action << ", mods: " << mods << std::endl;
     });
 
 
     glfwSetScrollCallback (glfwWindow, [] (GLFWwindow* window, double xoffset, double yoffset) {
-        GLFWWindowProvider* self = static_cast<GLFWWindowProvider*> (glfwGetWindowUserPointer (window));
+        GLFWWindow* self = static_cast<GLFWWindow*> (glfwGetWindowUserPointer (window));
 
         std::cout << "glfwSetScrollCallback, xoffset: " << xoffset << ", yoffset: " << yoffset << std::endl;
     });
@@ -111,20 +111,20 @@ GLFWWindowProvider::GLFWWindowProvider ()
 }
 
 
-GLFWWindowProvider::~GLFWWindowProvider ()
+GLFWWindow::~GLFWWindow ()
 {
     glfwDestroyWindow (reinterpret_cast<GLFWwindow*> (window));
     glfwTerminate ();
 }
 
 
-void* GLFWWindowProvider::GetHandle () const
+void* GLFWWindow::GetHandle () const
 {
     return window;
 }
 
 
-void GLFWWindowProvider::DoEventLoop (const DrawCallback& drawCallback)
+void GLFWWindow::DoEventLoop (const DrawCallback& drawCallback)
 {
     if (ERROR (window == nullptr)) {
         return;
@@ -138,7 +138,7 @@ void GLFWWindowProvider::DoEventLoop (const DrawCallback& drawCallback)
 }
 
 
-std::vector<const char*> GLFWWindowProvider::GetExtensions () const
+std::vector<const char*> GLFWWindow::GetExtensions () const
 {
     uint32_t     glfwExtensionCount = 0;
     const char** glfwExtensions     = glfwGetRequiredInstanceExtensions (&glfwExtensionCount);
@@ -152,7 +152,7 @@ std::vector<const char*> GLFWWindowProvider::GetExtensions () const
 }
 
 
-VkSurfaceKHR GLFWWindowProvider::CreateSurface (VkInstance instance) const
+VkSurfaceKHR GLFWWindow::CreateSurface (VkInstance instance) const
 {
     VkSurfaceKHR surface = VK_NULL_HANDLE;
 

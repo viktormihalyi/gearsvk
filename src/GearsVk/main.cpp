@@ -1,8 +1,8 @@
 #include "Assert.hpp"
-#include "GLFWWindowProvider.hpp"
+#include "GLFWWindow.hpp"
 #include "Logger.hpp"
 #include "Noncopyable.hpp"
-#include "SDLWindowProvider.hpp"
+#include "SDLWindow.hpp"
 #include "Timer.hpp"
 #include "Utils.hpp"
 
@@ -261,12 +261,12 @@ int main_OLD (int argc, char* argv[])
     uint32_t apiVersion;
     vkEnumerateInstanceVersion (&apiVersion);
 
-    WindowProvider::U windowProvider = SDLWindowProvider::Create ();
+    WindowBase::U window = SDLWindowBase::Create ();
 
     // platform required extensionss
     std::vector<const char*> extensions;
     {
-        extensions = windowProvider->GetExtensions ();
+        extensions = window->GetExtensions ();
         extensions.push_back (VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
@@ -282,7 +282,7 @@ int main_OLD (int argc, char* argv[])
 
     DebugUtilsMessenger debugMessenger (instance, debugCallback);
 
-    Surface        surface (instance, windowProvider->CreateSurface (instance));
+    Surface        surface (instance, window->CreateSurface (instance));
     PhysicalDevice physicalDevice (instance, surface, Utils::ToSet<const char*, std::string> (requestedDeviceExtensions));
     Device         device (physicalDevice, {*physicalDevice.queueFamilies.graphics, *physicalDevice.queueFamilies.presentation}, requestedDeviceExtensions);
     Swapchain      swapchain (physicalDevice, device, surface);
@@ -572,7 +572,7 @@ int main_OLD (int argc, char* argv[])
 
 
     size_t currentFrame = 0;
-    windowProvider->DoEventLoop ([&] () {
+    window->DoEventLoop ([&] () {
         vkWaitForFences (device, 1, &inFlightFenceHandles[currentFrame], VK_TRUE, UINT64_MAX);
         vkResetFences (device, 1, &inFlightFenceHandles[currentFrame]);
 
@@ -644,16 +644,16 @@ int main_OLD (int argc, char* argv[])
 
 int main (int argc, char* argv[])
 {
-    WindowProvider::U windowProvider = SDLWindowProvider::Create ();
+    WindowBase::U window = SDLWindow::Create ();
 
     std::vector<const char*> extensions;
     {
-        extensions = windowProvider->GetExtensions ();
+        extensions = window->GetExtensions ();
         extensions.push_back (VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
     Instance instance (extensions, {"VK_LAYER_KHRONOS_validation"});
 
-    Surface surface (instance, windowProvider->CreateSurface (instance));
+    Surface surface (instance, window->CreateSurface (instance));
 
     TestEnvironment testenv (instance, surface);
     TestCase        testcase (testenv, {VK_KHR_SWAPCHAIN_EXTENSION_NAME});
@@ -665,7 +665,7 @@ int main (int argc, char* argv[])
     Swapchain swapchain (testenv.physicalDevice, device, surface);
 
     using namespace RenderGraph;
-    Graph graph (device, commandPool, GraphSettings (2, windowProvider->GetWidth (), windowProvider->GetHeight ()));
+    Graph graph (device, commandPool, GraphSettings (2, window->GetWidth (), window->GetHeight ()));
 
     auto sp = ShaderPipeline::Create (device);
     sp->AddVertexShader (R"(
@@ -731,7 +731,7 @@ void main () {
 
     Semaphore s (device);
 
-    windowProvider->DoEventLoop ([&] () {
+    window->DoEventLoop ([&] () {
         uint32_t imageIndex = 0;
         vkAcquireNextImageKHR (device, swapchain, UINT64_MAX, s, VK_NULL_HANDLE, &imageIndex);
         graph.Submit (graphicsQueue, imageIndex, {s});

@@ -1,4 +1,4 @@
-#include "SDLWindowProvider.hpp"
+#include "SDLWindow.hpp"
 
 #include <SDL.h>
 #include <SDL_vulkan.h>
@@ -9,7 +9,7 @@
 #include <iostream>
 
 
-SDLWindowProvider::SDLWindowProvider ()
+SDLWindowBase::SDLWindowBase (uint32_t flags)
     : window (nullptr)
     , width (800)
     , height (600)
@@ -21,23 +21,23 @@ SDLWindowProvider::SDLWindowProvider ()
     window = SDL_CreateWindow ("vulkantest",
                                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                width, height,
-                               SDL_WINDOW_VULKAN);
+                               SDL_WINDOW_VULKAN | flags);
 }
 
 
-SDLWindowProvider::~SDLWindowProvider ()
+SDLWindowBase::~SDLWindowBase ()
 {
     SDL_Quit ();
 }
 
 
-void* SDLWindowProvider::GetHandle () const
+void* SDLWindowBase::GetHandle () const
 {
     return window;
 }
 
 
-void SDLWindowProvider::DoEventLoop (const DrawCallback& drawCallback)
+void SDLWindowBase::DoEventLoop (const DrawCallback& drawCallback)
 {
     ASSERT (window != nullptr);
 
@@ -56,7 +56,7 @@ void SDLWindowProvider::DoEventLoop (const DrawCallback& drawCallback)
 }
 
 
-std::vector<const char*> SDLWindowProvider::GetExtensions () const
+std::vector<const char*> SDLWindowBase::GetExtensions () const
 {
     ASSERT (window != nullptr);
 
@@ -74,7 +74,7 @@ std::vector<const char*> SDLWindowProvider::GetExtensions () const
 }
 
 
-VkSurfaceKHR SDLWindowProvider::CreateSurface (VkInstance instance) const
+VkSurfaceKHR SDLWindowBase::CreateSurface (VkInstance instance) const
 {
     ASSERT (window != nullptr);
 
@@ -84,4 +84,15 @@ VkSurfaceKHR SDLWindowProvider::CreateSurface (VkInstance instance) const
     }
 
     return surface;
+}
+
+
+SDLWindow::SDLWindow ()
+    : SDLWindowBase (0)
+{
+}
+
+HiddenSDLWindow::HiddenSDLWindow ()
+    : SDLWindowBase (SDL_WINDOW_HIDDEN)
+{
 }

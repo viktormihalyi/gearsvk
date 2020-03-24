@@ -42,8 +42,8 @@ set (COMMON_SOURCE_FILES
     src/GearsVk/RenderGraph/RenderGraph.cpp
     src/GearsVk/RenderGraph/Resource.cpp
     src/GearsVk/RenderGraph/Operation.cpp
-    src/GearsVk/GLFWWindowProvider.cpp
-    src/GearsVk/SDLWindowProvider.cpp
+    "src/GearsVk/GLFWWindow.cpp"
+    "src/GearsVk/SDLWindow.cpp"
     src/GearsVk/ShaderReflection.cpp
 )
 

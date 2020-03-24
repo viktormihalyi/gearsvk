@@ -1,5 +1,5 @@
-#ifndef WINDOWPROVIDER_HPP
-#define WINDOWPROVIDER_HPP
+#ifndef WINDOWBASE_HPP
+#define WINDOWBASE_HPP
 
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
@@ -10,13 +10,13 @@
 #include <vulkan/vulkan.h>
 
 
-class WindowProvider : public Noncopyable {
+class WindowBase : public Noncopyable {
 public:
-    USING_PTR (WindowProvider);
+    USING_PTR (WindowBase);
 
     using DrawCallback = std::function<void ()>;
 
-    virtual ~WindowProvider ()
+    virtual ~WindowBase ()
     {
     }
 
