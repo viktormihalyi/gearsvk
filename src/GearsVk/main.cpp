@@ -703,11 +703,13 @@ void main() {
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+layout (location = 0) in vec2 uv;
+
 layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec4 outCopy;
 
 void main () {
-    vec4 result = vec4 (1, 0, 0, 1);
+    vec4 result = vec4 (uv, 0, 1);
     outColor = result;
     outCopy = result;
 }
@@ -731,7 +733,7 @@ void main () {
 
     Semaphore s (device);
 
-    window->DoEventLoop ([&] () {
+    window->DoEventLoop ([&] (bool&) {
         uint32_t imageIndex = 0;
         vkAcquireNextImageKHR (device, swapchain, UINT64_MAX, s, VK_NULL_HANDLE, &imageIndex);
         graph.Submit (graphicsQueue, imageIndex, {s});

@@ -11,7 +11,7 @@ private:
     VkSurfaceKHR handle;
 
 public:
-    Surface (VkInstance instance, VkSurfaceKHR handle)
+    Surface (VkInstance instance, VkSurfaceKHR&& handle)
         : instance (instance)
         , handle (handle)
     {

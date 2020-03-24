@@ -12,14 +12,6 @@ private:
     const VkDevice   device;
     VkDescriptorPool handle;
 
-    static VkDescriptorPool CreateDescriptorPool (VkDevice device, uint32_t descriptorCountUbo, uint32_t descriptorCountSampler, uint32_t maxSets)
-    {
-        VkDescriptorPool handle;
-
-
-        return handle;
-    }
-
 public:
     USING_PTR (DescriptorPool);
 

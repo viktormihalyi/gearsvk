@@ -8,7 +8,10 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
-struct ShaderPipeline {
+class ShaderPipeline {
+public:
+    USING_PTR (ShaderPipeline);
+
     ShaderModule::U vertexShader;
     ShaderModule::U fragmentShader;
     ShaderModule::U geometryShader;
@@ -16,9 +19,12 @@ struct ShaderPipeline {
     ShaderModule::U tessellationControlShader;
     ShaderModule::U computeShader;
 
-    USING_PTR (ShaderPipeline);
 
     VkDevice device;
+
+    RenderPass::U     renderPass;
+    PipelineLayout::U pipelineLayout;
+    Pipeline::U       pipeline;
 
     ShaderPipeline (VkDevice device)
         : device (device)
@@ -63,15 +69,11 @@ struct ShaderPipeline {
         throw std::runtime_error ("bad shader extension");
     }
 
-    void AddShader (VkDevice device, const std::filesystem::path& shaderPath)
-    {
-        GetShaderByExtension (shaderPath.extension ().u8string ()) = ShaderModule::CreateFromSource (device, shaderPath);
-    }
-
     void AddVertexShader (const std::string& source)
     {
         vertexShader = ShaderModule::CreateFromString (device, source, ShaderModule::ShaderKind::Vertex);
     }
+
 
     void AddFragmentShader (const std::string& source)
     {
@@ -79,12 +81,18 @@ struct ShaderPipeline {
     }
 
 
-    void AddShaders (VkDevice device, const std::vector<std::filesystem::path>& shaderPath)
+    void AddShader (const std::filesystem::path& shaderPath)
+    {
+        GetShaderByExtension (shaderPath.extension ().u8string ()) = ShaderModule::CreateFromSource (device, shaderPath);
+    }
+
+
+    void AddShaders (const std::vector<std::filesystem::path>& shaderPath)
     {
         std::vector<std::thread> threads;
         for (const std::filesystem::path& p : shaderPath) {
             threads.emplace_back ([=] () {
-                AddShader (device, p);
+                AddShader (p);
             });
         }
         for (std::thread& t : threads) {
@@ -92,14 +100,7 @@ struct ShaderPipeline {
         }
     }
 
-    RenderPass::U renderPass;
-    // (device, outputs.GetAttachmentDescriptions (), {subpass}, {dependency});
-    PipelineLayout::U pipelineLayout;
-    // (device, {descLayout});
-    Pipeline::U pipeline;
-    // (device, 512, 512, outputs.textures.size (), pipelineLayout, renderPass, shaders.GetShaderStages (), {}, {});
-
-    void Compile (VkDevice device, uint32_t width, uint32_t height, VkDescriptorSetLayout layout, const std::vector<VkAttachmentReference>& attachmentReferences, const std::vector<VkAttachmentDescription>& attachmentDescriptions)
+    void Compile (uint32_t width, uint32_t height, VkDescriptorSetLayout layout, const std::vector<VkAttachmentReference>& attachmentReferences, const std::vector<VkAttachmentDescription>& attachmentDescriptions)
     {
         VkSubpassDescription subpass = {};
         subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;

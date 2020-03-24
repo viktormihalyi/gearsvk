@@ -14,7 +14,7 @@ class WindowBase : public Noncopyable {
 public:
     USING_PTR (WindowBase);
 
-    using DrawCallback = std::function<void ()>;
+    using DrawCallback = std::function<void (bool& stopFlag)>;
 
     virtual ~WindowBase ()
     {

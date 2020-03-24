@@ -120,7 +120,7 @@ RenderOperation::RenderOperation (const GraphSettings& graphSettings, VkDevice d
     std::cout << "... ";
 
     pipeline = ShaderPipeline::Create (device);
-    pipeline->AddShaders (device, shaders);
+    pipeline->AddShaders (shaders);
 
     std::cout << "done" << std::endl;
 }
@@ -159,7 +159,7 @@ void RenderOperation::Compile ()
         }
     }
 
-    pipeline->Compile (device, graphSettings.width, graphSettings.height, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions ());
+    pipeline->Compile (graphSettings.width, graphSettings.height, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions ());
 
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
         framebuffers.push_back (Framebuffer::Create (device, *pipeline->renderPass, GetOutputImageViews (frameIndex), graphSettings.width, graphSettings.height));

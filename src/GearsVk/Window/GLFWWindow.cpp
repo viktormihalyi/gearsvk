@@ -133,7 +133,13 @@ void GLFWWindow::DoEventLoop (const DrawCallback& drawCallback)
     while (!glfwWindowShouldClose (reinterpret_cast<GLFWwindow*> (window))) {
         glfwPollEvents ();
 
-        drawCallback ();
+        bool stop = false;
+
+        drawCallback (stop);
+
+        if (stop) {
+            break;
+        }
     }
 }
 
