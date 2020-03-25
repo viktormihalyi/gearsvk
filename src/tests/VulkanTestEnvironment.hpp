@@ -31,7 +31,7 @@ public:
     DebugUtilsMessenger::U messenger;
     PhysicalDevice::U      physicalDevice;
     Device::U              device;
-    Queue::U               queue;
+    Queue::U               graphicsQueue;
     CommandPool::U         commandPool;
 
     // surface and swapchain are created if a window is provided in the ctor
@@ -71,7 +71,7 @@ public:
             swapchain = Swapchain::Create (*physicalDevice, *device, *surface);
         }
 
-        queue = Queue::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
+        graphicsQueue = Queue::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
         commandPool = CommandPool::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
@@ -98,19 +98,19 @@ protected:
     PhysicalDevice& GetPhysicalDevice () { return *env->physicalDevice; }
     Device&         GetDevice () { return *env->device; }
     CommandPool&    GetCommandPool () { return *env->commandPool; }
-    Queue&          GetQueue () { return *env->queue; }
+    Queue&          GetQueue () { return *env->graphicsQueue; }
 
 
     virtual void SetUp () override
     {
         window = HiddenSDLWindow::Create ();
-
-        env = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
+        env    = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
     }
 
     virtual void TearDown () override
     {
         env.reset ();
+        window.reset ();
     }
 
     void CompareImages (const std::string& imageName, const Image& image, std::optional<VkImageLayout> transitionFrom = std::nullopt)

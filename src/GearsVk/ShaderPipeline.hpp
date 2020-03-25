@@ -69,21 +69,27 @@ public:
         throw std::runtime_error ("bad shader extension");
     }
 
-    void AddVertexShader (const std::string& source)
+    void SetVertexShader (const std::string& source)
     {
+        ASSERT (vertexShader == nullptr);
         vertexShader = ShaderModule::CreateFromString (device, source, ShaderModule::ShaderKind::Vertex);
     }
 
 
-    void AddFragmentShader (const std::string& source)
+    void SetFragmentShader (const std::string& source)
     {
+        ASSERT (fragmentShader == nullptr);
         fragmentShader = ShaderModule::CreateFromString (device, source, ShaderModule::ShaderKind::Fragment);
     }
 
 
     void AddShader (const std::filesystem::path& shaderPath)
     {
-        GetShaderByExtension (shaderPath.extension ().u8string ()) = ShaderModule::CreateFromSource (device, shaderPath);
+        ShaderModule::U& moduleFromExtension = GetShaderByExtension (shaderPath.extension ().u8string ());
+
+        ASSERT (moduleFromExtension == nullptr);
+
+        moduleFromExtension = ShaderModule::CreateFromSource (device, shaderPath);
     }
 
 

@@ -12,6 +12,13 @@ struct GraphSettings {
         , height (height)
     {
     }
+
+    GraphSettings (const Swapchain& swapchain)
+        : framesInFlight (swapchain.GetImageCount ())
+        , width (swapchain.GetWidth ())
+        , height (swapchain.GetHeight ())
+    {
+    }
 };
 
 #endif

@@ -113,7 +113,7 @@ TEST_F (VulkanTestEnvironment, RenderRedImage)
     Resource& red = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings (), device, graphicsQueue, commandPool, std::nullopt, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
 
     auto sp = ShaderPipeline::Create (device);
-    sp->AddVertexShader (R"(
+    sp->SetVertexShader (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -144,7 +144,7 @@ void main() {
 }
     )");
 
-    sp->AddFragmentShader (R"(
+    sp->SetFragmentShader (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 

@@ -107,7 +107,7 @@ void Graph::Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSema
     VkCommandBuffer cmdHdl = *commandBuffers[frameIndex];
 
     // TODO
-    std::vector<VkPipelineStageFlags> waitDstStageMasks (3, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+    std::vector<VkPipelineStageFlags> waitDstStageMasks (waitSemaphores.size (), VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
 
     VkSubmitInfo result         = {};
     result.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;

@@ -50,15 +50,15 @@ void SDLWindowBase::DoEventLoop (const DrawCallback& drawCallback)
                 quit = true;
                 break;
             }
+        }
 
-            bool stop = false;
+        bool stop = false;
 
-            drawCallback (stop);
+        drawCallback (stop);
 
-            if (stop) {
-                quit = true;
-                break;
-            }
+        if (stop) {
+            quit = true;
+            break;
         }
     }
 }

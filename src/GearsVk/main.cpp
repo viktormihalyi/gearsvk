@@ -624,14 +624,14 @@ int main (int argc, char* argv[])
 
     Device&      device        = *testenv.device;
     CommandPool& commandPool   = *testenv.commandPool;
-    Queue&       graphicsQueue = *testenv.queue;
+    Queue&       graphicsQueue = *testenv.graphicsQueue;
     Swapchain&   swapchain     = *testenv.swapchain;
 
     using namespace RenderGraph;
-    Graph graph (device, commandPool, GraphSettings (2, window->GetWidth (), window->GetHeight ()));
+    Graph graph (device, commandPool, GraphSettings (swapchain));
 
     auto sp = ShaderPipeline::Create (device);
-    sp->AddVertexShader (R"(
+    sp->SetVertexShader (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -662,7 +662,7 @@ void main() {
 }
     )");
 
-    sp->AddFragmentShader (R"(
+    sp->SetFragmentShader (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -696,6 +696,9 @@ void main () {
 
     Semaphore s (device);
 
+    std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime = std::chrono::high_resolution_clock::now ();
+
+
     window->DoEventLoop ([&] (bool&) {
         uint32_t imageIndex = 0;
         vkAcquireNextImageKHR (device, swapchain, UINT64_MAX, s, VK_NULL_HANDLE, &imageIndex);
@@ -703,6 +706,13 @@ void main () {
 
         vkQueueWaitIdle (graphicsQueue);
         vkDeviceWaitIdle (device);
+
+
+        auto   currentTime     = std::chrono::high_resolution_clock::now ();
+        auto   elapsedNanosecs = (std::chrono::duration_cast<std::chrono::nanoseconds> (currentTime - lastDrawTime)).count ();
+        double elapsedSecs     = elapsedNanosecs * 1e-9;
+        std::cout << "fps: " << 1.0 / elapsedSecs << std::endl;
+        lastDrawTime = currentTime;
     });
 
     vkQueueWaitIdle (graphicsQueue);
