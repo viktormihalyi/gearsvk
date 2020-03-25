@@ -9,40 +9,84 @@
 #include <vulkan/vulkan.h>
 
 
-class QueueFamilyProvider {
+class QueueFamilySelector {
 public:
-    virtual uint32_t GetGraphics ()     = 0;
-    virtual uint32_t GetPresentation () = 0;
-    virtual uint32_t GetCompute ()      = 0;
-    virtual uint32_t GetTransfer ()     = 0;
+    using Selector = std::function<std::optional<uint32_t> (VkPhysicalDevice, VkSurfaceKHR, const std::vector<VkQueueFamilyProperties>&)>;
+
+public:
+    Selector graphicsSelector;
+    Selector presentationSelector;
+    Selector computeSelector;
+    Selector transferSelector;
+
+    QueueFamilySelector (const Selector& graphicsSelector,
+                         const Selector& presentationSelector,
+                         const Selector& computeSelector,
+                         const Selector& transferSelector)
+        : graphicsSelector (graphicsSelector)
+        , presentationSelector (presentationSelector)
+        , computeSelector (computeSelector)
+        , transferSelector (transferSelector)
+    {
+    }
+
+    virtual ~QueueFamilySelector () {}
 };
 
 
-class QueueFamilyAcceptor {
+class DefaultQueueFamilySelector final : public QueueFamilySelector {
+private:
+    static std::optional<uint32_t> AcceptFirstPresentSupport (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>& queueFamilies)
+    {
+        if (surface == VK_NULL_HANDLE) {
+            return std::nullopt;
+        }
+
+        uint32_t i = 0;
+        for (const VkQueueFamilyProperties& queueFamily : queueFamilies) {
+            VkBool32 presentSupport = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR (physicalDevice, i, surface, &presentSupport);
+            if (presentSupport) {
+                return i;
+            }
+
+            i++;
+        }
+
+        return std::nullopt;
+    }
+
+
+    static auto AcceptFirstWithFlag (VkQueueFlagBits flagbits)
+    {
+        return [=] (VkPhysicalDevice, VkSurfaceKHR, const std::vector<VkQueueFamilyProperties>& props) -> std::optional<uint32_t> {
+            uint32_t i = 0;
+            for (const auto& p : props) {
+                if (p.queueFlags & flagbits) {
+                    return i;
+                }
+                ++i;
+            }
+            return std::nullopt;
+        };
+    }
+
 public:
-    using Acceptor = std::function<std::optional<uint32_t> (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>&)>;
-
-    Acceptor graphicsAcceptor;
-    Acceptor presentationAcceptor;
-    Acceptor computeAcceptor;
-    Acceptor transferAcceptor;
-
-    QueueFamilyAcceptor (const Acceptor& graphicsAcceptor,
-                         const Acceptor& presentationAcceptor,
-                         const Acceptor& computeAcceptor,
-                         const Acceptor& transferAcceptor)
-        : graphicsAcceptor (graphicsAcceptor)
-        , presentationAcceptor (presentationAcceptor)
-        , computeAcceptor (computeAcceptor)
-        , transferAcceptor (transferAcceptor)
+    DefaultQueueFamilySelector ()
+        : QueueFamilySelector (
+              AcceptFirstWithFlag (VK_QUEUE_GRAPHICS_BIT),
+              AcceptFirstPresentSupport,
+              AcceptFirstWithFlag (VK_QUEUE_COMPUTE_BIT),
+              AcceptFirstWithFlag (VK_QUEUE_TRANSFER_BIT))
     {
     }
 };
 
-class PhysicalDevice : public Noncopyable {
-private:
-    VkPhysicalDevice handle;
 
+static DefaultQueueFamilySelector defaultQueueFamilySelector;
+
+
+class PhysicalDevice : public Noncopyable {
 public:
     struct QueueFamilies {
         std::optional<uint32_t> graphics;
@@ -51,8 +95,9 @@ public:
         std::optional<uint32_t> compute;
     };
 
-    // TODO private
-    QueueFamilies queueFamilies;
+private:
+    VkPhysicalDevice handle;
+    QueueFamilies    queueFamilies;
 
 private:
     static QueueFamilies CreateQueueFamilyIndices (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
@@ -87,7 +132,7 @@ private:
         return result;
     }
 
-    static QueueFamilies FindQueueFamilyIndices (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const QueueFamilyAcceptor& acceptor)
+    static QueueFamilies FindQueueFamilyIndices (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const QueueFamilySelector& Selector)
     {
         QueueFamilies result;
 
@@ -96,15 +141,14 @@ private:
         std::vector<VkQueueFamilyProperties> queueFamilies (queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties (physicalDevice, &queueFamilyCount, queueFamilies.data ());
 
-        result.graphics     = acceptor.graphicsAcceptor (physicalDevice, surface, queueFamilies);
-        result.presentation = acceptor.presentationAcceptor (physicalDevice, surface, queueFamilies);
-        result.compute      = acceptor.computeAcceptor (physicalDevice, surface, queueFamilies);
-        result.transfer     = acceptor.transferAcceptor (physicalDevice, surface, queueFamilies);
+        result.graphics     = Selector.graphicsSelector (physicalDevice, surface, queueFamilies);
+        result.presentation = Selector.presentationSelector (physicalDevice, surface, queueFamilies);
+        result.compute      = Selector.computeSelector (physicalDevice, surface, queueFamilies);
+        result.transfer     = Selector.transferSelector (physicalDevice, surface, queueFamilies);
 
         return result;
     }
 
-private:
     static VkPhysicalDevice CreatePhysicalDevice (VkInstance instance, const std::set<std::string>& requestedDeviceExtensionSet)
     {
         // query physical devices
@@ -151,9 +195,11 @@ private:
     }
 
 public:
-    PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet, const QueueFamilyAcceptor& acceptor)
+    USING_PTR (PhysicalDevice);
+
+    PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet, const QueueFamilySelector& Selector = defaultQueueFamilySelector)
         : handle (CreatePhysicalDevice (instance, requestedDeviceExtensionSet))
-        , queueFamilies (FindQueueFamilyIndices (handle, surface, acceptor))
+        , queueFamilies (FindQueueFamilyIndices (handle, surface, Selector))
     {
     }
 
@@ -162,10 +208,9 @@ public:
         handle = VK_NULL_HANDLE;
     }
 
-    operator VkPhysicalDevice () const
-    {
-        return handle;
-    }
+    operator VkPhysicalDevice () const { return handle; }
+
+    QueueFamilies GetQueueFamilies () const { return queueFamilies; }
 };
 
 #endif

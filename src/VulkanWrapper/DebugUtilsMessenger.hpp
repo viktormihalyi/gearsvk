@@ -5,6 +5,7 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
+#include "Ptr.hpp"
 #include "Utils.hpp"
 
 class DebugUtilsMessenger : public Noncopyable {
@@ -18,6 +19,7 @@ private:
         const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
         void*                                       userData);
 
+public:
     using Callback = std::function<void (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
                                          VkDebugUtilsMessageTypeFlagsEXT             messageType,
                                          const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData)>;
@@ -38,6 +40,8 @@ public:
     static const Settings noPerformance;
 
     Callback callback;
+
+    USING_PTR (DebugUtilsMessenger);
 
     DebugUtilsMessenger (VkInstance instance, const Callback& callback, const Settings& settings = defaultSettings);
 

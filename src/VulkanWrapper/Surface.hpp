@@ -11,6 +11,8 @@ private:
     VkSurfaceKHR handle;
 
 public:
+    USING_PTR (Surface);
+
     Surface (VkInstance instance, VkSurfaceKHR&& handle)
         : instance (instance)
         , handle (handle)

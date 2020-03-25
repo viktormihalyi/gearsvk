@@ -92,6 +92,7 @@ DebugUtilsMessenger::DebugUtilsMessenger (VkInstance instance, const Callback& c
     }
 }
 
+
 DebugUtilsMessenger::~DebugUtilsMessenger ()
 {
     DestroyDebugUtilsMessengerEXT (instance, handle, nullptr);

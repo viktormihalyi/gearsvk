@@ -32,7 +32,7 @@ private:
 public:
     USING_PTR (Device);
 
-    Device (VkPhysicalDevice physicalDevice, std::vector<uint32_t> queueFamilyIndices, const std::vector<const char*>& requestedDeviceExtensions)
+    Device (VkPhysicalDevice physicalDevice, std::vector<uint32_t> queueFamilyIndices, std::vector<const char*> requestedDeviceExtensions)
         : physicalDevice (physicalDevice)
         , handle (VK_NULL_HANDLE)
     {

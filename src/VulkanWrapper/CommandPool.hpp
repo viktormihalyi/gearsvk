@@ -13,6 +13,8 @@ private:
     VkCommandPool  handle;
 
 public:
+    USING_PTR (CommandPool);
+
     CommandPool (VkDevice device, uint32_t queueIndex)
         : device (device)
         , handle (VK_NULL_HANDLE)

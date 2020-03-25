@@ -7,33 +7,7 @@
 #include "Utils.hpp"
 
 // from VulkanWrapper
-#include "Buffer.hpp"
-#include "CommandBuffer.hpp"
-#include "CommandPool.hpp"
-#include "DebugUtilsMessenger.hpp"
-#include "DescriptorPool.hpp"
-#include "DescriptorSet.hpp"
-#include "DescriptorSetLayout.hpp"
-#include "Device.hpp"
-#include "DeviceMemory.hpp"
-#include "Fence.hpp"
-#include "Framebuffer.hpp"
-#include "Image.hpp"
-#include "ImageView.hpp"
-#include "Instance.hpp"
-#include "MemoryMapping.hpp"
-#include "PhysicalDevice.hpp"
-#include "Pipeline.hpp"
-#include "PipelineLayout.hpp"
-#include "Queue.hpp"
-#include "RenderPass.hpp"
-#include "Sampler.hpp"
-#include "Semaphore.hpp"
-#include "ShaderModule.hpp"
-#include "SingleTimeCommand.hpp"
-#include "Surface.hpp"
-#include "Swapchain.hpp"
-#include "VulkanUtils.hpp"
+#include "VulkanWrapper.hpp"
 
 #include "ShaderPipeline.hpp"
 #include "ShaderReflection.hpp"
@@ -457,7 +431,7 @@ int main_OLD (int argc, char* argv[])
 
 
     VkAttachmentDescription colorAttachment = {};
-    colorAttachment.format                  = swapchain.surfaceFormat.format;
+    colorAttachment.format                  = swapchain.GetSurfaceFormat ();
     colorAttachment.samples                 = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
@@ -646,23 +620,12 @@ int main (int argc, char* argv[])
 {
     WindowBase::U window = SDLWindow::Create ();
 
-    std::vector<const char*> extensions;
-    {
-        extensions = window->GetExtensions ();
-        extensions.push_back (VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    }
-    Instance instance (extensions, {"VK_LAYER_KHRONOS_validation"});
+    TestEnvironment testenv ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
 
-    Surface surface (instance, window->CreateSurface (instance));
-
-    TestEnvironment testenv (instance, surface);
-    TestCase        testcase (testenv, {VK_KHR_SWAPCHAIN_EXTENSION_NAME});
-
-    Device&      device        = testcase.device;
-    CommandPool& commandPool   = testcase.commandPool;
-    Queue&       graphicsQueue = testcase.queue;
-
-    Swapchain swapchain (testenv.physicalDevice, device, surface);
+    Device&      device        = *testenv.device;
+    CommandPool& commandPool   = *testenv.commandPool;
+    Queue&       graphicsQueue = *testenv.queue;
+    Swapchain&   swapchain     = *testenv.swapchain;
 
     using namespace RenderGraph;
     Graph graph (device, commandPool, GraphSettings (2, window->GetWidth (), window->GetHeight ()));

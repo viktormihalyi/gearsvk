@@ -1,6 +1,8 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include "Ptr.hpp"
+
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>

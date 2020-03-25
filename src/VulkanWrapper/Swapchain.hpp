@@ -8,15 +8,14 @@
 
 #include <vulkan/vulkan.h>
 
+
 class Swapchain : public Noncopyable {
 private:
     const VkPhysicalDevice physicalDevice;
     const VkDevice         device;
     VkSwapchainKHR         handle;
 
-    uint32_t imageCount;
-
-public:
+    uint32_t           imageCount;
     VkSurfaceFormatKHR surfaceFormat;
     VkPresentModeKHR   presentMode;
     VkExtent2D         extent;
@@ -25,11 +24,11 @@ public:
     std::vector<ImageView::U>   imageViews;
     std::vector<Framebuffer::U> framebuffers;
 
-
-    uint32_t GetImageCount () const
-    {
-        return imageCount;
-    }
+public:
+    VkFormat GetSurfaceFormat () const { return surfaceFormat.format; }
+    uint32_t GetImageCount () const { return imageCount; }
+    uint32_t GetWidth () const { return extent.width; }
+    uint32_t GetHeight () const { return extent.height; }
 
 private:
     struct SwapChainSupportDetails {
@@ -162,8 +161,10 @@ private:
     }
 
 public:
+    USING_PTR (Swapchain);
+
     Swapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface)
-        : Swapchain (physicalDevice, device, surface, physicalDevice.queueFamilies)
+        : Swapchain (physicalDevice, device, surface, physicalDevice.GetQueueFamilies ())
     {
     }
 
@@ -171,7 +172,7 @@ public:
         : physicalDevice (physicalDevice)
         , device (device)
         , handle (CreateSwapchain (physicalDevice, device, surface, queueFamilyIndices, surfaceFormat, presentMode, extent, imageCount))
-        , imageViews (CreateSwapchainImageViews (device, handle, surfaceFormat.format))
+        , imageViews (CreateSwapchainImageViews (device, handle, GetSurfaceFormat ()))
     {
         uint32_t imageCount;
         vkGetSwapchainImagesKHR (device, handle, &imageCount, nullptr);
@@ -185,10 +186,7 @@ public:
         handle = VK_NULL_HANDLE;
     }
 
-    operator VkSwapchainKHR () const
-    {
-        return handle;
-    }
+    operator VkSwapchainKHR () const { return handle; }
 };
 
 

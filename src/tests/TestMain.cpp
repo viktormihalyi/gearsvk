@@ -240,3 +240,6 @@ TEST_F (VulkanTestEnvironment, RenderGraphUseTest)
 
     ASSERT_TRUE (AreImagesEqual (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (presented.get ()).images[0]->image.image, PROJECT_ROOT / "black.png"));
 }
+
+
+TEST_F (VulkanTestEnvironment, SwapchainTest) {}

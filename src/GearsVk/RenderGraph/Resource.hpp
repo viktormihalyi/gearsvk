@@ -98,13 +98,13 @@ public:
 
 class SwapchainImageResource : public Resource {
 public:
-    Swapchain&                swapchain;
+    VkFormat                  swapchainSurfaceFormat;
     std::vector<ImageView::U> imageViews;
 
 public:
     USING_PTR (SwapchainImageResource);
     SwapchainImageResource (VkDevice device, Swapchain& swapchain)
-        : swapchain (swapchain)
+        : swapchainSurfaceFormat (swapchain.GetSurfaceFormat ())
     {
         uint32_t imageCount;
         vkGetSwapchainImagesKHR (device, swapchain, &imageCount, nullptr);
@@ -112,7 +112,7 @@ public:
         vkGetSwapchainImagesKHR (device, swapchain, &imageCount, swapChainImages.data ());
 
         for (size_t i = 0; i < swapChainImages.size (); ++i) {
-            imageViews.push_back (ImageView::Create (device, swapChainImages[i], swapchain.surfaceFormat.format));
+            imageViews.push_back (ImageView::Create (device, swapChainImages[i], swapchain.GetSurfaceFormat ()));
         }
     }
 
@@ -122,7 +122,7 @@ public:
 
     virtual OutputConnectionInfo GetOutputConnectionInfo () const override
     {
-        return {swapchain.surfaceFormat.format, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
+        return {swapchainSurfaceFormat, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
     }
 
     virtual void WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override {}

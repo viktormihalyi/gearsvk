@@ -2,52 +2,12 @@
 #define VULKANTESTENVIRONMENT_HPP
 
 #include "Ptr.hpp"
+#include "SDLWindow.hpp"
 #include "TerminalColors.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 
 #include "gtest/gtest.h"
-
-
-std::optional<uint32_t> dontCare (VkPhysicalDevice, VkSurfaceKHR, const std::vector<VkQueueFamilyProperties>&)
-{
-    return std::nullopt;
-}
-
-std::optional<uint32_t> acceptPresentSupport (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>& queueFamilies)
-{
-    if (surface == VK_NULL_HANDLE) {
-        return std::nullopt;
-    }
-
-    uint32_t i = 0;
-    for (const VkQueueFamilyProperties& queueFamily : queueFamilies) {
-        VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR (physicalDevice, i, surface, &presentSupport);
-        if (presentSupport) {
-            return i;
-        }
-
-        i++;
-    }
-
-    return std::nullopt;
-}
-
-
-auto acceptWithFlag (VkQueueFlagBits flagbits)
-{
-    return [=] (VkPhysicalDevice, VkSurfaceKHR, const std::vector<VkQueueFamilyProperties>& props) -> std::optional<uint32_t> {
-        uint32_t i = 0;
-        for (const auto& p : props) {
-            if (p.queueFlags & flagbits) {
-                return i;
-            }
-            ++i;
-        }
-        return std::nullopt;
-    };
-}
 
 
 static void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
@@ -63,91 +23,94 @@ static void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messa
     FAIL ();
 }
 
-// common for all test cases
-class TestInstance final : public Instance {
-public:
-    TestInstance ()
-        : Instance ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, {"VK_LAYER_KHRONOS_validation"})
-    {
-    }
-
-    USING_PTR (TestInstance);
-};
 
 // common for all test cases
 class TestEnvironment final {
 public:
-    DebugUtilsMessenger messenger;
-    PhysicalDevice      physicalDevice;
+    Instance::U            instance;
+    DebugUtilsMessenger::U messenger;
+    PhysicalDevice::U      physicalDevice;
+    Device::U              device;
+    Queue::U               queue;
+    CommandPool::U         commandPool;
 
-    TestEnvironment (Instance& instance, VkSurfaceKHR surface = VK_NULL_HANDLE)
-        : messenger (instance, testDebugCallback, DebugUtilsMessenger::noPerformance)
-        , physicalDevice (instance, surface, {}, {acceptWithFlag (VK_QUEUE_GRAPHICS_BIT), acceptPresentSupport, dontCare, dontCare})
-    {
-        uint32_t apiVersion;
-        vkEnumerateInstanceVersion (&apiVersion);
-        std::cout << "instance api version: " << GetVersionString (apiVersion) << std::endl;
-
-        VkPhysicalDeviceProperties deviceProperties;
-        vkGetPhysicalDeviceProperties (physicalDevice, &deviceProperties);
-
-        std::cout << "physical device api version: " << GetVersionString (deviceProperties.apiVersion) << std::endl;
-        std::cout << "physical device driver version: " << GetVersionString (deviceProperties.driverVersion) << std::endl;
-    }
+    // surface and swapchain are created if a window is provided in the ctor
+    Surface::U   surface;
+    Swapchain::U swapchain;
 
     USING_PTR (TestEnvironment);
-};
 
-
-// unique for each test case
-class TestCase final {
-public:
-    Device      device;
-    Queue       queue;
-    CommandPool commandPool;
-
-    TestCase (const TestEnvironment& env, const std::vector<const char*>& deviceExtenions = {})
-        : device (env.physicalDevice, {*env.physicalDevice.queueFamilies.graphics}, deviceExtenions)
-        , queue (device, *env.physicalDevice.queueFamilies.graphics)
-        , commandPool (device, *env.physicalDevice.queueFamilies.graphics)
+    TestEnvironment (std::vector<const char*> instanceExtensions, std::optional<WindowBase::Ref> window = std::nullopt)
     {
-    }
+        if (window) {
+            auto windowExtenions = window->get ().GetExtensions ();
+            instanceExtensions.insert (instanceExtensions.end (), windowExtenions.begin (), windowExtenions.end ());
+        }
 
-    USING_PTR (TestCase);
+        instance = Instance::Create (instanceExtensions, std::vector<const char*> {"VK_LAYER_KHRONOS_validation"});
+
+        if (window) {
+            surface = Surface::Create (*instance, window->get ().CreateSurface (*instance));
+        }
+
+        messenger = DebugUtilsMessenger::Create (*instance, testDebugCallback, DebugUtilsMessenger::noPerformance);
+
+        VkSurfaceKHR physicalDeviceSurfaceHandle = ((surface != nullptr) ? surface->operator VkSurfaceKHR () : VK_NULL_HANDLE);
+
+        physicalDevice = PhysicalDevice::Create (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
+
+        std::vector<const char*> deviceExtensions;
+
+        if (window) {
+            deviceExtensions.push_back (VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        }
+
+        device = Device::Create (*physicalDevice, std::vector<uint32_t> {*physicalDevice->GetQueueFamilies ().graphics}, deviceExtensions);
+
+        if (window) {
+            swapchain = Swapchain::Create (*physicalDevice, *device, *surface);
+        }
+
+        queue = Queue::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
+
+        commandPool = CommandPool::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
+
+        if (false) {
+            uint32_t apiVersion;
+            vkEnumerateInstanceVersion (&apiVersion);
+            std::cout << "instance api version: " << GetVersionString (apiVersion) << std::endl;
+
+            VkPhysicalDeviceProperties deviceProperties;
+            vkGetPhysicalDeviceProperties (*physicalDevice, &deviceProperties);
+
+            std::cout << "physical device api version: " << GetVersionString (deviceProperties.apiVersion) << std::endl;
+            std::cout << "physical device driver version: " << GetVersionString (deviceProperties.driverVersion) << std::endl;
+        }
+    }
 };
 
 
 class VulkanTestEnvironment : public ::testing::Test {
 protected:
-    static TestInstance::U    instance;
-    static TestEnvironment::U env;
-    TestCase::U               testCase;
+    WindowBase::U      window;
+    TestEnvironment::U env;
 
-    PhysicalDevice& GetPhysicalDevice () { return env->physicalDevice; }
-    Device&         GetDevice () { return testCase->device; }
-    CommandPool&    GetCommandPool () { return testCase->commandPool; }
-    Queue&          GetQueue () { return testCase->queue; }
+    PhysicalDevice& GetPhysicalDevice () { return *env->physicalDevice; }
+    Device&         GetDevice () { return *env->device; }
+    CommandPool&    GetCommandPool () { return *env->commandPool; }
+    Queue&          GetQueue () { return *env->queue; }
 
-    static void SetUpTestSuite ()
-    {
-        instance = TestInstance::Create ();
-        env      = TestEnvironment::Create (*instance);
-    }
-
-    static void TearDownTestSuite ()
-    {
-        env.reset ();
-        instance.reset ();
-    }
 
     virtual void SetUp () override
     {
-        testCase = TestCase::Create (*env);
+        window = HiddenSDLWindow::Create ();
+
+        env = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
     }
 
     virtual void TearDown () override
     {
-        testCase.reset ();
+        env.reset ();
     }
 
     void CompareImages (const std::string& imageName, const Image& image, std::optional<VkImageLayout> transitionFrom = std::nullopt)
@@ -165,8 +128,5 @@ protected:
         }
     }
 };
-
-TestEnvironment::U VulkanTestEnvironment::env;
-TestInstance::U    VulkanTestEnvironment::instance;
 
 #endif

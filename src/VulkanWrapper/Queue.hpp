@@ -12,6 +12,8 @@ private:
     VkQueue handle;
 
 public:
+    USING_PTR (Queue);
+
     Queue (VkDevice device, uint32_t index)
     {
         vkGetDeviceQueue (device, index, 0, &handle); // TODO another index

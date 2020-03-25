@@ -94,6 +94,8 @@ private:
     }
 
 public:
+    USING_PTR (Instance);
+
     Instance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers)
         : handle (CreateInstance (instanceExtensions, instanceLayers))
     {
