@@ -104,7 +104,7 @@ public:
 public:
     USING_PTR (SwapchainImageResource);
     SwapchainImageResource (VkDevice device, Swapchain& swapchain)
-        : swapchainSurfaceFormat (swapchain.GetSurfaceFormat ())
+        : swapchainSurfaceFormat (swapchain.GetImageFormat ())
     {
         uint32_t imageCount;
         vkGetSwapchainImagesKHR (device, swapchain, &imageCount, nullptr);
@@ -112,7 +112,7 @@ public:
         vkGetSwapchainImagesKHR (device, swapchain, &imageCount, swapChainImages.data ());
 
         for (size_t i = 0; i < swapChainImages.size (); ++i) {
-            imageViews.push_back (ImageView::Create (device, swapChainImages[i], swapchain.GetSurfaceFormat ()));
+            imageViews.push_back (ImageView::Create (device, swapChainImages[i], swapchain.GetImageFormat ()));
         }
     }
 

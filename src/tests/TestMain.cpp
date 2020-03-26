@@ -25,17 +25,17 @@ int main (int argc, char** argv)
 using namespace RenderGraph;
 
 
-TEST_F (VulkanTestEnvironment, TestEnvironmentTest)
+TEST_F (HeadlessVulkanTestEnvironment, TestEnvironmentTest)
 {
     EXPECT_TRUE (true);
 }
 
 
-TEST_F (VulkanTestEnvironment, DISABLED_RenderGraphConnectionTest)
+TEST_F (HeadlessVulkanTestEnvironment, DISABLED_RenderGraphConnectionTest)
 {
     Device&      device        = GetDevice ();
     CommandPool& commandPool   = GetCommandPool ();
-    Queue&       graphicsQueue = GetQueue ();
+    Queue&       graphicsQueue = GetGraphicsQueue ();
 
     Graph graph (device, commandPool, GraphSettings (1, 512, 512));
 
@@ -83,7 +83,7 @@ TEST_F (VulkanTestEnvironment, DISABLED_RenderGraphConnectionTest)
 }
 
 
-TEST_F (VulkanTestEnvironment, CompileTest)
+TEST_F (HeadlessVulkanTestEnvironment, CompileTest)
 {
     Device&      device      = GetDevice ();
     CommandPool& commandPool = GetCommandPool ();
@@ -102,11 +102,11 @@ DestinationType& DynamicRefCast (std::reference_wrapper<SourceType>& source)
 }
 
 
-TEST_F (VulkanTestEnvironment, RenderRedImage)
+TEST_F (HeadlessVulkanTestEnvironment, RenderRedImage)
 {
     Device&      device        = GetDevice ();
     CommandPool& commandPool   = GetCommandPool ();
-    Queue&       graphicsQueue = GetQueue ();
+    Queue&       graphicsQueue = GetGraphicsQueue ();
 
     Graph graph (device, commandPool, GraphSettings (3, 512, 512));
 
@@ -178,11 +178,11 @@ void main () {
 }
 
 
-TEST_F (VulkanTestEnvironment, RenderGraphUseTest)
+TEST_F (HeadlessVulkanTestEnvironment, RenderGraphUseTest)
 {
     Device&      device        = GetDevice ();
     CommandPool& commandPool   = GetCommandPool ();
-    Queue&       graphicsQueue = GetQueue ();
+    Queue&       graphicsQueue = GetGraphicsQueue ();
 
     Graph graph (device, commandPool, GraphSettings (4, 512, 512));
 
@@ -242,4 +242,107 @@ TEST_F (VulkanTestEnvironment, RenderGraphUseTest)
 }
 
 
-TEST_F (VulkanTestEnvironment, SwapchainTest) {}
+TEST_F (HiddenWindowVulkanTestEnvironment, SwapchainTest)
+{
+    Device&      device        = GetDevice ();
+    CommandPool& commandPool   = GetCommandPool ();
+    Queue&       graphicsQueue = GetGraphicsQueue ();
+    Swapchain&   swapchain     = GetSwapchain ();
+
+    Graph graph (device, commandPool, GraphSettings (swapchain));
+
+    auto sp = ShaderPipeline::Create (device);
+    sp->SetVertexShader (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec2 textureCoords;
+
+vec2 uvs[6] = vec2[] (
+    vec2 (0.f, 0.f),
+    vec2 (0.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (0.f, 0.f),
+    vec2 (1.f, 0.f)
+);
+
+vec2 positions[6] = vec2[] (
+    vec2 (-1.f, -1.f),
+    vec2 (-1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (-1.f, -1.f),
+    vec2 (+1.f, -1.f)
+);
+
+
+void main() {
+    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
+    textureCoords = uvs[gl_VertexIndex];
+}
+    )");
+
+    sp->SetFragmentShader (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) in vec2 uv;
+
+layout (location = 0) out vec4 outColor;
+layout (location = 1) out vec4 outCopy;
+
+void main () {
+    vec4 result = vec4 (uv, 0, 1);
+    outColor = result;
+    outCopy = result;
+}
+    )");
+
+    Resource& presentedCopy = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings (), device, graphicsQueue, commandPool, std::nullopt, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+    Resource& presented     = graph.CreateResource (SwapchainImageResource::Create (device, swapchain));
+
+    Operation& redFillOperation = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (),
+                                                                                  device,
+                                                                                  commandPool,
+                                                                                  6,
+                                                                                  std::move (sp)));
+
+    Operation& presentOp = graph.CreateOperation (PresentOperation::Create (swapchain, graphicsQueue, std::vector<VkSemaphore> {}));
+
+    graph.AddConnection (OutputConnection {redFillOperation, 0, presented});
+    graph.AddConnection (OutputConnection {redFillOperation, 1, presentedCopy});
+
+    graph.Compile ();
+
+    Semaphore s (device);
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime = std::chrono::high_resolution_clock::now ();
+
+    const uint32_t maxRenders  = 10;
+    uint32_t       renderCount = 0;
+
+    window->DoEventLoop ([&] (bool& stopFlag) {
+        uint32_t imageIndex = 0;
+        vkAcquireNextImageKHR (device, swapchain, UINT64_MAX, s, VK_NULL_HANDLE, &imageIndex);
+        graph.Submit (graphicsQueue, imageIndex, {s});
+
+        vkQueueWaitIdle (graphicsQueue);
+        vkDeviceWaitIdle (device);
+
+
+        auto   currentTime     = std::chrono::high_resolution_clock::now ();
+        auto   elapsedNanosecs = (std::chrono::duration_cast<std::chrono::nanoseconds> (currentTime - lastDrawTime)).count ();
+        double elapsedSecs     = elapsedNanosecs * 1e-9;
+        std::cout << "fps: " << 1.0 / elapsedSecs << std::endl;
+        lastDrawTime = currentTime;
+
+        renderCount++;
+        if (renderCount >= maxRenders) {
+            stopFlag = true;
+        }
+    });
+
+    vkQueueWaitIdle (graphicsQueue);
+    vkDeviceWaitIdle (device);
+}

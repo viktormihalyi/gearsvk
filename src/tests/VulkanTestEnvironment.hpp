@@ -90,7 +90,7 @@ public:
 };
 
 
-class VulkanTestEnvironment : public ::testing::Test {
+class VulkanTestEnvironmentBase : public ::testing::Test {
 protected:
     WindowBase::U      window;
     TestEnvironment::U env;
@@ -98,13 +98,57 @@ protected:
     PhysicalDevice& GetPhysicalDevice () { return *env->physicalDevice; }
     Device&         GetDevice () { return *env->device; }
     CommandPool&    GetCommandPool () { return *env->commandPool; }
-    Queue&          GetQueue () { return *env->graphicsQueue; }
+    Queue&          GetGraphicsQueue () { return *env->graphicsQueue; }
+
+    Swapchain& GetSwapchain ()
+    {
+        ASSERT (window != nullptr);
+        return *env->swapchain;
+    }
+
+    virtual ~VulkanTestEnvironmentBase () {}
+
+    virtual void SetUp ()    = 0;
+    virtual void TearDown () = 0;
+
+    void CompareImages (const std::string& imageName, const Image& image, std::optional<VkImageLayout> transitionFrom = std::nullopt)
+    {
+        if (transitionFrom.has_value ()) {
+            TransitionImageLayout (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, *transitionFrom, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+        }
+
+        const bool imagesMatch = AreImagesEqual (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, PROJECT_ROOT / ("expected_" + imageName + ".png"));
+
+        EXPECT_TRUE (imagesMatch);
+
+        if (!imagesMatch) {
+            SaveImageToFileAsync (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, PROJECT_ROOT / ("actual_" + imageName + ".png")).join ();
+        }
+    }
+};
 
 
+// no window, swapchain, surface
+class HeadlessVulkanTestEnvironment : public VulkanTestEnvironmentBase {
+protected:
     virtual void SetUp () override
     {
-        window = HiddenSDLWindow::Create ();
-        env    = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
+        env = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
+    }
+
+    virtual void TearDown () override
+    {
+        env.reset ();
+    }
+};
+
+
+class ShownWindowVulkanTestEnvironment : public VulkanTestEnvironmentBase {
+protected:
+    virtual void SetUp () override
+    {
+        window = SDLWindow::Create ();
+        env    = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
     }
 
     virtual void TearDown () override
@@ -112,20 +156,21 @@ protected:
         env.reset ();
         window.reset ();
     }
+};
 
-    void CompareImages (const std::string& imageName, const Image& image, std::optional<VkImageLayout> transitionFrom = std::nullopt)
+
+class HiddenWindowVulkanTestEnvironment : public VulkanTestEnvironmentBase {
+protected:
+    virtual void SetUp () override
     {
-        if (transitionFrom.has_value ()) {
-            TransitionImageLayout (GetDevice (), GetQueue (), GetCommandPool (), image, *transitionFrom, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-        }
+        window = HiddenSDLWindow::Create ();
+        env    = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
+    }
 
-        const bool imagesMatch = AreImagesEqual (GetDevice (), GetQueue (), GetCommandPool (), image, PROJECT_ROOT / ("expected_" + imageName + ".png"));
-
-        EXPECT_TRUE (imagesMatch);
-
-        if (!imagesMatch) {
-            SaveImageToFileAsync (GetDevice (), GetQueue (), GetCommandPool (), image, PROJECT_ROOT / ("actual_" + imageName + ".png")).join ();
-        }
+    virtual void TearDown () override
+    {
+        env.reset ();
+        window.reset ();
     }
 };
 
