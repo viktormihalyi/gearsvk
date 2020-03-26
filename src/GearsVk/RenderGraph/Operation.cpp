@@ -109,6 +109,7 @@ RenderOperation::RenderOperation (const GraphSettings& graphSettings, VkDevice d
     : graphSettings (graphSettings)
     , device (device)
     , vertexCount (vertexCount)
+    , vertexBuffer (VK_NULL_HANDLE)
 {
     ASSERT (!shaders.empty ());
 
@@ -126,11 +127,17 @@ RenderOperation::RenderOperation (const GraphSettings& graphSettings, VkDevice d
 }
 
 
-RenderOperation::RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, ShaderPipeline::U&& shaderPipeline)
+RenderOperation::RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, ShaderPipeline::U&& shaderPipeline,
+                                  VkBuffer                                              vertexBuffer,
+                                  const std::vector<VkVertexInputBindingDescription>&   vertexInputBindings,
+                                  const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributes)
     : graphSettings (graphSettings)
     , device (device)
     , vertexCount (vertexCount)
     , pipeline (std::move (shaderPipeline))
+    , vertexBuffer (vertexBuffer)
+    , vertexInputBindings (vertexInputBindings)
+    , vertexInputAttributes (vertexInputAttributes)
 {
 }
 
@@ -159,7 +166,7 @@ void RenderOperation::Compile ()
         }
     }
 
-    pipeline->Compile (graphSettings.width, graphSettings.height, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions ());
+    pipeline->Compile (graphSettings.width, graphSettings.height, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions (), vertexInputBindings, vertexInputAttributes);
 
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
         framebuffers.push_back (Framebuffer::Create (device, *pipeline->renderPass, GetOutputImageViews (frameIndex), graphSettings.width, graphSettings.height));
@@ -184,6 +191,11 @@ void RenderOperation::Record (uint32_t frameIndex, VkCommandBuffer commandBuffer
     vkCmdBeginRenderPass (commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     vkCmdBindPipeline (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline->pipeline);
+
+    if (vertexBuffer != VK_NULL_HANDLE) {
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers (commandBuffer, 0, 1, &vertexBuffer, offsets);
+    }
 
     if (!descriptorSets.empty ()) {
         VkDescriptorSet dsHandle = *descriptorSets[frameIndex];

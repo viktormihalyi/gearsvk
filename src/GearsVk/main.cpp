@@ -57,6 +57,61 @@ struct Vertex {
     glm::vec3 color;
 };
 
+uint32_t GetVertexFormatSize (VkFormat format)
+{
+    switch (format) {
+        case VK_FORMAT_R32_SFLOAT: return 1 * sizeof (float);
+        case VK_FORMAT_R32G32_SFLOAT: return 2 * sizeof (float);
+        case VK_FORMAT_R32G32B32_SFLOAT: return 3 * sizeof (float);
+        case VK_FORMAT_R32G32B32A32_SFLOAT: return 4 * sizeof (float);
+        case VK_FORMAT_R32_UINT: return 1 * sizeof (uint32_t);
+        case VK_FORMAT_R32G32_UINT: return 2 * sizeof (uint32_t);
+        case VK_FORMAT_R32G32B32_UINT: return 3 * sizeof (uint32_t);
+        case VK_FORMAT_R32G32B32A32_UINT: return 4 * sizeof (uint32_t);
+    }
+
+    throw std::runtime_error ("unhandled VkFormat value");
+}
+
+class VertexInputInfo final {
+public:
+    uint32_t                                       size;
+    std::vector<VkVertexInputAttributeDescription> attributes;
+    std::vector<VkVertexInputBindingDescription>   bindings;
+
+    VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats)
+        : size (0)
+    {
+        uint32_t location = 0;
+        size              = 0;
+
+        uint32_t attributeSize = 0;
+
+        for (VkFormat format : vertexInputFormats) {
+            VkVertexInputAttributeDescription attrib;
+
+            attrib.binding  = 0;
+            attrib.location = location;
+            attrib.format   = format;
+            attrib.offset   = attributeSize;
+            attributes.push_back (attrib);
+
+            ++location;
+            size += GetVertexFormatSize (format);
+            attributeSize += GetVertexFormatSize (format);
+        }
+
+        VkVertexInputBindingDescription bindingDescription = {};
+
+        bindingDescription           = {};
+        bindingDescription.binding   = 0;
+        bindingDescription.stride    = size;
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+        bindings = {bindingDescription};
+    }
+};
+
 
 struct VertexInfo : public VertexInfoBase {
     std::vector<VkVertexInputBindingDescription> GetBindingDescriptions () const override
@@ -72,27 +127,7 @@ struct VertexInfo : public VertexInfoBase {
 
     std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions () const override
     {
-        std::vector<VkVertexInputAttributeDescription> result;
-
-        {
-            VkVertexInputAttributeDescription next;
-            next.binding  = 0;
-            next.location = 0;
-            next.format   = VK_FORMAT_R32G32_SFLOAT;
-            next.offset   = offsetof (Vertex, position);
-
-            result.push_back (next);
-        }
-        {
-            VkVertexInputAttributeDescription next;
-            next.binding  = 0;
-            next.location = 1;
-            next.format   = VK_FORMAT_R32G32B32_SFLOAT;
-            next.offset   = offsetof (Vertex, color);
-            result.push_back (next);
-        }
-
-        return result;
+        return VertexInputInfo (std::vector<VkFormat> {VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT}).attributes;
     }
 };
 
@@ -637,6 +672,9 @@ int main (int argc, char* argv[])
 
 layout (location = 0) out vec2 textureCoords;
 
+layout (location = 0) in float asd;
+layout (location = 1) out float asdout;
+
 vec2 uvs[6] = vec2[] (
     vec2 (0.f, 0.f),
     vec2 (0.f, 1.f),
@@ -659,6 +697,7 @@ vec2 positions[6] = vec2[] (
 void main() {
     gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
     textureCoords = uvs[gl_VertexIndex];
+    asdout = asd;
 }
     )");
 
@@ -666,13 +705,14 @@ void main() {
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+layout (location = 1) in float asdout;
 layout (location = 0) in vec2 uv;
 
 layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec4 outCopy;
 
 void main () {
-    vec4 result = vec4 (uv, 0, 1);
+    vec4 result = vec4 (vec3 (asdout), 1);
     outColor = result;
     outCopy = result;
 }
@@ -681,11 +721,66 @@ void main () {
     Resource& presentedCopy = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings (), device, graphicsQueue, commandPool, std::nullopt, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
     Resource& presented     = graph.CreateResource (SwapchainImageResource::Create (device, swapchain));
 
+    VertexInputInfo inf ({VK_FORMAT_R32_SFLOAT});
+
+    class TransferedVertexData {
+    public:
+        const VkDevice      device;
+        const VkQueue       queue;
+        const VkCommandPool commandPool;
+
+        uint32_t bufferSize;
+
+        AllocatedBuffer bufferGPU;
+
+        AllocatedBuffer bufferCPU;
+        MemoryMapping   bufferCPUMapping;
+
+        TransferedVertexData (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t bufferSize)
+            : device (device)
+            , queue (queue)
+            , commandPool (commandPool)
+            , bufferSize (bufferSize)
+            , bufferGPU (device, Buffer::Create (device, bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT), DeviceMemory::GPU)
+            , bufferCPU (device, Buffer::Create (device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), DeviceMemory::CPU)
+            , bufferCPUMapping (device, *bufferCPU.memory, 0, bufferSize)
+        {
+        }
+
+        void CopyAndTransfer (const void* data, uint32_t size) const
+        {
+            ASSERT (size == bufferSize);
+            bufferCPUMapping.Copy (data, size, 0);
+            CopyBuffer (device, queue, commandPool, *bufferCPU.buffer, *bufferGPU.buffer, bufferSize);
+        }
+
+        VkBuffer GetBufferToBind () const
+        {
+            return *bufferGPU.buffer;
+        }
+    };
+
+    class AllocatedVertexBuffer {
+    public:
+        const VertexInputInfo      info;
+        const TransferedVertexData buffer;
+
+        AllocatedVertexBuffer (const Device& device, VkQueue queue, VkCommandPool commandPool, const std::vector<VkFormat>& vertexInputFormats, uint32_t maxVertexCount)
+            : info (vertexInputFormats)
+            , buffer (device, queue, commandPool, info.size * maxVertexCount)
+        {
+        }
+    };
+
+    AllocatedVertexBuffer vb (device, graphicsQueue, commandPool, {VK_FORMAT_R32_SFLOAT}, 6);
+    std::vector<float>    asd = {0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f};
+    vb.buffer.CopyAndTransfer (asd.data (), sizeof (float) * asd.size ());
+
     Operation& redFillOperation = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (),
                                                                                   device,
                                                                                   commandPool,
                                                                                   6,
-                                                                                  std::move (sp)));
+                                                                                  std::move (sp), vb.buffer.GetBufferToBind (), vb.info.bindings, vb.info.attributes));
 
     Operation& presentOp = graph.CreateOperation (PresentOperation::Create (swapchain, graphicsQueue, std::vector<VkSemaphore> {}));
 
@@ -697,7 +792,6 @@ void main () {
     Semaphore s (device);
 
     std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime = std::chrono::high_resolution_clock::now ();
-
 
     window->DoEventLoop ([&] (bool&) {
         uint32_t imageIndex = 0;

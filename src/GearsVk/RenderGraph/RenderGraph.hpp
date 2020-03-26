@@ -26,9 +26,7 @@ struct OutputConnection final {
 
 
 class Graph final : public Noncopyable {
-public:
-    USING_PTR (Graph);
-
+private:
     bool compiled;
 
     const VkDevice      device;
@@ -41,13 +39,13 @@ public:
 
     const GraphSettings settings;
 
-    Graph (VkDevice device, VkCommandPool commandPool, GraphSettings settings);
+public:
+    USING_PTR (Graph);
 
-    GraphSettings GetGraphSettings () const { return settings; }
+    Graph (VkDevice device, VkCommandPool commandPool, GraphSettings settings);
 
     Resource&  CreateResource (Resource::U&& resource);
     Operation& CreateOperation (Operation::U&& resource);
-
 
     void AddConnection (InputConnection& c);
     void AddConnection (OutputConnection& c);
@@ -55,7 +53,8 @@ public:
     void Compile ();
     void Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores = {}, const std::vector<VkSemaphore>& signalSemaphores = {});
 
-}; // namespace RenderGraph
+    GraphSettings GetGraphSettings () const { return settings; }
+};
 
 
 } // namespace RenderGraph

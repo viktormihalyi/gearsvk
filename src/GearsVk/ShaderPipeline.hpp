@@ -106,7 +106,13 @@ public:
         }
     }
 
-    void Compile (uint32_t width, uint32_t height, VkDescriptorSetLayout layout, const std::vector<VkAttachmentReference>& attachmentReferences, const std::vector<VkAttachmentDescription>& attachmentDescriptions)
+    void Compile (uint32_t                                              width,
+                  uint32_t                                              height,
+                  VkDescriptorSetLayout                                 layout,
+                  const std::vector<VkAttachmentReference>&             attachmentReferences,
+                  const std::vector<VkAttachmentDescription>&           attachmentDescriptions,
+                  const std::vector<VkVertexInputBindingDescription>&   inputBindings,
+                  const std::vector<VkVertexInputAttributeDescription>& inputAttributes)
     {
         VkSubpassDescription subpass = {};
         subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -132,7 +138,7 @@ public:
 
         renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, attachmentDescriptions, {subpass}, {dependency}));
         pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, {layout}));
-        pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, width, height, attachmentReferences.size (), *pipelineLayout, *renderPass, GetShaderStages (), {}, {}));
+        pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, width, height, attachmentReferences.size (), *pipelineLayout, *renderPass, GetShaderStages (), inputBindings, inputAttributes));
     }
 };
 

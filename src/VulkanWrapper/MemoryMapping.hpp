@@ -8,7 +8,6 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
-
 class MemoryMapping : public Noncopyable {
 private:
     const VkDevice       device;

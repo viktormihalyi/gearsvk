@@ -93,8 +93,15 @@ struct RenderOperation final : public Operation {
     std::vector<Framebuffer::U>   framebuffers;
     std::vector<DescriptorSet::U> descriptorSets;
 
+    VkBuffer                                       vertexBuffer;
+    std::vector<VkVertexInputBindingDescription>   vertexInputBindings;
+    std::vector<VkVertexInputAttributeDescription> vertexInputAttributes;
+
     RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, const std::vector<std::filesystem::path>& shaders);
-    RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, ShaderPipeline::U&& shaderPipiline);
+    RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, ShaderPipeline::U&& shaderPipiline,
+                     VkBuffer                                              vertexBuffer          = VK_NULL_HANDLE,
+                     const std::vector<VkVertexInputBindingDescription>&   vertexInputBindings   = {},
+                     const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributes = {});
 
     virtual ~RenderOperation () {}
     virtual void Compile () override;
