@@ -79,6 +79,35 @@ struct Operation : public Noncopyable {
 //    virtual void Record (VkCommandBuffer commandBuffer) { recordFunc (commandBuffer); }
 //};
 
+struct RenderOperationSettings {
+    const uint32_t instanceCount;
+
+    const uint32_t                                       vertexCount;
+    const VkBuffer                                       vertexBuffer;
+    const std::vector<VkVertexInputBindingDescription>   vertexInputBindings;
+    const std::vector<VkVertexInputAttributeDescription> vertexInputAttributes;
+
+    const uint32_t indexCount;
+    const VkBuffer indexBuffer;
+
+    RenderOperationSettings (const uint32_t                                        instanceCount,
+                             uint32_t                                              vertexCount,
+                             VkBuffer                                              vertexBuffer          = VK_NULL_HANDLE,
+                             const std::vector<VkVertexInputBindingDescription>&   vertexInputBindings   = {},
+                             const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributes = {},
+                             uint32_t                                              indexCount            = 0,
+                             VkBuffer                                              indexBuffer           = VK_NULL_HANDLE)
+        : instanceCount (instanceCount)
+        , vertexCount (vertexCount)
+        , vertexBuffer (vertexBuffer)
+        , vertexInputBindings (vertexInputBindings)
+        , vertexInputAttributes (vertexInputAttributes)
+        , indexCount (indexCount)
+        , indexBuffer (indexBuffer)
+    {
+    }
+};
+
 struct RenderOperation final : public Operation {
     USING_PTR (RenderOperation);
 
@@ -87,21 +116,15 @@ struct RenderOperation final : public Operation {
     ShaderPipeline::U      pipeline;
     DescriptorPool::U      descriptorPool;
     DescriptorSetLayout::U descriptorSetLayout;
-    const uint32_t         vertexCount;
     const GraphSettings    graphSettings;
 
     std::vector<Framebuffer::U>   framebuffers;
     std::vector<DescriptorSet::U> descriptorSets;
 
-    VkBuffer                                       vertexBuffer;
-    std::vector<VkVertexInputBindingDescription>   vertexInputBindings;
-    std::vector<VkVertexInputAttributeDescription> vertexInputAttributes;
+    const RenderOperationSettings settings;
 
-    RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, const std::vector<std::filesystem::path>& shaders);
-    RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, uint32_t vertexCount, ShaderPipeline::U&& shaderPipiline,
-                     VkBuffer                                              vertexBuffer          = VK_NULL_HANDLE,
-                     const std::vector<VkVertexInputBindingDescription>&   vertexInputBindings   = {},
-                     const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributes = {});
+    RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, const RenderOperationSettings& settings, const std::vector<std::filesystem::path>& shaders);
+    RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, const RenderOperationSettings& settings, ShaderPipeline::U&& shaderPipiline);
 
     virtual ~RenderOperation () {}
     virtual void Compile () override;

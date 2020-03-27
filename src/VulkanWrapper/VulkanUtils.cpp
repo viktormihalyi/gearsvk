@@ -23,6 +23,56 @@ std::string GetVersionString (uint32_t version)
 }
 
 
+static uint32_t GetVertexFormatSize (VkFormat format)
+{
+    switch (format) {
+        case VK_FORMAT_R32_SFLOAT: return 1 * sizeof (float);
+        case VK_FORMAT_R32G32_SFLOAT: return 2 * sizeof (float);
+        case VK_FORMAT_R32G32B32_SFLOAT: return 3 * sizeof (float);
+        case VK_FORMAT_R32G32B32A32_SFLOAT: return 4 * sizeof (float);
+        case VK_FORMAT_R32_UINT: return 1 * sizeof (uint32_t);
+        case VK_FORMAT_R32G32_UINT: return 2 * sizeof (uint32_t);
+        case VK_FORMAT_R32G32B32_UINT: return 3 * sizeof (uint32_t);
+        case VK_FORMAT_R32G32B32A32_UINT: return 4 * sizeof (uint32_t);
+    }
+
+    throw std::runtime_error ("unhandled VkFormat value");
+}
+
+
+VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats)
+    : size (0)
+{
+    uint32_t location = 0;
+    size              = 0;
+
+    uint32_t attributeSize = 0;
+
+    for (VkFormat format : vertexInputFormats) {
+        VkVertexInputAttributeDescription attrib;
+
+        attrib.binding  = 0;
+        attrib.location = location;
+        attrib.format   = format;
+        attrib.offset   = attributeSize;
+        attributes.push_back (attrib);
+
+        ++location;
+        size += GetVertexFormatSize (format);
+        attributeSize += GetVertexFormatSize (format);
+    }
+
+    VkVertexInputBindingDescription bindingDescription = {};
+
+    bindingDescription           = {};
+    bindingDescription.binding   = 0;
+    bindingDescription.stride    = size;
+    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    bindings = {bindingDescription};
+}
+
+
 void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
     SingleTimeCommand commandBuffer (device, commandPool, queue);
@@ -52,6 +102,16 @@ void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool co
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1,
         &region);
+}
+
+
+void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+    SingleTimeCommand commandBuffer (device, commandPool, graphicsQueue);
+
+    VkBufferCopy copyRegion = {};
+    copyRegion.size         = size;
+    vkCmdCopyBuffer (commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 }
 
 
