@@ -18,13 +18,14 @@ private:
 public:
     USING_PTR (ImageView);
 
-    ImageView (VkDevice device, VkImage image, VkFormat format)
+    ImageView (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
         : device (device)
         , format (format)
         , handle (VK_NULL_HANDLE)
     {
         VkImageViewCreateInfo createInfo           = {};
         createInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        createInfo.flags                           = 0;
         createInfo.image                           = image;
         createInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
         createInfo.format                          = format;
@@ -35,7 +36,7 @@ public:
         createInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
         createInfo.subresourceRange.baseMipLevel   = 0;
         createInfo.subresourceRange.levelCount     = 1;
-        createInfo.subresourceRange.baseArrayLayer = 0;
+        createInfo.subresourceRange.baseArrayLayer = layerIndex;
         createInfo.subresourceRange.layerCount     = 1;
 
         VkResult result = vkCreateImageView (device, &createInfo, nullptr, &handle);
@@ -44,8 +45,8 @@ public:
         }
     }
 
-    ImageView (VkDevice device, const Image& image)
-        : ImageView (device, image, image.GetFormat ())
+    ImageView (VkDevice device, const Image& image, uint32_t layerIndex)
+        : ImageView (device, image, image.GetFormat (), layerIndex)
     {
     }
 

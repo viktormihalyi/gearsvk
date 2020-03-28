@@ -3,53 +3,23 @@
 
 namespace RenderGraph {
 
-InputBinding::InputBinding (uint32_t binding)
-    : binding (binding)
-{
-    descriptor.binding            = binding;
-    descriptor.descriptorType     = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    descriptor.descriptorCount    = 1;
-    descriptor.stageFlags         = VK_SHADER_STAGE_ALL_GRAPHICS;
-    descriptor.pImmutableSamplers = nullptr;
-}
-
-
-OutputBinding::OutputBinding (uint32_t binding, VkFormat format, VkImageLayout finalLayout)
-    : binding (binding)
-    , attachmentDescription ({})
-    , attachmentReference ({})
-    , format (format)
-    , finalLayout (finalLayout)
-{
-    attachmentDescription.format         = format;
-    attachmentDescription.samples        = VK_SAMPLE_COUNT_1_BIT;
-    attachmentDescription.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    attachmentDescription.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-    attachmentDescription.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachmentDescription.initialLayout  = Image::INITIAL_LAYOUT; // TODO
-    attachmentDescription.finalLayout    = finalLayout;
-
-    attachmentReference.attachment = binding;
-    attachmentReference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-}
-
-
-void Operation::AddInput (uint32_t binding, const Resource::Ref& res)
+void Operation::AddInput (const uint32_t binding, const Resource::Ref& res)
 {
     ASSERT (std::find (inputBindings.begin (), inputBindings.end (), binding) == inputBindings.end ());
 
     inputs.push_back (res);
-    inputBindings.push_back (InputBinding (binding));
+    inputBindings.push_back (InputBinding (binding, res.get ().GetLayerCount ()));
 }
 
 
-void Operation::AddOutput (uint32_t binding, VkFormat format, VkImageLayout finalLayout, const Resource::Ref& res)
+void Operation::AddOutput (const uint32_t binding, const Resource::Ref& res)
 {
     ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
 
     outputs.push_back (res);
-    outputBindings.push_back (OutputBinding (binding, format, finalLayout));
+    for (uint32_t bindingIndex = binding; bindingIndex < binding + res.get ().GetLayerCount (); ++bindingIndex) {
+        outputBindings.push_back (OutputBinding (bindingIndex, res.get ().GetFormat (), res.get ().GetFinalLayout ()));
+    }
 }
 
 
@@ -72,12 +42,15 @@ std::vector<VkAttachmentReference> Operation::GetAttachmentReferences () const
     return result;
 }
 
+
 std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) const
 {
     std::vector<VkImageView> result;
 
     auto onImage = [&] (ImageResource& res) {
-        result.push_back (*res.images[frameIndex]->imageView);
+        for (auto& imgView : res.images[frameIndex]->imageViews) {
+            result.push_back (*imgView);
+        }
     };
 
     auto onSwapchainImage = [&] (SwapchainImageResource& res) {
@@ -90,24 +63,10 @@ std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) co
 
     return result;
 }
-//
-//
-//LambdaOperation::LambdaOperation (const GraphInfo& graphSettings, VkDevice device, VkCommandPool commandPool, const std::vector<std::filesystem::path>& shaders,
-//                                  const std::function<void ()>&               compileFunc,
-//                                  const std::function<void (VkCommandBuffer)> recordFunc)
-//    : graphSettings (graphSettings)
-//    , compileFunc (compileFunc)
-//    , recordFunc (recordFunc)
-//{
-//    ASSERT (!shaders.empty ());
-//
-//    pipeline.AddShaders (device, shaders);
-//}
 
 
-RenderOperation::RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, const RenderOperationSettings& settings, const std::vector<std::filesystem::path>& shaders)
+RenderOperation::RenderOperation (const GraphSettings& graphSettings, const RenderOperationSettings& settings, const std::vector<std::filesystem::path>& shaders)
     : graphSettings (graphSettings)
-    , device (device)
     , settings (settings)
 {
     ASSERT (!shaders.empty ());
@@ -119,16 +78,15 @@ RenderOperation::RenderOperation (const GraphSettings& graphSettings, VkDevice d
     }
     std::cout << "... ";
 
-    pipeline = ShaderPipeline::Create (device);
+    pipeline = ShaderPipeline::Create (graphSettings.device);
     pipeline->AddShaders (shaders);
 
     std::cout << "done" << std::endl;
 }
 
 
-RenderOperation::RenderOperation (const GraphSettings& graphSettings, VkDevice device, VkCommandPool commandPool, const RenderOperationSettings& settings, ShaderPipeline::U&& shaderPipeline)
+RenderOperation::RenderOperation (const GraphSettings& graphSettings, const RenderOperationSettings& settings, ShaderPipeline::U&& shaderPipeline)
     : graphSettings (graphSettings)
-    , device (device)
     , pipeline (std::move (shaderPipeline))
     , settings (settings)
 {
@@ -142,13 +100,13 @@ void RenderOperation::Compile ()
         layout.push_back (inputBinding.descriptor);
     }
 
-    descriptorSetLayout = DescriptorSetLayout::Create (device, layout);
+    descriptorSetLayout = DescriptorSetLayout::Create (graphSettings.device, layout);
 
     if (!inputBindings.empty ()) {
-        descriptorPool = DescriptorPool::Create (device, 0, inputBindings.size () * graphSettings.framesInFlight, graphSettings.framesInFlight);
+        descriptorPool = DescriptorPool::Create (graphSettings.device, 0, inputBindings.size () * graphSettings.framesInFlight, graphSettings.framesInFlight);
 
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            DescriptorSet::U descriptorSet = DescriptorSet::Create (device, *descriptorPool, *descriptorSetLayout);
+            DescriptorSet::U descriptorSet = DescriptorSet::Create (graphSettings.device, *descriptorPool, *descriptorSetLayout);
 
             for (uint32_t i = 0; i < inputs.size (); ++i) {
                 Resource& r = inputs[i];
@@ -159,10 +117,18 @@ void RenderOperation::Compile ()
         }
     }
 
-    pipeline->Compile (graphSettings.width, graphSettings.height, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions (), settings.vertexInputBindings, settings.vertexInputAttributes);
+    ASSERT ([&] () -> bool {
+        ASSERT (GetAttachmentReferences ().size () == GetAttachmentDescriptions ().size ());
+        for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
+            ASSERT (GetAttachmentReferences ().size () == GetOutputImageViews (frameIndex).size ());
+        }
+        return true;
+    }());
+
+    pipeline->Compile ({graphSettings.width, graphSettings.height, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions (), settings.vertexInputBindings, settings.vertexInputAttributes});
 
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-        framebuffers.push_back (Framebuffer::Create (device, *pipeline->renderPass, GetOutputImageViews (frameIndex), graphSettings.width, graphSettings.height));
+        framebuffers.push_back (Framebuffer::Create (graphSettings.device, *pipeline->renderPass, GetOutputImageViews (frameIndex), graphSettings.width, graphSettings.height));
     }
 }
 
@@ -170,7 +136,7 @@ void RenderOperation::Compile ()
 void RenderOperation::Record (uint32_t frameIndex, VkCommandBuffer commandBuffer)
 {
     VkClearValue              clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
-    std::vector<VkClearValue> clearValues (outputs.size (), clearColor);
+    std::vector<VkClearValue> clearValues (outputBindings.size (), clearColor);
 
     VkRenderPassBeginInfo renderPassBeginInfo = {};
     renderPassBeginInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -206,7 +172,7 @@ void RenderOperation::Record (uint32_t frameIndex, VkCommandBuffer commandBuffer
     if (settings.indexBuffer != VK_NULL_HANDLE) {
         vkCmdDrawIndexed (commandBuffer, settings.indexCount, settings.instanceCount, 0, 0, 0);
     } else {
-        vkCmdDraw (commandBuffer, settings.vertexCount, 1, 0, 0);
+        vkCmdDraw (commandBuffer, settings.vertexCount, settings.instanceCount, 0, 0);
     }
 
     vkCmdEndRenderPass (commandBuffer);

@@ -601,7 +601,8 @@ int main (int argc, char* argv[])
     Swapchain&   swapchain     = *testenv.swapchain;
 
     using namespace RenderGraph;
-    Graph graph (device, commandPool, GraphSettings (swapchain));
+
+    Graph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -630,18 +631,19 @@ void main() {
 layout (location = 1) in float asdout;
 layout (location = 0) in vec2 uv;
 
-layout (location = 0) out vec4 outColor;
-layout (location = 1) out vec4 outCopy;
+layout (location = 2) out vec4 presented;
+layout (location = 0) out vec4 copy[2];
 
 void main () {
     vec4 result = vec4 (vec3 (uv, 1.f), 1);
-    outColor = result;
-    outCopy = result;
+    presented = result;
+    copy[0] = result;
+    copy[1] = result;
 }
     )");
 
-    Resource& presentedCopy = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings (), device, graphicsQueue, commandPool, std::nullopt, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
-    Resource& presented     = graph.CreateResource (SwapchainImageResource::Create (device, swapchain));
+    SwapchainImageResource& presented     = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
+    ImageResource&          presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
 
     struct Vert {
         glm::vec2 position;
@@ -662,16 +664,13 @@ void main () {
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
-    Operation& redFillOperation = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                                                  device,
-                                                                                  commandPool,
-                                                                                  RenderOperationSettings (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
-                                                                                  std::move (sp)));
+    Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (RenderOperationSettings (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
+                                                                               std::move (sp));
 
-    Operation& presentOp = graph.CreateOperation (PresentOperation::Create (swapchain, graphicsQueue, std::vector<VkSemaphore> {}));
+    Operation& presentOp = graph.CreateOperationTyped<PresentOperation> (swapchain);
 
-    graph.AddConnection (OutputConnection {redFillOperation, 0, presented});
-    graph.AddConnection (OutputConnection {redFillOperation, 1, presentedCopy});
+    graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presentedCopy});
+    graph.AddConnection (Graph::OutputConnection {redFillOperation, 2, presented});
 
     graph.Compile ();
 
@@ -700,7 +699,9 @@ void main () {
     const TimeNano firstDrawTime = std::chrono::high_resolution_clock::now ();
     TimeNano       lastDrawTime  = firstDrawTime;
 
-    window->DoEventLoop ([&] (bool&) {
+    uint32_t asd = 0;
+
+    window->DoEventLoop ([&] (bool& stopFlag) {
         uint32_t imageIndex = 0;
         vkAcquireNextImageKHR (device, swapchain, UINT64_MAX, s, VK_NULL_HANDLE, &imageIndex);
         graph.Submit (graphicsQueue, imageIndex, {s});
@@ -711,15 +712,21 @@ void main () {
 
         TimeNano currentTime     = TimeNano::Now ();
         uint64_t elapsedNanosecs = currentTime - firstDrawTime;
-        std::cout << elapsedNanosecs << std::endl;
-        std::cout << elapsedNanosecs / 1'000'000'000 << "s " << elapsedNanosecs / 1'000'000 % 1'000 << "ms " << elapsedNanosecs / 1'000 % 1'000 << "us " << elapsedNanosecs % 1'000 << "ns " << std::endl;
+        //std::cout << elapsedNanosecs << std::endl;
+        //std::cout << elapsedNanosecs / 1'000'000'000 << "s " << elapsedNanosecs / 1'000'000 % 1'000 << "ms " << elapsedNanosecs / 1'000 % 1'000 << "us " << elapsedNanosecs % 1'000 << "ns " << std::endl;
 
         uint64_t msdelta = ((currentTime - lastDrawTime) / 1'000'000 % 1'000);
 
-        std::cout << "ms diff: " << msdelta << std::endl;
+        //std::cout << "ms diff: " << msdelta << std::endl;
 
         lastDrawTime = currentTime;
+
+        if (++asd > 10) {
+            stopFlag = true;
+        }
     });
+
+    // SaveImageToFileAsync (device, graphicsQueue, commandPool, presentedCopy.images)
 
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);

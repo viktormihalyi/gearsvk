@@ -106,18 +106,26 @@ public:
         }
     }
 
-    void Compile (uint32_t                                              width,
-                  uint32_t                                              height,
-                  VkDescriptorSetLayout                                 layout,
-                  const std::vector<VkAttachmentReference>&             attachmentReferences,
-                  const std::vector<VkAttachmentDescription>&           attachmentDescriptions,
-                  const std::vector<VkVertexInputBindingDescription>&   inputBindings,
-                  const std::vector<VkVertexInputAttributeDescription>& inputAttributes)
+    struct CompileSettings {
+        uint32_t                                       width;
+        uint32_t                                       height;
+        VkDescriptorSetLayout                          layout;
+        std::vector<VkAttachmentReference>             attachmentReferences;
+        std::vector<VkAttachmentDescription>           attachmentDescriptions;
+        std::vector<VkVertexInputBindingDescription>   inputBindings;
+        std::vector<VkVertexInputAttributeDescription> inputAttributes;
+    };
+
+    CompileSettings compileSettings;
+
+    void Compile (const CompileSettings& settings)
     {
+        compileSettings = settings;
+
         VkSubpassDescription subpass = {};
         subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpass.colorAttachmentCount = attachmentReferences.size ();
-        subpass.pColorAttachments    = attachmentReferences.data ();
+        subpass.colorAttachmentCount = settings.attachmentReferences.size ();
+        subpass.pColorAttachments    = settings.attachmentReferences.data ();
 
         VkSubpassDependency dependency = {};
         dependency.srcSubpass          = 0;
@@ -129,16 +137,16 @@ public:
 
         VkRenderPassCreateInfo renderPassInfo = {};
         renderPassInfo.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassInfo.attachmentCount        = attachmentDescriptions.size ();
-        renderPassInfo.pAttachments           = attachmentDescriptions.data ();
+        renderPassInfo.attachmentCount        = settings.attachmentDescriptions.size ();
+        renderPassInfo.pAttachments           = settings.attachmentDescriptions.data ();
         renderPassInfo.subpassCount           = 1;
         renderPassInfo.pSubpasses             = &subpass;
         renderPassInfo.dependencyCount        = 1;
         renderPassInfo.pDependencies          = &dependency;
 
-        renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, attachmentDescriptions, {subpass}, {dependency}));
-        pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, {layout}));
-        pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, width, height, attachmentReferences.size (), *pipelineLayout, *renderPass, GetShaderStages (), inputBindings, inputAttributes));
+        renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, {subpass}, {dependency}));
+        pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, {settings.layout}));
+        pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, settings.width, settings.height, settings.attachmentReferences.size (), *pipelineLayout, *renderPass, GetShaderStages (), settings.inputBindings, settings.inputAttributes));
     }
 };
 

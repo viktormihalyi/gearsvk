@@ -117,12 +117,12 @@ protected:
             TransitionImageLayout (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, *transitionFrom, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
         }
 
-        const bool imagesMatch = AreImagesEqual (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, PROJECT_ROOT / ("expected_" + imageName + ".png"));
+        const bool imagesMatch = AreImagesEqual (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, PROJECT_ROOT / (imageName + "_reference.png"));
 
         EXPECT_TRUE (imagesMatch);
 
         if (!imagesMatch) {
-            SaveImageToFileAsync (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, PROJECT_ROOT / ("actual_" + imageName + ".png")).join ();
+            SaveImageToFileAsync (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, PROJECT_ROOT / (imageName + ".png")).join ();
         }
     }
 };

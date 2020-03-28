@@ -33,6 +33,7 @@ public:
     {
         VkFramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.sType                   = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.flags                   = 0;
         framebufferInfo.renderPass              = renderPass;
         framebufferInfo.attachmentCount         = attachments.size ();
         framebufferInfo.pAttachments            = attachments.data ();

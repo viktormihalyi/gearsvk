@@ -21,63 +21,70 @@ Resource& Graph::CreateResource (Resource::U&& resource)
 }
 
 
-Operation& Graph::CreateOperation (Operation::U&& resource)
+Operation& Graph::CreateOperation (Operation::U&& operation)
 {
     compiled = false;
 
-    operations.push_back (std::move (resource));
+    operations.push_back (std::move (operation));
     return *operations[operations.size () - 1];
 }
 
 
 void Graph::Compile ()
 {
-    for (auto& op : operations) {
-        op->Compile ();
-    }
-
-    commandBuffers.resize (settings.framesInFlight);
-
-    for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
-        CommandBuffer::U& currentCommandBuffer = commandBuffers[frameIndex];
-
-        currentCommandBuffer = CommandBuffer::Create (device, commandPool);
-        currentCommandBuffer->Begin ();
+    try {
         for (auto& op : operations) {
-            for (auto& inputResource : op->inputs) {
-                inputResource.get ().BindRead (frameIndex, *currentCommandBuffer);
-            }
-            for (auto& outputResource : op->outputs) {
-                outputResource.get ().BindWrite (frameIndex, *currentCommandBuffer);
-            }
-
-            op->Record (frameIndex, *currentCommandBuffer);
-
-            if (&op != &operations.back ()) {
-                VkMemoryBarrier memoryBarrier = {};
-                memoryBarrier.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-                memoryBarrier.srcAccessMask   = VK_ACCESS_SHADER_WRITE_BIT;
-                memoryBarrier.dstAccessMask   = VK_ACCESS_SHADER_READ_BIT;
-
-                vkCmdPipelineBarrier (
-                    *currentCommandBuffer,
-                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // srcStageMask
-                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,    // dstStageMask
-                    0,
-                    0, nullptr, //&memoryBarrier, // memory barriers
-                    0, nullptr, // buffer memory barriers
-                    0, nullptr  // image barriers
-                );
-            }
+            op->Compile ();
         }
-        currentCommandBuffer->End ();
-    }
 
-    compiled = true;
+        commandBuffers.resize (settings.framesInFlight);
+
+        for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
+            CommandBuffer::U& currentCommandBuffer = commandBuffers[frameIndex];
+
+            currentCommandBuffer = CommandBuffer::Create (device, commandPool);
+            currentCommandBuffer->Begin ();
+            for (auto& op : operations) {
+                for (auto& inputResource : op->inputs) {
+                    inputResource.get ().BindRead (frameIndex, *currentCommandBuffer);
+                }
+                for (auto& outputResource : op->outputs) {
+                    outputResource.get ().BindWrite (frameIndex, *currentCommandBuffer);
+                }
+
+                op->Record (frameIndex, *currentCommandBuffer);
+
+                if (&op != &operations.back ()) {
+                    VkMemoryBarrier memoryBarrier = {};
+                    memoryBarrier.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+                    memoryBarrier.srcAccessMask   = VK_ACCESS_SHADER_WRITE_BIT;
+                    memoryBarrier.dstAccessMask   = VK_ACCESS_SHADER_READ_BIT;
+
+                    vkCmdPipelineBarrier (
+                        *currentCommandBuffer,
+                        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // srcStageMask
+                        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,    // dstStageMask
+                        0,
+                        0, nullptr, // memory barriers
+                        0, nullptr, // buffer memory barriers
+                        0, nullptr  // image barriers
+                    );
+                }
+            }
+            currentCommandBuffer->End ();
+        }
+
+        compiled = true;
+
+    } catch (std::exception& ex) {
+        ERROR (true);
+        std::cout << ex.what () << std::endl;
+        compiled = false;
+    }
 }
 
 
-void Graph::AddConnection (InputConnection& c)
+void Graph::AddConnection (const Graph::InputConnection& c)
 {
     compiled = false;
 
@@ -85,12 +92,11 @@ void Graph::AddConnection (InputConnection& c)
 }
 
 
-void Graph::AddConnection (OutputConnection& c)
+void Graph::AddConnection (const Graph::OutputConnection& c)
 {
     compiled = false;
 
-    OutputConnectionInfo info = c.resource.GetOutputConnectionInfo ();
-    c.operation.AddOutput (c.binding, info.format, info.finalLayout, c.resource);
+    c.operation.AddOutput (c.binding, c.resource);
 }
 
 

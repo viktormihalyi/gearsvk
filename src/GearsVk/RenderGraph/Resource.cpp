@@ -4,38 +4,30 @@
 namespace RenderGraph {
 
 
-SingleImageResource::SingleImageResource (VkDevice device, Image::U&& image)
-    : image (std::move (image))
-    , imageView (ImageView::Create (device, *this->image.image, this->image.image->GetFormat ()))
-    , sampler (Sampler::Create (device))
-    , layoutRead (std::nullopt)
-    , layoutWrite (VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+SingleImageResource::SingleImageResource (const GraphSettings& graphSettings, uint32_t arrayLayers)
+    : image (graphSettings.device, Image::Create (graphSettings.device, graphSettings.width, graphSettings.height, Format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, arrayLayers), DeviceMemory::GPU)
+    , sampler (Sampler::Create (graphSettings.device))
 {
-}
-
-
-SingleImageResource::SingleImageResource (const GraphSettings& graphSettings, const Device& device, VkQueue queue, VkCommandPool commandPool, std::optional<VkImageLayout> layoutRead, std::optional<VkImageLayout> layoutWrite)
-    : image (device, Image::Create (device, graphSettings.width, graphSettings.height, Format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT), DeviceMemory::GPU)
-    , imageView (ImageView::Create (device, *image.image, image.image->GetFormat ()))
-    , sampler (Sampler::Create (device))
-    , layoutRead (layoutRead)
-    , layoutWrite (layoutWrite)
-{
+    for (uint32_t layerIndex = 0; layerIndex < arrayLayers; ++layerIndex) {
+        imageViews.push_back (ImageView::Create (graphSettings.device, *image.image, layerIndex));
+    }
 }
 
 
 void SingleImageResource::WriteToDescriptorSet (const DescriptorSet& descriptorSet, uint32_t binding) const
 {
-    descriptorSet.WriteOneImageInfo (
-        binding,
-        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        {*sampler, *imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL});
+    for (auto& imgView : imageViews) {
+        descriptorSet.WriteOneImageInfo (
+            binding,
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            {*sampler, *imgView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL});
+    }
 }
 
 
 void SingleImageResource::BindRead (VkCommandBuffer commandBuffer)
 {
-    ASSERT (layoutRead.has_value ());
+    layoutRead                   = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     VkImageLayout previousLayout = (layoutWrite.has_value ()) ? *layoutWrite : Image::INITIAL_LAYOUT;
     image.image->CmdTransitionImageLayout (commandBuffer, previousLayout, *layoutRead);
 }
@@ -43,7 +35,7 @@ void SingleImageResource::BindRead (VkCommandBuffer commandBuffer)
 
 void SingleImageResource::BindWrite (VkCommandBuffer commandBuffer)
 {
-    ASSERT (layoutWrite.has_value ());
+    layoutWrite = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     image.image->CmdTransitionImageLayout (commandBuffer, Image::INITIAL_LAYOUT, *layoutWrite);
 }
 

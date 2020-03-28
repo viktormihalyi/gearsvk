@@ -19,25 +19,28 @@ private:
     VkImage        handle;
     uint32_t       width;
     uint32_t       height;
+    uint32_t       arrayLayers;
 
 public:
     USING_PTR (Image);
 
-    Image (VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage)
+    Image (VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, uint32_t arrayLayers)
         : device (device)
         , handle (VK_NULL_HANDLE)
         , format (format)
         , width (width)
         , height (height)
+        , arrayLayers (arrayLayers)
     {
         VkImageCreateInfo imageInfo = {};
         imageInfo.sType             = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.flags             = 0;
         imageInfo.imageType         = VK_IMAGE_TYPE_2D;
         imageInfo.extent.width      = width;
         imageInfo.extent.height     = height;
         imageInfo.extent.depth      = 1;
         imageInfo.mipLevels         = 1;
-        imageInfo.arrayLayers       = 1;
+        imageInfo.arrayLayers       = arrayLayers;
         imageInfo.format            = format;
         imageInfo.tiling            = tiling;
         imageInfo.initialLayout     = INITIAL_LAYOUT;
@@ -57,6 +60,7 @@ public:
     }
 
     VkFormat GetFormat () const { return format; }
+    uint32_t GetArrayLayers () const { return arrayLayers; }
     uint32_t GetWidth () const { return width; }
     uint32_t GetHeight () const { return height; }
 
@@ -73,7 +77,7 @@ public:
         barrier.subresourceRange.baseMipLevel   = 0;
         barrier.subresourceRange.levelCount     = 1;
         barrier.subresourceRange.baseArrayLayer = 0;
-        barrier.subresourceRange.layerCount     = 1;
+        barrier.subresourceRange.layerCount     = arrayLayers;
         barrier.srcAccessMask                   = 0;
         barrier.dstAccessMask                   = 0;
 

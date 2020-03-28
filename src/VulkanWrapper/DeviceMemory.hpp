@@ -7,6 +7,7 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
+#include <iostream>
 
 class DeviceMemory : public Noncopyable {
 public:
@@ -32,6 +33,8 @@ public:
         if (ERROR (vkAllocateMemory (device, &allocInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to allocate memory");
         }
+
+        std::cout << "allocated " << allocationSize << " bytes (idx: " << memoryTypeIndex << ")" << std::endl;
     }
 
     DeviceMemory (VkDevice device, Device::AllocateInfo allocateInfo)
