@@ -22,6 +22,8 @@ struct AllocatedImage final {
     Image::U        image;
     DeviceMemory::U memory;
 
+    USING_PTR (AllocatedImage);
+
     AllocatedImage (const Device& device, Image::U&& image, VkMemoryPropertyFlags memoryPropertyFlags)
         : image (std::move (image))
         , memory (DeviceMemory::Create (device, device.GetImageAllocateInfo (*this->image, memoryPropertyFlags)))
@@ -35,6 +37,8 @@ struct AllocatedBuffer final {
     Buffer::U       buffer;
     DeviceMemory::U memory;
 
+    USING_PTR (AllocatedBuffer);
+
     AllocatedBuffer (const Device& device, Buffer::U&& buffer, VkMemoryPropertyFlags memoryPropertyFlags)
         : buffer (std::move (buffer))
         , memory (DeviceMemory::Create (device, device.GetBufferAllocateInfo (*this->buffer, memoryPropertyFlags)))
@@ -43,21 +47,24 @@ struct AllocatedBuffer final {
     }
 };
 
+namespace ShaderTypes {
+
+static constexpr VkFormat Float = VK_FORMAT_R32_SFLOAT;
+static constexpr VkFormat Vec1f = VK_FORMAT_R32_SFLOAT;
+static constexpr VkFormat Vec2f = VK_FORMAT_R32G32_SFLOAT;
+static constexpr VkFormat Vec3f = VK_FORMAT_R32G32B32_SFLOAT;
+static constexpr VkFormat Vec4f = VK_FORMAT_R32G32B32A32_SFLOAT;
+
+static constexpr VkFormat Uint  = VK_FORMAT_R32_UINT;
+static constexpr VkFormat Vec1u = VK_FORMAT_R32_UINT;
+static constexpr VkFormat Vec2u = VK_FORMAT_R32G32_UINT;
+static constexpr VkFormat Vec3u = VK_FORMAT_R32G32B32_UINT;
+static constexpr VkFormat Vec4u = VK_FORMAT_R32G32B32A32_UINT;
+
+}; // namespace ShaderTypes
 
 class VertexInputInfo final {
 public:
-    static constexpr VkFormat Float = VK_FORMAT_R32_SFLOAT;
-    static constexpr VkFormat Vec1f = VK_FORMAT_R32_SFLOAT;
-    static constexpr VkFormat Vec2f = VK_FORMAT_R32G32_SFLOAT;
-    static constexpr VkFormat Vec3f = VK_FORMAT_R32G32B32_SFLOAT;
-    static constexpr VkFormat Vec4f = VK_FORMAT_R32G32B32A32_SFLOAT;
-
-    static constexpr VkFormat Uint  = VK_FORMAT_R32_UINT;
-    static constexpr VkFormat Vec1u = VK_FORMAT_R32_UINT;
-    static constexpr VkFormat Vec2u = VK_FORMAT_R32G32_UINT;
-    static constexpr VkFormat Vec3u = VK_FORMAT_R32G32B32_UINT;
-    static constexpr VkFormat Vec4u = VK_FORMAT_R32G32B32A32_UINT;
-
     uint32_t                                       size;
     std::vector<VkVertexInputAttributeDescription> attributes;
     std::vector<VkVertexInputBindingDescription>   bindings;

@@ -5,10 +5,12 @@ namespace RenderGraph {
 
 void Operation::AddInput (const uint32_t binding, const Resource::Ref& res)
 {
-    ASSERT (std::find (inputBindings.begin (), inputBindings.end (), binding) == inputBindings.end ());
+    const InputBinding newBinding (binding, res.get ().GetDescriptorType (), res.get ().GetDescriptorCount ());
+
+    ASSERT (std::find (inputBindings.begin (), inputBindings.end (), newBinding) == inputBindings.end ());
 
     inputs.push_back (res);
-    inputBindings.push_back (InputBinding (binding, res.get ().GetLayerCount ()));
+    inputBindings.push_back (newBinding);
 }
 
 
@@ -17,7 +19,7 @@ void Operation::AddOutput (const uint32_t binding, const Resource::Ref& res)
     ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
 
     outputs.push_back (res);
-    for (uint32_t bindingIndex = binding; bindingIndex < binding + res.get ().GetLayerCount (); ++bindingIndex) {
+    for (uint32_t bindingIndex = binding; bindingIndex < binding + res.get ().GetDescriptorCount (); ++bindingIndex) {
         outputBindings.push_back (OutputBinding (bindingIndex, res.get ().GetFormat (), res.get ().GetFinalLayout ()));
     }
 }
@@ -57,8 +59,10 @@ std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) co
         result.push_back (*res.imageViews[frameIndex]);
     };
 
+    auto Swallow = [] (auto&... res) {};
+
     for (const auto& o : outputs) {
-        ResourceVisitor::Visit (o, onImage, onSwapchainImage);
+        ResourceVisitor::Visit (o, onImage, onSwapchainImage, Swallow);
     }
 
     return result;
@@ -97,7 +101,7 @@ void RenderOperation::Compile ()
 {
     std::vector<VkDescriptorSetLayoutBinding> layout;
     for (auto& inputBinding : inputBindings) {
-        layout.push_back (inputBinding.descriptor);
+        layout.push_back (inputBinding);
     }
 
     descriptorSetLayout = DescriptorSetLayout::Create (graphSettings.device, layout);

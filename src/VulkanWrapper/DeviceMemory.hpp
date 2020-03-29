@@ -16,6 +16,7 @@ public:
 
 private:
     const VkDevice device;
+    const size_t   allocationSize;
     VkDeviceMemory handle;
 
 public:
@@ -23,6 +24,7 @@ public:
 
     DeviceMemory (VkDevice device, size_t allocationSize, uint32_t memoryTypeIndex)
         : device (device)
+        , allocationSize (allocationSize)
         , handle (VK_NULL_HANDLE)
     {
         VkMemoryAllocateInfo allocInfo = {};
@@ -52,6 +54,8 @@ public:
     {
         return handle;
     }
+
+    size_t GetSize () const { return allocationSize; }
 };
 
 #endif

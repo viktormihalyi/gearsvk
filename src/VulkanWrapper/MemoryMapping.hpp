@@ -33,9 +33,15 @@ public:
         }
     }
 
+    MemoryMapping (VkDevice device, const DeviceMemory& memory)
+        : MemoryMapping (device, memory, 0, memory.GetSize ())
+    {
+    }
+
     ~MemoryMapping ()
     {
         vkUnmapMemory (device, memory);
+        mappedMemory = nullptr;
     }
 
     template<typename T>

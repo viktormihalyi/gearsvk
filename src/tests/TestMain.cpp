@@ -408,7 +408,7 @@ void main () {
         float     asd;
     };
 
-    TypedTransferedVertexBuffer<Vert> vbb (device, graphicsQueue, commandPool, {VertexInputInfo::Vec2f, VertexInputInfo::Vec2f, VertexInputInfo::Float}, 4);
+    TypedTransferedVertexBuffer<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
     vbb.data = std::vector<Vert> {
         {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
         {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},

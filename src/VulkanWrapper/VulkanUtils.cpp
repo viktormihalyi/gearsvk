@@ -22,21 +22,37 @@ std::string GetVersionString (uint32_t version)
     return ss.str ();
 }
 
+struct ShaderType {
+    uint32_t size;
+    uint32_t alignment;
+};
 
-static uint32_t GetVertexFormatSize (VkFormat format)
+static ShaderType vec1 {4, 4};
+static ShaderType vec2 {8, 8};
+static ShaderType vec3 {12, 16};
+static ShaderType vec4 {12, 16};
+
+
+static ShaderType GetShaderTypeFromFormat (VkFormat format)
 {
     switch (format) {
-        case VK_FORMAT_R32_SFLOAT: return 1 * sizeof (float);
-        case VK_FORMAT_R32G32_SFLOAT: return 2 * sizeof (float);
-        case VK_FORMAT_R32G32B32_SFLOAT: return 3 * sizeof (float);
-        case VK_FORMAT_R32G32B32A32_SFLOAT: return 4 * sizeof (float);
-        case VK_FORMAT_R32_UINT: return 1 * sizeof (uint32_t);
-        case VK_FORMAT_R32G32_UINT: return 2 * sizeof (uint32_t);
-        case VK_FORMAT_R32G32B32_UINT: return 3 * sizeof (uint32_t);
-        case VK_FORMAT_R32G32B32A32_UINT: return 4 * sizeof (uint32_t);
+        case VK_FORMAT_R32_SFLOAT: return vec1;
+        case VK_FORMAT_R32G32_SFLOAT: return vec2;
+        case VK_FORMAT_R32G32B32_SFLOAT: return vec3;
+        case VK_FORMAT_R32G32B32A32_SFLOAT: return vec4;
     }
 
     throw std::runtime_error ("unhandled VkFormat value");
+}
+
+
+static uint32_t GetAlignedBlockSize (const std::vector<VkFormat>& formats)
+{
+    uint32_t size = 0;
+    for (auto& a : formats) {
+        size += GetShaderTypeFromFormat (a).alignment;
+    }
+    return size;
 }
 
 
@@ -58,8 +74,8 @@ VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormat
         attributes.push_back (attrib);
 
         ++location;
-        size += GetVertexFormatSize (format);
-        attributeSize += GetVertexFormatSize (format);
+        size += GetShaderTypeFromFormat (format).size;
+        attributeSize += GetShaderTypeFromFormat (format).size;
     }
 
     VkVertexInputBindingDescription bindingDescription = {};

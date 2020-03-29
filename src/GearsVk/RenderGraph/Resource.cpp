@@ -42,14 +42,18 @@ void SingleImageResource::BindWrite (VkCommandBuffer commandBuffer)
 
 void ResourceVisitor::Visit (Resource&                               res,
                              VisitorCallback<ImageResource>          imageResourceTypeCallback,
-                             VisitorCallback<SwapchainImageResource> swapchainImageResourceTypeCallback)
+                             VisitorCallback<SwapchainImageResource> swapchainImageResourceTypeCallback,
+                             VisitorCallback<UniformBlockResource>   uniformBlockResourceTypeCallback)
 {
     ImageResource*          imageType          = dynamic_cast<ImageResource*> (&res);
     SwapchainImageResource* swapchainImageType = dynamic_cast<SwapchainImageResource*> (&res);
+    UniformBlockResource*   uniformBlockType   = dynamic_cast<UniformBlockResource*> (&res);
     if (imageType != nullptr) {
         imageResourceTypeCallback (*imageType);
     } else if (swapchainImageType != nullptr) {
         swapchainImageResourceTypeCallback (*swapchainImageType);
+    } else if (uniformBlockType != nullptr) {
+        uniformBlockResourceTypeCallback (*uniformBlockType);
     } else {
         BREAK ("unexpected resource type");
         throw std::runtime_error ("unexpected resource type");

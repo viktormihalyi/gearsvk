@@ -4,21 +4,18 @@
 #include "Image.hpp"
 #include <vulkan/vulkan.h>
 
-struct InputBinding {
-    const uint32_t               binding;
-    VkDescriptorSetLayoutBinding descriptor;
-
-    InputBinding (uint32_t binding, uint32_t arrayLayers)
-        : binding (binding)
+struct InputBinding : public VkDescriptorSetLayoutBinding {
+public:
+    InputBinding (uint32_t binding, VkDescriptorType type, uint32_t descriptorCount)
     {
-        descriptor.binding            = binding;
-        descriptor.descriptorType     = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        descriptor.descriptorCount    = arrayLayers;
-        descriptor.stageFlags         = VK_SHADER_STAGE_ALL_GRAPHICS;
-        descriptor.pImmutableSamplers = nullptr;
+        this->binding            = binding;
+        this->descriptorType     = type;
+        this->descriptorCount    = descriptorCount;
+        this->stageFlags         = VK_SHADER_STAGE_ALL_GRAPHICS;
+        this->pImmutableSamplers = nullptr;
     }
 
-    bool operator== (uint32_t otherBinding) const { return binding == otherBinding; }
+    bool operator== (const InputBinding& other) const { return binding == other.binding && descriptorType == other.descriptorType; }
 };
 
 

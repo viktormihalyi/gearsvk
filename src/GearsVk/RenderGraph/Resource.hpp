@@ -18,18 +18,20 @@ public:
 
     virtual ~SingleResource () {}
 
-    virtual void WriteToDescriptorSet (const DescriptorSet& descriptorSet, uint32_t binding) const = 0;
-    virtual void BindRead (VkCommandBuffer commandBuffer)                                          = 0;
-    virtual void BindWrite (VkCommandBuffer commandBuffer)                                         = 0;
+    virtual VkDescriptorType GetDescriptorType () const                                                        = 0;
+    virtual void             WriteToDescriptorSet (const DescriptorSet& descriptorSet, uint32_t binding) const = 0;
+    virtual void             BindRead (VkCommandBuffer commandBuffer)                                          = 0;
+    virtual void             BindWrite (VkCommandBuffer commandBuffer)                                         = 0;
 };
+
 
 class IImageResource {
 public:
     USING_PTR_ABSTRACT (IImageResource);
     virtual ~IImageResource () {}
-    virtual VkImageLayout GetFinalLayout () const = 0;
-    virtual VkFormat      GetFormat () const      = 0;
-    virtual uint32_t      GetLayerCount () const  = 0;
+    virtual VkImageLayout GetFinalLayout () const     = 0;
+    virtual VkFormat      GetFormat () const          = 0;
+    virtual uint32_t      GetDescriptorCount () const = 0;
 };
 
 class Resource : public Noncopyable, public IImageResource {
@@ -38,9 +40,10 @@ public:
 
     virtual ~Resource () {}
 
-    virtual void WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const = 0;
-    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                          = 0;
-    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                         = 0;
+    virtual VkDescriptorType GetDescriptorType () const                                                                             = 0;
+    virtual void             WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const = 0;
+    virtual void             BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                          = 0;
+    virtual void             BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                         = 0;
 };
 
 
@@ -65,9 +68,10 @@ struct SingleImageResource final : public SingleResource {
 
     virtual ~SingleImageResource () {}
 
-    virtual void WriteToDescriptorSet (const DescriptorSet& descriptorSet, uint32_t binding) const override;
-    virtual void BindRead (VkCommandBuffer commandBuffer) override;
-    virtual void BindWrite (VkCommandBuffer commandBuffer) override;
+    virtual VkDescriptorType GetDescriptorType () const override { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; }
+    virtual void             WriteToDescriptorSet (const DescriptorSet& descriptorSet, uint32_t binding) const override;
+    virtual void             BindRead (VkCommandBuffer commandBuffer) override;
+    virtual void             BindWrite (VkCommandBuffer commandBuffer) override;
 };
 
 
@@ -89,13 +93,14 @@ public:
 
     virtual ~ImageResource () {}
 
-    virtual void WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override { images[imageIndex]->WriteToDescriptorSet (descriptorSet, binding); }
-    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindRead (commandBuffer); }
-    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindWrite (commandBuffer); }
+    virtual VkDescriptorType GetDescriptorType () const override { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; }
+    virtual void             WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override { images[imageIndex]->WriteToDescriptorSet (descriptorSet, binding); }
+    virtual void             BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindRead (commandBuffer); }
+    virtual void             BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindWrite (commandBuffer); }
 
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; }
     virtual VkFormat      GetFormat () const override { return SingleImageResource::Format; }
-    virtual uint32_t      GetLayerCount () const override { return arrayLayers; }
+    virtual uint32_t      GetDescriptorCount () const override { return arrayLayers; }
 };
 
 
@@ -121,13 +126,62 @@ public:
 
     virtual ~SwapchainImageResource () {}
 
-    virtual void WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override {}
-    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
-    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
+    virtual VkDescriptorType GetDescriptorType () const override { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; }
+    virtual void             WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override {}
+    virtual void             BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
+    virtual void             BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
 
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; }
     virtual VkFormat      GetFormat () const override { return swapchainSurfaceFormat; }
-    virtual uint32_t      GetLayerCount () const override { return 1; }
+    virtual uint32_t      GetDescriptorCount () const override { return 1; }
+};
+
+
+class UniformBlockResource : public Resource {
+public:
+    const uint32_t                  size;
+    std::vector<AllocatedBuffer::U> buffers;
+    std::vector<MemoryMapping::U>   mappings;
+
+public:
+    USING_PTR (UniformBlockResource);
+
+    UniformBlockResource (const GraphSettings& graphSettings, size_t size)
+        : size (size)
+    {
+        for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
+            buffers.push_back (AllocatedBuffer::Create (graphSettings.device, Buffer::Create (graphSettings.device, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT), DeviceMemory::CPU));
+            mappings.push_back (MemoryMapping::Create (graphSettings.device, *buffers[buffers.size () - 1]->memory, 0, size));
+        }
+    }
+
+    UniformBlockResource (const GraphSettings& graphSettings, const std::vector<VkFormat>& types)
+        : UniformBlockResource (graphSettings, 0)
+    {
+        throw std::runtime_error ("TODO");
+    }
+
+    virtual ~UniformBlockResource () {}
+
+    virtual VkDescriptorType GetDescriptorType () const override { return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; }
+    virtual void             WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override
+    {
+        VkDescriptorBufferInfo desc;
+        desc.buffer = *buffers[imageIndex]->buffer;
+        desc.offset = 0;
+        desc.range  = size;
+
+        descriptorSet.WriteOneBufferInfo (binding, GetDescriptorType (), desc);
+    }
+
+    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
+    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
+
+    virtual VkImageLayout GetFinalLayout () const override { throw std::runtime_error ("not an img"); }
+    virtual VkFormat      GetFormat () const override { throw std::runtime_error ("not an img"); }
+    virtual uint32_t      GetDescriptorCount () const override { return 1; }
+
+    MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
 };
 
 
@@ -139,7 +193,8 @@ private:
 public:
     static void Visit (Resource&,
                        VisitorCallback<ImageResource>,
-                       VisitorCallback<SwapchainImageResource>);
+                       VisitorCallback<SwapchainImageResource>,
+                       VisitorCallback<UniformBlockResource>);
 };
 
 } // namespace RenderGraph
