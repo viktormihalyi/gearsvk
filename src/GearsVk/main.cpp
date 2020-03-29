@@ -660,8 +660,8 @@ void main () {
         float     asd;
     };
 
-    TypedTransferedVertexBuffer<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
-    vbb.data = std::vector<Vert> {
+    TypedTransferableVertexBuffer<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
+    vbb = std::vector<Vert> {
         {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
         {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
         {glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f), 0.3f},
@@ -669,20 +669,21 @@ void main () {
     };
     vbb.Flush ();
 
-    TypedTransferedIndexBuffer ib (device, graphicsQueue, commandPool, 6);
+    TransferableIndexBuffer ib (device, graphicsQueue, commandPool, 6);
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
-    Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (RenderOperationSettings (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
-                                                                               std::move (sp));
-
-    Operation& presentOp = graph.CreateOperationTyped<PresentOperation> (swapchain);
+    Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (RenderOperationSettings (1, vbb, ib), std::move (sp));
+    Operation& presentOp        = graph.CreateOperationTyped<PresentOperation> (swapchain);
 
     graph.AddConnection (Graph::InputConnection {redFillOperation, 0, unif});
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presentedCopy});
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 2, presented});
 
     graph.Compile ();
+
+    struct GraphRenderer {
+    };
 
     Semaphore s (device);
 

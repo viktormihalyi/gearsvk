@@ -408,8 +408,8 @@ void main () {
         float     asd;
     };
 
-    TypedTransferedVertexBuffer<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
-    vbb.data = std::vector<Vert> {
+    TypedTransferableVertexBuffer<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
+    vbb = std::vector<Vert> {
         {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
         {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
         {glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f), 0.3f},
@@ -417,7 +417,7 @@ void main () {
     };
     vbb.Flush ();
 
-    TypedTransferedIndexBuffer ib (device, graphicsQueue, commandPool, 6);
+    TransferableIndexBuffer ib (device, graphicsQueue, commandPool, 6);
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
@@ -443,4 +443,109 @@ void main () {
     });
 
     CompareImages ("uv", *presentedCopy.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+}
+
+
+TEST_F (HiddenWindowVulkanTestEnvironment, BasicUniformBufferTest)
+{
+    Device&      device        = GetDevice ();
+    CommandPool& commandPool   = GetCommandPool ();
+    Queue&       graphicsQueue = GetGraphicsQueue ();
+    Swapchain&   swapchain     = GetSwapchain ();
+    Graph        graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+
+    auto sp = ShaderPipeline::Create (device);
+    sp->SetVertexShader (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (binding = 0) uniform Time {
+    float time;
+} time;
+
+layout (location = 0) in vec2 position;
+layout (location = 1) in vec2 uv;
+layout (location = 2) in float asd;
+
+layout (location = 0) out vec2 textureCoords;
+layout (location = 1) out float asdout;
+
+
+void main() {
+    gl_Position = vec4 (position + vec2 (time.time), 0.0, 1.0);
+    textureCoords = uv;
+    asdout = asd;
+}
+    )");
+
+    sp->SetFragmentShader (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (binding = 0) uniform Time {
+    float time;
+} time;
+
+layout (location = 1) in float asdout;
+layout (location = 0) in vec2 uv;
+
+layout (location = 2) out vec4 presented;
+layout (location = 0) out vec4 copy[2];
+
+void main () {
+    vec4 result = vec4 (vec3 (uv, 0.f), 1);
+    presented = result;
+    copy[0] = result;
+    copy[1] = result;
+}
+    )");
+
+    SwapchainImageResource& presented     = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
+    ImageResource&          presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
+    UniformBlockResource&   unif          = graph.CreateResourceTyped<UniformBlockResource> (4);
+
+    struct Vert {
+        glm::vec2 position;
+        glm::vec2 uv;
+        float     asd;
+    };
+
+    TypedTransferableVertexBuffer<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
+    vbb = std::vector<Vert> {
+        {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
+        {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
+        {glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f), 0.3f},
+        {glm::vec2 (+1.f, -1.f), glm::vec2 (1.f, 0.f), 0.6f},
+    };
+    vbb.Flush ();
+
+    TransferableIndexBuffer ib (device, graphicsQueue, commandPool, 6);
+    ib.data = {0, 1, 2, 0, 3, 2};
+    ib.Flush ();
+
+    Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (RenderOperationSettings (1, vbb, ib), std::move (sp));
+    Operation& presentOp        = graph.CreateOperationTyped<PresentOperation> (swapchain);
+
+    graph.AddConnection (Graph::InputConnection {redFillOperation, 0, unif});
+    graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presentedCopy});
+    graph.AddConnection (Graph::OutputConnection {redFillOperation, 2, presented});
+
+    graph.Compile ();
+
+    Semaphore s (device);
+
+    LimitedEventLoop (*window, 10, [&] (bool&) {
+        uint32_t imageIndex = 0;
+        vkAcquireNextImageKHR (device, swapchain, UINT64_MAX, s, VK_NULL_HANDLE, &imageIndex);
+
+        float time = 0.5f;
+        unif.GetMapping (imageIndex).Copy (time);
+
+        graph.Submit (graphicsQueue, imageIndex, {s});
+
+        vkQueueWaitIdle (graphicsQueue);
+        vkDeviceWaitIdle (device);
+    });
+
+    CompareImages ("uvoffset", *presentedCopy.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }

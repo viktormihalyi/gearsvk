@@ -62,6 +62,19 @@ struct RenderOperationSettings {
         , indexBuffer (indexBuffer)
     {
     }
+
+    RenderOperationSettings (const uint32_t                         instanceCount,
+                             const UntypedTransferableVertexBuffer& vertexBuffer,
+                             const TransferableIndexBuffer&         indexBuffer)
+        : instanceCount (instanceCount)
+        , vertexCount (vertexBuffer.data.size ())
+        , vertexBuffer (vertexBuffer.buffer.GetBufferToBind ())
+        , vertexInputBindings (vertexBuffer.info.bindings)
+        , vertexInputAttributes (vertexBuffer.info.attributes)
+        , indexCount (indexBuffer.data.size ())
+        , indexBuffer (indexBuffer.buffer.GetBufferToBind ())
+    {
+    }
 };
 
 struct RenderOperation final : public Operation {

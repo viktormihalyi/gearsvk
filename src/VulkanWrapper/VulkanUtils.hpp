@@ -17,6 +17,16 @@
 
 std::string GetVersionString (uint32_t version);
 
+void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout);
+
+void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
+void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::filesystem::path& expectedImage);
+
+std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::filesystem::path& filePath);
+
 
 struct AllocatedImage final {
     Image::U        image;
@@ -30,6 +40,8 @@ struct AllocatedImage final {
     {
         vkBindImageMemory (device, *this->image, *memory, 0);
     }
+
+    static AllocatedImage CreatePreinitialized (const Device& device, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool);
 };
 
 
@@ -73,8 +85,7 @@ public:
 };
 
 
-template<VkBufferUsageFlags usageFlags>
-class TransferedBuffer final {
+class TransferableBuffer final {
 public:
     const VkDevice      device;
     const VkQueue       queue;
@@ -87,9 +98,9 @@ public:
     AllocatedBuffer bufferCPU;
     MemoryMapping   bufferCPUMapping;
 
-    USING_PTR (TransferedBuffer);
+    USING_PTR (TransferableBuffer);
 
-    TransferedBuffer (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t bufferSize)
+    TransferableBuffer (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t bufferSize, VkBufferUsageFlags usageFlags)
         : device (device)
         , queue (queue)
         , commandPool (commandPool)
@@ -114,38 +125,57 @@ public:
 };
 
 
-using TransferedVertexBuffer = TransferedBuffer<VK_BUFFER_USAGE_VERTEX_BUFFER_BIT>;
-using TransferedIndexBuffer  = TransferedBuffer<VK_BUFFER_USAGE_INDEX_BUFFER_BIT>;
-
-
-template<typename VertexType>
-class TypedTransferedVertexBuffer {
+class UntypedTransferableVertexBuffer {
 public:
-    std::vector<VertexType>      data;
-    const VertexInputInfo        info;
-    const TransferedVertexBuffer buffer;
+    std::vector<uint8_t>     data;
+    const VertexInputInfo    info;
+    const TransferableBuffer buffer;
+    const uint32_t           vertexSize;
 
-    TypedTransferedVertexBuffer (const Device& device, VkQueue queue, VkCommandPool commandPool, const std::vector<VkFormat>& vertexInputFormats, uint32_t maxVertexCount)
+    USING_PTR (UntypedTransferableVertexBuffer);
+
+    UntypedTransferableVertexBuffer (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t vertexSize, const std::vector<VkFormat>& vertexInputFormats, uint32_t maxVertexCount)
         : info (vertexInputFormats)
-        , buffer (device, queue, commandPool, info.size * maxVertexCount)
+        , buffer (device, queue, commandPool, info.size * maxVertexCount, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
+        , vertexSize (vertexSize)
     {
-        data.resize (maxVertexCount);
+        data.resize (vertexSize * maxVertexCount);
     }
 
     void Flush () const
     {
-        buffer.CopyAndTransfer (data.data (), sizeof (VertexType) * data.size ());
+        buffer.CopyAndTransfer (data.data (), data.size ());
+    }
+};
+
+template<typename VertexType>
+class TypedTransferableVertexBuffer : public UntypedTransferableVertexBuffer {
+public:
+    USING_PTR (TypedTransferableVertexBuffer);
+
+    TypedTransferableVertexBuffer (const Device& device, VkQueue queue, VkCommandPool commandPool, const std::vector<VkFormat>& vertexInputFormats, uint32_t maxVertexCount)
+        : UntypedTransferableVertexBuffer (device, queue, commandPool, sizeof (VertexType), vertexInputFormats, maxVertexCount)
+    {
+    }
+
+    void operator= (const std::vector<VertexType>& copiedData)
+    {
+        const uint32_t copiedBytes = copiedData.size () * sizeof (VertexType);
+        ASSERT (copiedBytes <= data.size ());
+        std::memcpy (data.data (), copiedData.data (), copiedBytes);
     }
 };
 
 
-class TypedTransferedIndexBuffer {
+class TransferableIndexBuffer {
 public:
-    std::vector<uint16_t>       data;
-    const TransferedIndexBuffer buffer;
+    std::vector<uint16_t>    data;
+    const TransferableBuffer buffer;
 
-    TypedTransferedIndexBuffer (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t maxIndexCount)
-        : buffer (device, queue, commandPool, sizeof (uint16_t) * maxIndexCount)
+    USING_PTR (TransferableIndexBuffer);
+
+    TransferableIndexBuffer (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t maxIndexCount)
+        : buffer (device, queue, commandPool, sizeof (uint16_t) * maxIndexCount, VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
     {
         data.resize (maxIndexCount);
     }
@@ -155,19 +185,6 @@ public:
         buffer.CopyAndTransfer (data.data (), sizeof (uint16_t) * data.size ());
     }
 };
-
-
-void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout);
-
-void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-
-void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-
-AllocatedImage CreateImage (const Device& device, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool);
-
-bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::filesystem::path& expectedImage);
-
-std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::filesystem::path& filePath);
 
 
 #endif
