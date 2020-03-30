@@ -75,6 +75,19 @@ std::vector<DestinationType> ConvertToHandles (const std::vector<std::unique_ptr
 
 
 template<typename SourceType, typename DestinationType>
+std::vector<DestinationType> ConvertToHandles (const std::vector<std::shared_ptr<SourceType>>& src)
+{
+    std::vector<DestinationType> result;
+    result.reserve (src.size ());
+    for (const std::shared_ptr<SourceType>& s : src) {
+        ASSERT (s != nullptr);
+        result.push_back (static_cast<DestinationType> (*s));
+    }
+    return result;
+}
+
+
+template<typename SourceType, typename DestinationType>
 std::vector<DestinationType> ConvertToHandles (const std::vector<std::reference_wrapper<SourceType>>& src)
 {
     std::vector<DestinationType> result;

@@ -68,7 +68,9 @@ public:
         device = Device::Create (*physicalDevice, std::vector<uint32_t> {*physicalDevice->GetQueueFamilies ().graphics}, deviceExtensions);
 
         if (window) {
-            swapchain = Swapchain::Create (*physicalDevice, *device, *surface);
+            swapchain = RealSwapchain::Create (*physicalDevice, *device, *surface);
+        } else {
+            swapchain = FakeSwapchain::Create (*device, 512, 512);
         }
 
         graphicsQueue = Queue::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);

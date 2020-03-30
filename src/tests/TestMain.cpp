@@ -267,10 +267,10 @@ static void LimitedEventLoop (WindowBase& window, const uint32_t maxRenders, con
 
 TEST_F (HiddenWindowVulkanTestEnvironment, SwapchainTest)
 {
-    Device&      device        = GetDevice ();
-    CommandPool& commandPool   = GetCommandPool ();
-    Queue&       graphicsQueue = GetGraphicsQueue ();
-    Swapchain&   swapchain     = GetSwapchain ();
+    Device&        device        = GetDevice ();
+    CommandPool&   commandPool   = GetCommandPool ();
+    Queue&         graphicsQueue = GetGraphicsQueue ();
+    RealSwapchain& swapchain     = GetSwapchain ();
 
     Graph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
 
@@ -356,11 +356,11 @@ void main () {
 
 TEST_F (HiddenWindowVulkanTestEnvironment, VertexAndIndexBufferTest)
 {
-    Device&      device        = GetDevice ();
-    CommandPool& commandPool   = GetCommandPool ();
-    Queue&       graphicsQueue = GetGraphicsQueue ();
-    Swapchain&   swapchain     = GetSwapchain ();
-    Graph        graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+    Device&        device        = GetDevice ();
+    CommandPool&   commandPool   = GetCommandPool ();
+    Queue&         graphicsQueue = GetGraphicsQueue ();
+    RealSwapchain& swapchain     = GetSwapchain ();
+    Graph          graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -448,11 +448,11 @@ void main () {
 
 TEST_F (HiddenWindowVulkanTestEnvironment, BasicUniformBufferTest)
 {
-    Device&      device        = GetDevice ();
-    CommandPool& commandPool   = GetCommandPool ();
-    Queue&       graphicsQueue = GetGraphicsQueue ();
-    Swapchain&   swapchain     = GetSwapchain ();
-    Graph        graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+    Device&        device        = GetDevice ();
+    CommandPool&   commandPool   = GetCommandPool ();
+    Queue&         graphicsQueue = GetGraphicsQueue ();
+    RealSwapchain& swapchain     = GetSwapchain ();
+    Graph          graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(

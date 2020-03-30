@@ -71,10 +71,27 @@ public:
 static DefaultSwapchainSettings defaultSwapchainSettings;
 
 
-class Swapchain : public Noncopyable {
-private:
+class Swapchain {
+public:
+    USING_PTR_ABSTRACT (Swapchain);
+
+    virtual ~Swapchain () {}
+
+    virtual VkFormat             GetImageFormat () const                                                                            = 0;
+    virtual uint32_t             GetImageCount () const                                                                             = 0;
+    virtual uint32_t             GetWidth () const                                                                                  = 0;
+    virtual uint32_t             GetHeight () const                                                                                 = 0;
+    virtual std::vector<VkImage> GetImages () const                                                                                 = 0;
+    virtual uint32_t             GetNextImageIndex (VkSemaphore signalSemaphore) const                                              = 0;
+    virtual void                 Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const = 0;
+    virtual bool                 SupportsPresenting () const                                                                        = 0;
+};
+
+class RealSwapchain : public Swapchain, public Noncopyable {
+public:
     static const VkImageUsageFlags ImageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
+private:
     const VkDevice device;
     VkSwapchainKHR handle;
 
@@ -88,14 +105,14 @@ private:
     std::vector<Framebuffer::U> framebuffers;
 
 public:
-    USING_PTR (Swapchain);
+    USING_PTR (RealSwapchain);
 
-    Swapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface)
-        : Swapchain (physicalDevice, device, surface, physicalDevice.GetQueueFamilies ())
+    RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface)
+        : RealSwapchain (physicalDevice, device, surface, physicalDevice.GetQueueFamilies ())
     {
     }
 
-    Swapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, SwapchainSettingsProvider& settings = defaultSwapchainSettings)
+    RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, SwapchainSettingsProvider& settings = defaultSwapchainSettings)
         : device (device)
     {
         VkSurfaceCapabilitiesKHR capabilities;
@@ -126,7 +143,7 @@ public:
         createInfo.imageColorSpace          = surfaceFormat.colorSpace;
         createInfo.imageExtent              = extent;
         createInfo.imageArrayLayers         = 1;
-        createInfo.imageUsage               = Swapchain::ImageUsage;
+        createInfo.imageUsage               = RealSwapchain::ImageUsage;
 
         uint32_t queueFamilyIndicesData[] = {*queueFamilyIndices.graphics, *queueFamilyIndices.presentation};
         if (queueFamilyIndices.presentation) {
@@ -162,7 +179,7 @@ public:
         }
     }
 
-    ~Swapchain ()
+    ~RealSwapchain ()
     {
         vkDestroySwapchainKHR (device, handle, nullptr);
         handle = VK_NULL_HANDLE;
@@ -170,11 +187,72 @@ public:
 
     operator VkSwapchainKHR () const { return handle; }
 
-    VkFormat             GetImageFormat () const { return surfaceFormat.format; }
-    uint32_t             GetImageCount () const { return imageCount; }
-    uint32_t             GetWidth () const { return extent.width; }
-    uint32_t             GetHeight () const { return extent.height; }
-    std::vector<VkImage> GetImages () const { return images; }
+    virtual VkFormat             GetImageFormat () const override { return surfaceFormat.format; }
+    virtual uint32_t             GetImageCount () const override { return imageCount; }
+    virtual uint32_t             GetWidth () const override { return extent.width; }
+    virtual uint32_t             GetHeight () const override { return extent.height; }
+    virtual std::vector<VkImage> GetImages () const override { return images; }
+
+    virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override
+    {
+        uint32_t result;
+        vkAcquireNextImageKHR (device, handle, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &result);
+        return result;
+    }
+
+    virtual bool SupportsPresenting () const { return true; }
+
+    virtual void Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const override
+    {
+        VkPresentInfoKHR presentInfo   = {};
+        presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.waitSemaphoreCount = waitSemaphores.size ();
+        presentInfo.pWaitSemaphores    = waitSemaphores.data ();
+        presentInfo.swapchainCount     = 1;
+        presentInfo.pSwapchains        = &handle;
+        presentInfo.pImageIndices      = &imageIndex;
+        presentInfo.pResults           = nullptr;
+
+        vkQueuePresentKHR (queue, &presentInfo);
+    }
+};
+
+
+class FakeSwapchain : public Swapchain {
+public:
+    AllocatedImage image;
+    Device&        device;
+    const uint32_t width;
+    const uint32_t height;
+
+    USING_PTR (FakeSwapchain);
+
+    FakeSwapchain (Device& device, uint32_t width, uint32_t height)
+        : device (device)
+        , width (width)
+        , height (height)
+        , image (device, Image::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1), DeviceMemory::GPU)
+    {
+    }
+
+    virtual VkFormat             GetImageFormat () const override { return image.image->GetFormat (); }
+    virtual uint32_t             GetImageCount () const override { return 1; }
+    virtual uint32_t             GetWidth () const override { return width; }
+    virtual uint32_t             GetHeight () const override { return height; }
+    virtual std::vector<VkImage> GetImages () const override { return {*image.image}; }
+
+    virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override
+    {
+        ASSERT (signalSemaphore == VK_NULL_HANDLE);
+        return 0;
+    }
+
+    virtual bool SupportsPresenting () const { return false; }
+
+    virtual void Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const override
+    {
+        throw std::runtime_error ("fake swapchain cannot present");
+    }
 };
 
 

@@ -38,5 +38,15 @@ public:
     {
         return handle;
     }
+
+    void Wait () const
+    {
+        vkWaitForFences (device, 1, &handle, VK_TRUE, UINT64_MAX);
+    }
+
+    void Reset () const
+    {
+        vkResetFences (device, 1, &handle);
+    }
 };
 #endif

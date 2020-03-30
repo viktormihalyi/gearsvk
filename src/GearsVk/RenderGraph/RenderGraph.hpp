@@ -76,9 +76,15 @@ public:
     void AddConnection (const OutputConnection& c);
 
     void Compile ();
-    void Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores = {}, const std::vector<VkSemaphore>& signalSemaphores = {});
+    void Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores = {}, const std::vector<VkSemaphore>& signalSemaphores = {}, VkFence fence = VK_NULL_HANDLE);
 
-    GraphSettings GetGraphSettings () const { return settings; }
+    void Present (uint32_t imageIndex, Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores = {})
+    {
+        ASSERT (swapchain.SupportsPresenting ());
+        swapchain.Present (settings.queue, imageIndex, waitSemaphores);
+    }
+
+    const GraphSettings& GetGraphSettings () const { return settings; }
 };
 
 

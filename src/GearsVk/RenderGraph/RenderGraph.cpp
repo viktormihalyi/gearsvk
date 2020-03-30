@@ -100,7 +100,7 @@ void Graph::AddConnection (const Graph::OutputConnection& c)
 }
 
 
-void Graph::Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores, const std::vector<VkSemaphore>& signalSemaphores)
+void Graph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores, const std::vector<VkSemaphore>& signalSemaphores, VkFence fenceToSignal)
 {
     if (ERROR (!compiled)) {
         return;
@@ -113,7 +113,7 @@ void Graph::Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSema
     VkCommandBuffer cmdHdl = *commandBuffers[frameIndex];
 
     // TODO
-    std::vector<VkPipelineStageFlags> waitDstStageMasks (waitSemaphores.size (), VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+    std::vector<VkPipelineStageFlags> waitDstStageMasks (waitSemaphores.size (), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
     VkSubmitInfo result         = {};
     result.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -125,11 +125,7 @@ void Graph::Submit (VkQueue queue, uint32_t frameIndex, const std::vector<VkSema
     result.signalSemaphoreCount = signalSemaphores.size ();
     result.pSignalSemaphores    = signalSemaphores.data ();
 
-    vkQueueSubmit (queue, 1, &result, nullptr);
-
-    for (auto& op : operations) {
-        op->OnPostSubmit (frameIndex);
-    }
+    vkQueueSubmit (settings.queue, 1, &result, fenceToSignal);
 }
 
 } // namespace RenderGraph

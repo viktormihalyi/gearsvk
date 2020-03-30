@@ -24,7 +24,6 @@ struct Operation : public Noncopyable {
 
     virtual void Compile ()                                                  = 0;
     virtual void Record (uint32_t frameIndex, VkCommandBuffer commandBuffer) = 0;
-    virtual void OnPostSubmit (uint32_t frameIndex) {}
 
     void AddInput (uint32_t binding, const Resource::Ref& res);
     void AddOutput (uint32_t binding, const Resource::Ref& res);
@@ -98,41 +97,6 @@ struct RenderOperation final : public Operation {
     virtual void Record (uint32_t imageIndex, VkCommandBuffer commandBuffer) override;
 };
 
-
-struct PresentOperation final : public Operation {
-    const GraphSettings            graphSettings;
-    const Swapchain&               swapchain;
-    const std::vector<VkSemaphore> waitSemaphores;
-
-    PresentOperation (const GraphSettings& graphSettings, const Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores = {})
-        : swapchain (swapchain)
-        , graphSettings (graphSettings)
-        , waitSemaphores (waitSemaphores)
-    {
-    }
-
-    USING_PTR (PresentOperation);
-
-    virtual ~PresentOperation () {}
-    virtual void Compile () override {}
-    virtual void Record (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
-
-    virtual void OnPostSubmit (uint32_t imageIndex) override
-    {
-        VkSwapchainKHR swapchains[] = {swapchain};
-
-        VkPresentInfoKHR presentInfo   = {};
-        presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentInfo.waitSemaphoreCount = waitSemaphores.size ();
-        presentInfo.pWaitSemaphores    = waitSemaphores.data ();
-        presentInfo.swapchainCount     = 1;
-        presentInfo.pSwapchains        = swapchains;
-        presentInfo.pImageIndices      = &imageIndex;
-        presentInfo.pResults           = nullptr; // Optional
-
-        vkQueuePresentKHR (graphSettings.queue, &presentInfo);
-    }
-};
 
 } // namespace RenderGraph
 

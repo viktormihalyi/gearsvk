@@ -114,10 +114,7 @@ public:
     SwapchainImageResource (const GraphSettings& graphSettings, Swapchain& swapchain)
         : swapchainSurfaceFormat (swapchain.GetImageFormat ())
     {
-        uint32_t imageCount;
-        vkGetSwapchainImagesKHR (graphSettings.device, swapchain, &imageCount, nullptr);
-        std::vector<VkImage> swapChainImages (imageCount);
-        vkGetSwapchainImagesKHR (graphSettings.device, swapchain, &imageCount, swapChainImages.data ());
+        std::vector<VkImage> swapChainImages = swapchain.GetImages ();
 
         for (size_t i = 0; i < swapChainImages.size (); ++i) {
             imageViews.push_back (ImageView::Create (graphSettings.device, swapChainImages[i], swapchain.GetImageFormat ()));
