@@ -167,9 +167,9 @@ void main () {
 
     graph.Compile ();
 
-    graph.Submit (graphicsQueue, 0);
-    graph.Submit (graphicsQueue, 1);
-    graph.Submit (graphicsQueue, 2);
+    graph.Submit (0);
+    graph.Submit (1);
+    graph.Submit (2);
 
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
@@ -221,7 +221,7 @@ TEST_F (HeadlessVulkanTestEnvironment, RenderGraphUseTest)
     {
         Utils::TimerScope _ (obs);
         for (uint32_t i = 0; i < 4; ++i) {
-            graph.Submit (graphicsQueue, i);
+            graph.Submit (i);
         }
     }
 
@@ -267,10 +267,10 @@ static void LimitedEventLoop (WindowBase& window, const uint32_t maxRenders, con
 
 TEST_F (HiddenWindowVulkanTestEnvironment, SwapchainTest)
 {
-    Device&        device        = GetDevice ();
-    CommandPool&   commandPool   = GetCommandPool ();
-    Queue&         graphicsQueue = GetGraphicsQueue ();
-    RealSwapchain& swapchain     = GetSwapchain ();
+    Device&      device        = GetDevice ();
+    CommandPool& commandPool   = GetCommandPool ();
+    Queue&       graphicsQueue = GetGraphicsQueue ();
+    Swapchain&   swapchain     = GetSwapchain ();
 
     Graph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
 
@@ -329,8 +329,6 @@ void main () {
                                                                                   RenderOperationSettings (1, 6),
                                                                                   std::move (sp)));
 
-    Operation& presentOp = graph.CreateOperation (PresentOperation::Create (graph.GetGraphSettings (), swapchain, std::vector<VkSemaphore> {}));
-
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presented});
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 1, presentedCopy});
 
@@ -341,9 +339,9 @@ void main () {
     std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime = std::chrono::high_resolution_clock::now ();
 
     LimitedEventLoop (*window, 10, [&] (bool& stopFlag) {
-        uint32_t imageIndex = 0;
-        vkAcquireNextImageKHR (device, swapchain, UINT64_MAX, s, VK_NULL_HANDLE, &imageIndex);
-        graph.Submit (graphicsQueue, imageIndex, {s});
+        const uint32_t imageIndex = swapchain.GetNextImageIndex (s);
+        graph.Submit (imageIndex, {s});
+        graph.Present (imageIndex, swapchain);
 
         vkQueueWaitIdle (graphicsQueue);
         vkDeviceWaitIdle (device);
@@ -356,11 +354,11 @@ void main () {
 
 TEST_F (HiddenWindowVulkanTestEnvironment, VertexAndIndexBufferTest)
 {
-    Device&        device        = GetDevice ();
-    CommandPool&   commandPool   = GetCommandPool ();
-    Queue&         graphicsQueue = GetGraphicsQueue ();
-    RealSwapchain& swapchain     = GetSwapchain ();
-    Graph          graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+    Device&      device        = GetDevice ();
+    CommandPool& commandPool   = GetCommandPool ();
+    Queue&       graphicsQueue = GetGraphicsQueue ();
+    Swapchain&   swapchain     = GetSwapchain ();
+    Graph        graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -424,8 +422,6 @@ void main () {
     RenderOperation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (RenderOperationSettings (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
                                                                                      std::move (sp));
 
-    PresentOperation& presentOp = graph.CreateOperationTyped<PresentOperation> (swapchain, std::vector<VkSemaphore> {});
-
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presented});
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 1, presentedCopy});
 
@@ -433,10 +429,10 @@ void main () {
 
     Semaphore s (device);
 
-    LimitedEventLoop (*window, 10, [&] (bool&) {
-        uint32_t imageIndex = 0;
-        vkAcquireNextImageKHR (device, swapchain, UINT64_MAX, s, VK_NULL_HANDLE, &imageIndex);
-        graph.Submit (graphicsQueue, imageIndex, {s});
+    LimitedEventLoop (*window, 10, [&] (bool& stopFlag) {
+        const uint32_t imageIndex = swapchain.GetNextImageIndex (s);
+        graph.Submit (imageIndex, {s});
+        graph.Present (imageIndex, swapchain);
 
         vkQueueWaitIdle (graphicsQueue);
         vkDeviceWaitIdle (device);
@@ -448,11 +444,11 @@ void main () {
 
 TEST_F (HiddenWindowVulkanTestEnvironment, BasicUniformBufferTest)
 {
-    Device&        device        = GetDevice ();
-    CommandPool&   commandPool   = GetCommandPool ();
-    Queue&         graphicsQueue = GetGraphicsQueue ();
-    RealSwapchain& swapchain     = GetSwapchain ();
-    Graph          graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+    Device&      device        = GetDevice ();
+    CommandPool& commandPool   = GetCommandPool ();
+    Queue&       graphicsQueue = GetGraphicsQueue ();
+    Swapchain&   swapchain     = GetSwapchain ();
+    Graph        graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -524,7 +520,6 @@ void main () {
     ib.Flush ();
 
     Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (RenderOperationSettings (1, vbb, ib), std::move (sp));
-    Operation& presentOp        = graph.CreateOperationTyped<PresentOperation> (swapchain);
 
     graph.AddConnection (Graph::InputConnection {redFillOperation, 0, unif});
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presentedCopy});
@@ -534,14 +529,14 @@ void main () {
 
     Semaphore s (device);
 
-    LimitedEventLoop (*window, 10, [&] (bool&) {
-        uint32_t imageIndex = 0;
-        vkAcquireNextImageKHR (device, swapchain, UINT64_MAX, s, VK_NULL_HANDLE, &imageIndex);
+    LimitedEventLoop (*window, 10, [&] (bool& stopFlag) {
+        const uint32_t imageIndex = swapchain.GetNextImageIndex (s);
 
         float time = 0.5f;
         unif.GetMapping (imageIndex).Copy (time);
 
-        graph.Submit (graphicsQueue, imageIndex, {s});
+        graph.Submit (imageIndex, {s});
+        graph.Present (imageIndex, swapchain);
 
         vkQueueWaitIdle (graphicsQueue);
         vkDeviceWaitIdle (device);

@@ -21,13 +21,8 @@ struct GraphSettings {
     {
     }
 
-    GraphSettings (Device& device, VkQueue queue, VkCommandPool commandPool, const Swapchain& swapchain, uint32_t framesInFlight)
-        : GraphSettings (device, queue, commandPool, framesInFlight, swapchain.GetWidth (), swapchain.GetHeight ())
-    {
-    }
-
     GraphSettings (Device& device, VkQueue queue, VkCommandPool commandPool, const Swapchain& swapchain)
-        : GraphSettings (device, queue, commandPool, swapchain, swapchain.GetImageCount ())
+        : GraphSettings (device, queue, commandPool, swapchain.GetImageCount (), swapchain.GetWidth (), swapchain.GetHeight ())
     {
     }
 };

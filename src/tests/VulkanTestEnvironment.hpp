@@ -67,15 +67,15 @@ public:
 
         device = Device::Create (*physicalDevice, std::vector<uint32_t> {*physicalDevice->GetQueueFamilies ().graphics}, deviceExtensions);
 
-        if (window) {
-            swapchain = RealSwapchain::Create (*physicalDevice, *device, *surface);
-        } else {
-            swapchain = FakeSwapchain::Create (*device, 512, 512);
-        }
-
         graphicsQueue = Queue::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
         commandPool = CommandPool::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
+
+        if (window) {
+            swapchain = RealSwapchain::Create (*physicalDevice, *device, *surface);
+        } else {
+            swapchain = FakeSwapchain::Create (*device, *graphicsQueue, *commandPool, 512, 512);
+        }
 
         if (false) {
             uint32_t apiVersion;

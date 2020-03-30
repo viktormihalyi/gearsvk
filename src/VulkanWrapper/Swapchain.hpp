@@ -213,7 +213,10 @@ public:
         presentInfo.pImageIndices      = &imageIndex;
         presentInfo.pResults           = nullptr;
 
-        vkQueuePresentKHR (queue, &presentInfo);
+        VkResult err = vkQueuePresentKHR (queue, &presentInfo);
+        if (ERROR (err != VK_SUCCESS)) {
+            throw std::runtime_error ("failed to present");
+        }
     }
 };
 
@@ -227,12 +230,13 @@ public:
 
     USING_PTR (FakeSwapchain);
 
-    FakeSwapchain (Device& device, uint32_t width, uint32_t height)
+    FakeSwapchain (Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t width, uint32_t height)
         : device (device)
         , width (width)
         , height (height)
         , image (device, Image::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1), DeviceMemory::GPU)
     {
+        TransitionImageLayout (device, queue, commandPool, *image.image, Image::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
     }
 
     virtual VkFormat             GetImageFormat () const override { return image.image->GetFormat (); }
