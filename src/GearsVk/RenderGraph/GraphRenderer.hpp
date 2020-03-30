@@ -3,6 +3,7 @@
 
 #include "RenderGraph.hpp"
 #include "Swapchain.hpp"
+#include "WindowBase.hpp"
 
 
 namespace RenderGraph {
@@ -11,6 +12,26 @@ namespace RenderGraph {
 struct GraphRenderer {
 public:
     virtual void RenderNextFrame () = 0;
+
+    WindowBase::DrawCallback GetInfiniteDrawCallback ()
+    {
+        return [&] (bool&) -> void {
+            RenderNextFrame ();
+        };
+    }
+
+    WindowBase::DrawCallback GetCountLimitedDrawCallback (uint64_t limit)
+    {
+        uint64_t drawCount = 0;
+        return [&] (bool& stopFlag) -> void {
+            RenderNextFrame ();
+
+            ++drawCount;
+            if (drawCount >= limit) {
+                stopFlag = true;
+            }
+        };
+    }
 };
 
 
@@ -22,7 +43,7 @@ struct BlockingGraphRenderer : public GraphRenderer {
 
     BlockingGraphRenderer (Graph&                                           graph,
                            Swapchain&                                       swapchain,
-                           const std::function<void (uint32_t frameIndex)>& preSubmitCallback)
+                           const std::function<void (uint32_t frameIndex)>& preSubmitCallback = nullptr)
         : preSubmitCallback (preSubmitCallback)
         , graph (graph)
         , swapchain (swapchain)
@@ -34,7 +55,9 @@ struct BlockingGraphRenderer : public GraphRenderer {
     {
         const uint32_t currentImageIndex = swapchain.GetNextImageIndex (s);
 
-        preSubmitCallback (currentImageIndex);
+        if (preSubmitCallback != nullptr) {
+            preSubmitCallback (currentImageIndex);
+        }
 
         graph.Submit (currentImageIndex);
         vkQueueWaitIdle (graph.GetGraphSettings ().queue);
@@ -107,7 +130,9 @@ struct SynchronizedSwapchainGraphRenderer : public GraphRenderer {
 
         inFlightFences[currentFrameIndex]->Reset ();
 
-        preSubmitCallback (currentFrameIndex);
+        if (preSubmitCallback != nullptr) {
+            preSubmitCallback (currentFrameIndex);
+        }
 
         graph.Submit (currentFrameIndex, submitWaitSemaphores, submitSignalSemaphores, *inFlightFences[currentFrameIndex]);
 

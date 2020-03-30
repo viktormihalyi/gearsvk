@@ -101,12 +101,7 @@ protected:
     Device&         GetDevice () { return *env->device; }
     CommandPool&    GetCommandPool () { return *env->commandPool; }
     Queue&          GetGraphicsQueue () { return *env->graphicsQueue; }
-
-    Swapchain& GetSwapchain ()
-    {
-        ASSERT (window != nullptr);
-        return *env->swapchain;
-    }
+    Swapchain&      GetSwapchain () { return *env->swapchain; }
 
     virtual ~VulkanTestEnvironmentBase () {}
 

@@ -714,12 +714,5 @@ void main () {
     });
 
 
-    window->DoEventLoop ([&] (bool& stopFlag) {
-        swapchainSync.RenderNextFrame ();
-    });
-
-    // SaveImageToFileAsync (device, graphicsQueue, commandPool, presentedCopy.images)
-
-    vkQueueWaitIdle (graphicsQueue);
-    vkDeviceWaitIdle (device);
+    window->DoEventLoop (swapchainSync.GetInfiniteDrawCallback ());
 }

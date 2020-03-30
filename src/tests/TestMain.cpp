@@ -1,5 +1,6 @@
 #include <vulkan/vulkan.h>
 
+#include "GraphRenderer.hpp"
 #include "Ptr.hpp"
 #include "RenderGraph.hpp"
 #include "ShaderPipeline.hpp"
@@ -334,21 +335,8 @@ void main () {
 
     graph.Compile ();
 
-    Semaphore s (device);
-
-    std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime = std::chrono::high_resolution_clock::now ();
-
-    LimitedEventLoop (*window, 10, [&] (bool& stopFlag) {
-        const uint32_t imageIndex = swapchain.GetNextImageIndex (s);
-        graph.Submit (imageIndex, {s});
-        graph.Present (imageIndex, swapchain);
-
-        vkQueueWaitIdle (graphicsQueue);
-        vkDeviceWaitIdle (device);
-    });
-
-    vkQueueWaitIdle (graphicsQueue);
-    vkDeviceWaitIdle (device);
+    BlockingGraphRenderer renderer (graph, swapchain);
+    window->DoEventLoop (renderer.GetCountLimitedDrawCallback (10));
 }
 
 
@@ -427,16 +415,8 @@ void main () {
 
     graph.Compile ();
 
-    Semaphore s (device);
-
-    LimitedEventLoop (*window, 10, [&] (bool& stopFlag) {
-        const uint32_t imageIndex = swapchain.GetNextImageIndex (s);
-        graph.Submit (imageIndex, {s});
-        graph.Present (imageIndex, swapchain);
-
-        vkQueueWaitIdle (graphicsQueue);
-        vkDeviceWaitIdle (device);
-    });
+    BlockingGraphRenderer renderer (graph, swapchain);
+    window->DoEventLoop (renderer.GetCountLimitedDrawCallback (10));
 
     CompareImages ("uv", *presentedCopy.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
@@ -527,20 +507,11 @@ void main () {
 
     graph.Compile ();
 
-    Semaphore s (device);
-
-    LimitedEventLoop (*window, 10, [&] (bool& stopFlag) {
-        const uint32_t imageIndex = swapchain.GetNextImageIndex (s);
-
+    BlockingGraphRenderer renderer (graph, swapchain, [&] (uint32_t frameIndex) {
         float time = 0.5f;
-        unif.GetMapping (imageIndex).Copy (time);
-
-        graph.Submit (imageIndex, {s});
-        graph.Present (imageIndex, swapchain);
-
-        vkQueueWaitIdle (graphicsQueue);
-        vkDeviceWaitIdle (device);
+        unif.GetMapping (frameIndex).Copy (time);
     });
+    window->DoEventLoop (renderer.GetCountLimitedDrawCallback (10));
 
     CompareImages ("uvoffset", *presentedCopy.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
