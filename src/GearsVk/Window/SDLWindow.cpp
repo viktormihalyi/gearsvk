@@ -22,14 +22,16 @@ SDLWindowBase::SDLWindowBase (uint32_t flags)
                                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                width, height,
                                SDL_WINDOW_VULKAN | flags);
+
+    events.created.Notify ();
 }
 
 
 SDLWindowBase::~SDLWindowBase ()
 {
     SDL_Quit ();
+    events.destroyed.Notify ();
 }
-
 
 void* SDLWindowBase::GetHandle () const
 {

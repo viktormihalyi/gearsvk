@@ -587,12 +587,17 @@ int main_OLD (int argc, char* argv[])
 #include "Operation.hpp"
 #include "RenderGraph.hpp"
 #include "Resource.hpp"
+#include "Time.hpp"
 #include "tests/VulkanTestEnvironment.hpp"
 
 
 int main (int argc, char* argv[])
 {
     WindowBase::U window = SDLWindow::Create ();
+
+    window->events.destroyed += [] () {
+        std::cout << "window destroyed" << std::endl;
+    };
 
     TestEnvironment testenv ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
 
@@ -623,7 +628,7 @@ layout (location = 1) out float asdout;
 
 
 void main() {
-    gl_Position = vec4 (position + vec2 (time.time), 0.0, 1.0);
+    gl_Position = vec4 (position + vec2 (time.time / 100.f), 0.0, 1.0);
     textureCoords = uv;
     asdout = asd;
 }
@@ -682,35 +687,10 @@ void main () {
 
     graph.Compile ();
 
-    Semaphore s (device);
-
-    struct TimeNano {
-    public:
-        std::chrono::time_point<std::chrono::high_resolution_clock> time;
-
-        TimeNano (std::chrono::time_point<std::chrono::high_resolution_clock> time)
-            : time (time)
-        {
-        }
-
-        static TimeNano Now ()
-        {
-            return std::chrono::high_resolution_clock::now ();
-        }
-
-        uint64_t operator- (const TimeNano& other)
-        {
-            return (std::chrono::duration_cast<std::chrono::nanoseconds> (time - other.time)).count ();
-        }
-    };
-
-    const TimeNano firstDrawTime = std::chrono::high_resolution_clock::now ();
-    TimeNano       lastDrawTime  = firstDrawTime;
-
-
     BlockingGraphRenderer swapchainSync (graph, swapchain, [&] (uint32_t frameIndex) {
-        float time = 0.5f;
-        unif.GetMapping (frameIndex).Copy (time);
+        Time::Point currentTime  = Time::SinceApplicationStart ();
+        float       timeInSconds = currentTime.AsSeconds ();
+        unif.GetMapping (frameIndex).Copy (timeInSconds);
     });
 
 
