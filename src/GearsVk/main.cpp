@@ -595,8 +595,11 @@ int main (int argc, char* argv[])
 {
     WindowBase::U window = SDLWindow::Create ();
 
-    window->events.destroyed += [] () {
-        std::cout << "window destroyed" << std::endl;
+    window->events.focused += [] () {
+        std::cout << "window focused" << std::endl;
+    };
+    window->events.mouseMove += [] (uint32_t x, uint32_t y) {
+        std::cout << "mouse " << x << " " << y << std::endl;
     };
 
     TestEnvironment testenv ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);

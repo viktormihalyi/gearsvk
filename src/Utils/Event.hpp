@@ -13,7 +13,14 @@ public:
 
     std::vector<Callback> observers;
 
-    void Notify (ARGS&&... args) const
+    inline void Notify (ARGS... args) const
+    {
+        for (auto& ob : observers) {
+            (*ob) (std::forward<ARGS> (args)...);
+        }
+    }
+
+    inline void operator() (ARGS... args) const
     {
         for (auto& ob : observers) {
             (*ob) (std::forward<ARGS> (args)...);
@@ -21,13 +28,13 @@ public:
     }
 
     template<class Functor>
-    Callback CreateDelegate (Functor f)
+    inline Callback CreateDelegate (Functor f)
     {
         return Callback (new Func (f));
     }
 
     template<class Functor>
-    void operator+= (Functor f)
+    inline void operator+= (Functor f)
     {
         observers.push_back (CreateDelegate (f));
     }

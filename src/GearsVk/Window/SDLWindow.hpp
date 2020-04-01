@@ -8,6 +8,8 @@
 
 class SDLWindowBase : public WindowBase {
 private:
+    static uint32_t windowCount;
+
     void*    window;
     uint32_t width;
     uint32_t height;

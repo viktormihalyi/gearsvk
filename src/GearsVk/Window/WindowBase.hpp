@@ -14,21 +14,24 @@
 class WindowBase : public Noncopyable {
 public:
     struct {
-        Event<>                   created;
-        Event<>                   destroyed;
+        // window events
         Event<>                   shown;
         Event<>                   hidden;
-        Event<uint32_t, uint32_t> resized;
+        Event<>                   closed;
         Event<>                   focused;
         Event<>                   focusLost;
-        Event<uint32_t, uint32_t> keyPressed;
-        Event<uint32_t, uint32_t> keyReleased;
+        Event<uint32_t, uint32_t> resized;
+        Event<uint32_t, uint32_t> moved;
+
+        // user input
+        Event<uint32_t>           keyPressed;
+        Event<uint32_t>           keyReleased;
         Event<uint32_t, uint32_t> mouseMove;
         Event<uint32_t, uint32_t> leftMouseButtonPressed;
         Event<uint32_t, uint32_t> leftMouseButtonReleased;
         Event<uint32_t, uint32_t> rightMouseButtonPressed;
         Event<uint32_t, uint32_t> rightMouseButtonReleased;
-        Event<uint32_t>           scroll;
+        Event<int32_t>            scroll;
     } events;
 
 public:

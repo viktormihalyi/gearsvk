@@ -9,11 +9,18 @@
 #include <iostream>
 
 
+uint32_t SDLWindowBase::windowCount = 0;
+
+
 SDLWindowBase::SDLWindowBase (uint32_t flags)
     : window (nullptr)
     , width (800)
     , height (600)
 {
+    if (ERROR (windowCount != 0)) {
+        throw std::runtime_error ("TODO support multiple windows");
+    }
+
     if (ERROR (SDL_Init (SDL_INIT_VIDEO) != 0)) {
         throw std::runtime_error ("sdl init failed");
     }
@@ -23,14 +30,15 @@ SDLWindowBase::SDLWindowBase (uint32_t flags)
                                width, height,
                                SDL_WINDOW_VULKAN | flags);
 
-    events.created.Notify ();
+    ++windowCount;
 }
 
 
 SDLWindowBase::~SDLWindowBase ()
 {
     SDL_Quit ();
-    events.destroyed.Notify ();
+
+    --windowCount;
 }
 
 void* SDLWindowBase::GetHandle () const
@@ -48,10 +56,56 @@ void SDLWindowBase::DoEventLoop (const DrawCallback& drawCallback)
 
     while (!quit) {
         while (SDL_PollEvent (&e) != 0) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-                break;
+            switch (e.type) {
+                case SDL_QUIT:
+                    quit = true;
+                    break;
+                case SDL_KEYDOWN: events.keyPressed (static_cast<uint32_t> (e.key.keysym.scancode)); break;
+                case SDL_KEYUP: events.keyReleased (static_cast<uint32_t> (e.key.keysym.scancode)); break;
+                case SDL_MOUSEMOTION: events.mouseMove (static_cast<uint32_t> (e.motion.x), static_cast<uint32_t> (e.motion.y)); break;
+                case SDL_MOUSEBUTTONDOWN:
+                    switch (e.button.button) {
+                        case SDL_BUTTON_LEFT: events.leftMouseButtonPressed (static_cast<uint32_t> (e.button.x), static_cast<uint32_t> (e.button.y)); break;
+                        case SDL_BUTTON_RIGHT: events.rightMouseButtonPressed (static_cast<uint32_t> (e.button.x), static_cast<uint32_t> (e.button.y)); break;
+                    }
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    switch (e.button.button) {
+                        case SDL_BUTTON_LEFT: events.leftMouseButtonReleased (static_cast<uint32_t> (e.button.x), static_cast<uint32_t> (e.button.y)); break;
+                        case SDL_BUTTON_RIGHT: events.rightMouseButtonReleased (static_cast<uint32_t> (e.button.x), static_cast<uint32_t> (e.button.y)); break;
+                    }
+                    break;
+                case SDL_MOUSEWHEEL: events.scroll (static_cast<int32_t> (e.wheel.y)); break;
+                case SDL_WINDOWEVENT:
+                    switch (e.window.event) {
+                        case SDL_WINDOWEVENT_SHOWN:
+                            events.shown ();
+                            break;
+                        case SDL_WINDOWEVENT_HIDDEN:
+                            events.hidden ();
+                            break;
+                        case SDL_WINDOWEVENT_MOVED:
+                            events.moved (static_cast<uint32_t> (e.window.data1), static_cast<uint32_t> (e.window.data2));
+                            break;
+                        case SDL_WINDOWEVENT_RESIZED:
+                            events.resized (static_cast<uint32_t> (e.window.data1), static_cast<uint32_t> (e.window.data2));
+                            break;
+                        case SDL_WINDOWEVENT_FOCUS_GAINED:
+                            events.focused ();
+                            break;
+                        case SDL_WINDOWEVENT_FOCUS_LOST:
+                            events.focusLost ();
+                            break;
+                        case SDL_WINDOWEVENT_CLOSE:
+                            events.closed ();
+                            break;
+                    }
+                    break;
             }
+        }
+
+        if (quit) {
+            break;
         }
 
         bool stop = false;
