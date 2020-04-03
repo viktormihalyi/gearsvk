@@ -20,6 +20,14 @@ public:
         };
     }
 
+    WindowBase::DrawCallback GetInfiniteDrawCallback (const std::function<bool ()>& shouldStop)
+    {
+        return [&] (bool& stopFlag) -> void {
+            stopFlag = shouldStop ();
+            RenderNextFrame ();
+        };
+    }
+
     WindowBase::DrawCallback GetCountLimitedDrawCallback (uint64_t limit)
     {
         uint64_t drawCount = 0;

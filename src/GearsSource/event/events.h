@@ -1,0 +1,15 @@
+#pragma once
+
+#include "event/KeyPressed.h"
+#include "event/KeyReleased.h"
+#include "event/MouseMove.h"
+#include "event/MousePressedLeft.h"
+#include "event/MouseReleasedLeft.h"
+#include "event/MousePressedMiddle.h"
+#include "event/MouseReleasedMiddle.h"
+#include "event/MousePressedRight.h"
+#include "event/MouseReleasedRight.h"
+#include "event/Wheel.h"
+#include "event/Frame.h"
+#include "event/StimulusStart.h"
+#include "event/StimulusEnd.h"

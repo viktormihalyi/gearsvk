@@ -60,8 +60,8 @@ void SDLWindowBase::DoEventLoop (const DrawCallback& drawCallback)
                 case SDL_QUIT:
                     quit = true;
                     break;
-                case SDL_KEYDOWN: events.keyPressed (static_cast<uint32_t> (e.key.keysym.scancode)); break;
-                case SDL_KEYUP: events.keyReleased (static_cast<uint32_t> (e.key.keysym.scancode)); break;
+                case SDL_KEYDOWN: events.keyPressed (static_cast<uint32_t> (e.key.keysym.sym)); break;
+                case SDL_KEYUP: events.keyReleased (static_cast<uint32_t> (e.key.keysym.sym)); break;
                 case SDL_MOUSEMOTION: events.mouseMove (static_cast<uint32_t> (e.motion.x), static_cast<uint32_t> (e.motion.y)); break;
                 case SDL_MOUSEBUTTONDOWN:
                     switch (e.button.button) {

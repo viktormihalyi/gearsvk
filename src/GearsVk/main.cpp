@@ -598,11 +598,9 @@ int main (int argc, char* argv[])
     window->events.focused += [] () {
         std::cout << "window focused" << std::endl;
     };
-    window->events.mouseMove += [] (uint32_t x, uint32_t y) {
-        std::cout << "mouse " << x << " " << y << std::endl;
-    };
 
-    TestEnvironment testenv ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
+    constexpr uint8_t ESC_CODE = 27;
+    TestEnvironment   testenv ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
 
     Device&      device        = *testenv.device;
     CommandPool& commandPool   = *testenv.commandPool;
@@ -697,5 +695,13 @@ void main () {
     });
 
 
-    window->DoEventLoop (swapchainSync.GetInfiniteDrawCallback ());
+    bool quit = false;
+
+    window->events.keyPressed += [&] (uint32_t keyCode) {
+        if (keyCode == 27) {
+            quit = true;
+        }
+    };
+
+    window->DoEventLoop (swapchainSync.GetInfiniteDrawCallback ([&] { return quit; }));
 }

@@ -1,6 +1,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include "Noncopyable.hpp"
 #include "Ptr.hpp"
 
 #include <algorithm>
