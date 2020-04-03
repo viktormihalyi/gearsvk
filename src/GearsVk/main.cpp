@@ -207,7 +207,7 @@ int main_OLD (int argc, char* argv[])
     uint32_t apiVersion;
     vkEnumerateInstanceVersion (&apiVersion);
 
-    WindowBase::U window = SDLWindowBase::Create ();
+    Window::U window = SDLWindowBase::Create ();
 
     // platform required extensionss
     std::vector<const char*> extensions;
@@ -593,11 +593,12 @@ int main_OLD (int argc, char* argv[])
 
 int main (int argc, char* argv[])
 {
-    WindowBase::U window = SDLWindow::Create ();
+    Window::U window = SDLWindow::Create ();
 
-    window->events.focused += [] () {
+    window->events.focused.Attach ([] () {
         std::cout << "window focused" << std::endl;
-    };
+    });
+    //h.Detach ();
 
     constexpr uint8_t ESC_CODE = 27;
     TestEnvironment   testenv ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
@@ -697,11 +698,13 @@ void main () {
 
     bool quit = false;
 
-    window->events.keyPressed += [&] (uint32_t keyCode) {
-        if (keyCode == 27) {
-            quit = true;
-        }
-    };
+    auto a = Event<uint32_t>::CreateCallback ([&] (uint32_t a) {
+        std::cout << a << std::endl;
+        return;
+    });
+
+    window->events.keyPressed += a;
+    window->events.keyPressed -= a;
 
     window->DoEventLoop (swapchainSync.GetInfiniteDrawCallback ([&] { return quit; }));
 }

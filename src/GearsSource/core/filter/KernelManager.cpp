@@ -69,7 +69,7 @@ uint KernelManager::update (SpatialFilter::CP spatialFilter)
     if (i == kernels.end ()) {
         std::stringstream ss;
         ss << "Kernel not found. There must be some problem with kernel identification for dynamic or shared kernels.";
-        throw std::runtime_error (ss.str ());
+        throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
         //PyErr_SetString (PyExc_TypeError, ss.str ().c_str ());
         //boost::python::throw_error_already_set ();
     }

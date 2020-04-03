@@ -52,7 +52,7 @@ Pass::~Pass ()
 pybind11::object Pass::setJoiner (pybind11::object joiner)
 {
     this->joiner = joiner;
-    return pybind11::object ();
+    return this->joiner;
 }
 
 float Pass::getDuration_s () const
@@ -63,7 +63,7 @@ float Pass::getDuration_s () const
 pybind11::object Pass::setPythonObject (pybind11::object o)
 {
     pythonObject = o;
-    return pybind11::object ();
+    return pythonObject;
 }
 
 pybind11::object Pass::getPythonObject ()
@@ -85,7 +85,7 @@ std::shared_ptr<Sequence> Pass::getSequence () const
 
 void Pass::setPolygonMask (std::string mode, pybind11::object o)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     using namespace pybind11;
 

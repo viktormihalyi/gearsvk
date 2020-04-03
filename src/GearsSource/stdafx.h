@@ -9,6 +9,11 @@
 #include <memory>
 #include <pybind11/pybind11.h>
 
+#include "SourceLocation.hpp"
+
+#define THROW_LOC() \
+    throw ::std::runtime_error (::Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ())
+
 using uint = unsigned int;
 
 #define GEARS_SHARED_CREATE(T)                             \

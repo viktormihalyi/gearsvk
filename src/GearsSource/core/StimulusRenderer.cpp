@@ -27,7 +27,7 @@ StimulusRenderer::StimulusRenderer (SequenceRenderer::P sequenceRenderer, Stimul
     else
         dynamicToneShader = nullptr;
 
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     if (stimulus->spatialFilter) {
         auto width  = sequenceRenderer->getSequence ()->fftWidth_px;
@@ -93,7 +93,7 @@ StimulusRenderer::~StimulusRenderer ()
 
 void StimulusRenderer::preRender ()
 {
-    throw std::runtime_error ("gl code");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     /*
     if (sequenceRenderer->clFFT () && spatialFilterRenderer) {
         std::function<void (int)> stim = [&] (int frame) {
@@ -119,7 +119,7 @@ void StimulusRenderer::preRender ()
 
 void StimulusRenderer::renderStimulus (GLuint defaultFrameBuffer, int skippedFrames)
 {
-    throw std::runtime_error ("gl code");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     /*{
         int err = glGetError ();
         if (err)
@@ -409,7 +409,7 @@ void StimulusRenderer::renderStimulus (GLuint defaultFrameBuffer, int skippedFra
 
 void StimulusRenderer::renderSample (uint sFrame, int left, int top, int width, int height)
 {
-    throw std::runtime_error ("gl code");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     /*
     float time = sFrame / stimulus->sequence->deviceFrameRate * stimulus->sequence->frameRateDivisor;
 
@@ -456,7 +456,7 @@ void StimulusRenderer::renderSample (uint sFrame, int left, int top, int width, 
 
 void StimulusRenderer::renderTimeline (bool* signals, uint startFrame, uint frameCount)
 {
-    throw std::runtime_error ("gl code");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     /*
 
     for (auto& p : passRenderers)
@@ -564,7 +564,7 @@ void StimulusRenderer::renderTimeline (bool* signals, uint startFrame, uint fram
 
 void StimulusRenderer::renderSpatialKernel (float min, float max, float width, float height)
 {
-    throw std::runtime_error ("gl code");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     /*
     if (kernelShader == nullptr) {
         glClear (GL_COLOR_BUFFER_BIT);
@@ -595,7 +595,7 @@ void StimulusRenderer::renderSpatialKernel (float min, float max, float width, f
 
 void StimulusRenderer::renderSpatialProfile (float min, float max, float width, float height)
 {
-    throw std::runtime_error ("gl code");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     /*
     if (profileShader == nullptr) {
         glClear (GL_COLOR_BUFFER_BIT);
@@ -635,7 +635,7 @@ void StimulusRenderer::reset ()
 
 void StimulusRenderer::renderTemporalKernel ()
 {
-    throw std::runtime_error ("gl code");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     /*
     glColor3d (1, 0, 0);
     glLineWidth (2);

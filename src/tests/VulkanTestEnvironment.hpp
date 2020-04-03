@@ -40,7 +40,7 @@ public:
 
     USING_PTR (TestEnvironment);
 
-    TestEnvironment (std::vector<const char*> instanceExtensions, std::optional<WindowBase::Ref> window = std::nullopt)
+    TestEnvironment (std::vector<const char*> instanceExtensions, std::optional<Window::Ref> window = std::nullopt)
     {
         if (window) {
             auto windowExtenions = window->get ().GetExtensions ();
@@ -94,7 +94,7 @@ public:
 
 class VulkanTestEnvironmentBase : public ::testing::Test {
 protected:
-    WindowBase::U      window;
+    Window::U          window;
     TestEnvironment::U env;
 
     PhysicalDevice& GetPhysicalDevice () { return *env->physicalDevice; }

@@ -11,7 +11,7 @@ Shader::Shader ()
 Shader::Shader (std::string vertexShaderSource, std::string fragmentShaderSource, bool dummy)
 {
     geometryProgram = 0;
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
   {
 	  char* s = new char[vertexShaderSource.length() + 1];
@@ -39,7 +39,7 @@ Shader::Shader (std::string vertexShaderSource, std::string fragmentShaderSource
 
 Shader::Shader (std::string vertexShaderSource, std::string geometryShaderSource, std::string fragmentShaderSource, GLint geomShaderOutputType)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
 	if(vertexShaderSource.empty())
 		vertexProgram = 0;
@@ -90,7 +90,7 @@ Shader::Shader (std::string vertexShaderSource, std::string geometryShaderSource
 Shader::Shader (const char* vertexShaderPath, const char* fragmentShaderPath, const char* geometryShaderPath, GLint geomShaderOutputType)
 {
     geometryProgram = 0;
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
   shaderFromFile(vertexShaderPath, GL_VERTEX_SHADER, vertexProgram);
   shaderFromFile(fragmentShaderPath, GL_FRAGMENT_SHADER, fragmentProgram);
@@ -104,7 +104,7 @@ Shader::Shader (const char* vertexShaderPath, const char* fragmentShaderPath, co
 
 Shader::Shader (std::string vertexShaderPath, std::string fragmentShaderSource)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     geometryProgram = 0;
 
@@ -128,7 +128,7 @@ Shader::~Shader ()
 
 void Shader::shaderFromString (const char* shaderSource, int len, GLenum shaderType, GLuint& handle)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     int errorFlag = -1;
 
@@ -156,7 +156,7 @@ void Shader::shaderFromString (const char* shaderSource, int len, GLenum shaderT
 
 void Shader::shaderFromFile (const char* shaderPath, GLenum shaderType, GLuint& handle)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     char* shaderSource = NULL;
     int   len;
@@ -172,7 +172,7 @@ void Shader::shaderFromFile (const char* shaderPath, GLenum shaderType, GLuint& 
 
 void Shader::linkShaders (GLuint& vertexShader, GLuint& fragmentShader, GLuint& geometryShader, GLuint& handle, GLint geomShaderOutputType)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     int errorFlag = -1;
 
@@ -202,7 +202,7 @@ std::string Shader::getShaderInfoLog (GLuint& object)
     int         charsWritten = 0;
     char*       tmpLog;
     std::string log;
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
 
     glGetShaderiv (object, GL_INFO_LOG_LENGTH, &logLength);
@@ -224,7 +224,7 @@ std::string Shader::getProgramInfoLog (GLuint& object)
     char*       tmpLog;
     std::string log;
 
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glGetProgramiv (object, GL_INFO_LOG_LENGTH, &logLength);
 
@@ -258,54 +258,54 @@ bool Shader::fileToString (const char* path, char*& out, int& len)
 
 void Shader::enable ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     // glUseProgram (shaderProgram);
 }
 
 void Shader::disable ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     // glUseProgram (0);
 }
 
 void Shader::bindUniformBool (const char* name, bool b)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint boolLocation = glGetUniformLocation (shaderProgram, name);
     //glUniform1f (boolLocation, b);
 }
 
 void Shader::bindUniformUint (const char* name, GLuint i)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint vectorLocation = glGetUniformLocation (shaderProgram, name);
     //glUniform1ui (vectorLocation, i);
 }
 
 void Shader::bindUniformUint2 (const char* name, GLuint i, GLuint j)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint vectorLocation = glGetUniformLocation (shaderProgram, name);
     //glUniform2ui (vectorLocation, i, j);
 }
 
 void Shader::bindUniformInt (const char* name, int i)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint vectorLocation = glGetUniformLocation (shaderProgram, name);
     //glUniform1i (vectorLocation, i);
 }
 
 void Shader::bindUniformInt2 (const char* name, int i1, int i2)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint vectorLocation = glGetUniformLocation (shaderProgram, name);
     //glUniform2i (vectorLocation, i1, i2);
 }
 
 void Shader::bindUniformFloat (const char* name, float f)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //if (location != -1)
     //    glUniform1f (location, f);
@@ -313,7 +313,7 @@ void Shader::bindUniformFloat (const char* name, float f)
 
 void Shader::bindUniformFloat2 (const char* name, float f1, float f2)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     GLuint location = glGetUniformLocation (shaderProgram, name);
     if (location != -1) {
@@ -326,7 +326,7 @@ void Shader::bindUniformFloat2 (const char* name, float f1, float f2)
 
 void Shader::bindUniformFloat3 (const char* name, float f1, float f2, float f3)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //if (location != -1)
     //    glUniform3f (location, f1, f2, f3);
@@ -334,7 +334,7 @@ void Shader::bindUniformFloat3 (const char* name, float f1, float f2, float f3)
 
 void Shader::bindUniformTexture (const char* name, GLuint texture, GLuint unit)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glActiveTexture (GL_TEXTURE0 + unit);
     //glBindTexture (GL_TEXTURE_2D, texture);
@@ -343,7 +343,7 @@ void Shader::bindUniformTexture (const char* name, GLuint texture, GLuint unit)
 
 void Shader::bindUniformTexture1D (const char* name, GLuint texture, GLuint unit)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glActiveTexture (GL_TEXTURE0 + unit);
     //glBindTexture (GL_TEXTURE_1D, texture);
@@ -352,7 +352,7 @@ void Shader::bindUniformTexture1D (const char* name, GLuint texture, GLuint unit
 
 void Shader::bindUniformTextureRect (const char* name, GLuint texture, GLuint unit)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glActiveTexture (GL_TEXTURE0 + unit);
     //glBindTexture (GL_TEXTURE_RECTANGLE_ARB, texture);
@@ -361,7 +361,7 @@ void Shader::bindUniformTextureRect (const char* name, GLuint texture, GLuint un
 
 void Shader::bindUniformTextureArray (const char* name, GLuint texture, GLuint unit)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glActiveTexture (GL_TEXTURE0 + unit);
     //glBindTexture (GL_TEXTURE_2D_ARRAY, texture);
@@ -370,42 +370,42 @@ void Shader::bindUniformTextureArray (const char* name, GLuint texture, GLuint u
 
 void Shader::bindAttribLocation (GLuint id, const char* name)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //glEnableVertexAttribArray (id);
     //glBindAttribLocation (shaderProgram, id, name);
 }
 
 void Shader::bindUniformMatrix (const char* name, const float* m, unsigned int arraySize)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glUniformMatrix4fv (location, arraySize, false, m);
 }
 
 void Shader::bindUniformVector (const char* name, const float* m, unsigned int arraySize)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glUniform3fv (location, arraySize, m);
 }
 
 void Shader::bindUniformFloat4Array (const char* name, const float* m, unsigned int arraySize)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glUniform4fv (location, arraySize, m);
 }
 
 void Shader::bindUniformFloatArray (const char* name, const float* m, unsigned int arraySize)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glUniform1fv (location, arraySize, m);
 }
 
 void Shader::bindUniformIntArray (const char* name, const int* iv, unsigned int arraySize)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glUniform1iv (location, arraySize, iv);
 }

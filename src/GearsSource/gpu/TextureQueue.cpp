@@ -12,7 +12,7 @@ TextureQueue::TextureQueue (GLuint width, GLuint height, GLuint nSlices, bool mo
     this->height  = height;
     this->nSlices = nSlices;
 
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glGenFramebuffers (1, &handle);
     glGenTextures (1, &colorBuffer);
@@ -99,7 +99,7 @@ TextureQueue::~TextureQueue ()
 
 void TextureQueue::setRenderTarget (GLuint slice)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glBindFramebuffer (GL_FRAMEBUFFER, handle);
     glFramebufferTextureLayer (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorBuffer, 0, slice);
@@ -113,7 +113,7 @@ void TextureQueue::setRenderTarget (GLuint slice)
 
 void TextureQueue::disableRenderTarget ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     GLenum tmpBuff[] = {GL_COLOR_ATTACHMENT0};
     glDrawBuffers (1, tmpBuff);
@@ -123,7 +123,7 @@ void TextureQueue::disableRenderTarget ()
 
 void TextureQueue::clear ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glClearColor (0.0f, 0.0f, 0.0f, 0.0f);
     glClearDepth (1.0f);
@@ -138,7 +138,7 @@ void TextureQueue::clear ()
 
 void TextureQueue::setRenderTargets ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glBindFramebuffer (GL_FRAMEBUFFER, handle);
     for (unsigned int i = 0; i < nSlices; i++) {
@@ -163,7 +163,7 @@ void TextureQueue::setRenderTargets ()
 
 void TextureQueue::disableRenderTargets ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     GLenum tmpBuff[] = {GL_COLOR_ATTACHMENT0,
                         GL_COLOR_ATTACHMENT1,

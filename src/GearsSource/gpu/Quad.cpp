@@ -20,7 +20,7 @@ GLfloat Quad::texCoords[12] = {0.0f, 0.0f,
 
 Quad::Quad ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
   glGenVertexArrays(1, &vertexArray);
   glBindVertexArray(vertexArray);
@@ -41,7 +41,7 @@ Quad::Quad ()
 
 void Quad::render (Shader* shader)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glBindVertexArray (vertexArray);
 

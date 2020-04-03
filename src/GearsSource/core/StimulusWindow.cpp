@@ -5,7 +5,7 @@
 
 void StimulusWindow::render ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
 	makeCurrent();
 	glViewport(0, 0, screenw, screenh);

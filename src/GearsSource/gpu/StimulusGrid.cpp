@@ -10,7 +10,7 @@ StimulusGrid::StimulusGrid (GLuint width, GLuint height, void* initData)
     this->width  = width;
     this->height = height;
 
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
 	glGenFramebuffers(1, &handle);
 	glGenTextures(1, &colorBuffer);
@@ -57,7 +57,7 @@ StimulusGrid::~StimulusGrid ()
 
 void StimulusGrid::setRenderTarget ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //glBindFramebuffer (GL_FRAMEBUFFER, handle);
     //glViewport (0, 0, width, height);
     //glDrawBuffers (1, &buffer);
@@ -65,7 +65,7 @@ void StimulusGrid::setRenderTarget ()
 
 void StimulusGrid::disableRenderTarget ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //.GLenum tmpBuff[] = {GL_COLOR_ATTACHMENT0};
     //.glDrawBuffers (1, tmpBuff);
     //.glBindFramebuffer (GL_FRAMEBUFFER, 0);

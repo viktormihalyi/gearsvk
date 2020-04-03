@@ -233,7 +233,7 @@ Stimulus::~Stimulus ()
 
 pybind11::object Stimulus::setGamma (pybind11::object gammaList, bool invert)
 {
-    throw std::runtime_error ("gl code");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     using namespace boost::python;
     list l            = extract<list> (gammaList);
@@ -262,12 +262,12 @@ pybind11::object Stimulus::setGamma (pybind11::object gammaList, bool invert)
             gamma[u] = fiGamma[u];
     }
 #endif
-    return pybind11::object ();
+    return gammaList;
 }
 
 pybind11::object Stimulus::setTemporalWeights (pybind11::object twList, bool fullScreen)
 {
-    throw std::runtime_error ("gl code");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     fullScreenTemporalFiltering = fullScreen;
     using namespace boost::python;
@@ -291,7 +291,7 @@ pybind11::object Stimulus::setTemporalWeights (pybind11::object twList, bool ful
         temporalMemoryLength = length;
     }
 #endif
-    return pybind11::object ();
+    return twList;
 }
 
 //pybind11::object Stimulus::set(pybind11::object settings)
@@ -383,26 +383,26 @@ void Stimulus::overrideTickSignals ()
 pybind11::object Stimulus::onStart (pybind11::object callback)
 {
     startCallback = callback;
-    return pybind11::object ();
+    return startCallback;
 }
 
 pybind11::object Stimulus::onFrame (pybind11::object callback)
 {
     frameCallback = callback;
-    return pybind11::object ();
+    return frameCallback;
 }
 
 pybind11::object Stimulus::onFinish (pybind11::object callback)
 {
     finishCallback = callback;
-    return pybind11::object ();
+    return finishCallback;
 }
 
 
 pybind11::object Stimulus::setJoiner (pybind11::object joiner)
 {
     this->joiner = joiner;
-    return pybind11::object ();
+    return this->joiner;
 }
 
 float Stimulus::getDuration_s () const
@@ -418,7 +418,7 @@ void Stimulus::setDuration (unsigned int duration)
 pybind11::object Stimulus::setPythonObject (pybind11::object o)
 {
     pythonObject = o;
-    return pybind11::object ();
+    return pythonObject;
 }
 
 pybind11::object Stimulus::getPythonObject () const
@@ -454,7 +454,7 @@ pybind11::object Stimulus::setMeasuredDynamicsFromPython (
     for (int i = 0; i < pybind11::len (histogramList); i++) {
         //const_cast<Stimulus*> (this)->measuredHistogram.push_back (histogramList[i].cast<float> ()));
     }
-    return pybind11::object ();
+    return histogramList;
 }
 
 void Stimulus::setMeasuredDynamics (
@@ -500,7 +500,7 @@ pybind11::object Stimulus::setForwardRenderingCallback (pybind11::object cb)
 {
     usesForwardRendering           = true;
     this->forwardRenderingCallback = cb;
-    return pybind11::object ();
+    return this->forwardRenderingCallback;
 }
 
 pybind11::object Stimulus::setTemporalWeightingFunction (std::string func, int memoryLength, bool fullscreen, float minPlot, float maxPlot)
@@ -533,7 +533,7 @@ void Stimulus::registerCallback (uint msg, pybind11::object callback)
 
 void Stimulus::finishLtiSettings ()
 {
-    throw std::runtime_error ("gl code");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     if (temporalProcessingStateCount == 3) {
         temporalMemoryLength = 64;
@@ -621,12 +621,12 @@ pybind11::object Stimulus::setLtiMatrix (pybind11::object mList)
         boost::python::throw_error_already_set ();
     }
 #endif
-    return pybind11::object ();
+    return mList;
 }
 
 pybind11::object Stimulus::setLtiImpulseResponse (pybind11::object mList, uint nStates)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     fullScreenTemporalFiltering        = true;
     doesToneMappingInStimulusGenerator = false;
@@ -739,7 +739,7 @@ pybind11::object Stimulus::setLtiImpulseResponse (pybind11::object mList, uint n
 #pragma warning(pop)
     finishLtiSettings ();
 #endif
-    return pybind11::object ();
+    return mList;
 }
 
 void Stimulus::onSequenceComplete ()

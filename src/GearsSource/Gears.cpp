@@ -44,20 +44,20 @@ StimulusWindow::P   stimulusWindow   = nullptr;
 
 std::string createStimulusWindow ()
 {
-#ifdef _WIN32
-    StimulusWindow::registerClass ();
-#endif
-    stimulusWindow = StimulusWindow::create ();
-    stimulusWindow->createWindow (false, 256, 256);
-
     sequenceRenderer = SequenceRenderer::create ();
-    stimulusWindow->setSequenceRenderer (sequenceRenderer);
+
+    //StimulusWindow::registerClass ();
+    //stimulusWindow = StimulusWindow::create ();
+    //stimulusWindow->createWindow (false, 256, 256);
+    //
+    ////stimulusWindow->setSequenceRenderer (sequenceRenderer);
 
     shaderManager  = ShaderManager::create ();
     textureManager = TextureManager::create ();
     kernelManager  = KernelManager::create (sequenceRenderer, shaderManager);
     // OPENCLFFT::staticInit ();
-    return stimulusWindow->getSpecs ();
+    return "";
+    //return stimulusWindow->getSpecs ();
 }
 
 void onHideStimulusWindow (pybind11::object onHideCallback)
@@ -148,7 +148,7 @@ Sequence::P createSequence (std::string name)
 
 Sequence::P setSequence (Sequence::P sequence)
 {
-    ::sequence = ::sequence;
+    ::sequence = sequence;
     textureManager->clear ();
     shaderManager->clear ();
     kernelManager->clear ();
@@ -199,7 +199,7 @@ void cleanup ()
 
 void setMousePointerLocation (float x, float y)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
 #ifdef _WIN32
     uint screenw = GetSystemMetrics (SM_CXSCREEN);
@@ -390,7 +390,7 @@ PYBIND11_MODULE (Gears, m)
         .def ("globalY", &Gears::Event::MousePressedMiddle::globalY)
         .def_readonly_static ("typeId", &Gears::Event::MousePressedMiddle::typeId, "Message ID.");
 
-    class_<Gears::Event::MouseReleasedMiddle> (m, "MousePressedMiddleEvent")
+    class_<Gears::Event::MouseReleasedMiddle> (m, "MouseReleasedMiddleEvent")
         .def ("globalX", &Gears::Event::MouseReleasedMiddle::globalX)
         .def ("globalY", &Gears::Event::MouseReleasedMiddle::globalY)
         .def_readonly_static ("typeId", &Gears::Event::MouseReleasedMiddle::typeId, "Message ID.");
@@ -400,7 +400,7 @@ PYBIND11_MODULE (Gears, m)
         .def ("globalY", &Gears::Event::MousePressedRight::globalY)
         .def_readonly_static ("typeId", &Gears::Event::MousePressedRight::typeId, "Message ID.");
 
-    class_<Gears::Event::MouseReleasedRight> (m, "MousePressedRightEvent")
+    class_<Gears::Event::MouseReleasedRight> (m, "MouseReleasedRightEvent")
         .def ("globalX", &Gears::Event::MouseReleasedRight::globalX)
         .def ("globalY", &Gears::Event::MouseReleasedRight::globalY)
         .def_readonly_static ("typeId", &Gears::Event::MouseReleasedRight::typeId, "Message ID.");
@@ -585,7 +585,7 @@ PYBIND11_MODULE (Gears, m)
     class_<Sequence::ClearSignal, Sequence::ClearSignal::P> (m, "ClearSignal")
         .def (init<> (&Sequence::ClearSignal::create<std::string>));
 
-    class_<Sequence::RaiseAndClearSignal, Sequence::RaiseAndClearSignal::P> (m, "RaiseSRaiseAndClearSignalignal")
+    class_<Sequence::RaiseAndClearSignal, Sequence::RaiseAndClearSignal::P> (m, "RaiseAndClearSignal")
         .def (init<> (&Sequence::RaiseAndClearSignal::create<std::string, uint>));
 
     class_<Sequence::StartMeasurement, Sequence::StartMeasurement::P> (m, "StartMeasurement")
@@ -685,11 +685,11 @@ PYBIND11_MODULE (Gears, m)
     m.def ("toggleChannelsOrPreview", toggleChannelsOrPreview);
 
 #if 0
-    class_<p2t::Poly2TriWrapper, boost::noncopyable> ("CDT",
-                                                      "This is poly2tri CDT class python version"
-                                                      "Poly2Tri Copyright (c) 2009-2010, Poly2Tri Contributors"
-                                                      "http://code.google.com/p/poly2tri/",
-                                                      init<boost::python::list> (args ("polyline"), "Create CDT object with list of polyline 2D points. For example: [[-0.25, -0.25], [0.25, -0.25], [0.5, 0.5]]"))
+    class_<p2t::Poly2TriWrapper> (m, "CDT",
+                                  "This is poly2tri CDT class python version"
+                                  "Poly2Tri Copyright (c) 2009-2010, Poly2Tri Contributors"
+                                  "http://code.google.com/p/poly2tri/")
+        .def (init<list> (), arg ("polyline"))
         .def ("triangulate", &p2t::Poly2TriWrapper::Triangulate)
         .def ("get_triangles", &p2t::Poly2TriWrapper::GetTriangles);
 #endif

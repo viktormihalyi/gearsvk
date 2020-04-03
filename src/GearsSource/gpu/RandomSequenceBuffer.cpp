@@ -10,7 +10,7 @@ RandomSequenceBuffer::RandomSequenceBuffer (GLuint width, GLuint height, void* i
     this->width  = width;
     this->height = height;
 
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
 	glGenFramebuffers(1, &handle);
 	glGenTextures(1, &colorBuffer);
@@ -61,7 +61,7 @@ RandomSequenceBuffer::~RandomSequenceBuffer ()
 
 void RandomSequenceBuffer::setRenderTarget ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glBindFramebuffer (GL_FRAMEBUFFER, handle);
 
@@ -73,7 +73,7 @@ void RandomSequenceBuffer::setRenderTarget ()
 
 void RandomSequenceBuffer::disableRenderTarget ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     GLenum tmpBuff[] = {GL_COLOR_ATTACHMENT0};
     glDrawBuffers (1, tmpBuff);

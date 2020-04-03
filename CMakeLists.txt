@@ -67,6 +67,9 @@ add_executable (${TARGET_TEST_NAME}
 )
 
 add_library (${TARGET_DLL_NAME} SHARED
+    
+    src/Utils/SourceLocation.cpp
+
     #src/AdaptedGearsSource/Gears.cpp
     
     src/GearsSource/Gears.cpp
@@ -139,6 +142,7 @@ set (COMMON_INCLUDES
     src/GearsVk/Window
     src/VulkanWrapper
     src/Utils
+
 )
 
 set (COMMON_LINKS

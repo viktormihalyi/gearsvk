@@ -30,7 +30,7 @@ BOOL CALLBACK MonitorEnumProc (
 
 void StimulusWindow::createWindow (bool windowed, uint width, uint height)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     currentMonitor = 0;
     screenw        = GetSystemMetrics (SM_CXSCREEN);
@@ -171,7 +171,7 @@ WNDCLASSEX StimulusWindow::ex;
 
 void StimulusWindow::registerClass ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     ex.cbSize        = sizeof (WNDCLASSEX);
     ex.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -192,7 +192,7 @@ void StimulusWindow::registerClass ()
 
 void StimulusWindow::closeWindow ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     wglMakeCurrent (hdc, NULL); // release device context in use by rc
     wglDeleteContext (hglrc);   // delete rendering context
@@ -222,7 +222,7 @@ LRESULT CALLBACK StimulusWindow::WindowProc (
 
 LRESULT StimulusWindow::winProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     switch (uMsg) {
         case WM_CREATE: {
@@ -469,7 +469,7 @@ void StimulusWindow::setGLFormat (void)
 
 int StimulusWindow::setSwapInterval (int swapInterval)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     wglSwapIntervalEXT (swapInterval);
     return wglGetSwapIntervalEXT ();
@@ -479,7 +479,7 @@ int StimulusWindow::setSwapInterval (int swapInterval)
 
 void StimulusWindow::makeCurrent ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     if ((wglMakeCurrent (hdc, hglrc)) == false) // make hglrc current rc
     {
@@ -493,7 +493,7 @@ void StimulusWindow::makeCurrent ()
 
 void StimulusWindow::shareCurrent ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     HGLRC current = wglGetCurrentContext ();
     if (!wglShareLists (hglrc, current)) {

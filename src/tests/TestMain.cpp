@@ -249,7 +249,7 @@ TEST_F (HeadlessVulkanTestEnvironment, RenderGraphUseTest)
 }
 
 
-static void LimitedEventLoop (WindowBase& window, const uint32_t maxRenders, const WindowBase::DrawCallback& callback)
+static void LimitedEventLoop (Window& window, const uint32_t maxRenders, const Window::DrawCallback& callback)
 {
     uint32_t renderCount = 0;
 

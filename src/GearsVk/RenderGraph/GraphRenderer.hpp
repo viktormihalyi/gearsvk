@@ -3,7 +3,7 @@
 
 #include "RenderGraph.hpp"
 #include "Swapchain.hpp"
-#include "WindowBase.hpp"
+#include "Window.hpp"
 
 
 namespace RenderGraph {
@@ -13,14 +13,14 @@ struct GraphRenderer {
 public:
     virtual void RenderNextFrame () = 0;
 
-    WindowBase::DrawCallback GetInfiniteDrawCallback ()
+    Window::DrawCallback GetInfiniteDrawCallback ()
     {
         return [&] (bool&) -> void {
             RenderNextFrame ();
         };
     }
 
-    WindowBase::DrawCallback GetInfiniteDrawCallback (const std::function<bool ()>& shouldStop)
+    Window::DrawCallback GetInfiniteDrawCallback (const std::function<bool ()>& shouldStop)
     {
         return [&] (bool& stopFlag) -> void {
             stopFlag = shouldStop ();
@@ -28,7 +28,7 @@ public:
         };
     }
 
-    WindowBase::DrawCallback GetCountLimitedDrawCallback (uint64_t limit)
+    Window::DrawCallback GetCountLimitedDrawCallback (uint64_t limit)
     {
         uint64_t drawCount = 0;
         return [&] (bool& stopFlag) -> void {

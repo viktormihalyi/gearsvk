@@ -1,12 +1,12 @@
 #ifndef SDLWINDOW_HPP
 #define SDLWINDOW_HPP
 
-#include "WindowBase.hpp"
+#include "Window.hpp"
 
 #include <optional>
 #include <vector>
 
-class SDLWindowBase : public WindowBase {
+class SDLWindowBase : public Window {
 private:
     static uint32_t windowCount;
 

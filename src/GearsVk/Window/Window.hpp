@@ -1,5 +1,5 @@
-#ifndef WINDOWBASE_HPP
-#define WINDOWBASE_HPP
+#ifndef WINDOWB_HPP
+#define WINDOWB_HPP
 
 #include "Event.hpp"
 #include "Noncopyable.hpp"
@@ -11,7 +11,7 @@
 #include <vulkan/vulkan.h>
 
 
-class WindowBase : public Noncopyable {
+class Window : public Noncopyable {
 public:
     struct {
         // window events
@@ -35,11 +35,11 @@ public:
     } events;
 
 public:
-    USING_PTR (WindowBase);
+    USING_PTR (Window);
 
     using DrawCallback = std::function<void (bool& stopFlag)>;
 
-    virtual ~WindowBase ()
+    virtual ~Window ()
     {
     }
 

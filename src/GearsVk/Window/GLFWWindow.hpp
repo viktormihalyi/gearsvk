@@ -1,12 +1,12 @@
 #ifndef GLFWWINDOW_HPP
 #define GLFWWINDOW_HPP
 
-#include "WindowBase.hpp"
+#include "Window.hpp"
 
 #include <optional>
 #include <vector>
 
-class GLFWWindow final : public WindowBase {
+class GLFWWindow final : public Window {
 private:
     void* window;
 

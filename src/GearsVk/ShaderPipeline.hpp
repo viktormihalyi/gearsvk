@@ -9,8 +9,8 @@
 #include <vulkan/vulkan.h>
 
 class ShaderPipeline {
-public:
-    USING_PTR (ShaderPipeline);
+private:
+    VkDevice device;
 
     ShaderModule::U vertexShader;
     ShaderModule::U fragmentShader;
@@ -19,8 +19,26 @@ public:
     ShaderModule::U tessellationControlShader;
     ShaderModule::U computeShader;
 
+    ShaderModule::U& GetShaderByExtension (const std::string& extension)
+    {
+        if (extension == ".vert") {
+            return vertexShader;
+        } else if (extension == ".frag") {
+            return fragmentShader;
+        } else if (extension == ".tese") {
+            return tessellationEvaluationShader;
+        } else if (extension == ".tesc") {
+            return tessellationControlShader;
+        } else if (extension == ".comp") {
+            return computeShader;
+        }
 
-    VkDevice device;
+        ERROR (true);
+        throw std::runtime_error ("bad shader extension");
+    }
+
+public:
+    USING_PTR (ShaderPipeline);
 
     RenderPass::U     renderPass;
     PipelineLayout::U pipelineLayout;
@@ -51,59 +69,49 @@ public:
         return result;
     }
 
-    ShaderModule::U& GetShaderByExtension (const std::string& extension)
-    {
-        if (extension == ".vert") {
-            return vertexShader;
-        } else if (extension == ".frag") {
-            return fragmentShader;
-        } else if (extension == ".tese") {
-            return tessellationEvaluationShader;
-        } else if (extension == ".tesc") {
-            return tessellationControlShader;
-        } else if (extension == ".comp") {
-            return computeShader;
-        }
-
-        ERROR (true);
-        throw std::runtime_error ("bad shader extension");
-    }
-
-    void SetVertexShader (const std::string& source)
+    ShaderPipeline& SetVertexShader (const std::string& source)
     {
         ASSERT (vertexShader == nullptr);
         vertexShader = ShaderModule::CreateFromString (device, source, ShaderModule::ShaderKind::Vertex);
+        return *this;
     }
 
 
-    void SetFragmentShader (const std::string& source)
+    ShaderPipeline& SetFragmentShader (const std::string& source)
     {
         ASSERT (fragmentShader == nullptr);
         fragmentShader = ShaderModule::CreateFromString (device, source, ShaderModule::ShaderKind::Fragment);
+        return *this;
     }
 
 
-    void AddShader (const std::filesystem::path& shaderPath)
+    ShaderPipeline& AddShader (const std::filesystem::path& shaderPath)
     {
         ShaderModule::U& moduleFromExtension = GetShaderByExtension (shaderPath.extension ().u8string ());
 
         ASSERT (moduleFromExtension == nullptr);
 
         moduleFromExtension = ShaderModule::CreateFromSource (device, shaderPath);
+
+        return *this;
     }
 
 
-    void AddShaders (const std::vector<std::filesystem::path>& shaderPath)
+    ShaderPipeline& AddShaders (const std::vector<std::filesystem::path>& shaderPath)
     {
         std::vector<std::thread> threads;
+
         for (const std::filesystem::path& p : shaderPath) {
             threads.emplace_back ([=] () {
                 AddShader (p);
             });
         }
+
         for (std::thread& t : threads) {
             t.join ();
         }
+
+        return *this;
     }
 
     struct CompileSettings {

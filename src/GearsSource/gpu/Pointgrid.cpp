@@ -8,7 +8,7 @@ PointGrid::PointGrid (int width, int height)
     this->width  = width;
     this->height = height;
 
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     GLfloat* vertices = new GLfloat[3 * width * height];
     for (int y = 0; y < height; ++y) {
@@ -38,7 +38,7 @@ PointGrid::~PointGrid ()
 
 void PointGrid::render (Shader* shader)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glBindVertexArray (vertexArray);
 

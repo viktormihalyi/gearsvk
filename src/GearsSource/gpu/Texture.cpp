@@ -74,7 +74,7 @@ void Texture2D::initializeGrey (GLuint width, GLuint height, GLuint bpp)
     this->height = height;
     this->bpp    = bpp;
 
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glGenTextures (1, &handle);
     glBindTexture (GL_TEXTURE_2D, handle);
@@ -94,7 +94,7 @@ void Texture2D::initializeGrey (GLuint width, GLuint height, GLuint bpp)
 
 void Texture2D::setDataGrey (const unsigned char* data)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glBindTexture (GL_TEXTURE_2D, handle);
     //  glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, 0);
@@ -108,7 +108,7 @@ void Texture2D::initialize8bit (GLuint width, GLuint height, GLuint bpp)
     this->height = height;
     this->bpp    = bpp;
 
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glGenTextures (1, &handle);
     glBindTexture (GL_TEXTURE_2D, handle);
@@ -125,14 +125,14 @@ void Texture2D::initialize8bit (GLuint width, GLuint height, GLuint bpp)
 
 void Texture2D::setData8bit (const unsigned char* data)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //glBindTexture (GL_TEXTURE_2D, handle);
     //glTexImage2D (GL_TEXTURE_2D, 0, GL_LUMINANCE8, width, height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data);
 }
 
 void Texture2D::loadFromFile (std::string fileName)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     ilInit ();
     ILuint devilError = ilGetError ();
@@ -193,7 +193,7 @@ void Texture2D::loadFromFile (std::string fileName)
 
 GLuint Texture2D::getTextureHandle ()
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //return handle;
 }
 
@@ -208,7 +208,7 @@ Texture1D::~Texture1D ()
 
 void Texture1D::initialize (GLuint width)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     this->width = width;
 
 #if 0
@@ -225,7 +225,7 @@ void Texture1D::initialize (GLuint width)
 
 void Texture1D::setData (const float* data)
 {
-    throw std::runtime_error ("DISABLED CODE");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //glBindTexture (GL_TEXTURE_1D, handle);
     //glTexImage1D (GL_TEXTURE_1D, 0, GL_R32F, width, 0, GL_RED, GL_FLOAT, data);
 }

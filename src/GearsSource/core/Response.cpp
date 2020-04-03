@@ -20,7 +20,7 @@ Response::Response ()
 pybind11::object Response::setPythonObject (pybind11::object o)
 {
     pythonObject = o;
-    return pybind11::object ();
+    return pythonObject;
 }
 
 pybind11::object Response::getPythonObject () const
@@ -32,7 +32,7 @@ pybind11::object Response::getPythonObject () const
 pybind11::object Response::setJoiner (pybind11::object joiner)
 {
     this->joiner = joiner;
-    return pybind11::object ();
+    return this->joiner;
 }
 
 void Response::registerCallback (uint msg, pybind11::object callback)

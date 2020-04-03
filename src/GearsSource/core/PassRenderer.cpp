@@ -33,7 +33,7 @@ PassRenderer::PassRenderer (std::shared_ptr<StimulusRenderer> stimulusRenderer, 
     videoFrameV = nullptr;
 
     if (pass->hasVideo ()) {
-        throw std::runtime_error ("DISABLED CODE");
+        throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
         if (movieDecoder.initialize (pass->getVideo ())) {
             movieDecoder.stop ();
@@ -195,7 +195,7 @@ void PassRenderer::renderPass (int skippedFrames, int offset)
     else if (pass->rasterizationMode == Pass::RasterizationMode::triangles)
         sequenceRenderer->getNothing ()->renderTriangles (pass->polygonMask.size ());
     else if (pass->rasterizationMode == Pass::RasterizationMode::quads) {
-        throw std::runtime_error ("gl code");
+        throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
         /*
         glEnable (GL_BLEND);
         if (pass->transparent)
@@ -211,7 +211,7 @@ void PassRenderer::renderPass (int skippedFrames, int offset)
     if (!sequenceRenderer->paused) {
         iFrame++;
         if (pass->hasVideo () && videoFrameY != nullptr) {
-            throw std::runtime_error ("DISABLED CODE");
+            throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
             if (movieDecoder.decodeVideoFrame (videoFrame)) {
                 videoFrameY->setData8bit (videoFrame.getYPlane ());
@@ -236,7 +236,7 @@ void PassRenderer::renderSample (uint sFrame)
 
 void PassRenderer::renderTimeline (uint startFrame, uint frameCount)
 {
-    throw std::runtime_error ("gl code");
+    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     auto stimulus         = pass->getStimulus ();
     auto sequenceRenderer = stimulusRenderer->getSequenceRenderer ();
