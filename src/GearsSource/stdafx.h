@@ -14,6 +14,9 @@
 #define THROW_LOC() \
     throw ::std::runtime_error (::Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ())
 
+#define LOG_LOC() \
+    throw ::std::cout << ::Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString () << std::endl
+
 using uint = unsigned int;
 
 #define GEARS_SHARED_CREATE(T)                             \

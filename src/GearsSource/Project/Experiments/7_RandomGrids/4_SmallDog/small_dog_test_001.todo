@@ -1,0 +1,16 @@
+from Project.Components import *
+
+def create(mediaWindow):
+    dog = DogSpatialFilter()
+    return FilteredRandomGridExperiment('small dog 1',
+                                fft_width_px        =   2048,
+                                fft_height_px       =   2048
+                                ).setAgenda( [
+            BlackoutStimulus( duration = 1  ),
+            StartMeasurement()             ,
+            RandomGridStimulus    ( duration_s = 3, spatialFilter = dog ),
+
+            EndMeasurement(),
+            BlackoutStimulus( duration_s = 1  )
+        ])
+

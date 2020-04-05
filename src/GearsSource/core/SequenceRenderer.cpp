@@ -221,7 +221,7 @@ void SequenceRenderer::apply (Sequence::P sequence, ShaderManager::P shaderManag
                 if (ports[c.second.portName].isInvalid ()) {
                     std::stringstream ss;
                     ss << "No device on port " << c.second.portName << " !" << std::endl;
-                    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+                    //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
                     //PyErr_Warn (PyExc_Warning, ss.str ().c_str ());
                     //boost::python::throw_error_already_set();
                 }

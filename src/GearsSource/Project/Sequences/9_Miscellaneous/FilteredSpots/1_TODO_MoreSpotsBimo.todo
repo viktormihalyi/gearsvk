@@ -1,0 +1,13 @@
+
+
+def create(mediaWindow):
+    sdog = SmallDogSpatialFilter()
+    return DefaultSequence('monkey 1').setAgenda( [
+            BlackoutStimulus( duration_s = 1  ),
+            StartMeasurement()             ,
+            SpotStimulus    ( duration_s = 3, spatialFilter = sdog ),
+            EndMeasurement(),
+            BlackoutStimulus( duration_s = 1  )
+        ] )
+
+

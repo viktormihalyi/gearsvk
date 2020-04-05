@@ -1,4 +1,5 @@
 #include "Buffer.hpp"
+#include "BufferTransferable.hpp"
 #include "CommandBuffer.hpp"
 #include "CommandPool.hpp"
 #include "DebugUtilsMessenger.hpp"
@@ -21,6 +22,7 @@
 #include "Sampler.hpp"
 #include "Semaphore.hpp"
 #include "ShaderModule.hpp"
+#include "ShaderPipeline.hpp"
 #include "SingleTimeCommand.hpp"
 #include "Surface.hpp"
 #include "Swapchain.hpp"

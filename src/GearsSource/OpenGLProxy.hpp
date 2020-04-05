@@ -1,7 +1,7 @@
 #ifndef OPENGLPROXY_HPP
 #define OPENGLPROXY_HPP
 
-#include "SourceLocation.hpp"
+#include "stdafx.h"
 
 #include <cstdint>
 #include <exception>

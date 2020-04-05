@@ -1,0 +1,160 @@
+#ifndef DRAWRECORDABLE_HPP
+#define DRAWRECORDABLE_HPP
+
+#include <glm/glm.hpp>
+#include <vulkan/vulkan.h>
+
+#include <cstdint>
+
+#include "BufferTransferable.hpp"
+#include "DeviceExtra.hpp"
+
+class DrawRecordable {
+public:
+    USING_PTR_ABSTRACT (DrawRecordable);
+
+    virtual ~DrawRecordable () = default;
+
+    virtual void                                           Record (VkCommandBuffer) const = 0;
+    virtual std::vector<VkVertexInputAttributeDescription> GetAttributes () const         = 0;
+    virtual std::vector<VkVertexInputBindingDescription>   GetBindings () const           = 0;
+};
+
+struct DrawRecordableInfo : public DrawRecordable {
+public:
+    const uint32_t instanceCount;
+
+    const uint32_t                                       vertexCount;
+    const VkBuffer                                       vertexBuffer;
+    const std::vector<VkVertexInputBindingDescription>   vertexInputBindings;
+    const std::vector<VkVertexInputAttributeDescription> vertexInputAttributes;
+
+    const uint32_t indexCount;
+    const VkBuffer indexBuffer;
+
+    USING_PTR (DrawRecordableInfo);
+
+    DrawRecordableInfo (const uint32_t                                        instanceCount,
+                        uint32_t                                              vertexCount,
+                        VkBuffer                                              vertexBuffer          = VK_NULL_HANDLE,
+                        const std::vector<VkVertexInputBindingDescription>&   vertexInputBindings   = {},
+                        const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributes = {},
+                        uint32_t                                              indexCount            = 0,
+                        VkBuffer                                              indexBuffer           = VK_NULL_HANDLE)
+        : instanceCount (instanceCount)
+        , vertexCount (vertexCount)
+        , vertexBuffer (vertexBuffer)
+        , vertexInputBindings (vertexInputBindings)
+        , vertexInputAttributes (vertexInputAttributes)
+        , indexCount (indexCount)
+        , indexBuffer (indexBuffer)
+    {
+    }
+
+    DrawRecordableInfo (const uint32_t                         instanceCount,
+                        const VertexBufferTransferableUntyped& vertexBuffer,
+                        const IndexBufferTransferable&         indexBuffer)
+        : instanceCount (instanceCount)
+        , vertexCount (vertexBuffer.data.size ())
+        , vertexBuffer (vertexBuffer.buffer.GetBufferToBind ())
+        , vertexInputBindings (vertexBuffer.info.bindings)
+        , vertexInputAttributes (vertexBuffer.info.attributes)
+        , indexCount (indexBuffer.data.size ())
+        , indexBuffer (indexBuffer.buffer.GetBufferToBind ())
+    {
+    }
+
+    DrawRecordableInfo (const uint32_t                         instanceCount,
+                        const VertexBufferTransferableUntyped& vertexBuffer)
+        : instanceCount (instanceCount)
+        , vertexCount (vertexBuffer.data.size ())
+        , vertexBuffer (vertexBuffer.buffer.GetBufferToBind ())
+        , vertexInputBindings (vertexBuffer.info.bindings)
+        , vertexInputAttributes (vertexBuffer.info.attributes)
+        , indexCount (0)
+        , indexBuffer (VK_NULL_HANDLE)
+    {
+    }
+
+    void Record (VkCommandBuffer commandBuffer) const override
+    {
+        ASSERT (instanceCount != 0);
+
+        if (vertexBuffer != VK_NULL_HANDLE) {
+            VkDeviceSize offsets[] = {0};
+            vkCmdBindVertexBuffers (commandBuffer, 0, 1, &vertexBuffer, offsets);
+        }
+
+        if (indexBuffer != VK_NULL_HANDLE) {
+            vkCmdBindIndexBuffer (commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        }
+
+        if (indexBuffer != VK_NULL_HANDLE) {
+            vkCmdDrawIndexed (commandBuffer, indexCount, instanceCount, 0, 0, 0);
+        } else {
+            vkCmdDraw (commandBuffer, vertexCount, instanceCount, 0, 0);
+        }
+    }
+
+    virtual std::vector<VkVertexInputAttributeDescription> GetAttributes () const
+    {
+        return vertexInputAttributes;
+    }
+
+    virtual std::vector<VkVertexInputBindingDescription> GetBindings () const
+    {
+        return vertexInputBindings;
+    }
+};
+
+
+class DrawRecordableInfoProvider : public DrawRecordable {
+public:
+    void                                           Record (VkCommandBuffer commandBuffer) const override { GetDrawRecordableInfo ().Record (commandBuffer); }
+    std::vector<VkVertexInputAttributeDescription> GetAttributes () const override { return GetDrawRecordableInfo ().GetAttributes (); }
+    std::vector<VkVertexInputBindingDescription>   GetBindings () const override { return GetDrawRecordableInfo ().GetBindings (); }
+
+private:
+    virtual const DrawRecordableInfo& GetDrawRecordableInfo () const = 0;
+};
+
+
+class FullscreenQuad : public DrawRecordableInfoProvider {
+private:
+    struct QuadVertex {
+        glm::vec2 pos;
+        glm::vec2 uv;
+    };
+
+    VertexBufferTransferable<QuadVertex> vertexBuffer;
+    IndexBufferTransferable              indexBuffer;
+
+    DrawRecordableInfo::U info;
+
+public:
+    USING_PTR (FullscreenQuad);
+
+    FullscreenQuad (const Device& device, VkQueue queue, VkCommandPool commandPool)
+        : vertexBuffer (device, queue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f}, 4)
+        , indexBuffer (device, queue, commandPool, 6)
+    {
+        vertexBuffer = {
+            {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f)},
+            {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f)},
+            {glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f)},
+            {glm::vec2 (+1.f, -1.f), glm::vec2 (1.f, 0.f)},
+        };
+
+        indexBuffer = {0, 1, 2, 0, 3, 2};
+
+        vertexBuffer.Flush ();
+        indexBuffer.Flush ();
+
+        info = DrawRecordableInfo::Create (1, vertexBuffer, indexBuffer);
+    }
+
+private:
+    virtual const DrawRecordableInfo& GetDrawRecordableInfo () const override { return *info; }
+};
+
+#endif

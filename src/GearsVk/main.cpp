@@ -608,11 +608,15 @@ int main (int argc, char* argv[])
     Queue&       graphicsQueue = *testenv.graphicsQueue;
     Swapchain&   swapchain     = *testenv.swapchain;
 
+    DeviceExtra d {device, commandPool, graphicsQueue};
+
     using namespace RenderGraph;
 
     Graph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
 
-    auto sp = ShaderPipeline::Create (device);
+    FullscreenQuad::P fq = FullscreenQuad::CreateShared (device, graphicsQueue, commandPool);
+
+    ShaderPipeline::P sp = ShaderPipeline::CreateShared (device);
     sp->SetVertexShader (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -629,7 +633,8 @@ layout (location = 0) out vec2 textureCoords;
 layout (location = 1) out float asdout;
 
 
-void main() {
+void main ()
+{
     gl_Position = vec4 (position + vec2 (time.time / 100.f), 0.0, 1.0);
     textureCoords = uv;
     asdout = asd;
@@ -650,7 +655,8 @@ layout (location = 0) in vec2 uv;
 layout (location = 2) out vec4 presented;
 layout (location = 0) out vec4 copy[2];
 
-void main () {
+void main ()
+{
     vec4 result = vec4 (vec3 (uv, 1.f), 1);
     presented = result;
     copy[0] = result;
@@ -662,26 +668,7 @@ void main () {
     ImageResource&          presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
     UniformBlockResource&   unif          = graph.CreateResourceTyped<UniformBlockResource> (4);
 
-    struct Vert {
-        glm::vec2 position;
-        glm::vec2 uv;
-        float     asd;
-    };
-
-    TypedTransferableVertexBuffer<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
-    vbb = std::vector<Vert> {
-        {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
-        {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
-        {glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f), 0.3f},
-        {glm::vec2 (+1.f, -1.f), glm::vec2 (1.f, 0.f), 0.6f},
-    };
-    vbb.Flush ();
-
-    TransferableIndexBuffer ib (device, graphicsQueue, commandPool, 6);
-    ib.data = {0, 1, 2, 0, 3, 2};
-    ib.Flush ();
-
-    Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (RenderOperationSettings (1, vbb, ib), std::move (sp));
+    Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (fq, sp);
 
     graph.AddConnection (Graph::InputConnection {redFillOperation, 0, unif});
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presentedCopy});

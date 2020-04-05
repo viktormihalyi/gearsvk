@@ -41,22 +41,22 @@ TEST_F (HeadlessVulkanTestEnvironment, DISABLED_RenderGraphConnectionTest)
 
     Graph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, 1, 512, 512));
 
-    Resource& depthBuffer    = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& depthBuffer2   = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& gbuffer1       = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& gbuffer2       = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& gbuffer3       = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& debugOutput    = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& lightingBuffer = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& finalTarget    = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& depthBuffer    = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& depthBuffer2   = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& gbuffer1       = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& gbuffer2       = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& gbuffer3       = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& debugOutput    = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& lightingBuffer = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& finalTarget    = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
 
-    Operation& depthPass   = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (), RenderOperationSettings (1, 3), std::vector<std::filesystem::path> {}));
-    Operation& gbufferPass = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (), RenderOperationSettings (1, 3), std::vector<std::filesystem::path> {}));
-    Operation& debugView   = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (), RenderOperationSettings (1, 3), std::vector<std::filesystem::path> {}));
-    Operation& move        = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (), RenderOperationSettings (1, 3), std::vector<std::filesystem::path> {}));
-    Operation& lighting    = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (), RenderOperationSettings (1, 3), std::vector<std::filesystem::path> {}));
-    Operation& post        = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (), RenderOperationSettings (1, 3), std::vector<std::filesystem::path> {}));
-    Operation& present     = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (), RenderOperationSettings (1, 3), std::vector<std::filesystem::path> {}));
+    Operation& depthPass   = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& gbufferPass = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& debugView   = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& move        = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& lighting    = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& post        = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& present     = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
 
     // depthPass.AddOutput (0, depthBuffer);
     //
@@ -92,12 +92,12 @@ TEST_F (HeadlessVulkanTestEnvironment, CompileTest)
     CommandPool& commandPool = GetCommandPool ();
 
     Graph graph (device, commandPool, GraphSettings (device, queue, commandPool, 1, 2048, 2048));
-    graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                    RenderOperationSettings (1, 3),
-                                                    std::vector<std::filesystem::path> {
-                                                        PROJECT_ROOT / "shaders" / "test.vert",
-                                                        PROJECT_ROOT / "shaders" / "test.frag",
-                                                    }));
+    graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (),
+                                                 DrawRecordableInfo::CreateShared (1, 3),
+                                                 ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
+                                                                                           PROJECT_ROOT / "shaders" / "test.vert",
+                                                                                           PROJECT_ROOT / "shaders" / "test.frag",
+                                                                                       })));
 }
 
 template<typename DestinationType, typename SourceType>
@@ -115,7 +115,7 @@ TEST_F (HeadlessVulkanTestEnvironment, RenderRedImage)
 
     Graph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, 3, 512, 512));
 
-    Resource& red = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& red = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -160,9 +160,9 @@ void main () {
 }
     )");
 
-    Operation& redFillOperation = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                                                  RenderOperationSettings (1, 6),
-                                                                                  std::move (sp)));
+    Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (),
+                                                                               DrawRecordableInfo::CreateShared (1, 6),
+                                                                               std::move (sp)));
 
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, red});
 
@@ -194,19 +194,19 @@ TEST_F (HeadlessVulkanTestEnvironment, RenderGraphUseTest)
     Resource::Ref red       = graph.CreateResourceTyped<ImageResource> ();
     Resource::Ref finalImg  = graph.CreateResourceTyped<ImageResource> ();
 
-    Operation::Ref dummyPass = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                                               RenderOperationSettings (1, 3),
-                                                                               std::vector<std::filesystem::path> {
-                                                                                   PROJECT_ROOT / "shaders" / "test.vert",
-                                                                                   PROJECT_ROOT / "shaders" / "test.frag",
-                                                                               }));
+    Operation::Ref dummyPass = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (),
+                                                                            DrawRecordableInfo::CreateShared (1, 3),
+                                                                            ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
+                                                                                                                      PROJECT_ROOT / "shaders" / "test.vert",
+                                                                                                                      PROJECT_ROOT / "shaders" / "test.frag",
+                                                                                                                  })));
 
-    Operation::Ref secondPass = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                                                RenderOperationSettings (1, 3),
-                                                                                std::vector<std::filesystem::path> {
-                                                                                    PROJECT_ROOT / "shaders" / "fullscreenquad.vert",
-                                                                                    PROJECT_ROOT / "shaders" / "fullscreenquad.frag",
-                                                                                }));
+    Operation::Ref secondPass = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (),
+                                                                             DrawRecordableInfo::CreateShared (1, 3),
+                                                                             ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
+                                                                                                                       PROJECT_ROOT / "shaders" / "fullscreenquad.vert",
+                                                                                                                       PROJECT_ROOT / "shaders" / "fullscreenquad.frag",
+                                                                                                                   })));
 
 
     graph.AddConnection (Graph::InputConnection {dummyPass, 0, green});
@@ -323,12 +323,12 @@ void main () {
 }
     )");
 
-    Resource& presentedCopy = graph.CreateResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& presented     = graph.CreateResource (SwapchainImageResource::Create (graph.GetGraphSettings (), swapchain));
+    Resource& presentedCopy = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& presented     = graph.AddResource (SwapchainImageResource::Create (graph.GetGraphSettings (), swapchain));
 
-    Operation& redFillOperation = graph.CreateOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                                                  RenderOperationSettings (1, 6),
-                                                                                  std::move (sp)));
+    Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (),
+                                                                               DrawRecordableInfo::CreateShared (1, 6),
+                                                                               std::move (sp)));
 
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presented});
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 1, presentedCopy});
@@ -394,7 +394,7 @@ void main () {
         float     asd;
     };
 
-    TypedTransferableVertexBuffer<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
+    VertexBufferTransferable<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
     vbb = std::vector<Vert> {
         {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
         {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
@@ -403,11 +403,11 @@ void main () {
     };
     vbb.Flush ();
 
-    TransferableIndexBuffer ib (device, graphicsQueue, commandPool, 6);
+    IndexBufferTransferable ib (device, graphicsQueue, commandPool, 6);
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
-    RenderOperation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (RenderOperationSettings (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
+    RenderOperation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
                                                                                      std::move (sp));
 
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presented});
@@ -486,7 +486,7 @@ void main () {
         float     asd;
     };
 
-    TypedTransferableVertexBuffer<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
+    VertexBufferTransferable<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
     vbb = std::vector<Vert> {
         {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
         {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
@@ -495,11 +495,11 @@ void main () {
     };
     vbb.Flush ();
 
-    TransferableIndexBuffer ib (device, graphicsQueue, commandPool, 6);
+    IndexBufferTransferable ib (device, graphicsQueue, commandPool, 6);
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
-    Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (RenderOperationSettings (1, vbb, ib), std::move (sp));
+    Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb, ib), std::move (sp));
 
     graph.AddConnection (Graph::InputConnection {redFillOperation, 0, unif});
     graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presentedCopy});

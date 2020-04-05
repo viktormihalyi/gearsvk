@@ -50,8 +50,8 @@ public:
 
     Graph (VkDevice device, VkCommandPool commandPool, GraphSettings settings);
 
-    Resource&  CreateResource (Resource::U&& resource);
-    Operation& CreateOperation (Operation::U&& resource);
+    Resource&  AddResource (Resource::U&& resource);
+    Operation& AddOperation (Operation::U&& resource);
 
 
     template<typename ResourceType, typename... ARGS>

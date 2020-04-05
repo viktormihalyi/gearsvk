@@ -14,10 +14,6 @@ private:
     const VkCommandPool commandPool;
     VkCommandBuffer     handle;
 
-    static VkCommandBuffer CreateCommandBuffer (VkDevice device, VkCommandPool commandPool)
-    {
-    }
-
 public:
     USING_PTR (CommandBuffer);
 
@@ -27,10 +23,10 @@ public:
         , handle (VK_NULL_HANDLE)
     {
         VkCommandBufferAllocateInfo commandBufferAllocInfo = {};
-        commandBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        commandBufferAllocInfo.commandPool = commandPool;
-        commandBufferAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        commandBufferAllocInfo.commandBufferCount = 1;
+        commandBufferAllocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        commandBufferAllocInfo.commandPool                 = commandPool;
+        commandBufferAllocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        commandBufferAllocInfo.commandBufferCount          = 1;
 
         if (ERROR (vkAllocateCommandBuffers (device, &commandBufferAllocInfo, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to allocate command buffer");

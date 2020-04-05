@@ -30,7 +30,7 @@ Framebuffer::Framebuffer (GLuint width, GLuint height, GLuint planes, GLenum for
             numMips = (int)(fnumMips + 1);
     }
 
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     if (genMipMaps && !hasMipMaps) {
         std::cerr << "Framebuffer: Generation of mipmaps failed. The texture is not square, or not power of 2!";
@@ -133,7 +133,7 @@ Framebuffer::~Framebuffer ()
 
 void Framebuffer::setRenderTarget (int mipLevel)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glBindFramebuffer (GL_FRAMEBUFFER, handle);
 
@@ -154,7 +154,7 @@ void Framebuffer::setRenderTarget (int mipLevel)
 
 void Framebuffer::disableRenderTarget ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     GLenum tmpBuff[] = {GL_COLOR_ATTACHMENT0};
     glDrawBuffers (1, tmpBuff);
@@ -164,7 +164,7 @@ void Framebuffer::disableRenderTarget ()
 
 void Framebuffer::clear ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     glClearColor (0.0f, 0.0f, 0.0f, 0.0f);
     glClearDepth (1.0f);

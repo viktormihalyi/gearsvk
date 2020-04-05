@@ -1,0 +1,50 @@
+import Gears as gears
+from .. import * 
+
+class SineWheel(Component) : 
+
+    def applyWithArgs(
+            self,
+            patch,
+           *,
+            color1              : '"bright" pattern color.'
+                                = 'white',
+            color2              : '"dark" pattern color.'
+                                = 'black',
+            background          : 'Color outside of shape.'
+                                = 'black',
+            direction           : "The pattern direction in radians (or 'east', 'northeast', 'north', 'northwest', 'west', 'southwest', 'south', or 'southeast')."
+                                = 'east',
+            wavelength_radians  : 'Angle between wave crests [radians].'
+                                = 6.283185307179586476925286766559 / 17,
+            patternFunctionName : 'The function given by this pattern (some stimuli use multiple patterns).'
+                                = 'pattern'
+   
+            ) :
+        color1 = processColor(color1, self.tb)
+        color2 = processColor(color2, self.tb)
+        background = processColor(background, self.tb)
+
+        stimulus = patch.getStimulus()
+        if max(color1) - min(color1) > 0.03 or max(color2) - min(color2) > 0.03 or max(background) - min(background) > 0.03:
+            stimulus.enableColorMode()
+
+        patch.setShaderColor( name = 'color1', red = color1[0], green=color1[1], blue=color1[2] )
+        patch.setShaderColor( name = 'color2', red = color2[0], green=color2[1], blue=color2[2] )
+        patch.setShaderColor( name = 'background', red = background[0], green=background[1], blue=background[2] )
+        patch.setShaderVariable( name = 'sineWheelWavelength', value=wavelength_radians )
+
+        direction = processDirection(direction, self.tb)
+        experiment = stimulus.getExperiment()
+        s = math.sin(direction)
+        c = math.cos(direction)
+        patch.setShaderVector( name='span', x=c, y=s )
+        
+        patch.setShaderFunction( name = patternFunctionName, src = '''
+                vec3 {pattern}(vec3 shapeMask, vec2 x){{
+                    float u = dot(normalize(x), span);
+                    float v = cross(vec3(normalize(x),0), vec3(span, 0)).z;
+                    float t = atan(u, v);
+                    return mix(background, mix(color1, color2, 0.5-0.5*cos(t/sineWheelWavelength * 6.283185307179586476925286766559) ), shapeMask); }}
+        '''.format( pattern=patternFunctionName )  ) 
+

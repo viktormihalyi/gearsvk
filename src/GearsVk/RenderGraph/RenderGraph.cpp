@@ -12,7 +12,7 @@ Graph::Graph (VkDevice device, VkCommandPool commandPool, GraphSettings settings
 }
 
 
-Resource& Graph::CreateResource (Resource::U&& resource)
+Resource& Graph::AddResource (Resource::U&& resource)
 {
     compiled = false;
 
@@ -21,7 +21,7 @@ Resource& Graph::CreateResource (Resource::U&& resource)
 }
 
 
-Operation& Graph::CreateOperation (Operation::U&& operation)
+Operation& Graph::AddOperation (Operation::U&& operation)
 {
     compiled = false;
 

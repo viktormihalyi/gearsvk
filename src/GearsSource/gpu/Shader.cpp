@@ -10,6 +10,9 @@ Shader::Shader ()
 
 Shader::Shader (std::string vertexShaderSource, std::string fragmentShaderSource, bool dummy)
 {
+    info.vertex.source   = vertexShaderSource;
+    info.fragment.source = fragmentShaderSource;
+
     geometryProgram = 0;
     throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
@@ -39,6 +42,10 @@ Shader::Shader (std::string vertexShaderSource, std::string fragmentShaderSource
 
 Shader::Shader (std::string vertexShaderSource, std::string geometryShaderSource, std::string fragmentShaderSource, GLint geomShaderOutputType)
 {
+    info.vertex.source   = vertexShaderSource;
+    info.geometry.source = geometryShaderSource;
+    info.fragment.source = fragmentShaderSource;
+
     throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
 	if(vertexShaderSource.empty())
@@ -89,8 +96,11 @@ Shader::Shader (std::string vertexShaderSource, std::string geometryShaderSource
 
 Shader::Shader (const char* vertexShaderPath, const char* fragmentShaderPath, const char* geometryShaderPath, GLint geomShaderOutputType)
 {
-    geometryProgram = 0;
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    info.vertex.path   = vertexShaderPath ? vertexShaderPath : "";
+    info.geometry.path = geometryShaderPath ? geometryShaderPath : "";
+    info.fragment.path = fragmentShaderPath ? fragmentShaderPath : "";
+    geometryProgram    = 0;
+    //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
   shaderFromFile(vertexShaderPath, GL_VERTEX_SHADER, vertexProgram);
   shaderFromFile(fragmentShaderPath, GL_FRAGMENT_SHADER, fragmentProgram);
@@ -104,6 +114,8 @@ Shader::Shader (const char* vertexShaderPath, const char* fragmentShaderPath, co
 
 Shader::Shader (std::string vertexShaderPath, std::string fragmentShaderSource)
 {
+    info.vertex.path     = vertexShaderPath;
+    info.fragment.source = fragmentShaderSource;
     throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     geometryProgram = 0;
@@ -258,12 +270,14 @@ bool Shader::fileToString (const char* path, char*& out, int& len)
 
 void Shader::enable ()
 {
+    //LOG_LOC ();
     throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     // glUseProgram (shaderProgram);
 }
 
 void Shader::disable ()
 {
+    //LOG_LOC ();
     throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     // glUseProgram (0);
 }

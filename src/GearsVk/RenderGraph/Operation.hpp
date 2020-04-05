@@ -7,7 +7,9 @@
 #include "VulkanWrapper.hpp"
 
 #include "Connections.hpp"
+#include "DrawRecordable.hpp"
 #include "Resource.hpp"
+
 
 namespace RenderGraph {
 
@@ -33,53 +35,9 @@ struct Operation : public Noncopyable {
     std::vector<VkImageView>             GetOutputImageViews (uint32_t frameIndex) const;
 };
 
-
-struct RenderOperationSettings {
-    const uint32_t instanceCount;
-
-    const uint32_t                                       vertexCount;
-    const VkBuffer                                       vertexBuffer;
-    const std::vector<VkVertexInputBindingDescription>   vertexInputBindings;
-    const std::vector<VkVertexInputAttributeDescription> vertexInputAttributes;
-
-    const uint32_t indexCount;
-    const VkBuffer indexBuffer;
-
-    RenderOperationSettings (const uint32_t                                        instanceCount,
-                             uint32_t                                              vertexCount,
-                             VkBuffer                                              vertexBuffer          = VK_NULL_HANDLE,
-                             const std::vector<VkVertexInputBindingDescription>&   vertexInputBindings   = {},
-                             const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributes = {},
-                             uint32_t                                              indexCount            = 0,
-                             VkBuffer                                              indexBuffer           = VK_NULL_HANDLE)
-        : instanceCount (instanceCount)
-        , vertexCount (vertexCount)
-        , vertexBuffer (vertexBuffer)
-        , vertexInputBindings (vertexInputBindings)
-        , vertexInputAttributes (vertexInputAttributes)
-        , indexCount (indexCount)
-        , indexBuffer (indexBuffer)
-    {
-    }
-
-    RenderOperationSettings (const uint32_t                         instanceCount,
-                             const UntypedTransferableVertexBuffer& vertexBuffer,
-                             const TransferableIndexBuffer&         indexBuffer)
-        : instanceCount (instanceCount)
-        , vertexCount (vertexBuffer.data.size ())
-        , vertexBuffer (vertexBuffer.buffer.GetBufferToBind ())
-        , vertexInputBindings (vertexBuffer.info.bindings)
-        , vertexInputAttributes (vertexBuffer.info.attributes)
-        , indexCount (indexBuffer.data.size ())
-        , indexBuffer (indexBuffer.buffer.GetBufferToBind ())
-    {
-    }
-};
-
 struct RenderOperation final : public Operation {
     USING_PTR (RenderOperation);
 
-    ShaderPipeline::U      pipeline;
     DescriptorPool::U      descriptorPool;
     DescriptorSetLayout::U descriptorSetLayout;
     const GraphSettings    graphSettings;
@@ -87,10 +45,10 @@ struct RenderOperation final : public Operation {
     std::vector<Framebuffer::U>   framebuffers;
     std::vector<DescriptorSet::U> descriptorSets;
 
-    const RenderOperationSettings settings;
+    ShaderPipeline::P pipeline;
+    DrawRecordable::P drawRecordable;
 
-    RenderOperation (const GraphSettings& graphSettings, const RenderOperationSettings& settings, const std::vector<std::filesystem::path>& shaders);
-    RenderOperation (const GraphSettings& graphSettings, const RenderOperationSettings& settings, ShaderPipeline::U&& shaderPipiline);
+    RenderOperation (const GraphSettings& graphSettings, const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipiline);
 
     virtual ~RenderOperation () {}
     virtual void Compile () override;

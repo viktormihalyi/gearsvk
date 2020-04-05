@@ -54,7 +54,8 @@ set (COMMON_SOURCE_FILES
     src/GearsVk/Window/GLFWWindow.cpp
     src/GearsVk/Window/SDLWindow.cpp
     src/GearsVk/ShaderReflection.cpp
-)
+    src/GearsVk/RenderGraph/DrawRecordable.cpp
+    src/VulkanWrapper/BufferTransferable.cpp)
 
 add_executable (${TARGET_NAME}
     ${COMMON_SOURCE_FILES}

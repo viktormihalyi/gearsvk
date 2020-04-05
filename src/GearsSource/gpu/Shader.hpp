@@ -6,8 +6,23 @@
 
 #include "GearsSource/OpenGLProxy.hpp"
 
+#include "VulkanWrapper.hpp"
+
 class Shader {
 private:
+    struct Type {
+        std::string path;
+        std::string source;
+    };
+
+    struct {
+        Type vertex;
+        Type geometry;
+        Type fragment;
+    } info;
+
+    ShaderPipeline::U ppl;
+
     GLuint shaderProgram;
     GLuint vertexProgram;
     GLuint fragmentProgram;
@@ -27,6 +42,7 @@ public:
     GLuint getProgram () { return shaderProgram; }
     GLuint getGeometryProgram () { return geometryProgram; }
 
+private:
     void shaderFromFile (const char* shaderPath, GLenum shaderType, GLuint& handle);
     void shaderFromString (const char* shaderSource, int len, GLenum shaderType, GLuint& handle);
     void linkShaders (GLuint& vertexShader, GLuint& fragmentShader, GLuint& geometryShader, GLuint& handle, GLint geomShaderOutputType);
@@ -34,6 +50,7 @@ public:
     std::string getShaderInfoLog (GLuint& object);
     std::string getProgramInfoLog (GLuint& object);
 
+public:
     void enable ();
     void disable ();
 
