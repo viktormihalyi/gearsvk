@@ -45,7 +45,7 @@ set (COMMON_SOURCE_FILES
     src/Utils/MessageBox.cpp
     src/Utils/SourceLocation.cpp
     src/Utils/Utils.cpp
-    src/VulkanWrapper/VulkanUtils.cpp
+    "src/VulkanWrapper/Utils/VulkanUtils.cpp"
     src/VulkanWrapper/DebugUtilsMessenger.cpp
     src/VulkanWrapper/ShaderModule.cpp
     src/GearsVk/RenderGraph/RenderGraph.cpp
@@ -54,8 +54,8 @@ set (COMMON_SOURCE_FILES
     src/GearsVk/Window/GLFWWindow.cpp
     src/GearsVk/Window/SDLWindow.cpp
     src/GearsVk/ShaderReflection.cpp
-    src/GearsVk/RenderGraph/DrawRecordable.cpp
-    src/VulkanWrapper/BufferTransferable.cpp)
+    src/GearsVk/RenderGraph/DrawRecordable/DrawRecordable.cpp
+    "src/VulkanWrapper/Utils/BufferTransferable.cpp")
 
 add_executable (${TARGET_NAME}
     ${COMMON_SOURCE_FILES}
@@ -140,8 +140,10 @@ set (COMMON_INCLUDES
     src
     src/GearsVk
     src/GearsVk/RenderGraph
+    src/GearsVk/RenderGraph/DrawRecordable
     src/GearsVk/Window
     src/VulkanWrapper
+    src/VulkanWrapper/Utils
     src/Utils
 
 )

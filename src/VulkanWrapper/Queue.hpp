@@ -19,6 +19,11 @@ public:
         vkGetDeviceQueue (device, index, 0, &handle); // TODO another index
     }
 
+    Queue (VkQueue handle)
+        : handle (handle)
+    {
+    }
+
     ~Queue ()
     {
         handle = VK_NULL_HANDLE;
@@ -29,5 +34,7 @@ public:
         return handle;
     }
 };
+
+static Queue dummyQueue (static_cast<VkQueue> (VK_NULL_HANDLE));
 
 #endif

@@ -32,7 +32,7 @@ public:
         }
     }
 
-    ~Buffer ()
+    virtual ~Buffer ()
     {
         vkDestroyBuffer (device, handle, nullptr);
         handle = VK_NULL_HANDLE;
@@ -41,6 +41,46 @@ public:
     operator VkBuffer () const
     {
         return handle;
+    }
+};
+
+
+class UniformBuffer : public Buffer {
+public:
+    USING_PTR (UniformBuffer);
+    UniformBuffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags = 0)
+        : Buffer (device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | usageFlags)
+    {
+    }
+};
+
+
+class StorageBuffer : public Buffer {
+public:
+    USING_PTR (StorageBuffer);
+    StorageBuffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags = 0)
+        : Buffer (device, bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | usageFlags)
+    {
+    }
+};
+
+
+class IndexBuffer : public Buffer {
+public:
+    USING_PTR (IndexBuffer);
+    IndexBuffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags = 0)
+        : Buffer (device, bufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | usageFlags)
+    {
+    }
+};
+
+
+class VertexBuffer : public Buffer {
+public:
+    USING_PTR (VertexBuffer);
+    VertexBuffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags = 0)
+        : Buffer (device, bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | usageFlags)
+    {
     }
 };
 

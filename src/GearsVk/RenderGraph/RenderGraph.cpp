@@ -1,9 +1,9 @@
 #include "RenderGraph.hpp"
 
 
-namespace RenderGraph {
+namespace RenderGraphns {
 
-Graph::Graph (VkDevice device, VkCommandPool commandPool, GraphSettings settings)
+RenderGraph::RenderGraph (VkDevice device, VkCommandPool commandPool, GraphSettings settings)
     : device (device)
     , commandPool (commandPool)
     , settings (settings)
@@ -12,7 +12,7 @@ Graph::Graph (VkDevice device, VkCommandPool commandPool, GraphSettings settings
 }
 
 
-Resource& Graph::AddResource (Resource::U&& resource)
+Resource& RenderGraph::AddResource (Resource::U&& resource)
 {
     compiled = false;
 
@@ -21,7 +21,7 @@ Resource& Graph::AddResource (Resource::U&& resource)
 }
 
 
-Operation& Graph::AddOperation (Operation::U&& operation)
+Operation& RenderGraph::AddOperation (Operation::U&& operation)
 {
     compiled = false;
 
@@ -29,9 +29,63 @@ Operation& Graph::AddOperation (Operation::U&& operation)
     return *operations[operations.size () - 1];
 }
 
-
-void Graph::Compile ()
+template<typename T>
+bool Contains (const std::vector<T>& vec, const T& value)
 {
+    return std::find (vec.begin (), vec.end (), value) != vec.end ();
+}
+
+template<typename T>
+bool Contains (const std::set<T>& vec, const T& value)
+{
+    return std::find (vec.begin (), vec.end (), value) != vec.end ();
+}
+
+void RenderGraph::Compile ()
+{
+    /*
+    std::set<Operation::Ref> startingOperations;
+    // gather starting operations
+    {
+        for (const auto& o : operations) {
+            if (o->inputs.empty ()) {
+                startingOperations.insert (*o);
+            }
+        }
+
+        std::set<Resource::Ref> onlyReadResources;
+        for (const auto& r : resources) {
+            bool isResourceWritten = false;
+            for (const auto& o : operations) {
+                for (const auto& outputRes : o->outputs) {
+                    if (&outputRes.get () == r.get ()) {
+                        isResourceWritten = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!isResourceWritten) {
+                onlyReadResources.insert (*r);
+            }
+        }
+
+        for (const auto& o : operations) {
+            bool inputsResourcesAreNeverWritten = true;
+            for (const auto& inputRes : o->inputs) {
+                if (!Contains (onlyReadResources, inputRes)) {
+                    inputsResourcesAreNeverWritten = false;
+                    break;
+                }
+            }
+            if (inputsResourcesAreNeverWritten) {
+                startingOperations.insert (*o);
+            }
+        }
+    }
+    */
+
+
     try {
         for (auto& op : operations) {
             op->Compile ();
@@ -55,11 +109,6 @@ void Graph::Compile ()
                 op->Record (frameIndex, *currentCommandBuffer);
 
                 if (&op != &operations.back ()) {
-                    VkMemoryBarrier memoryBarrier = {};
-                    memoryBarrier.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-                    memoryBarrier.srcAccessMask   = VK_ACCESS_SHADER_WRITE_BIT;
-                    memoryBarrier.dstAccessMask   = VK_ACCESS_SHADER_READ_BIT;
-
                     vkCmdPipelineBarrier (
                         *currentCommandBuffer,
                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // srcStageMask
@@ -84,7 +133,7 @@ void Graph::Compile ()
 }
 
 
-void Graph::AddConnection (const Graph::InputConnection& c)
+void RenderGraph::AddConnection (const RenderGraph::InputConnection& c)
 {
     compiled = false;
 
@@ -92,7 +141,7 @@ void Graph::AddConnection (const Graph::InputConnection& c)
 }
 
 
-void Graph::AddConnection (const Graph::OutputConnection& c)
+void RenderGraph::AddConnection (const RenderGraph::OutputConnection& c)
 {
     compiled = false;
 
@@ -100,7 +149,7 @@ void Graph::AddConnection (const Graph::OutputConnection& c)
 }
 
 
-void Graph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores, const std::vector<VkSemaphore>& signalSemaphores, VkFence fenceToSignal)
+void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores, const std::vector<VkSemaphore>& signalSemaphores, VkFence fenceToSignal)
 {
     if (ERROR (!compiled)) {
         return;
@@ -128,4 +177,4 @@ void Graph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSem
     vkQueueSubmit (settings.queue, 1, &result, fenceToSignal);
 }
 
-} // namespace RenderGraph
+} // namespace RenderGraphns

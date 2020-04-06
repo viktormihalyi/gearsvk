@@ -9,6 +9,23 @@
 #include <memory>
 #include <pybind11/pybind11.h>
 
+
+template<typename T>
+struct extract {
+    pybind11::object obj;
+    bool             ok;
+
+    extract (pybind11::object obj)
+        : ok (pybind11::isinstance<T> (obj))
+    {
+    }
+
+    bool check () { return ok; }
+
+    T operator() () { return obj.cast<T> (); }
+};
+
+
 #include "SourceLocation.hpp"
 
 #define THROW_LOC() \

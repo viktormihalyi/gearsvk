@@ -23,7 +23,7 @@
 
 #include "GearsSource/OpenGLProxy.hpp"
 
-class Framebuffer {
+class FramebufferGL {
 private:
     GLuint  handle;
     GLuint* colorBuffer;
@@ -38,8 +38,8 @@ private:
     int  numMips;
 
 public:
-    Framebuffer (GLuint width, GLuint height, GLuint planes, GLenum format, bool genMipMaps = false);
-    ~Framebuffer ();
+    FramebufferGL (GLuint width, GLuint height, GLuint planes, GLenum format, bool genMipMaps = false);
+    ~FramebufferGL ();
 
     void setRenderTarget (int mipLevel = -1);
     void disableRenderTarget ();

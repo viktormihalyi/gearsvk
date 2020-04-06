@@ -4,7 +4,7 @@
 //#include "StimulusGrid.hpp"
 //#include "Shader.hpp"
 //#include "Texture.hpp"
-//#include "Framebuffer.hpp"
+//#include "FramebufferGL.hpp"
 //#include "Pointgrid.hpp"
 //#include "Quad.hpp"
 

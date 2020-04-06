@@ -170,21 +170,6 @@ float Sequence::getTimeForFrame (unsigned int frame)
     return frame / deviceFrameRate * frameRateDivisor;
 }
 
-template<typename T>
-struct extract {
-    pybind11::object obj;
-    bool             ok;
-
-    extract (pybind11::object obj)
-        : ok (pybind11::isinstance<T> (obj))
-    {
-    }
-
-    bool check () { return ok; }
-
-    T operator() () { return obj.cast<T> (); }
-};
-
 Sequence::P Sequence::setAgenda (pybind11::object agenda)
 {
     using namespace pybind11;

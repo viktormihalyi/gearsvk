@@ -11,6 +11,27 @@ static ShaderType vec2 {8, 8};
 static ShaderType vec3 {12, 16};
 static ShaderType vec4 {12, 16};
 
+template<uint32_t SIZE>
+static ShaderType vec1Array {4 * SIZE, 32};
+template<uint32_t SIZE>
+static ShaderType vec2Array {8 * SIZE, 32};
+template<uint32_t SIZE>
+static ShaderType vec3Array {12 * SIZE, 32};
+template<uint32_t SIZE>
+static ShaderType vec4Array {16 * SIZE, 32};
+
+class UniformBlock {
+    std::vector<std::pair<ShaderType, uint32_t>> variables;
+
+    UniformBlock (const std::vector<ShaderType>& types)
+    {
+        uint32_t offset = 0;
+        for (auto s : types) {
+            variables.emplace_back (s, offset);
+            offset += std::ceil (s.size / s.alignment) * s.alignment;
+        }
+    }
+};
 
 static ShaderType GetShaderTypeFromFormat (VkFormat format)
 {

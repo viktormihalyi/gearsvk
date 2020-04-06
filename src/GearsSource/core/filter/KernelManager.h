@@ -29,9 +29,9 @@ public:
     GEARS_SHARED_CREATE (KernelManager);
 
     struct Kernel {
-        FFT*         fft;
-        Framebuffer* buff;
-        Shader*      kernelShader;
+        FFT*           fft;
+        FramebufferGL* buff;
+        Shader*        kernelShader;
     };
 
     using KernelMap = std::map<std::string, Kernel>;

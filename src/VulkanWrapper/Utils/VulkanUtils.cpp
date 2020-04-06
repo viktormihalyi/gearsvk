@@ -26,7 +26,7 @@ std::string GetVersionString (uint32_t version)
 void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
     SingleTimeCommand commandBuffer (device, commandPool, queue);
-    image.CmdTransitionImageLayout (commandBuffer, oldLayout, newLayout);
+    image.CmdPipelineBarrier (commandBuffer, oldLayout, newLayout);
 }
 
 

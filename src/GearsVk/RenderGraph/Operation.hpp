@@ -11,7 +11,7 @@
 #include "Resource.hpp"
 
 
-namespace RenderGraph {
+namespace RenderGraphns {
 
 struct Operation : public Noncopyable {
     USING_PTR_ABSTRACT (Operation);
@@ -56,6 +56,6 @@ struct RenderOperation final : public Operation {
 };
 
 
-} // namespace RenderGraph
+} // namespace RenderGraphns
 
 #endif

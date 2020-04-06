@@ -8,10 +8,14 @@
 
 #include <vulkan/vulkan.h>
 
-
-class Image : public Noncopyable {
+class ImageBase : public Noncopyable {
 public:
     static const VkImageLayout INITIAL_LAYOUT = VK_IMAGE_LAYOUT_UNDEFINED;
+
+    static constexpr VkFormat R    = VK_FORMAT_R8_UINT;
+    static constexpr VkFormat RG   = VK_FORMAT_R8G8_UINT;
+    static constexpr VkFormat RGB  = VK_FORMAT_R8G8B8_UINT;
+    static constexpr VkFormat RGBA = VK_FORMAT_R8G8B8A8_UINT;
 
 private:
     const VkDevice device;
@@ -19,26 +23,28 @@ private:
     VkImage        handle;
     uint32_t       width;
     uint32_t       height;
+    uint32_t       depth;
     uint32_t       arrayLayers;
 
 public:
-    USING_PTR (Image);
+    USING_PTR (ImageBase);
 
-    Image (VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, uint32_t arrayLayers)
+    ImageBase (VkDevice device, VkImageType imageType, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, uint32_t arrayLayers)
         : device (device)
         , handle (VK_NULL_HANDLE)
         , format (format)
         , width (width)
         , height (height)
+        , depth (depth)
         , arrayLayers (arrayLayers)
     {
         VkImageCreateInfo imageInfo = {};
         imageInfo.sType             = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.flags             = 0;
-        imageInfo.imageType         = VK_IMAGE_TYPE_2D;
+        imageInfo.imageType         = imageType;
         imageInfo.extent.width      = width;
         imageInfo.extent.height     = height;
-        imageInfo.extent.depth      = 1;
+        imageInfo.extent.depth      = depth;
         imageInfo.mipLevels         = 1;
         imageInfo.arrayLayers       = arrayLayers;
         imageInfo.format            = format;
@@ -53,7 +59,7 @@ public:
         }
     }
 
-    ~Image ()
+    virtual ~ImageBase ()
     {
         vkDestroyImage (device, handle, nullptr);
         handle = VK_NULL_HANDLE;
@@ -63,8 +69,9 @@ public:
     uint32_t GetArrayLayers () const { return arrayLayers; }
     uint32_t GetWidth () const { return width; }
     uint32_t GetHeight () const { return height; }
+    uint32_t GetDepth () const { return depth; }
 
-    void CmdTransitionImageLayout (VkCommandBuffer commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const
+    void CmdPipelineBarrier (VkCommandBuffer commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const
     {
         VkImageMemoryBarrier barrier            = {};
         barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -114,8 +121,38 @@ public:
             1, &barrier);
     }
 
-
     operator VkImage () const { return handle; }
 };
+
+
+class Image1D : public ImageBase {
+public:
+    USING_PTR (Image1D);
+    Image1D (VkDevice device, uint32_t width, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
+        : ImageBase (device, VK_IMAGE_TYPE_1D, width, 1, 1, format, tiling, usage, arrayLayers)
+    {
+    }
+};
+
+
+class Image : public ImageBase {
+public:
+    USING_PTR (Image);
+    Image (VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
+        : ImageBase (device, VK_IMAGE_TYPE_2D, width, height, 1, format, tiling, usage, arrayLayers)
+    {
+    }
+};
+
+
+class Image3D : public ImageBase {
+public:
+    USING_PTR (Image3D);
+    Image3D (VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0)
+        : ImageBase (device, VK_IMAGE_TYPE_3D, width, height, depth, format, tiling, usage, 1)
+    {
+    }
+};
+
 
 #endif

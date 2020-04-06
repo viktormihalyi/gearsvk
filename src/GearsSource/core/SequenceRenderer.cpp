@@ -121,7 +121,7 @@ void SequenceRenderer::apply (Sequence::P sequence, ShaderManager::P shaderManag
     if (forwardRenderedImage)
         delete forwardRenderedImage;
     if (sequence->getUsesForwardRendering ()) {
-        forwardRenderedImage = new Framebuffer (sequence->fieldWidth_px, sequence->fieldHeight_px, 1, GL_RGBA16F);
+        forwardRenderedImage = new FramebufferGL (sequence->fieldWidth_px, sequence->fieldHeight_px, 1, GL_RGBA16F);
     } else
         forwardRenderedImage = nullptr;
 
@@ -156,8 +156,8 @@ void SequenceRenderer::apply (Sequence::P sequence, ShaderManager::P shaderManag
     selectedStimulusRenderer = stimulusRenderers.end ();
 
     if (sequence->hasSpatialDomainConvolution) {
-        spatialDomainFilteringBuffers[0] = new Framebuffer (sequence->fieldWidth_px, sequence->fieldHeight_px, 1, GL_RGBA16F);
-        spatialDomainFilteringBuffers[1] = new Framebuffer (sequence->fieldWidth_px, sequence->fieldHeight_px, 1, GL_RGBA16F);
+        spatialDomainFilteringBuffers[0] = new FramebufferGL (sequence->fieldWidth_px, sequence->fieldHeight_px, 1, GL_RGBA16F);
+        spatialDomainFilteringBuffers[1] = new FramebufferGL (sequence->fieldWidth_px, sequence->fieldHeight_px, 1, GL_RGBA16F);
     }
 
     if (sequence->maxRandomGridWidth > 0) {
@@ -196,10 +196,10 @@ void SequenceRenderer::apply (Sequence::P sequence, ShaderManager::P shaderManag
         calibrationImageWidth  = calibrationHorizontalSampleCount;
         calibrationImageHeight = calibrationVerticalSampleCount;
     }
-    calibrationImage = new Framebuffer (calibrationImageWidth, calibrationImageHeight, 1, GL_RGBA16F);
-    histogramBuffer  = new Framebuffer (histogramResolution, 1, 1, GL_RGBA32F);
-    histogramBuffer2 = new Framebuffer (histogramResolution, 1, 1, GL_RGBA32F);
-    histogramBuffer3 = new Framebuffer (histogramResolution, 1, 1, GL_RGBA32F);
+    calibrationImage = new FramebufferGL (calibrationImageWidth, calibrationImageHeight, 1, GL_RGBA16F);
+    histogramBuffer  = new FramebufferGL (histogramResolution, 1, 1, GL_RGBA32F);
+    histogramBuffer2 = new FramebufferGL (histogramResolution, 1, 1, GL_RGBA32F);
+    histogramBuffer3 = new FramebufferGL (histogramResolution, 1, 1, GL_RGBA32F);
     histogramBuffer->clear ();
 
     videoExportImage       = nullptr;
@@ -1180,10 +1180,10 @@ void SequenceRenderer::beginVideoExportFrame ()
 #if 0
     if (exportingToVideo) {
         if (videoExportImage == nullptr) {
-            videoExportImage  = new Framebuffer (videoExportImageWidth, videoExportImageHeight, 1, GL_RGBA16F);
-            videoExportImageY = new Framebuffer (videoExportImageWidth, videoExportImageHeight, 1, GL_R8);
-            videoExportImageU = new Framebuffer (videoExportImageWidth / 2, videoExportImageHeight / 2, 1, GL_R8);
-            videoExportImageV = new Framebuffer (videoExportImageWidth / 2, videoExportImageHeight / 2, 1, GL_R8);
+            videoExportImage  = new FramebufferGL (videoExportImageWidth, videoExportImageHeight, 1, GL_RGBA16F);
+            videoExportImageY = new FramebufferGL (videoExportImageWidth, videoExportImageHeight, 1, GL_R8);
+            videoExportImageU = new FramebufferGL (videoExportImageWidth / 2, videoExportImageHeight / 2, 1, GL_R8);
+            videoExportImageV = new FramebufferGL (videoExportImageWidth / 2, videoExportImageHeight / 2, 1, GL_R8);
         }
 
         glViewport (

@@ -39,9 +39,7 @@ public:
 
     using DrawCallback = std::function<void (bool& stopFlag)>;
 
-    virtual ~Window ()
-    {
-    }
+    virtual ~Window () = default;
 
     virtual void  DoEventLoop (const DrawCallback&) = 0;
     virtual void* GetHandle () const                = 0;

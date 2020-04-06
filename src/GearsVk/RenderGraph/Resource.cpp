@@ -1,7 +1,7 @@
 #include "Resource.hpp"
 
 
-namespace RenderGraph {
+namespace RenderGraphns {
 
 
 SingleImageResource::SingleImageResource (const GraphSettings& graphSettings, uint32_t arrayLayers)
@@ -29,14 +29,14 @@ void SingleImageResource::BindRead (VkCommandBuffer commandBuffer)
 {
     layoutRead                   = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     VkImageLayout previousLayout = (layoutWrite.has_value ()) ? *layoutWrite : Image::INITIAL_LAYOUT;
-    image.image->CmdTransitionImageLayout (commandBuffer, previousLayout, *layoutRead);
+    image.image->CmdPipelineBarrier (commandBuffer, previousLayout, *layoutRead);
 }
 
 
 void SingleImageResource::BindWrite (VkCommandBuffer commandBuffer)
 {
     layoutWrite = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    image.image->CmdTransitionImageLayout (commandBuffer, Image::INITIAL_LAYOUT, *layoutWrite);
+    image.image->CmdPipelineBarrier (commandBuffer, Image::INITIAL_LAYOUT, *layoutWrite);
 }
 
 
@@ -60,4 +60,4 @@ void ResourceVisitor::Visit (Resource&                               res,
     }
 }
 
-} // namespace RenderGraph
+} // namespace RenderGraphns

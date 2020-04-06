@@ -9,6 +9,7 @@
 #include "BufferTransferable.hpp"
 #include "DeviceExtra.hpp"
 
+
 class DrawRecordable {
 public:
     USING_PTR_ABSTRACT (DrawRecordable);
@@ -19,6 +20,7 @@ public:
     virtual std::vector<VkVertexInputAttributeDescription> GetAttributes () const         = 0;
     virtual std::vector<VkVertexInputBindingDescription>   GetBindings () const           = 0;
 };
+
 
 struct DrawRecordableInfo : public DrawRecordable {
 public:
@@ -118,43 +120,5 @@ private:
     virtual const DrawRecordableInfo& GetDrawRecordableInfo () const = 0;
 };
 
-
-class FullscreenQuad : public DrawRecordableInfoProvider {
-private:
-    struct QuadVertex {
-        glm::vec2 pos;
-        glm::vec2 uv;
-    };
-
-    VertexBufferTransferable<QuadVertex> vertexBuffer;
-    IndexBufferTransferable              indexBuffer;
-
-    DrawRecordableInfo::U info;
-
-public:
-    USING_PTR (FullscreenQuad);
-
-    FullscreenQuad (const Device& device, VkQueue queue, VkCommandPool commandPool)
-        : vertexBuffer (device, queue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f}, 4)
-        , indexBuffer (device, queue, commandPool, 6)
-    {
-        vertexBuffer = {
-            {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f)},
-            {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f)},
-            {glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f)},
-            {glm::vec2 (+1.f, -1.f), glm::vec2 (1.f, 0.f)},
-        };
-
-        indexBuffer = {0, 1, 2, 0, 3, 2};
-
-        vertexBuffer.Flush ();
-        indexBuffer.Flush ();
-
-        info = DrawRecordableInfo::Create (1, vertexBuffer, indexBuffer);
-    }
-
-private:
-    virtual const DrawRecordableInfo& GetDrawRecordableInfo () const override { return *info; }
-};
 
 #endif

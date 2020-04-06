@@ -9,7 +9,7 @@
 #include "Connections.hpp"
 #include "GraphSettings.hpp"
 
-namespace RenderGraph {
+namespace RenderGraphns {
 
 
 class SingleResource : public Noncopyable {
@@ -147,7 +147,7 @@ public:
         : size (size)
     {
         for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
-            buffers.push_back (AllocatedBuffer::Create (graphSettings.device, Buffer::Create (graphSettings.device, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT), DeviceMemory::CPU));
+            buffers.push_back (AllocatedBuffer::Create (graphSettings.device, UniformBuffer::Create (graphSettings.device, size), DeviceMemory::CPU));
             mappings.push_back (MemoryMapping::Create (graphSettings.device, *buffers[buffers.size () - 1]->memory, 0, size));
         }
     }
@@ -194,6 +194,6 @@ public:
                        VisitorCallback<UniformBlockResource>);
 };
 
-} // namespace RenderGraph
+} // namespace RenderGraphns
 
 #endif

@@ -36,8 +36,8 @@ uint KernelManager::getKernel (SpatialFilter::CP spatialFilter)
         kernels[slongid] = Kernel {fft, nullptr, kernelShader};
 #endif
     } else {
-        Framebuffer* bufi = new Framebuffer (spatialFilter->horizontalSampleCount, spatialFilter->verticalSampleCount, 1, GL_RGBA16F);
-        kernels[slongid]  = Kernel {nullptr, bufi, kernelShader};
+        FramebufferGL* bufi = new FramebufferGL (spatialFilter->horizontalSampleCount, spatialFilter->verticalSampleCount, 1, GL_RGBA16F);
+        kernels[slongid]    = Kernel {nullptr, bufi, kernelShader};
     }
 
     return update (spatialFilter);
@@ -136,7 +136,7 @@ uint KernelManager::update (SpatialFilter::CP spatialFilter)
             fft->do_fft ();
         return fft->get_fullTex ();
     } else {
-        Framebuffer* bufi = i->second.buff;
+        FramebufferGL* bufi = i->second.buff;
         bufi->setRenderTarget (0);
         renderKernelLambda (0);
         bufi->disableRenderTarget ();

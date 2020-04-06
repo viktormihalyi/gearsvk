@@ -11,25 +11,26 @@
 #include "Operation.hpp"
 #include "Resource.hpp"
 
-namespace RenderGraph {
+#include <algorithm>
+#include <functional>
+#include <memory>
+#include <utility>
+
+namespace RenderGraphns {
 
 
-class Graph final : public Noncopyable {
+class RenderGraph final : public Noncopyable {
 public:
     struct InputConnection final {
         Operation& operation;
         uint32_t   binding;
         Resource&  resource;
-
-        bool operator< (const InputConnection& other) { return binding < other.binding; }
     };
 
     struct OutputConnection final {
         Operation& operation;
         uint32_t   binding;
         Resource&  resource;
-
-        bool operator< (const OutputConnection& other) { return binding < other.binding; }
     };
 
 private:
@@ -46,9 +47,9 @@ private:
     const GraphSettings settings;
 
 public:
-    USING_PTR (Graph);
+    USING_PTR (RenderGraph);
 
-    Graph (VkDevice device, VkCommandPool commandPool, GraphSettings settings);
+    RenderGraph (VkDevice device, VkCommandPool commandPool, GraphSettings settings);
 
     Resource&  AddResource (Resource::U&& resource);
     Operation& AddOperation (Operation::U&& resource);
@@ -88,6 +89,6 @@ public:
 };
 
 
-} // namespace RenderGraph
+} // namespace RenderGraphns
 
 #endif

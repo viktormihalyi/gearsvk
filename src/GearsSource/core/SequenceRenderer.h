@@ -39,8 +39,8 @@ class SequenceRenderer {
     friend class SpatialFilterRenderer;
 
     //! Active sequence.
-    Sequence::CP sequence;
-    Framebuffer* spatialDomainFilteringBuffers[2];
+    Sequence::CP   sequence;
+    FramebufferGL* spatialDomainFilteringBuffers[2];
 
     bool                                                                                                      paused;
     unsigned int                                                                                              iFrame;
@@ -84,13 +84,13 @@ class SequenceRenderer {
 #if 0
     FontManager fontManager;
 #endif
-    bool         exportingToVideo;
-    uint         videoExportImageWidth;
-    uint         videoExportImageHeight;
-    Framebuffer* videoExportImage;
-    Framebuffer* videoExportImageY;
-    Framebuffer* videoExportImageU;
-    Framebuffer* videoExportImageV;
+    bool           exportingToVideo;
+    uint           videoExportImageWidth;
+    uint           videoExportImageHeight;
+    FramebufferGL* videoExportImage;
+    FramebufferGL* videoExportImageY;
+    FramebufferGL* videoExportImageU;
+    FramebufferGL* videoExportImageV;
 #if 0
     AVFrame*        frame;
     AVCodecContext* c;
@@ -117,16 +117,16 @@ class SequenceRenderer {
     uint screenWidth;
     uint screenHeight;
 
-    Framebuffer* forwardRenderedImage;
+    FramebufferGL* forwardRenderedImage;
 
-    Shader*      histogramShader;
-    Shader*      histogramHalferShader;
-    Shader*      histogramClearShader;
-    Shader*      histogramDisplayShader;
-    Framebuffer* calibrationImage;
-    Framebuffer* histogramBuffer;
-    Framebuffer* histogramBuffer2;
-    Framebuffer* histogramBuffer3;
+    Shader*        histogramShader;
+    Shader*        histogramHalferShader;
+    Shader*        histogramClearShader;
+    Shader*        histogramDisplayShader;
+    FramebufferGL* calibrationImage;
+    FramebufferGL* histogramBuffer;
+    FramebufferGL* histogramBuffer2;
+    FramebufferGL* histogramBuffer3;
 
     float measuredToneRangeMin;
     float measuredToneRangeMax;

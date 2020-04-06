@@ -24,11 +24,57 @@ int main (int argc, char** argv)
     return RUN_ALL_TESTS ();
 }
 
-using namespace RenderGraph;
+using namespace RenderGraphns;
 
+
+struct ShaderType {
+    uint32_t size;
+    uint32_t alignment;
+};
+
+static ShaderType vec1 {4, 4};
+static ShaderType vec2 {8, 8};
+static ShaderType vec3 {12, 16};
+static ShaderType vec4 {12, 16};
+
+template<uint32_t SIZE>
+static ShaderType vec1Array {4 * SIZE, 32};
+template<uint32_t SIZE>
+static ShaderType vec2Array {8 * SIZE, 32};
+template<uint32_t SIZE>
+static ShaderType vec3Array {12 * SIZE, 32};
+template<uint32_t SIZE>
+static ShaderType vec4Array {16 * SIZE, 32};
+
+class UniformBlock {
+public:
+    uint32_t fullSize;
+
+    std::vector<std::pair<ShaderType, uint32_t>> variables;
+
+    UniformBlock (const std::vector<ShaderType>& types)
+    {
+        uint32_t offset = 0;
+        for (auto s : types) {
+            offset = std::ceil (static_cast<float> (offset) / s.alignment) * s.alignment;
+            variables.emplace_back (s, offset);
+            offset += s.size;
+        }
+        fullSize = offset;
+    }
+};
 
 TEST_F (HeadlessVulkanTestEnvironment, TestEnvironmentTest)
 {
+    UniformBlock b ({
+        vec1,
+        vec1,
+        vec4,
+        vec3,
+        vec4Array<3>,
+        vec1Array<6>,
+    });
+
     EXPECT_TRUE (true);
 }
 
@@ -39,7 +85,7 @@ TEST_F (HeadlessVulkanTestEnvironment, DISABLED_RenderGraphConnectionTest)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    Graph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, 1, 512, 512));
+    RenderGraph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, 1, 512, 512));
 
     Resource& depthBuffer    = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
     Resource& depthBuffer2   = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
@@ -91,7 +137,7 @@ TEST_F (HeadlessVulkanTestEnvironment, CompileTest)
     Queue&       queue       = GetGraphicsQueue ();
     CommandPool& commandPool = GetCommandPool ();
 
-    Graph graph (device, commandPool, GraphSettings (device, queue, commandPool, 1, 2048, 2048));
+    RenderGraph graph (device, commandPool, GraphSettings (device, queue, commandPool, 1, 2048, 2048));
     graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (),
                                                  DrawRecordableInfo::CreateShared (1, 3),
                                                  ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
@@ -113,7 +159,7 @@ TEST_F (HeadlessVulkanTestEnvironment, RenderRedImage)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    Graph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, 3, 512, 512));
+    RenderGraph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, 3, 512, 512));
 
     Resource& red = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
 
@@ -164,7 +210,7 @@ void main () {
                                                                                DrawRecordableInfo::CreateShared (1, 6),
                                                                                std::move (sp)));
 
-    graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, red});
+    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, red});
 
     graph.Compile ();
 
@@ -187,7 +233,7 @@ TEST_F (HeadlessVulkanTestEnvironment, RenderGraphUseTest)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    Graph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, 4, 512, 512));
+    RenderGraph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, 4, 512, 512));
 
     Resource::Ref presented = graph.CreateResourceTyped<ImageResource> ();
     Resource::Ref green     = graph.CreateResourceTyped<ImageResource> ();
@@ -209,12 +255,12 @@ TEST_F (HeadlessVulkanTestEnvironment, RenderGraphUseTest)
                                                                                                                    })));
 
 
-    graph.AddConnection (Graph::InputConnection {dummyPass, 0, green});
-    graph.AddConnection (Graph::OutputConnection {dummyPass, 0, presented});
-    graph.AddConnection (Graph::OutputConnection {dummyPass, 1, red});
+    graph.AddConnection (RenderGraph::InputConnection {dummyPass, 0, green});
+    graph.AddConnection (RenderGraph::OutputConnection {dummyPass, 0, presented});
+    graph.AddConnection (RenderGraph::OutputConnection {dummyPass, 1, red});
 
-    graph.AddConnection (Graph::InputConnection {secondPass, 0, red});
-    graph.AddConnection (Graph::OutputConnection {secondPass, 0, finalImg});
+    graph.AddConnection (RenderGraph::InputConnection {secondPass, 0, red});
+    graph.AddConnection (RenderGraph::OutputConnection {secondPass, 0, finalImg});
 
     graph.Compile ();
 
@@ -273,7 +319,8 @@ TEST_F (HiddenWindowVulkanTestEnvironment, SwapchainTest)
     Queue&       graphicsQueue = GetGraphicsQueue ();
     Swapchain&   swapchain     = GetSwapchain ();
 
-    Graph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+
+    RenderGraph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -330,8 +377,8 @@ void main () {
                                                                                DrawRecordableInfo::CreateShared (1, 6),
                                                                                std::move (sp)));
 
-    graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presented});
-    graph.AddConnection (Graph::OutputConnection {redFillOperation, 1, presentedCopy});
+    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presented});
+    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 1, presentedCopy});
 
     graph.Compile ();
 
@@ -346,7 +393,7 @@ TEST_F (HiddenWindowVulkanTestEnvironment, VertexAndIndexBufferTest)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
     Swapchain&   swapchain     = GetSwapchain ();
-    Graph        graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+    RenderGraph  graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -410,8 +457,8 @@ void main () {
     RenderOperation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
                                                                                      std::move (sp));
 
-    graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presented});
-    graph.AddConnection (Graph::OutputConnection {redFillOperation, 1, presentedCopy});
+    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presented});
+    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 1, presentedCopy});
 
     graph.Compile ();
 
@@ -428,7 +475,7 @@ TEST_F (HiddenWindowVulkanTestEnvironment, BasicUniformBufferTest)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
     Swapchain&   swapchain     = GetSwapchain ();
-    Graph        graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+    RenderGraph  graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -501,9 +548,9 @@ void main () {
 
     Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb, ib), std::move (sp));
 
-    graph.AddConnection (Graph::InputConnection {redFillOperation, 0, unif});
-    graph.AddConnection (Graph::OutputConnection {redFillOperation, 0, presentedCopy});
-    graph.AddConnection (Graph::OutputConnection {redFillOperation, 2, presented});
+    graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 0, unif});
+    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presentedCopy});
+    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 2, presented});
 
     graph.Compile ();
 
@@ -515,3 +562,224 @@ void main () {
 
     CompareImages ("uvoffset", *presentedCopy.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
+
+/*
+#include "Cache.hpp"
+#include <utility>
+
+namespace GraphV2 {
+
+class Node;
+
+class OneWayConnection : public std::enable_shared_from_this<OneWayConnection> {
+public:
+    std::weak_ptr<Node> from;
+    std::weak_ptr<Node> to;
+
+    USING_PTR (OneWayConnection);
+
+    OneWayConnection (std::shared_ptr<Node>& from, std::shared_ptr<Node>& to)
+        : from (from)
+        , to (to)
+    {
+        ASSERT (IsValidConnection ());
+    }
+
+    virtual bool IsValidConnection () const { return true; }
+};
+
+
+class Node : public std::enable_shared_from_this<Node> {
+public:
+    USING_PTR (Node);
+    friend class Graph;
+
+private:
+    using NodeList       = std::vector<Node::W>;
+    using ConnectionList = std::vector<OneWayConnection::W>;
+
+    ConnectionList  connections;
+    Cache<NodeList> pointingHere;
+    Cache<NodeList> pointingTo;
+
+    NodeList Node::GetNodesConnectedFromThis ()
+    {
+        auto thisShared = shared_from_this ();
+
+        NodeList result;
+        for (auto& c : connections) {
+            if (auto cs = c.lock ()) {
+                if (thisShared == cs->from.lock ()) {
+                    result.push_back (cs->to);
+                }
+            }
+        }
+        return result;
+    }
+
+    NodeList Node::GetNodesConnectedToThis ()
+    {
+        auto thisShared = shared_from_this ();
+
+        NodeList result;
+        for (auto& c : connections) {
+            if (auto cs = c.lock ()) {
+                if (thisShared == cs->to.lock ()) {
+                    result.push_back (cs->from);
+                }
+            }
+        }
+        return result;
+    }
+
+
+public:
+    Node ()
+        : pointingHere (std::bind (&Node::GetNodesConnectedToThis, this))
+        , pointingTo (std::bind (&Node::GetNodesConnectedFromThis, this))
+    {
+    }
+
+    virtual ~Node () = default;
+
+    const NodeList& GetInputs () { return pointingHere; }
+    const NodeList& GetOutputs () { return pointingTo; }
+
+    virtual bool operator== (const Node& other) const { return false; }
+    virtual bool CanConnect (const Node::P& other) const { return true; }
+
+public:
+    // either way
+    void AddConnection (OneWayConnection::P conn)
+    {
+        connections.push_back (conn);
+
+        pointingHere.Invalidate ();
+        pointingTo.Invalidate ();
+    }
+};
+
+
+class Graph {
+private:
+    std::set<Node::P>             nodes;
+    std::set<OneWayConnection::P> connections;
+
+public:
+    USING_PTR (Graph);
+
+    template<typename ConnectionType, typename... ARGS>
+    std::shared_ptr<ConnectionType> AddConnection (Node::P& from, Node::P& to, ARGS&&... args)
+    {
+        if (ERROR (!to->CanConnect (from))) {
+            return nullptr;
+        }
+
+        std::shared_ptr<ConnectionType> asd = std::make_shared<ConnectionType> (from, to, std::forward<ARGS> (args)...);
+
+        if (ERROR (!asd->IsValidConnection ())) {
+            return nullptr;
+        }
+
+        from->AddConnection (asd);
+        to->AddConnection (asd);
+        connections.insert (asd);
+        return asd;
+    }
+
+    template<typename NodeType, typename... ARGS>
+    std::shared_ptr<NodeType> AddNode (ARGS&&... args)
+    {
+        std::shared_ptr<NodeType> asd = std::make_shared<NodeType> (std::forward<ARGS> (args)...);
+
+        for (Node::P n : nodes) {
+            if (*n == *asd) {
+                return nullptr;
+            }
+        }
+
+        nodes.insert (asd);
+        return asd;
+    }
+};
+
+
+class ResourceNode : public Node {
+public:
+    int i = 2;
+
+    virtual bool CanConnect (const Node::P& other) const
+    {
+        // cannot connect to itself
+        return std::dynamic_pointer_cast<ResourceNode> (other) == nullptr;
+    }
+};
+
+
+class OperationNode : public Node {
+public:
+    int i = 3;
+
+    virtual bool CanConnect (const Node::P& other) const
+    {
+        // cannot connect to itself
+        return std::dynamic_pointer_cast<OperationNode> (other) == nullptr;
+    }
+};
+
+
+class InputConnection : public OneWayConnection {
+public:
+    InputConnection (Node::P& from, Node::P& to, uint32_t)
+        : OneWayConnection (from, to)
+    {
+    }
+
+    virtual bool IsValidConnection () const override
+    {
+        return std::dynamic_pointer_cast<ResourceNode> (from.lock ()) != nullptr &&
+               std::dynamic_pointer_cast<OperationNode> (to.lock ()) != nullptr;
+    }
+};
+
+
+class OutputConnection : public OneWayConnection {
+public:
+    OutputConnection (Node::P& from, Node::P& to, uint32_t)
+        : OneWayConnection (from, to)
+    {
+    }
+
+    virtual bool IsValidConnection () const override
+    {
+        return std::dynamic_pointer_cast<OperationNode> (from.lock ()) != nullptr &&
+               std::dynamic_pointer_cast<ResourceNode> (to.lock ()) != nullptr;
+    }
+};
+
+} // namespace GraphV2
+
+
+TEST_F (HiddenWindowVulkanTestEnvironment, graphtestttt)
+{
+    using namespace GraphV2;
+
+    GraphV2::Graph g;
+
+    Node::P r00 = g.AddNode<ResourceNode> ();
+    Node::P r01 = g.AddNode<ResourceNode> ();
+    Node::P r02 = g.AddNode<ResourceNode> ();
+    Node::P r03 = g.AddNode<ResourceNode> ();
+    Node::P r04 = g.AddNode<ResourceNode> ();
+
+    Node::P n1 = g.AddNode<OperationNode> ();
+
+    g.AddConnection<InputConnection> (r00, n1, 1);
+    g.AddConnection<InputConnection> (r01, n1, 1);
+    g.AddConnection<InputConnection> (r02, n1, 1);
+    g.AddConnection<InputConnection> (r03, n1, 1);
+    g.AddConnection<InputConnection> (r04, n1, 1);
+
+    ASSERT_EQ (5, n1->GetInputs ().size ());
+}
+*/

@@ -13,7 +13,7 @@ float Log2 (float n)
     return log (n) / log (2.0f);
 }
 
-Framebuffer::Framebuffer (GLuint width, GLuint height, GLuint planes, GLenum format, bool genMipMaps)
+FramebufferGL::FramebufferGL (GLuint width, GLuint height, GLuint planes, GLenum format, bool genMipMaps)
 {
     this->width  = width;
     this->height = height;
@@ -33,8 +33,8 @@ Framebuffer::Framebuffer (GLuint width, GLuint height, GLuint planes, GLenum for
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     if (genMipMaps && !hasMipMaps) {
-        std::cerr << "Framebuffer: Generation of mipmaps failed. The texture is not square, or not power of 2!";
-        PyErr_SetString (PyExc_RuntimeError, "Framebuffer: Generation of mipmaps failed. The texture is not square, or not power of 2!");
+        std::cerr << "FramebufferGL: Generation of mipmaps failed. The texture is not square, or not power of 2!";
+        PyErr_SetString (PyExc_RuntimeError, "FramebufferGL: Generation of mipmaps failed. The texture is not square, or not power of 2!");
         boost::python::throw_error_already_set ();
     }
 
@@ -68,8 +68,8 @@ Framebuffer::Framebuffer (GLuint width, GLuint height, GLuint planes, GLenum for
         glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffer[i], 0);
         buffers[i] = GL_COLOR_ATTACHMENT0 + i;
         if (glGetError () != GL_NO_ERROR) {
-            std::cerr << "Framebuffer: Error creating color attachment.";
-            PyErr_SetString (PyExc_RuntimeError, "Framebuffer: Error creating color attachment.");
+            std::cerr << "FramebufferGL: Error creating color attachment.";
+            PyErr_SetString (PyExc_RuntimeError, "FramebufferGL: Error creating color attachment.");
             boost::python::throw_error_already_set ();
         }
 
@@ -93,8 +93,8 @@ Framebuffer::Framebuffer (GLuint width, GLuint height, GLuint planes, GLenum for
     glBindFramebuffer (GL_FRAMEBUFFER, handle);
     glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
     if (glGetError () != GL_NO_ERROR) {
-        std::cerr << "Framebuffer: Error creating depth attachment.\n";
-        PyErr_SetString (PyExc_RuntimeError, "Framebuffer: Error creating depth attachment.");
+        std::cerr << "FramebufferGL: Error creating depth attachment.\n";
+        PyErr_SetString (PyExc_RuntimeError, "FramebufferGL: Error creating depth attachment.");
         boost::python::throw_error_already_set ();
     }
 
@@ -123,7 +123,7 @@ Framebuffer::Framebuffer (GLuint width, GLuint height, GLuint planes, GLenum for
 #endif
 }
 
-Framebuffer::~Framebuffer ()
+FramebufferGL::~FramebufferGL ()
 {
 #if 0
     glDeleteFramebuffers (1, &handle);
@@ -131,7 +131,7 @@ Framebuffer::~Framebuffer ()
 #endif
 }
 
-void Framebuffer::setRenderTarget (int mipLevel)
+void FramebufferGL::setRenderTarget (int mipLevel)
 {
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
@@ -152,7 +152,7 @@ void Framebuffer::setRenderTarget (int mipLevel)
 #endif
 }
 
-void Framebuffer::disableRenderTarget ()
+void FramebufferGL::disableRenderTarget ()
 {
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
@@ -162,7 +162,7 @@ void Framebuffer::disableRenderTarget ()
 #endif
 }
 
-void Framebuffer::clear ()
+void FramebufferGL::clear ()
 {
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
