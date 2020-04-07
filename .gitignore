@@ -11,6 +11,12 @@ enc_temp_folder/
 **/__pycache__
 **/*.log
 **/*.zip
+CMakeFiles/
+**/*.pdb
+**/*.ilk
+**/*.exp
+**/*.pyd
+**/*.pyproj
 
 // from https://github.com/github/gitignore/blob/master/C%2B%2B.gitignore
 # Prerequisites
