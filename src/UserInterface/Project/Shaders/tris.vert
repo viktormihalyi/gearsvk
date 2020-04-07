@@ -1,12 +1,15 @@
-#version 150
+#version 450
 
-uniform vec2 patternSizeOnRetina;
-uniform sampler2D polymaskVertices;
+layout (binding = 0) uniform sampler2D polymaskVertices;
+
+layout (binding = 1) uniform P {
+	vec2 value;
+} patternSizeOnRetina;
 
 out vec2 pos;
 
 void main(void) {
-   gl_Position = texelFetch(polymaskVertices, ivec2(gl_VertexID, 0));
-   pos = gl_Position * patternSizeOnRetina * 0.5;
+   gl_Position = texelFetch(polymaskVertices, ivec2(gl_VertexIndex, 0));
+   pos = gl_Position * patternSizeOnRetina.value * 0.5;
 }
 

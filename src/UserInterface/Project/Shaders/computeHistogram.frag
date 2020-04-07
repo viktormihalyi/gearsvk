@@ -1,7 +1,8 @@
-#version 150
+#version 450
 
-out vec4 outColor;
+layout (location = 0) out vec4 outColor;
 
-void main(void){
-    outColor = vec4(1.0, 1.0, 1.0, 1.0);
+void main ()
+{
+    outColor = vec4 (1.0, 1.0, 1.0, 1.0);
 }

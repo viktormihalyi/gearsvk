@@ -1,17 +1,20 @@
-#version 150
+#version 450
 
-uniform sampler2D histogramBuffer;
-uniform sampler2D frameHistogramBuffer;
-uniform float newFrameWeight;
-uniform float oldFramesWeight;
+layout (binding = 0) uniform sampler2D histogramBuffer;
+layout (binding = 1) uniform sampler2D frameHistogramBuffer;
 
-in vec2  fTexCoord;
+layout (binding = 0) uniform HalfHistogram {
+	float newFrameWeight;
+	float oldFramesWeight;
+} h;
 
-out vec4 outColor;
+layout (location = 0) in vec2  fTexCoord;
+
+layout (location = 0) out vec4 outColor;
 
 void main() {
 	vec4 data = texture(histogramBuffer, fTexCoord);
 	vec4 framedata = texture(frameHistogramBuffer, fTexCoord);
-	outColor = data * oldFramesWeight + framedata * newFrameWeight;
+	outColor = data * h.oldFramesWeight + framedata * h.newFrameWeight;
 }
 

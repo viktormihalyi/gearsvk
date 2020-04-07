@@ -1,10 +1,13 @@
-#version 150
+#version 450
 #extension GL_EXT_geometry_shader : enable
 
-void main(void) {
-	gl_Position = gl_PositionIn[0];
+
+
+void main ()
+{
+	gl_Position = gl_in[0].gl_Position;
 	EmitVertex();
-	gl_Position.x=1;
+	gl_Position.x = 1.f;
 	EmitVertex();
 	EndPrimitive();
 }

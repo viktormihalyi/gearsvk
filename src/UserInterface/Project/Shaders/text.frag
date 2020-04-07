@@ -1,8 +1,8 @@
-#version 150 compatibility
+#version 450
 
-uniform sampler2D glyphTexture;
+layout (binding = 0) uniform sampler2D glyphTexture;
 
-out vec4 outColor;
+layout (location = 0) out vec4 outColor;
 
 void main() {
 		outColor = 

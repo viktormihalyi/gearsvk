@@ -1,10 +1,11 @@
-#version 150 compatibility
-uniform sampler2D rgb;
+#version 450
 
-in vec2 fTexCoord;
-out vec4 outcolor;
+layout (binding = 0) uniform sampler2D rgb;
+
+layout (location = 0) in vec2 fTexCoord;
+layout (location = 0) out vec4 outcolor;
 
 void main() {
-		outcolor = texture2D(rgb, fTexCoord );
+		outcolor = texture (rgb, fTexCoord );
 	}
 

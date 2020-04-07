@@ -1,12 +1,15 @@
-#version 150 compatibility
+#version 450
 
-uniform sampler2D histogramBuffer;
-uniform float domainMin;
-uniform float domainMax;
+layout (binding = 0) uniform sampler2D histogramBuffer;
 
-in vec2  fTexCoord;
+layout (binding = 1) uniform H {
+	float domainMin;
+	float domainMax;
+} h;
 
-out vec4 outColor;
+layout (location = 0) in vec2  fTexCoord;
+
+layout (location = 0) out vec4 outColor;
 
 
 void main() {
@@ -31,12 +34,12 @@ void main() {
 	else if(fy < 0)
 		outColor = vec4(1.0, 1.0, 1.0, 1.0);	// background
 	else if(data / topmax > fy / 20.0){
-		if(fx + 0.001 >= (0-domainMin) / (domainMax - domainMin) && fx  - 0.001 <= (1-domainMin) / (domainMax - domainMin))
+		if(fx + 0.001 >= (0-h.domainMin) / (h.domainMax - h.domainMin) && fx  - 0.001 <= (1-h.domainMin) / (h.domainMax - h.domainMin))
 			outColor = vec4(0.0, 0.0, 0.0, 1.0);	// histo bars
 		else
 			outColor = vec4(1.0, 0.0, 0.0, 1.0);	// outlying bars
 	} else {
-		if(fx + 0.001 > (0-domainMin) / (domainMax - domainMin) && fx - 0.001 < (1-domainMin) / (domainMax - domainMin))
+		if(fx + 0.001 > (0-h.domainMin) / (h.domainMax - h.domainMin) && fx - 0.001 < (1-h.domainMin) / (h.domainMax - h.domainMin))
 			outColor = vec4(0.9, 0.9, 0.9, 1.0);	// background between 0 and 1
 		else
 			outColor = vec4(1.0, 1.0, 1.0, 1.0);	// background
