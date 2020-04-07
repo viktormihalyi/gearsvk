@@ -112,14 +112,14 @@ void main ()
     ImageResource&          presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
     UniformBlockResource&   unif          = graph.CreateResourceTyped<UniformBlockResource> (4);
 
-    struct UniformResourceBinding {
-        std::map<std::string, UniformBlockResource::Ref> uniformNameMapping;
+    //struct UniformResourceBinding {
+    //    std::map<std::string, UniformBlockResource::Ref> uniformNameMapping;
 
-        void Register (std::string name, UniformBlockResource::U& uniformBlock)
-        {
-            uniformNameMapping[name] = *uniformBlock;
-        }
-    };
+    //    void Register (std::string name, UniformBlockResource::U& uniformBlock)
+    //    {
+    //        uniformNameMapping[name] = *uniformBlock;
+    //    }
+    //};
 
     Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (fq, sp);
 
@@ -129,7 +129,7 @@ void main ()
 
     graph.Compile ();
 
-    BlockingGraphRenderer swapchainSync (graph, swapchain, [&] (uint32_t frameIndex) {
+    SynchronizedSwapchainGraphRenderer swapchainSync (graph, swapchain, [&] (uint32_t frameIndex) {
         Time::Point currentTime  = Time::SinceApplicationStart ();
         float       timeInSconds = currentTime.AsSeconds ();
         unif.GetMapping (frameIndex).Copy (timeInSconds);

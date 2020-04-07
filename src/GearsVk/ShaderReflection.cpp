@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include <spirv_reflect.hpp>
+//#include <spirv_reflect.hpp>
 
 using json = nlohmann::json;
 
@@ -18,8 +18,9 @@ ShaderReflection::ShaderReflection (const std::string& reflectionJson)
 
 static json GetReflectionJson (const std::vector<uint32_t>& binary)
 {
-    spirv_cross::CompilerReflection ccc (binary);
-    return ccc.compile ();
+	return json ();
+    //spirv_cross::CompilerReflection ccc (binary);
+    //return ccc.compile ();
 }
 
 
