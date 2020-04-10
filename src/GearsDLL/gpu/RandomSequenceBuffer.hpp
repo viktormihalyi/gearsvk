@@ -1,7 +1,7 @@
 #ifndef _RANDOMSEQUENCEBUFFER_
 #define _RANDOMSEQUENCEBUFFER_
 
-#include "GearsSource/OpenGLProxy.hpp"
+#include "GearsDLL/OpenGLProxy.hpp"
 
 class RandomSequenceBuffer {
 private:

@@ -21,7 +21,7 @@
 #ifndef _FRAMEBUFFER_
 #define _FRAMEBUFFER_
 
-#include "GearsSource/OpenGLProxy.hpp"
+#include "GearsDLL/OpenGLProxy.hpp"
 
 class FramebufferGL {
 private:

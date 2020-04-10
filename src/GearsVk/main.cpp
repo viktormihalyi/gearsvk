@@ -44,8 +44,12 @@ int main (int argc, char* argv[])
     });
     //h.Detach ();
 
-    constexpr uint8_t ESC_CODE = 27;
-    TestEnvironment   testenv ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
+    window->events.resized.Attach ([] (uint32_t width, uint32_t height) {
+        std::cout << "window resized to " << width << " x " << height << std::endl;
+    });
+
+
+    TestEnvironment testenv ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
 
     Device&      device        = *testenv.device;
     CommandPool& commandPool   = *testenv.commandPool;
@@ -138,13 +142,20 @@ void main ()
 
     bool quit = false;
 
+    constexpr uint8_t ESC_CODE = 27;
+
     auto a = Event<uint32_t>::CreateCallback ([&] (uint32_t a) {
-        std::cout << a << std::endl;
+        if (a == ESC_CODE) {
+            window->ToggleFullscreen ();
+            //quit = false;
+        }
         return;
     });
 
     window->events.keyPressed += a;
-    window->events.keyPressed -= a;
 
     window->DoEventLoop (swapchainSync.GetInfiniteDrawCallback ([&] { return quit; }));
+
+    vkQueueWaitIdle (graphicsQueue);
+    vkDeviceWaitIdle (device);
 }

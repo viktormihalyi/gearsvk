@@ -24,7 +24,7 @@ struct Operation : public Noncopyable {
 
     virtual ~Operation () {}
 
-    virtual void Compile ()                                                  = 0;
+    virtual void Compile (const GraphSettings&)                              = 0;
     virtual void Record (uint32_t frameIndex, VkCommandBuffer commandBuffer) = 0;
 
     void AddInput (uint32_t binding, const Resource::Ref& res);
@@ -35,23 +35,44 @@ struct Operation : public Noncopyable {
     std::vector<VkImageView>             GetOutputImageViews (uint32_t frameIndex) const;
 };
 
+enum class Compile {
+    Full,
+    SwapchainRecreate,
+};
+
 struct RenderOperation final : public Operation {
     USING_PTR (RenderOperation);
 
-    DescriptorPool::U      descriptorPool;
-    DescriptorSetLayout::U descriptorSetLayout;
-    const GraphSettings    graphSettings;
+    struct CompileSettings {
+        DrawRecordable::P drawRecordable;
+        ShaderPipeline::P pipeline;
+    };
 
-    std::vector<Framebuffer::U>   framebuffers;
-    std::vector<DescriptorSet::U> descriptorSets;
+    struct CompileResult {
+        uint32_t                      width;
+        uint32_t                      height;
+        DescriptorPool::U             descriptorPool;
+        DescriptorSetLayout::U        descriptorSetLayout;
+        std::vector<DescriptorSet::U> descriptorSets;
+        std::vector<Framebuffer::U>   framebuffers;
 
-    ShaderPipeline::P pipeline;
-    DrawRecordable::P drawRecordable;
+        void Clear ()
+        {
+            descriptorPool.reset ();
+            descriptorSetLayout.reset ();
+            descriptorSets.clear ();
+            framebuffers.clear ();
+        }
+    };
+
+    CompileSettings compileSettings;
+    CompileResult   compileResult;
+
 
     RenderOperation (const GraphSettings& graphSettings, const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipiline);
 
     virtual ~RenderOperation () {}
-    virtual void Compile () override;
+    virtual void Compile (const GraphSettings&) override;
     virtual void Record (uint32_t imageIndex, VkCommandBuffer commandBuffer) override;
 };
 

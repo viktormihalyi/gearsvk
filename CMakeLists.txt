@@ -113,7 +113,7 @@ target_compile_definitions (${TARGET_DLL_NAME} PRIVATE
 )
 
 set (EXTRNAL_INCLUDES
-    ${Vulkan3_INCLUDE_DIRS}
+    ${Vulkan_INCLUDE_DIRS}
     ${Python3_INCLUDE_DIRS}
     ${SDL2_INCLUDE_DIR}
     external/googletest/googletest/include
@@ -125,10 +125,12 @@ set (EXTRNAL_INCLUDES
     external/SPIRV-Cross
     external/stb
     external/pybind11/include
+    external/glslang/glslang/Include
 )
 
 set (EXTRNAL_LINKS
     ${SDL2_LIB_DIR}
+    ${Python3_LIBRARY_DIRS}
 )
 
 set (COMMON_INCLUDES
@@ -140,12 +142,11 @@ set (COMMON_INCLUDES
     src/VulkanWrapper
     src/VulkanWrapper/Utils
     src/Utils
-
 )
 
 set (COMMON_LINKS
     ${Vulkan_LIBRARIES}
-    ${Python_LIBRARIES}
+    python38
     SDL2
     glfw
     shaderc

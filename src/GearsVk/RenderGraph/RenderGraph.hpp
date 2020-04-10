@@ -34,22 +34,38 @@ public:
     };
 
 private:
+    struct CompileResult {
+        std::vector<CommandBuffer::U> commandBuffers;
+
+        void Clear ()
+        {
+            commandBuffers.clear ();
+        }
+    };
+
     bool compiled;
 
     const VkDevice      device;
     const VkCommandPool commandPool;
 
-    std::vector<CommandBuffer::U> commandBuffers;
+    CompileResult compileResult;
 
     std::vector<Resource::U>  resources;
     std::vector<Operation::U> operations;
 
-    const GraphSettings settings;
+    GraphSettings settings;
 
 public:
     USING_PTR (RenderGraph);
 
     RenderGraph (VkDevice device, VkCommandPool commandPool, GraphSettings settings);
+
+    void SetGraphSettings (const GraphSettings& value)
+    {
+        settings = value;
+        compiled = false;
+        compileResult.Clear ();
+    }
 
     Resource&  AddResource (Resource::U&& resource);
     Operation& AddOperation (Operation::U&& resource);

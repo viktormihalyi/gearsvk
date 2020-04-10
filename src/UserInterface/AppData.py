@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QApplication
 import traceback
 import os
 
-appDataDir = 'not set'
+appDataDir = '.'
 
 cursors = {}
 
@@ -22,14 +22,19 @@ def update(**args):
 def initConfigParams():
     global configParams
     configParams = {}
-    screen = QApplication.screens()[0]
-    display_width_px  = screen.size().width()
-    display_height_px = screen.size().height()
+    
+    #monitorIndex                =  len(QApplication.screens())-1    ,
+    #screen = QApplication.screens()[0]
+    #display_width_px  = screen.size().width()
+    #display_height_px = screen.size().height()
+    monitorIndex = 0
+    display_width_px = 1920
+    display_height_px = 1080
 
     update(
         square_field            =  False                            ,
-        monitorIndex            =  len(QApplication.screens())-1    ,
-        deviceFrameRate         =  screen.refreshRate()             ,
+        monitorIndex            =  monitorIndex                     ,
+        deviceFrameRate         =  60                               ,
         frameRateDivisor        =  1                                ,
         useHighFreqDevice       =  False                            ,
         useOpenCL               =  False                            ,

@@ -10,10 +10,13 @@ class SDLWindowBase : public Window {
 private:
     static uint32_t windowCount;
 
-    void*    window;
+    void* window;
+
+    uint32_t fullscreenWidth, fullscreenHeight;
     uint32_t width;
     uint32_t height;
 
+    bool isFullscreen;
 
 protected:
     SDLWindowBase (uint32_t flags);
@@ -32,6 +35,8 @@ public:
 
     virtual uint32_t GetWidth () const override { return width; }
     virtual uint32_t GetHeight () const override { return height; }
+
+    virtual void ToggleFullscreen ();
 };
 
 

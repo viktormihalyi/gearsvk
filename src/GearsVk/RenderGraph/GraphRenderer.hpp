@@ -55,7 +55,7 @@ struct BlockingGraphRenderer : public GraphRenderer {
         : preSubmitCallback (preSubmitCallback)
         , graph (graph)
         , swapchain (swapchain)
-        , s (graph.GetGraphSettings ().device)
+        , s (graph.GetGraphSettings ().GetDevice ())
     {
     }
 
@@ -69,12 +69,12 @@ struct BlockingGraphRenderer : public GraphRenderer {
 
         graph.Submit (currentImageIndex);
         vkQueueWaitIdle (graph.GetGraphSettings ().queue);
-        vkDeviceWaitIdle (graph.GetGraphSettings ().device);
+        vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
 
         if (swapchain.SupportsPresenting ()) {
             graph.Present (currentImageIndex, swapchain, {s});
             vkQueueWaitIdle (graph.GetGraphSettings ().queue);
-            vkDeviceWaitIdle (graph.GetGraphSettings ().device);
+            vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
         }
     }
 };
@@ -110,9 +110,9 @@ struct SynchronizedSwapchainGraphRenderer : public GraphRenderer {
         ASSERT (imageCount == framesInFlight);
 
         for (uint32_t i = 0; i < framesInFlight; ++i) {
-            imageAvailableSemaphore.push_back (Semaphore::Create (graph.GetGraphSettings ().device));
-            renderFinishedSemaphore.push_back (Semaphore::Create (graph.GetGraphSettings ().device));
-            inFlightFences.push_back (Fence::Create (graph.GetGraphSettings ().device));
+            imageAvailableSemaphore.push_back (Semaphore::Create (graph.GetGraphSettings ().GetDevice ()));
+            renderFinishedSemaphore.push_back (Semaphore::Create (graph.GetGraphSettings ().GetDevice ()));
+            inFlightFences.push_back (Fence::Create (graph.GetGraphSettings ().GetDevice ()));
         }
 
         for (uint32_t i = 0; i < imageCount; ++i) {
@@ -120,12 +120,33 @@ struct SynchronizedSwapchainGraphRenderer : public GraphRenderer {
         }
     }
 
+    void RecreateStuff ()
+    {
+        vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
+        vkQueueWaitIdle (graph.GetGraphSettings ().queue);
+
+        swapchain.Recreate ();
+        GraphSettings s = graph.GetGraphSettings ();
+        s.width = swapchain.GetWidth ();
+        s.height = swapchain.GetHeight ();
+        s.framesInFlight = swapchain.GetImageCount ();
+
+        graph.SetGraphSettings (s);
+        graph.Compile ();
+    }
+
 
     void RenderNextFrame () override
     {
         inFlightFences[currentFrameIndex]->Wait ();
 
-        const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentFrameIndex]);
+        uint32_t currentImageIndex;
+        try {
+            currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentFrameIndex]);
+        } catch (OutOfDateSwapchain&) {
+            RecreateStuff ();
+            return;
+        }
 
         if (imageToFrameMapping[currentImageIndex] != UINT32_MAX) {
             inFlightFences[imageToFrameMapping[currentImageIndex]]->Wait ();
@@ -145,7 +166,14 @@ struct SynchronizedSwapchainGraphRenderer : public GraphRenderer {
         graph.Submit (currentFrameIndex, submitWaitSemaphores, submitSignalSemaphores, *inFlightFences[currentFrameIndex]);
 
         ASSERT (swapchain.SupportsPresenting ());
-        graph.Present (currentImageIndex, swapchain, presentWaitSemaphores);
+
+
+        try {
+            graph.Present (currentImageIndex, swapchain, presentWaitSemaphores);
+        } catch (OutOfDateSwapchain&) {
+            RecreateStuff ();
+            return;
+        }
 
         currentFrameIndex = (currentFrameIndex + 1) % framesInFlight;
     }

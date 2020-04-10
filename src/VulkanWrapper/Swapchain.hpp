@@ -85,24 +85,60 @@ public:
     virtual uint32_t             GetNextImageIndex (VkSemaphore signalSemaphore) const                                              = 0;
     virtual void                 Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const = 0;
     virtual bool                 SupportsPresenting () const                                                                        = 0;
+    virtual void                 Recreate ()                                                                                        = 0;
 };
 
-class RealSwapchain : public Swapchain, public Noncopyable {
+class OutOfDateSwapchain : public std::runtime_error {
+public:
+    OutOfDateSwapchain ()
+        : std::runtime_error ("out of date swapchain detected")
+    {
+    }
+};
+
+class RealSwapchain : public Swapchain,
+                      public Noncopyable {
 public:
     static const VkImageUsageFlags ImageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 private:
-    const VkDevice device;
-    VkSwapchainKHR handle;
+    struct CreateSettings {
+        VkPhysicalDevice              physicalDevice;
+        VkDevice                      device;
+        VkSurfaceKHR                  surface;
+        PhysicalDevice::QueueFamilies queueFamilyIndices;
+        SwapchainSettingsProvider&    settings;
+    };
 
-    uint32_t           imageCount;
-    VkSurfaceFormatKHR surfaceFormat;
-    VkPresentModeKHR   presentMode;
-    VkExtent2D         extent;
+    struct CreateResult {
+        VkSwapchainKHR handle;
 
-    std::vector<VkImage>        images;
-    std::vector<ImageView::U>   imageViews;
-    std::vector<Framebuffer::U> framebuffers;
+        uint32_t           imageCount;
+        VkSurfaceFormatKHR surfaceFormat;
+        VkPresentModeKHR   presentMode;
+        VkExtent2D         extent;
+
+        std::vector<VkImage>        images;
+        std::vector<ImageView::U>   imageViews;
+        std::vector<Framebuffer::U> framebuffers;
+
+        CreateResult ()
+            : handle (VK_NULL_HANDLE)
+        {
+        }
+
+        void Clear ()
+        {
+            handle     = VK_NULL_HANDLE;
+            imageCount = 0;
+            images.clear ();
+            imageViews.clear ();
+            framebuffers.clear ();
+        }
+    };
+
+    const CreateSettings createSettings;
+    CreateResult         createResult;
 
 public:
     USING_PTR (RealSwapchain);
@@ -112,42 +148,43 @@ public:
     {
     }
 
-    RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, SwapchainSettingsProvider& settings = defaultSwapchainSettings)
-        : device (device)
+    static CreateResult CreateForResult (const CreateSettings& createSettings)
     {
+        CreateResult createResult;
+
         VkSurfaceCapabilitiesKHR capabilities;
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR (physicalDevice, surface, &capabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR (createSettings.physicalDevice, createSettings.surface, &capabilities);
 
         std::vector<VkSurfaceFormatKHR> formats;
         uint32_t                        formatCount = 0;
-        vkGetPhysicalDeviceSurfaceFormatsKHR (physicalDevice, surface, &formatCount, nullptr);
+        vkGetPhysicalDeviceSurfaceFormatsKHR (createSettings.physicalDevice, createSettings.surface, &formatCount, nullptr);
         formats.resize (formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR (physicalDevice, surface, &formatCount, formats.data ());
+        vkGetPhysicalDeviceSurfaceFormatsKHR (createSettings.physicalDevice, createSettings.surface, &formatCount, formats.data ());
 
         std::vector<VkPresentModeKHR> presentModes;
         uint32_t                      presentModeCount = 0;
-        vkGetPhysicalDeviceSurfacePresentModesKHR (physicalDevice, surface, &presentModeCount, nullptr);
+        vkGetPhysicalDeviceSurfacePresentModesKHR (createSettings.physicalDevice, createSettings.surface, &presentModeCount, nullptr);
         presentModes.resize (presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR (physicalDevice, surface, &presentModeCount, presentModes.data ());
+        vkGetPhysicalDeviceSurfacePresentModesKHR (createSettings.physicalDevice, createSettings.surface, &presentModeCount, presentModes.data ());
 
-        surfaceFormat = settings.SelectSurfaceFormat (formats);
-        presentMode   = settings.SelectPresentMode (presentModes);
-        extent        = settings.SelectExtent (capabilities);
-        imageCount    = settings.SelectImageCount (capabilities);
+        createResult.surfaceFormat = createSettings.settings.SelectSurfaceFormat (formats);
+        createResult.presentMode   = createSettings.settings.SelectPresentMode (presentModes);
+        createResult.extent        = createSettings.settings.SelectExtent (capabilities);
+        createResult.imageCount    = createSettings.settings.SelectImageCount (capabilities);
 
         VkSwapchainCreateInfoKHR createInfo = {};
         createInfo.sType                    = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        createInfo.surface                  = surface;
-        createInfo.minImageCount            = imageCount;
-        createInfo.imageFormat              = surfaceFormat.format;
-        createInfo.imageColorSpace          = surfaceFormat.colorSpace;
-        createInfo.imageExtent              = extent;
+        createInfo.surface                  = createSettings.surface;
+        createInfo.minImageCount            = createResult.imageCount;
+        createInfo.imageFormat              = createResult.surfaceFormat.format;
+        createInfo.imageColorSpace          = createResult.surfaceFormat.colorSpace;
+        createInfo.imageExtent              = createResult.extent;
         createInfo.imageArrayLayers         = 1;
         createInfo.imageUsage               = RealSwapchain::ImageUsage;
 
-        uint32_t queueFamilyIndicesData[] = {*queueFamilyIndices.graphics, *queueFamilyIndices.presentation};
-        if (queueFamilyIndices.presentation) {
-            ASSERT (*queueFamilyIndices.graphics == *queueFamilyIndices.presentation);
+        uint32_t queueFamilyIndicesData[] = {*createSettings.queueFamilyIndices.graphics, *createSettings.queueFamilyIndices.presentation};
+        if (createSettings.queueFamilyIndices.presentation) {
+            ASSERT (*createSettings.queueFamilyIndices.graphics == *createSettings.queueFamilyIndices.presentation);
         }
 
         //if (ERROR (*queueFamilyIndices.graphics != *queueFamilyIndices.presentation)) {
@@ -161,42 +198,69 @@ public:
         //}
         createInfo.preTransform   = capabilities.currentTransform;
         createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        createInfo.presentMode    = presentMode;
+        createInfo.presentMode    = createResult.presentMode;
         createInfo.clipped        = VK_TRUE;
         createInfo.oldSwapchain   = VK_NULL_HANDLE;
 
-        if (ERROR (vkCreateSwapchainKHR (device, &createInfo, nullptr, &handle) != VK_SUCCESS)) {
+        if (ERROR (vkCreateSwapchainKHR (createSettings.device, &createInfo, nullptr, &createResult.handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create swapchain");
         }
 
         uint32_t imageCount;
-        vkGetSwapchainImagesKHR (device, handle, &imageCount, nullptr);
-        images.resize (imageCount);
-        vkGetSwapchainImagesKHR (device, handle, &imageCount, images.data ());
+        vkGetSwapchainImagesKHR (createSettings.device, createResult.handle, &imageCount, nullptr);
+        createResult.images.resize (imageCount);
+        vkGetSwapchainImagesKHR (createSettings.device, createResult.handle, &imageCount, createResult.images.data ());
 
-        for (size_t i = 0; i < images.size (); ++i) {
-            imageViews.push_back (ImageView::Create (device, images[i], GetImageFormat ()));
+        for (size_t i = 0; i < createResult.images.size (); ++i) {
+            createResult.imageViews.push_back (ImageView::Create (createSettings.device, createResult.images[i], createResult.surfaceFormat.format));
         }
+        return createResult;
+    }
+
+    RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, SwapchainSettingsProvider& settings = defaultSwapchainSettings)
+        : createSettings ({physicalDevice, device, surface, queueFamilyIndices, settings})
+    {
+        Recreate ();
+    }
+
+    virtual void Recreate () override
+    {
+        if (createResult.handle != VK_NULL_HANDLE) {
+            vkDestroySwapchainKHR (createSettings.device, createResult.handle, nullptr);
+        }
+        createResult.Clear ();
+        createResult = CreateForResult (createSettings);
     }
 
     ~RealSwapchain ()
     {
-        vkDestroySwapchainKHR (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        vkDestroySwapchainKHR (createSettings.device, createResult.handle, nullptr);
+        createResult.Clear ();
     }
 
-    operator VkSwapchainKHR () const { return handle; }
+    operator VkSwapchainKHR () const { return createResult.handle; }
 
-    virtual VkFormat             GetImageFormat () const override { return surfaceFormat.format; }
-    virtual uint32_t             GetImageCount () const override { return imageCount; }
-    virtual uint32_t             GetWidth () const override { return extent.width; }
-    virtual uint32_t             GetHeight () const override { return extent.height; }
-    virtual std::vector<VkImage> GetImages () const override { return images; }
+    virtual VkFormat             GetImageFormat () const override { return createResult.surfaceFormat.format; }
+    virtual uint32_t             GetImageCount () const override { return createResult.imageCount; }
+    virtual uint32_t             GetWidth () const override { return createResult.extent.width; }
+    virtual uint32_t             GetHeight () const override { return createResult.extent.height; }
+    virtual std::vector<VkImage> GetImages () const override { return createResult.images; }
+
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override
     {
         uint32_t result;
-        vkAcquireNextImageKHR (device, handle, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &result);
+
+        VkResult err = vkAcquireNextImageKHR (createSettings.device, createResult.handle, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &result);
+        if (ERROR (err != VK_SUCCESS && err != VK_ERROR_OUT_OF_DATE_KHR && err != VK_SUBOPTIMAL_KHR)) {
+            throw std::runtime_error ("bro");
+        }
+
+        if (err == VK_ERROR_OUT_OF_DATE_KHR) {
+            std::cout << "out of date swapchain detected" << std::endl;
+            throw OutOfDateSwapchain ();
+        }
+
         return result;
     }
 
@@ -209,13 +273,17 @@ public:
         presentInfo.waitSemaphoreCount = waitSemaphores.size ();
         presentInfo.pWaitSemaphores    = waitSemaphores.data ();
         presentInfo.swapchainCount     = 1;
-        presentInfo.pSwapchains        = &handle;
+        presentInfo.pSwapchains        = &createResult.handle;
         presentInfo.pImageIndices      = &imageIndex;
         presentInfo.pResults           = nullptr;
 
         VkResult err = vkQueuePresentKHR (queue, &presentInfo);
-        if (ERROR (err != VK_SUCCESS)) {
+        if (ERROR (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR)) {
             throw std::runtime_error ("failed to present");
+        }
+
+        if (err == VK_SUBOPTIMAL_KHR) {
+            throw OutOfDateSwapchain ();
         }
     }
 };
@@ -244,6 +312,7 @@ public:
     virtual uint32_t             GetWidth () const override { return width; }
     virtual uint32_t             GetHeight () const override { return height; }
     virtual std::vector<VkImage> GetImages () const override { return {*image.image}; }
+    virtual void                 Recreate () override {}
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override
     {

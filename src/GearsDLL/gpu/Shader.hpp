@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "GearsSource/OpenGLProxy.hpp"
+#include "GearsDLL/OpenGLProxy.hpp"
 
 #include "VulkanWrapper.hpp"
 

@@ -44,6 +44,7 @@ public:
     virtual void             WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const = 0;
     virtual void             BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                          = 0;
     virtual void             BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                         = 0;
+    virtual void             Compile (const GraphSettings&)                                                                         = 0;
 };
 
 
@@ -86,9 +87,7 @@ public:
     ImageResource (const GraphSettings& graphSettings, uint32_t arrayLayers = 1)
         : arrayLayers (arrayLayers)
     {
-        for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            images.push_back (SingleImageResource::Create (graphSettings, arrayLayers));
-        }
+        Compile (graphSettings);
     }
 
     virtual ~ImageResource () {}
@@ -97,6 +96,14 @@ public:
     virtual void             WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override { images[imageIndex]->WriteToDescriptorSet (descriptorSet, binding); }
     virtual void             BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindRead (commandBuffer); }
     virtual void             BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindWrite (commandBuffer); }
+
+    virtual void Compile (const GraphSettings& graphSettings)
+    {
+        images.clear ();
+        for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
+            images.push_back (SingleImageResource::Create (graphSettings, arrayLayers));
+        }
+    }
 
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; }
     virtual VkFormat      GetFormat () const override { return SingleImageResource::Format; }
@@ -108,17 +115,14 @@ class SwapchainImageResource : public Resource {
 public:
     VkFormat                  swapchainSurfaceFormat;
     std::vector<ImageView::U> imageViews;
+    Swapchain&                swapchain;
 
 public:
     USING_PTR (SwapchainImageResource);
     SwapchainImageResource (const GraphSettings& graphSettings, Swapchain& swapchain)
-        : swapchainSurfaceFormat (swapchain.GetImageFormat ())
+        : swapchain (swapchain)
     {
-        std::vector<VkImage> swapChainImages = swapchain.GetImages ();
-
-        for (size_t i = 0; i < swapChainImages.size (); ++i) {
-            imageViews.push_back (ImageView::Create (graphSettings.device, swapChainImages[i], swapchain.GetImageFormat ()));
-        }
+        Compile (graphSettings);
     }
 
     virtual ~SwapchainImageResource () {}
@@ -127,6 +131,18 @@ public:
     virtual void             WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override {}
     virtual void             BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
     virtual void             BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
+
+    virtual void Compile (const GraphSettings& graphSettings) override
+    {
+        swapchainSurfaceFormat = swapchain.GetImageFormat ();
+
+        std::vector<VkImage> swapChainImages = swapchain.GetImages ();
+
+        imageViews.clear ();
+        for (size_t i = 0; i < swapChainImages.size (); ++i) {
+            imageViews.push_back (ImageView::Create (graphSettings.GetDevice (), swapChainImages[i], swapchain.GetImageFormat ()));
+        }
+    }
 
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; }
     virtual VkFormat      GetFormat () const override { return swapchainSurfaceFormat; }
@@ -147,8 +163,8 @@ public:
         : size (size)
     {
         for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
-            buffers.push_back (AllocatedBuffer::Create (graphSettings.device, UniformBuffer::Create (graphSettings.device, size), DeviceMemory::CPU));
-            mappings.push_back (MemoryMapping::Create (graphSettings.device, *buffers[buffers.size () - 1]->memory, 0, size));
+            buffers.push_back (AllocatedBuffer::Create (graphSettings.GetDevice (), UniformBuffer::Create (graphSettings.GetDevice (), size), DeviceMemory::CPU));
+            mappings.push_back (MemoryMapping::Create (graphSettings.GetDevice (), *buffers[buffers.size () - 1]->memory, 0, size));
         }
     }
 
@@ -171,8 +187,10 @@ public:
         descriptorSet.WriteOneBufferInfo (binding, GetDescriptorType (), desc);
     }
 
+
     virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
     virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
+    virtual void Compile (const GraphSettings&) override {}
 
     virtual VkImageLayout GetFinalLayout () const override { throw std::runtime_error ("not an img"); }
     virtual VkFormat      GetFormat () const override { throw std::runtime_error ("not an img"); }

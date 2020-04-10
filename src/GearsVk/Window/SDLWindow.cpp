@@ -16,6 +16,9 @@ SDLWindowBase::SDLWindowBase (uint32_t flags)
     : window (nullptr)
     , width (800)
     , height (600)
+    , fullscreenWidth (1920)
+    , fullscreenHeight (1080)
+    , isFullscreen (false)
 {
     if (ERROR (windowCount != 0)) {
         throw std::runtime_error ("TODO support multiple windows");
@@ -28,7 +31,7 @@ SDLWindowBase::SDLWindowBase (uint32_t flags)
     window = SDL_CreateWindow ("vulkantest",
                                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                width, height,
-                               SDL_WINDOW_VULKAN | flags);
+                               SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN | flags);
 
     ++windowCount;
 }
@@ -87,6 +90,7 @@ void SDLWindowBase::DoEventLoop (const DrawCallback& drawCallback)
                         case SDL_WINDOWEVENT_MOVED:
                             events.moved (static_cast<uint32_t> (e.window.data1), static_cast<uint32_t> (e.window.data2));
                             break;
+                        case SDL_WINDOWEVENT_SIZE_CHANGED:
                         case SDL_WINDOWEVENT_RESIZED:
                             events.resized (static_cast<uint32_t> (e.window.data1), static_cast<uint32_t> (e.window.data2));
                             break;
@@ -148,6 +152,20 @@ VkSurfaceKHR SDLWindowBase::CreateSurface (VkInstance instance) const
     }
 
     return surface;
+}
+
+
+void SDLWindowBase::ToggleFullscreen ()
+{
+    if (isFullscreen) {
+        SDL_SetWindowSize (reinterpret_cast<SDL_Window*> (window), width, height);
+        SDL_SetWindowFullscreen (reinterpret_cast<SDL_Window*> (window), 0);
+    } else {
+        SDL_SetWindowSize (reinterpret_cast<SDL_Window*> (window), fullscreenWidth, fullscreenHeight);
+        SDL_SetWindowFullscreen (reinterpret_cast<SDL_Window*> (window), SDL_WINDOW_FULLSCREEN);
+    }
+
+    isFullscreen = !isFullscreen;
 }
 
 

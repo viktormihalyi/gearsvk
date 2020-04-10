@@ -48,9 +48,10 @@ try:
 #    stimulusWindow = StimulusWindow()
 #    mediaWindow = MediaWindow(stimulusWindow)
     gears.createStimulusWindow()
+    
     launcherWindow = LauncherWindow()
     browserWindow = BrowserWindow(launcherWindow, app)
-
+    
     atexit.register(gears.cleanup)
     sys.exit(app.exec_())
 except SystemExit:

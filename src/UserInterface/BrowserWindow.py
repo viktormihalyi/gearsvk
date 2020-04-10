@@ -175,9 +175,9 @@ class BrowserWindow(QWidget):
 
         logo = QLabel(self)
         self.logoPixmap = QPixmap("./Project/Media/Gears.png")
-        logo.setPixmap( self.logoPixmap )
+        logo.setPixmap(self.logoPixmap)
         logo.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-        grid.addWidget( logo, 2, 3, 1, 1 )
+        grid.addWidget(logo, 2, 3, 1, 1)
         self.titleTemplate = self.styleEsc('''
 <p align="left"><strong>
 <span style='font-size:@<fontSizeLarge>@pt; font-weight:600; color:#ff0000;'>GPU Eye And Retina Stimulation  </span></strong><span style='font-size:10pt; font-weight:600; color:#aa0000;'>beta test version 0.4</span></p>
@@ -225,11 +225,11 @@ class BrowserWindow(QWidget):
 		</tr>
 	</tbody>
 </table>
-                ''' )
+                ''')
         self.titleLabel = QLabel(self.titleTemplate.format(fontSize=self.fontSize, fontSizeLarge=self.fontSizeLarge, fontSizeSmall=self.fontSizeSmall))
-        self.titleLabel.setTextFormat( Qt.RichText )
+        self.titleLabel.setTextFormat(Qt.RichText)
         self.titleLabel.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-        grid.addWidget( self.titleLabel, 1, 3, 1, 1 )
+        grid.addWidget(self.titleLabel, 1, 3, 1, 1)
 
         self.instructionsTemplate = self.styleEsc('''
 <p align="left"><strong>
@@ -277,7 +277,7 @@ class BrowserWindow(QWidget):
 		</tr>
 	</tbody>
 </table>
-                ''' )
+                ''')
         self.instructionsLabel = QLabel(self.instructionsTemplate.format(fontSize=self.fontSize, fontSizeLarge=self.fontSizeLarge, fontSizeSmall=self.fontSizeSmall, emptyFolderOp='show'))
         self.instructionsLabel.setStyleSheet('''
             QLabel{
@@ -285,9 +285,9 @@ class BrowserWindow(QWidget):
             }
             ''')
 
-        self.instructionsLabel.setTextFormat( Qt.RichText )
+        self.instructionsLabel.setTextFormat(Qt.RichText)
         self.instructionsLabel.setAlignment(Qt.AlignHCenter)
-        grid.addWidget( self.instructionsLabel, 3, 1, 1, 1 )
+        grid.addWidget(self.instructionsLabel, 3, 1, 1, 1)
 
         specs = QLabel(gears.getSpecs())
         #self.titleLabel.setTextFormat( Qt.RichText )
@@ -311,7 +311,7 @@ class BrowserWindow(QWidget):
         self.tree = tree
         tree.setFocusPolicy(Qt.NoFocus)
         tree.setHeaderHidden(True)
-        tree.setStyleSheet("background-color: black;");
+        tree.setStyleSheet("background-color: black;")
         item0 = QTreeWidgetItem(tree)
         item0.setText(0, 'Sequences')
 
@@ -363,12 +363,13 @@ class BrowserWindow(QWidget):
         #stack.addWidget(gridWidget)
         self.setLayout(grid)
 
-        self.setWindowTitle('O\u0398\u03a6O')
-#        self.setWindowIcon(QIcon('web.png'))        
-        self.showFullScreen()
+        self.setWindowTitle('GearsUI')
+#        self.setWindowIcon(QIcon('web.png'))
+        self.show()
+        
         #Full size window not working on linux because of this line
         #self.setFixedSize(self.size())
-        self.tree.setCurrentIndex( self.tree.model().index(0, 0))
+        self.tree.setCurrentIndex(self.tree.model().index(0, 0))
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape or e.text() == 'q':
@@ -376,8 +377,8 @@ class BrowserWindow(QWidget):
             QGuiApplication.setOverrideCursor(AppData.cursors['arrow'])
             box.setText('Are you sure you want to quit?')
             box.setWindowTitle('Please confirm!')
-            box.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog);
-            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No )
+            box.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             box.setDefaultButton(QMessageBox.No)
             if box.exec() == QMessageBox.Yes:
                 self.close()
@@ -389,38 +390,41 @@ class BrowserWindow(QWidget):
         elif e.key() == Qt.Key_Down :
             ni = self.tree.itemBelow(self.tree.currentItem())
             if(ni != None) :
-                self.tree.setCurrentItem( ni )
+                self.tree.setCurrentItem(ni)
         elif e.key() == Qt.Key_Up:
             ni = self.tree.itemAbove(self.tree.currentItem())
             if(ni != None) :
-                self.tree.setCurrentItem( ni )
+                self.tree.setCurrentItem(ni)
         elif e.key() == Qt.Key_Left:
             ni = self.tree.currentItem().parent()
             if(ni != None) :
-                self.tree.setCurrentItem( ni )
+                self.tree.setCurrentItem(ni)
         elif e.key() == Qt.Key_Right or e.key() == Qt.Key_Return or e.key() == Qt.Key_Enter:
             ni = self.tree.currentItem().child(0)
             if(ni != None) :
-                self.tree.setCurrentItem( ni )
+                self.tree.setCurrentItem(ni)
             else:
               self.tree.open(self.tree.currentItem(), False)
         elif e.key() == Qt.Key_Slash:
             self.tree.hideEmptyFolders(not self.tree.isHidingEmptyFolders)
             self.instructionsLabel.setText(self.instructionsTemplate.format(fontSize=int(self.fontSize), fontSizeLarge=int(self.fontSizeLarge), fontSizeSmall=int(self.fontSizeSmall), emptyFolderOp=('show' if self.tree.isHidingEmptyFolders else 'hide')))
-        #elif e.key()==Qt.Key_0 or e.key()==Qt.Key_1 or e.key()==Qt.Key_2 or e.key()==Qt.Key_3 or e.key()==Qt.Key_4 or e.key()==Qt.Key_5 or e.key()==Qt.Key_6 or e.key()==Qt.Key_7 or e.key()==Qt.Key_8 or e.key()==Qt.Key_9 :
+        #elif e.key()==Qt.Key_0 or e.key()==Qt.Key_1 or e.key()==Qt.Key_2 or
+        #e.key()==Qt.Key_3 or e.key()==Qt.Key_4 or e.key()==Qt.Key_5 or
+        #e.key()==Qt.Key_6 or e.key()==Qt.Key_7 or e.key()==Qt.Key_8 or
+        #e.key()==Qt.Key_9 :
         else:
             self.tree.clearSelection()
             self.tree.keyboardSearch(e.text())
             sel = self.tree.selectedItems()
             if len(sel) > 0 :
-                self.tree.onClick( sel[0], 0)
+                self.tree.onClick(sel[0], 0)
 
     def onSpecs(self):
         box = QMessageBox(self)
         horizontalSpacer = QSpacerItem(1000, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        box.setText( gears.getSpecs() )
+        box.setText(gears.getSpecs())
         box.setWindowTitle('System specs')
-        box.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog);
+        box.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
         layout = box.layout()
@@ -433,8 +437,8 @@ class BrowserWindow(QWidget):
         QGuiApplication.setOverrideCursor(AppData.cursors['arrow'])
         box.setText('Are you sure you want to quit?')
         box.setWindowTitle('Please confirm!')
-        box.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog);
-        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No )
+        box.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         box.setDefaultButton(QMessageBox.No)
         if box.exec() == QMessageBox.Yes:
             self.close()
@@ -462,7 +466,7 @@ class BrowserWindow(QWidget):
         
         ## Line numbers
         # conventionnaly, margin 0 is for line numbers
-        self.editor.setMarginWidth(0, fm.width( "00000" ) + 5)
+        self.editor.setMarginWidth(0, fm.width("00000") + 5)
         self.editor.setMarginLineNumbers(0, True)
         
         ## Edge Mode shows a red vetical bar at 80 chars
@@ -514,7 +518,8 @@ class BrowserWindow(QWidget):
             self.updateGeometry()
 
     #def eventFilter(self, obj, event):
-    #    #if event.type() in [ QEvent.MouseMove, QEvent.MouseButtonPress, QEvent.MouseButtonRelease, QEvent.MouseButtonDblClick]:
+    #    #if event.type() in [ QEvent.MouseMove, QEvent.MouseButtonPress,
+    #    QEvent.MouseButtonRelease, QEvent.MouseButtonDblClick]:
     #    self.app.sendEvent(self.gridWidget, event)
     #    return super().eventFilter(obj, event)
 

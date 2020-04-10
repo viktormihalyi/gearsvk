@@ -41,6 +41,7 @@ bool Contains (const std::set<T>& vec, const T& value)
     return std::find (vec.begin (), vec.end (), value) != vec.end ();
 }
 
+
 void RenderGraph::Compile ()
 {
     /*
@@ -87,14 +88,20 @@ void RenderGraph::Compile ()
 
 
     try {
-        for (auto& op : operations) {
-            op->Compile ();
+        compileResult.Clear ();
+
+        for (auto& res : resources) {
+            res->Compile (settings);
         }
 
-        commandBuffers.resize (settings.framesInFlight);
+        for (auto& op : operations) {
+            op->Compile (settings);
+        }
+
+        compileResult.commandBuffers.resize (settings.framesInFlight);
 
         for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
-            CommandBuffer::U& currentCommandBuffer = commandBuffers[frameIndex];
+            CommandBuffer::U& currentCommandBuffer = compileResult.commandBuffers[frameIndex];
 
             currentCommandBuffer = CommandBuffer::Create (device, commandPool);
             currentCommandBuffer->Begin ();
@@ -159,7 +166,7 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
         return;
     }
 
-    VkCommandBuffer cmdHdl = *commandBuffers[frameIndex];
+    VkCommandBuffer cmdHdl = *compileResult.commandBuffers[frameIndex];
 
     // TODO
     std::vector<VkPipelineStageFlags> waitDstStageMasks (waitSemaphores.size (), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);

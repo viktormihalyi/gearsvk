@@ -8,6 +8,7 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
+
 class ShaderPipeline {
 private:
     VkDevice device;
@@ -53,11 +54,39 @@ private:
     }
 
 public:
+    struct CompileSettings {
+        uint32_t                                       width;
+        uint32_t                                       height;
+        VkDescriptorSetLayout                          layout;
+        std::vector<VkAttachmentReference>             attachmentReferences;
+        std::vector<VkAttachmentDescription>           attachmentDescriptions;
+        std::vector<VkVertexInputBindingDescription>   inputBindings;
+        std::vector<VkVertexInputAttributeDescription> inputAttributes;
+    };
+
+
+    struct CompileResult {
+        RenderPass::U     renderPass;
+        PipelineLayout::U pipelineLayout;
+        Pipeline::U       pipeline;
+
+        void Clear ()
+        {
+            renderPass.reset ();
+            pipelineLayout.reset ();
+            pipeline.reset ();
+        }
+    };
+
+public:
     USING_PTR (ShaderPipeline);
 
-    RenderPass::U     renderPass;
-    PipelineLayout::U pipelineLayout;
-    Pipeline::U       pipeline;
+    CompileResult   compileResult;
+    CompileSettings compileSettings;
+
+    //RenderPass::U     renderPass;
+    //PipelineLayout::U pipelineLayout;
+    //Pipeline::U       pipeline;
 
     ShaderPipeline (VkDevice device)
         : device (device)
@@ -143,21 +172,10 @@ public:
         return *this;
     }
 
-    struct CompileSettings {
-        uint32_t                                       width;
-        uint32_t                                       height;
-        VkDescriptorSetLayout                          layout;
-        std::vector<VkAttachmentReference>             attachmentReferences;
-        std::vector<VkAttachmentDescription>           attachmentDescriptions;
-        std::vector<VkVertexInputBindingDescription>   inputBindings;
-        std::vector<VkVertexInputAttributeDescription> inputAttributes;
-    };
-
-    CompileSettings compileSettings;
-
     void Compile (const CompileSettings& settings)
     {
         compileSettings = settings;
+        compileResult.Clear ();
 
         VkSubpassDescription subpass = {};
         subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -181,9 +199,9 @@ public:
         renderPassInfo.dependencyCount        = 1;
         renderPassInfo.pDependencies          = &dependency;
 
-        renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, {subpass}, {dependency}));
-        pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, {settings.layout}));
-        pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, settings.width, settings.height, settings.attachmentReferences.size (), *pipelineLayout, *renderPass, GetShaderStages (), settings.inputBindings, settings.inputAttributes));
+        compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, {subpass}, {dependency}));
+        compileResult.pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, {settings.layout}));
+        compileResult.pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, settings.width, settings.height, settings.attachmentReferences.size (), *compileResult.pipelineLayout, *compileResult.renderPass, GetShaderStages (), settings.inputBindings, settings.inputAttributes));
     }
 };
 

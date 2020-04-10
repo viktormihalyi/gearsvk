@@ -69,35 +69,34 @@ std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) co
 }
 
 
-RenderOperation::RenderOperation (const GraphSettings& graphSettings, const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipeline)
-    : graphSettings (graphSettings)
-    , pipeline (shaderPipeline)
-    , drawRecordable (drawRecordable)
+RenderOperation::RenderOperation (const GraphSettings&, const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipeline)
+    : compileSettings ({drawRecordable, shaderPipeline})
 {
 }
 
-
-void RenderOperation::Compile ()
+void RenderOperation::Compile (const GraphSettings& graphSettings)
 {
+    compileResult.Clear ();
+
     std::vector<VkDescriptorSetLayoutBinding> layout;
     for (auto& inputBinding : inputBindings) {
         layout.push_back (inputBinding);
     }
 
-    descriptorSetLayout = DescriptorSetLayout::Create (graphSettings.device, layout);
+    compileResult.descriptorSetLayout = DescriptorSetLayout::Create (graphSettings.GetDevice (), layout);
 
     if (!inputBindings.empty ()) {
-        descriptorPool = DescriptorPool::Create (graphSettings.device, 0, inputBindings.size () * graphSettings.framesInFlight, graphSettings.framesInFlight);
+        compileResult.descriptorPool = DescriptorPool::Create (graphSettings.GetDevice (), 0, inputBindings.size () * graphSettings.framesInFlight, graphSettings.framesInFlight);
 
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            DescriptorSet::U descriptorSet = DescriptorSet::Create (graphSettings.device, *descriptorPool, *descriptorSetLayout);
+            DescriptorSet::U descriptorSet = DescriptorSet::Create (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
             for (uint32_t i = 0; i < inputs.size (); ++i) {
                 Resource& r = inputs[i];
                 r.WriteToDescriptorSet (frameIndex, *descriptorSet, inputBindings[i].binding);
             }
 
-            descriptorSets.push_back (std::move (descriptorSet));
+            compileResult.descriptorSets.push_back (std::move (descriptorSet));
         }
     }
 
@@ -109,11 +108,20 @@ void RenderOperation::Compile ()
         return true;
     }());
 
-    pipeline->Compile ({graphSettings.width, graphSettings.height, *descriptorSetLayout, GetAttachmentReferences (), GetAttachmentDescriptions (), drawRecordable->GetBindings (), drawRecordable->GetAttributes ()});
+    compileSettings.pipeline->Compile ({graphSettings.width,
+                                        graphSettings.height,
+                                        *compileResult.descriptorSetLayout,
+                                        GetAttachmentReferences (),
+                                        GetAttachmentDescriptions (),
+                                        compileSettings.drawRecordable->GetBindings (),
+                                        compileSettings.drawRecordable->GetAttributes ()});
 
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-        framebuffers.push_back (Framebuffer::Create (graphSettings.device, *pipeline->renderPass, GetOutputImageViews (frameIndex), graphSettings.width, graphSettings.height));
+        compileResult.framebuffers.push_back (Framebuffer::Create (graphSettings.GetDevice (), *compileSettings.pipeline->compileResult.renderPass, GetOutputImageViews (frameIndex), graphSettings.width, graphSettings.height));
     }
+
+    compileResult.width  = graphSettings.width;
+    compileResult.height = graphSettings.height;
 }
 
 
@@ -124,26 +132,26 @@ void RenderOperation::Record (uint32_t frameIndex, VkCommandBuffer commandBuffer
 
     VkRenderPassBeginInfo renderPassBeginInfo = {};
     renderPassBeginInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassBeginInfo.renderPass            = *pipeline->renderPass;
-    renderPassBeginInfo.framebuffer           = *framebuffers[frameIndex];
+    renderPassBeginInfo.renderPass            = *compileSettings.pipeline->compileResult.renderPass;
+    renderPassBeginInfo.framebuffer           = *compileResult.framebuffers[frameIndex];
     renderPassBeginInfo.renderArea.offset     = {0, 0};
-    renderPassBeginInfo.renderArea.extent     = {graphSettings.width, graphSettings.height};
+    renderPassBeginInfo.renderArea.extent     = {compileResult.width, compileResult.height};
     renderPassBeginInfo.clearValueCount       = clearValues.size ();
     renderPassBeginInfo.pClearValues          = clearValues.data ();
 
     vkCmdBeginRenderPass (commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline->pipeline);
+    vkCmdBindPipeline (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipeline);
 
-    if (!descriptorSets.empty ()) {
-        VkDescriptorSet dsHandle = *descriptorSets[frameIndex];
+    if (!compileResult.descriptorSets.empty ()) {
+        VkDescriptorSet dsHandle = *compileResult.descriptorSets[frameIndex];
 
-        vkCmdBindDescriptorSets (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline->pipelineLayout, 0,
+        vkCmdBindDescriptorSets (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipelineLayout, 0,
                                  1, &dsHandle,
                                  0, nullptr);
     }
 
-    drawRecordable->Record (commandBuffer);
+    compileSettings.drawRecordable->Record (commandBuffer);
 
     vkCmdEndRenderPass (commandBuffer);
 }
