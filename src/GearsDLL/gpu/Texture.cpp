@@ -208,7 +208,7 @@ Texture1D::~Texture1D ()
 
 void Texture1D::initialize (GLuint width)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     this->width = width;
 
 #if 0
@@ -225,7 +225,7 @@ void Texture1D::initialize (GLuint width)
 
 void Texture1D::setData (const float* data)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //glBindTexture (GL_TEXTURE_1D, handle);
     //glTexImage1D (GL_TEXTURE_1D, 0, GL_R32F, width, 0, GL_RED, GL_FLOAT, data);
 }

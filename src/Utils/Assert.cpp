@@ -10,6 +10,20 @@ namespace Utils {
 
 namespace detail {
 
+static void DebugBreak ()
+{
+#if defined(COMPILER_MSVC)
+    __debugbreak ();
+#elif defined(COMPILER_CLANG)
+    __builtin_debugtrap ();
+#elif defined(COMPILER_GCC)
+    __builtin_trap ();
+#else
+#error "unknown compiler for debug break"
+#endif
+}
+
+
 static void ShowAssertPopup (const std::string& title,
                              const std::string& message,
                              const std::string& sourceLocation,
@@ -31,14 +45,7 @@ static void ShowAssertPopup (const std::string& title,
     switch (result) {
         case MessageBox::Result::Yes:
             ignoreNextTime = false;
-
-#if defined(COMPILER_MSVC)
-            __debugbreak ();
-#elif defined(COMPILER_GCC) || defined(COMPILER_CLANG)
-            __builtin_debugtrap ();
-#else
-#error "unknown compiler for debug break"
-#endif
+            DebugBreak ();
             break;
 
         case MessageBox::Result::Third: // "Ignore"

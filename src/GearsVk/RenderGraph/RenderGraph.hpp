@@ -48,24 +48,17 @@ private:
     const VkDevice      device;
     const VkCommandPool commandPool;
 
+    GraphSettings compileSettings;
     CompileResult compileResult;
 
     std::vector<Resource::U>  resources;
     std::vector<Operation::U> operations;
 
-    GraphSettings settings;
 
 public:
     USING_PTR (RenderGraph);
 
-    RenderGraph (VkDevice device, VkCommandPool commandPool, GraphSettings settings);
-
-    void SetGraphSettings (const GraphSettings& value)
-    {
-        settings = value;
-        compiled = false;
-        compileResult.Clear ();
-    }
+    RenderGraph (VkDevice device, VkCommandPool commandPool);
 
     Resource&  AddResource (Resource::U&& resource);
     Operation& AddOperation (Operation::U&& resource);
@@ -76,7 +69,7 @@ public:
     {
         compiled = false;
 
-        resources.push_back (std::move (ResourceType::Create (settings, std::forward<ARGS> (args)...)));
+        resources.push_back (std::move (ResourceType::Create (std::forward<ARGS> (args)...)));
         return static_cast<ResourceType&> (*resources[resources.size () - 1]);
     }
 
@@ -85,23 +78,24 @@ public:
     {
         compiled = false;
 
-        operations.push_back (std::move (OperationType::Create (settings, std::forward<ARGS> (args)...)));
+        operations.push_back (std::move (OperationType::Create (std::forward<ARGS> (args)...)));
         return static_cast<OperationType&> (*operations[operations.size () - 1]);
     }
 
     void AddConnection (const InputConnection& c);
     void AddConnection (const OutputConnection& c);
 
-    void Compile ();
+    void CompileResources (const GraphSettings& settings);
+    void Compile (const GraphSettings& settings);
     void Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores = {}, const std::vector<VkSemaphore>& signalSemaphores = {}, VkFence fence = VK_NULL_HANDLE);
 
     void Present (uint32_t imageIndex, Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores = {})
     {
         ASSERT (swapchain.SupportsPresenting ());
-        swapchain.Present (settings.queue, imageIndex, waitSemaphores);
+        swapchain.Present (compileSettings.queue, imageIndex, waitSemaphores);
     }
 
-    const GraphSettings& GetGraphSettings () const { return settings; }
+    const GraphSettings& GetGraphSettings () const { return compileSettings; }
 };
 
 

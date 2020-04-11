@@ -26,6 +26,10 @@ struct GraphSettings {
     {
     }
 
+    GraphSettings ()
+    {
+    }
+
     Device& GetDevice () const { return *device; }
 };
 

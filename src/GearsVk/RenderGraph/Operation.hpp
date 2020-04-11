@@ -69,7 +69,7 @@ struct RenderOperation final : public Operation {
     CompileResult   compileResult;
 
 
-    RenderOperation (const GraphSettings& graphSettings, const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipiline);
+    RenderOperation (const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipiline);
 
     virtual ~RenderOperation () {}
     virtual void Compile (const GraphSettings&) override;

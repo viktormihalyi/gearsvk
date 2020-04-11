@@ -6,23 +6,29 @@
 #pragma once
 
 // reference additional headers your program requires here
+#include <iostream>
 #include <memory>
 #include <pybind11/pybind11.h>
 
 
 template<typename T>
 struct extract {
-    pybind11::object obj;
-    bool             ok;
+    T    casted;
+    bool ok;
 
     extract (pybind11::object obj)
-        : ok (pybind11::isinstance<T> (obj))
     {
+        try {
+            casted = obj.cast<T> ();
+            ok     = true;
+        } catch (pybind11::cast_error&) {
+            ok = false;
+        }
     }
 
     bool check () { return ok; }
 
-    T operator() () { return obj.cast<T> (); }
+    T operator() () { return casted; }
 };
 
 

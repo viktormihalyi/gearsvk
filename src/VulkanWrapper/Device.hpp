@@ -93,6 +93,11 @@ public:
         vkGetBufferMemoryRequirements (handle, buffer, &memRequirements);
         return {static_cast<uint32_t> (memRequirements.size), FindMemoryType (memRequirements.memoryTypeBits, propertyFlags)};
     }
+
+    void Wait () const 
+    {
+        vkDeviceWaitIdle (handle);
+    }
 };
 
 #endif

@@ -20,7 +20,7 @@ class Sequence;
 class Stimulus;
 
 //! A structure that specifies a shape in a stimulus.
-class Pass {
+class Pass : public std::enable_shared_from_this<Pass> {
 public:
     std::string name;  //< Unique name.
     std::string brief; //< A short discription of the stimulus.

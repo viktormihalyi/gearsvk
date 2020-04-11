@@ -3,11 +3,11 @@
 
 namespace RenderGraphns {
 
-RenderGraph::RenderGraph (VkDevice device, VkCommandPool commandPool, GraphSettings settings)
+RenderGraph::RenderGraph (VkDevice device, VkCommandPool commandPool)
     : device (device)
     , commandPool (commandPool)
-    , settings (settings)
     , compiled (false)
+    , compileSettings ()
 {
 }
 
@@ -29,11 +29,13 @@ Operation& RenderGraph::AddOperation (Operation::U&& operation)
     return *operations[operations.size () - 1];
 }
 
+
 template<typename T>
 bool Contains (const std::vector<T>& vec, const T& value)
 {
     return std::find (vec.begin (), vec.end (), value) != vec.end ();
 }
+
 
 template<typename T>
 bool Contains (const std::set<T>& vec, const T& value)
@@ -42,8 +44,21 @@ bool Contains (const std::set<T>& vec, const T& value)
 }
 
 
-void RenderGraph::Compile ()
+void RenderGraph::CompileResources (const GraphSettings& settings)
 {
+    for (auto& res : resources) {
+        res->Compile (settings);
+    }
+}
+
+
+void RenderGraph::Compile (const GraphSettings& settings)
+{
+    compileSettings = settings;
+
+    settings.GetDevice ().Wait ();
+    vkQueueWaitIdle (settings.queue);
+
     /*
     std::set<Operation::Ref> startingOperations;
     // gather starting operations
@@ -89,10 +104,6 @@ void RenderGraph::Compile ()
 
     try {
         compileResult.Clear ();
-
-        for (auto& res : resources) {
-            res->Compile (settings);
-        }
 
         for (auto& op : operations) {
             op->Compile (settings);
@@ -162,7 +173,7 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
         return;
     }
 
-    if (ERROR (frameIndex >= settings.framesInFlight)) {
+    if (ERROR (frameIndex >= compileSettings.framesInFlight)) {
         return;
     }
 
@@ -181,7 +192,7 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
     result.signalSemaphoreCount = signalSemaphores.size ();
     result.pSignalSemaphores    = signalSemaphores.data ();
 
-    vkQueueSubmit (settings.queue, 1, &result, fenceToSignal);
+    vkQueueSubmit (compileSettings.queue, 1, &result, fenceToSignal);
 }
 
 } // namespace RenderGraphns

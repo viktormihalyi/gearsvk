@@ -84,10 +84,9 @@ public:
 public:
     USING_PTR (ImageResource);
 
-    ImageResource (const GraphSettings& graphSettings, uint32_t arrayLayers = 1)
+    ImageResource (uint32_t arrayLayers = 1)
         : arrayLayers (arrayLayers)
     {
-        Compile (graphSettings);
     }
 
     virtual ~ImageResource () {}
@@ -119,10 +118,9 @@ public:
 
 public:
     USING_PTR (SwapchainImageResource);
-    SwapchainImageResource (const GraphSettings& graphSettings, Swapchain& swapchain)
+    SwapchainImageResource (Swapchain& swapchain)
         : swapchain (swapchain)
     {
-        Compile (graphSettings);
     }
 
     virtual ~SwapchainImageResource () {}
@@ -159,17 +157,13 @@ public:
 public:
     USING_PTR (UniformBlockResource);
 
-    UniformBlockResource (const GraphSettings& graphSettings, size_t size)
+    UniformBlockResource (size_t size)
         : size (size)
     {
-        for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
-            buffers.push_back (AllocatedBuffer::Create (graphSettings.GetDevice (), UniformBuffer::Create (graphSettings.GetDevice (), size), DeviceMemory::CPU));
-            mappings.push_back (MemoryMapping::Create (graphSettings.GetDevice (), *buffers[buffers.size () - 1]->memory, 0, size));
-        }
     }
 
-    UniformBlockResource (const GraphSettings& graphSettings, const std::vector<VkFormat>& types)
-        : UniformBlockResource (graphSettings, 0)
+    UniformBlockResource (const std::vector<VkFormat>& types)
+        : UniformBlockResource (0)
     {
         throw std::runtime_error ("TODO");
     }
@@ -190,7 +184,14 @@ public:
 
     virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
     virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
-    virtual void Compile (const GraphSettings&) override {}
+
+    virtual void Compile (const GraphSettings& graphSettings) override
+    {
+        for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
+            buffers.push_back (AllocatedBuffer::Create (graphSettings.GetDevice (), UniformBuffer::Create (graphSettings.GetDevice (), size), DeviceMemory::CPU));
+            mappings.push_back (MemoryMapping::Create (graphSettings.GetDevice (), *buffers[buffers.size () - 1]->memory, 0, size));
+        }
+    }
 
     virtual VkImageLayout GetFinalLayout () const override { throw std::runtime_error ("not an img"); }
     virtual VkFormat      GetFormat () const override { throw std::runtime_error ("not an img"); }

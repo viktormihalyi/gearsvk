@@ -37,17 +37,17 @@
 
 int main (int argc, char* argv[])
 {
+    ASSERT (false);
+
     Window::U window = SDLWindow::Create ();
 
-    window->events.focused.Attach ([] () {
+    window->events.focused += [] () {
         std::cout << "window focused" << std::endl;
-    });
-    //h.Detach ();
+    };
 
-    window->events.resized.Attach ([] (uint32_t width, uint32_t height) {
+    window->events.resized += [] (uint32_t width, uint32_t height) {
         std::cout << "window resized to " << width << " x " << height << std::endl;
-    });
-
+    };
 
     TestEnvironment testenv ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
 
@@ -60,7 +60,7 @@ int main (int argc, char* argv[])
 
     using namespace RenderGraphns;
 
-    RenderGraph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+    RenderGraph graph (device, commandPool);
 
     FullscreenQuad::P fq = FullscreenQuad::CreateShared (device, graphicsQueue, commandPool);
 
@@ -75,7 +75,6 @@ layout (binding = 0) uniform Time {
 
 layout (location = 0) in vec2 position;
 layout (location = 1) in vec2 uv;
-layout (location = 2) in float asd;
 
 layout (location = 0) out vec2 textureCoords;
 layout (location = 1) out float asdout;
@@ -85,7 +84,6 @@ void main ()
 {
     gl_Position = vec4 (position + vec2 (time.time / 100.f), 0.0, 1.0);
     textureCoords = uv;
-    asdout = asd;
 }
     )");
 
@@ -97,7 +95,6 @@ layout (binding = 0) uniform Time {
     float time;
 } time;
 
-layout (location = 1) in float asdout;
 layout (location = 0) in vec2 uv;
 
 layout (location = 2) out vec4 presented;
@@ -127,15 +124,18 @@ void main ()
 
     Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (fq, sp);
 
+    GraphSettings s (device, graphicsQueue, commandPool, swapchain);
+    graph.CompileResources (s);
+
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 0, unif});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presentedCopy});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 2, presented});
 
-    graph.Compile ();
+    graph.Compile (s);
 
     SynchronizedSwapchainGraphRenderer swapchainSync (graph, swapchain, [&] (uint32_t frameIndex) {
-        Time::Point currentTime  = Time::SinceApplicationStart ();
-        float       timeInSconds = currentTime.AsSeconds ();
+        TimePoint currentTime  = TimePoint::SinceApplicationStart ();
+        float     timeInSconds = currentTime.AsSeconds ();
         unif.GetMapping (frameIndex).Copy (timeInSconds);
     });
 

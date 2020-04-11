@@ -20,7 +20,7 @@ class Sequence;
 class SpatialFilter;
 
 //! A structure that contains all stimulus parameters.
-class Stimulus {
+class Stimulus : public std::enable_shared_from_this<Stimulus> {
     unsigned int duration; //< Stimulus duration [frames]. The number of frames we need to render in stimulus
 public:
     std::string name;  //< Unique name.

@@ -56,7 +56,8 @@ set (COMMON_SOURCE_FILES
     src/GearsVk/Window/SDLWindow.cpp
     src/GearsVk/ShaderReflection.cpp
     src/GearsVk/RenderGraph/DrawRecordable/DrawRecordable.cpp
-)
+    src/GearsVk/RenderGraph/GraphRenderer.cpp
+    src/VulkanWrapper/Swapchain.cpp)
 
 add_executable (${TARGET_NAME}
     ${COMMON_SOURCE_FILES}
@@ -69,7 +70,7 @@ add_executable (${TARGET_TEST_NAME}
 )
 
 add_library (${TARGET_DLL_NAME} SHARED
-    src/Utils/SourceLocation.cpp
+    ${COMMON_SOURCE_FILES}
 	
     src/GearsDLL/Gears.cpp
     src/GearsDLL/event/events.cpp

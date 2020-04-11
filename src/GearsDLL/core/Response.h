@@ -20,7 +20,7 @@ class Sequence;
 class SpatialFilter;
 
 //! A structure that contains all stimulus parameters.
-class Response {
+class Response : public std::enable_shared_from_this<Response> {
 public:
     std::string question;
     bool        loop;

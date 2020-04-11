@@ -15,7 +15,7 @@
 #include <string>
 
 //! Structure describing a spatial filter logic.
-class SpatialFilter {
+class SpatialFilter : public std::enable_shared_from_this<SpatialFilter> {
 public:
     SpatialFilter ();
     GEARS_SHARED_CREATE (SpatialFilter);

@@ -1,24 +1,24 @@
 #if 0
 #pragma once
-#include <boost/python.hpp>
 #include <functional>
 #include <glm/glm.hpp>
+#include <pybind11/pybind11.h>
 #include <sstream>
 
 namespace Gears {
-/// Helper class to access fields of lua tables provided as boost::python::dict.
+/// Helper class to access fields of lua tables provided as pybind11::dict.
 class PythonDict {
 public:
     /// The lua table.
-    //boost::python::dict const& dictionary;
+    pybind11::dict dictionary;
 
     void throwError (const std::string& errorMessage)
     {
         PyErr_SetString (PyExc_ValueError, "for some reason...");
-        boost::python::throw_error_already_set ();
+        //pybind11::throw_error_already_set ();
     }
 
-    PythonDict (boost::python::dict const& dictionary)
+    PythonDict (pybind11::dict const& dictionary)
         : dictionary (dictionary)
     {
         if (dictionary.is_none ()) {
@@ -26,16 +26,16 @@ public:
         }
     }
 
-    boost::python::dict getSubDict (const std::string& key)
+    pybind11::dict getSubDict (const std::string& key)
     {
-        using namespace boost::python;
-        return extract<dict> (dictionary[key]);
+        using namespace pybind11;
+        return extract<dict> (dictionary[key.c_str ()])();
     }
 
-    boost::python::dict getSubDict (uint index)
+    pybind11::dict getSubDict (uint32_t index)
     {
-        using namespace boost::python;
-        return extract<dict> (dictionary[index]);
+        using namespace pybind11;
+        return extract<dict> (dictionary[index])();
     }
 
     std::string getString (const std::string& key, const std::string& defaultValue)
@@ -49,8 +49,8 @@ public:
     /// @return the value of the table field
     std::string getString (const std::string& key, const char* defaultValue = NULL)
     {
-        using namespace boost::python;
-        extract<std::string> gs (dictionary[key]);
+        using namespace pybind11;
+        extract<std::string> gs (dictionary[key.c_str()]);
         if (!gs.check ()) {
             if (defaultValue == NULL) {
                 throwError (std::string ("Required parameter '") + key + "' not found.");
@@ -66,10 +66,10 @@ public:
     /// @return the value of the table field
     bool getBool (const std::string& key, bool defaultValue = false)
     {
-        using namespace boost::python;
-        if (!dictionary.has_key (key))
+        using namespace pybind11;
+        if (!dictionary.contains (key.c_str ()))
             return defaultValue;
-        object        a = dictionary[key];
+        object        a = dictionary[key.c_str ()];
         extract<bool> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
@@ -85,10 +85,10 @@ public:
     /// @return the value of the table field
     int getInt (const std::string& key, int defaultValue = 0)
     {
-        using namespace boost::python;
-        if (!dictionary.has_key (key))
+        using namespace pybind11;
+        if (!dictionary.contains (key.c_str ()))
             return defaultValue;
-        object       a = dictionary[key];
+        object       a = dictionary[key.c_str ()];
         extract<int> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
@@ -104,10 +104,10 @@ public:
     /// @return the value of the table field
     uint getUint (const std::string& key, uint defaultValue = 0)
     {
-        using namespace boost::python;
-        if (!dictionary.has_key (key))
+        using namespace pybind11;
+        if (!dictionary.contains (key.c_str ()))
             return defaultValue;
-        object        a = dictionary[key];
+        object        a = dictionary[key.c_str ()];
         extract<uint> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
@@ -123,7 +123,7 @@ public:
     /// @return the value of the table field
     Gears::Math::int3 getInt3 (const std::string& key, Gears::Math::int3 defaultValue = Gears::Math::int3 (1, 1, 1))
     {
-        using namespace boost::python;
+        using namespace pybind11;
         if (!dictionary.has_key (key))
             return defaultValue;
         object        a = dictionary[key];
@@ -153,7 +153,7 @@ public:
 
     Gears::Math::int4 getInt4 (const std::string& key, Gears::Math::int4 defaultValue = Gears::Math::int4 (1, 1, 1, 1))
     {
-        using namespace boost::python;
+        using namespace pybind11;
         if (!dictionary.has_key (key))
             return defaultValue;
         object        a = dictionary[key];
@@ -201,7 +201,7 @@ public:
     /// @return the value of the table field
     float getFloat (const std::string& key, float defaultValue = 0)
     {
-        using namespace boost::python;
+        using namespace pybind11;
         if (!dictionary.has_key (key))
             return defaultValue;
         object         a = dictionary[key];
@@ -220,7 +220,7 @@ public:
     /// @return the value of the table field
     glm::vec3 getFloat3 (const std::string& key, glm::vec3 defaultValue = glm::vec3 (1, 1, 1))
     {
-        using namespace boost::python;
+        using namespace pybind11;
         if (!dictionary.has_key (key))
             return defaultValue;
         object        a = dictionary[key];
@@ -250,7 +250,7 @@ public:
 
     Gears::Math::float4 getFloat4 (const std::string& key, Gears::Math::float4 defaultValue = Gears::Math::float4 (1, 1, 1, 1))
     {
-        using namespace boost::python;
+        using namespace pybind11;
         if (!dictionary.has_key (key))
             return defaultValue;
         object        a = dictionary[key];
@@ -283,7 +283,7 @@ public:
     template<typename T>
     std::shared_ptr<T> get (const std::string& key, std::shared_ptr<T> defaultValue)
     {
-        using namespace boost::python;
+        using namespace pybind11;
         if (!dictionary.has_key (key))
             return defaultValue;
         object                      a = dictionary[key];
@@ -299,7 +299,7 @@ public:
     template<typename T>
     std::shared_ptr<T> get (const std::string& key)
     {
-        using namespace boost::python;
+        using namespace pybind11;
         if (!dictionary.has_key (key))
             throwError (std::string (": Required lua table entry '") + key + "' not found or is 'None'.");
         object                      a = dictionary[key];
@@ -314,7 +314,7 @@ public:
 
     void process (std::function<void (std::string)> f)
     {
-        using namespace boost::python;
+        using namespace pybind11;
         list keys      = dictionary.keys ();
         uint nSettings = len (keys);
         for (unsigned int c = 0; c < nSettings; c++) {
@@ -325,7 +325,7 @@ public:
 
     void forEach (std::string key, std::function<void (pybind11::object)> f)
     {
-        using namespace boost::python;
+        using namespace pybind11;
         if (!dictionary.has_key (key))
             throwError (std::string ("Required lua table entry '") + key + "' not found or is 'None'.");
         object        a = dictionary[key];

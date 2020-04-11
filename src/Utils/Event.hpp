@@ -87,7 +87,7 @@ public:
     // for observer
 
     template<class Functor>
-    inline ObserverHandle Attach (Functor f)
+    inline ObserverHandle operator+= (Functor f)
     {
         Callback c = CreateCallback (f);
         observers.push_back (c);
@@ -95,7 +95,12 @@ public:
     }
 
     template<>
-    inline ObserverHandle Attach (Callback) = delete; // should use operator+= instead
+    inline ObserverHandle operator+= (Callback f)
+    {
+        ASSERT (f != nullptr);
+        observers.push_back (f);
+        return ObserverHandle (*this, reinterpret_cast<ObserverHandle::HandleType> (f.get ()));
+    }
 
     inline void Detach (ObserverHandle& f)
     {
@@ -104,12 +109,6 @@ public:
         };
 
         observers.erase (std::remove_if (observers.begin (), observers.end (), RemovePred), observers.end ());
-    }
-
-    inline void operator+= (Callback f)
-    {
-        ASSERT (f != nullptr);
-        observers.push_back (f);
     }
 
     inline void operator-= (Callback f)

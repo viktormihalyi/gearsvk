@@ -69,7 +69,7 @@ std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) co
 }
 
 
-RenderOperation::RenderOperation (const GraphSettings&, const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipeline)
+RenderOperation::RenderOperation (const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipeline)
     : compileSettings ({drawRecordable, shaderPipeline})
 {
 }

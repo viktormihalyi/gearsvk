@@ -8,7 +8,30 @@
 
 #include "VulkanWrapper.hpp"
 
-class Shader {
+class UniformBinder {
+public:
+    virtual ~UniformBinder () = default;
+
+    virtual void bindUniformBool (const char* name, bool b) = 0;
+    virtual void bindUniformUint (const char* name, GLuint i) = 0;
+    virtual void bindUniformUint2 (const char* name, GLuint i, GLuint j) = 0;
+    virtual void bindUniformInt (const char* name, int i) = 0;
+    virtual void bindUniformInt2 (const char* name, int i1, int i2) = 0;
+    virtual void bindUniformFloat (const char* name, float f) = 0;
+    virtual void bindUniformFloat2 (const char* name, float f1, float f2) = 0;
+    virtual void bindUniformFloat3 (const char* name, float f1, float f2, float f3) = 0;
+    virtual void bindUniformTexture (const char* name, GLuint texture, GLuint unit) = 0;
+    virtual void bindUniformTexture1D (const char* name, GLuint texture, GLuint unit) = 0;
+    virtual void bindUniformTextureRect (const char* name, GLuint texture, GLuint unit) = 0;
+    virtual void bindUniformTextureArray (const char* name, GLuint texture, GLuint unit) = 0;
+    virtual void bindUniformMatrix (const char* name, const float* m, unsigned int arraySize = 1) = 0;
+    virtual void bindUniformVector (const char* name, const float* m, unsigned int arraySize = 1) = 0;
+    virtual void bindUniformFloat4Array (const char* name, const float* m, unsigned int arraySize = 1) = 0;
+    virtual void bindUniformFloatArray (const char* name, const float* m, unsigned int arraySize = 1) = 0;
+    virtual void bindUniformIntArray (const char* name, const int* iv, unsigned int arraySize) = 0;
+};
+
+class Shader : public UniformBinder {
 private:
     struct Type {
         std::string path;
@@ -59,24 +82,24 @@ public:
         return shaderProgram;
     }
 
-    void bindUniformBool (const char* name, bool b);
-    void bindUniformUint (const char* name, GLuint i);
-    void bindUniformUint2 (const char* name, GLuint i, GLuint j);
-    void bindUniformInt (const char* name, int i);
-    void bindUniformInt2 (const char* name, int i1, int i2);
-    void bindUniformFloat (const char* name, float f);
-    void bindUniformFloat2 (const char* name, float f1, float f2);
-    void bindUniformFloat3 (const char* name, float f1, float f2, float f3);
-    void bindUniformTexture (const char* name, GLuint texture, GLuint unit);
-    void bindUniformTexture1D (const char* name, GLuint texture, GLuint unit);
-    void bindUniformTextureRect (const char* name, GLuint texture, GLuint unit);
-    void bindUniformTextureArray (const char* name, GLuint texture, GLuint unit);
+    void bindUniformBool (const char* name, bool b) override;
+    void bindUniformUint (const char* name, GLuint i) override;
+    void bindUniformUint2 (const char* name, GLuint i, GLuint j) override;
+    void bindUniformInt (const char* name, int i) override;
+    void bindUniformInt2 (const char* name, int i1, int i2) override;
+    void bindUniformFloat (const char* name, float f) override;
+    void bindUniformFloat2 (const char* name, float f1, float f2) override;
+    void bindUniformFloat3 (const char* name, float f1, float f2, float f3) override;
+    void bindUniformTexture (const char* name, GLuint texture, GLuint unit) override;
+    void bindUniformTexture1D (const char* name, GLuint texture, GLuint unit) override;
+    void bindUniformTextureRect (const char* name, GLuint texture, GLuint unit) override;
+    void bindUniformTextureArray (const char* name, GLuint texture, GLuint unit) override;
 
-    void bindUniformMatrix (const char* name, const float* m, unsigned int arraySize = 1);
-    void bindUniformVector (const char* name, const float* m, unsigned int arraySize = 1);
-    void bindUniformFloat4Array (const char* name, const float* m, unsigned int arraySize = 1);
-    void bindUniformFloatArray (const char* name, const float* m, unsigned int arraySize = 1);
-    void bindUniformIntArray (const char* name, const int* iv, unsigned int arraySize);
+    void bindUniformMatrix (const char* name, const float* m, unsigned int arraySize = 1) override;
+    void bindUniformVector (const char* name, const float* m, unsigned int arraySize = 1) override;
+    void bindUniformFloat4Array (const char* name, const float* m, unsigned int arraySize = 1) override;
+    void bindUniformFloatArray (const char* name, const float* m, unsigned int arraySize = 1) override;
+    void bindUniformIntArray (const char* name, const int* iv, unsigned int arraySize) override;
 
     void bindAttribLocation (GLuint id, const char* name);
 };

@@ -233,17 +233,15 @@ Stimulus::~Stimulus ()
 
 pybind11::object Stimulus::setGamma (pybind11::object gammaList, bool invert)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
-#if 0
-    using namespace boost::python;
-    list l            = extract<list> (gammaList);
+    using namespace pybind11;
+    list l            = extract<list> (gammaList)();
     gammaSamplesCount = len (l);
     if (gammaSamplesCount > 101) {
         gammaSamplesCount = 101;
         PyErr_WarnEx (PyExc_UserWarning, "Only the first 101 gamma samples are used!", 2);
     }
     for (int i = 0; i < gammaSamplesCount; i++) {
-        gamma[i] = extract<float> (l[i]);
+        gamma[i] = extract<float> (l[i])();
     }
 
     if (invert) {
@@ -261,7 +259,6 @@ pybind11::object Stimulus::setGamma (pybind11::object gammaList, bool invert)
         for (int u = 0; u < gammaSamplesCount; u++)
             gamma[u] = fiGamma[u];
     }
-#endif
     return gammaList;
 }
 

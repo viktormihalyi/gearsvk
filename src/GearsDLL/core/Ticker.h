@@ -7,7 +7,7 @@
 
 class SequenceRenderer;
 
-class Ticker {
+class Ticker : public std::enable_shared_from_this<Ticker> {
     bool                                         live;
     std::chrono::high_resolution_clock::duration tickInterval;
     //std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::high_resolution_clock::duration> previousTickTimePoint;

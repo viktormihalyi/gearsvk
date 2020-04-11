@@ -85,7 +85,8 @@ std::shared_ptr<Sequence> Pass::getSequence () const
 
 void Pass::setPolygonMask (std::string mode, pybind11::object o)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    // TODO
+    return;
 #if 0
     using namespace pybind11;
 
@@ -94,12 +95,12 @@ void Pass::setPolygonMask (std::string mode, pybind11::object o)
     } else if (mode == "triangles") {
         list exl = o.cast<list> ();
         if (!exl.check ()) {
-            std::string exs = o.cast<std::string> ();
+            extract<std::string> exs (o);
             if (!exs.check ()) {
                 std::stringstream ss;
                 ss << "In 'triangle' mode, polygonMask must a list of float2 dicts! e.g. [{'x':1, 'y':1},{'x':0,'y':1},{'x':0,'y':0}]";
                 PyErr_SetString (PyExc_TypeError, ss.str ().c_str ());
-                boost::python::throw_error_already_set ();
+                //boost::python::throw_error_already_set ();
             }
         } else {
             list l = exl ();

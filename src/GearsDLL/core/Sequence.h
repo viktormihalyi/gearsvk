@@ -8,7 +8,7 @@
 #include <string>
 
 //! A structure that contains all sequence parameters.
-class Sequence {
+class Sequence : public std::enable_shared_from_this<Sequence> {
 public:
     using StimulusMap = std::map<unsigned int, Stimulus::CP>;
     using ResponseMap = std::map<unsigned int, Response::CP>;
@@ -134,7 +134,7 @@ public:
     void clearSignal (std::string channel);
     void raiseAndClearSignal (std::string channel, uint holdFor);
 
-    class RaiseSignal {
+    class RaiseSignal : public std::enable_shared_from_this<RaiseSignal> {
         std::string channel;
         RaiseSignal (std::string channel)
             : channel (channel) {}
@@ -143,7 +143,7 @@ public:
         GEARS_SHARED_CREATE (RaiseSignal);
         std::string getChannel () const { return channel; }
     };
-    class ClearSignal {
+    class ClearSignal : public std::enable_shared_from_this<ClearSignal> {
         std::string channel;
         ClearSignal (std::string channel)
             : channel (channel) {}
@@ -152,7 +152,7 @@ public:
         GEARS_SHARED_CREATE (ClearSignal);
         std::string getChannel () const { return channel; }
     };
-    class RaiseAndClearSignal {
+    class RaiseAndClearSignal : public std::enable_shared_from_this<RaiseAndClearSignal> {
         std::string channel;
         uint        holdFor;
         RaiseAndClearSignal (std::string channel, uint holdFor)
@@ -163,7 +163,7 @@ public:
         std::string getChannel () const { return channel; }
         uint        getHoldFrameCount () const { return holdFor; }
     };
-    class StartMeasurement {
+    class StartMeasurement : public std::enable_shared_from_this<StartMeasurement> {
         std::string expSyncChannel;
         StartMeasurement (std::string expSyncChannel)
             : expSyncChannel (expSyncChannel) {}
@@ -172,7 +172,7 @@ public:
         GEARS_SHARED_CREATE (StartMeasurement);
         std::string getExpSyncChannel () const { return expSyncChannel; }
     };
-    class EndMeasurement {
+    class EndMeasurement : public std::enable_shared_from_this<EndMeasurement> {
         std::string expSyncChannel;
         std::string measurementStopChannel;
         uint        holdStopFrameCount;

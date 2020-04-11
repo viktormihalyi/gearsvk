@@ -27,9 +27,10 @@ StimulusRenderer::StimulusRenderer (SequenceRenderer::P sequenceRenderer, Stimul
     else
         dynamicToneShader = nullptr;
 
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
-#if 0
+    // throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     if (stimulus->spatialFilter) {
+        throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+#if 0
         auto width  = sequenceRenderer->getSequence ()->fftWidth_px;
         auto height = sequenceRenderer->getSequence ()->fftHeight_px;
         if (sequenceRenderer->clFFT ()) {
@@ -43,12 +44,12 @@ StimulusRenderer::StimulusRenderer (SequenceRenderer::P sequenceRenderer, Stimul
         profileShader                    = shaderManager->loadShader (
             stimulus->spatialFilter->getProfileVertexShaderSource (),
             stimulus->spatialFilter->getProfileFragmentShaderSource ());
+#endif
     } else {
         kernelShader  = nullptr;
         profileShader = nullptr;
     }
 
-#endif
 
     temporalProfileShader = shaderManager->loadShader (
         stimulus->getTemporalFilterPlotVertexShaderSource (),
@@ -120,7 +121,8 @@ void StimulusRenderer::preRender ()
 void StimulusRenderer::renderStimulus (GLuint defaultFrameBuffer, int skippedFrames)
 {
     throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
-    /*{
+#if 0
+    {
         int err = glGetError ();
         if (err)
             bool kmaugaz = true;
@@ -404,7 +406,7 @@ void StimulusRenderer::renderStimulus (GLuint defaultFrameBuffer, int skippedFra
         if (err)
             bool kmaugaz = true;
     }
-    */
+    #endif
 }
 
 void StimulusRenderer::renderSample (uint sFrame, int left, int top, int width, int height)
