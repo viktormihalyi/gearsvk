@@ -193,8 +193,7 @@ Sequence::P Sequence::setAgenda (pybind11::object agenda)
             }
         }
         {
-            /*
-                extract<RaiseSignal::P> s (l[i]);
+            extract<RaiseSignal::P> s (l[i]);
             if (s.check ()) {
                 RaiseSignal::P p = s ();
                 raiseSignal (p->getChannel ());
@@ -247,7 +246,6 @@ Sequence::P Sequence::setAgenda (pybind11::object agenda)
                 }
                 continue;
             }
-            */
         }
         std::stringstream ss;
         ss << "Item #" << i + 1 << " on agenda is of unknown type.";

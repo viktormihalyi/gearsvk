@@ -85,24 +85,24 @@ TEST_F (HeadlessVulkanTestEnvironment, DISABLED_RenderGraphConnectionTest)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    RenderGraph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, 1, 512, 512));
+    RenderGraph graph (device, commandPool);
 
-    Resource& depthBuffer    = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& depthBuffer2   = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& gbuffer1       = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& gbuffer2       = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& gbuffer3       = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& debugOutput    = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& lightingBuffer = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& finalTarget    = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& depthBuffer    = graph.AddResource (ImageResource::Create ());
+    Resource& depthBuffer2   = graph.AddResource (ImageResource::Create ());
+    Resource& gbuffer1       = graph.AddResource (ImageResource::Create ());
+    Resource& gbuffer2       = graph.AddResource (ImageResource::Create ());
+    Resource& gbuffer3       = graph.AddResource (ImageResource::Create ());
+    Resource& debugOutput    = graph.AddResource (ImageResource::Create ());
+    Resource& lightingBuffer = graph.AddResource (ImageResource::Create ());
+    Resource& finalTarget    = graph.AddResource (ImageResource::Create ());
 
-    Operation& depthPass   = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& gbufferPass = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& debugView   = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& move        = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& lighting    = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& post        = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& present     = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (), DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& depthPass   = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& gbufferPass = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& debugView   = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& move        = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& lighting    = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& post        = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
+    Operation& present     = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
 
     // depthPass.AddOutput (0, depthBuffer);
     //
@@ -137,9 +137,8 @@ TEST_F (HeadlessVulkanTestEnvironment, CompileTest)
     Queue&       queue       = GetGraphicsQueue ();
     CommandPool& commandPool = GetCommandPool ();
 
-    RenderGraph graph (device, commandPool, GraphSettings (device, queue, commandPool, 1, 2048, 2048));
-    graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                 DrawRecordableInfo::CreateShared (1, 3),
+    RenderGraph graph (device, commandPool);
+    graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
                                                  ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
                                                                                            PROJECT_ROOT / "shaders" / "test.vert",
                                                                                            PROJECT_ROOT / "shaders" / "test.frag",
@@ -159,9 +158,10 @@ TEST_F (HeadlessVulkanTestEnvironment, RenderRedImage)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    RenderGraph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, 3, 512, 512));
+    GraphSettings s (device, graphicsQueue, commandPool, 3, 512, 512);
+    RenderGraph   graph (device, commandPool);
 
-    Resource& red = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
+    Resource& red = graph.AddResource (ImageResource::Create ());
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -206,13 +206,14 @@ void main () {
 }
     )");
 
-    Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                                               DrawRecordableInfo::CreateShared (1, 6),
+    Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),
                                                                                std::move (sp)));
+
+    graph.CompileResources (s);
 
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, red});
 
-    graph.Compile ();
+    graph.Compile (s);
 
     graph.Submit (0);
     graph.Submit (1);
@@ -233,27 +234,27 @@ TEST_F (HeadlessVulkanTestEnvironment, RenderGraphUseTest)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    RenderGraph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, 4, 512, 512));
+    GraphSettings s (device, graphicsQueue, commandPool, 4, 512, 512);
+    RenderGraph   graph (device, commandPool);
 
     Resource::Ref presented = graph.CreateResourceTyped<ImageResource> ();
     Resource::Ref green     = graph.CreateResourceTyped<ImageResource> ();
     Resource::Ref red       = graph.CreateResourceTyped<ImageResource> ();
     Resource::Ref finalImg  = graph.CreateResourceTyped<ImageResource> ();
 
-    Operation::Ref dummyPass = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                                            DrawRecordableInfo::CreateShared (1, 3),
+    Operation::Ref dummyPass = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
                                                                             ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
                                                                                                                       PROJECT_ROOT / "shaders" / "test.vert",
                                                                                                                       PROJECT_ROOT / "shaders" / "test.frag",
                                                                                                                   })));
 
-    Operation::Ref secondPass = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                                             DrawRecordableInfo::CreateShared (1, 3),
+    Operation::Ref secondPass = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
                                                                              ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
                                                                                                                        PROJECT_ROOT / "shaders" / "fullscreenquad.vert",
                                                                                                                        PROJECT_ROOT / "shaders" / "fullscreenquad.frag",
                                                                                                                    })));
 
+    graph.CompileResources (s);
 
     graph.AddConnection (RenderGraph::InputConnection {dummyPass, 0, green});
     graph.AddConnection (RenderGraph::OutputConnection {dummyPass, 0, presented});
@@ -262,7 +263,7 @@ TEST_F (HeadlessVulkanTestEnvironment, RenderGraphUseTest)
     graph.AddConnection (RenderGraph::InputConnection {secondPass, 0, red});
     graph.AddConnection (RenderGraph::OutputConnection {secondPass, 0, finalImg});
 
-    graph.Compile ();
+    graph.Compile (s);
 
     Utils::TimerLogger obs;
     {
@@ -320,7 +321,8 @@ TEST_F (HiddenWindowVulkanTestEnvironment, SwapchainTest)
     Swapchain&   swapchain     = GetSwapchain ();
 
 
-    RenderGraph graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+    GraphSettings s (device, graphicsQueue, commandPool, swapchain);
+    RenderGraph   graph (device, commandPool);
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -370,17 +372,18 @@ void main () {
 }
     )");
 
-    Resource& presentedCopy = graph.AddResource (ImageResource::Create (graph.GetGraphSettings ()));
-    Resource& presented     = graph.AddResource (SwapchainImageResource::Create (graph.GetGraphSettings (), swapchain));
+    Resource& presentedCopy = graph.AddResource (ImageResource::Create ());
+    Resource& presented     = graph.AddResource (SwapchainImageResource::Create (swapchain));
 
-    Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (graph.GetGraphSettings (),
-                                                                               DrawRecordableInfo::CreateShared (1, 6),
+    Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),
                                                                                std::move (sp)));
+
+    graph.CompileResources (s);
 
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presented});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 1, presentedCopy});
 
-    graph.Compile ();
+    graph.Compile (s);
 
     BlockingGraphRenderer renderer (graph, swapchain);
     window->DoEventLoop (renderer.GetCountLimitedDrawCallback (10));
@@ -389,11 +392,12 @@ void main () {
 
 TEST_F (HiddenWindowVulkanTestEnvironment, VertexAndIndexBufferTest)
 {
-    Device&      device        = GetDevice ();
-    CommandPool& commandPool   = GetCommandPool ();
-    Queue&       graphicsQueue = GetGraphicsQueue ();
-    Swapchain&   swapchain     = GetSwapchain ();
-    RenderGraph  graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+    Device&       device        = GetDevice ();
+    CommandPool&  commandPool   = GetCommandPool ();
+    Queue&        graphicsQueue = GetGraphicsQueue ();
+    Swapchain&    swapchain     = GetSwapchain ();
+    GraphSettings s (device, graphicsQueue, commandPool, swapchain);
+    RenderGraph   graph (device, commandPool);
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -457,10 +461,12 @@ void main () {
     RenderOperation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
                                                                                      std::move (sp));
 
+    graph.CompileResources (s);
+
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presented});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 1, presentedCopy});
 
-    graph.Compile ();
+    graph.Compile (s);
 
     BlockingGraphRenderer renderer (graph, swapchain);
     window->DoEventLoop (renderer.GetCountLimitedDrawCallback (10));
@@ -475,7 +481,9 @@ TEST_F (HiddenWindowVulkanTestEnvironment, BasicUniformBufferTest)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
     Swapchain&   swapchain     = GetSwapchain ();
-    RenderGraph  graph (device, commandPool, GraphSettings (device, graphicsQueue, commandPool, swapchain));
+
+    GraphSettings s (device, graphicsQueue, commandPool, swapchain);
+    RenderGraph   graph (device, commandPool);
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -548,11 +556,13 @@ void main () {
 
     Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb, ib), std::move (sp));
 
+    graph.CompileResources (s);
+
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 0, unif});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presentedCopy});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 2, presented});
 
-    graph.Compile ();
+    graph.Compile (s);
 
     BlockingGraphRenderer renderer (graph, swapchain, [&] (uint32_t frameIndex) {
         float time = 0.5f;

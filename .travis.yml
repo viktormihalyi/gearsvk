@@ -1,0 +1,10 @@
+language: cpp
+
+compiler: clang
+
+os: linux
+dist: bionic
+
+script:
+  - cmake .
+  - make VERBOSE=1

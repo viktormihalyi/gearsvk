@@ -15,15 +15,14 @@ try:
     print("press enter to start...")
     input()
 
-    fullpath = "./Project/Sequences/4_MovingShapes/1_Bars/01_velocity50.pyx"
-
     importlib.machinery.SourceFileLoader("my_module", "C:/Dev/vulkantest/src/UserInterface/Project/Sequences/stock.py").load_module()
     importlib.machinery.SourceFileLoader("my_module", "C:/Dev/vulkantest/src/UserInterface/Project/Sequences/DefaultSequence.py").load_module()
-    my_module = importlib.machinery.SourceFileLoader("my_module", fullpath).load_module()
+    my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/4_MovingShapes/1_Bars/01_velocity50.pyx").load_module()
     
     gears.createStimulusWindow()
     gears.makeCurrent()
-    gears.setSequence(my_module.create(None))
+    movingbar = my_module.create(None)
+    gears.setSequence(movingbar)
     
     print("set seq succeeded")
 
