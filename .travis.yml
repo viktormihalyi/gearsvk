@@ -1,9 +1,16 @@
 language: cpp
 
-compiler: gcc
+compiler: clang
 
 os: linux
 dist: xenial
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libstdc++-7-dev
 
 before_install:
   - wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
