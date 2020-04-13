@@ -1,6 +1,8 @@
 #include "GLFWWindow.hpp"
 
-#define GLFW_INCLUDE_VULKAN
+#include <vulkan/vulkan.h>
+
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include "Assert.hpp"
