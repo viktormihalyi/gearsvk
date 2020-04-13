@@ -1,3 +1,4 @@
+#if 0
 #include "ShaderReflection.hpp"
 
 #include "Assert.hpp"
@@ -123,3 +124,5 @@ void ShaderReflection::ParseReflectionJson (const std::string& reflectionJsonStr
 }
 
 } // namespace Gears
+
+#endif
