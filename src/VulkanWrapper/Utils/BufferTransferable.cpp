@@ -1,5 +1,6 @@
 #include "BufferTransferable.hpp"
 
+#include <cmath>
 
 struct ShaderType {
     uint32_t size;
