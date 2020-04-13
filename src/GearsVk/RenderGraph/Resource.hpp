@@ -49,7 +49,7 @@ public:
 
 
 struct SingleImageResource final : public SingleResource {
-    static const VkFormat Format = VK_FORMAT_R8G8B8A8_SRGB;
+    static const VkFormat Format;
 
     const AllocatedImage         image;
     std::vector<ImageView::U>    imageViews;

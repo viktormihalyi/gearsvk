@@ -4,6 +4,9 @@
 namespace RenderGraphns {
 
 
+const VkFormat SingleImageResource::Format = VK_FORMAT_R8G8B8A8_SRGB;
+
+
 SingleImageResource::SingleImageResource (const GraphSettings& graphSettings, uint32_t arrayLayers)
     : image (graphSettings.GetDevice (), Image::Create (graphSettings.GetDevice (), graphSettings.width, graphSettings.height, Format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, arrayLayers), DeviceMemory::GPU)
     , sampler (Sampler::Create (graphSettings.GetDevice ()))
