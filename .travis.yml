@@ -5,7 +5,7 @@ compiler: clang
 os: linux
 dist: xenial
 
-env:CXX=clang++-8
+env: CXX=clang++-8
 
 before_install:
   - wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
