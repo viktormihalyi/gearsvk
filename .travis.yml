@@ -5,15 +5,15 @@ compiler: gcc
 os: linux
 dist: xenial
 
-env: CXX=g++-7
+env: CXX=g++-8
 
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - libstdc++-7-dev
-      - g++-7
+      - libstdc++-8-dev
+      - g++-8
       
 before_install:
   - wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
