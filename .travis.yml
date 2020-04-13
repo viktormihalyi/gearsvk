@@ -5,11 +5,6 @@ compiler: clang
 os: linux
 dist: xenial
 
-addons:
-  apt:
-    packages:
-      - python3.7-dev
-
 before_install:
   - wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
   - sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-xenial.list http://packages.lunarg.com/vulkan/lunarg-vulkan-xenial.list
