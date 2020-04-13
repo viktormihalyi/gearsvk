@@ -1,6 +1,7 @@
 #include "Utils.hpp"
 #include "Assert.hpp"
 
+#include <cstring>
 #include <fstream>
 
 
