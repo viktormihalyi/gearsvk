@@ -103,7 +103,7 @@ public:
         : ShaderPipeline (device)
     {
         for (auto [kind, source] : sources) {
-            GetShaderByKind (kind) = ShaderModule::CreateFromString (device, source, kind);
+            GetShaderByKind (kind) = ShaderModule::CreateFromString (device, kind, source);
         }
     }
 
@@ -131,7 +131,7 @@ public:
     void SetShader (ShaderModule::ShaderKind shaderKind, const std::string& source)
     {
         ASSERT (GetShaderByKind (shaderKind) == nullptr);
-        GetShaderByKind (shaderKind) = ShaderModule::CreateFromString (device, source, shaderKind);
+        GetShaderByKind (shaderKind) = ShaderModule::CreateFromString (device, shaderKind, source);
     }
 
     void SetVertexShader (const std::string& source) { SetShader (ShaderModule::ShaderKind::Vertex, source); }

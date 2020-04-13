@@ -127,7 +127,7 @@ const ShaderKindInfo ShaderKindInfo::FromEsh (EShLanguage e)
 }
 
 
-static std::optional<std::vector<uint32_t>> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind)
+static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind)
 {
     using namespace glslang;
 
@@ -151,12 +151,16 @@ static std::optional<std::vector<uint32_t>> CompileWithGlslangCppInterface (cons
     shader.setEnvClient (EShClientVulkan, VulkanClientVersion);
     shader.setEnvTarget (EShTargetSpv, TargetVersion);
 
-    ASSERT (shader.parse (&resources, 100, false, messages));
+    if (!shader.parse (&resources, 100, false, messages)) {
+        throw ShaderCompileException (shader.getInfoLog ());
+    }
 
     TProgram program;
     program.addShader (&shader);
 
-    ASSERT (program.link (EShMsgDefault));
+    if (!program.link (EShMsgDefault)) {
+        throw ShaderCompileException (program.getInfoLog ());
+    }
 
     spv::SpvBuildLogger logger;
     glslang::SpvOptions spvOptions;
@@ -167,7 +171,7 @@ static std::optional<std::vector<uint32_t>> CompileWithGlslangCppInterface (cons
 }
 
 
-static std::optional<std::vector<uint32_t>> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindInfo& shaderKind)
+static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindInfo& shaderKind)
 {
     return CompileWithGlslangCppInterface (shaderSource, shaderKind);
 }
@@ -237,17 +241,15 @@ ShaderModule::U ShaderModule::CreateFromSource (VkDevice device, const std::file
 }
 
 
-ShaderModule::U ShaderModule::CreateFromString (VkDevice device, const std::string& shaderSource, ShaderKind shaderKind)
+ShaderModule::U ShaderModule::CreateFromString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource)
 {
-    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind));
-    if (ERROR (!binary.has_value ())) {
-        throw std::runtime_error ("failed to compile shader");
-    }
+    std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind));
 
-    VkShaderModule handle = CreateShaderModule (device, *binary);
+    VkShaderModule handle = CreateShaderModule (device, binary);
 
-    return ShaderModule::Create (shaderKind, ReadMode::String, device, handle, "", *binary);
+    return ShaderModule::Create (shaderKind, ReadMode::String, device, handle, "", binary);
 }
+
 
 ShaderModule::~ShaderModule ()
 {

@@ -11,6 +11,13 @@
 
 #include <vulkan/vulkan.h>
 
+class ShaderCompileException : public std::runtime_error {
+public:
+    ShaderCompileException (const std::string& errorMessage)
+        : std::runtime_error (errorMessage)
+    {
+    }
+};
 
 class ShaderModule : public Noncopyable {
 public:
@@ -48,7 +55,7 @@ public:
 
     static ShaderModule::U CreateFromSource (VkDevice device, const std::filesystem::path& fileLocation);
     static ShaderModule::U CreateFromBinary (VkDevice device, const std::filesystem::path& fileLocation);
-    static ShaderModule::U CreateFromString (VkDevice device, const std::string& shaderSource, ShaderKind shaderKind);
+    static ShaderModule::U CreateFromString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource);
 
     virtual ~ShaderModule ();
 
