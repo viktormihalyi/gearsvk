@@ -1,11 +1,11 @@
 language: cpp
 
-compiler: clang
+compiler: gcc
 
 os: linux
 dist: xenial
 
-env: CXX=clang++-8
+#env: CXX=clang++-8
 
 addons:
   apt:
@@ -18,7 +18,7 @@ before_install:
   - wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
   - sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-xenial.list http://packages.lunarg.com/vulkan/lunarg-vulkan-xenial.list
   - sudo apt update
-  - sudo apt install vulkan-sdk libxinerama-dev libxcursor-dev libxi-dev clang-8
+  - sudo apt install vulkan-sdk libxinerama-dev libxcursor-dev libxi-dev
 
 script:
   - mkdir build
