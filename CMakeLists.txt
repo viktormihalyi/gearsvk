@@ -125,10 +125,6 @@ set (EXTRNAL_INCLUDES
     external/glslang
 )
 
-set (EXTRNAL_LINKS
-    ${Python3_LIBRARY_DIRS}
-)
-
 set (COMMON_INCLUDES
     src
     src/GearsVk
@@ -155,10 +151,6 @@ set (COMMON_COMPILER_DEFINES
 target_include_directories (${TARGET_NAME} PRIVATE ${EXTRNAL_INCLUDES})
 target_include_directories (${TARGET_TEST_NAME} PRIVATE ${EXTRNAL_INCLUDES})
 target_include_directories (${TARGET_DLL_NAME} PRIVATE ${EXTRNAL_INCLUDES})
-
-target_link_directories (${TARGET_NAME} PRIVATE ${EXTRNAL_LINKS})
-target_link_directories (${TARGET_TEST_NAME} PRIVATE ${EXTRNAL_LINKS})
-target_link_directories (${TARGET_DLL_NAME} PRIVATE ${EXTRNAL_LINKS})
 
 target_compile_definitions (${TARGET_NAME} PRIVATE ${COMMON_COMPILER_DEFINES})
 target_compile_definitions (${TARGET_TEST_NAME} PRIVATE ${COMMON_COMPILER_DEFINES})
