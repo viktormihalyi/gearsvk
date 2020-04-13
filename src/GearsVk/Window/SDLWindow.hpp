@@ -35,6 +35,7 @@ public:
 
     virtual uint32_t GetWidth () const override { return width; }
     virtual uint32_t GetHeight () const override { return height; }
+    virtual float    GetAspectRatio () const override { return static_cast<float> (width) / height; }
 
     virtual void ToggleFullscreen ();
 };

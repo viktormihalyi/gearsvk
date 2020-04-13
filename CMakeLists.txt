@@ -49,6 +49,8 @@ set (COMMON_SOURCE_FILES
     src/VulkanWrapper/DebugUtilsMessenger.cpp
     src/VulkanWrapper/ShaderModule.cpp
     src/VulkanWrapper/Utils/BufferTransferable.cpp
+    src/GearsVk/Camera/Frustum.cpp
+    src/GearsVk/Camera/Camera.cpp
     src/GearsVk/RenderGraph/RenderGraph.cpp
     src/GearsVk/RenderGraph/Resource.cpp
     src/GearsVk/RenderGraph/Operation.cpp
@@ -127,6 +129,9 @@ set (EXTRNAL_INCLUDES
     external/stb
     external/pybind11/include
     external/glslang/glslang/Include
+    external/glslang/glslang/Public
+    external/glslang/StandAlone
+    external/glslang
 )
 
 set (EXTRNAL_LINKS
@@ -140,6 +145,7 @@ set (COMMON_INCLUDES
     src/GearsVk/RenderGraph
     src/GearsVk/RenderGraph/DrawRecordable
     src/GearsVk/Window
+    src/GearsVk/Camera
     src/VulkanWrapper
     src/VulkanWrapper/Utils
     src/Utils

@@ -5,19 +5,22 @@
 
 #include <array>
 #include <iostream>
-#include <shaderc/shaderc.hpp>
+//#include <shaderc/shaderc.hpp>
 
-#include <ResourceLimits.h>
-#include <glslang_c_interface.h>
+//#include <ResourceLimits.h>
+#include <SPIRV/GlslangToSpv.h>
+#include <ShaderLang.h>
+//#include <glslang_c_interface.h>
 
 
 class ShaderKindInfo final {
 public:
-    const shaderc_shader_kind      shc;
+    //const shaderc_shader_kind      shc;
     const std::string              extension;
     const VkShaderStageFlagBits    vkflag;
     const ShaderModule::ShaderKind shaderKind;
-    const glslang_stage_t          glslang_stage;
+    //const glslang_stage_t          glslang_stage;
+    const EShLanguage esh;
 
 private:
     ShaderKindInfo () = default;
@@ -25,9 +28,10 @@ private:
 public:
     static const ShaderKindInfo FromExtension (const std::string&);
     static const ShaderKindInfo FromVk (VkShaderStageFlagBits);
-    static const ShaderKindInfo FromShaderc (shaderc_shader_kind);
+    //static const ShaderKindInfo FromShaderc (shaderc_shader_kind);
     static const ShaderKindInfo FromShaderKind (ShaderModule::ShaderKind);
-    static const ShaderKindInfo FromGlslang (glslang_stage_t);
+    //static const ShaderKindInfo FromGlslang (glslang_stage_t);
+    static const ShaderKindInfo FromEsh (EShLanguage);
 
 private:
     static const ShaderKindInfo Find (const std::function<bool (const ShaderKindInfo&)>&);
@@ -36,12 +40,59 @@ private:
     static const std::array<ShaderKindInfo, 2> allShaderKinds;
 };
 
-const ShaderKindInfo ShaderKindInfo::vert {shaderc_vertex_shader, ".vert", VK_SHADER_STAGE_VERTEX_BIT, ShaderModule::ShaderKind::Vertex, GLSLANG_STAGE_VERTEX};
-const ShaderKindInfo ShaderKindInfo::tesc {shaderc_tess_control_shader, ".tesc", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, ShaderModule::ShaderKind::TessellationControl, GLSLANG_STAGE_TESSCONTROL};
-const ShaderKindInfo ShaderKindInfo::tese {shaderc_tess_evaluation_shader, ".tese", VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, ShaderModule::ShaderKind::TessellationEvaluation, GLSLANG_STAGE_TESSEVALUATION};
-const ShaderKindInfo ShaderKindInfo::geom {shaderc_geometry_shader, ".geom", VK_SHADER_STAGE_GEOMETRY_BIT, ShaderModule::ShaderKind::Geometry, GLSLANG_STAGE_GEOMETRY};
-const ShaderKindInfo ShaderKindInfo::frag {shaderc_fragment_shader, ".frag", VK_SHADER_STAGE_FRAGMENT_BIT, ShaderModule::ShaderKind::Fragment, GLSLANG_STAGE_FRAGMENT};
-const ShaderKindInfo ShaderKindInfo::comp {shaderc_compute_shader, ".comp", VK_SHADER_STAGE_COMPUTE_BIT, ShaderModule::ShaderKind::Compute, GLSLANG_STAGE_COMPUTE};
+const ShaderKindInfo ShaderKindInfo::vert {
+    //shaderc_vertex_shader,
+    ".vert",
+    VK_SHADER_STAGE_VERTEX_BIT,
+    ShaderModule::ShaderKind::Vertex,
+    //GLSLANG_STAGE_VERTEX,
+    EShLangVertex,
+};
+
+const ShaderKindInfo ShaderKindInfo::tesc {
+    //shaderc_tess_control_shader,
+    ".tesc",
+    VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
+    ShaderModule::ShaderKind::TessellationControl,
+    //GLSLANG_STAGE_TESSCONTROL,
+    EShLangTessControl,
+};
+
+const ShaderKindInfo ShaderKindInfo::tese {
+    //shaderc_tess_evaluation_shader,
+    ".tese",
+    VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
+    ShaderModule::ShaderKind::TessellationEvaluation,
+    //GLSLANG_STAGE_TESSEVALUATION,
+    EShLangTessEvaluation,
+};
+
+const ShaderKindInfo ShaderKindInfo::geom {
+    //shaderc_geometry_shader,
+    ".geom",
+    VK_SHADER_STAGE_GEOMETRY_BIT,
+    ShaderModule::ShaderKind::Geometry,
+    //GLSLANG_STAGE_GEOMETRY,
+    EShLangGeometry,
+};
+
+const ShaderKindInfo ShaderKindInfo::frag {
+    //shaderc_fragment_shader,
+    ".frag",
+    VK_SHADER_STAGE_FRAGMENT_BIT,
+    ShaderModule::ShaderKind::Fragment,
+    //GLSLANG_STAGE_FRAGMENT,
+    EShLangFragment,
+};
+
+const ShaderKindInfo ShaderKindInfo::comp {
+    //shaderc_compute_shader,
+    ".comp",
+    VK_SHADER_STAGE_COMPUTE_BIT,
+    ShaderModule::ShaderKind::Compute,
+    //GLSLANG_STAGE_COMPUTE,
+    EShLangCompute,
+};
 
 const std::array<ShaderKindInfo, 2> ShaderKindInfo::allShaderKinds ({ShaderKindInfo::vert, ShaderKindInfo::frag});
 
@@ -70,13 +121,13 @@ const ShaderKindInfo ShaderKindInfo::FromVk (VkShaderStageFlagBits flag)
     });
 }
 
-
-const ShaderKindInfo ShaderKindInfo::FromShaderc (shaderc_shader_kind sc)
-{
-    return Find ([&] (auto& s) {
-        return s.shc == sc;
-    });
-}
+//
+//const ShaderKindInfo ShaderKindInfo::FromShaderc (shaderc_shader_kind sc)
+//{
+//    return Find ([&] (auto& s) {
+//        return s.shc == sc;
+//    });
+//}
 
 const ShaderKindInfo ShaderKindInfo::FromShaderKind (ShaderModule::ShaderKind sk)
 {
@@ -84,11 +135,18 @@ const ShaderKindInfo ShaderKindInfo::FromShaderKind (ShaderModule::ShaderKind sk
         return s.shaderKind == sk;
     });
 }
+//
+//const ShaderKindInfo ShaderKindInfo::FromGlslang (glslang_stage_t glslang_stage)
+//{
+//    return Find ([&] (auto& s) {
+//        return s.glslang_stage == glslang_stage;
+//    });
+//}
 
-const ShaderKindInfo ShaderKindInfo::FromGlslang (glslang_stage_t glslang_stage)
+const ShaderKindInfo ShaderKindInfo::FromEsh (EShLanguage e)
 {
     return Find ([&] (auto& s) {
-        return s.glslang_stage == glslang_stage;
+        return s.esh == e;
     });
 }
 
@@ -115,139 +173,181 @@ struct GlslangClassWrapper final {
     }
 };
 
-using GlslangShader  = GlslangClassWrapper<glslang_shader_t, glslang_shader_create, glslang_shader_delete>;
-using GlslangProgram = GlslangClassWrapper<glslang_program_t, glslang_program_create, glslang_program_delete>;
+//using GlslangShader  = GlslangClassWrapper<glslang_shader_t, glslang_shader_create, glslang_shader_delete>;
+//using GlslangProgram = GlslangClassWrapper<glslang_program_t, glslang_program_create, glslang_program_delete>;
 
 
-std::optional<std::vector<uint32_t>> CompileWithGlslang (const std::string& sourceCode, const ShaderKindInfo& shaderKind)
+const TBuiltInResource limits = {
+    /*.maxLights = */ 8,        // From OpenGL 3.0 table 6.46.
+    /*.maxClipPlanes = */ 6,    // From OpenGL 3.0 table 6.46.
+    /*.maxTextureUnits = */ 2,  // From OpenGL 3.0 table 6.50.
+    /*.maxTextureCoords = */ 8, // From OpenGL 3.0 table 6.50.
+    /*.maxVertexAttribs = */ 16,
+    /*.maxVertexUniformComponents = */ 4096,
+    /*.maxVaryingFloats = */ 60, // From OpenGLES 3.1 table 6.44.
+    /*.maxVertexTextureImageUnits = */ 16,
+    /*.maxCombinedTextureImageUnits = */ 80,
+    /*.maxTextureImageUnits = */ 16,
+    /*.maxFragmentUniformComponents = */ 1024,
+
+    // glslang has 32 maxDrawBuffers.
+    // Pixel phone Vulkan driver in Android N has 8
+    // maxFragmentOutputAttachments.
+    /*.maxDrawBuffers = */ 8,
+
+    /*.maxVertexUniformVectors = */ 256,
+    /*.maxVaryingVectors = */ 15, // From OpenGLES 3.1 table 6.44.
+    /*.maxFragmentUniformVectors = */ 256,
+    /*.maxVertexOutputVectors = */ 16,  // maxVertexOutputComponents / 4
+    /*.maxFragmentInputVectors = */ 15, // maxFragmentInputComponents / 4
+    /*.minProgramTexelOffset = */ -8,
+    /*.maxProgramTexelOffset = */ 7,
+    /*.maxClipDistances = */ 8,
+    /*.maxComputeWorkGroupCountX = */ 65535,
+    /*.maxComputeWorkGroupCountY = */ 65535,
+    /*.maxComputeWorkGroupCountZ = */ 65535,
+    /*.maxComputeWorkGroupSizeX = */ 1024,
+    /*.maxComputeWorkGroupSizeX = */ 1024,
+    /*.maxComputeWorkGroupSizeZ = */ 64,
+    /*.maxComputeUniformComponents = */ 512,
+    /*.maxComputeTextureImageUnits = */ 16,
+    /*.maxComputeImageUniforms = */ 8,
+    /*.maxComputeAtomicCounters = */ 8,
+    /*.maxComputeAtomicCounterBuffers = */ 1, // From OpenGLES 3.1 Table 6.43
+    /*.maxVaryingComponents = */ 60,
+    /*.maxVertexOutputComponents = */ 64,
+    /*.maxGeometryInputComponents = */ 64,
+    /*.maxGeometryOutputComponents = */ 128,
+    /*.maxFragmentInputComponents = */ 128,
+    /*.maxImageUnits = */ 8, // This does not seem to be defined anywhere,
+                             // set to ImageUnits.
+    /*.maxCombinedImageUnitsAndFragmentOutputs = */ 8,
+    /*.maxCombinedShaderOutputResources = */ 8,
+    /*.maxImageSamples = */ 0,
+    /*.maxVertexImageUniforms = */ 0,
+    /*.maxTessControlImageUniforms = */ 0,
+    /*.maxTessEvaluationImageUniforms = */ 0,
+    /*.maxGeometryImageUniforms = */ 0,
+    /*.maxFragmentImageUniforms = */ 8,
+    /*.maxCombinedImageUniforms = */ 8,
+    /*.maxGeometryTextureImageUnits = */ 16,
+    /*.maxGeometryOutputVertices = */ 256,
+    /*.maxGeometryTotalOutputComponents = */ 1024,
+    /*.maxGeometryUniformComponents = */ 512,
+    /*.maxGeometryVaryingComponents = */ 60, // Does not seem to be defined
+                                             // anywhere, set equal to
+                                             // maxVaryingComponents.
+    /*.maxTessControlInputComponents = */ 128,
+    /*.maxTessControlOutputComponents = */ 128,
+    /*.maxTessControlTextureImageUnits = */ 16,
+    /*.maxTessControlUniformComponents = */ 1024,
+    /*.maxTessControlTotalOutputComponents = */ 4096,
+    /*.maxTessEvaluationInputComponents = */ 128,
+    /*.maxTessEvaluationOutputComponents = */ 128,
+    /*.maxTessEvaluationTextureImageUnits = */ 16,
+    /*.maxTessEvaluationUniformComponents = */ 1024,
+    /*.maxTessPatchComponents = */ 120,
+    /*.maxPatchVertices = */ 32,
+    /*.maxTessGenLevel = */ 64,
+    /*.maxViewports = */ 16,
+    /*.maxVertexAtomicCounters = */ 0,
+    /*.maxTessControlAtomicCounters = */ 0,
+    /*.maxTessEvaluationAtomicCounters = */ 0,
+    /*.maxGeometryAtomicCounters = */ 0,
+    /*.maxFragmentAtomicCounters = */ 8,
+    /*.maxCombinedAtomicCounters = */ 8,
+    /*.maxAtomicCounterBindings = */ 1,
+    /*.maxVertexAtomicCounterBuffers = */ 0, // From OpenGLES 3.1 Table 6.41.
+
+    // ARB_shader_atomic_counters.
+    /*.maxTessControlAtomicCounterBuffers = */ 0,
+    /*.maxTessEvaluationAtomicCounterBuffers = */ 0,
+    /*.maxGeometryAtomicCounterBuffers = */ 0,
+    // /ARB_shader_atomic_counters.
+
+    /*.maxFragmentAtomicCounterBuffers = */ 0, // From OpenGLES 3.1 Table 6.43.
+    /*.maxCombinedAtomicCounterBuffers = */ 1,
+    /*.maxAtomicCounterBufferSize = */ 32,
+    /*.maxTransformFeedbackBuffers = */ 4,
+    /*.maxTransformFeedbackInterleavedComponents = */ 64,
+    /*.maxCullDistances = */ 8,                // ARB_cull_distance.
+    /*.maxCombinedClipAndCullDistances = */ 8, // ARB_cull_distance.
+    /*.maxSamples = */ 4,
+    /* .maxMeshOutputVerticesNV = */ 256,
+    /* .maxMeshOutputPrimitivesNV = */ 512,
+    /* .maxMeshWorkGroupSizeX_NV = */ 32,
+    /* .maxMeshWorkGroupSizeY_NV = */ 1,
+    /* .maxMeshWorkGroupSizeZ_NV = */ 1,
+    /* .maxTaskWorkGroupSizeX_NV = */ 32,
+    /* .maxTaskWorkGroupSizeY_NV = */ 1,
+    /* .maxTaskWorkGroupSizeZ_NV = */ 1,
+    /* .maxMeshViewCountNV = */ 4,
+
+    // This is the glslang TLimits structure.
+    // It defines whether or not the following features are enabled.
+    // We want them to all be enabled.
+    /*.limits = */ {
+        /*.nonInductiveForLoops = */ 1,
+        /*.whileLoops = */ 1,
+        /*.doWhileLoops = */ 1,
+        /*.generalUniformIndexing = */ 1,
+        /*.generalAttributeMatrixVectorIndexing = */ 1,
+        /*.generalVaryingIndexing = */ 1,
+        /*.generalSamplerIndexing = */ 1,
+        /*.generalVariableIndexing = */ 1,
+        /*.generalConstantMatrixVectorIndexing = */ 1,
+    }};
+
+
+std::optional<std::vector<uint32_t>> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind)
 {
-    const TBuiltInResource limits = {
-        /*.maxLights = */ 8,        // From OpenGL 3.0 table 6.46.
-        /*.maxClipPlanes = */ 6,    // From OpenGL 3.0 table 6.46.
-        /*.maxTextureUnits = */ 2,  // From OpenGL 3.0 table 6.50.
-        /*.maxTextureCoords = */ 8, // From OpenGL 3.0 table 6.50.
-        /*.maxVertexAttribs = */ 16,
-        /*.maxVertexUniformComponents = */ 4096,
-        /*.maxVaryingFloats = */ 60, // From OpenGLES 3.1 table 6.44.
-        /*.maxVertexTextureImageUnits = */ 16,
-        /*.maxCombinedTextureImageUnits = */ 80,
-        /*.maxTextureImageUnits = */ 16,
-        /*.maxFragmentUniformComponents = */ 1024,
+    using namespace glslang;
 
-        // glslang has 32 maxDrawBuffers.
-        // Pixel phone Vulkan driver in Android N has 8
-        // maxFragmentOutputAttachments.
-        /*.maxDrawBuffers = */ 8,
+    static bool init = false;
+    if (!init) {
+        init = true;
+        InitializeProcess ();
+    }
 
-        /*.maxVertexUniformVectors = */ 256,
-        /*.maxVaryingVectors = */ 15, // From OpenGLES 3.1 table 6.44.
-        /*.maxFragmentUniformVectors = */ 256,
-        /*.maxVertexOutputVectors = */ 16,  // maxVertexOutputComponents / 4
-        /*.maxFragmentInputVectors = */ 15, // maxFragmentInputComponents / 4
-        /*.minProgramTexelOffset = */ -8,
-        /*.maxProgramTexelOffset = */ 7,
-        /*.maxClipDistances = */ 8,
-        /*.maxComputeWorkGroupCountX = */ 65535,
-        /*.maxComputeWorkGroupCountY = */ 65535,
-        /*.maxComputeWorkGroupCountZ = */ 65535,
-        /*.maxComputeWorkGroupSizeX = */ 1024,
-        /*.maxComputeWorkGroupSizeX = */ 1024,
-        /*.maxComputeWorkGroupSizeZ = */ 64,
-        /*.maxComputeUniformComponents = */ 512,
-        /*.maxComputeTextureImageUnits = */ 16,
-        /*.maxComputeImageUniforms = */ 8,
-        /*.maxComputeAtomicCounters = */ 8,
-        /*.maxComputeAtomicCounterBuffers = */ 1, // From OpenGLES 3.1 Table 6.43
-        /*.maxVaryingComponents = */ 60,
-        /*.maxVertexOutputComponents = */ 64,
-        /*.maxGeometryInputComponents = */ 64,
-        /*.maxGeometryOutputComponents = */ 128,
-        /*.maxFragmentInputComponents = */ 128,
-        /*.maxImageUnits = */ 8, // This does not seem to be defined anywhere,
-                                 // set to ImageUnits.
-        /*.maxCombinedImageUnitsAndFragmentOutputs = */ 8,
-        /*.maxCombinedShaderOutputResources = */ 8,
-        /*.maxImageSamples = */ 0,
-        /*.maxVertexImageUniforms = */ 0,
-        /*.maxTessControlImageUniforms = */ 0,
-        /*.maxTessEvaluationImageUniforms = */ 0,
-        /*.maxGeometryImageUniforms = */ 0,
-        /*.maxFragmentImageUniforms = */ 8,
-        /*.maxCombinedImageUniforms = */ 8,
-        /*.maxGeometryTextureImageUnits = */ 16,
-        /*.maxGeometryOutputVertices = */ 256,
-        /*.maxGeometryTotalOutputComponents = */ 1024,
-        /*.maxGeometryUniformComponents = */ 512,
-        /*.maxGeometryVaryingComponents = */ 60, // Does not seem to be defined
-                                                 // anywhere, set equal to
-                                                 // maxVaryingComponents.
-        /*.maxTessControlInputComponents = */ 128,
-        /*.maxTessControlOutputComponents = */ 128,
-        /*.maxTessControlTextureImageUnits = */ 16,
-        /*.maxTessControlUniformComponents = */ 1024,
-        /*.maxTessControlTotalOutputComponents = */ 4096,
-        /*.maxTessEvaluationInputComponents = */ 128,
-        /*.maxTessEvaluationOutputComponents = */ 128,
-        /*.maxTessEvaluationTextureImageUnits = */ 16,
-        /*.maxTessEvaluationUniformComponents = */ 1024,
-        /*.maxTessPatchComponents = */ 120,
-        /*.maxPatchVertices = */ 32,
-        /*.maxTessGenLevel = */ 64,
-        /*.maxViewports = */ 16,
-        /*.maxVertexAtomicCounters = */ 0,
-        /*.maxTessControlAtomicCounters = */ 0,
-        /*.maxTessEvaluationAtomicCounters = */ 0,
-        /*.maxGeometryAtomicCounters = */ 0,
-        /*.maxFragmentAtomicCounters = */ 8,
-        /*.maxCombinedAtomicCounters = */ 8,
-        /*.maxAtomicCounterBindings = */ 1,
-        /*.maxVertexAtomicCounterBuffers = */ 0, // From OpenGLES 3.1 Table 6.41.
+    const char* const              sourceCstr                  = sourceCode.c_str ();
+    const int                      ClientInputSemanticsVersion = 100;
+    const EShTargetClientVersion   VulkanClientVersion         = EShTargetVulkan_1_0;
+    const EShTargetLanguageVersion TargetVersion               = EShTargetSpv_1_0;
+    const EShMessages              messages                    = (EShMessages) (EShMsgSpvRules | EShMsgVulkanRules);
+    const TBuiltInResource         resources                   = limits; // TODO use DefaultTBuiltInResource
 
-        // ARB_shader_atomic_counters.
-        /*.maxTessControlAtomicCounterBuffers = */ 0,
-        /*.maxTessEvaluationAtomicCounterBuffers = */ 0,
-        /*.maxGeometryAtomicCounterBuffers = */ 0,
-        // /ARB_shader_atomic_counters.
 
-        /*.maxFragmentAtomicCounterBuffers = */ 0, // From OpenGLES 3.1 Table 6.43.
-        /*.maxCombinedAtomicCounterBuffers = */ 1,
-        /*.maxAtomicCounterBufferSize = */ 32,
-        /*.maxTransformFeedbackBuffers = */ 4,
-        /*.maxTransformFeedbackInterleavedComponents = */ 64,
-        /*.maxCullDistances = */ 8,                // ARB_cull_distance.
-        /*.maxCombinedClipAndCullDistances = */ 8, // ARB_cull_distance.
-        /*.maxSamples = */ 4,
-        /* .maxMeshOutputVerticesNV = */ 256,
-        /* .maxMeshOutputPrimitivesNV = */ 512,
-        /* .maxMeshWorkGroupSizeX_NV = */ 32,
-        /* .maxMeshWorkGroupSizeY_NV = */ 1,
-        /* .maxMeshWorkGroupSizeZ_NV = */ 1,
-        /* .maxTaskWorkGroupSizeX_NV = */ 32,
-        /* .maxTaskWorkGroupSizeY_NV = */ 1,
-        /* .maxTaskWorkGroupSizeZ_NV = */ 1,
-        /* .maxMeshViewCountNV = */ 4,
+    TShader shader (shaderKind.esh);
+    shader.setStrings (&sourceCstr, 1);
+    shader.setEnvInput (EShSourceGlsl, shaderKind.esh, EShClientVulkan, ClientInputSemanticsVersion);
+    shader.setEnvClient (EShClientVulkan, VulkanClientVersion);
+    shader.setEnvTarget (EShTargetSpv, TargetVersion);
 
-        // This is the glslang TLimits structure.
-        // It defines whether or not the following features are enabled.
-        // We want them to all be enabled.
-        /*.limits = */ {
-            /*.nonInductiveForLoops = */ 1,
-            /*.whileLoops = */ 1,
-            /*.doWhileLoops = */ 1,
-            /*.generalUniformIndexing = */ 1,
-            /*.generalAttributeMatrixVectorIndexing = */ 1,
-            /*.generalVaryingIndexing = */ 1,
-            /*.generalSamplerIndexing = */ 1,
-            /*.generalVariableIndexing = */ 1,
-            /*.generalConstantMatrixVectorIndexing = */ 1,
-        }};
+    ASSERT (shader.parse (&resources, 100, false, messages));
+
+    TProgram program;
+    program.addShader (&shader);
+
+    ASSERT (program.link (EShMsgDefault));
+
+    spv::SpvBuildLogger logger;
+    glslang::SpvOptions spvOptions;
+
+    std::vector<uint32_t> spirvBinary;
+    glslang::GlslangToSpv (*program.getIntermediate (shaderKind.esh), spirvBinary, &logger, &spvOptions);
+    return spirvBinary;
+}
+
+/*
+std::optional<std::vector<uint32_t>> CompileWithGlslangCInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind)
+{
     glslang_input_t input                   = {};
     input.language                          = GLSLANG_SOURCE_GLSL;
     input.stage                             = shaderKind.glslang_stage;
     input.client                            = GLSLANG_CLIENT_VULKAN;
-    input.client_version                    = GLSLANG_TARGET_VULKAN_1_1;
+    input.client_version                    = GLSLANG_TARGET_VULKAN_1_0;
     input.target_language                   = GLSLANG_TARGET_SPV;
-    input.target_language_version           = GLSLANG_TARGET_SPV_1_3;
+    input.target_language_version           = GLSLANG_TARGET_SPV_1_0;
     input.code                              = sourceCode.data ();
     input.default_version                   = 110;
     input.default_profile                   = GLSLANG_NO_PROFILE;
@@ -258,7 +358,7 @@ std::optional<std::vector<uint32_t>> CompileWithGlslang (const std::string& sour
 
     glslang_initialize_process ();
 
-    GlslangShader shader (&input);
+    glslang_shader_t* shader = glslang_shader_create (&input);
 
     if (ERROR (!glslang_shader_preprocess (shader, &input))) {
         return std::nullopt;
@@ -270,7 +370,7 @@ std::optional<std::vector<uint32_t>> CompileWithGlslang (const std::string& sour
         // use glslang_shader_get_info_log() and glslang_shader_get_info_debug_log()
     }
 
-    GlslangProgram program;
+    glslang_program_t* program = glslang_program_create ();
     glslang_program_add_shader (program, shader);
 
     if (ERROR (!glslang_program_link (program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT))) {
@@ -290,24 +390,25 @@ std::optional<std::vector<uint32_t>> CompileWithGlslang (const std::string& sour
 
     std::memcpy (result.data (), glslang_program_SPIRV_get_ptr (program), glslang_program_SPIRV_get_size (program));
 
+    glslang_finalize_process ();
+
     return result;
 }
+*/
 
-
-static std::optional<std::vector<uint32_t>> CompileShaderFromString (const std::string&         shaderSource,
-                                                                     shaderc_shader_kind        shaderKind,
-                                                                     shaderc_optimization_level optimizationLevel = shaderc_optimization_level_zero)
+/*
+static std::optional<std::vector<uint32_t>> CompileWithShaderc (const std::string& shaderSource, const ShaderKindInfo& shaderKind)
 {
     shaderc::Compiler       compiler;
     shaderc::CompileOptions options;
 
     options.AddMacroDefinition ("MY_DEFINE", "1");
-    options.SetOptimizationLevel (optimizationLevel);
+    options.SetOptimizationLevel (shaderc_optimization_level_zero);
     options.SetGenerateDebugInfo ();
 
     // #define DEBUG_COMPILE_ALL
 
-    shaderc::SpvCompilationResult binaryResult = compiler.CompileGlslToSpv (shaderSource, shaderKind, shaderSource.c_str (), options);
+    shaderc::SpvCompilationResult binaryResult = compiler.CompileGlslToSpv (shaderSource, shaderKind.shc, shaderSource.c_str (), options);
     std::vector<uint32_t>         binary (binaryResult.cbegin (), binaryResult.cend ());
 
     if (binaryResult.GetCompilationStatus () != shaderc_compilation_status_success) {
@@ -325,27 +426,22 @@ static std::optional<std::vector<uint32_t>> CompileShaderFromString (const std::
 
     return binary;
 }
+*/
+
+static std::optional<std::vector<uint32_t>> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindInfo& shaderKind)
+{
+    return CompileWithGlslangCppInterface (shaderSource, shaderKind);
+}
 
 
-static std::optional<std::vector<uint32_t>> CompileShaderFromFile (const std::filesystem::path& fileLocation,
-                                                                   shaderc_optimization_level   optimizationLevel = shaderc_optimization_level_zero)
+static std::optional<std::vector<uint32_t>> CompileShaderFromFile (const std::filesystem::path& fileLocation)
 {
     std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
     if (ERROR (!fileContents.has_value ())) {
         return std::nullopt;
     }
 
-    shaderc::Compiler       compiler;
-    shaderc::CompileOptions options;
-
-    options.AddMacroDefinition ("MY_DEFINE", "1");
-    options.SetOptimizationLevel (optimizationLevel);
-    options.SetGenerateDebugInfo ();
-
-    //:mreturn CompileWithGlslang (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()));
-
-    const shaderc_shader_kind shaderKind = ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shc;
-    return CompileShaderFromString (*fileContents, shaderKind, optimizationLevel);
+    return CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()));
 }
 
 
@@ -404,9 +500,7 @@ ShaderModule::U ShaderModule::CreateFromSource (VkDevice device, const std::file
 
 ShaderModule::U ShaderModule::CreateFromString (VkDevice device, const std::string& shaderSource, ShaderKind shaderKind)
 {
-    //std::vector<uint32_t> binary = CompileWithGlslang (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind));
-
-    std::optional<std::vector<uint32_t>> binary = CompileShaderFromString (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind).shc);
+    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind));
     if (ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }

@@ -5,13 +5,13 @@
 
 class FullscreenQuad : public DrawRecordableInfoProvider {
 private:
-    struct QuadVertex {
+    struct Vertex {
         glm::vec2 pos;
         glm::vec2 uv;
     };
 
-    VertexBufferTransferable<QuadVertex> vertexBuffer;
-    IndexBufferTransferable              indexBuffer;
+    VertexBufferTransferable<Vertex> vertexBuffer;
+    IndexBufferTransferable          indexBuffer;
 
     DrawRecordableInfo::U info;
 

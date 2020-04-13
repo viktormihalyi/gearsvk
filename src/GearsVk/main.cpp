@@ -1,4 +1,5 @@
 #include "Assert.hpp"
+#include "Camera.hpp"
 #include "FullscreenQuad.hpp"
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
@@ -28,16 +29,61 @@
 #include <set>
 #include <vector>
 
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "glmlib.hpp"
+
+#include <atomic>
+#include <thread>
 
 #include <vulkan/vulkan.h>
+class CallEvery {
+private:
+    std::atomic<bool>      stop;
+    std::function<void ()> callback;
+    std::thread            timerThread;
+    const int32_t          waitNs;
+    uint32_t               lastDiff;
 
+    void ThreadFunc ()
+    {
+        callback ();
+
+        auto start = std::chrono::high_resolution_clock::now ();
+        std::this_thread::sleep_for (std::chrono::nanoseconds (waitNs));
+
+        auto                                     end     = std::chrono::high_resolution_clock::now ();
+        std::chrono::duration<double, std::nano> elapsed = end - start;
+
+        const int32_t waitedNs   = elapsed.count ();
+        const int32_t waitedDiff = std::abs (waitedNs - waitNs);
+        std::cout << "Waited " << waitedNs << " ns instead of " << waitNs << " ns (diff is " << ((elapsed.count () - waitNs) * 1e6) << " ms)" << std::endl;
+        std::cout << "percent: " << static_cast<double> (waitNs + waitedDiff) / waitNs << " more" << std::endl;
+
+        if (!stop) {
+            ThreadFunc ();
+        }
+    }
+
+public:
+    CallEvery (double waitInSeconds, std::function<void ()> callback)
+        : callback (callback)
+        , waitNs (waitInSeconds * 1e9)
+        , lastDiff (0)
+        , timerThread (std::bind (&CallEvery::ThreadFunc, this))
+        , stop (false)
+    {
+    }
+
+    ~CallEvery ()
+    {
+        stop = true;
+    }
+};
 
 int main (int argc, char* argv[])
 {
-    ASSERT (false);
+    CallEvery aaaaaaaaaa (1 / 64.f, [] () {
+        std::cout << "hey" << std::endl;
+    });
 
     Window::U window = SDLWindow::Create ();
 
@@ -60,6 +106,47 @@ int main (int argc, char* argv[])
 
     using namespace RenderGraphns;
 
+    Camera c (glm::vec3 (0, 0, 0.5), glm::vec3 (0, 0, -1), window->GetAspectRatio ());
+
+    constexpr uint32_t MAX_KEYCOUNT = 1024;
+    bool               pressedKeys[MAX_KEYCOUNT];
+
+    window->events.keyPressed += [&] (uint32_t keyCode) {
+        if (ASSERT (keyCode < MAX_KEYCOUNT)) {
+            pressedKeys[keyCode] = true;
+        }
+    };
+
+    window->events.keyReleased += [&] (uint32_t keyCode) {
+        if (ASSERT (keyCode < MAX_KEYCOUNT)) {
+            pressedKeys[keyCode] = false;
+        }
+    };
+
+    c.positionChanged += [] (glm::vec3 pos) {
+        // TODO why is this called every time
+        //std::cout << "camera moved" << std::endl;
+    };
+
+    bool mouseDown = false;
+
+    window->events.leftMouseButtonPressed += [&] (auto...) {
+        mouseDown = true;
+    };
+    window->events.leftMouseButtonReleased += [&] (auto...) {
+        mouseDown = false;
+    };
+
+    window->events.mouseMove += [&] (uint32_t x, uint32_t y) {
+        static glm::vec2 lastPos (x, y);
+        glm::vec2        currentPos (x, y);
+        if (mouseDown) {
+            c.ProcessMouseInput (lastPos - currentPos);
+        }
+        lastPos = currentPos;
+    };
+
+
     RenderGraph graph (device, commandPool);
 
     FullscreenQuad::P fq = FullscreenQuad::CreateShared (device, graphicsQueue, commandPool);
@@ -70,6 +157,7 @@ int main (int argc, char* argv[])
 #extension GL_ARB_separate_shader_objects : enable
 
 layout (binding = 0) uniform Time {
+    mat4 VP;
     float time;
 } time;
 
@@ -82,7 +170,7 @@ layout (location = 1) out float asdout;
 
 void main ()
 {
-    gl_Position = vec4 (position + vec2 (time.time / 100.f), 0.0, 1.0);
+    gl_Position =  time.VP * vec4 (position + vec2 (0 / 100.f), 0.0, 1.0);
     textureCoords = uv;
 }
     )");
@@ -92,6 +180,7 @@ void main ()
 #extension GL_ARB_separate_shader_objects : enable
 
 layout (binding = 0) uniform Time {
+    mat4 VP;
     float time;
 } time;
 
@@ -111,7 +200,7 @@ void main ()
 
     SwapchainImageResource& presented     = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
     ImageResource&          presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
-    UniformBlockResource&   unif          = graph.CreateResourceTyped<UniformBlockResource> (4);
+    UniformBlockResource&   unif          = graph.CreateResourceTyped<UniformBlockResource> (16 * sizeof (float) + sizeof (float));
 
     //struct UniformResourceBinding {
     //    std::map<std::string, UniformBlockResource::Ref> uniformNameMapping;
@@ -133,10 +222,42 @@ void main ()
 
     graph.Compile (s);
 
+    struct TimeUniform {
+        glm::mat4 VP;
+        float     time;
+    };
+
     SynchronizedSwapchainGraphRenderer swapchainSync (graph, swapchain, [&] (uint32_t frameIndex) {
-        TimePoint currentTime  = TimePoint::SinceApplicationStart ();
-        float     timeInSconds = currentTime.AsSeconds ();
-        unif.GetMapping (frameIndex).Copy (timeInSconds);
+        TimePoint currentTime = TimePoint::SinceApplicationStart ();
+
+        constexpr float dt = 1 / 60.f;
+        if (pressedKeys['w']) {
+            c.Move (Camera::MovementDirection::Forward, dt);
+        }
+        if (pressedKeys['a']) {
+            c.Move (Camera::MovementDirection::Left, dt);
+        }
+        if (pressedKeys['s']) {
+            c.Move (Camera::MovementDirection::Backward, dt);
+        }
+        if (pressedKeys['d']) {
+            c.Move (Camera::MovementDirection::Right, dt);
+        }
+        if (pressedKeys['e']) {
+            c.Move (Camera::MovementDirection::Down, dt);
+        }
+        if (pressedKeys['q']) {
+            c.Move (Camera::MovementDirection::Up, dt);
+        }
+
+        TimeUniform t;
+        t.VP = c.GetViewProjectionMatrix ();
+        //t.VP = glm::mat4 (1.0);
+        //t.VP = frustum.GetMatrix () * v;
+
+        t.time = currentTime.AsSeconds ();
+
+        unif.GetMapping (frameIndex).Copy (t);
     });
 
 

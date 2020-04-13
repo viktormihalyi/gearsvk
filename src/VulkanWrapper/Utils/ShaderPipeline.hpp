@@ -127,21 +127,16 @@ public:
         return result;
     }
 
-    ShaderPipeline& SetVertexShader (const std::string& source)
+
+    void SetShader (ShaderModule::ShaderKind shaderKind, const std::string& source)
     {
-        ASSERT (vertexShader == nullptr);
-        vertexShader = ShaderModule::CreateFromString (device, source, ShaderModule::ShaderKind::Vertex);
-        return *this;
+        ASSERT (GetShaderByKind (shaderKind) == nullptr);
+        GetShaderByKind (shaderKind) = ShaderModule::CreateFromString (device, source, shaderKind);
     }
 
+    void SetVertexShader (const std::string& source) { SetShader (ShaderModule::ShaderKind::Vertex, source); }
 
-    ShaderPipeline& SetFragmentShader (const std::string& source)
-    {
-        ASSERT (fragmentShader == nullptr);
-        fragmentShader = ShaderModule::CreateFromString (device, source, ShaderModule::ShaderKind::Fragment);
-        return *this;
-    }
-
+    void SetFragmentShader (const std::string& source) { SetShader (ShaderModule::ShaderKind::Fragment, source); }
 
     ShaderPipeline& AddShader (const std::filesystem::path& shaderPath)
     {
