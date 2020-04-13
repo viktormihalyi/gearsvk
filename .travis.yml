@@ -14,5 +14,5 @@ before_install:
 script:
   - mkdir build
   - cd build
-  - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.7
+  - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.5
   - make VERBOSE=1
