@@ -95,7 +95,6 @@ public:
         return ObserverHandle (*this, reinterpret_cast<ObserverHandle::HandleType> (c.get ()));
     }
 
-    template<>
     inline ObserverHandle operator+= (Callback f)
     {
         ASSERT (f != nullptr);
