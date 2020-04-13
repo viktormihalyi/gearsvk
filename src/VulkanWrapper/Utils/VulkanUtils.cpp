@@ -7,6 +7,7 @@
 #include "stb_image_write.h"
 
 #include <array>
+#include <cstring>
 #include <iostream>
 #include <optional>
 #include <sstream>
@@ -139,7 +140,7 @@ bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandP
 
     {
         MemoryMapping mapping (device, *dst.memory, 0, byteCount);
-        std::memcpy (mapped.data (), mapping.Get (), byteCount);
+        memcpy (mapped.data (), mapping.Get (), byteCount);
     }
 
     std::vector<std::array<uint8_t, 4>> expected (pixelCount);
@@ -150,10 +151,10 @@ bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandP
         return false;
     }
 
-    std::memcpy (expected.data (), exepctedData, byteCount);
+    memcpy (expected.data (), exepctedData, byteCount);
     stbi_image_free (exepctedData);
 
-    return std::memcmp (expected.data (), mapped.data (), byteCount) == 0;
+    return memcmp (expected.data (), mapped.data (), byteCount) == 0;
 }
 
 
@@ -170,7 +171,7 @@ std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommand
 
     {
         MemoryMapping mapping (device, *dst.memory, 0, width * height * 4);
-        std::memcpy (mapped.data (), mapping.Get (), width * height * 4);
+        memcpy (mapped.data (), mapping.Get (), width * height * 4);
     }
 
     return std::thread ([=] () {

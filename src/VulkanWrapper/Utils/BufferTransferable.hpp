@@ -10,6 +10,7 @@
 #include "SingleTimeCommand.hpp"
 #include "VulkanUtils.hpp"
 
+#include <cstring>
 
 class BufferTransferable final {
 public:
@@ -106,7 +107,7 @@ public:
     {
         const uint32_t copiedBytes = copiedData.size () * sizeof (VertexType);
         ASSERT (copiedBytes <= data.size ());
-        std::memcpy (data.data (), copiedData.data (), copiedBytes);
+        memcpy (data.data (), copiedData.data (), copiedBytes);
     }
 };
 
@@ -134,7 +135,7 @@ public:
     void operator= (const std::vector<uint16_t>& copiedData)
     {
         ASSERT (copiedData.size () == data.size ());
-        std::memcpy (data.data (), copiedData.data (), copiedData.size () * sizeof (IndexType));
+        memcpy (data.data (), copiedData.data (), copiedData.size () * sizeof (IndexType));
     }
 
     void Bind (VkCommandBuffer commandBuffer) const

@@ -1,7 +1,7 @@
 #ifndef RESOURCE_HPP
 #define RESOURCE_HPP
 
-#include "Shaderpipeline.hpp"
+#include "ShaderPipeline.hpp"
 #include "Timer.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"

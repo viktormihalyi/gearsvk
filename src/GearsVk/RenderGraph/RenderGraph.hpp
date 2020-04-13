@@ -1,7 +1,7 @@
 #ifndef RENDERGRAPH_HPP
 #define RENDERGRAPH_HPP
 
-#include "Shaderpipeline.hpp"
+#include "ShaderPipeline.hpp"
 #include "Timer.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
