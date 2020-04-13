@@ -47,16 +47,16 @@ private:
     {
         callback ();
 
-        auto start = std::chrono::high_resolution_clock::now ();
+        // auto start = std::chrono::high_resolution_clock::now ();
+
         std::this_thread::sleep_for (std::chrono::nanoseconds (waitNs));
 
-        auto                                     end     = std::chrono::high_resolution_clock::now ();
-        std::chrono::duration<double, std::nano> elapsed = end - start;
-
-        const int32_t waitedNs   = elapsed.count ();
-        const int32_t waitedDiff = std::abs (waitedNs - waitNs);
-        std::cout << "Waited " << waitedNs << " ns instead of " << waitNs << " ns (diff is " << ((elapsed.count () - waitNs) * 1e6) << " ms)" << std::endl;
-        std::cout << "percent: " << static_cast<double> (waitNs + waitedDiff) / waitNs << " more" << std::endl;
+        // auto                                     end     = std::chrono::high_resolution_clock::now ();
+        // std::chrono::duration<double, std::nano> elapsed = end - start;
+        // const int32_t waitedNs   = elapsed.count ();
+        // const int32_t waitedDiff = std::abs (waitedNs - waitNs);
+        // std::cout << "Waited " << waitedNs << " ns instead of " << waitNs << " ns (diff is " << ((elapsed.count () - waitNs) * 1e6) << " ms)" << std::endl;
+        // std::cout << "percent: " << static_cast<double> (waitNs + waitedDiff) / waitNs << " more" << std::endl;
 
         if (!stop) {
             ThreadFunc ();
@@ -76,16 +76,13 @@ public:
     ~CallEvery ()
     {
         stop = true;
+        timerThread.join ();
     }
 };
 
 int main (int argc, char* argv[])
 {
-    CallEvery aaaaaaaaaa (1 / 64.f, [] () {
-        std::cout << "hey" << std::endl;
-    });
-
-    Window::U window = SDLWindow::Create ();
+    Window::U window = GLFWWindow::Create ();
 
     window->events.focused += [] () {
         std::cout << "window focused" << std::endl;
@@ -108,8 +105,9 @@ int main (int argc, char* argv[])
 
     Camera c (glm::vec3 (0, 0, 0.5), glm::vec3 (0, 0, -1), window->GetAspectRatio ());
 
-    constexpr uint32_t MAX_KEYCOUNT = 1024;
-    bool               pressedKeys[MAX_KEYCOUNT];
+    constexpr uint32_t             MAX_KEYCOUNT = 1024;
+    std::array<bool, MAX_KEYCOUNT> pressedKeys;
+    pressedKeys.fill (false);
 
     window->events.keyPressed += [&] (uint32_t keyCode) {
         if (ASSERT (keyCode < MAX_KEYCOUNT)) {
@@ -231,22 +229,22 @@ void main ()
         TimePoint currentTime = TimePoint::SinceApplicationStart ();
 
         constexpr float dt = 1 / 60.f;
-        if (pressedKeys['w']) {
+        if (pressedKeys['W']) {
             c.Move (Camera::MovementDirection::Forward, dt);
         }
-        if (pressedKeys['a']) {
+        if (pressedKeys['A']) {
             c.Move (Camera::MovementDirection::Left, dt);
         }
-        if (pressedKeys['s']) {
+        if (pressedKeys['S']) {
             c.Move (Camera::MovementDirection::Backward, dt);
         }
-        if (pressedKeys['d']) {
+        if (pressedKeys['D']) {
             c.Move (Camera::MovementDirection::Right, dt);
         }
-        if (pressedKeys['e']) {
+        if (pressedKeys['E']) {
             c.Move (Camera::MovementDirection::Down, dt);
         }
-        if (pressedKeys['q']) {
+        if (pressedKeys['Q']) {
             c.Move (Camera::MovementDirection::Up, dt);
         }
 

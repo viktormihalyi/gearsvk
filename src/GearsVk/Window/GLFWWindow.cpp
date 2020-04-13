@@ -8,7 +8,7 @@
 #include <iostream>
 
 
-GLFWWindow::GLFWWindow ()
+GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     : window (nullptr)
 {
     // settings
@@ -20,8 +20,11 @@ GLFWWindow::GLFWWindow ()
     ASSERT (glfwVulkanSupported () == GLFW_TRUE);
 
     glfwWindowHint (GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint (GLFW_RESIZABLE, GLFW_FALSE);
-    // glfwWindowHint (GLFW_VISIBLE, GLFW_FALSE);
+    glfwWindowHint (GLFW_RESIZABLE, GLFW_TRUE);
+
+    for (auto hint : hints) {
+        glfwWindowHint (hint.first, hint.second);
+    }
 
     // monitor settings
 
@@ -75,56 +78,93 @@ GLFWWindow::GLFWWindow ()
     // callbacks
 
     glfwSetKeyCallback (glfwWindow, [] (GLFWwindow* window, int key, int scancode, int action, int mods) {
-        GLFWWindow* self = static_cast<GLFWWindow*> (glfwGetWindowUserPointer (window));
+        GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         const char* keyName = glfwGetKeyName (key, 0);
-        std::cout << "glfwSetKeyCallback, key: " << key << " (" << (keyName != nullptr ? keyName : "???") << "), scancode: " << scancode << ", action: " << action << ", mods: " << mods << std::endl;
 
         if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose (window, GLFW_TRUE);
+        }
+
+        if (action == GLFW_PRESS) {
+            self->events.keyPressed (key);
+        } else if (action == GLFW_RELEASE) {
+            self->events.keyReleased (key);
         }
     });
 
 
     glfwSetCursorPosCallback (glfwWindow, [] (GLFWwindow* window, double xpos, double ypos) {
-        GLFWWindow* self = static_cast<GLFWWindow*> (glfwGetWindowUserPointer (window));
+        GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
-        std::cout << "glfwSetCursorPosCallback, xpos: " << xpos << ", ypos: " << ypos << std::endl;
+        self->events.mouseMove (xpos, ypos);
     });
 
 
     glfwSetMouseButtonCallback (glfwWindow, [] (GLFWwindow* window, int button, int action, int mods) {
-        GLFWWindow* self = static_cast<GLFWWindow*> (glfwGetWindowUserPointer (window));
+        GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
-        std::cout << "glfwSetMouseButtonCallback, button: " << button << ", action: " << action << ", mods: " << mods << std::endl;
+        double x, y;
+        glfwGetCursorPos (window, &x, &y);
+
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+            self->events.leftMouseButtonPressed (x, y);
+        } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+            self->events.leftMouseButtonReleased (x, y);
+        } else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+            self->events.rightMouseButtonPressed (x, y);
+        } else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
+            self->events.rightMouseButtonReleased (x, y);
+        }
     });
 
 
     glfwSetScrollCallback (glfwWindow, [] (GLFWwindow* window, double xoffset, double yoffset) {
-        GLFWWindow* self = static_cast<GLFWWindow*> (glfwGetWindowUserPointer (window));
+        GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
-        std::cout << "glfwSetScrollCallback, xoffset: " << xoffset << ", yoffset: " << yoffset << std::endl;
+        self->events.scroll (yoffset);
     });
 
+    glfwSetWindowSizeCallback (glfwWindow, [] (GLFWwindow* window, int width, int height) {
+        GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
+
+        self->events.resized (width, height);
+    });
+
+    glfwSetWindowPosCallback (glfwWindow, [] (GLFWwindow* window, int xpos, int ypos) {
+        GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
+
+        self->events.moved (xpos, ypos);
+    });
+
+    glfwSetWindowFocusCallback (glfwWindow, [] (GLFWwindow* window, int focused) {
+        GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
+
+        if (focused) {
+            self->events.focused ();
+        } else {
+            self->events.focusLost ();
+        }
+    });
 
     window = reinterpret_cast<void*> (glfwWindow);
 }
 
 
-GLFWWindow::~GLFWWindow ()
+GLFWWindowBase::~GLFWWindowBase ()
 {
     glfwDestroyWindow (reinterpret_cast<GLFWwindow*> (window));
     glfwTerminate ();
 }
 
 
-void* GLFWWindow::GetHandle () const
+void* GLFWWindowBase::GetHandle () const
 {
     return window;
 }
 
 
-void GLFWWindow::DoEventLoop (const DrawCallback& drawCallback)
+void GLFWWindowBase::DoEventLoop (const DrawCallback& drawCallback)
 {
     if (ERROR (window == nullptr)) {
         return;
@@ -144,7 +184,7 @@ void GLFWWindow::DoEventLoop (const DrawCallback& drawCallback)
 }
 
 
-std::vector<const char*> GLFWWindow::GetExtensions () const
+std::vector<const char*> GLFWWindowBase::GetExtensions () const
 {
     uint32_t     glfwExtensionCount = 0;
     const char** glfwExtensions     = glfwGetRequiredInstanceExtensions (&glfwExtensionCount);
@@ -158,7 +198,7 @@ std::vector<const char*> GLFWWindow::GetExtensions () const
 }
 
 
-VkSurfaceKHR GLFWWindow::CreateSurface (VkInstance instance) const
+VkSurfaceKHR GLFWWindowBase::CreateSurface (VkInstance instance) const
 {
     VkSurfaceKHR surface = VK_NULL_HANDLE;
 
@@ -170,4 +210,18 @@ VkSurfaceKHR GLFWWindow::CreateSurface (VkInstance instance) const
     }
 
     return surface;
+}
+
+
+GLFWWindow::GLFWWindow ()
+    : GLFWWindowBase ({})
+{
+}
+
+
+HiddenGLFWWindow::HiddenGLFWWindow ()
+    : GLFWWindowBase ({
+          {GLFW_VISIBLE, GLFW_FALSE},
+      })
+{
 }

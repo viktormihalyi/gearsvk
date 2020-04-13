@@ -3,8 +3,6 @@
 
 #include <string>
 
-// cross platform messagebox with 3 buttons using SDL
-
 namespace MessageBox {
 
 enum class Result {

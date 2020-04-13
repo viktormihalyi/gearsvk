@@ -13,9 +13,6 @@ set (TARGET_DLL_NAME ${PROJECT_NAME}DLL)
 
 project (GearsVk)
 
-set (SDL2_INCLUDE_DIR "C:\\Dev\\SDL2-2.0.12\\include")
-set (SDL2_LIB_DIR "C:\\Dev\\SDL2-2.0.12\\lib\\x64")
-
 find_package (Vulkan REQUIRED)
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 
@@ -118,24 +115,17 @@ target_compile_definitions (${TARGET_DLL_NAME} PRIVATE
 set (EXTRNAL_INCLUDES
     ${Vulkan_INCLUDE_DIRS}
     ${Python3_INCLUDE_DIRS}
-    ${SDL2_INCLUDE_DIR}
     external/googletest/googletest/include
     external/glfw/include
     external/json/single_include
     external/glm
     external/VulkanMemoryAllocator/src
-    external/shaderc/libshaderc/include
-    external/SPIRV-Cross
     external/stb
     external/pybind11/include
-    external/glslang/glslang/Include
-    external/glslang/glslang/Public
-    external/glslang/StandAlone
     external/glslang
 )
 
 set (EXTRNAL_LINKS
-    ${SDL2_LIB_DIR}
     ${Python3_LIBRARY_DIRS}
 )
 
@@ -153,14 +143,10 @@ set (COMMON_INCLUDES
 
 set (COMMON_LINKS
     ${Vulkan_LIBRARIES}
-    python38
-    SDL2
+    ${Python3_LIBRARIES}
     glfw
-    shaderc
-    spirv-cross-core
-    spirv-cross-glsl
-    spirv-cross-reflect
     gtest
+    SPIRV
 )
 
 set (COMMON_COMPILER_DEFINES

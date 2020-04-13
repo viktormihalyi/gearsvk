@@ -1,11 +1,15 @@
 #include "MessageBox.hpp"
 
-#include <SDL.h>
+
+#include <iostream>
 #include <vector>
 
 
 namespace MessageBox {
 
+#ifdef GEARSVK_SDL_MESSAGEBOX
+
+// #include <SDL.h>
 Result Show (const std::string& title, const std::string& message)
 {
     static const std::vector<Result> buttonOrder = {
@@ -44,5 +48,36 @@ Result Show (const std::string& title, const std::string& message)
 
     return buttonOrder[buttonIndex];
 }
+
+#else
+
+// "messagebox" in terminal
+
+#include "TerminalColors.hpp"
+
+Result Show (const std::string& title, const std::string& message)
+{
+    std::cout << title << std::endl;
+    std::cout << "\t" << message << std::endl;
+
+    char choice = 0;
+
+    while (choice != 'y' && choice != 'n' && choice != 'i') {
+        std::cout << "[y/n/i] ";
+        std::cin >> choice;
+    }
+
+    if (choice == 'y') {
+        return Result::Yes;
+    } else if (choice == 'n') {
+        return Result::No;
+    } else if (choice == 'i') {
+        return Result::Third;
+    }
+
+    return Result::No;
+}
+
+#endif
 
 } // namespace MessageBox

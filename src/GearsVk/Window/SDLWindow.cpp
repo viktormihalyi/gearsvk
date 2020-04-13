@@ -1,3 +1,4 @@
+#if 0
 #include "SDLWindow.hpp"
 
 #include <SDL.h>
@@ -178,3 +179,5 @@ HiddenSDLWindow::HiddenSDLWindow ()
     : SDLWindowBase (SDL_WINDOW_HIDDEN)
 {
 }
+
+#endif

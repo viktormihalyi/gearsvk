@@ -1,8 +1,8 @@
 #ifndef VULKANTESTENVIRONMENT_HPP
 #define VULKANTESTENVIRONMENT_HPP
 
+#include "GLFWWindow.hpp"
 #include "Ptr.hpp"
-#include "SDLWindow.hpp"
 #include "TerminalColors.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
@@ -144,7 +144,7 @@ class ShownWindowVulkanTestEnvironment : public VulkanTestEnvironmentBase {
 protected:
     virtual void SetUp () override
     {
-        window = SDLWindow::Create ();
+        window = GLFWWindow::Create ();
         env    = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
     }
 
@@ -160,7 +160,7 @@ class HiddenWindowVulkanTestEnvironment : public VulkanTestEnvironmentBase {
 protected:
     virtual void SetUp () override
     {
-        window = HiddenSDLWindow::Create ();
+        window = HiddenGLFWWindow::Create ();
         env    = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
     }
 
