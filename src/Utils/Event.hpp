@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <utility>
 #include <vector>
