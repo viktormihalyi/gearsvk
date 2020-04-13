@@ -60,7 +60,7 @@ public:
 class RealSwapchain : public Swapchain,
                       public Noncopyable {
 public:
-    static const VkImageUsageFlags ImageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    static const VkImageUsageFlags ImageUsage;
 
 private:
     struct CreateSettings {
@@ -82,7 +82,7 @@ private:
         std::vector<VkImage>        images;
         std::vector<ImageView::U>   imageViews;
         std::vector<Framebuffer::U> framebuffers;
-        
+
         CreateResult ()
             : handle (VK_NULL_HANDLE)
         {
