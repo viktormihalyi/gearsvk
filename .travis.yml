@@ -9,10 +9,10 @@ before_install:
   - wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
   - sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-xenial.list http://packages.lunarg.com/vulkan/lunarg-vulkan-xenial.list
   - sudo apt update
-  - sudo apt install vulkan-sdk libxinerama-dev libxcursor-dev libxi-dev
+  - sudo apt install vulkan-sdk libxinerama-dev libxcursor-dev libxi-dev clang-8
 
 script:
   - mkdir build
   - cd build
   - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.5
-  - make VERBOSE=1
+  - make GearsVkTest VERBOSE=1
