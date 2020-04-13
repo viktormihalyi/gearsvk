@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.15.1)
+cmake_minimum_required (VERSION 3.10)
 
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED True)
@@ -173,3 +173,15 @@ target_include_directories (${TARGET_DLL_NAME} PRIVATE ${COMMON_INCLUDES}
 target_link_libraries (${TARGET_NAME} ${COMMON_LINKS})
 target_link_libraries (${TARGET_TEST_NAME} ${COMMON_LINKS})
 target_link_libraries (${TARGET_DLL_NAME} ${COMMON_LINKS})
+
+if (MSVC)
+  set (GEARS_MSVC_FLAGS /W4)
+  target_compile_options(${TARGET_NAME} PRIVATE ${GEARS_MSVC_FLAGS})
+  target_compile_options(${TARGET_TEST_NAME} PRIVATE ${GEARS_MSVC_FLAGS})
+  target_compile_options(${TARGET_DLL_NAME} PRIVATE ${GEARS_MSVC_FLAGS})
+else ()
+  set (GEARS_GCC_FLAGS -Wall -Wextra -pedantic)
+  target_compile_options(${TARGET_NAME} PRIVATE ${GEARS_GCC_FLAGS})
+  target_compile_options(${TARGET_TEST_NAME} PRIVATE ${GEARS_GCC_FLAGS})
+  target_compile_options(${TARGET_DLL_NAME} PRIVATE ${GEARS_GCC_FLAGS})
+endif ()
