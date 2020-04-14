@@ -10,6 +10,9 @@
 #include <memory>
 #include <pybind11/pybind11.h>
 
+// TODO remove
+#define WM_USER 0x0400
+
 
 template<typename T>
 struct extract {
