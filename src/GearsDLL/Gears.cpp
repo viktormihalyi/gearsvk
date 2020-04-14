@@ -25,7 +25,7 @@
 #include "core/TextureManager.h"
 #include "core/Ticker.h"
 #include "core/filter/KernelManager.h"
-#include "core/filter/fft/OpenCLFFT.h"
+#include "core/filter/fft/openCLFFT.h"
 #include "event/events.h"
 
 #include "curve/Poly2TriWrapper.h"
