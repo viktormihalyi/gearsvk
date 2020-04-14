@@ -1,12 +1,10 @@
-#include "stdafx.h"
-#ifdef __linux__
-#include <X11/Xlib.h>
-#endif
 #include "event/events.h"
+#include "stdafx.h"
+
+#ifdef _WIN32
 
 #include <windows.h>
 
-#ifdef _WIN32
 uint Gears::Event::MouseMove::typeId (WM_MOUSEMOVE);
 uint Gears::Event::KeyPressed::typeId (WM_KEYDOWN);
 uint Gears::Event::KeyReleased::typeId (WM_KEYUP);
@@ -20,7 +18,10 @@ uint Gears::Event::Wheel::typeId (WM_MOUSEWHEEL);
 uint Gears::Event::StimulusStart::typeId (WM_USER);
 uint Gears::Event::Frame::typeId (WM_USER + 1);
 uint Gears::Event::StimulusEnd::typeId (WM_USER + 2);
+
 #elif __linux__
+
+#include <X11/Xlib.h>
 // TODO: right types for event handling
 uint Gears::Event::MouseMove::typeId (MotionNotify);
 uint Gears::Event::KeyPressed::typeId (KeyPress);

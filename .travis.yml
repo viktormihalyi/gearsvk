@@ -25,4 +25,4 @@ script:
   - mkdir build
   - cd build
   - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.5
-  - make GearsVkTest VERBOSE=1
+  - make VERBOSE=1

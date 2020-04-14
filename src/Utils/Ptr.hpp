@@ -12,7 +12,7 @@
     using CP   = std::shared_ptr<const T>;  \
     using CW   = std::weak_ptr<const T>;    \
     using CU   = std::unique_ptr<const T>;  \
-    using CRef = std::reference_wrapper<const T>;
+    using CRef = std::reference_wrapper<const T>
 
 #define USING_PTR(T)                                                        \
     template<class... Types>                                                \
@@ -27,7 +27,7 @@
         return std::shared_ptr<T> (new T (std::forward<Types> (_Args)...)); \
     }                                                                       \
                                                                             \
-    USING_PTR_ABSTRACT (T);
+    USING_PTR_ABSTRACT (T)
 
 
 #endif
