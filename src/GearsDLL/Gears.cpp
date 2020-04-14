@@ -21,7 +21,6 @@
 #include "core/Sequence.h"
 #include "core/SequenceRenderer.h"
 #include "core/ShaderManager.h"
-#include "core/StimulusWindow.h"
 #include "core/TextureManager.h"
 #include "core/Ticker.h"
 #include "core/filter/KernelManager.h"
@@ -40,7 +39,7 @@ SequenceRenderer::P sequenceRenderer = nullptr;
 ShaderManager::P    shaderManager    = nullptr;
 TextureManager::P   textureManager   = nullptr;
 KernelManager::P    kernelManager    = nullptr;
-StimulusWindow::P   stimulusWindow   = nullptr;
+//StimulusWindow::P   stimulusWindow   = nullptr;
 
 std::string createStimulusWindow ()
 {
@@ -62,9 +61,11 @@ std::string createStimulusWindow ()
 
 void onHideStimulusWindow (pybind11::object onHideCallback)
 {
+#if 0
     if (stimulusWindow) {
         stimulusWindow->onHide (onHideCallback);
     }
+#endif
 }
 
 void showText ()
@@ -299,6 +300,7 @@ std::string greet () { return "hello, world"; }
 int         square (int number) { return number * number; }
 
 
+#if 0
 std::string getSpecs ()
 {
     if (!stimulusWindow)
@@ -335,6 +337,7 @@ void run ()
         return;
     stimulusWindow->run ();
 }
+#endif
 
 int loadTexture (std::string filename)
 {
@@ -670,10 +673,12 @@ PYBIND11_MODULE (Gears, m)
     m.def ("setText", setText);
     m.def ("showText", showText);
     m.def ("createStimulusWindow", createStimulusWindow);
+#if 0
     m.def ("getSpecs", getSpecs);
     m.def ("makeCurrent", makeCurrent);
     m.def ("shareCurrent", shareCurrent);
     m.def ("run", run);
+#endif
     m.def ("onHideStimulusWindow", onHideStimulusWindow);
     m.def ("loadTexture", loadTexture);
     m.def ("bindTexture", bindTexture);

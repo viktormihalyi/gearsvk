@@ -85,9 +85,6 @@ add_library (${TARGET_DLL_NAME} SHARED
     src/GearsDLL/core/PortHandlerLinux.cpp
     src/GearsDLL/core/filter/KernelManager.cpp
     src/GearsDLL/core/filter/SpatialFilter.cpp
-    src/GearsDLL/core/StimulusWindow.cpp
-    src/GearsDLL/core/StimulusWindowLinux.cpp
-    src/GearsDLL/core/StimulusWindowWin32.cpp
 
     src/GearsDLL/gpu/Framebuffer.cpp
     src/GearsDLL/gpu/Nothing.cpp

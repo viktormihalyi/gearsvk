@@ -1,20 +1,21 @@
 #include "stdafx.h"
 
+#if 0
 #ifdef __linux__
 
 #include <X11/Xatom.h>
-#include <assert.h>   // I include this to test return values the lazy way
-#include <iostream>
+#include <assert.h> // I include this to test return values the lazy way
 #include <chrono>
 #include <ctime>
+#include <iostream>
 #include <unistd.h>
 
 #include "SequenceRenderer.h"
 
 #include <QtCore/QVariant>
 #include <QtGui/QOpenGLContext>
-#include <QtGui/QWindow>
 #include <QtGui/QSurface>
+#include <QtGui/QWindow>
 #include <QtOpenGL/QGLContext>
 #include <QtPlatformHeaders/QGLXNativeContext>
 
@@ -442,3 +443,4 @@ void StimulusWindow::setCursorPos()
 StimulusWindow::P StimulusWindow::instanceCreated(nullptr);
 
 #endif // __linux__
+#endif
