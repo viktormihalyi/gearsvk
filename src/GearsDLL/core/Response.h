@@ -52,6 +52,7 @@ public:
     std::map<uint, std::vector<pybind11::object> > callbacks;
     void                                           registerCallback (uint msg, pybind11::object callback);
 
+#if 0
     template<typename T>
     bool executeCallbacks (typename T::P wevent) const
     {
@@ -66,6 +67,7 @@ public:
             }
         return handled;
     }
+#endif
 
     void addButton (std::string label, float x, float y, float w, float h, uint key, bool visible);
 
