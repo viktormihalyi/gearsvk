@@ -3,6 +3,7 @@
 #include "core/Response.h"
 #include "filter/SpatialFilter.h"
 #include "stdafx.h"
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 
@@ -33,31 +34,34 @@ void Sequence::addResponse (Response::P response)
     }
 }
 
+#undef min
+#undef max
+
 void Sequence::addStimulus (Stimulus::P stimulus)
 {
     stimulus->setSequence (getSharedPtr ());
     stimulus->joiner ();
     mono                     = mono && stimulus->mono;
-    shortestStimulusDuration = min (shortestStimulusDuration, stimulus->getDuration ());
+    shortestStimulusDuration = std::min (shortestStimulusDuration, stimulus->getDuration ());
     duration += stimulus->setStartingFrame (duration + 1);
     stimuli[duration] = stimulus;
 
     if (stimulus->fullScreenTemporalFiltering) {
-        maxMemoryLength                 = max (maxMemoryLength, stimulus->temporalMemoryLength);
-        maxTemporalProcessingStateCount = max (maxTemporalProcessingStateCount, stimulus->temporalProcessingStateCount);
+        maxMemoryLength                 = std::max (maxMemoryLength, stimulus->temporalMemoryLength);
+        maxTemporalProcessingStateCount = std::max (maxTemporalProcessingStateCount, stimulus->temporalProcessingStateCount);
     }
     if (stimulus->spatialFilter) {
-        maxKernelWidth_um  = max (maxKernelWidth_um, stimulus->spatialFilter->width_um);
-        maxKernelHeight_um = max (maxKernelHeight_um, stimulus->spatialFilter->height_um);
+        maxKernelWidth_um  = std::max (maxKernelWidth_um, stimulus->spatialFilter->width_um);
+        maxKernelHeight_um = std::max (maxKernelHeight_um, stimulus->spatialFilter->height_um);
         hasFft |= stimulus->spatialFilter->useFft;
         hasSpatialDomainConvolution |= !stimulus->spatialFilter->useFft;
     }
     if (stimulus->randomSeed != 0) {
-        maxRandomGridWidth  = max (maxRandomGridWidth, stimulus->randomGridWidth);
-        maxRandomGridHeight = max (maxRandomGridHeight, stimulus->randomGridHeight);
+        maxRandomGridWidth  = std::max (maxRandomGridWidth, stimulus->randomGridWidth);
+        maxRandomGridHeight = std::max (maxRandomGridHeight, stimulus->randomGridHeight);
     }
-    maxParticleGridWidth  = max (maxParticleGridWidth, stimulus->particleGridWidth);
-    maxParticleGridHeight = max (maxParticleGridHeight, stimulus->particleGridHeight);
+    maxParticleGridWidth  = std::max (maxParticleGridWidth, stimulus->particleGridWidth);
+    maxParticleGridHeight = std::max (maxParticleGridHeight, stimulus->particleGridHeight);
     if (stimulus->usesForwardRendering) {
         usesForwardRendering = true;
     }
