@@ -26,7 +26,11 @@ public:
     virtual uint32_t GetWidth () const override { return 800; }
     virtual uint32_t GetHeight () const override { return 600; }
     virtual float    GetAspectRatio () const override { return 1.33; }
-    virtual void     ToggleFullscreen () {}
+    virtual void     ToggleFullscreen () override {}
+
+    virtual void Show () override;
+    virtual void Hide () override;
+    virtual void Focus () override;
 
     VkSurfaceKHR CreateSurface (VkInstance instance) const override;
 };

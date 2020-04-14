@@ -215,6 +215,24 @@ VkSurfaceKHR GLFWWindowBase::CreateSurface (VkInstance instance) const
 }
 
 
+void GLFWWindowBase::Hide ()
+{
+    glfwHideWindow (reinterpret_cast<GLFWwindow*> (window));
+}
+
+
+void GLFWWindowBase::Show ()
+{
+    glfwShowWindow (reinterpret_cast<GLFWwindow*> (window));
+}
+
+
+void GLFWWindowBase::Focus ()
+{
+    glfwFocusWindow (reinterpret_cast<GLFWwindow*> (window));
+}
+
+
 GLFWWindow::GLFWWindow ()
     : GLFWWindowBase ({})
 {

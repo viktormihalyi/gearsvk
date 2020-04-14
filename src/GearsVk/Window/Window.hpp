@@ -51,6 +51,11 @@ public:
     virtual uint32_t GetHeight () const      = 0;
     virtual float    GetAspectRatio () const = 0;
 
+
+    virtual void Show ()  = 0;
+    virtual void Hide ()  = 0;
+    virtual void Focus () = 0;
+
     virtual void ToggleFullscreen () = 0;
 };
 

@@ -1,7 +1,6 @@
 #ifndef DRAWRECORDABLE_HPP
 #define DRAWRECORDABLE_HPP
 
-#include "glmlib.hpp"
 #include <vulkan/vulkan.h>
 
 #include <cstdint>
