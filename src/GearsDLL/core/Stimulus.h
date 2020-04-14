@@ -250,6 +250,7 @@ public:
 
     void registerCallback (uint msg, pybind11::object callback);
 
+#if 0
     template<typename T>
     bool executeCallbacks (typename T::P wevent) const
     {
@@ -264,6 +265,7 @@ public:
             }
         return handled;
     }
+#endif
 
     pybind11::object startCallback;
     pybind11::object frameCallback;
