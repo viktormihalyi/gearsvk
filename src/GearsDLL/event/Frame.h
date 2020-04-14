@@ -6,25 +6,29 @@
 
 #include "event/Base.h"
 #if defined(_WIN32)
-#	include <windowsx.h>
+#include <windowsx.h>
 #endif
 
 namespace Gears {
-	namespace Event {
+namespace Event {
 
-		class Frame : public Base
-		{
-			Frame(uint iFrame, float time)
-				:Base(WM_USER, 0, 0), iFrame(iFrame), time(time)
-			{
-			}
-		public:
-			GEARS_SHARED_CREATE_WITH_GETSHAREDPTR(Frame);
+class Frame : public Base {
+    Frame (uint iFrame, float time)
+#if _WIN32
+        : Base (WM_USER, 0, 0), iFrame (iFrame), time (time)
+#else
+        : Base (0, 0, 0), iFrame (iFrame), time (time)
+#endif
+    {
+    }
 
-			float time;
-			uint iFrame;
-			static uint typeId;
-		};
+public:
+    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (Frame);
 
-	}
-}
+    float       time;
+    uint        iFrame;
+    static uint typeId;
+};
+
+} // namespace Event
+} // namespace Gears
