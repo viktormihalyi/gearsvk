@@ -10,10 +10,10 @@
 #include "RenderGraph.hpp"
 #include "Resource.hpp"
 #include "SDLWindow.hpp"
+#include "Tests/VulkanTestEnvironment.hpp"
 #include "Time.hpp"
 #include "Timer.hpp"
 #include "Utils.hpp"
-#include "tests/VulkanTestEnvironment.hpp"
 
 // from VulkanWrapper
 #include "VulkanWrapper.hpp"
