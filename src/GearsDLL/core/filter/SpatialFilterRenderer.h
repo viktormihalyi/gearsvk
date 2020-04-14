@@ -9,9 +9,9 @@
 #include "gpu/Texture.hpp"
 #include "gpu/TextureQueue.hpp"
 
-#include "KernelManager.h"
-#include "Sequence.h"
-#include "SpatialFilter.h"
+#include "core/Sequence.h"
+#include "core/filter/KernelManager.h"
+#include "core/filter/SpatialFilter.h"
 #include "fft/FFT.h"
 #include <functional>
 #include <map>
