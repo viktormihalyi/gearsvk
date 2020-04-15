@@ -39,7 +39,7 @@ protected:
 public:
     void renderFrame (std::function<void (int)> renderStimulus);
 
-    virtual void initFirstFrames (std::function<void (int)> stim);
+    virtual void initFirstFrames (std::function<void (int)> stim) {}
     virtual void prepareNext () {};
 
 protected:

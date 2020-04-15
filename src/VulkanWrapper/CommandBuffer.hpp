@@ -47,7 +47,7 @@ public:
         beginInfo.pInheritanceInfo         = nullptr; // Optional
 
         if (ERROR (vkBeginCommandBuffer (handle, &beginInfo) != VK_SUCCESS)) {
-            throw std::runtime_error ("begin failed");
+            throw std::runtime_error ("commandbuffer begin failed");
         }
     }
 
@@ -55,8 +55,31 @@ public:
     void End () const
     {
         if (ERROR (vkEndCommandBuffer (handle) != VK_SUCCESS)) {
-            throw std::runtime_error ("end failed");
+            throw std::runtime_error ("commandbuffer end failed");
         }
+    }
+
+    void Reset (bool releaseResources = true) const
+    {
+        if (ERROR (vkResetCommandBuffer (handle, (releaseResources) ? VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT : 0) != VK_SUCCESS)) {
+            throw std::runtime_error ("commandbuffer reset failed");
+        }
+    }
+
+    void CmdPipelineBarrier (VkPipelineStageFlags               srcStageMask,
+                             VkPipelineStageFlags               dstStageMask,
+                             std::vector<VkMemoryBarrier>       memoryBarriers       = {},
+                             std::vector<VkBufferMemoryBarrier> bufferMemoryBarriers = {},
+                             std::vector<VkImageMemoryBarrier>  imageMemoryBarriers  = {})
+    {
+        vkCmdPipelineBarrier (
+            handle,
+            srcStageMask,
+            dstStageMask,
+            0, // TODO
+            memoryBarriers.size (), memoryBarriers.data (),
+            bufferMemoryBarriers.size (), bufferMemoryBarriers.data (),
+            imageMemoryBarriers.size (), imageMemoryBarriers.data ());
     }
 
     operator VkCommandBuffer () const

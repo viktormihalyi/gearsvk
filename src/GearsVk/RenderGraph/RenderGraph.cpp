@@ -52,6 +52,21 @@ void RenderGraph::CompileResources (const GraphSettings& settings)
 }
 
 
+void RenderGraph::Recompile (uint32_t commandBufferIndex)
+{
+    ASSERT (compiled);
+
+    for (uint32_t frameIndex = 0; frameIndex < compileSettings.framesInFlight; ++frameIndex) {
+        std::vector<uint32_t> operationsToRecompile = compileResult->GetOperationsToRecord (frameIndex, commandBufferIndex);
+
+        // commandBufferIndex.ResetAll ();
+        // commandBufferIndex.BeginAll ();
+        // record operationsToRecompile
+        // commandBufferIndex.EndAll ();
+    }
+}
+
+
 void RenderGraph::Compile (const GraphSettings& settings)
 {
     compileSettings = settings;
@@ -59,89 +74,46 @@ void RenderGraph::Compile (const GraphSettings& settings)
     settings.GetDevice ().Wait ();
     vkQueueWaitIdle (settings.queue);
 
-    /*
-    std::set<Operation::Ref> startingOperations;
-    // gather starting operations
-    {
-        for (const auto& o : operations) {
-            if (o->inputs.empty ()) {
-                startingOperations.insert (*o);
-            }
-        }
-
-        std::set<Resource::Ref> onlyReadResources;
-        for (const auto& r : resources) {
-            bool isResourceWritten = false;
-            for (const auto& o : operations) {
-                for (const auto& outputRes : o->outputs) {
-                    if (&outputRes.get () == r.get ()) {
-                        isResourceWritten = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!isResourceWritten) {
-                onlyReadResources.insert (*r);
-            }
-        }
-
-        for (const auto& o : operations) {
-            bool inputsResourcesAreNeverWritten = true;
-            for (const auto& inputRes : o->inputs) {
-                if (!Contains (onlyReadResources, inputRes)) {
-                    inputsResourcesAreNeverWritten = false;
-                    break;
-                }
-            }
-            if (inputsResourcesAreNeverWritten) {
-                startingOperations.insert (*o);
-            }
-        }
-    }
-    */
-
-
     try {
-        compileResult.Clear ();
-
         for (auto& op : operations) {
             op->Compile (settings);
         }
 
-        compileResult.commandBuffers.resize (settings.framesInFlight);
+        compileResult.reset ();
+
+        CompileResult::U newCR = CompileResult::Create (settings.GetDevice (), settings.commandPool, settings.framesInFlight);
+
+        newCR->BeginAll ();
 
         for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
-            CommandBuffer::U& currentCommandBuffer = compileResult.commandBuffers[frameIndex];
-
-            currentCommandBuffer = CommandBuffer::Create (device, commandPool);
-            currentCommandBuffer->Begin ();
+            uint32_t opIndex = 0;
             for (auto& op : operations) {
+                CommandBuffer& currentCommandBuffer = newCR->GetCommandBufferToRecord (frameIndex, opIndex);
+
                 for (auto& inputResource : op->inputs) {
-                    inputResource.get ().BindRead (frameIndex, *currentCommandBuffer);
+                    inputResource.get ().BindRead (frameIndex, currentCommandBuffer);
                 }
                 for (auto& outputResource : op->outputs) {
-                    outputResource.get ().BindWrite (frameIndex, *currentCommandBuffer);
+                    outputResource.get ().BindWrite (frameIndex, currentCommandBuffer);
                 }
 
-                op->Record (frameIndex, *currentCommandBuffer);
+                op->Record (frameIndex, currentCommandBuffer);
 
                 if (&op != &operations.back ()) {
-                    vkCmdPipelineBarrier (
-                        *currentCommandBuffer,
+                    currentCommandBuffer.CmdPipelineBarrier (
                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // srcStageMask
-                        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,    // dstStageMask
-                        0,
-                        0, nullptr, // memory barriers
-                        0, nullptr, // buffer memory barriers
-                        0, nullptr  // image barriers
+                        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT     // dstStageMask
                     );
                 }
+
+                ++opIndex;
             }
-            currentCommandBuffer->End ();
         }
 
-        compiled = true;
+        newCR->EndAll ();
+
+        compileResult = std::move (newCR);
+        compiled      = true;
 
     } catch (std::exception& ex) {
         ERROR (true);
@@ -177,7 +149,7 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
         return;
     }
 
-    VkCommandBuffer cmdHdl = *compileResult.commandBuffers[frameIndex];
+    std::vector<VkCommandBuffer> cmdHdl = compileResult->GetCommandBuffersToSubmit (frameIndex);
 
     // TODO
     std::vector<VkPipelineStageFlags> waitDstStageMasks (waitSemaphores.size (), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
@@ -187,8 +159,8 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
     result.waitSemaphoreCount   = waitSemaphores.size ();
     result.pWaitSemaphores      = waitSemaphores.data ();
     result.pWaitDstStageMask    = waitDstStageMasks.data ();
-    result.commandBufferCount   = 1;
-    result.pCommandBuffers      = &cmdHdl;
+    result.commandBufferCount   = cmdHdl.size ();
+    result.pCommandBuffers      = cmdHdl.data ();
     result.signalSemaphoreCount = signalSemaphores.size ();
     result.pSignalSemaphores    = signalSemaphores.data ();
 

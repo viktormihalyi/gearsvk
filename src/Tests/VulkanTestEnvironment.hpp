@@ -20,7 +20,6 @@ static void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messa
               << RESET << callbackData->pMessage
               << std::endl
               << std::endl;
-    FAIL ();
 }
 
 

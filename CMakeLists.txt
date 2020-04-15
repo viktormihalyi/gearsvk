@@ -9,7 +9,7 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (PROJECT_NAME GearsVk)
 set (TARGET_NAME ${PROJECT_NAME})
 set (TARGET_TEST_NAME ${PROJECT_NAME}Test)
-set (TARGET_DLL_NAME ${PROJECT_NAME}DLL)
+set (TARGET_DLL_NAME Gears)
 
 project (GearsVk)
 
@@ -24,7 +24,7 @@ else ()
 endif ()
 
 if (${Python3_FOUND})
-    message ("Python3 lib found at " ${Python3_LIBRARIES})
+    message ("Python3 lib found at " ${Python3_LIBRARIES_RELEASE})
     message ("Python3 headers found at " ${Python3_INCLUDE_DIRS})
 else ()
     error ()
@@ -136,9 +136,7 @@ set (COMMON_INCLUDES
 
 set (COMMON_LINKS
     ${Vulkan_LIBRARIES}
-    ${Python3_LIBRARIES}
     glfw
-    gtest
     SPIRV
 )
 
@@ -160,11 +158,11 @@ target_include_directories (${TARGET_DLL_NAME} PRIVATE ${COMMON_INCLUDES}
 )
 
 target_link_libraries (${TARGET_NAME} ${COMMON_LINKS})
-target_link_libraries (${TARGET_TEST_NAME} ${COMMON_LINKS})
-target_link_libraries (${TARGET_DLL_NAME} ${COMMON_LINKS})
+target_link_libraries (${TARGET_TEST_NAME} ${COMMON_LINKS} gtest)
+target_link_libraries (${TARGET_DLL_NAME} ${COMMON_LINKS} ${Python3_LIBRARIES_RELEASE})
 
 if (MSVC)
-  set (GEARS_MSVC_FLAGS /W4)
+  set (GEARS_MSVC_FLAGS /MDd)
   target_compile_options(${TARGET_NAME} PRIVATE ${GEARS_MSVC_FLAGS})
   target_compile_options(${TARGET_TEST_NAME} PRIVATE ${GEARS_MSVC_FLAGS})
   target_compile_options(${TARGET_DLL_NAME} PRIVATE ${GEARS_MSVC_FLAGS})

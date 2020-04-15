@@ -1,13 +1,17 @@
 // Gears.cpp : Defines the exported functions for the DLL application.
 //
 
+#define EMPTY_DLL
+
+#include <pybind11/pybind11.h>
+
+#ifndef EMPTY_DLL
 #include "stdafx.h"
 
 #include "core/PythonDict.h"
 //#include <boost/python.hpp>
 //#include <boost/python/suite/indexing/map_indexing_suite.hpp>
 
-#include <pybind11/pybind11.h>
 #include <pybind11/stl_bind.h>
 
 #include <string>
@@ -29,14 +33,14 @@
 
 #include "curve/Poly2TriWrapper.h"
 
-
+#ifdef APIV2
 // exported v2 API functions
 void InitializeEnvironment ();
 void DestroyEnvironment ();
 void SetRenderGraphFromSequence (Sequence::P);
 void StartRendering ();
 void StopRendering ();
-
+#endif
 
 // Python requires an exported function called init<module-name> in every
 // extension module. This is where we build the module contents.
@@ -163,7 +167,9 @@ Sequence::P setSequence (Sequence::P sequence)
     kernelManager->clear ();
     sequenceRenderer->apply (::sequence, shaderManager, textureManager, kernelManager);
 
+#ifdef APIV2
     SetRenderGraphFromSequence (sequence);
+#endif
 
     return ::sequence;
 }
@@ -305,11 +311,11 @@ void makePath (std::string path)
     if (!std::filesystem::exists (bpath.parent_path ()))
         std::filesystem::create_directories (bpath.parent_path ());
 }
-
+#endif
 // A couple of simple C++ functions that we want to expose to Python.
 std::string greet () { return "hello, world"; }
 int         square (int number) { return number * number; }
-
+#ifndef EMPTY_DLL
 
 #if 0
 std::string getSpecs ()
@@ -366,7 +372,7 @@ void bindTexture (std::string filename)
     }
 }
 
-
+#ifdef APIV2
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
 #include "RenderGraph.hpp"
@@ -399,6 +405,7 @@ void InitializeEnvironment ()
 
 void DestroyEnvironment ()
 {
+    StopRendering ();
     env.reset ();
     window.reset ();
 }
@@ -439,11 +446,18 @@ void StopRendering ()
     renderThread.reset ();
 }
 
+#endif
+
+
+#define EMPTY_DLL
+
+#endif
 
 PYBIND11_MODULE (Gears, m)
 {
+    m.def ("greet", &greet);
+#ifndef EMPTY_DLL
     using namespace pybind11;
-
     //class_<Gears::Event::Base>("BaseEvent", no_init)
     //	.def_readonly(	"message"	, &Gears::Event::Base::message	, "Windows message.")
     //	.def_readonly(	"wParam"	, &Gears::Event::Base::wParam	, "Windows message wParam.")
@@ -772,13 +786,13 @@ PYBIND11_MODULE (Gears, m)
     m.def ("toggleChannelsOrPreview", toggleChannelsOrPreview);
 
 
-    // v2
+#ifdef APIV2
     m.def ("InitializeEnvironment", InitializeEnvironment);
     m.def ("DestroyEnvironment", DestroyEnvironment);
     m.def ("SetRenderGraphFromSequence", SetRenderGraphFromSequence);
     m.def ("StartRendering", StartRendering);
     m.def ("StopRendering", StopRendering);
-
+#endif
 
 #if 0
     class_<p2t::Poly2TriWrapper> (m, "CDT",
@@ -788,5 +802,6 @@ PYBIND11_MODULE (Gears, m)
         .def (init<list> (), arg ("polyline"))
         .def ("triangulate", &p2t::Poly2TriWrapper::Triangulate)
         .def ("get_triangles", &p2t::Poly2TriWrapper::GetTriangles);
+#endif
 #endif
 }

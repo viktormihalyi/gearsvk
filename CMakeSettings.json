@@ -10,7 +10,23 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": "",
-      "variables": []
+      "variables": [
+        {
+          "name": "BUILD_TESTING",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_EXTERNAL",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_HLSL",
+          "value": "False",
+          "type": "BOOL"
+        }
+      ]
     },
     {
       "name": "x86-Debug",
