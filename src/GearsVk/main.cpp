@@ -10,10 +10,10 @@
 #include "RenderGraph.hpp"
 #include "Resource.hpp"
 #include "SDLWindow.hpp"
-#include "Tests/VulkanTestEnvironment.hpp"
 #include "Time.hpp"
 #include "Timer.hpp"
 #include "Utils.hpp"
+#include "VulkanEnvironment.hpp"
 
 // from VulkanWrapper
 #include "VulkanWrapper.hpp"
@@ -92,7 +92,7 @@ int main (int argc, char* argv[])
         std::cout << "window resized to " << width << " x " << height << std::endl;
     };
 
-    TestEnvironment testenv ({VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
+    DebugTestEnvironment testenv (*window);
 
     Device&      device        = *testenv.device;
     CommandPool& commandPool   = *testenv.commandPool;

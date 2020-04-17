@@ -1,4 +1,4 @@
-#include "VulkanTestEnvironment.hpp"
+#include "VulkanEnvironment.hpp"
 
 #include "gtest/gtest.h"
 
@@ -17,10 +17,10 @@ static void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      mess
 }
 
 
-class VulkanTestEnvironmentBase : public ::testing::Test {
+class GoogleTestEnvironment : public ::testing::Test {
 protected:
-    Window::U          window;
-    TestEnvironment::U env;
+    Window::U            window;
+    VulkanEnvironment::U env;
 
     PhysicalDevice& GetPhysicalDevice () { return *env->physicalDevice; }
     Device&         GetDevice () { return *env->device; }
@@ -28,7 +28,7 @@ protected:
     Queue&          GetGraphicsQueue () { return *env->graphicsQueue; }
     Swapchain&      GetSwapchain () { return *env->swapchain; }
 
-    virtual ~VulkanTestEnvironmentBase () {}
+    virtual ~GoogleTestEnvironment () {}
 
     virtual void SetUp ()    = 0;
     virtual void TearDown () = 0;
@@ -51,11 +51,11 @@ protected:
 
 
 // no window, swapchain, surface
-class HeadlessVulkanTestEnvironment : public VulkanTestEnvironmentBase {
+class HeadlessGoogleTestEnvironment : public GoogleTestEnvironment {
 protected:
     virtual void SetUp () override
     {
-        env = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, std::nullopt, gtestDebugCallback);
+        env = DebugVulkanEnvironment::Create (std::nullopt, gtestDebugCallback);
     }
 
     virtual void TearDown () override
@@ -65,12 +65,12 @@ protected:
 };
 
 
-class ShownWindowVulkanTestEnvironment : public VulkanTestEnvironmentBase {
+class ShownWindowGoogleTestEnvironment : public GoogleTestEnvironment {
 protected:
     virtual void SetUp () override
     {
         window = GLFWWindow::Create ();
-        env    = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window, gtestDebugCallback);
+        env    = DebugVulkanEnvironment::Create (*window, gtestDebugCallback);
     }
 
     virtual void TearDown () override
@@ -81,12 +81,12 @@ protected:
 };
 
 
-class HiddenWindowVulkanTestEnvironment : public VulkanTestEnvironmentBase {
+class HiddenWindowGoogleTestEnvironment : public GoogleTestEnvironment {
 protected:
     virtual void SetUp () override
     {
         window = HiddenGLFWWindow::Create ();
-        env    = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window, gtestDebugCallback);
+        env    = DebugVulkanEnvironment::Create (*window, gtestDebugCallback);
     }
 
     virtual void TearDown () override

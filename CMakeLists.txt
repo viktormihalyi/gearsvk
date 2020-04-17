@@ -43,22 +43,22 @@ set (COMMON_SOURCE_FILES
     src/Utils/SourceLocation.cpp
     src/Utils/Utils.cpp
     src/VulkanWrapper/Utils/VulkanUtils.cpp
+    src/VulkanWrapper/Utils/BufferTransferable.cpp
     src/VulkanWrapper/DebugUtilsMessenger.cpp
     src/VulkanWrapper/ShaderModule.cpp
-    src/VulkanWrapper/Utils/BufferTransferable.cpp
+    src/VulkanWrapper/Swapchain.cpp
+    src/VulkanWrapper/PhysicalDevice.cpp
     src/GearsVk/Camera/Frustum.cpp
     src/GearsVk/Camera/Camera.cpp
     src/GearsVk/RenderGraph/RenderGraph.cpp
     src/GearsVk/RenderGraph/Resource.cpp
     src/GearsVk/RenderGraph/Operation.cpp
+    src/GearsVk/RenderGraph/DrawRecordable/DrawRecordable.cpp
+    src/GearsVk/RenderGraph/GraphRenderer.cpp
     src/GearsVk/Window/GLFWWindow.cpp
     src/GearsVk/Window/SDLWindow.cpp
     src/GearsVk/ShaderReflection.cpp
-    src/GearsVk/RenderGraph/DrawRecordable/DrawRecordable.cpp
-    src/GearsVk/RenderGraph/GraphRenderer.cpp
-    src/VulkanWrapper/Swapchain.cpp
-    src/VulkanWrapper/PhysicalDevice.cpp
-    src/Tests/VulkanTestEnvironment.cpp)
+    src/GearsVk/VulkanEnvironment.cpp)
 
 add_executable (${TARGET_NAME}
     ${COMMON_SOURCE_FILES}
@@ -97,7 +97,7 @@ add_library (${TARGET_DLL_NAME} SHARED
     src/GearsDLL/gpu/StimulusGrid.cpp
     src/GearsDLL/gpu/Texture.cpp
     src/GearsDLL/gpu/TextureQueue.cpp
- "src/GearsDLL/GearsAPIv2.cpp")
+    src/GearsDLL/GearsAPIv2.cpp)
 
 target_compile_definitions (${TARGET_NAME} PRIVATE
     PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"

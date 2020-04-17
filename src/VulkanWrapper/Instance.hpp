@@ -13,6 +13,13 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
+struct InstanceSettings {
+    std::vector<const char*> extensions;
+    std::vector<const char*> layers;
+};
+
+static const InstanceSettings instanceDebugMode {{VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, {"VK_LAYER_KHRONOS_validation"}};
+static const InstanceSettings instanceReleaseMode {{}, {}};
 
 class Instance : public Noncopyable {
 private:
@@ -98,6 +105,11 @@ public:
 
     Instance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers)
         : handle (CreateInstance (instanceExtensions, instanceLayers))
+    {
+    }
+
+    Instance (const InstanceSettings& settings)
+        : handle (CreateInstance (settings.extensions, settings.layers))
     {
     }
 

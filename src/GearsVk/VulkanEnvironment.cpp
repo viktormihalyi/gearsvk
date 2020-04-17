@@ -1,31 +1,38 @@
-#include "VulkanTestEnvironment.hpp"
+#include "VulkanEnvironment.hpp"
 
 #include "Timer.hpp"
 
-void TestEnvironment::Wait () const
+
+void VulkanEnvironment::Wait () const
 {
     graphicsQueue->Wait ();
     device->Wait ();
 }
 
 
-TestEnvironment::TestEnvironment (std::vector<const char*> instanceExtensions, std::optional<Window::Ref> window, DebugUtilsMessenger::Callback callback)
+VulkanEnvironment::VulkanEnvironment (VulkanEnvironment::Mode mode, std::optional<Window::Ref> window, std::optional<DebugUtilsMessenger::Callback> callback)
 {
     Utils::TimerLogger tl ("creating test environment");
     Utils::TimerScope  ts (tl);
 
+    ASSERT (mode == Mode::Debug || mode == Mode::Release);
+
+    InstanceSettings is = (mode == Mode::Debug) ? instanceDebugMode : instanceReleaseMode;
+
     if (window) {
         auto windowExtenions = window->get ().GetExtensions ();
-        instanceExtensions.insert (instanceExtensions.end (), windowExtenions.begin (), windowExtenions.end ());
+        is.extensions.insert (is.extensions.end (), windowExtenions.begin (), windowExtenions.end ());
     }
 
-    instance = Instance::Create (instanceExtensions, std::vector<const char*> {"VK_LAYER_KHRONOS_validation"});
+    instance = Instance::Create (is);
 
     if (window) {
         surface = Surface::Create (*instance, window->get ().GetSurface (*instance));
     }
 
-    messenger = DebugUtilsMessenger::Create (*instance, callback, DebugUtilsMessenger::noPerformance);
+    if (mode == Mode::Debug && callback.has_value ()) {
+        messenger = DebugUtilsMessenger::Create (*instance, *callback, DebugUtilsMessenger::noPerformance);
+    }
 
     VkSurfaceKHR physicalDeviceSurfaceHandle = ((surface != nullptr) ? surface->operator VkSurfaceKHR () : VK_NULL_HANDLE);
 
@@ -60,4 +67,10 @@ TestEnvironment::TestEnvironment (std::vector<const char*> instanceExtensions, s
     std::cout << "physical device api version: " << GetVersionString (deviceProperties.apiVersion) << std::endl;
     std::cout << "physical device driver version: " << GetVersionString (deviceProperties.driverVersion) << std::endl;
 #endif
+}
+
+
+VulkanEnvironment::~VulkanEnvironment ()
+{
+    Wait ();
 }

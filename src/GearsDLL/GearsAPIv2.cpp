@@ -3,7 +3,7 @@
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
 #include "RenderGraph.hpp"
-#include "Tests/VulkanTestEnvironment.hpp"
+#include "VulkanEnvironment.hpp"
 #include "core/Sequence.h"
 
 #include <atomic>
@@ -28,13 +28,17 @@ RenderGraph::U     renderGraph;
 void InitializeEnvironment ()
 {
     window = HiddenGLFWWindow::Create (); // create a hidden window by default
-    env    = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
+
+#ifdef NDEBUG
+    env = ReleaseTestEnvironment::Create (*window);
+#else
+    env = DebugTestEnvironment::Create (*window);
+#endif
 }
 
 
 void DestroyEnvironment ()
 {
-    env->Wait ();
     env.reset ();
     window.reset ();
 }
@@ -115,6 +119,7 @@ void StartRendering (const std::function<bool ()>& doRender)
 {
     PRECOND_THROW (env != nullptr);
     PRECOND_THROW (renderGraph != nullptr);
+
     env->Wait ();
 
     SynchronizedSwapchainGraphRenderer swapchainSync (*renderGraph, *env->swapchain, [] (uint32_t) {});

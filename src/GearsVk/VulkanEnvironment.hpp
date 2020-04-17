@@ -20,8 +20,7 @@ static void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messa
 }
 
 
-// common for all test cases
-class TestEnvironment final {
+class VulkanEnvironment {
 public:
     Instance::U            instance;
     DebugUtilsMessenger::U messenger;
@@ -34,11 +33,38 @@ public:
     Surface::U   surface;
     Swapchain::U swapchain;
 
-    USING_PTR (TestEnvironment);
+    enum class Mode {
+        Debug,
+        Release,
+    };
 
-    TestEnvironment (std::vector<const char*> instanceExtensions, std::optional<Window::Ref> window = std::nullopt, DebugUtilsMessenger::Callback callback = testDebugCallback);
+    USING_PTR (VulkanEnvironment);
+
+    VulkanEnvironment (Mode mode, std::optional<Window::Ref> window = std::nullopt, std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback);
+
+    virtual ~VulkanEnvironment ();
 
     void Wait () const;
+};
+
+
+class DebugVulkanEnvironment : public VulkanEnvironment {
+public:
+    USING_PTR (DebugVulkanEnvironment);
+    DebugVulkanEnvironment (std::optional<Window::Ref> window = std::nullopt, std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback)
+        : VulkanEnvironment (Mode::Debug, window, callback)
+    {
+    }
+};
+
+
+class ReleaseVulkanEnvironment : public VulkanEnvironment {
+public:
+    USING_PTR (ReleaseVulkanEnvironment);
+    ReleaseVulkanEnvironment (std::optional<Window::Ref> window = std::nullopt)
+        : VulkanEnvironment (Mode::Release, window, std::nullopt)
+    {
+    }
 };
 
 

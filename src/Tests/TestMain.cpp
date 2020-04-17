@@ -65,7 +65,7 @@ public:
     }
 };
 
-TEST_F (HeadlessVulkanTestEnvironment, TestEnvironmentTest)
+TEST_F (HeadlessGoogleTestEnvironment, TestEnvironmentTest)
 {
     UniformBlock b ({
         vec1,
@@ -80,7 +80,7 @@ TEST_F (HeadlessVulkanTestEnvironment, TestEnvironmentTest)
 }
 
 
-TEST_F (HeadlessVulkanTestEnvironment, DISABLED_RenderGraphConnectionTest)
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_RenderGraphConnectionTest)
 {
     Device&      device        = GetDevice ();
     CommandPool& commandPool   = GetCommandPool ();
@@ -132,7 +132,7 @@ TEST_F (HeadlessVulkanTestEnvironment, DISABLED_RenderGraphConnectionTest)
 }
 
 
-TEST_F (HeadlessVulkanTestEnvironment, CompileTest)
+TEST_F (HeadlessGoogleTestEnvironment, CompileTest)
 {
     Device&      device      = GetDevice ();
     Queue&       queue       = GetGraphicsQueue ();
@@ -153,7 +153,7 @@ DestinationType& DynamicRefCast (std::reference_wrapper<SourceType>& source)
 }
 
 
-TEST_F (HeadlessVulkanTestEnvironment, ShaderCompileTests)
+TEST_F (HeadlessGoogleTestEnvironment, ShaderCompileTests)
 {
     try {
         ShaderModule::CreateFromString (GetDevice (), ShaderModule::ShaderKind::Vertex, R"(
@@ -193,7 +193,7 @@ layout (location = 0) out vec2 textureCoords;
 }
 
 
-TEST_F (HeadlessVulkanTestEnvironment, RenderRedImage)
+TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
 {
     Device&      device        = GetDevice ();
     CommandPool& commandPool   = GetCommandPool ();
@@ -269,7 +269,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessVulkanTestEnvironment, RenderGraphUseTest)
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
 {
     Device&      device        = GetDevice ();
     CommandPool& commandPool   = GetCommandPool ();
@@ -354,7 +354,7 @@ static void LimitedEventLoop (Window& window, const uint32_t maxRenders, const W
 }
 
 
-TEST_F (HiddenWindowVulkanTestEnvironment, SwapchainTest)
+TEST_F (HiddenWindowGoogleTestEnvironment, SwapchainTest)
 {
     Device&      device        = GetDevice ();
     CommandPool& commandPool   = GetCommandPool ();
@@ -431,7 +431,7 @@ void main () {
 }
 
 
-TEST_F (HiddenWindowVulkanTestEnvironment, VertexAndIndexBufferTest)
+TEST_F (HiddenWindowGoogleTestEnvironment, VertexAndIndexBufferTest)
 {
     Device&       device        = GetDevice ();
     CommandPool&  commandPool   = GetCommandPool ();
@@ -516,7 +516,7 @@ void main () {
 }
 
 
-TEST_F (HiddenWindowVulkanTestEnvironment, BasicUniformBufferTest)
+TEST_F (HiddenWindowGoogleTestEnvironment, BasicUniformBufferTest)
 {
     Device&      device        = GetDevice ();
     CommandPool& commandPool   = GetCommandPool ();
@@ -811,7 +811,7 @@ public:
 } // namespace GraphV2
 
 
-TEST_F (HiddenWindowVulkanTestEnvironment, graphtestttt)
+TEST_F (HiddenWindowGoogleTestEnvironment, graphtestttt)
 {
     using namespace GraphV2;
 
