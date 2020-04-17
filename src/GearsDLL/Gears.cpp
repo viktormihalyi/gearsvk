@@ -1,9 +1,10 @@
 // Gears.cpp : Defines the exported functions for the DLL application.
 //
 
-#define EMPTY_DLL
 
+#include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #ifndef EMPTY_DLL
 #include "stdafx.h"
@@ -31,16 +32,9 @@
 #include "core/filter/fft/openCLFFT.h"
 #include "event/events.h"
 
-#include "curve/Poly2TriWrapper.h"
+#include "GearsAPIv2.hpp"
 
-#ifdef APIV2
-// exported v2 API functions
-void InitializeEnvironment ();
-void DestroyEnvironment ();
-void SetRenderGraphFromSequence (Sequence::P);
-void StartRendering ();
-void StopRendering ();
-#endif
+#include "curve/Poly2TriWrapper.h"
 
 // Python requires an exported function called init<module-name> in every
 // extension module. This is where we build the module contents.
@@ -159,19 +153,18 @@ Sequence::P createSequence (std::string name)
     return ::sequence;
 }
 
+
 Sequence::P setSequence (Sequence::P sequence)
 {
     ::sequence = sequence;
     textureManager->clear ();
     shaderManager->clear ();
     kernelManager->clear ();
-    sequenceRenderer->apply (::sequence, shaderManager, textureManager, kernelManager);
+    //sequenceRenderer->apply (::sequence, shaderManager, textureManager, kernelManager);
 
-#ifdef APIV2
     SetRenderGraphFromSequence (sequence);
-#endif
 
-    return ::sequence;
+    return sequence;
 }
 
 Sequence::P getSequence ()
@@ -372,90 +365,12 @@ void bindTexture (std::string filename)
     }
 }
 
-#ifdef APIV2
-#include "GLFWWindow.hpp"
-#include "GraphRenderer.hpp"
-#include "RenderGraph.hpp"
-#include "Tests/VulkanTestEnvironment.hpp"
-
-#include <atomic>
-#include <memory>
-#include <thread>
-
-Window::U                     window;
-TestEnvironment::U            env;
-RenderGraphns::RenderGraph::U renderGraph;
-std::atomic<bool>             stopFlag;
-std::unique_ptr<std::thread>  renderThread;
-
-
-#define PRECOND_THROW(cond)                               \
-    if (ERROR (!(cond))) {                                \
-        throw std::runtime_error ("precondition failed"); \
-    }                                                     \
-    (void)0
-
-
-void InitializeEnvironment ()
-{
-    window = HiddenGLFWWindow::Create (); // create a hidden window be default
-    env    = TestEnvironment::Create (std::vector<const char*> {VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, *window);
-}
-
-
-void DestroyEnvironment ()
-{
-    StopRendering ();
-    env.reset ();
-    window.reset ();
-}
-
-
-void SetRenderGraphFromSequence (Sequence::P)
-{
-    PRECOND_THROW (env != nullptr);
-
-    renderGraph = RenderGraphns::RenderGraph::Create (*env->device, *env->commandPool);
-}
-
-
-void StartRendering ()
-{
-    PRECOND_THROW (env != nullptr);
-    PRECOND_THROW (renderGraph != nullptr);
-    PRECOND_THROW (renderThread == nullptr);
-
-    stopFlag = false;
-
-    renderThread = std::make_unique<std::thread> ([&] () {
-        RenderGraphns::SynchronizedSwapchainGraphRenderer swapchainSync (*renderGraph, *env->swapchain, [] (uint32_t) {});
-        window->DoEventLoop (swapchainSync.GetInfiniteDrawCallback ([&] () -> bool { return stopFlag; }));
-    });
-}
-
-
-void StopRendering ()
-{
-    PRECOND_THROW (env != nullptr);
-    PRECOND_THROW (renderGraph != nullptr);
-    PRECOND_THROW (renderThread != nullptr);
-
-    stopFlag = true;
-
-    renderThread->join ();
-    renderThread.reset ();
-}
-
-#endif
-
-
-#define EMPTY_DLL
-
 #endif
 
 PYBIND11_MODULE (Gears, m)
 {
     m.def ("greet", &greet);
+
 #ifndef EMPTY_DLL
     using namespace pybind11;
     //class_<Gears::Event::Base>("BaseEvent", no_init)
@@ -786,13 +701,9 @@ PYBIND11_MODULE (Gears, m)
     m.def ("toggleChannelsOrPreview", toggleChannelsOrPreview);
 
 
-#ifdef APIV2
     m.def ("InitializeEnvironment", InitializeEnvironment);
     m.def ("DestroyEnvironment", DestroyEnvironment);
-    m.def ("SetRenderGraphFromSequence", SetRenderGraphFromSequence);
     m.def ("StartRendering", StartRendering);
-    m.def ("StopRendering", StopRendering);
-#endif
 
 #if 0
     class_<p2t::Poly2TriWrapper> (m, "CDT",

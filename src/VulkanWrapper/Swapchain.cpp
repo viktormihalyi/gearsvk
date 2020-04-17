@@ -144,6 +144,13 @@ void RealSwapchain::Recreate ()
 }
 
 
+void RealSwapchain::RecreateForSurface (VkSurfaceKHR surface)
+{
+    createSettings.surface = surface;
+    Recreate ();
+}
+
+
 RealSwapchain::~RealSwapchain ()
 {
     vkDestroySwapchainKHR (createSettings.device, createResult.handle, nullptr);

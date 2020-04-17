@@ -143,7 +143,7 @@ std::vector<const char*> SDLWindowBase::GetExtensions () const
 }
 
 
-VkSurfaceKHR SDLWindowBase::CreateSurface (VkInstance instance) const
+VkSurfaceKHR SDLWindowBase::GetSurface (VkInstance instance) const
 {
     ASSERT (window != nullptr);
 

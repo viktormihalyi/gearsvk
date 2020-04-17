@@ -33,6 +33,11 @@ public:
     {
         return handle;
     }
+
+    void Wait () const
+    {
+        vkQueueWaitIdle (handle);
+    }
 };
 
 static Queue dummyQueue (static_cast<VkQueue> (VK_NULL_HANDLE));

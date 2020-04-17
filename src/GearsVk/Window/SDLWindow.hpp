@@ -31,7 +31,7 @@ public:
 
     std::vector<const char*> GetExtensions () const override;
 
-    VkSurfaceKHR CreateSurface (VkInstance instance) const override;
+    VkSurfaceKHR GetSurface (VkInstance instance) override;
 
     virtual uint32_t GetWidth () const override { return width; }
     virtual uint32_t GetHeight () const override { return height; }

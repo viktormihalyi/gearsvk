@@ -8,7 +8,8 @@
 
 class GLFWWindowBase : public Window {
 private:
-    void* window;
+    void*        window;
+    VkSurfaceKHR surface;
 
 protected:
     GLFWWindowBase (const std::vector<std::pair<int, int>>& hints);
@@ -32,7 +33,7 @@ public:
     virtual void Hide () override;
     virtual void Focus () override;
 
-    VkSurfaceKHR CreateSurface (VkInstance instance) const override;
+    VkSurfaceKHR GetSurface (VkInstance instance) override;
 };
 
 

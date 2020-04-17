@@ -16,7 +16,7 @@
 #include <string>
 #include <thread>
 
-#include "VulkanTestEnvironment.hpp"
+#include "GoogleTestEnvironment.hpp"
 
 
 int main (int argc, char** argv)

@@ -44,8 +44,8 @@ public:
     virtual void  DoEventLoop (const DrawCallback&) = 0;
     virtual void* GetHandle () const                = 0;
 
-    virtual std::vector<const char*> GetExtensions () const                    = 0;
-    virtual VkSurfaceKHR             CreateSurface (VkInstance instance) const = 0;
+    virtual std::vector<const char*> GetExtensions () const           = 0;
+    virtual VkSurfaceKHR             GetSurface (VkInstance instance) = 0;
 
     virtual uint32_t GetWidth () const       = 0;
     virtual uint32_t GetHeight () const      = 0;

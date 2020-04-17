@@ -10,14 +10,46 @@
 #include <iostream>
 
 
+struct GLFWInitializer {
+private:
+    bool initialized;
+
+public:
+    GLFWInitializer ()
+        : initialized (false)
+    {
+    }
+
+    void EnsureInitialized ()
+    {
+        if (!initialized) {
+            initialized = true;
+            int result  = glfwInit ();
+            ASSERT (result == GLFW_TRUE);
+        }
+    }
+
+    ~GLFWInitializer ()
+    {
+        if (initialized) {
+            glfwTerminate ();
+        }
+    }
+};
+
+
+static GLFWInitializer globalGLFWInitializer;
+
+
 GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     : window (nullptr)
+    , surface (VK_NULL_HANDLE)
 {
+    globalGLFWInitializer.EnsureInitialized ();
+
     // settings
     const bool useFullscreen = false;
     const bool hideMouse     = false;
-
-    glfwInit ();
 
     ASSERT (glfwVulkanSupported () == GLFW_TRUE);
 
@@ -155,8 +187,8 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
 
 GLFWWindowBase::~GLFWWindowBase ()
 {
+    surface = VK_NULL_HANDLE;
     glfwDestroyWindow (reinterpret_cast<GLFWwindow*> (window));
-    glfwTerminate ();
 }
 
 
@@ -180,7 +212,7 @@ void GLFWWindowBase::DoEventLoop (const DrawCallback& drawCallback)
         drawCallback (stop);
 
         if (stop) {
-            break;
+            glfwSetWindowShouldClose (reinterpret_cast<GLFWwindow*> (window), GLFW_TRUE);
         }
     }
 }
@@ -200,11 +232,13 @@ std::vector<const char*> GLFWWindowBase::GetExtensions () const
 }
 
 
-VkSurfaceKHR GLFWWindowBase::CreateSurface (VkInstance instance) const
+VkSurfaceKHR GLFWWindowBase::GetSurface (VkInstance instance)
 {
-    VkSurfaceKHR surface = VK_NULL_HANDLE;
-
     ASSERT (window != nullptr);
+
+    if (surface != VK_NULL_HANDLE) {
+        return surface;
+    }
 
     VkResult result = glfwCreateWindowSurface (instance, reinterpret_cast<GLFWwindow*> (window), nullptr, &surface);
     if (result != VK_SUCCESS) {

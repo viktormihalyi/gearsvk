@@ -47,6 +47,7 @@ public:
     virtual void                 Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const = 0;
     virtual bool                 SupportsPresenting () const                                                                        = 0;
     virtual void                 Recreate ()                                                                                        = 0;
+    virtual void                 RecreateForSurface (VkSurfaceKHR surface)                                                          = 0;
 };
 
 class OutOfDateSwapchain : public std::runtime_error {
@@ -98,8 +99,8 @@ private:
         }
     };
 
-    const CreateSettings createSettings;
-    CreateResult         createResult;
+    CreateSettings createSettings;
+    CreateResult   createResult;
 
     static CreateResult CreateForResult (const CreateSettings& createSettings);
 
@@ -110,6 +111,8 @@ public:
     RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, SwapchainSettingsProvider& settings = defaultSwapchainSettings);
 
     virtual void Recreate () override;
+
+    virtual void RecreateForSurface (VkSurfaceKHR surface) override;
 
     ~RealSwapchain ();
 
@@ -148,6 +151,7 @@ public:
     virtual uint32_t             GetHeight () const override { return height; }
     virtual std::vector<VkImage> GetImages () const override { return {*image.image}; }
     virtual void                 Recreate () override {}
+    virtual void                 RecreateForSurface (VkSurfaceKHR) override {}
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override
     {

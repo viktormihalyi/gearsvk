@@ -56,7 +56,9 @@ set (COMMON_SOURCE_FILES
     src/GearsVk/ShaderReflection.cpp
     src/GearsVk/RenderGraph/DrawRecordable/DrawRecordable.cpp
     src/GearsVk/RenderGraph/GraphRenderer.cpp
-    src/VulkanWrapper/Swapchain.cpp)
+    src/VulkanWrapper/Swapchain.cpp
+    src/VulkanWrapper/PhysicalDevice.cpp
+    src/Tests/VulkanTestEnvironment.cpp)
 
 add_executable (${TARGET_NAME}
     ${COMMON_SOURCE_FILES}
@@ -95,7 +97,7 @@ add_library (${TARGET_DLL_NAME} SHARED
     src/GearsDLL/gpu/StimulusGrid.cpp
     src/GearsDLL/gpu/Texture.cpp
     src/GearsDLL/gpu/TextureQueue.cpp
-)
+ "src/GearsDLL/GearsAPIv2.cpp")
 
 target_compile_definitions (${TARGET_NAME} PRIVATE
     PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"

@@ -15,6 +15,7 @@ Window::DrawCallback GraphRenderer::GetInfiniteDrawCallback (const std::function
 {
     return [&] (bool& stopFlag) -> void {
         stopFlag = shouldStop ();
+
         RenderNextFrame ();
     };
 }
