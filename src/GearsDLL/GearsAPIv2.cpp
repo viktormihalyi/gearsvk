@@ -28,12 +28,7 @@ RenderGraph::U     renderGraph;
 void InitializeEnvironment ()
 {
     window = HiddenGLFWWindow::Create (); // create a hidden window by default
-
-#ifdef NDEBUG
-    env = ReleaseTestEnvironment::Create (*window);
-#else
-    env = DebugTestEnvironment::Create (*window);
-#endif
+    env    = VulkanEnvironment::CreateForBuildType (*window);
 }
 
 

@@ -92,12 +92,12 @@ int main (int argc, char* argv[])
         std::cout << "window resized to " << width << " x " << height << std::endl;
     };
 
-    DebugTestEnvironment testenv (*window);
+    VulkanEnvironment::U testenv = VulkanEnvironment::CreateForBuildType (*window);
 
-    Device&      device        = *testenv.device;
-    CommandPool& commandPool   = *testenv.commandPool;
-    Queue&       graphicsQueue = *testenv.graphicsQueue;
-    Swapchain&   swapchain     = *testenv.swapchain;
+    Device&      device        = *testenv->device;
+    CommandPool& commandPool   = *testenv->commandPool;
+    Queue&       graphicsQueue = *testenv->graphicsQueue;
+    Swapchain&   swapchain     = *testenv->swapchain;
 
     DeviceExtra d {device, commandPool, graphicsQueue};
 

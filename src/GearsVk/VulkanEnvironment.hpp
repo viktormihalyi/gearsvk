@@ -45,6 +45,8 @@ public:
     virtual ~VulkanEnvironment ();
 
     void Wait () const;
+
+    static VulkanEnvironment::U CreateForBuildType (std::optional<Window::Ref> window = std::nullopt, std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback);
 };
 
 

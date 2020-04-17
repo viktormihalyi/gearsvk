@@ -74,3 +74,13 @@ VulkanEnvironment::~VulkanEnvironment ()
 {
     Wait ();
 }
+
+
+VulkanEnvironment::U VulkanEnvironment::CreateForBuildType (std::optional<Window::Ref> window, std::optional<DebugUtilsMessenger::Callback> callback)
+{
+#ifdef NDEBUG
+    return ReleaseVulkanEnvironment::Create (window);
+#else
+    return DebugVulkanEnvironment::Create (window, callback);
+#endif
+}
