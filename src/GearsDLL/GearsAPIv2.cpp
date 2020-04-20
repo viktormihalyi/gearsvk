@@ -1,5 +1,6 @@
 #include "GearsAPIv2.hpp"
 
+#include "FullscreenQuad.hpp"
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
 #include "RenderGraph.hpp"
@@ -10,12 +11,50 @@
 #include <memory>
 #include <thread>
 
-using namespace RenderGraphns;
+using namespace RG;
 
 
-Window::U          window;
-TestEnvironment::U env;
-RenderGraph::U     renderGraph;
+Window::U            window;
+VulkanEnvironment::U env;
+RenderGraph::U       renderGraph;
+
+template<typename T>
+class GlobalConfig {
+private:
+    const std::string name;
+    T                 value;
+
+    void Read ()
+    {
+        // TODO
+    }
+
+    void Write () const
+    {
+        // TODO
+    }
+
+public:
+    USING_PTR (GlobalConfig);
+
+    GlobalConfig (const std::string& name)
+        : name (name)
+    {
+        Read ();
+    }
+
+    T& operator= (const T& other)
+    {
+        value = other;
+        Write ();
+    }
+
+    operator const T& () const { return value; }
+    operator T& () { return value; }
+};
+
+
+GlobalConfig<std::string> asd ("asd");
 
 
 #define PRECOND_THROW(cond)                               \

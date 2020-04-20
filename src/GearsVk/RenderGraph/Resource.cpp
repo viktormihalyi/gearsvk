@@ -1,7 +1,7 @@
 #include "Resource.hpp"
 
 
-namespace RenderGraphns {
+namespace RG {
 
 
 const VkFormat SingleImageResource::Format = VK_FORMAT_R8G8B8A8_SRGB;
@@ -63,4 +63,4 @@ void ResourceVisitor::Visit (Resource&                               res,
     }
 }
 
-} // namespace RenderGraphns
+} // namespace RG

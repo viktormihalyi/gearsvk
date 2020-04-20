@@ -16,7 +16,7 @@
 #include <memory>
 #include <utility>
 
-namespace RenderGraphns {
+namespace RG {
 
 class CompileResultProvider {
 public:
@@ -82,7 +82,7 @@ public:
     {
         return 1;
     }
-}; // namespace RenderGraphns
+}; // namespace RG
 
 class SeperatedOperationToCommandBufferMappingStrategy : public OperationToCommandBufferMappingStrategy {
 public:
@@ -278,6 +278,6 @@ public:
 };
 
 
-} // namespace RenderGraphns
+} // namespace RG
 
 #endif

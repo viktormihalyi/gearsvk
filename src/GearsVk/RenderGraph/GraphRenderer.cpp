@@ -1,7 +1,7 @@
 #include "GraphRenderer.hpp"
 
 
-namespace RenderGraphns {
+namespace RG {
 
 Window::DrawCallback GraphRenderer::GetInfiniteDrawCallback ()
 {
@@ -150,4 +150,4 @@ void SynchronizedSwapchainGraphRenderer::RenderNextFrame ()
     currentFrameIndex = (currentFrameIndex + 1) % framesInFlight;
 }
 
-} // namespace RenderGraphns
+} // namespace RG

@@ -6,7 +6,7 @@
 #include "Window.hpp"
 
 
-namespace RenderGraphns {
+namespace RG {
 
 
 struct GraphRenderer {
@@ -21,12 +21,14 @@ public:
 };
 
 
-struct BlockingGraphRenderer : public GraphRenderer {
+class BlockingGraphRenderer : public GraphRenderer {
+private:
     RenderGraph&                              graph;
     Swapchain&                                swapchain;
     std::function<void (uint32_t frameIndex)> preSubmitCallback;
     Semaphore                                 s;
 
+public:
     BlockingGraphRenderer (RenderGraph&                                     graph,
                            Swapchain&                                       swapchain,
                            const std::function<void (uint32_t frameIndex)>& preSubmitCallback = nullptr);
@@ -35,7 +37,8 @@ struct BlockingGraphRenderer : public GraphRenderer {
 };
 
 
-struct SynchronizedSwapchainGraphRenderer : public GraphRenderer {
+class SynchronizedSwapchainGraphRenderer : public GraphRenderer {
+private:
     const uint32_t framesInFlight;
     const uint32_t imageCount;
     uint32_t       currentFrameIndex;
@@ -52,15 +55,17 @@ struct SynchronizedSwapchainGraphRenderer : public GraphRenderer {
     Swapchain&                                swapchain;
     std::function<void (uint32_t frameIndex)> preSubmitCallback;
 
+public:
     SynchronizedSwapchainGraphRenderer (RenderGraph&                                     graph,
                                         Swapchain&                                       swapchain,
                                         const std::function<void (uint32_t frameIndex)>& preSubmitCallback);
 
-    void RecreateStuff ();
-
     void RenderNextFrame () override;
+
+private:
+    void RecreateStuff ();
 };
 
-} // namespace RenderGraphns
+} // namespace RG
 
 #endif

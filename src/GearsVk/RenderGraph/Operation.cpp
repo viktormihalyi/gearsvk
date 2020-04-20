@@ -1,7 +1,7 @@
 #include "Operation.hpp"
 
 
-namespace RenderGraphns {
+namespace RG {
 
 void Operation::AddInput (const uint32_t binding, const Resource::Ref& res)
 {
@@ -156,4 +156,4 @@ void RenderOperation::Record (uint32_t frameIndex, VkCommandBuffer commandBuffer
     vkCmdEndRenderPass (commandBuffer);
 }
 
-} // namespace RenderGraphns
+} // namespace RG

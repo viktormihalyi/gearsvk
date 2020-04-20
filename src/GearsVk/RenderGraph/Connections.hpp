@@ -4,6 +4,8 @@
 #include "Image.hpp"
 #include <vulkan/vulkan.h>
 
+namespace RG {
+
 struct InputBinding : public VkDescriptorSetLayoutBinding {
 public:
     InputBinding (uint32_t binding, VkDescriptorType type, uint32_t descriptorCount)
@@ -48,5 +50,7 @@ struct OutputBinding {
 
     bool operator== (uint32_t otherBinding) const { return binding == otherBinding; }
 };
+
+} // namespace RG
 
 #endif

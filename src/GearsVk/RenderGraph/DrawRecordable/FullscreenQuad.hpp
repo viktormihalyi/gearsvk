@@ -1,7 +1,10 @@
 #ifndef DR_FULLSCREENQUAD_HPP
 #define DR_FULLSCREENQUAD_HPP
 
-#include "DrawRecordable.hpp"
+#include "DrawRecordableInfo.hpp"
+
+#include "glmlib.hpp"
+
 
 class FullscreenQuad : public DrawRecordableInfoProvider {
 private:

@@ -9,7 +9,7 @@
 #include "Connections.hpp"
 #include "GraphSettings.hpp"
 
-namespace RenderGraphns {
+namespace RG {
 
 
 class SingleResource : public Noncopyable {
@@ -213,6 +213,6 @@ public:
                        VisitorCallback<UniformBlockResource>);
 };
 
-} // namespace RenderGraphns
+} // namespace RG
 
 #endif

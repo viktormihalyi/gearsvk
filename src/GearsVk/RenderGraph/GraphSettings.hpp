@@ -3,6 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
+namespace RG {
+
 struct GraphSettings {
     Device*       device;
     VkQueue       queue;
@@ -32,5 +34,7 @@ struct GraphSettings {
 
     Device& GetDevice () const { return *device; }
 };
+
+} // namespace RG
 
 #endif

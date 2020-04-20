@@ -1,7 +1,7 @@
 #include "RenderGraph.hpp"
 
 
-namespace RenderGraphns {
+namespace RG {
 
 RenderGraph::RenderGraph (VkDevice device, VkCommandPool commandPool)
     : device (device)
@@ -167,4 +167,4 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
     vkQueueSubmit (compileSettings.queue, 1, &result, fenceToSignal);
 }
 
-} // namespace RenderGraphns
+} // namespace RG

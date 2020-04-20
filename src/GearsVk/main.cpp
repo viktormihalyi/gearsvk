@@ -12,12 +12,14 @@
 #include "SDLWindow.hpp"
 #include "Time.hpp"
 #include "Timer.hpp"
+#include "UniformBlock.hpp"
 #include "Utils.hpp"
 #include "VulkanEnvironment.hpp"
 
 // from VulkanWrapper
 #include "VulkanWrapper.hpp"
 
+#include "DeviceExtra.hpp"
 #include "ShaderReflection.hpp"
 
 #include <array>
@@ -101,7 +103,7 @@ int main (int argc, char* argv[])
 
     DeviceExtra d {device, commandPool, graphicsQueue};
 
-    using namespace RenderGraphns;
+    using namespace RG;
 
     Camera c (glm::vec3 (0, 0, 0.5), glm::vec3 (0, 0, -1), window->GetAspectRatio ());
 
@@ -154,9 +156,9 @@ int main (int argc, char* argv[])
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout (binding = 0) uniform Time {
-    mat4 VP;
+layout (std140, binding = 0) uniform Time {
     float time;
+    mat4 VP;
 } time;
 
 layout (location = 0) in vec2 position;
@@ -177,9 +179,9 @@ void main ()
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout (binding = 0) uniform Time {
-    mat4 VP;
+layout (std140, binding = 0) uniform Time {
     float time;
+    mat4 VP;
 } time;
 
 layout (location = 0) in vec2 uv;
@@ -196,9 +198,22 @@ void main ()
 }
     )");
 
+    UniformBlock Time ({
+        {"time", ST::vec1},
+        {"VP", ST::mat4},
+    });
+    struct {
+        glm::mat4& VP;
+        float&     time;
+    } TimeV {
+        Time.GetRef<glm::mat4> ("VP"),
+        Time.GetRef<float> ("time"),
+    };
+
+
     SwapchainImageResource& presented     = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
     ImageResource&          presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
-    UniformBlockResource&   unif          = graph.CreateResourceTyped<UniformBlockResource> (16 * sizeof (float) + sizeof (float));
+    UniformBlockResource&   unif          = graph.CreateResourceTyped<UniformBlockResource> (Time.GetSize ());
 
     //struct UniformResourceBinding {
     //    std::map<std::string, UniformBlockResource::Ref> uniformNameMapping;
@@ -220,10 +235,7 @@ void main ()
 
     graph.Compile (s);
 
-    struct TimeUniform {
-        glm::mat4 VP;
-        float     time;
-    };
+    TimeV.VP = glm::mat4 (1.f);
 
     SynchronizedSwapchainGraphRenderer swapchainSync (graph, swapchain, [&] (uint32_t frameIndex) {
         TimePoint currentTime = TimePoint::SinceApplicationStart ();
@@ -248,14 +260,13 @@ void main ()
             c.Move (Camera::MovementDirection::Up, dt);
         }
 
-        TimeUniform t;
-        t.VP = c.GetViewProjectionMatrix ();
+        TimeV.VP = c.GetViewProjectionMatrix ();
         //t.VP = glm::mat4 (1.0);
         //t.VP = frustum.GetMatrix () * v;
 
-        t.time = currentTime.AsSeconds ();
+        TimeV.time = currentTime.AsSeconds ();
 
-        unif.GetMapping (frameIndex).Copy (t);
+        unif.GetMapping (frameIndex).Copy (Time.GetData (), Time.GetSize (), 0);
     });
 
 

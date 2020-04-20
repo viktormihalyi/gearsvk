@@ -68,7 +68,7 @@ public:
             throw std::runtime_error ("overflow");
         }
 
-        memcpy (mappedMemory, reinterpret_cast<const char*> (data) + offset, size);
+        memcpy (mappedMemory, reinterpret_cast<const uint8_t*> (data) + offset, size);
     }
 
     void* Get () const { return mappedMemory; }

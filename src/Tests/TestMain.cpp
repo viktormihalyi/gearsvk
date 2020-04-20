@@ -1,10 +1,12 @@
 #include <vulkan/vulkan.h>
 
+#include "FullscreenQuad.hpp"
 #include "GraphRenderer.hpp"
 #include "Ptr.hpp"
 #include "RenderGraph.hpp"
 #include "ShaderPipeline.hpp"
 #include "Timer.hpp"
+#include "UniformBlock.hpp"
 #include "Utils.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
@@ -25,56 +27,26 @@ int main (int argc, char** argv)
     return RUN_ALL_TESTS ();
 }
 
-using namespace RenderGraphns;
+using namespace RG;
 
-
-struct ShaderType {
-    uint32_t size;
-    uint32_t alignment;
-};
-
-static ShaderType vec1 {4, 4};
-static ShaderType vec2 {8, 8};
-static ShaderType vec3 {12, 16};
-static ShaderType vec4 {12, 16};
-
-template<uint32_t SIZE>
-static ShaderType vec1Array {4 * SIZE, 32};
-template<uint32_t SIZE>
-static ShaderType vec2Array {8 * SIZE, 32};
-template<uint32_t SIZE>
-static ShaderType vec3Array {12 * SIZE, 32};
-template<uint32_t SIZE>
-static ShaderType vec4Array {16 * SIZE, 32};
-
-class UniformBlock {
-public:
-    uint32_t fullSize;
-
-    std::vector<std::pair<ShaderType, uint32_t>> variables;
-
-    UniformBlock (const std::vector<ShaderType>& types)
-    {
-        uint32_t offset = 0;
-        for (auto s : types) {
-            offset = std::ceil (static_cast<float> (offset) / s.alignment) * s.alignment;
-            variables.emplace_back (s, offset);
-            offset += s.size;
-        }
-        fullSize = offset;
-    }
-};
 
 TEST_F (HeadlessGoogleTestEnvironment, TestEnvironmentTest)
 {
+    using namespace ST;
+
     UniformBlock b ({
-        vec1,
-        vec1,
-        vec4,
-        vec3,
-        vec4Array<3>,
-        vec1Array<6>,
+        {"asd", vec1},
+        {"4635", mat4},
+        {"fd", vec4},
+        {"f4", vec3},
+        {"865", vec4Array<3>},
+        {"23", vec1Array<6>},
     });
+
+    ASSERT (b.GetOffset ("4635") == 16);
+
+    glm::vec4& vvvv = b.GetRef<glm::vec4> ("fd");
+    vvvv            = glm::vec4 (1.f);
 
     EXPECT_TRUE (true);
 }
