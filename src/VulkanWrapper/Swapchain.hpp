@@ -161,7 +161,7 @@ public:
 
     virtual bool SupportsPresenting () const { return false; }
 
-    virtual void Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const override
+    virtual void Present (VkQueue, uint32_t, const std::vector<VkSemaphore>&) const override
     {
         throw std::runtime_error ("fake swapchain cannot present");
     }

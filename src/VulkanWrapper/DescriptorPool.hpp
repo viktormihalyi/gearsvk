@@ -35,7 +35,6 @@ public:
         poolInfo.pPoolSizes                 = poolSizes.data ();
         poolInfo.maxSets                    = maxSets;
 
-        VkDescriptorPool descriptorPool;
         if (ERROR (vkCreateDescriptorPool (device, &poolInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create descriptor pool");
         }

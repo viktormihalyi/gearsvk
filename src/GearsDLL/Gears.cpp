@@ -157,6 +157,7 @@ Sequence::P createSequence (std::string name)
 Sequence::P setSequence (Sequence::P sequence)
 {
     ::sequence = sequence;
+
     textureManager->clear ();
     shaderManager->clear ();
     kernelManager->clear ();

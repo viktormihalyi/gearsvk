@@ -30,23 +30,54 @@ int main (int argc, char** argv)
 using namespace RG;
 
 
-TEST_F (HeadlessGoogleTestEnvironment, TestEnvironmentTest)
+TEST_F (EmptyTestEnvironment, UniformBlockTest)
 {
     using namespace ST;
 
-    UniformBlock b ({
-        {"asd", vec1},
-        {"4635", mat4},
-        {"fd", vec4},
-        {"f4", vec3},
-        {"865", vec4Array<3>},
-        {"23", vec1Array<6>},
-    });
+    {
+        UniformBlock b ({
+            {"f", ST::vec1},
+            {"m", ST::mat4},
+        });
+        EXPECT_EQ (80, b.GetSize ());
+        EXPECT_EQ (0, b.GetOffset ("f"));
+        EXPECT_EQ (16, b.GetOffset ("m"));
+    }
 
-    ASSERT (b.GetOffset ("4635") == 16);
+    {
+        UniformBlock b ({
+            {"m", ST::mat4},
+            {"f", ST::vec1},
+        });
+        EXPECT_EQ (68, b.GetSize ());
+        EXPECT_EQ (64, b.GetOffset ("f"));
+        EXPECT_EQ (0, b.GetOffset ("m"));
+    }
 
-    glm::vec4& vvvv = b.GetRef<glm::vec4> ("fd");
-    vvvv            = glm::vec4 (1.f);
+    {
+        UniformBlock b ({
+            {"f", ST::vec1},
+            {"m", ST::mat4},
+            {"f2", ST::vec1},
+        });
+        EXPECT_EQ (80, b.GetOffset ("f2"));
+    }
+
+    {
+        UniformBlock b ({
+            {"asd", vec1},
+            {"4635", mat4},
+            {"fd", vec4},
+            {"f4", vec3},
+            {"865", vec4Array<3>},
+            {"23", vec1Array<6>},
+        });
+
+        ASSERT (b.GetOffset ("4635") == 16);
+
+        glm::vec4& vvvv = b.GetRef<glm::vec4> ("fd");
+        vvvv            = glm::vec4 (1.f);
+    }
 
     EXPECT_TRUE (true);
 }
@@ -458,7 +489,7 @@ void main () {
         float     asd;
     };
 
-    VertexBufferTransferable<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
+    VertexBufferTransferable<Vert> vbb (device, graphicsQueue, commandPool, 4, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float});
     vbb = std::vector<Vert> {
         {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
         {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
@@ -554,7 +585,7 @@ void main () {
         float     asd;
     };
 
-    VertexBufferTransferable<Vert> vbb (device, graphicsQueue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, 4);
+    VertexBufferTransferable<Vert> vbb (device, graphicsQueue, commandPool, 4, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float});
     vbb = std::vector<Vert> {
         {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
         {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
@@ -577,10 +608,13 @@ void main () {
 
     graph.Compile (s);
 
-    BlockingGraphRenderer renderer (graph, swapchain, [&] (uint32_t frameIndex) {
+    BlockingGraphRenderer renderer (graph, swapchain);
+
+    renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t) {
         float time = 0.5f;
         unif.GetMapping (frameIndex).Copy (time);
-    });
+    };
+
     window->DoEventLoop (renderer.GetCountLimitedDrawCallback (10));
 
     CompareImages ("uvoffset", *presentedCopy.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);

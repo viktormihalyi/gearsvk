@@ -22,6 +22,8 @@
 #include "DeviceExtra.hpp"
 #include "ShaderReflection.hpp"
 
+#include "CameraControl.hpp"
+
 #include <array>
 #include <cstdint>
 #include <iostream>
@@ -37,54 +39,14 @@
 #include <thread>
 
 #include <vulkan/vulkan.h>
-class CallEvery {
-private:
-    std::atomic<bool>      stop;
-    std::function<void ()> callback;
-    std::thread            timerThread;
-    const int32_t          waitNs;
-    uint32_t               lastDiff;
 
-    void ThreadFunc ()
-    {
-        callback ();
 
-        // auto start = std::chrono::high_resolution_clock::now ();
-
-        std::this_thread::sleep_for (std::chrono::nanoseconds (waitNs));
-
-        // auto                                     end     = std::chrono::high_resolution_clock::now ();
-        // std::chrono::duration<double, std::nano> elapsed = end - start;
-        // const int32_t waitedNs   = elapsed.count ();
-        // const int32_t waitedDiff = std::abs (waitedNs - waitNs);
-        // std::cout << "Waited " << waitedNs << " ns instead of " << waitNs << " ns (diff is " << ((elapsed.count () - waitNs) * 1e6) << " ms)" << std::endl;
-        // std::cout << "percent: " << static_cast<double> (waitNs + waitedDiff) / waitNs << " more" << std::endl;
-
-        if (!stop) {
-            ThreadFunc ();
-        }
-    }
-
-public:
-    CallEvery (double waitInSeconds, std::function<void ()> callback)
-        : callback (callback)
-        , waitNs (waitInSeconds * 1e9)
-        , lastDiff (0)
-        , timerThread (std::bind (&CallEvery::ThreadFunc, this))
-        , stop (false)
-    {
-    }
-
-    ~CallEvery ()
-    {
-        stop = true;
-        timerThread.join ();
-    }
-};
-
-int main (int argc, char* argv[])
+int main (int, char**)
 {
     Window::U window = GLFWWindow::Create ();
+
+    KeyboardState keyboard;
+    MouseState    mouse;
 
     window->events.focused += [] () {
         std::cout << "window focused" << std::endl;
@@ -93,6 +55,14 @@ int main (int argc, char* argv[])
     window->events.resized += [] (uint32_t width, uint32_t height) {
         std::cout << "window resized to " << width << " x " << height << std::endl;
     };
+
+    window->events.leftMouseButtonPressed += [&] (auto...) {
+        mouse.leftButton = true;
+    };
+    window->events.leftMouseButtonReleased += [&] (auto...) {
+        mouse.leftButton = false;
+    };
+
 
     VulkanEnvironment::U testenv = VulkanEnvironment::CreateForBuildType (*window);
 
@@ -103,70 +73,55 @@ int main (int argc, char* argv[])
 
     DeviceExtra d {device, commandPool, graphicsQueue};
 
-    using namespace RG;
 
     Camera c (glm::vec3 (0, 0, 0.5), glm::vec3 (0, 0, -1), window->GetAspectRatio ());
 
-    constexpr uint32_t             MAX_KEYCOUNT = 1024;
-    std::array<bool, MAX_KEYCOUNT> pressedKeys;
-    pressedKeys.fill (false);
-
-    window->events.keyPressed += [&] (uint32_t keyCode) {
-        if (ASSERT (keyCode < MAX_KEYCOUNT)) {
-            pressedKeys[keyCode] = true;
-        }
+    CameraControl::Settings cameraControlSettings {
+        window->events.keyPressed,
+        window->events.keyReleased,
+        window->events.leftMouseButtonPressed,
+        window->events.leftMouseButtonReleased,
+        window->events.mouseMove,
     };
 
-    window->events.keyReleased += [&] (uint32_t keyCode) {
-        if (ASSERT (keyCode < MAX_KEYCOUNT)) {
-            pressedKeys[keyCode] = false;
-        }
-    };
+    CameraControl cameraControl (c, cameraControlSettings);
 
-    c.positionChanged += [] (glm::vec3 pos) {
-        // TODO why is this called every time
-        //std::cout << "camera moved" << std::endl;
-    };
 
-    bool mouseDown = false;
-
-    window->events.leftMouseButtonPressed += [&] (auto...) {
-        mouseDown = true;
-    };
-    window->events.leftMouseButtonReleased += [&] (auto...) {
-        mouseDown = false;
-    };
-
-    window->events.mouseMove += [&] (uint32_t x, uint32_t y) {
-        static glm::vec2 lastPos (x, y);
-        glm::vec2        currentPos (x, y);
-        if (mouseDown) {
-            c.ProcessMouseInput (lastPos - currentPos);
-        }
-        lastPos = currentPos;
-    };
-
+    using namespace RG;
 
     RenderGraph graph (device, commandPool);
 
+    class : public ShaderSourceBuilder {
+    public:
+        virtual std::string GetProvidedShaderSource () const override
+        {
+            return R"(#version 450
+#extension GL_ARB_separate_shader_objects : enable
+)";
+        }
+    } versionBuilder;
+
+
+    UniformBlock Time (0, "Time", "time", {
+                                              {"time", ST::vec1},
+                                              {"VP", ST::mat4},
+                                          });
+
     FullscreenQuad::P fq = FullscreenQuad::CreateShared (device, graphicsQueue, commandPool);
 
+    std::vector<const ShaderSourceBuilder*> builders;
+    builders.push_back (&versionBuilder);
+    builders.push_back (&Time);
+    for (auto& a : fq->GetShaderBuilders ()) {
+        builders.push_back (a);
+    }
+
+
     ShaderPipeline::P sp = ShaderPipeline::CreateShared (device);
-    sp->SetVertexShader (R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout (std140, binding = 0) uniform Time {
-    float time;
-    mat4 VP;
-} time;
-
-layout (location = 0) in vec2 position;
-layout (location = 1) in vec2 uv;
+    sp->SetProvidedShader (ShaderModule::ShaderKind::Vertex, builders, R"(
 
 layout (location = 0) out vec2 textureCoords;
 layout (location = 1) out float asdout;
-
 
 void main ()
 {
@@ -198,10 +153,12 @@ void main ()
 }
     )");
 
-    UniformBlock Time ({
-        {"time", ST::vec1},
-        {"VP", ST::mat4},
-    });
+    auto asddd = fq->GetShaderBuilders ();
+
+
+    std::string s2354 = Time.GetProvidedShaderSource ();
+    std::string s2355 = asddd[0]->GetProvidedShaderSource ();
+
     struct {
         glm::mat4& VP;
         float&     time;
@@ -214,15 +171,6 @@ void main ()
     SwapchainImageResource& presented     = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
     ImageResource&          presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
     UniformBlockResource&   unif          = graph.CreateResourceTyped<UniformBlockResource> (Time.GetSize ());
-
-    //struct UniformResourceBinding {
-    //    std::map<std::string, UniformBlockResource::Ref> uniformNameMapping;
-
-    //    void Register (std::string name, UniformBlockResource::U& uniformBlock)
-    //    {
-    //        uniformNameMapping[name] = *uniformBlock;
-    //    }
-    //};
 
     Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (fq, sp);
 
@@ -237,54 +185,36 @@ void main ()
 
     TimeV.VP = glm::mat4 (1.f);
 
-    SynchronizedSwapchainGraphRenderer swapchainSync (graph, swapchain, [&] (uint32_t frameIndex) {
-        TimePoint currentTime = TimePoint::SinceApplicationStart ();
 
-        constexpr float dt = 1 / 60.f;
-        if (pressedKeys['W']) {
-            c.Move (Camera::MovementDirection::Forward, dt);
-        }
-        if (pressedKeys['A']) {
-            c.Move (Camera::MovementDirection::Left, dt);
-        }
-        if (pressedKeys['S']) {
-            c.Move (Camera::MovementDirection::Backward, dt);
-        }
-        if (pressedKeys['D']) {
-            c.Move (Camera::MovementDirection::Right, dt);
-        }
-        if (pressedKeys['E']) {
-            c.Move (Camera::MovementDirection::Down, dt);
-        }
-        if (pressedKeys['Q']) {
-            c.Move (Camera::MovementDirection::Up, dt);
-        }
+    SynchronizedSwapchainGraphRenderer renderer (graph, swapchain);
 
-        TimeV.VP = c.GetViewProjectionMatrix ();
-        //t.VP = glm::mat4 (1.0);
-        //t.VP = frustum.GetMatrix () * v;
+    renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
+        TimePoint delta (deltaNs);
 
-        TimeV.time = currentTime.AsSeconds ();
+        const float dt = delta.AsSeconds ();
+        std::cout << dt << std::endl;
+
+        cameraControl.UpdatePosition (dt);
+
+        TimeV.VP   = c.GetViewProjectionMatrix ();
+        TimeV.time = TimePoint::SinceApplicationStart ().AsSeconds ();
 
         unif.GetMapping (frameIndex).Copy (Time.GetData (), Time.GetSize (), 0);
-    });
-
+    };
 
     bool quit = false;
 
     constexpr uint8_t ESC_CODE = 27;
 
-    auto a = Event<uint32_t>::CreateCallback ([&] (uint32_t a) {
+    window->events.keyPressed += [&] (uint32_t a) {
         if (a == ESC_CODE) {
-            window->ToggleFullscreen ();
-            //quit = false;
+            // window->ToggleFullscreen ();
+            quit = false;
         }
         return;
-    });
+    };
 
-    window->events.keyPressed += a;
-
-    window->DoEventLoop (swapchainSync.GetInfiniteDrawCallback ([&] { return quit; }));
+    window->DoEventLoop (renderer.GetInfiniteDrawCallback ([&] { return quit; }));
 
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);

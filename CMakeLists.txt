@@ -58,7 +58,7 @@ set (COMMON_SOURCE_FILES
     src/GearsVk/Window/GLFWWindow.cpp
     src/GearsVk/Window/SDLWindow.cpp
     src/GearsVk/ShaderReflection.cpp
-    src/GearsVk/VulkanEnvironment.cpp)
+    src/GearsVk/VulkanEnvironment.cpp "src/Utils/Time.cpp")
 
 add_executable (${TARGET_NAME}
     ${COMMON_SOURCE_FILES}
@@ -164,7 +164,7 @@ target_link_libraries (${TARGET_TEST_NAME} ${COMMON_LINKS} gtest)
 target_link_libraries (${TARGET_DLL_NAME} ${COMMON_LINKS} ${Python3_LIBRARIES_RELEASE})
 
 if (MSVC)
-  set (GEARS_MSVC_FLAGS /MDd)
+  set (GEARS_MSVC_FLAGS /MDd /W4)
   target_compile_options(${TARGET_NAME} PRIVATE ${GEARS_MSVC_FLAGS})
   target_compile_options(${TARGET_TEST_NAME} PRIVATE ${GEARS_MSVC_FLAGS})
   target_compile_options(${TARGET_DLL_NAME} PRIVATE ${GEARS_MSVC_FLAGS})

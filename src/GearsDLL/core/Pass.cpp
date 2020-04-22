@@ -463,3 +463,9 @@ std::string Pass::getStimulusGeneratorGeometryShaderSource (Pass::RasterizationM
     } else
         return "";
 }
+
+
+void Pass::setStimulusGeneratorShaderSource (const std::string& src)
+{
+    stimulusGeneratorShaderSource = src;
+}

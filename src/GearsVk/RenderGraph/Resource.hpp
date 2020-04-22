@@ -126,9 +126,9 @@ public:
     virtual ~SwapchainImageResource () {}
 
     virtual VkDescriptorType GetDescriptorType () const override { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; }
-    virtual void             WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override {}
-    virtual void             BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
-    virtual void             BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
+    virtual void             WriteToDescriptorSet (uint32_t, const DescriptorSet&, uint32_t) const override {}
+    virtual void             BindRead (uint32_t, VkCommandBuffer) override {}
+    virtual void             BindWrite (uint32_t, VkCommandBuffer) override {}
 
     virtual void Compile (const GraphSettings& graphSettings) override
     {
@@ -157,12 +157,12 @@ public:
 public:
     USING_PTR (UniformBlockResource);
 
-    UniformBlockResource (size_t size)
+    UniformBlockResource (uint32_t size)
         : size (size)
     {
     }
 
-    UniformBlockResource (const std::vector<VkFormat>& types)
+    UniformBlockResource (const std::vector<VkFormat>&)
         : UniformBlockResource (0)
     {
         throw std::runtime_error ("TODO");
@@ -182,8 +182,8 @@ public:
     }
 
 
-    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
-    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override {}
+    virtual void BindRead (uint32_t, VkCommandBuffer) override {}
+    virtual void BindWrite (uint32_t, VkCommandBuffer) override {}
 
     virtual void Compile (const GraphSettings& graphSettings) override
     {

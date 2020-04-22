@@ -86,7 +86,7 @@ private:
         VkInstanceCreateInfo createInfo    = {};
         createInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo        = &appInfo;
-        createInfo.enabledExtensionCount   = instanceExtensions.size ();
+        createInfo.enabledExtensionCount   = static_cast<uint32_t> (instanceExtensions.size ());
         createInfo.ppEnabledExtensionNames = instanceExtensions.data ();
         createInfo.enabledLayerCount       = static_cast<uint32_t> (instanceLayers.size ());
         createInfo.ppEnabledLayerNames     = instanceLayers.data ();

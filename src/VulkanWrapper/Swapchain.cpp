@@ -180,7 +180,7 @@ void RealSwapchain::Present (VkQueue queue, uint32_t imageIndex, const std::vect
 {
     VkPresentInfoKHR presentInfo   = {};
     presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = waitSemaphores.size ();
+    presentInfo.waitSemaphoreCount = static_cast<uint32_t> (waitSemaphores.size ());
     presentInfo.pWaitSemaphores    = waitSemaphores.data ();
     presentInfo.swapchainCount     = 1;
     presentInfo.pSwapchains        = &createResult.handle;

@@ -51,7 +51,7 @@ public:
 
         VkDeviceCreateInfo createInfo      = {};
         createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.queueCreateInfoCount    = queueCreateInfos.size ();
+        createInfo.queueCreateInfoCount    = static_cast<uint32_t> (queueCreateInfos.size ());
         createInfo.pQueueCreateInfos       = queueCreateInfos.data ();
         createInfo.pEnabledFeatures        = &deviceFeatures;
         createInfo.enabledExtensionCount   = static_cast<uint32_t> (requestedDeviceExtensions.size ());
@@ -94,7 +94,7 @@ public:
         return {static_cast<uint32_t> (memRequirements.size), FindMemoryType (memRequirements.memoryTypeBits, propertyFlags)};
     }
 
-    void Wait () const 
+    void Wait () const
     {
         vkDeviceWaitIdle (handle);
     }

@@ -142,18 +142,18 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
         glfwGetCursorPos (window, &x, &y);
 
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-            self->events.leftMouseButtonPressed (x, y);
+            self->events.leftMouseButtonPressed (static_cast<uint32_t> (x), static_cast<uint32_t> (y));
         } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
-            self->events.leftMouseButtonReleased (x, y);
+            self->events.leftMouseButtonReleased (static_cast<uint32_t> (x), static_cast<uint32_t> (y));
         } else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-            self->events.rightMouseButtonPressed (x, y);
+            self->events.rightMouseButtonPressed (static_cast<uint32_t> (x), static_cast<uint32_t> (y));
         } else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
-            self->events.rightMouseButtonReleased (x, y);
+            self->events.rightMouseButtonReleased (static_cast<uint32_t> (x), static_cast<uint32_t> (y));
         }
     });
 
 
-    glfwSetScrollCallback (glfwWindow, [] (GLFWwindow* window, double xoffset, double yoffset) {
+    glfwSetScrollCallback (glfwWindow, [] (GLFWwindow* window, double /* xoffset */, double yoffset) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         self->events.scroll (yoffset);

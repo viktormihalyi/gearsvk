@@ -22,10 +22,10 @@ public:
     USING_PTR (FullscreenQuad);
 
     FullscreenQuad (const Device& device, VkQueue queue, VkCommandPool commandPool)
-        : vertexBuffer (device, queue, commandPool, {ShaderTypes::Vec2f, ShaderTypes::Vec2f}, 4)
+        : vertexBuffer (device, queue, commandPool, 4, {{ShaderTypes::Vec2f}, {ShaderTypes::Vec2f}}, std::vector<std::string> {"position", "uv"})
         , indexBuffer (device, queue, commandPool, 6)
     {
-        vertexBuffer = {
+        vertexBuffer = std::vector<Vertex> {
             {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f)},
             {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f)},
             {glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f)},
@@ -38,6 +38,11 @@ public:
         indexBuffer.Flush ();
 
         info = DrawRecordableInfo::Create (1, vertexBuffer, indexBuffer);
+    }
+
+    std::vector<const ShaderSourceBuilder*> GetShaderBuilders ()
+    {
+        return {&vertexBuffer.info};
     }
 
 private:

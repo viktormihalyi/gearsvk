@@ -3,6 +3,7 @@
 
 #ifdef _WIN32
 
+#define NOMINMAX
 #include <windows.h>
 
 uint Gears::Event::MouseMove::typeId (WM_MOUSEMOVE);

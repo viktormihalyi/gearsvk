@@ -1,8 +1,10 @@
 #ifndef GRAPHRENDERER_HPP
 #define GRAPHRENDERER_HPP
 
+#include "Event.hpp"
 #include "RenderGraph.hpp"
 #include "Swapchain.hpp"
+#include "Time.hpp"
 #include "Window.hpp"
 
 
@@ -11,6 +13,10 @@ namespace RG {
 
 struct GraphRenderer {
 public:
+    Event<uint32_t, uint64_t> preSubmitEvent;
+
+    virtual ~GraphRenderer () = default;
+
     virtual void RenderNextFrame () = 0;
 
     Window::DrawCallback GetInfiniteDrawCallback ();
@@ -23,15 +29,13 @@ public:
 
 class BlockingGraphRenderer : public GraphRenderer {
 private:
-    RenderGraph&                              graph;
-    Swapchain&                                swapchain;
-    std::function<void (uint32_t frameIndex)> preSubmitCallback;
-    Semaphore                                 s;
+    RenderGraph& graph;
+    Swapchain&   swapchain;
+    Semaphore    s;
+    TimePoint    lastDrawTime;
 
 public:
-    BlockingGraphRenderer (RenderGraph&                                     graph,
-                           Swapchain&                                       swapchain,
-                           const std::function<void (uint32_t frameIndex)>& preSubmitCallback = nullptr);
+    BlockingGraphRenderer (RenderGraph& graph, Swapchain& swapchain);
 
     void RenderNextFrame () override;
 };
@@ -51,14 +55,12 @@ private:
     // size is imageCount
     std::vector<uint32_t> imageToFrameMapping;
 
-    RenderGraph&                              graph;
-    Swapchain&                                swapchain;
-    std::function<void (uint32_t frameIndex)> preSubmitCallback;
+    RenderGraph& graph;
+    Swapchain&   swapchain;
+    TimePoint    lastDrawTime;
 
 public:
-    SynchronizedSwapchainGraphRenderer (RenderGraph&                                     graph,
-                                        Swapchain&                                       swapchain,
-                                        const std::function<void (uint32_t frameIndex)>& preSubmitCallback);
+    SynchronizedSwapchainGraphRenderer (RenderGraph& graph, Swapchain& swapchain);
 
     void RenderNextFrame () override;
 

@@ -175,15 +175,15 @@ private:
         void BeginAll ()
         {
             for (auto& h : c)
-                for (auto& c : h.commandBuffers)
-                    c->Begin ();
+                for (auto& cmd : h.commandBuffers)
+                    cmd->Begin ();
         }
 
         void EndAll ()
         {
             for (auto& h : c)
-                for (auto& c : h.commandBuffers)
-                    c->End ();
+                for (auto& cmd : h.commandBuffers)
+                    cmd->End ();
         }
 
         void Clear ()

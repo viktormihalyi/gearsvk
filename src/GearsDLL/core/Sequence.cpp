@@ -34,9 +34,6 @@ void Sequence::addResponse (Response::P response)
     }
 }
 
-#undef min
-#undef max
-
 void Sequence::addStimulus (Stimulus::P stimulus)
 {
     stimulus->setSequence (getSharedPtr ());

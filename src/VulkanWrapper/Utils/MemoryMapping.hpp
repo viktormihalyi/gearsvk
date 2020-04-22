@@ -15,15 +15,15 @@ private:
     const VkDevice       device;
     const VkDeviceMemory memory;
 
-    const uint32_t offset;
-    const uint32_t size;
+    const size_t offset;
+    const size_t size;
 
     void* mappedMemory;
 
 public:
     USING_PTR (MemoryMapping);
 
-    MemoryMapping (VkDevice device, VkDeviceMemory memory, uint32_t offset, uint32_t size)
+    MemoryMapping (VkDevice device, VkDeviceMemory memory, size_t offset, size_t size)
         : device (device)
         , memory (memory)
         , offset (offset)
@@ -49,7 +49,7 @@ public:
     template<typename T>
     void Copy (const std::vector<T>& obj) const
     {
-        const uint32_t copiedObjSize = sizeof (T);
+        const size_t copiedObjSize = sizeof (T);
         ASSERT (copiedObjSize * obj.size () == size);
         memcpy (mappedMemory, obj.data (), size);
     }
@@ -57,18 +57,18 @@ public:
     template<typename T>
     void Copy (const T& obj) const
     {
-        const uint32_t copiedObjSize = sizeof (T);
+        const size_t copiedObjSize = sizeof (T);
         ASSERT (copiedObjSize == size);
         memcpy (mappedMemory, &obj, size);
     }
 
-    void Copy (const void* data, uint32_t size, uint32_t offset) const
+    void Copy (const void* data, size_t copiedSize, size_t copiedOffset) const
     {
-        if (ERROR (size + offset > size)) {
+        if (ERROR (copiedSize + copiedOffset > size)) {
             throw std::runtime_error ("overflow");
         }
 
-        memcpy (mappedMemory, reinterpret_cast<const uint8_t*> (data) + offset, size);
+        memcpy (mappedMemory, reinterpret_cast<const uint8_t*> (data) + copiedOffset, copiedSize);
     }
 
     void* Get () const { return mappedMemory; }

@@ -7,6 +7,7 @@
 #include "event/Base.h"
 
 #if defined(_WIN32)
+#define NOMINMAX
 #include <windows.h>
 #endif
 

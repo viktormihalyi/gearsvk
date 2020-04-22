@@ -6,23 +6,24 @@
 
 #include "event/Base.h"
 #if defined(_WIN32)
-#	include <windowsx.h>
+#define NOMINMAX
+#include <windowsx.h>
 #endif
 
 namespace Gears {
-	namespace Event {
+namespace Event {
 
-		class StimulusStart : public Base
-		{
-			StimulusStart()
-				:Base(WM_USER, 0, 0)
-			{
-			}
-		public:
-			GEARS_SHARED_CREATE_WITH_GETSHAREDPTR(StimulusStart);
+class StimulusStart : public Base {
+    StimulusStart ()
+        : Base (WM_USER, 0, 0)
+    {
+    }
 
-			static uint typeId;
-		};
+public:
+    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (StimulusStart);
 
-	}
-}
+    static uint typeId;
+};
+
+} // namespace Event
+} // namespace Gears

@@ -35,11 +35,8 @@ Window::DrawCallback GraphRenderer::GetCountLimitedDrawCallback (uint64_t limit)
 }
 
 
-BlockingGraphRenderer::BlockingGraphRenderer (RenderGraph&                                     graph,
-                                              Swapchain&                                       swapchain,
-                                              const std::function<void (uint32_t frameIndex)>& preSubmitCallback)
-    : preSubmitCallback (preSubmitCallback)
-    , graph (graph)
+BlockingGraphRenderer::BlockingGraphRenderer (RenderGraph& graph, Swapchain& swapchain)
+    : graph (graph)
     , swapchain (swapchain)
     , s (graph.GetGraphSettings ().GetDevice ())
 {
@@ -50,8 +47,10 @@ void BlockingGraphRenderer::RenderNextFrame ()
 {
     const uint32_t currentImageIndex = swapchain.GetNextImageIndex (s);
 
-    if (preSubmitCallback != nullptr) {
-        preSubmitCallback (currentImageIndex);
+    {
+        const TimePoint currentTime = TimePoint::SinceApplicationStart ();
+        preSubmitEvent (currentImageIndex, currentTime - lastDrawTime);
+        lastDrawTime = currentTime;
     }
 
     graph.Submit (currentImageIndex);
@@ -66,13 +65,10 @@ void BlockingGraphRenderer::RenderNextFrame ()
 }
 
 
-SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (RenderGraph&                                     graph,
-                                                                        Swapchain&                                       swapchain,
-                                                                        const std::function<void (uint32_t frameIndex)>& preSubmitCallback)
+SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (RenderGraph& graph, Swapchain& swapchain)
     : framesInFlight (graph.GetGraphSettings ().framesInFlight)
     , imageCount (swapchain.GetImageCount ())
     , currentFrameIndex (0)
-    , preSubmitCallback (preSubmitCallback)
     , graph (graph)
     , swapchain (swapchain)
 {
@@ -133,8 +129,10 @@ void SynchronizedSwapchainGraphRenderer::RenderNextFrame ()
 
     inFlightFences[currentFrameIndex]->Reset ();
 
-    if (preSubmitCallback != nullptr) {
-        preSubmitCallback (currentFrameIndex);
+    {
+        const TimePoint currentTime = TimePoint::SinceApplicationStart ();
+        preSubmitEvent (currentFrameIndex, currentTime - lastDrawTime);
+        lastDrawTime = currentTime;
     }
 
     graph.Submit (currentFrameIndex, submitWaitSemaphores, submitSignalSemaphores, *inFlightFences[currentFrameIndex]);

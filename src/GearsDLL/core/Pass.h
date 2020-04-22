@@ -138,10 +138,7 @@ public:
 
     void saveConfig (const std::string& expName);
 
-    void setStimulusGeneratorShaderSource (const std::string& src)
-    {
-        stimulusGeneratorShaderSource = src;
-    }
+    void setStimulusGeneratorShaderSource (const std::string& src);
 
     void setDuration (unsigned int duration) { this->duration = duration; }
     uint getDuration () const { return duration; }

@@ -7,6 +7,7 @@
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 
+
 static void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
                                VkDebugUtilsMessageTypeFlagsEXT             messageType,
                                const VkDebugUtilsMessengerCallbackDataEXT* callbackData)

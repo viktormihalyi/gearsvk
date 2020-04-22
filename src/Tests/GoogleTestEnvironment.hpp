@@ -16,6 +16,11 @@ static void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      mess
     FAIL ();
 }
 
+class EmptyTestEnvironment : public ::testing::Test {
+protected:
+    virtual void SetUp () {}
+    virtual void TearDown () {}
+};
 
 class GoogleTestEnvironment : public ::testing::Test {
 protected:

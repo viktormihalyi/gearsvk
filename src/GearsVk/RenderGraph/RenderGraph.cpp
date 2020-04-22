@@ -156,12 +156,12 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
 
     VkSubmitInfo result         = {};
     result.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    result.waitSemaphoreCount   = waitSemaphores.size ();
+    result.waitSemaphoreCount   = static_cast<uint32_t> (waitSemaphores.size ());
     result.pWaitSemaphores      = waitSemaphores.data ();
     result.pWaitDstStageMask    = waitDstStageMasks.data ();
-    result.commandBufferCount   = cmdHdl.size ();
+    result.commandBufferCount   = static_cast<uint32_t> (cmdHdl.size ());
     result.pCommandBuffers      = cmdHdl.data ();
-    result.signalSemaphoreCount = signalSemaphores.size ();
+    result.signalSemaphoreCount = static_cast<uint32_t> (signalSemaphores.size ());
     result.pSignalSemaphores    = signalSemaphores.data ();
 
     vkQueueSubmit (compileSettings.queue, 1, &result, fenceToSignal);

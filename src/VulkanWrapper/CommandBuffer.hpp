@@ -77,9 +77,9 @@ public:
             srcStageMask,
             dstStageMask,
             0, // TODO
-            memoryBarriers.size (), memoryBarriers.data (),
-            bufferMemoryBarriers.size (), bufferMemoryBarriers.data (),
-            imageMemoryBarriers.size (), imageMemoryBarriers.data ());
+            static_cast<uint32_t> (memoryBarriers.size ()), memoryBarriers.data (),
+            static_cast<uint32_t> (bufferMemoryBarriers.size ()), bufferMemoryBarriers.data (),
+            static_cast<uint32_t> (imageMemoryBarriers.size ()), imageMemoryBarriers.data ());
     }
 
     operator VkCommandBuffer () const

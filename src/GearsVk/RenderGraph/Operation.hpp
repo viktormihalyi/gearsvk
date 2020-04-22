@@ -35,10 +35,6 @@ struct Operation : public Noncopyable {
     std::vector<VkImageView>             GetOutputImageViews (uint32_t frameIndex) const;
 };
 
-enum class Compile {
-    Full,
-    SwapchainRecreate,
-};
 
 struct RenderOperation final : public Operation {
     USING_PTR (RenderOperation);

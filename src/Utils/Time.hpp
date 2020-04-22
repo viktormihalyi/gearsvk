@@ -1,5 +1,5 @@
-#ifndef TIME_HPP
-#define TIME_HPP
+#ifndef TIMEPOINT_HPP
+#define TIMEPOINT_HPP
 
 #include <chrono>
 
@@ -8,17 +8,19 @@ public:
     using Precision = std::chrono::nanoseconds;
     using Clock     = std::chrono::high_resolution_clock;
 
-    const uint64_t nanoseconds;
+private:
+    uint64_t nanoseconds;
 
-    TimePoint (uint64_t nanoseconds)
+public:
+    TimePoint (uint64_t nanoseconds = 0)
         : nanoseconds (nanoseconds)
     {
     }
 
-    double AsSeconds () const { return nanoseconds * 1.0e-9; }
-    double AsMilliseconds () const { return nanoseconds * 1.0e-6; }
-    double AsMicroseconds () const { return nanoseconds * 1.0e-3; }
-    double AsNanoseconds () const { return nanoseconds; }
+    double AsSeconds () const { return static_cast<double> (nanoseconds * 1.0e-9); }
+    double AsMilliseconds () const { return static_cast<double> (nanoseconds * 1.0e-6); }
+    double AsMicroseconds () const { return static_cast<double> (nanoseconds * 1.0e-3); }
+    double AsNanoseconds () const { return static_cast<double> (nanoseconds); }
 
     operator uint64_t () const { return nanoseconds; }
 
@@ -32,11 +34,8 @@ public:
         return std::chrono::duration_cast<Precision> (Clock::now () - ApplicationStartTime).count ();
     }
 
-private:
-    static const std::chrono::time_point<Clock> ApplicationStartTime;
+    static const std::chrono::time_point<TimePoint::Clock> TimePoint::ApplicationStartTime;
 };
-
-const std::chrono::time_point<TimePoint::Clock> TimePoint::ApplicationStartTime (TimePoint::Clock::now ());
 
 
 #endif

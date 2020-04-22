@@ -29,7 +29,7 @@ class UniformBlock {
         uint32_t offset = 0;
         for (auto s : types) {
             variables.emplace_back (s, offset);
-            offset += std::ceil (s.size / s.alignment) * s.alignment;
+            offset += static_cast<uint32_t> (std::ceil (s.size / s.alignment)) * s.alignment;
         }
     }
 };
@@ -57,8 +57,9 @@ static uint32_t GetAlignedBlockSize (const std::vector<VkFormat>& formats)
 }
 
 
-VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats)
+VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats, const std::optional<std::vector<std::string>>& attributeNames)
     : size (0)
+    , attributeNames (attributeNames)
 {
     uint32_t location = 0;
     size              = 0;
@@ -87,4 +88,36 @@ VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormat
     bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     bindings = {bindingDescription};
+}
+
+
+static std::string VkFormatToGLSLTypeString (VkFormat format)
+{
+    switch (format) {
+        case VK_FORMAT_R32_SFLOAT: return "float";
+        case VK_FORMAT_R32G32_SFLOAT: return "vec2";
+        case VK_FORMAT_R32G32B32_SFLOAT: return "vec3";
+        case VK_FORMAT_R32G32B32A32_SFLOAT: return "vec4";
+
+        default:
+            ASSERT (true);
+            return "vec4";
+    }
+}
+
+
+std::string VertexInputInfo::GetProvidedShaderSource () const
+{
+    if (ERROR (!attributeNames.has_value ())) {
+        return "";
+    }
+    if (ERROR (attributeNames->size () != attributes.size ())) {
+        return "";
+    }
+
+    std::string result;
+    for (uint32_t i = 0; i < attributes.size (); ++i) {
+        result += "layout (location = " + std::to_string (attributes[i].location) + ") in " + VkFormatToGLSLTypeString (attributes[i].format) + " " + attributeNames->at (i) + ";\n";
+    }
+    return result;
 }

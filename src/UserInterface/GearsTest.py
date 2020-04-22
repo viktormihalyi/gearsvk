@@ -38,10 +38,7 @@ try:
 
     print("StartRendering")
     gears.StartRendering(lambda: False)
-    gears.StartRendering(lambda: False)
-    gears.StartRendering(lambda: False)
-    gears.StartRendering(lambda: False)
-    
+
     print("success")
 
 except Exception as e:

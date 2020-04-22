@@ -7,6 +7,7 @@
 #include "DeviceMemory.hpp"
 #include "Image.hpp"
 #include "MemoryMapping.hpp"
+#include "ShaderSourceBuilder.hpp"
 #include "SingleTimeCommand.hpp"
 #include "VulkanUtils.hpp"
 
@@ -38,7 +39,7 @@ public:
     {
     }
 
-    void CopyAndTransfer (const void* data, uint32_t size) const
+    void CopyAndTransfer (const void* data, size_t size) const
     {
         ASSERT (size == bufferSize);
         bufferCPUMapping.Copy (data, size, 0);
@@ -52,13 +53,16 @@ public:
 };
 
 
-class VertexInputInfo final {
+class VertexInputInfo final : public ShaderSourceBuilder {
 public:
     uint32_t                                       size;
     std::vector<VkVertexInputAttributeDescription> attributes;
     std::vector<VkVertexInputBindingDescription>   bindings;
+    std::optional<std::vector<std::string>>        attributeNames;
 
-    VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats);
+    VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats, const std::optional<std::vector<std::string>>& attributeNames = std::nullopt);
+
+    std::string GetProvidedShaderSource () const override;
 };
 
 
@@ -71,8 +75,9 @@ public:
 
     USING_PTR (VertexBufferTransferableUntyped);
 
-    VertexBufferTransferableUntyped (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t vertexSize, const std::vector<VkFormat>& vertexInputFormats, uint32_t maxVertexCount)
-        : info (vertexInputFormats)
+    VertexBufferTransferableUntyped (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t vertexSize, uint32_t maxVertexCount, const std::vector<VkFormat>& vertexInputFormats,
+                                     const std::optional<std::vector<std::string>>& attributeNames = std::nullopt)
+        : info (vertexInputFormats, attributeNames)
         , buffer (device, queue, commandPool, info.size * maxVertexCount, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
         , vertexSize (vertexSize)
     {
@@ -98,8 +103,11 @@ class VertexBufferTransferable : public VertexBufferTransferableUntyped {
 public:
     USING_PTR (VertexBufferTransferable);
 
-    VertexBufferTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, const std::vector<VkFormat>& vertexInputFormats, uint32_t maxVertexCount)
-        : VertexBufferTransferableUntyped (device, queue, commandPool, sizeof (VertexType), vertexInputFormats, maxVertexCount)
+    VertexBufferTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool,
+                              uint32_t                                       maxVertexCount,
+                              const std::vector<VkFormat>&                   vertexInputFormats,
+                              const std::optional<std::vector<std::string>>& attributeNames = std::nullopt)
+        : VertexBufferTransferableUntyped (device, queue, commandPool, sizeof (VertexType), maxVertexCount, vertexInputFormats, attributeNames)
     {
     }
 

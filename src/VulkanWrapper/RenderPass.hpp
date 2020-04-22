@@ -23,11 +23,11 @@ public:
     {
         VkRenderPassCreateInfo renderPassInfo = {};
         renderPassInfo.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassInfo.attachmentCount        = attachments.size ();
+        renderPassInfo.attachmentCount        = static_cast<uint32_t> (attachments.size ());
         renderPassInfo.pAttachments           = attachments.data ();
-        renderPassInfo.subpassCount           = subpasses.size ();
+        renderPassInfo.subpassCount           = static_cast<uint32_t> (subpasses.size ());
         renderPassInfo.pSubpasses             = subpasses.data ();
-        renderPassInfo.dependencyCount        = subpassDependencies.size ();
+        renderPassInfo.dependencyCount        = static_cast<uint32_t> (subpassDependencies.size ());
         renderPassInfo.pDependencies          = subpassDependencies.data ();
 
         if (ERROR (vkCreateRenderPass (device, &renderPassInfo, nullptr, &handle) != VK_SUCCESS)) {
