@@ -2,6 +2,7 @@
 #define INPUTSTATE_HPP
 
 #include "Assert.hpp"
+#include "Ptr.hpp"
 
 #include <array>
 
@@ -12,6 +13,8 @@ private:
     std::array<bool, KEYCOUNT> pressedKeys;
 
 public:
+    USING_PTR (KeyboardState);
+
     KeyboardState ()
     {
         pressedKeys.fill (false);

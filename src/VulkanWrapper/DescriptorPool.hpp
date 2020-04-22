@@ -21,9 +21,9 @@ public:
     {
         std::vector<VkDescriptorPoolSize> poolSizes = {};
         if (descriptorCountUbo > 0)
-            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCountUbo});
+            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCountUbo });
         if (descriptorCountSampler > 0)
-            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler});
+            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler });
 
         if (ERROR (poolSizes.empty ())) {
             throw std::runtime_error ("empty pool");

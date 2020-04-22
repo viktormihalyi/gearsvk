@@ -48,6 +48,8 @@ public:
         handle = VK_NULL_HANDLE;
     }
 
+    mutable std::vector<std::tuple<uint32_t, VkDescriptorType, VkWriteDescriptorSet>> writtenInfos;
+
     void WriteOneBufferInfo (uint32_t binding, VkDescriptorType descriptorType, const VkDescriptorBufferInfo& bufferInfo) const
     {
         VkWriteDescriptorSet descriptorWrite = {};
@@ -61,6 +63,8 @@ public:
         descriptorWrite.pImageInfo           = nullptr;
         descriptorWrite.pTexelBufferView     = nullptr;
         vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
+
+        writtenInfos.emplace_back (binding, descriptorType, descriptorWrite);
     }
 
 
@@ -77,6 +81,8 @@ public:
         descriptorWrite.pImageInfo           = &imageInfo;
         descriptorWrite.pTexelBufferView     = nullptr;
         vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
+
+        writtenInfos.emplace_back (binding, descriptorType, descriptorWrite);
     }
 
     operator VkDescriptorSet () const

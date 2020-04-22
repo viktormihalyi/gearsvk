@@ -110,6 +110,59 @@ public:
 };
 
 
+class ReadOnlyImageResource : public Resource {
+public:
+    ImageTransferable::U image;
+    ImageView::U         imageView;
+    Sampler::U           sampler;
+
+    const VkFormat format;
+    const uint32_t width;
+    const uint32_t height;
+
+public:
+    USING_PTR (ReadOnlyImageResource);
+
+    ReadOnlyImageResource (VkFormat format, uint32_t width, uint32_t height)
+        : format (format)
+        , width (width)
+        , height (height)
+    {
+    }
+
+    virtual ~ReadOnlyImageResource () {}
+
+    virtual VkDescriptorType GetDescriptorType () const override { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; }
+
+    virtual void WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override
+    {
+        ASSERT (image != nullptr);
+
+        descriptorSet.WriteOneImageInfo (
+            binding,
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            {*sampler, *imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL});
+    }
+
+    virtual void BindRead (uint32_t, VkCommandBuffer) override {}
+    virtual void BindWrite (uint32_t, VkCommandBuffer) override {}
+
+    virtual void Compile (const GraphSettings& settings)
+    {
+        image     = ImageTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
+        sampler   = Sampler::Create (settings.GetDevice ());
+        imageView = ImageView::Create (settings.GetDevice (), *image->imageGPU.image);
+
+        SingleTimeCommand s (settings.GetDevice (), settings.commandPool, settings.queue);
+        image->imageGPU.image->CmdPipelineBarrier (s, ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    }
+
+    virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; }
+    virtual VkFormat      GetFormat () const override { return format; }
+    virtual uint32_t      GetDescriptorCount () const override { return 1; }
+};
+
+
 class SwapchainImageResource : public Resource {
 public:
     VkFormat                  swapchainSurfaceFormat;

@@ -122,6 +122,33 @@ public:
     }
 
     operator VkImage () const { return handle; }
+
+    VkBufferImageCopy GetFullBufferImageCopy () const
+    {
+        VkBufferImageCopy result               = {};
+        result.bufferOffset                    = 0;
+        result.bufferRowLength                 = 0;
+        result.bufferImageHeight               = 0;
+        result.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        result.imageSubresource.mipLevel       = 0;
+        result.imageSubresource.baseArrayLayer = 0;
+        result.imageSubresource.layerCount     = arrayLayers;
+        result.imageOffset                     = {0, 0, 0};
+        result.imageExtent                     = {width, height, depth};
+        return result;
+    }
+
+    void CmdCopyBufferToImage (VkCommandBuffer commandBuffer, VkBuffer buffer) const
+    {
+        VkBufferImageCopy region = GetFullBufferImageCopy ();
+        vkCmdCopyBufferToImage (
+            commandBuffer,
+            buffer,
+            handle,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &region);
+    }
 };
 
 
@@ -135,10 +162,10 @@ public:
 };
 
 
-class Image : public ImageBase {
+class Image2D : public ImageBase {
 public:
-    USING_PTR (Image);
-    Image (VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
+    USING_PTR (Image2D);
+    Image2D (VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
         : ImageBase (device, VK_IMAGE_TYPE_2D, width, height, 1, format, tiling, usage, arrayLayers)
     {
     }

@@ -45,7 +45,7 @@ public:
         }
     }
 
-    ImageView (VkDevice device, const Image& image, uint32_t layerIndex)
+    ImageView (VkDevice device, const Image2D& image, uint32_t layerIndex = 0)
         : ImageView (device, image, image.GetFormat (), layerIndex)
     {
     }

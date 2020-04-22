@@ -41,7 +41,7 @@ struct OutputBinding {
         attachmentDescription.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
         attachmentDescription.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachmentDescription.initialLayout  = Image::INITIAL_LAYOUT;
+        attachmentDescription.initialLayout  = Image2D::INITIAL_LAYOUT;
         attachmentDescription.finalLayout    = finalLayout;
 
         attachmentReference.attachment = binding;

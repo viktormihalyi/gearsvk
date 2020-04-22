@@ -38,7 +38,7 @@ protected:
     virtual void SetUp ()    = 0;
     virtual void TearDown () = 0;
 
-    void CompareImages (const std::string& imageName, const Image& image, std::optional<VkImageLayout> transitionFrom = std::nullopt)
+    void CompareImages (const std::string& imageName, const Image2D& image, std::optional<VkImageLayout> transitionFrom = std::nullopt)
     {
         if (transitionFrom.has_value ()) {
             TransitionImageLayout (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, *transitionFrom, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);

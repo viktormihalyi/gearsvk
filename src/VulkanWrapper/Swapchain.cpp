@@ -202,7 +202,7 @@ FakeSwapchain::FakeSwapchain (Device& device, VkQueue queue, VkCommandPool comma
     : device (device)
     , width (width)
     , height (height)
-    , image (device, Image::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1), DeviceMemory::GPU)
+    , image (device, Image2D::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1), DeviceMemory::GPU)
 {
-    TransitionImageLayout (device, queue, commandPool, *image.image, Image::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    TransitionImageLayout (device, queue, commandPool, *image.image, Image2D::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 }

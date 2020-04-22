@@ -53,6 +53,53 @@ public:
 };
 
 
+class ImageTransferable final {
+public:
+    const VkDevice      device;
+    const VkQueue       queue;
+    const VkCommandPool commandPool;
+
+    uint32_t bufferSize;
+
+    AllocatedImage  imageGPU;
+    AllocatedBuffer bufferCPU;
+    MemoryMapping   bufferCPUMapping;
+
+    USING_PTR (ImageTransferable);
+
+    ImageTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags)
+        : device (device)
+        , queue (queue)
+        , commandPool (commandPool)
+        , bufferSize (width * height * 4)
+        , imageGPU (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU)
+        , bufferCPU (device, Buffer::Create (device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), DeviceMemory::CPU)
+        , bufferCPUMapping (device, *bufferCPU.memory, 0, bufferSize)
+    {
+    }
+
+    void CopyTransitionTransfer (VkImageLayout currentImageLayout, const void* data, size_t size, std::optional<VkImageLayout> nextLayout = std::nullopt) const
+    {
+        ASSERT (size == bufferSize);
+
+        bufferCPUMapping.Copy (data, size, 0);
+
+        SingleTimeCommand commandBuffer (device, commandPool, queue);
+
+        imageGPU.image->CmdPipelineBarrier (commandBuffer, currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        imageGPU.image->CmdCopyBufferToImage (commandBuffer, *bufferCPU.buffer);
+        if (nextLayout.has_value ()) {
+            imageGPU.image->CmdPipelineBarrier (commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
+        }
+    }
+
+    VkImage GetImageToBind () const
+    {
+        return *imageGPU.image;
+    }
+};
+
+
 class VertexInputInfo final : public ShaderSourceBuilder {
 public:
     uint32_t                                       size;

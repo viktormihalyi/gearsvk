@@ -16,41 +16,42 @@ public:
     };
 
 private:
-    Camera&       camera;
-    MouseState    mouse;
-    KeyboardState keyboard;
-    Settings      settings;
+    Camera&          camera;
+    MouseState       mouse;
+    KeyboardState::U keyboard;
+    Settings         settings;
 
 public:
     CameraControl (Camera& camera, const Settings& settings)
         : camera (camera)
         , settings (settings)
+        , keyboard (KeyboardState::Create ())
     {
         settings.mouseMove += std::bind (&CameraControl::ProcessMouseInput, this, std::placeholders::_1, std::placeholders::_2);
-        settings.keyPressed += std::bind (&KeyboardState::SetPressed, &keyboard, std::placeholders::_1);
-        settings.keyReleased += std::bind (&KeyboardState::SetReleased, &keyboard, std::placeholders::_1);
+        settings.keyPressed += std::bind (&KeyboardState::SetPressed, keyboard.get (), std::placeholders::_1);
+        settings.keyReleased += std::bind (&KeyboardState::SetReleased, keyboard.get (), std::placeholders::_1);
         settings.leftMouseButtonPressed += [&] (auto...) { mouse.leftButton = true; };
         settings.leftMouseButtonReleased += [&] (auto...) { mouse.leftButton = false; };
     }
 
     void UpdatePosition (float dt)
     {
-        if (keyboard.IsPressed ('W')) {
+        if (keyboard->IsPressed ('W')) {
             camera.Move (Camera::MovementDirection::Forward, dt);
         }
-        if (keyboard.IsPressed ('A')) {
+        if (keyboard->IsPressed ('A')) {
             camera.Move (Camera::MovementDirection::Left, dt);
         }
-        if (keyboard.IsPressed ('S')) {
+        if (keyboard->IsPressed ('S')) {
             camera.Move (Camera::MovementDirection::Backward, dt);
         }
-        if (keyboard.IsPressed ('D')) {
+        if (keyboard->IsPressed ('D')) {
             camera.Move (Camera::MovementDirection::Right, dt);
         }
-        if (keyboard.IsPressed ('E')) {
+        if (keyboard->IsPressed ('E')) {
             camera.Move (Camera::MovementDirection::Down, dt);
         }
-        if (keyboard.IsPressed ('Q')) {
+        if (keyboard->IsPressed ('Q')) {
             camera.Move (Camera::MovementDirection::Up, dt);
         }
     }

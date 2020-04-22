@@ -24,17 +24,22 @@ std::string GetVersionString (uint32_t version)
 }
 
 
-void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout)
+void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const Image2D& image, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
     SingleTimeCommand commandBuffer (device, commandPool, queue);
     image.CmdPipelineBarrier (commandBuffer, oldLayout, newLayout);
 }
 
 
-void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth)
 {
     SingleTimeCommand commandBuffer (device, commandPool, graphicsQueue);
+    CopyBufferToImage (commandBuffer, buffer, image, width, height, depth);
+}
 
+
+void CopyBufferToImage (VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth)
+{
     VkBufferImageCopy region               = {};
     region.bufferOffset                    = 0;
     region.bufferRowLength                 = 0;
@@ -44,7 +49,7 @@ void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool co
     region.imageSubresource.baseArrayLayer = 0;
     region.imageSubresource.layerCount     = 1;
     region.imageOffset                     = {0, 0, 0};
-    region.imageExtent                     = {width, height, 1};
+    region.imageExtent                     = {width, height, depth};
 
     vkCmdCopyBufferToImage (
         commandBuffer,
@@ -68,7 +73,7 @@ void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPo
 
 AllocatedImage AllocatedImage::CreatePreinitialized (const Device& device, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool)
 {
-    AllocatedImage result (device, Image::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 1), DeviceMemory::GPU);
+    AllocatedImage result (device, Image2D::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 1), DeviceMemory::GPU);
 
     TransitionImageLayout (device, queue, commandPool, *result.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     {
@@ -93,12 +98,12 @@ AllocatedImage AllocatedImage::CreatePreinitialized (const Device& device, uint3
 }
 
 
-static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image)
+static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image2D& image)
 {
     const uint32_t width  = image.GetWidth ();
     const uint32_t height = image.GetHeight ();
 
-    AllocatedImage dst (device, Image::Create (device, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1), DeviceMemory::CPU);
+    AllocatedImage dst (device, Image2D::Create (device, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1), DeviceMemory::CPU);
     TransitionImageLayout (device, queue, commandPool, *dst.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     {
@@ -126,7 +131,7 @@ static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue,
 
 
 // copy image to cpu and compare with a reference
-bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::filesystem::path& expectedImage)
+bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image2D& image, const std::filesystem::path& expectedImage)
 {
     const uint32_t width      = image.GetWidth ();
     const uint32_t height     = image.GetHeight ();
@@ -158,7 +163,7 @@ bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandP
 }
 
 
-std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image& image, const std::filesystem::path& filePath)
+std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image2D& image, const std::filesystem::path& filePath)
 {
     std::cout << "saving an image to" << filePath << std::endl;
 

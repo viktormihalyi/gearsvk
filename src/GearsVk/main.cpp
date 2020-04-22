@@ -71,6 +71,12 @@ int main (int, char**)
     Queue&       graphicsQueue = *testenv->graphicsQueue;
     Swapchain&   swapchain     = *testenv->swapchain;
 
+    ImageTransferable::U img = ImageTransferable::Create (device, graphicsQueue, commandPool, ImageBase::RGBA, 512, 512, 0);
+
+    std::vector<uint8_t> pix (512 * 512 * 4, 127);
+    img->CopyTransitionTransfer (ImageBase::INITIAL_LAYOUT, pix.data (), pix.size ());
+
+
     DeviceExtra d {device, commandPool, graphicsQueue};
 
 
@@ -118,10 +124,19 @@ int main (int, char**)
 
 
     ShaderPipeline::P sp = ShaderPipeline::CreateShared (device);
-    sp->SetProvidedShader (ShaderModule::ShaderKind::Vertex, builders, R"(
+    sp->SetVertexShader (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (std140, binding = 0) uniform Time {
+    float time;
+    mat4 VP;
+} time;
+
+layout (location = 0) in vec2 position;
+layout (location = 1) in vec2 uv;
 
 layout (location = 0) out vec2 textureCoords;
-layout (location = 1) out float asdout;
 
 void main ()
 {
@@ -134,10 +149,7 @@ void main ()
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout (std140, binding = 0) uniform Time {
-    float time;
-    mat4 VP;
-} time;
+layout (binding = 1) uniform sampler2D agySampler;
 
 layout (location = 0) in vec2 uv;
 
@@ -147,8 +159,9 @@ layout (location = 0) out vec4 copy[2];
 void main ()
 {
     vec4 result = vec4 (vec3 (uv, 1.f), 1);
-    presented = result;
-    copy[0] = result;
+    presented = vec4 (texture (agySampler, uv).rgb, 1);
+    //presented = result;
+    copy[0] = vec4 (texture (agySampler, uv).rgb, 1);
     copy[1] = result;
 }
     )");
@@ -168,16 +181,22 @@ void main ()
     };
 
 
-    SwapchainImageResource& presented     = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
-    ImageResource&          presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
-    UniformBlockResource&   unif          = graph.CreateResourceTyped<UniformBlockResource> (Time.GetSize ());
+    SwapchainImageResource& presented = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
+
+    ReadOnlyImageResource& agy = graph.CreateResourceTyped<ReadOnlyImageResource> (SingleImageResource::Format, 512, 512);
+
+    ImageResource&        presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
+    UniformBlockResource& unif          = graph.CreateResourceTyped<UniformBlockResource> (Time.GetSize ());
 
     Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (fq, sp);
 
     GraphSettings s (device, graphicsQueue, commandPool, swapchain);
     graph.CompileResources (s);
 
+    agy.image->CopyTransitionTransfer (VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, pix.data (), pix.size (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 0, unif});
+    graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 1, agy});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presentedCopy});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 2, presented});
 
@@ -192,7 +211,6 @@ void main ()
         TimePoint delta (deltaNs);
 
         const float dt = delta.AsSeconds ();
-        std::cout << dt << std::endl;
 
         cameraControl.UpdatePosition (dt);
 
