@@ -156,7 +156,7 @@ void StartRendering (const std::function<bool ()>& doRender)
 
     env->Wait ();
 
-    SynchronizedSwapchainGraphRenderer swapchainSync (*renderGraph, *env->swapchain, [] (uint32_t) {});
+    SynchronizedSwapchainGraphRenderer swapchainSync (*renderGraph, *env->swapchain);
 
     window->Show ();
 
