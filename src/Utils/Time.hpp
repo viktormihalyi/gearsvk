@@ -34,7 +34,7 @@ public:
         return std::chrono::duration_cast<Precision> (Clock::now () - ApplicationStartTime).count ();
     }
 
-    static const std::chrono::time_point<TimePoint::Clock> TimePoint::ApplicationStartTime;
+    static const std::chrono::time_point<TimePoint::Clock> ApplicationStartTime;
 };
 
 
