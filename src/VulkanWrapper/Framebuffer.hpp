@@ -20,8 +20,8 @@ private:
 public:
     USING_PTR (Framebuffer);
 
-    Framebuffer (VkDevice device, VkRenderPass renderPass, const std::vector<std::reference_wrapper<ImageView>>& attachments, uint32_t width, uint32_t height)
-        : Framebuffer (device, renderPass, Utils::ConvertToHandles<ImageView, VkImageView> (attachments), width, height)
+    Framebuffer (VkDevice device, VkRenderPass renderPass, const std::vector<std::reference_wrapper<ImageView2D>>& attachments, uint32_t width, uint32_t height)
+        : Framebuffer (device, renderPass, Utils::ConvertToHandles<ImageView2D, VkImageView> (attachments), width, height)
     {
     }
 

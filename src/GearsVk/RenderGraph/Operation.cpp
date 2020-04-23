@@ -136,7 +136,7 @@ void RenderOperation::Record (uint32_t frameIndex, VkCommandBuffer commandBuffer
     renderPassBeginInfo.framebuffer           = *compileResult.framebuffers[frameIndex];
     renderPassBeginInfo.renderArea.offset     = {0, 0};
     renderPassBeginInfo.renderArea.extent     = {compileResult.width, compileResult.height};
-    renderPassBeginInfo.clearValueCount       = clearValues.size ();
+    renderPassBeginInfo.clearValueCount       = static_cast<uint32_t> (clearValues.size ());
     renderPassBeginInfo.pClearValues          = clearValues.data ();
 
     vkCmdBeginRenderPass (commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);

@@ -12,7 +12,7 @@ SingleImageResource::SingleImageResource (const GraphSettings& graphSettings, ui
     , sampler (Sampler::Create (graphSettings.GetDevice ()))
 {
     for (uint32_t layerIndex = 0; layerIndex < arrayLayers; ++layerIndex) {
-        imageViews.push_back (ImageView::Create (graphSettings.GetDevice (), *image.image, layerIndex));
+        imageViews.push_back (ImageView2D::Create (graphSettings.GetDevice (), *image.image, layerIndex));
     }
 }
 

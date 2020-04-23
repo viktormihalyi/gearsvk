@@ -71,7 +71,7 @@ int main (int, char**)
     Queue&       graphicsQueue = *testenv->graphicsQueue;
     Swapchain&   swapchain     = *testenv->swapchain;
 
-    ImageTransferable::U img = ImageTransferable::Create (device, graphicsQueue, commandPool, ImageBase::RGBA, 512, 512, 0);
+    Image2DTransferable::U img = Image2DTransferable::Create (device, graphicsQueue, commandPool, ImageBase::RGBA, 512, 512, 0);
 
     std::vector<uint8_t> pix (512 * 512 * 4, 127);
     img->CopyTransitionTransfer (ImageBase::INITIAL_LAYOUT, pix.data (), pix.size ());
@@ -149,7 +149,8 @@ void main ()
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout (binding = 1) uniform sampler2D agySampler;
+layout (binding = 1) uniform sampler2D agy2dSampler;
+layout (binding = 2) uniform sampler3D agySampler;
 
 layout (location = 0) in vec2 uv;
 
@@ -159,9 +160,9 @@ layout (location = 0) out vec4 copy[2];
 void main ()
 {
     vec4 result = vec4 (vec3 (uv, 1.f), 1);
-    presented = vec4 (texture (agySampler, uv).rgb, 1);
+    presented = vec4 (texture (agy2dSampler, uv).rgb, 1);
     //presented = result;
-    copy[0] = vec4 (texture (agySampler, uv).rgb, 1);
+    copy[0] = vec4 (texture (agy2dSampler, uv).rgb, 1);
     copy[1] = result;
 }
     )");
@@ -183,7 +184,8 @@ void main ()
 
     SwapchainImageResource& presented = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
 
-    ReadOnlyImageResource& agy = graph.CreateResourceTyped<ReadOnlyImageResource> (SingleImageResource::Format, 512, 512);
+    ReadOnlyImageResource& agy   = graph.CreateResourceTyped<ReadOnlyImageResource> (SingleImageResource::Format, 512, 512);
+    ReadOnlyImageResource& agy3d = graph.CreateResourceTyped<ReadOnlyImageResource> (SingleImageResource::Format, 4096 / 16, 4096 / 16);
 
     ImageResource&        presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
     UniformBlockResource& unif          = graph.CreateResourceTyped<UniformBlockResource> (Time.GetSize ());
@@ -193,7 +195,11 @@ void main ()
     GraphSettings s (device, graphicsQueue, commandPool, swapchain);
     graph.CompileResources (s);
 
-    agy.image->CopyTransitionTransfer (VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, pix.data (), pix.size (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    agy.CopyTransitionTransfer (pix);
+
+    std::vector<uint8_t> brainData = ReadImage (PROJECT_ROOT / "brain.jpg");
+    agy3d.CopyTransitionTransfer (brainData);
+
 
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 0, unif});
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 1, agy});

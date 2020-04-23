@@ -8,8 +8,8 @@
 #include "VulkanWrapper.hpp"
 
 
-static void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
-                               VkDebugUtilsMessageTypeFlagsEXT             messageType,
+static void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
+                               VkDebugUtilsMessageTypeFlagsEXT,
                                const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
     using namespace TerminalColors;

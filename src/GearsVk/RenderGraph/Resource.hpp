@@ -52,7 +52,7 @@ struct SingleImageResource final : public SingleResource {
     static const VkFormat Format;
 
     const AllocatedImage         image;
-    std::vector<ImageView::U>    imageViews;
+    std::vector<ImageView2D::U>  imageViews;
     const Sampler::U             sampler;
     std::optional<VkImageLayout> layoutRead;
     std::optional<VkImageLayout> layoutWrite;
@@ -112,9 +112,9 @@ public:
 
 class ReadOnlyImageResource : public Resource {
 public:
-    ImageTransferable::U image;
-    ImageView::U         imageView;
-    Sampler::U           sampler;
+    ImageTransferableBase::U image;
+    ImageViewBase::U         imageView;
+    Sampler::U               sampler;
 
     const VkFormat format;
     const uint32_t width;
@@ -149,25 +149,30 @@ public:
 
     virtual void Compile (const GraphSettings& settings)
     {
-        image     = ImageTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
+        image     = Image2DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
         sampler   = Sampler::Create (settings.GetDevice ());
-        imageView = ImageView::Create (settings.GetDevice (), *image->imageGPU.image);
+        imageView = ImageView2D::Create (settings.GetDevice (), *image->imageGPU->image);
 
         SingleTimeCommand s (settings.GetDevice (), settings.commandPool, settings.queue);
-        image->imageGPU.image->CmdPipelineBarrier (s, ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        image->imageGPU->image->CmdPipelineBarrier (s, ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; }
     virtual VkFormat      GetFormat () const override { return format; }
     virtual uint32_t      GetDescriptorCount () const override { return 1; }
+
+    void CopyTransitionTransfer (const std::vector<uint8_t>& pixelData)
+    {
+        image->CopyTransitionTransfer (VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, pixelData.data (), pixelData.size (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    }
 };
 
 
 class SwapchainImageResource : public Resource {
 public:
-    VkFormat                  swapchainSurfaceFormat;
-    std::vector<ImageView::U> imageViews;
-    Swapchain&                swapchain;
+    VkFormat                    swapchainSurfaceFormat;
+    std::vector<ImageView2D::U> imageViews;
+    Swapchain&                  swapchain;
 
 public:
     USING_PTR (SwapchainImageResource);
@@ -191,7 +196,7 @@ public:
 
         imageViews.clear ();
         for (size_t i = 0; i < swapChainImages.size (); ++i) {
-            imageViews.push_back (ImageView::Create (graphSettings.GetDevice (), swapChainImages[i], swapchain.GetImageFormat ()));
+            imageViews.push_back (ImageView2D::Create (graphSettings.GetDevice (), swapChainImages[i], swapchain.GetImageFormat ()));
         }
     }
 

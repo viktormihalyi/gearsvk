@@ -13,6 +13,18 @@
 
 #include <cstring>
 
+class ITransferableBuffer {
+public:
+    virtual void     CopyAndTransfer (const void* data, size_t size) const = 0;
+    virtual VkBuffer GetBufferToBind () const                              = 0;
+};
+
+class ITransferableImage {
+public:
+    virtual void    CopyTransitionTransfer (VkImageLayout currentImageLayout, const void* data, size_t size, std::optional<VkImageLayout> nextLayout = std::nullopt) const = 0;
+    virtual VkImage GetImageToBind () const                                                                                                                                = 0;
+};
+
 class BufferTransferable final {
 public:
     const VkDevice      device;
@@ -52,31 +64,35 @@ public:
     }
 };
 
-
-class ImageTransferable final {
-public:
+class ImageTransferableBase {
+private:
     const VkDevice      device;
     const VkQueue       queue;
     const VkCommandPool commandPool;
 
     uint32_t bufferSize;
 
-    AllocatedImage  imageGPU;
     AllocatedBuffer bufferCPU;
     MemoryMapping   bufferCPUMapping;
 
-    USING_PTR (ImageTransferable);
+public:
+    AllocatedImage::U imageGPU;
 
-    ImageTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags)
+    USING_PTR (ImageTransferableBase);
+
+protected:
+    ImageTransferableBase (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t bufferSize)
         : device (device)
         , queue (queue)
         , commandPool (commandPool)
-        , bufferSize (width * height * 4)
-        , imageGPU (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU)
+        , bufferSize (bufferSize)
         , bufferCPU (device, Buffer::Create (device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), DeviceMemory::CPU)
         , bufferCPUMapping (device, *bufferCPU.memory, 0, bufferSize)
     {
     }
+
+public:
+    virtual ~ImageTransferableBase () = default;
 
     void CopyTransitionTransfer (VkImageLayout currentImageLayout, const void* data, size_t size, std::optional<VkImageLayout> nextLayout = std::nullopt) const
     {
@@ -86,16 +102,36 @@ public:
 
         SingleTimeCommand commandBuffer (device, commandPool, queue);
 
-        imageGPU.image->CmdPipelineBarrier (commandBuffer, currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        imageGPU.image->CmdCopyBufferToImage (commandBuffer, *bufferCPU.buffer);
+        imageGPU->image->CmdPipelineBarrier (commandBuffer, currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        imageGPU->image->CmdCopyBufferToImage (commandBuffer, *bufferCPU.buffer);
         if (nextLayout.has_value ()) {
-            imageGPU.image->CmdPipelineBarrier (commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
+            imageGPU->image->CmdPipelineBarrier (commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
         }
     }
 
     VkImage GetImageToBind () const
     {
-        return *imageGPU.image;
+        return *imageGPU->image;
+    }
+};
+
+class Image2DTransferable final : public ImageTransferableBase {
+public:
+    Image2DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags)
+        : ImageTransferableBase (device, queue, commandPool, width * height * 4)
+    {
+        // TODO optimal??
+        imageGPU = AllocatedImage::Create (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
+    }
+};
+
+class Image3DTransferable final : public ImageTransferableBase {
+public:
+    Image3DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
+        : ImageTransferableBase (device, queue, commandPool, width * height * depth * 4)
+    {
+        // TODO optimal??
+        imageGPU = AllocatedImage::Create (device, Image3D::Create (device, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
     }
 };
 
@@ -198,5 +234,6 @@ public:
         vkCmdBindIndexBuffer (commandBuffer, buffer.GetBufferToBind (), 0, VK_INDEX_TYPE_UINT16);
     }
 };
+
 
 #endif

@@ -9,16 +9,16 @@
 
 #include <vulkan/vulkan.h>
 
-class ImageView : public Noncopyable {
+class ImageViewBase : public Noncopyable {
 private:
     const VkDevice device;
     const VkFormat format;
     VkImageView    handle;
 
 public:
-    USING_PTR (ImageView);
+    USING_PTR (ImageViewBase);
 
-    ImageView (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
+    ImageViewBase (VkDevice device, VkImage image, VkFormat format, VkImageViewType viewType, uint32_t layerIndex = 0)
         : device (device)
         , format (format)
         , handle (VK_NULL_HANDLE)
@@ -27,7 +27,7 @@ public:
         createInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         createInfo.flags                           = 0;
         createInfo.image                           = image;
-        createInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
+        createInfo.viewType                        = viewType;
         createInfo.format                          = format;
         createInfo.components.r                    = VK_COMPONENT_SWIZZLE_IDENTITY;
         createInfo.components.g                    = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -45,12 +45,12 @@ public:
         }
     }
 
-    ImageView (VkDevice device, const Image2D& image, uint32_t layerIndex = 0)
-        : ImageView (device, image, image.GetFormat (), layerIndex)
+    ImageViewBase (VkDevice device, const Image2D& image, VkImageViewType viewType, uint32_t layerIndex = 0)
+        : ImageViewBase (device, image, image.GetFormat (), viewType, layerIndex)
     {
     }
 
-    ~ImageView ()
+    virtual ~ImageViewBase ()
     {
         vkDestroyImageView (device, handle, nullptr);
         handle = VK_NULL_HANDLE;
@@ -59,6 +59,38 @@ public:
     VkFormat GetFormat () const { return format; }
 
     operator VkImageView () const { return handle; }
+};
+
+
+class ImageView2D : public ImageViewBase {
+public:
+    USING_PTR (ImageView2D);
+
+    ImageView2D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
+        : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_2D, layerIndex)
+    {
+    }
+
+    ImageView2D (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0)
+        : ImageView2D (device, image, image.GetFormat (), layerIndex)
+    {
+    }
+};
+
+
+class ImageView3D : public ImageViewBase {
+public:
+    USING_PTR (ImageView3D);
+
+    ImageView3D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
+        : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_3D, layerIndex)
+    {
+    }
+
+    ImageView3D (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0)
+        : ImageView3D (device, image, image.GetFormat (), layerIndex)
+    {
+    }
 };
 
 #endif

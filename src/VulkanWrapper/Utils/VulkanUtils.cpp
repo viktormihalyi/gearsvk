@@ -24,7 +24,7 @@ std::string GetVersionString (uint32_t version)
 }
 
 
-void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const Image2D& image, VkImageLayout oldLayout, VkImageLayout newLayout)
+void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
     SingleTimeCommand commandBuffer (device, commandPool, queue);
     image.CmdPipelineBarrier (commandBuffer, oldLayout, newLayout);
@@ -129,6 +129,20 @@ static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue,
     return dst;
 }
 
+
+std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t components)
+{
+    int width, height, readComponents;
+
+    unsigned char* imageData = stbi_load (filePath.u8string ().c_str (), &width, &height, &readComponents, components);
+
+    std::vector<uint8_t> imageBytes (width * height * readComponents);
+    memcpy (imageBytes.data (), imageData, width * height * readComponents);
+
+    stbi_image_free (imageData);
+
+    return imageBytes;
+}
 
 // copy image to cpu and compare with a reference
 bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image2D& image, const std::filesystem::path& expectedImage)

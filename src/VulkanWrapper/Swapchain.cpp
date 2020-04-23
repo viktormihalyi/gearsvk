@@ -116,7 +116,7 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
     vkGetSwapchainImagesKHR (createSettings.device, createResult.handle, &imageCount, createResult.images.data ());
 
     for (size_t i = 0; i < createResult.images.size (); ++i) {
-        createResult.imageViews.push_back (ImageView::Create (createSettings.device, createResult.images[i], createResult.surfaceFormat.format));
+        createResult.imageViews.push_back (ImageView2D::Create (createSettings.device, createResult.images[i], createResult.surfaceFormat.format));
     }
     return createResult;
 }

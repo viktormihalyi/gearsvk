@@ -81,7 +81,7 @@ private:
         VkExtent2D         extent;
 
         std::vector<VkImage>        images;
-        std::vector<ImageView::U>   imageViews;
+        std::vector<ImageView2D::U> imageViews;
         std::vector<Framebuffer::U> framebuffers;
 
         CreateResult ()

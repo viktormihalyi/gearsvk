@@ -17,12 +17,14 @@
 
 std::string GetVersionString (uint32_t version);
 
-void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const Image2D& image, VkImageLayout oldLayout, VkImageLayout newLayout);
+void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout);
 
 void CopyBufferToImage (VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth = 1);
 void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth = 1);
 
 void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t components = 4);
 
 bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image2D& image, const std::filesystem::path& expectedImage);
 
@@ -30,12 +32,12 @@ std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommand
 
 
 struct AllocatedImage final {
-    Image2D::U      image;
+    ImageBase::U    image;
     DeviceMemory::U memory;
 
     USING_PTR (AllocatedImage);
 
-    AllocatedImage (const Device& device, Image2D::U&& image, VkMemoryPropertyFlags memoryPropertyFlags)
+    AllocatedImage (const Device& device, ImageBase::U&& image, VkMemoryPropertyFlags memoryPropertyFlags)
         : image (std::move (image))
         , memory (DeviceMemory::Create (device, device.GetImageAllocateInfo (*this->image, memoryPropertyFlags)))
     {
