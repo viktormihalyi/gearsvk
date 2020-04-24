@@ -49,7 +49,8 @@ public:
 
 
 struct SingleImageResource final : public SingleResource {
-    static const VkFormat Format;
+    static const VkFormat FormatRGBA;
+    static const VkFormat FormatRGB;
 
     const AllocatedImage         image;
     std::vector<ImageView2D::U>  imageViews;
@@ -105,7 +106,7 @@ public:
     }
 
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; }
-    virtual VkFormat      GetFormat () const override { return SingleImageResource::Format; }
+    virtual VkFormat      GetFormat () const override { return SingleImageResource::FormatRGBA; }
     virtual uint32_t      GetDescriptorCount () const override { return arrayLayers; }
 };
 
@@ -119,14 +120,16 @@ public:
     const VkFormat format;
     const uint32_t width;
     const uint32_t height;
+    const uint32_t depth;
 
 public:
     USING_PTR (ReadOnlyImageResource);
 
-    ReadOnlyImageResource (VkFormat format, uint32_t width, uint32_t height)
+    ReadOnlyImageResource (VkFormat format, uint32_t width, uint32_t height, uint32_t depth = 1)
         : format (format)
         , width (width)
         , height (height)
+        , depth (depth)
     {
     }
 
@@ -149,9 +152,15 @@ public:
 
     virtual void Compile (const GraphSettings& settings)
     {
-        image     = Image2DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
-        sampler   = Sampler::Create (settings.GetDevice ());
-        imageView = ImageView2D::Create (settings.GetDevice (), *image->imageGPU->image);
+        sampler = Sampler::Create (settings.GetDevice ());
+
+        if (depth == 1) {
+            image     = Image2DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
+            imageView = ImageView2D::Create (settings.GetDevice (), *image->imageGPU->image);
+        } else {
+            image     = Image3DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, depth, VK_IMAGE_USAGE_SAMPLED_BIT);
+            imageView = ImageView3D::Create (settings.GetDevice (), *image->imageGPU->image);
+        }
 
         SingleTimeCommand s (settings.GetDevice (), settings.commandPool, settings.queue);
         image->imageGPU->image->CmdPipelineBarrier (s, ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

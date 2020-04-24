@@ -173,7 +173,12 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 
 static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindInfo& shaderKind)
 {
-    return CompileWithGlslangCppInterface (shaderSource, shaderKind);
+    try {
+        return CompileWithGlslangCppInterface (shaderSource, shaderKind);
+    } catch (ShaderCompileException& ex) {
+        std::cout << ex.what () << std::endl;
+        throw;
+    }
 }
 
 

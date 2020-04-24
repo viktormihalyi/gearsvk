@@ -117,6 +117,7 @@ public:
 
 class Image2DTransferable final : public ImageTransferableBase {
 public:
+    USING_PTR (Image2DTransferable);
     Image2DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags)
         : ImageTransferableBase (device, queue, commandPool, width * height * 4)
     {
@@ -127,8 +128,9 @@ public:
 
 class Image3DTransferable final : public ImageTransferableBase {
 public:
+    USING_PTR (Image3DTransferable);
     Image3DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
-        : ImageTransferableBase (device, queue, commandPool, width * height * depth * 4)
+        : ImageTransferableBase (device, queue, commandPool, width * height * depth * 1)
     {
         // TODO optimal??
         imageGPU = AllocatedImage::Create (device, Image3D::Create (device, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);

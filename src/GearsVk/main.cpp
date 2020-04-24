@@ -160,7 +160,7 @@ layout (location = 0) out vec4 copy[2];
 void main ()
 {
     vec4 result = vec4 (vec3 (uv, 1.f), 1);
-    presented = vec4 (texture (agy2dSampler, uv).rgb, 1);
+    presented = vec4 (texture (agySampler, vec3(uv, 0.5)).rrr, 1);
     //presented = result;
     copy[0] = vec4 (texture (agy2dSampler, uv).rgb, 1);
     copy[1] = result;
@@ -184,8 +184,8 @@ void main ()
 
     SwapchainImageResource& presented = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
 
-    ReadOnlyImageResource& agy   = graph.CreateResourceTyped<ReadOnlyImageResource> (SingleImageResource::Format, 512, 512);
-    ReadOnlyImageResource& agy3d = graph.CreateResourceTyped<ReadOnlyImageResource> (SingleImageResource::Format, 4096 / 16, 4096 / 16);
+    ReadOnlyImageResource& agy   = graph.CreateResourceTyped<ReadOnlyImageResource> (SingleImageResource::FormatRGBA, 512, 512);
+    ReadOnlyImageResource& agy3d = graph.CreateResourceTyped<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 4096 / 16, 4096 / 16, 16 * 16);
 
     ImageResource&        presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
     UniformBlockResource& unif          = graph.CreateResourceTyped<UniformBlockResource> (Time.GetSize ());
@@ -197,12 +197,32 @@ void main ()
 
     agy.CopyTransitionTransfer (pix);
 
-    std::vector<uint8_t> brainData = ReadImage (PROJECT_ROOT / "brain.jpg");
-    agy3d.CopyTransitionTransfer (brainData);
+    std::vector<uint8_t> brainData = ReadImage (PROJECT_ROOT / "brain.jpg", 1);
+
+    std::vector<uint8_t> sliceData2 (256 * 256 * 256);
+
+    auto BrainDataIndexMapping = [] (uint32_t oirignalDataIndex) {
+        const uint32_t x = oirignalDataIndex % 4096;
+        const uint32_t y = oirignalDataIndex / 4096;
+
+        const uint32_t row        = y % 256;
+        const uint32_t column     = x % 256;
+        const uint32_t sliceIndex = 16 * (y / 256) + (x / 256);
+
+        return sliceIndex * 256 * 256 + row + column * 256;
+    };
+
+    for (uint32_t bidx = 0; bidx < 4096 * 4096; ++bidx) {
+        sliceData2[BrainDataIndexMapping (bidx)] = brainData[bidx];
+    }
+
+
+    agy3d.CopyTransitionTransfer (sliceData2);
 
 
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 0, unif});
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 1, agy});
+    graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 2, agy3d});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presentedCopy});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 2, presented});
 

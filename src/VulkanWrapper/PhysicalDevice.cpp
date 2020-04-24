@@ -120,6 +120,24 @@ PhysicalDevice::PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const
     , selector (selector)
 {
     RecreateForSurface (surface);
+
+    VkFormatProperties prop = {};
+
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8_UINT, &prop);
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8_UINT, &prop);
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8_UINT, &prop);
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8A8_UINT, &prop);
+
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8_SRGB, &prop);
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8_SRGB, &prop);
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8_SRGB, &prop);
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8A8_SRGB, &prop);
+
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8_UNORM, &prop);
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8_UNORM, &prop);
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8_UNORM, &prop);
+    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8A8_UNORM, &prop);
+
 }
 
 
