@@ -11,7 +11,7 @@ constexpr glm::vec3 WORLD_UP (0, 0, 1);
 Camera::Camera (const glm::vec3& position,
                 const glm::vec3& ahead,
                 float            aspect)
-    : position (position)
+    : position ("cameraPos", position)
     , ahead (ahead)
     , frustum (new PerspectiveFrustum (100.f, 0.001f, 120.f, aspect))
     , speed (1.f)
@@ -27,12 +27,12 @@ void Camera::UpdateViewProjectionMatrix ()
 {
     UpdateVectors ();
 
-    SetViewMatrix (glm::lookAt (position, position + ahead, up));
+    SetViewMatrix (glm::lookAt (*position, position + ahead, up));
     SetProjectionMatrix (frustum->GetMatrix ());
 
     viewProjectionMatrix = GetProjectionMatrix () * GetViewMatrix ();
 
-    rayDirMatrix = glm::inverse (GetViewProjectionMatrix () * glm::translate (glm::mat4 (1.0), position));
+    rayDirMatrix = glm::inverse (GetViewProjectionMatrix () * glm::translate (glm::mat4 (1.0), *position));
 }
 
 

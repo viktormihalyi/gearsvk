@@ -49,21 +49,19 @@ std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) co
 {
     std::vector<VkImageView> result;
 
-    auto onImage = [&] (ImageResource& res) {
+    ResourceVisitor v;
+
+    v.onWritableImage = [&] (WritableImageResource& res) {
         for (auto& imgView : res.images[frameIndex]->imageViews) {
             result.push_back (*imgView);
         }
     };
 
-    auto onSwapchainImage = [&] (SwapchainImageResource& res) {
+    v.onSwapchainImage = [&] (SwapchainImageResource& res) {
         result.push_back (*res.imageViews[frameIndex]);
     };
 
-    auto Swallow = [] (auto&... res) {};
-
-    for (const auto& o : outputs) {
-        ResourceVisitor::Visit (o, onImage, onSwapchainImage, Swallow);
-    }
+    v.VisitAll (outputs);
 
     return result;
 }

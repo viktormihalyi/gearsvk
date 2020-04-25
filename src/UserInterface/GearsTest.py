@@ -20,7 +20,7 @@ AppData.initConfigParams()
 
 try:
     print("initializing gears...")
-    gears.InitializeEnvironment()
+    #gears.InitializeEnvironment()
 
     print("loading modules...")
     importlib.machinery.SourceFileLoader("my_module", "C:/Dev/vulkantest/src/UserInterface/Project/Sequences/stock.py").load_module()
@@ -28,16 +28,16 @@ try:
     my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/4_MovingShapes/1_Bars/01_velocity50.pyx").load_module()
     
     print("createStimulusWindow")
-    gears.createStimulusWindow()
+    #gears.createStimulusWindow()
 
     print("my_module.create")
     movingbar = my_module.create(None)
 
     print("setSequence")
-    gears.setSequence(movingbar)
+    #gears.setSequence(movingbar)
 
     print("StartRendering")
-    gears.StartRendering(lambda: False)
+    #gears.StartRendering(lambda: False)
 
     print("success")
 

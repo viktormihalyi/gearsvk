@@ -107,11 +107,13 @@ int main (int, char**)
         }
     } versionBuilder;
 
+    ShaderStruct TimeType ({
+        {"time", ST::vec1},
+        {"VP", ST::mat4},
+        {"rayDir", ST::mat4},
+    });
 
-    UniformBlock Time (0, "Time", "time", {
-                                              {"time", ST::vec1},
-                                              {"VP", ST::mat4},
-                                          });
+    UniformBlock Time (0, "time", TimeType);
 
     FullscreenQuad::P fq = FullscreenQuad::CreateShared (device, graphicsQueue, commandPool);
 
@@ -131,6 +133,7 @@ int main (int, char**)
 layout (std140, binding = 0) uniform Time {
     float time;
     mat4 VP;
+    mat4 rayDir;
 } time;
 
 layout (location = 0) in vec2 position;
@@ -149,6 +152,12 @@ void main ()
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+layout (std140, binding = 0) uniform Time {
+    float time;
+    mat4 VP;
+    mat4 rayDir;
+} time;
+
 layout (binding = 1) uniform sampler2D agy2dSampler;
 layout (binding = 2) uniform sampler3D agySampler;
 
@@ -160,7 +169,7 @@ layout (location = 0) out vec4 copy[2];
 void main ()
 {
     vec4 result = vec4 (vec3 (uv, 1.f), 1);
-    presented = vec4 (texture (agySampler, vec3(uv, 0.5)).rrr, 1);
+    presented = vec4 (texture (agySampler, vec3(uv, mod (time.time, fract (time.time*0.1f))  )).rrr, 1);
     //presented = result;
     copy[0] = vec4 (texture (agy2dSampler, uv).rgb, 1);
     copy[1] = result;
@@ -176,21 +185,23 @@ void main ()
     struct {
         glm::mat4& VP;
         float&     time;
+        glm::mat4& rayDir;
     } TimeV {
         Time.GetRef<glm::mat4> ("VP"),
         Time.GetRef<float> ("time"),
+        Time.GetRef<glm::mat4> ("rayDir"),
     };
 
 
-    SwapchainImageResource& presented = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
+    SwapchainImageResource& presented = graph.CreateResource<SwapchainImageResource> (swapchain);
 
-    ReadOnlyImageResource& agy   = graph.CreateResourceTyped<ReadOnlyImageResource> (SingleImageResource::FormatRGBA, 512, 512);
-    ReadOnlyImageResource& agy3d = graph.CreateResourceTyped<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 4096 / 16, 4096 / 16, 16 * 16);
+    ReadOnlyImageResource& agy   = graph.CreateResource<ReadOnlyImageResource> (SingleImageResource::FormatRGBA, 512, 512);
+    ReadOnlyImageResource& agy3d = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 4096 / 16, 4096 / 16, 16 * 16);
 
-    ImageResource&        presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
-    UniformBlockResource& unif          = graph.CreateResourceTyped<UniformBlockResource> (Time.GetSize ());
+    WritableImageResource& presentedCopy = graph.CreateResource<WritableImageResource> (2);
+    UniformBlockResource&  unif          = graph.CreateResource<UniformBlockResource> (TimeType);
 
-    Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (fq, sp);
+    Operation& redFillOperation = graph.CreateOperation<RenderOperation> (fq, sp);
 
     GraphSettings s (device, graphicsQueue, commandPool, swapchain);
     graph.CompileResources (s);
@@ -201,7 +212,7 @@ void main ()
 
     std::vector<uint8_t> sliceData2 (256 * 256 * 256);
 
-    auto BrainDataIndexMapping = [] (uint32_t oirignalDataIndex) {
+    auto constexpr BrainDataIndexMapping = [] (uint32_t oirignalDataIndex) {
         const uint32_t x = oirignalDataIndex % 4096;
         const uint32_t y = oirignalDataIndex / 4096;
 
@@ -228,10 +239,11 @@ void main ()
 
     graph.Compile (s);
 
-    TimeV.VP = glm::mat4 (1.f);
-
-
     SynchronizedSwapchainGraphRenderer renderer (graph, swapchain);
+
+    //renderer.recreateEvent += [&] () {
+    //    agy3d.CopyTransitionTransfer (sliceData2);
+    //};
 
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
         TimePoint delta (deltaNs);
@@ -240,10 +252,11 @@ void main ()
 
         cameraControl.UpdatePosition (dt);
 
-        TimeV.VP   = c.GetViewProjectionMatrix ();
-        TimeV.time = TimePoint::SinceApplicationStart ().AsSeconds ();
+        TimeV.VP     = c.GetViewProjectionMatrix ();
+        TimeV.rayDir = c.GetRayDirMatrix ();
+        TimeV.time   = TimePoint::SinceApplicationStart ().AsSeconds ();
 
-        unif.GetMapping (frameIndex).Copy (Time.GetData (), Time.GetSize (), 0);
+        unif.Set (frameIndex, Time);
     };
 
     bool quit = false;

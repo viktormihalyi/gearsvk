@@ -35,27 +35,27 @@ TEST_F (EmptyTestEnvironment, UniformBlockTest)
     using namespace ST;
 
     {
-        UniformBlock b ({
+        ShaderStruct b ({
             {"f", ST::vec1},
             {"m", ST::mat4},
         });
-        EXPECT_EQ (80, b.GetSize ());
+        EXPECT_EQ (80, b.GetFullSize ());
         EXPECT_EQ (0, b.GetOffset ("f"));
         EXPECT_EQ (16, b.GetOffset ("m"));
     }
 
     {
-        UniformBlock b ({
+        ShaderStruct b ({
             {"m", ST::mat4},
             {"f", ST::vec1},
         });
-        EXPECT_EQ (68, b.GetSize ());
+        EXPECT_EQ (68, b.GetFullSize ());
         EXPECT_EQ (64, b.GetOffset ("f"));
         EXPECT_EQ (0, b.GetOffset ("m"));
     }
 
     {
-        UniformBlock b ({
+        ShaderStruct b ({
             {"f", ST::vec1},
             {"m", ST::mat4},
             {"f2", ST::vec1},
@@ -64,7 +64,7 @@ TEST_F (EmptyTestEnvironment, UniformBlockTest)
     }
 
     {
-        UniformBlock b ({
+        ShaderStruct b ({
             {"asd", vec1},
             {"4635", mat4},
             {"fd", vec4},
@@ -74,9 +74,6 @@ TEST_F (EmptyTestEnvironment, UniformBlockTest)
         });
 
         ASSERT (b.GetOffset ("4635") == 16);
-
-        glm::vec4& vvvv = b.GetRef<glm::vec4> ("fd");
-        vvvv            = glm::vec4 (1.f);
     }
 
     EXPECT_TRUE (true);
@@ -91,14 +88,14 @@ TEST_F (HeadlessGoogleTestEnvironment, DISABLED_RenderGraphConnectionTest)
 
     RenderGraph graph (device, commandPool);
 
-    Resource& depthBuffer    = graph.AddResource (ImageResource::Create ());
-    Resource& depthBuffer2   = graph.AddResource (ImageResource::Create ());
-    Resource& gbuffer1       = graph.AddResource (ImageResource::Create ());
-    Resource& gbuffer2       = graph.AddResource (ImageResource::Create ());
-    Resource& gbuffer3       = graph.AddResource (ImageResource::Create ());
-    Resource& debugOutput    = graph.AddResource (ImageResource::Create ());
-    Resource& lightingBuffer = graph.AddResource (ImageResource::Create ());
-    Resource& finalTarget    = graph.AddResource (ImageResource::Create ());
+    Resource& depthBuffer    = graph.AddResource (WritableImageResource::Create ());
+    Resource& depthBuffer2   = graph.AddResource (WritableImageResource::Create ());
+    Resource& gbuffer1       = graph.AddResource (WritableImageResource::Create ());
+    Resource& gbuffer2       = graph.AddResource (WritableImageResource::Create ());
+    Resource& gbuffer3       = graph.AddResource (WritableImageResource::Create ());
+    Resource& debugOutput    = graph.AddResource (WritableImageResource::Create ());
+    Resource& lightingBuffer = graph.AddResource (WritableImageResource::Create ());
+    Resource& finalTarget    = graph.AddResource (WritableImageResource::Create ());
 
     Operation& depthPass   = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
     Operation& gbufferPass = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
@@ -205,7 +202,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
     GraphSettings s (device, graphicsQueue, commandPool, 3, 512, 512);
     RenderGraph   graph (device, commandPool);
 
-    Resource& red = graph.AddResource (ImageResource::Create ());
+    Resource& red = graph.AddResource (WritableImageResource::Create ());
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShader (R"(
@@ -266,9 +263,9 @@ void main () {
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    CompareImages ("red", *dynamic_cast<ImageResource&> (red).images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    CompareImages ("red", *dynamic_cast<ImageResource&> (red).images[1]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    CompareImages ("red", *dynamic_cast<ImageResource&> (red).images[2]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    CompareImages ("red", *dynamic_cast<WritableImageResource&> (red).images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    CompareImages ("red", *dynamic_cast<WritableImageResource&> (red).images[1]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    CompareImages ("red", *dynamic_cast<WritableImageResource&> (red).images[2]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
 
 
@@ -281,10 +278,10 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     GraphSettings s (device, graphicsQueue, commandPool, 4, 512, 512);
     RenderGraph   graph (device, commandPool);
 
-    Resource::Ref presented = graph.CreateResourceTyped<ImageResource> ();
-    Resource::Ref green     = graph.CreateResourceTyped<ImageResource> ();
-    Resource::Ref red       = graph.CreateResourceTyped<ImageResource> ();
-    Resource::Ref finalImg  = graph.CreateResourceTyped<ImageResource> ();
+    Resource::Ref presented = graph.CreateResource<WritableImageResource> ();
+    Resource::Ref green     = graph.CreateResource<WritableImageResource> ();
+    Resource::Ref red       = graph.CreateResource<WritableImageResource> ();
+    Resource::Ref finalImg  = graph.CreateResource<WritableImageResource> ();
 
     Operation::Ref dummyPass = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
                                                                             ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
@@ -320,23 +317,23 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<ImageResource> (green).images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<ImageResource> (presented).images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<ImageResource> (red).images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<ImageResource> (finalImg).images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<WritableImageResource> (green).images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<WritableImageResource> (presented).images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<WritableImageResource> (red).images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<WritableImageResource> (finalImg).images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
     std::thread saveThreads[] = {
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (green.get ()).images[0]->image.image, PROJECT_ROOT / "green.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (presented.get ()).images[0]->image.image, PROJECT_ROOT / "presented.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (red.get ()).images[0]->image.image, PROJECT_ROOT / "red.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (finalImg.get ()).images[0]->image.image, PROJECT_ROOT / "final.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (green.get ()).images[0]->image.image, PROJECT_ROOT / "green.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (presented.get ()).images[0]->image.image, PROJECT_ROOT / "presented.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (red.get ()).images[0]->image.image, PROJECT_ROOT / "red.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (finalImg.get ()).images[0]->image.image, PROJECT_ROOT / "final.png"),
     };
     for (auto& t : saveThreads) {
         t.join ();
         std::cout << "saved" << std::endl;
     }
 
-    ASSERT_TRUE (AreImagesEqual (device, graphicsQueue, commandPool, *dynamic_cast<ImageResource&> (presented.get ()).images[0]->image.image, PROJECT_ROOT / "black.png"));
+    ASSERT_TRUE (AreImagesEqual (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (presented.get ()).images[0]->image.image, PROJECT_ROOT / "black.png"));
 }
 
 
@@ -416,7 +413,7 @@ void main () {
 }
     )");
 
-    Resource& presentedCopy = graph.AddResource (ImageResource::Create ());
+    Resource& presentedCopy = graph.AddResource (WritableImageResource::Create ());
     Resource& presented     = graph.AddResource (SwapchainImageResource::Create (swapchain));
 
     Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),
@@ -480,8 +477,8 @@ void main () {
 }
     )");
 
-    ImageResource&          presentedCopy = graph.CreateResourceTyped<ImageResource> ();
-    SwapchainImageResource& presented     = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
+    WritableImageResource&  presentedCopy = graph.CreateResource<WritableImageResource> ();
+    SwapchainImageResource& presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
 
     struct Vert {
         glm::vec2 position;
@@ -502,8 +499,8 @@ void main () {
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
-    RenderOperation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
-                                                                                     std::move (sp));
+    RenderOperation& redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
+                                                                                std::move (sp));
 
     graph.CompileResources (s);
 
@@ -575,9 +572,9 @@ void main () {
 }
     )");
 
-    SwapchainImageResource& presented     = graph.CreateResourceTyped<SwapchainImageResource> (swapchain);
-    ImageResource&          presentedCopy = graph.CreateResourceTyped<ImageResource> (2);
-    UniformBlockResource&   unif          = graph.CreateResourceTyped<UniformBlockResource> (4);
+    SwapchainImageResource& presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
+    WritableImageResource&  presentedCopy = graph.CreateResource<WritableImageResource> (2);
+    UniformBlockResource&   unif          = graph.CreateResource<UniformBlockResource> (4);
 
     struct Vert {
         glm::vec2 position;
@@ -598,7 +595,7 @@ void main () {
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
-    Operation& redFillOperation = graph.CreateOperationTyped<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb, ib), std::move (sp));
+    Operation& redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb, ib), std::move (sp));
 
     graph.CompileResources (s);
 

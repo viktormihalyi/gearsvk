@@ -4,6 +4,7 @@
 #include "Assert.hpp"
 #include "Event.hpp"
 #include "Frustum.hpp"
+#include "Persistent.hpp"
 
 #include "glmlib.hpp"
 
@@ -12,10 +13,10 @@ class Camera {
 public:
     USING_PTR (Camera);
 
-    glm::vec3 position;
-    glm::vec3 ahead;
-    glm::vec3 up;
-    glm::vec3 right;
+    Persistent<glm::vec3> position;
+    glm::vec3             ahead;
+    glm::vec3             up;
+    glm::vec3             right;
 
     Frustum::U frustum;
 

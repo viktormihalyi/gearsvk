@@ -98,7 +98,7 @@ AllocatedImage AllocatedImage::CreatePreinitialized (const Device& device, uint3
 }
 
 
-static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image2D& image)
+static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image)
 {
     const uint32_t width  = image.GetWidth ();
     const uint32_t height = image.GetHeight ();
@@ -145,7 +145,7 @@ std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t 
 }
 
 // copy image to cpu and compare with a reference
-bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image2D& image, const std::filesystem::path& expectedImage)
+bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& expectedImage)
 {
     const uint32_t width      = image.GetWidth ();
     const uint32_t height     = image.GetHeight ();
@@ -177,7 +177,7 @@ bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandP
 }
 
 
-std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image2D& image, const std::filesystem::path& filePath)
+std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& filePath)
 {
     std::cout << "saving an image to" << filePath << std::endl;
 

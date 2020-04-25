@@ -40,33 +40,28 @@ static ShaderType vec4Array {16 * SIZE, 32, "vec4", SIZE};
 } // namespace ST
 
 
-class UniformBlock : public Noncopyable, public ShaderSourceBuilder {
+class ShaderStruct : public ShaderSourceBuilder {
 private:
+    std::string name;
+
     uint32_t fullSize;
 
-    std::map<std::string, uint32_t>                            nameMapping;
+    std::unordered_map<std::string, uint32_t>                  nameMapping;
     std::vector<std::tuple<std::string, ShaderType, uint32_t>> variables;
 
-    std::vector<uint8_t> data;
-
-    uint32_t    binding;
-    std::string typeName;
-    std::string variableName;
-
 public:
-    USING_PTR (UniformBlock);
-
-    UniformBlock (uint32_t binding, const std::string& typeName, const std::string& variableName, const std::vector<std::pair<std::string, ShaderType>>& types)
-        : binding (binding)
-        , typeName (typeName)
-        , variableName (variableName)
+    USING_PTR (ShaderStruct);
+    ShaderStruct (const std::string& name, const std::vector<std::pair<std::string, ShaderType>>& types)
+        : name (name)
     {
-        std::set<std::string> uniqueNames;
-        for (const auto& a : types) {
-            uniqueNames.insert (a.first);
-        }
+        ASSERT ([&] () {
+            std::set<std::string> uniqueNames;
+            for (const auto& a : types) {
+                uniqueNames.insert (a.first);
+            }
 
-        ASSERT (uniqueNames.size () == types.size ());
+            return uniqueNames.size () == types.size ();
+        }());
 
         uint32_t offset = 0;
         for (auto& s : types) {
@@ -76,73 +71,46 @@ public:
             offset += s.second.size;
         }
         fullSize = offset;
-
-        data.resize (fullSize, 0);
     }
 
-    UniformBlock (const std::vector<std::pair<std::string, ShaderType>>& types)
-        : UniformBlock (0, "", "", types)
+    ShaderStruct (const std::vector<std::pair<std::string, ShaderType>>& types)
+        : ShaderStruct ("", types)
     {
     }
 
-    uint32_t GetSize () const { return fullSize; }
-
-    uint32_t GetOffset (const std::string& name)
+    uint32_t GetVariableIndex (const std::string& name) const
     {
-        const uint32_t variableIndex = nameMapping[name];
-        return std::get<2> (variables[variableIndex]);
+        return nameMapping.at (name);
     }
 
-    const void* GetData () const { return data.data (); }
-
-    template<typename T>
-    void Set (const std::string& name, const T& value)
+    uint32_t GetOffset (const std::string& name) const
     {
-        if (ERROR (nameMapping.find (name) == nameMapping.end ())) {
-            return;
-        }
-
-        const uint32_t variableIndex = nameMapping[name];
-
-        const uint32_t variableSize = std::get<1> (variables[variableIndex]).size;
-        ASSERT (sizeof (T) == variableSize);
-
-        const uint32_t offset = std::get<2> (variables[variableIndex]);
-
-        T* typedData = reinterpret_cast<T*> (&data[offset]);
-
-        *typedData = value;
+        return std::get<2> (variables[GetVariableIndex (name)]);
     }
 
-    template<typename ReturnType>
-    ReturnType Get (const std::string& name)
+    uint32_t GetSize (const std::string& name) const
     {
-        const uint32_t variableIndex = nameMapping[name];
-
-        const uint32_t variableSize = std::get<1> (variables[variableIndex]).size;
-
-        if constexpr (!std::is_pointer_v<ReturnType>) {
-            ASSERT (sizeof (ReturnType) == variableSize);
-        }
-
-        const uint32_t offset = std::get<2> (variables[variableIndex]);
-
-        if constexpr (std::is_pointer_v<ReturnType>) {
-            return reinterpret_cast<ReturnType> (&data[offset]);
-        } else {
-            return *reinterpret_cast<ReturnType*> (&data[offset]);
-        }
+        return std::get<1> (variables[GetVariableIndex (name)]).size;
     }
 
-    template<typename ReturnType>
-    ReturnType& GetRef (const std::string& name)
+    uint32_t GetFullSize () const
     {
-        return *Get<ReturnType*> (name);
+        return fullSize;
+    }
+
+    std::string GetName () const
+    {
+        return name;
+    }
+
+    bool HasUniform (const std::string& name) const
+    {
+        return nameMapping.find (name) != nameMapping.end ();
     }
 
     std::string GetProvidedShaderSource () const override
     {
-        std::string result = "layout (std140, binding = " + std::to_string (binding) + ") uniform " + typeName + " { ";
+        std::string result = "struct " + name + " { ";
 
         for (const auto& [name, type, offset] : variables) {
             result += type.glslType + " " + name;
@@ -151,9 +119,76 @@ public:
             }
             result += "; ";
         }
-        result += "} " + variableName + ";";
+        result += "};";
 
         return result;
+    }
+};
+
+
+class UniformBlock : public Noncopyable, public ShaderSourceBuilder {
+private:
+    const ShaderStruct structType;
+
+    std::vector<uint8_t> data;
+
+    uint32_t    binding;
+    std::string variableName;
+
+public:
+    USING_PTR (UniformBlock);
+
+    UniformBlock (uint32_t binding, const std::string& variableName, const ShaderStruct& structType)
+        : binding (binding)
+        , variableName (variableName)
+        , structType (structType)
+    {
+        data.resize (structType.GetFullSize (), 0);
+    }
+
+    UniformBlock (const std::vector<std::pair<std::string, ShaderType>>& types)
+        : UniformBlock (0, "", types)
+    {
+    }
+
+    uint32_t GetSize () const { return structType.GetFullSize (); }
+
+    const void* GetData () const { return data.data (); }
+
+    template<typename T>
+    void Set (const std::string& name, const T& value)
+    {
+        GetRef<T> (name) = value;
+    }
+
+    template<typename ReturnType>
+    ReturnType* GetPtr (const std::string& name)
+    {
+        if (ERROR (!structType.HasUniform (name))) {
+            throw std::runtime_error ("no uniform name '" + name + "'");
+        }
+
+        ASSERT (sizeof (ReturnType) == structType.GetSize (name));
+
+        const uint32_t offset = structType.GetOffset (name);
+        return reinterpret_cast<ReturnType*> (&data[offset]);
+    }
+
+    template<typename ReturnType>
+    ReturnType GetValue (const std::string& name)
+    {
+        return *GetPtr<ReturnType> (name);
+    }
+
+    template<typename ReturnType>
+    ReturnType& GetRef (const std::string& name)
+    {
+        return *GetPtr<ReturnType> (name);
+    }
+
+    std::string GetProvidedShaderSource () const override
+    {
+        return "layout (std140, binding = " + std::to_string (binding) + ") uniform " + structType.GetName () + " " + variableName + ";";
     }
 };
 

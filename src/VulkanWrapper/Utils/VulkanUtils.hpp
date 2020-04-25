@@ -26,9 +26,9 @@ void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPo
 
 std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t components = 4);
 
-bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image2D& image, const std::filesystem::path& expectedImage);
+bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& expectedImage);
 
-std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const Image2D& image, const std::filesystem::path& filePath);
+std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& filePath);
 
 
 struct AllocatedImage final {

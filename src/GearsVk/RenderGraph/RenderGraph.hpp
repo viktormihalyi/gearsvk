@@ -243,7 +243,7 @@ public:
 
 
     template<typename ResourceType, typename... ARGS>
-    ResourceType& CreateResourceTyped (ARGS&&... args)
+    ResourceType& CreateResource (ARGS&&... args)
     {
         compiled = false;
 
@@ -252,7 +252,7 @@ public:
     }
 
     template<typename OperationType, typename... ARGS>
-    OperationType& CreateOperationTyped (ARGS&&... args)
+    OperationType& CreateOperation (ARGS&&... args)
     {
         compiled = false;
 

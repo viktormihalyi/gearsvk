@@ -103,6 +103,8 @@ void SynchronizedSwapchainGraphRenderer::RecreateStuff ()
 
     graph.CompileResources (s);
     graph.Compile (s);
+
+    recreateEvent ();
 }
 
 

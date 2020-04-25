@@ -1,14 +1,46 @@
 #include "Utils.hpp"
 #include "Assert.hpp"
+#include "BuildType.hpp"
+#include "Dummy.hpp"
 
 #include <cstring>
 #include <fstream>
+#include <iostream>
 
 
 namespace Utils {
 
-std::mutex coutMutex;
+inline bool PLSfunc (bool condition, const SourceLocation& srcLoc)
+{
+    if constexpr (IsDebugBuild) {
+        if (!condition) {
+            Utils::detail::ShowAssertPopup ("PLS failed", "here", srcLoc.ToString (), dummy<bool>);
+        }
+    }
+    return condition;
+}
 
+inline bool PLSNOfunc (bool condition, const SourceLocation& srcLoc)
+{
+    if constexpr (IsDebugBuild) {
+        if (condition) {
+            Utils::detail::ShowAssertPopup ("PLSNO failed", "here", srcLoc.ToString (), dummy<bool>);
+        }
+    }
+    return condition;
+}
+
+#define CURRENTSRCLOC \
+    SourceLocation { __FILE__, __LINE__, __func__ }
+
+#define PLS(cond) PLSfunc (cond, CURRENTSRCLOC)
+#define PLSNO(cond) PLSfunc (cond, CURRENTSRCLOC)
+
+void Test ()
+{
+    if (PLSNO (false)) {
+    }
+}
 
 std::filesystem::path GetProjectRoot ()
 {
@@ -37,6 +69,35 @@ static T ReadOpenedFile (std::ifstream& file)
                    std::istreambuf_iterator<char> ());
 
     return result;
+}
+
+
+bool WriteBinaryFile (const std::filesystem::path& filePath, const std::vector<uint8_t>& data)
+{
+    return WriteBinaryFile (filePath, data.data (), data.size ());
+}
+
+
+static void EnsureParentFolder (const std::filesystem::path& filePath)
+{
+    if (!std::filesystem::exists (filePath.parent_path ())) {
+        std::filesystem::create_directories (filePath.parent_path ());
+    }
+}
+
+bool WriteBinaryFile (const std::filesystem::path& filePath, const void* data, size_t size)
+{
+    EnsureParentFolder (filePath);
+
+    std::ofstream file (filePath, std::ios::out | std::ios::binary);
+
+    if (!file.is_open ()) {
+        return false;
+    }
+
+    file.write (reinterpret_cast<const char*> (data), size);
+
+    return true;
 }
 
 

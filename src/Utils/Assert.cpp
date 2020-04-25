@@ -24,10 +24,10 @@ static void DebugBreak ()
 }
 
 
-static void ShowAssertPopup (const std::string& title,
-                             const std::string& message,
-                             const std::string& sourceLocation,
-                             bool&              wasIgnored)
+void ShowAssertPopup (const std::string& title,
+                      const std::string& message,
+                      const std::string& sourceLocation,
+                      bool&              wasIgnored)
 {
     static std::set<std::string> ignoredLocations;
 

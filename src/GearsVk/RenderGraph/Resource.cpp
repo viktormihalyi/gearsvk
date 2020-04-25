@@ -45,21 +45,19 @@ void SingleImageResource::BindWrite (VkCommandBuffer commandBuffer)
 }
 
 
-void ResourceVisitor::Visit (Resource&                               res,
-                             VisitorCallback<ImageResource>          imageResourceTypeCallback,
-                             VisitorCallback<SwapchainImageResource> swapchainImageResourceTypeCallback,
-                             VisitorCallback<UniformBlockResource>   uniformBlockResourceTypeCallback)
+#define ADDVISITOR(type, callback)                   \
+    if (auto castedRes = dynamic_cast<type*> (&res)) \
+        callback (*castedRes);                       \
+    else
+
+
+void ResourceVisitor::Visit (Resource& res)
 {
-    ImageResource*          imageType          = dynamic_cast<ImageResource*> (&res);
-    SwapchainImageResource* swapchainImageType = dynamic_cast<SwapchainImageResource*> (&res);
-    UniformBlockResource*   uniformBlockType   = dynamic_cast<UniformBlockResource*> (&res);
-    if (imageType != nullptr) {
-        imageResourceTypeCallback (*imageType);
-    } else if (swapchainImageType != nullptr) {
-        swapchainImageResourceTypeCallback (*swapchainImageType);
-    } else if (uniformBlockType != nullptr) {
-        uniformBlockResourceTypeCallback (*uniformBlockType);
-    } else {
+    ADDVISITOR (WritableImageResource, onWritableImage)
+    ADDVISITOR (ReadOnlyImageResource, onReadOnlyImage)
+    ADDVISITOR (SwapchainImageResource, onSwapchainImage)
+    ADDVISITOR (UniformBlockResource, onUniformImage)
+    {
         BREAK ("unexpected resource type");
         throw std::runtime_error ("unexpected resource type");
     }

@@ -14,6 +14,7 @@ namespace RG {
 struct GraphRenderer {
 public:
     Event<uint32_t, uint64_t> preSubmitEvent;
+    Event<>                   recreateEvent;
 
     virtual ~GraphRenderer () = default;
 

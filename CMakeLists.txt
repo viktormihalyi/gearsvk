@@ -58,7 +58,7 @@ set (COMMON_SOURCE_FILES
     src/GearsVk/Window/GLFWWindow.cpp
     src/GearsVk/Window/SDLWindow.cpp
     src/GearsVk/ShaderReflection.cpp
-    src/GearsVk/VulkanEnvironment.cpp "src/Utils/Time.cpp")
+    src/GearsVk/VulkanEnvironment.cpp "src/Utils/Time.cpp" "src/GearsVk/Persistent.cpp")
 
 add_executable (${TARGET_NAME}
     ${COMMON_SOURCE_FILES}

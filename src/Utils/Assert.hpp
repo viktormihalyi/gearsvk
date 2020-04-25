@@ -1,6 +1,8 @@
 #ifndef ASSERT_HPP
 #define ASSERT_HPP
 
+#include <string>
+
 #include "SourceLocation.hpp"
 
 #ifndef NDEBUG
@@ -17,9 +19,15 @@ namespace Utils {
 
 namespace detail {
 
+
 bool DebugAssertFunc (bool condition, const char* message, const char* conditionString, const SourceLocation& location);
 
 bool DebugErrorFunc (bool condition, const char* message, const char* conditionString, const SourceLocation& location);
+
+void ShowAssertPopup (const std::string& title,
+                      const std::string& message,
+                      const std::string& sourceLocation,
+                      bool&              wasIgnored);
 
 } // namespace detail
 

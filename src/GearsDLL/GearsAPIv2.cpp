@@ -3,58 +3,32 @@
 #include "FullscreenQuad.hpp"
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
+#include "Persistent.hpp"
 #include "RenderGraph.hpp"
 #include "VulkanEnvironment.hpp"
 #include "core/Sequence.h"
 
 #include <atomic>
 #include <memory>
+#include <set>
 #include <thread>
+#include <type_traits>
 
 using namespace RG;
-
 
 Window::U            window;
 VulkanEnvironment::U env;
 RenderGraph::U       renderGraph;
 
-template<typename T>
-class GlobalConfig {
-private:
-    const std::string name;
-    T                 value;
+PersistentString asd ("asd");
 
-    void Read ()
-    {
-        // TODO
-    }
-
-    void Write () const
-    {
-        // TODO
-    }
-
-public:
-    USING_PTR (GlobalConfig);
-
-    GlobalConfig (const std::string& name)
-        : name (name)
-    {
-        Read ();
-    }
-
-    T& operator= (const T& other)
-    {
-        value = other;
-        Write ();
-    }
-
-    operator const T& () const { return value; }
-    operator T& () { return value; }
+struct ASDD {
+    int a;
+    int a2;
 };
-
-
-GlobalConfig<std::string> asd ("asd");
+Persistent<ASDD>      asd2 ("asd2");
+Persistent<int>       asd3 ("asd3");
+Persistent<glm::vec4> asd4 ("asd4");
 
 
 #define PRECOND_THROW(cond)                               \
@@ -134,7 +108,7 @@ void main () {
 
     GraphSettings s (*env->device, *env->graphicsQueue, *env->commandPool, *env->swapchain);
 
-    Resource& presentedCopy = renderGraph->AddResource (ImageResource::Create ());
+    Resource& presentedCopy = renderGraph->AddResource (WritableImageResource::Create ());
     Resource& presented     = renderGraph->AddResource (SwapchainImageResource::Create (*env->swapchain));
 
     Operation& redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),

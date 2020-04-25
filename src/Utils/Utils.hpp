@@ -30,6 +30,9 @@ std::optional<std::string> ReadTextFile (const std::filesystem::path& filePath);
 
 std::optional<std::vector<char>> ReadBinaryFile (const std::filesystem::path& filePath);
 
+bool WriteBinaryFile (const std::filesystem::path& filePath, const std::vector<uint8_t>& data);
+bool WriteBinaryFile (const std::filesystem::path& filePath, const void* data, size_t size);
+
 std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem::path& filePath);
 
 

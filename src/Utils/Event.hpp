@@ -95,11 +95,24 @@ public:
         return ObserverHandle (*this, reinterpret_cast<ObserverHandle::HandleType> (c.get ()));
     }
 
+    template<class Functor>
+    inline ObserverHandle operator= (Functor f)
+    {
+        observers.clear ();
+        return (*this) += f;
+    }
+
     inline ObserverHandle operator+= (Callback f)
     {
         ASSERT (f != nullptr);
         observers.push_back (f);
         return ObserverHandle (*this, reinterpret_cast<ObserverHandle::HandleType> (f.get ()));
+    }
+
+    inline ObserverHandle operator= (Callback f)
+    {
+        observers.clear ();
+        return (*this) += f;
     }
 
     inline void Detach (ObserverHandle& f)

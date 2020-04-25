@@ -1,6 +1,7 @@
 #ifndef RESOURCE_HPP
 #define RESOURCE_HPP
 
+#include "Event.hpp"
 #include "ShaderPipeline.hpp"
 #include "Timer.hpp"
 #include "VulkanUtils.hpp"
@@ -8,6 +9,7 @@
 
 #include "Connections.hpp"
 #include "GraphSettings.hpp"
+#include "UniformBlock.hpp"
 
 namespace RG {
 
@@ -38,13 +40,39 @@ class Resource : public Noncopyable, public IImageResource {
 public:
     USING_PTR_ABSTRACT (Resource);
 
-    virtual ~Resource () {}
+    virtual ~Resource () = default;
 
     virtual VkDescriptorType GetDescriptorType () const                                                                             = 0;
     virtual void             WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const = 0;
     virtual void             BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                          = 0;
     virtual void             BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer)                                         = 0;
     virtual void             Compile (const GraphSettings&)                                                                         = 0;
+};
+
+
+class OneTimeCompileResource : public Resource {
+private:
+    bool compiled;
+
+public:
+    USING_PTR_ABSTRACT (OneTimeCompileResource);
+
+    OneTimeCompileResource ()
+        : compiled (false)
+    {
+    }
+
+    virtual ~OneTimeCompileResource () = default;
+
+    void Compile (const GraphSettings& settings) override
+    {
+        if (!compiled) {
+            compiled = true;
+            CompileOnce (settings);
+        }
+    }
+
+    virtual void CompileOnce (const GraphSettings&) = 0;
 };
 
 
@@ -77,20 +105,20 @@ struct SingleImageResource final : public SingleResource {
 };
 
 
-class ImageResource : public Resource {
+class WritableImageResource : public Resource {
 public:
     uint32_t                            arrayLayers;
     std::vector<SingleImageResource::U> images;
 
 public:
-    USING_PTR (ImageResource);
+    USING_PTR (WritableImageResource);
 
-    ImageResource (uint32_t arrayLayers = 1)
+    WritableImageResource (uint32_t arrayLayers = 1)
         : arrayLayers (arrayLayers)
     {
     }
 
-    virtual ~ImageResource () {}
+    virtual ~WritableImageResource () {}
 
     virtual VkDescriptorType GetDescriptorType () const override { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; }
     virtual void             WriteToDescriptorSet (uint32_t imageIndex, const DescriptorSet& descriptorSet, uint32_t binding) const override { images[imageIndex]->WriteToDescriptorSet (descriptorSet, binding); }
@@ -111,7 +139,7 @@ public:
 };
 
 
-class ReadOnlyImageResource : public Resource {
+class ReadOnlyImageResource : public OneTimeCompileResource {
 public:
     ImageTransferableBase::U image;
     ImageViewBase::U         imageView;
@@ -150,7 +178,7 @@ public:
     virtual void BindRead (uint32_t, VkCommandBuffer) override {}
     virtual void BindWrite (uint32_t, VkCommandBuffer) override {}
 
-    virtual void Compile (const GraphSettings& settings)
+    virtual void CompileOnce (const GraphSettings& settings)
     {
         sampler = Sampler::Create (settings.GetDevice ());
 
@@ -229,10 +257,9 @@ public:
     {
     }
 
-    UniformBlockResource (const std::vector<VkFormat>&)
-        : UniformBlockResource (0)
+    UniformBlockResource (const ShaderStruct& structType)
+        : size (structType.GetFullSize ())
     {
-        throw std::runtime_error ("TODO");
     }
 
     virtual ~UniformBlockResource () {}
@@ -265,19 +292,33 @@ public:
     virtual uint32_t      GetDescriptorCount () const override { return 1; }
 
     MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
+
+    void Set (uint32_t frameIndex, UniformBlock& uniformBlock)
+    {
+        ASSERT (uniformBlock.GetSize () == size);
+        GetMapping (frameIndex).Copy (uniformBlock.GetData (), uniformBlock.GetSize (), 0);
+    }
 };
 
 
-struct ResourceVisitor final {
-private:
-    template<typename T>
-    using VisitorCallback = const std::function<void (T&)>&;
-
+class ResourceVisitor final {
 public:
-    static void Visit (Resource&,
-                       VisitorCallback<ImageResource>,
-                       VisitorCallback<SwapchainImageResource>,
-                       VisitorCallback<UniformBlockResource>);
+    Event<WritableImageResource&>  onWritableImage;
+    Event<ReadOnlyImageResource&>  onReadOnlyImage;
+    Event<SwapchainImageResource&> onSwapchainImage;
+    Event<UniformBlockResource&>   onUniformImage;
+
+    void Visit (Resource& res);
+
+    void Visit (Resource::Ref& res) { Visit (res); }
+
+    template<typename Resources>
+    void VisitAll (const Resources& resources)
+    {
+        for (auto& r : resources) {
+            Visit (r);
+        }
+    }
 };
 
 } // namespace RG
