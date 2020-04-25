@@ -1,8 +1,10 @@
 #ifndef PERSISTENT_HPP
 #define PERSISTENT_HPP
 
+#include "Assert.hpp"
 #include "Utils.hpp"
 
+#include <cstring>
 #include <filesystem>
 #include <set>
 #include <string>

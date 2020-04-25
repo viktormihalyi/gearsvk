@@ -13,7 +13,7 @@
 
 class Window : public Noncopyable {
 public:
-    struct {
+    struct Events {
         // window events
         Event<>                   shown;
         Event<>                   hidden;

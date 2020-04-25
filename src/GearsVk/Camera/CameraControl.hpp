@@ -4,34 +4,24 @@
 #include "Camera.hpp"
 #include "Event.hpp"
 #include "InputState.hpp"
+#include "Window.hpp"
 
 class CameraControl {
-public:
-    struct Settings {
-        Event<uint32_t>&           keyPressed;
-        Event<uint32_t>&           keyReleased;
-        Event<uint32_t, uint32_t>& leftMouseButtonPressed;
-        Event<uint32_t, uint32_t>& leftMouseButtonReleased;
-        Event<uint32_t, uint32_t>& mouseMove;
-    };
-
 private:
     Camera&          camera;
     MouseState       mouse;
     KeyboardState::U keyboard;
-    Settings         settings;
 
 public:
-    CameraControl (Camera& camera, const Settings& settings)
+    CameraControl (Camera& camera, Window::Events& windowEvents)
         : camera (camera)
-        , settings (settings)
         , keyboard (KeyboardState::Create ())
     {
-        settings.mouseMove += std::bind (&CameraControl::ProcessMouseInput, this, std::placeholders::_1, std::placeholders::_2);
-        settings.keyPressed += std::bind (&KeyboardState::SetPressed, keyboard.get (), std::placeholders::_1);
-        settings.keyReleased += std::bind (&KeyboardState::SetReleased, keyboard.get (), std::placeholders::_1);
-        settings.leftMouseButtonPressed += [&] (auto...) { mouse.leftButton = true; };
-        settings.leftMouseButtonReleased += [&] (auto...) { mouse.leftButton = false; };
+        windowEvents.mouseMove += std::bind (&CameraControl::ProcessMouseInput, this, std::placeholders::_1, std::placeholders::_2);
+        windowEvents.keyPressed += std::bind (&KeyboardState::SetPressed, keyboard.get (), std::placeholders::_1);
+        windowEvents.keyReleased += std::bind (&KeyboardState::SetReleased, keyboard.get (), std::placeholders::_1);
+        windowEvents.leftMouseButtonPressed += [&] (auto...) { mouse.leftButton = true; };
+        windowEvents.leftMouseButtonReleased += [&] (auto...) { mouse.leftButton = false; };
     }
 
     void UpdatePosition (float dt)

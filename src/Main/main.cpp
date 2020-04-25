@@ -48,22 +48,6 @@ int main (int, char**)
     KeyboardState keyboard;
     MouseState    mouse;
 
-    window->events.focused += [] () {
-        std::cout << "window focused" << std::endl;
-    };
-
-    window->events.resized += [] (uint32_t width, uint32_t height) {
-        std::cout << "window resized to " << width << " x " << height << std::endl;
-    };
-
-    window->events.leftMouseButtonPressed += [&] (auto...) {
-        mouse.leftButton = true;
-    };
-    window->events.leftMouseButtonReleased += [&] (auto...) {
-        mouse.leftButton = false;
-    };
-
-
     VulkanEnvironment::U testenv = VulkanEnvironment::CreateForBuildType (*window);
 
     Device&      device        = *testenv->device;
@@ -71,41 +55,17 @@ int main (int, char**)
     Queue&       graphicsQueue = *testenv->graphicsQueue;
     Swapchain&   swapchain     = *testenv->swapchain;
 
-    Image2DTransferable::U img = Image2DTransferable::Create (device, graphicsQueue, commandPool, ImageBase::RGBA, 512, 512, 0);
-
-    std::vector<uint8_t> pix (512 * 512 * 4, 127);
-    img->CopyTransitionTransfer (ImageBase::INITIAL_LAYOUT, pix.data (), pix.size ());
-
-
     DeviceExtra d {device, commandPool, graphicsQueue};
 
 
     Camera c (glm::vec3 (0, 0, 0.5), glm::vec3 (0, 0, -1), window->GetAspectRatio ());
 
-    CameraControl::Settings cameraControlSettings {
-        window->events.keyPressed,
-        window->events.keyReleased,
-        window->events.leftMouseButtonPressed,
-        window->events.leftMouseButtonReleased,
-        window->events.mouseMove,
-    };
-
-    CameraControl cameraControl (c, cameraControlSettings);
+    CameraControl cameraControl (c, window->events);
 
 
     using namespace RG;
 
     RenderGraph graph (device, commandPool);
-
-    class : public ShaderSourceBuilder {
-    public:
-        virtual std::string GetProvidedShaderSource () const override
-        {
-            return R"(#version 450
-#extension GL_ARB_separate_shader_objects : enable
-)";
-        }
-    } versionBuilder;
 
     ShaderStruct TimeType ({
         {"time", ST::vec1},
@@ -116,14 +76,6 @@ int main (int, char**)
     UniformBlock Time (0, "time", TimeType);
 
     FullscreenQuad::P fq = FullscreenQuad::CreateShared (device, graphicsQueue, commandPool);
-
-    std::vector<const ShaderSourceBuilder*> builders;
-    builders.push_back (&versionBuilder);
-    builders.push_back (&Time);
-    for (auto& a : fq->GetShaderBuilders ()) {
-        builders.push_back (a);
-    }
-
 
     ShaderPipeline::P sp = ShaderPipeline::CreateShared (device);
     sp->SetVertexShader (R"(
@@ -206,6 +158,10 @@ void main ()
     GraphSettings s (device, graphicsQueue, commandPool, swapchain);
     graph.CompileResources (s);
 
+    Image2DTransferable::U img = Image2DTransferable::Create (device, graphicsQueue, commandPool, ImageBase::RGBA, 512, 512, 0);
+    std::vector<uint8_t>   pix (512 * 512 * 4, 127);
+    img->CopyTransitionTransfer (ImageBase::INITIAL_LAYOUT, pix.data (), pix.size ());
+
     agy.CopyTransitionTransfer (pix);
 
     std::vector<uint8_t> brainData = ReadImage (PROJECT_ROOT / "brain.jpg", 1);
@@ -223,8 +179,12 @@ void main ()
         return sliceIndex * 256 * 256 + row + column * 256;
     };
 
-    for (uint32_t bidx = 0; bidx < 4096 * 4096; ++bidx) {
-        sliceData2[BrainDataIndexMapping (bidx)] = brainData[bidx];
+    {
+        Utils::TimerLogger l ("transforming volume data");
+        Utils::TimerScope  s (l);
+        for (uint32_t bidx = 0; bidx < 4096 * 4096; ++bidx) {
+            sliceData2[BrainDataIndexMapping (bidx)] = brainData[bidx];
+        }
     }
 
 
@@ -266,7 +226,7 @@ void main ()
     window->events.keyPressed += [&] (uint32_t a) {
         if (a == ESC_CODE) {
             // window->ToggleFullscreen ();
-            quit = false;
+            quit = true;
         }
         return;
     };

@@ -64,7 +64,7 @@ set (COMMON_SOURCE_FILES
 
 add_executable (${TARGET_NAME}
     ${COMMON_SOURCE_FILES}
-    src/GearsVk/main.cpp
+    src/Main/main.cpp
 )
 
 add_executable (${TARGET_TEST_NAME}
