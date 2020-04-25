@@ -53,12 +53,14 @@ set (COMMON_SOURCE_FILES
     src/GearsVk/RenderGraph/RenderGraph.cpp
     src/GearsVk/RenderGraph/Resource.cpp
     src/GearsVk/RenderGraph/Operation.cpp
-    src/GearsVk/RenderGraph/DrawRecordable/DrawRecordable.cpp
+    
     src/GearsVk/RenderGraph/GraphRenderer.cpp
     src/GearsVk/Window/GLFWWindow.cpp
     src/GearsVk/Window/SDLWindow.cpp
     src/GearsVk/ShaderReflection.cpp
-    src/GearsVk/VulkanEnvironment.cpp "src/Utils/Time.cpp" "src/GearsVk/Persistent.cpp")
+    src/GearsVk/VulkanEnvironment.cpp
+    src/Utils/Time.cpp
+    src/Utils/Persistent.cpp)
 
 add_executable (${TARGET_NAME}
     ${COMMON_SOURCE_FILES}

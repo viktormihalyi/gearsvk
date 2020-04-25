@@ -1,4 +1,4 @@
-#if 0
+#if GEARSVK_COMPILE_SDLWINDOW
 #include "SDLWindow.hpp"
 
 #include <SDL.h>

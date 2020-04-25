@@ -1,5 +1,6 @@
 #include "VulkanEnvironment.hpp"
 
+#include "StaticInit.hpp"
 #include "Timer.hpp"
 
 
@@ -8,6 +9,13 @@ void VulkanEnvironment::Wait () const
     graphicsQueue->Wait ();
     device->Wait ();
 }
+
+
+StaticInit apiVersionLogger ([] () {
+    uint32_t apiVersion;
+    vkEnumerateInstanceVersion (&apiVersion);
+    std::cout << "api version: " << GetVersionString (apiVersion) << std::endl;
+});
 
 
 VulkanEnvironment::VulkanEnvironment (VulkanEnvironment::Mode mode, std::optional<Window::Ref> window, std::optional<DebugUtilsMessenger::Callback> callback)
@@ -57,10 +65,6 @@ VulkanEnvironment::VulkanEnvironment (VulkanEnvironment::Mode mode, std::optiona
     }
 
 #ifdef TESTENV_LOG_VERSION
-    uint32_t apiVersion;
-    vkEnumerateInstanceVersion (&apiVersion);
-    std::cout << "instance api version: " << GetVersionString (apiVersion) << std::endl;
-
     VkPhysicalDeviceProperties deviceProperties;
     vkGetPhysicalDeviceProperties (*physicalDevice, &deviceProperties);
 

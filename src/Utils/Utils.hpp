@@ -21,9 +21,6 @@
 
 namespace Utils {
 
-extern std::mutex coutMutex;
-
-
 std::filesystem::path GetProjectRoot ();
 
 std::optional<std::string> ReadTextFile (const std::filesystem::path& filePath);
@@ -34,7 +31,6 @@ bool WriteBinaryFile (const std::filesystem::path& filePath, const std::vector<u
 bool WriteBinaryFile (const std::filesystem::path& filePath, const void* data, size_t size);
 
 std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem::path& filePath);
-
 
 template<typename SourceType, typename DestType>
 std::set<DestType> ToSet (const std::vector<SourceType>& vec)

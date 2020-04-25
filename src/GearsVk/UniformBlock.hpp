@@ -5,6 +5,7 @@
 #include "Ptr.hpp"
 #include "ShaderSourceBuilder.hpp"
 
+#include <cmath>
 #include <cstdint>
 #include <map>
 #include <string>
