@@ -22,6 +22,11 @@ public:
         windowEvents.keyReleased += std::bind (&KeyboardState::SetReleased, keyboard.get (), std::placeholders::_1);
         windowEvents.leftMouseButtonPressed += [&] (auto...) { mouse.leftButton = true; };
         windowEvents.leftMouseButtonReleased += [&] (auto...) { mouse.leftButton = false; };
+
+        windowEvents.resized += [&] (uint32_t width, uint32_t height) {
+            const float aspect = static_cast<float> (width) / height;
+            camera.SetAspectRatio (aspect);
+        };
     }
 
     void UpdatePosition (float dt)

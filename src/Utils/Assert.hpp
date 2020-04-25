@@ -15,6 +15,13 @@
 #define BREAK(message) (message)
 #endif
 
+
+#define ASSERT_THROW(cond)                               \
+    if (ERROR (!(cond))) {                                \
+        throw std::runtime_error ("precondition failed"); \
+    }                                                     \
+    (void)0
+
 namespace Utils {
 
 namespace detail {

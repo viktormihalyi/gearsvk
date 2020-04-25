@@ -31,13 +31,6 @@ Persistent<int>       asd3 ("asd3");
 Persistent<glm::vec4> asd4 ("asd4");
 
 
-#define PRECOND_THROW(cond)                               \
-    if (ERROR (!(cond))) {                                \
-        throw std::runtime_error ("precondition failed"); \
-    }                                                     \
-    (void)0
-
-
 void InitializeEnvironment ()
 {
     window = HiddenGLFWWindow::Create (); // create a hidden window by default
@@ -54,7 +47,7 @@ void DestroyEnvironment ()
 
 void SetRenderGraphFromSequence (Sequence::P seq)
 {
-    PRECOND_THROW (env != nullptr);
+    ASSERT_THROW (env != nullptr);
 
     renderGraph = RenderGraph::Create (*env->device, *env->commandPool);
 
@@ -125,8 +118,8 @@ void main () {
 
 void StartRendering (const std::function<bool ()>& doRender)
 {
-    PRECOND_THROW (env != nullptr);
-    PRECOND_THROW (renderGraph != nullptr);
+    ASSERT_THROW (env != nullptr);
+    ASSERT_THROW (renderGraph != nullptr);
 
     env->Wait ();
 

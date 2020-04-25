@@ -24,13 +24,15 @@ public:
         isValid = true;
     }
 
-    void Invalidate ()
+    inline void Invalidate ()
     {
-        value   = T ();
+#ifdef NDEBUG
+        value = T ();
+#endif
         isValid = false;
     }
 
-    const T& Get ()
+    inline const T& Get ()
     {
         if (!isValid) {
             Calculate ();
@@ -38,7 +40,9 @@ public:
         return value;
     }
 
-    operator const T& () { return Get (); }
+    inline const T& operator* () { return Get (); }
+
+    inline operator const T& () { return Get (); }
 };
 
 #endif

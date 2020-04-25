@@ -2,6 +2,7 @@
 #define CAMERA_HPP
 
 #include "Assert.hpp"
+#include "Cache.hpp"
 #include "Event.hpp"
 #include "Frustum.hpp"
 #include "Persistent.hpp"
@@ -13,10 +14,10 @@ class Camera {
 public:
     USING_PTR (Camera);
 
-    Persistent<glm::vec3> position;
-    glm::vec3             ahead;
-    glm::vec3             up;
-    glm::vec3             right;
+    glm::vec3 position;
+    glm::vec3 ahead;
+    glm::vec3 up;
+    glm::vec3 right;
 
     Frustum::U frustum;
 
@@ -25,10 +26,12 @@ public:
     float pitch;
     float sensitivity;
 
-    glm::mat4 viewMatrix;
-    glm::mat4 projectionMatrix;
-    glm::mat4 viewProjectionMatrix;
-    glm::mat4 rayDirMatrix;
+    // TODO test if this cached stuff is slower or not
+
+    Cache<glm::mat4> viewMatrix;
+    Cache<glm::mat4> projectionMatrix;
+    Cache<glm::mat4> viewProjectionMatrix;
+    Cache<glm::mat4> rayDirMatrix;
 
     Event<glm::vec3> positionChanged;
 
@@ -45,17 +48,14 @@ public:
     Camera (const glm::vec3& position, const glm::vec3& ahead, float aspect);
 
     const glm::vec3& GetPosition () const { return position; }
-    const glm::mat4& GetRayDirMatrix () const { return rayDirMatrix; }
+    const glm::mat4& GetRayDirMatrix () { return rayDirMatrix; }
 
     void SetAspectRatio (float value);
 
-    void SetViewMatrix (const glm::mat4& matrix) { viewMatrix = matrix; }
-    void SetProjectionMatrix (const glm::mat4& matrix) { projectionMatrix = matrix; }
-    void UpdateViewProjectionMatrix ();
 
-    const glm::mat4& GetViewMatrix () const { return viewMatrix; }
-    const glm::mat4& GetProjectionMatrix () const { return projectionMatrix; }
-    const glm::mat4& GetViewProjectionMatrix () const { return viewProjectionMatrix; }
+    const glm::mat4& GetViewMatrix () { return viewMatrix; }
+    const glm::mat4& GetProjectionMatrix () { return projectionMatrix; }
+    const glm::mat4& GetViewProjectionMatrix () { return viewProjectionMatrix; }
 
     void Move (MovementDirection, float dt);
     void UpdateVectors ();
@@ -78,6 +78,10 @@ inline void Camera::SetAspectRatio (float value)
     }
 
     f->SetAspectRatio (value);
+
+    projectionMatrix.Invalidate ();
+    viewProjectionMatrix.Invalidate ();
+    rayDirMatrix.Invalidate ();
 }
 
 
@@ -113,7 +117,9 @@ inline void Camera::SetFrontAndBackPlane (float front, float back)
     f->SetFrontPlane (front);
     f->SetBackPlane (back);
 
-    UpdateViewProjectionMatrix ();
+    projectionMatrix.Invalidate ();
+    viewProjectionMatrix.Invalidate ();
+    rayDirMatrix.Invalidate ();
 }
 
 #endif

@@ -5,6 +5,7 @@
 #include "GraphRenderer.hpp"
 #include "GraphSettings.hpp"
 #include "Logger.hpp"
+#include "MultithreadedFunction.hpp"
 #include "Noncopyable.hpp"
 #include "Operation.hpp"
 #include "RenderGraph.hpp"
@@ -65,15 +66,26 @@ int main (int, char**)
 
     using namespace RG;
 
-    RenderGraph graph (device, commandPool);
+    const GraphSettings s (device, graphicsQueue, commandPool, swapchain);
+    RenderGraph         graph (device, commandPool);
 
-    ShaderStruct TimeType ({
+    const ShaderStruct TimeType ({
         {"time", ST::vec1},
+    });
+    const ShaderStruct CameraStruct ({
         {"VP", ST::mat4},
-        {"rayDir", ST::mat4},
+        {"rayDirMatrix", ST::mat4},
+        {"position", ST::vec3},
     });
 
     UniformBlock Time (0, "time", TimeType);
+    UniformBlock CameraUniform (1, "camera", CameraStruct);
+
+    float&     time        = Time.GetRef<float> ("time");
+    glm::mat4& VP          = CameraUniform.GetRef<glm::mat4> ("VP");
+    glm::mat4& rayDir      = CameraUniform.GetRef<glm::mat4> ("rayDirMatrix");
+    glm::vec3& camPosition = CameraUniform.GetRef<glm::vec3> ("position");
+
 
     FullscreenQuad::P fq = FullscreenQuad::CreateShared (device, graphicsQueue, commandPool);
 
@@ -84,19 +96,25 @@ int main (int, char**)
 
 layout (std140, binding = 0) uniform Time {
     float time;
-    mat4 VP;
-    mat4 rayDir;
 } time;
+
+layout (std140, binding = 3) uniform Camera {
+    mat4 VP;
+    mat4 rayDirMatrix;
+    vec3 position;
+} camera;
 
 layout (location = 0) in vec2 position;
 layout (location = 1) in vec2 uv;
 
 layout (location = 0) out vec2 textureCoords;
+layout (location = 1) out vec3 rayDirection;
 
 void main ()
 {
-    gl_Position =  time.VP * vec4 (position + vec2 (0 / 100.f), 0.0, 1.0);
+    gl_Position =  camera.VP * vec4 (position + vec2 (0 / 100.f), 0.0, 1.0);
     textureCoords = uv;
+    rayDirection = (camera.rayDirMatrix * vec4 (position, 0, 1)).xyz;
 }
     )");
 
@@ -106,14 +124,19 @@ void main ()
 
 layout (std140, binding = 0) uniform Time {
     float time;
-    mat4 VP;
-    mat4 rayDir;
 } time;
+
+layout (std140, binding = 3) uniform Camera {
+    mat4 VP;
+    mat4 rayDirMatrix;
+    vec3 position;
+} camera;
 
 layout (binding = 1) uniform sampler2D agy2dSampler;
 layout (binding = 2) uniform sampler3D agySampler;
 
 layout (location = 0) in vec2 uv;
+layout (location = 1) in vec3 rayDirection;
 
 layout (location = 2) out vec4 presented;
 layout (location = 0) out vec4 copy[2];
@@ -123,39 +146,40 @@ void main ()
     vec4 result = vec4 (vec3 (uv, 1.f), 1);
     presented = vec4 (texture (agySampler, vec3(uv, mod (time.time, fract (time.time*0.1f))  )).rrr, 1);
     //presented = result;
+    //presented = vec4 (normalize (rayDirection) * 0.5 + 0.5, 1);
+
+    vec3 normRayDir = normalize (rayDirection);
+    vec3 rayStart = camera.position;
+    float rayT = 0.f;
+    float rayStep = 0.02f;
+    float val = 0.f;
+
+    for (int i = 0; i < 64; ++i) {
+        vec3 rayPos = rayStart + rayT * rayStep;
+        val += texture (agySampler, rayPos).r;
+        rayT += rayStep;
+    }
+
+    //presented = vec4 (vec3 (val), 1);
+
     copy[0] = vec4 (texture (agy2dSampler, uv).rgb, 1);
     copy[1] = result;
 }
     )");
 
-    auto asddd = fq->GetShaderBuilders ();
+    // resources
+    SwapchainImageResource& presented        = graph.CreateResource<SwapchainImageResource> (swapchain);
+    ReadOnlyImageResource&  agy              = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
+    ReadOnlyImageResource&  agy3d            = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
+    WritableImageResource&  presentedCopy    = graph.CreateResource<WritableImageResource> (2);
+    UniformBlockResource&   unif             = graph.CreateResource<UniformBlockResource> (TimeType);
+    UniformBlockResource&   cameraUniformRes = graph.CreateResource<UniformBlockResource> (CameraStruct);
 
 
-    std::string s2354 = Time.GetProvidedShaderSource ();
-    std::string s2355 = asddd[0]->GetProvidedShaderSource ();
-
-    struct {
-        glm::mat4& VP;
-        float&     time;
-        glm::mat4& rayDir;
-    } TimeV {
-        Time.GetRef<glm::mat4> ("VP"),
-        Time.GetRef<float> ("time"),
-        Time.GetRef<glm::mat4> ("rayDir"),
-    };
-
-
-    SwapchainImageResource& presented = graph.CreateResource<SwapchainImageResource> (swapchain);
-
-    ReadOnlyImageResource& agy   = graph.CreateResource<ReadOnlyImageResource> (SingleImageResource::FormatRGBA, 512, 512);
-    ReadOnlyImageResource& agy3d = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 4096 / 16, 4096 / 16, 16 * 16);
-
-    WritableImageResource& presentedCopy = graph.CreateResource<WritableImageResource> (2);
-    UniformBlockResource&  unif          = graph.CreateResource<UniformBlockResource> (TimeType);
-
+    // operations
     Operation& redFillOperation = graph.CreateOperation<RenderOperation> (fq, sp);
 
-    GraphSettings s (device, graphicsQueue, commandPool, swapchain);
+
     graph.CompileResources (s);
 
     Image2DTransferable::U img = Image2DTransferable::Create (device, graphicsQueue, commandPool, ImageBase::RGBA, 512, 512, 0);
@@ -179,12 +203,16 @@ void main ()
         return sliceIndex * 256 * 256 + row + column * 256;
     };
 
+
     {
-        Utils::TimerLogger l ("transforming volume data");
-        Utils::TimerScope  s (l);
-        for (uint32_t bidx = 0; bidx < 4096 * 4096; ++bidx) {
-            sliceData2[BrainDataIndexMapping (bidx)] = brainData[bidx];
-        }
+        Utils::TimerLogger    l ("transforming volume data");
+        Utils::TimerScope     s (l);
+        MultithreadedFunction d ([&] (uint32_t threadCount, uint32_t threadIndex) {
+            const uint32_t pixelCount = 4096 * 4096;
+            for (uint32_t bidx = pixelCount / threadCount * threadIndex; bidx < pixelCount / threadCount * (threadIndex + 1); ++bidx) {
+                sliceData2[BrainDataIndexMapping (bidx)] = brainData[bidx];
+            }
+        });
     }
 
 
@@ -192,6 +220,7 @@ void main ()
 
 
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 0, unif});
+    graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 3, cameraUniformRes});
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 1, agy});
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 2, agy3d});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presentedCopy});
@@ -205,6 +234,8 @@ void main ()
     //    agy3d.CopyTransitionTransfer (sliceData2);
     //};
 
+    VP = glm::mat4 (1.f);
+
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
         TimePoint delta (deltaNs);
 
@@ -212,11 +243,13 @@ void main ()
 
         cameraControl.UpdatePosition (dt);
 
-        TimeV.VP     = c.GetViewProjectionMatrix ();
-        TimeV.rayDir = c.GetRayDirMatrix ();
-        TimeV.time   = TimePoint::SinceApplicationStart ().AsSeconds ();
+        VP          = c.GetViewProjectionMatrix ();
+        rayDir      = c.GetRayDirMatrix ();
+        time        = TimePoint::SinceApplicationStart ().AsSeconds ();
+        camPosition = c.GetPosition ();
 
         unif.Set (frameIndex, Time);
+        cameraUniformRes.Set (frameIndex, CameraUniform);
     };
 
     bool quit = false;

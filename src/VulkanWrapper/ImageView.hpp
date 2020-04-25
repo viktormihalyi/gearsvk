@@ -62,6 +62,22 @@ public:
 };
 
 
+class ImageView1D : public ImageViewBase {
+public:
+    USING_PTR (ImageView1D);
+
+    ImageView1D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
+        : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_1D, layerIndex)
+    {
+    }
+
+    ImageView1D (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0)
+        : ImageView1D (device, image, image.GetFormat (), layerIndex)
+    {
+    }
+};
+
+
 class ImageView2D : public ImageViewBase {
 public:
     USING_PTR (ImageView2D);
@@ -89,6 +105,22 @@ public:
 
     ImageView3D (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0)
         : ImageView3D (device, image, image.GetFormat (), layerIndex)
+    {
+    }
+};
+
+
+class ImageViewCube : public ImageViewBase {
+public:
+    USING_PTR (ImageViewCube);
+
+    ImageViewCube (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
+        : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_CUBE, layerIndex)
+    {
+    }
+
+    ImageViewCube (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0)
+        : ImageViewCube (device, image, image.GetFormat (), layerIndex)
     {
     }
 };

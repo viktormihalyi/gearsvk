@@ -115,16 +115,28 @@ public:
     }
 };
 
+
+class Image1DTransferable final : public ImageTransferableBase {
+public:
+    USING_PTR (Image1DTransferable);
+    Image1DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
+        : ImageTransferableBase (device, queue, commandPool, width * 4)
+    {
+        imageGPU = AllocatedImage::Create (device, Image1D::Create (device, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
+    }
+};
+
+
 class Image2DTransferable final : public ImageTransferableBase {
 public:
     USING_PTR (Image2DTransferable);
     Image2DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags)
         : ImageTransferableBase (device, queue, commandPool, width * height * 4)
     {
-        // TODO optimal??
         imageGPU = AllocatedImage::Create (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
     }
 };
+
 
 class Image3DTransferable final : public ImageTransferableBase {
 public:
@@ -132,7 +144,6 @@ public:
     Image3DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
         : ImageTransferableBase (device, queue, commandPool, width * height * depth * 1)
     {
-        // TODO optimal??
         imageGPU = AllocatedImage::Create (device, Image3D::Create (device, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
     }
 };

@@ -153,12 +153,15 @@ public:
 public:
     USING_PTR (ReadOnlyImageResource);
 
-    ReadOnlyImageResource (VkFormat format, uint32_t width, uint32_t height, uint32_t depth = 1)
+    ReadOnlyImageResource (VkFormat format, uint32_t width, uint32_t height = 1, uint32_t depth = 1)
         : format (format)
         , width (width)
         , height (height)
         , depth (depth)
     {
+        ASSERT_THROW (width > 0);
+        ASSERT_THROW (height > 0);
+        ASSERT_THROW (depth > 0);
     }
 
     virtual ~ReadOnlyImageResource () {}
@@ -182,7 +185,10 @@ public:
     {
         sampler = Sampler::Create (settings.GetDevice ());
 
-        if (depth == 1) {
+        if (height == 1 && depth == 1) {
+            image     = Image1DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, VK_IMAGE_USAGE_SAMPLED_BIT);
+            imageView = ImageView1D::Create (settings.GetDevice (), *image->imageGPU->image);
+        } else if (depth == 1) {
             image     = Image2DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
             imageView = ImageView2D::Create (settings.GetDevice (), *image->imageGPU->image);
         } else {

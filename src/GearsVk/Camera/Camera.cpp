@@ -11,28 +11,19 @@ constexpr glm::vec3 WORLD_UP (0, 0, 1);
 Camera::Camera (const glm::vec3& position,
                 const glm::vec3& ahead,
                 float            aspect)
-    : position ("cameraPos", position)
+    : position (position)
     , ahead (ahead)
     , frustum (new PerspectiveFrustum (100.f, 0.001f, 120.f, aspect))
     , speed (1.f)
     , yaw (90.f)
     , pitch (0)
     , sensitivity (0.2f)
-{
-    UpdateViewProjectionMatrix ();
-}
-
-
-void Camera::UpdateViewProjectionMatrix ()
+    , viewMatrix ([&] () { return glm::lookAt (this->position, this->position + this->ahead, up); })
+    , projectionMatrix ([&] () { return frustum->GetMatrix (); })
+    , viewProjectionMatrix ([&] () { return projectionMatrix.Get () * viewMatrix.Get (); })
+    , rayDirMatrix ([&] () { return glm::inverse (projectionMatrix.Get () * glm::translate (glm::mat4 (1.0), this->position)); })
 {
     UpdateVectors ();
-
-    SetViewMatrix (glm::lookAt (*position, position + ahead, up));
-    SetProjectionMatrix (frustum->GetMatrix ());
-
-    viewProjectionMatrix = GetProjectionMatrix () * GetViewMatrix ();
-
-    rayDirMatrix = glm::inverse (GetViewProjectionMatrix () * glm::translate (glm::mat4 (1.0), *position));
 }
 
 
@@ -47,6 +38,9 @@ void Camera::UpdateVectors ()
 
     right = glm::normalize (glm::cross (ahead, WORLD_UP));
     up    = glm::normalize (glm::cross (right, ahead));
+
+    viewMatrix.Invalidate ();
+    viewProjectionMatrix.Invalidate ();
 }
 
 
@@ -79,9 +73,11 @@ void Camera::Move (Camera::MovementDirection dir, float dt)
             break;
     }
 
-    positionChanged (position);
+    viewMatrix.Invalidate ();
+    rayDirMatrix.Invalidate ();
+    viewProjectionMatrix.Invalidate ();
 
-    UpdateViewProjectionMatrix ();
+    positionChanged (position);
 }
 
 
@@ -92,5 +88,5 @@ void Camera::ProcessMouseInput (const glm::vec2& delta)
 
     pitch = std::clamp (pitch, -89.f, 89.f);
 
-    UpdateViewProjectionMatrix ();
+    UpdateVectors ();
 }
