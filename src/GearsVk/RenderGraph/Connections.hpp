@@ -13,7 +13,7 @@ public:
         this->binding            = binding;
         this->descriptorType     = type;
         this->descriptorCount    = descriptorCount;
-        this->stageFlags         = VK_SHADER_STAGE_ALL_GRAPHICS;
+        this->stageFlags         = VK_SHADER_STAGE_ALL; // TODO
         this->pImmutableSamplers = nullptr;
     }
 
@@ -41,7 +41,7 @@ struct OutputBinding {
         attachmentDescription.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
         attachmentDescription.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachmentDescription.initialLayout  = Image2D::INITIAL_LAYOUT;
+        attachmentDescription.initialLayout  = ImageBase::INITIAL_LAYOUT;
         attachmentDescription.finalLayout    = finalLayout;
 
         attachmentReference.attachment = binding;

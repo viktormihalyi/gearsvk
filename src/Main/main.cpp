@@ -36,11 +36,6 @@
 
 #include "glmlib.hpp"
 
-#include <atomic>
-#include <thread>
-
-#include <vulkan/vulkan.h>
-
 
 int main (int, char**)
 {
@@ -55,8 +50,7 @@ int main (int, char**)
     CommandPool& commandPool   = *testenv->commandPool;
     Queue&       graphicsQueue = *testenv->graphicsQueue;
     Swapchain&   swapchain     = *testenv->swapchain;
-
-    DeviceExtra d {device, commandPool, graphicsQueue};
+    DeviceExtra& deviceExtra   = *testenv->deviceExtra;
 
 
     Camera c (glm::vec3 (0, 0, 0.5), glm::vec3 (0, 0, -1), window->GetAspectRatio ());
@@ -86,8 +80,7 @@ int main (int, char**)
     glm::mat4& rayDir      = CameraUniform.GetRef<glm::mat4> ("rayDirMatrix");
     glm::vec3& camPosition = CameraUniform.GetRef<glm::vec3> ("position");
 
-
-    FullscreenQuad::P fq = FullscreenQuad::CreateShared (device, graphicsQueue, commandPool);
+    FullscreenQuad::P fq = FullscreenQuad::CreateShared (deviceExtra);
 
     ShaderPipeline::P sp = ShaderPipeline::CreateShared (device);
     sp->SetVertexShader (R"(
@@ -243,10 +236,10 @@ void main ()
 
         cameraControl.UpdatePosition (dt);
 
-        VP          = c.GetViewProjectionMatrix ();
-        rayDir      = c.GetRayDirMatrix ();
-        time        = TimePoint::SinceApplicationStart ().AsSeconds ();
-        camPosition = c.GetPosition ();
+        CameraUniform["VP"] = c.GetViewProjectionMatrix ();
+        rayDir              = c.GetRayDirMatrix ();
+        time                = TimePoint::SinceApplicationStart ().AsSeconds ();
+        camPosition         = c.GetPosition ();
 
         unif.Set (frameIndex, Time);
         cameraUniformRes.Set (frameIndex, CameraUniform);

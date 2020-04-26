@@ -8,6 +8,7 @@
 
 
 #include <SPIRV/GlslangToSpv.h>
+#include <glslang/MachineIndependent/reflection.h>
 #include <glslang/Public/ShaderLang.h>
 
 #include "ResourceLimits.hpp"
@@ -153,6 +154,13 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 
     if (!shader.parse (&resources, 100, false, messages)) {
         throw ShaderCompileException (shader.getInfoLog ());
+    }
+
+    {
+        // TODO reflection
+        TReflection ref (EShReflectionDefault, shaderKind.esh, shaderKind.esh);
+        ref.addStage (shaderKind.esh, *shader.getIntermediate ());
+        // ref.dump ();
     }
 
     TProgram program;

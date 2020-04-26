@@ -127,6 +127,27 @@ public:
 };
 
 
+class UniformValue {
+public:
+    size_t size;
+    void*  value;
+
+    template<typename T>
+    T& As ()
+    {
+        return *reinterpret_cast<T*> (value);
+    }
+
+    template<typename T>
+    void operator= (const T& other)
+    {
+        if (ASSERT (size == sizeof (T))) {
+            *reinterpret_cast<T*> (value) = other;
+        }
+    }
+};
+
+
 class UniformBlock : public Noncopyable, public ShaderSourceBuilder {
 private:
     const ShaderStruct structType;
@@ -162,6 +183,16 @@ public:
         GetRef<T> (name) = value;
     }
 
+    void* GetRawPtr (const std::string& name)
+    {
+        if (ERROR (!structType.HasUniform (name))) {
+            throw std::runtime_error ("no uniform name '" + name + "'");
+        }
+
+        const uint32_t offset = structType.GetOffset (name);
+        return reinterpret_cast<void*> (&data[offset]);
+    }
+
     template<typename ReturnType>
     ReturnType* GetPtr (const std::string& name)
     {
@@ -185,6 +216,11 @@ public:
     ReturnType& GetRef (const std::string& name)
     {
         return *GetPtr<ReturnType> (name);
+    }
+
+    UniformValue operator[] (const std::string& name)
+    {
+        return {structType.GetSize (name), GetRawPtr (name)};
     }
 
     std::string GetProvidedShaderSource () const override

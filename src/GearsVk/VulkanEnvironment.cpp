@@ -1,5 +1,6 @@
 #include "VulkanEnvironment.hpp"
 
+#include "BuildType.hpp"
 #include "StaticInit.hpp"
 #include "Timer.hpp"
 
@@ -58,6 +59,8 @@ VulkanEnvironment::VulkanEnvironment (VulkanEnvironment::Mode mode, std::optiona
 
     commandPool = CommandPool::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
+    deviceExtra = DeviceExtra::Create (*device, *commandPool, *graphicsQueue);
+
     if (window) {
         swapchain = RealSwapchain::Create (*physicalDevice, *device, *surface);
     } else {
@@ -82,9 +85,9 @@ VulkanEnvironment::~VulkanEnvironment ()
 
 VulkanEnvironment::U VulkanEnvironment::CreateForBuildType (std::optional<Window::Ref> window, std::optional<DebugUtilsMessenger::Callback> callback)
 {
-#ifdef NDEBUG
-    return ReleaseVulkanEnvironment::Create (window);
-#else
-    return DebugVulkanEnvironment::Create (window, callback);
-#endif
+    if constexpr (IsDebugBuild) {
+        return DebugVulkanEnvironment::Create (window, callback);
+    } else {
+        return ReleaseVulkanEnvironment::Create (window);
+    }
 }

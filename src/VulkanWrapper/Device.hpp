@@ -8,8 +8,23 @@
 
 #include <vulkan/vulkan.h>
 
+class DeviceInterface {
+public:
+    virtual ~DeviceInterface () = default;
 
-class Device : public Noncopyable {
+    struct AllocateInfo {
+        uint32_t size;
+        uint32_t memoryTypeIndex;
+    };
+
+    virtual              operator VkDevice () const                                                         = 0;
+    virtual void         Wait () const                                                                      = 0;
+    virtual AllocateInfo GetImageAllocateInfo (VkImage image, VkMemoryPropertyFlags propertyFlags) const    = 0;
+    virtual AllocateInfo GetBufferAllocateInfo (VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) const = 0;
+};
+
+
+class Device : public Noncopyable, public DeviceInterface {
 private:
     const VkPhysicalDevice physicalDevice;
     VkDevice               handle;
@@ -63,38 +78,33 @@ public:
         }
     }
 
-    ~Device ()
+    virtual ~Device ()
     {
         vkDeviceWaitIdle (handle);
         vkDestroyDevice (handle, nullptr);
         handle = VK_NULL_HANDLE;
     }
 
-    operator VkDevice () const
+    virtual operator VkDevice () const override
     {
         return handle;
     }
 
-    struct AllocateInfo {
-        uint32_t size;
-        uint32_t memoryTypeIndex;
-    };
-
-    AllocateInfo GetImageAllocateInfo (VkImage image, VkMemoryPropertyFlags propertyFlags) const
+    virtual AllocateInfo GetImageAllocateInfo (VkImage image, VkMemoryPropertyFlags propertyFlags) const override
     {
         VkMemoryRequirements memRequirements = {};
         vkGetImageMemoryRequirements (handle, image, &memRequirements);
         return {static_cast<uint32_t> (memRequirements.size), FindMemoryType (memRequirements.memoryTypeBits, propertyFlags)};
     }
 
-    AllocateInfo GetBufferAllocateInfo (VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) const
+    virtual AllocateInfo GetBufferAllocateInfo (VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) const override
     {
         VkMemoryRequirements memRequirements = {};
         vkGetBufferMemoryRequirements (handle, buffer, &memRequirements);
         return {static_cast<uint32_t> (memRequirements.size), FindMemoryType (memRequirements.memoryTypeBits, propertyFlags)};
     }
 
-    void Wait () const
+    virtual void Wait () const override
     {
         vkDeviceWaitIdle (handle);
     }

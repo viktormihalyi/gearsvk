@@ -1,6 +1,7 @@
 #ifndef DR_FULLSCREENQUAD_HPP
 #define DR_FULLSCREENQUAD_HPP
 
+#include "DeviceExtra.hpp"
 #include "DrawRecordableInfo.hpp"
 
 #include "glmlib.hpp"
@@ -40,13 +41,21 @@ public:
         info = DrawRecordableInfo::Create (1, vertexBuffer, indexBuffer);
     }
 
+    FullscreenQuad (const DeviceExtra& device)
+        : FullscreenQuad (device.device, device.graphicsQueue, device.commandPool)
+    {
+    }
+
     std::vector<const ShaderSourceBuilder*> GetShaderBuilders ()
     {
         return {&vertexBuffer.info};
     }
 
 private:
-    virtual const DrawRecordableInfo& GetDrawRecordableInfo () const override { return *info; }
+    virtual const DrawRecordableInfo& GetDrawRecordableInfo () const override
+    {
+        return *info;
+    }
 };
 
 #endif

@@ -1,6 +1,7 @@
 #ifndef VULKANTESTENVIRONMENT_HPP
 #define VULKANTESTENVIRONMENT_HPP
 
+#include "DeviceExtra.hpp"
 #include "GLFWWindow.hpp"
 #include "Ptr.hpp"
 #include "TerminalColors.hpp"
@@ -29,6 +30,7 @@ public:
     Device::U              device;
     Queue::U               graphicsQueue;
     CommandPool::U         commandPool;
+    DeviceExtra::U         deviceExtra;
 
     // surface and swapchain are created if a window is provided in the ctor
     Surface::U   surface;
