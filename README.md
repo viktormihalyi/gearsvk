@@ -1,6 +1,6 @@
 # Building
 ```
-git clone github.com/viktormihalyi/vulkantest
+git clone github.com/viktormihalyi/gearsvk
 git submodule update --init
 mkdir build
 cd build
