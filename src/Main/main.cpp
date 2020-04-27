@@ -53,7 +53,7 @@ int main (int, char**)
     DeviceExtra& deviceExtra   = *testenv->deviceExtra;
 
 
-    Camera c (glm::vec3 (0, 0, 0.5), glm::vec3 (0, 0, -1), window->GetAspectRatio ());
+    Camera c (glm::vec3 (-1, 0, 0.5f), glm::vec3 (1, 0.2, 0), window->GetAspectRatio ());
 
     CameraControl cameraControl (c, window->events);
 
@@ -83,82 +83,10 @@ int main (int, char**)
     FullscreenQuad::P fq = FullscreenQuad::CreateShared (deviceExtra);
 
     ShaderPipeline::P sp = ShaderPipeline::CreateShared (device);
-    sp->SetVertexShader (R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout (std140, binding = 0) uniform Time {
-    float time;
-} time;
-
-layout (std140, binding = 3) uniform Camera {
-    mat4 VP;
-    mat4 rayDirMatrix;
-    vec3 position;
-} camera;
-
-layout (location = 0) in vec2 position;
-layout (location = 1) in vec2 uv;
-
-layout (location = 0) out vec2 textureCoords;
-layout (location = 1) out vec3 rayDirection;
-
-void main ()
-{
-    gl_Position =  camera.VP * vec4 (position + vec2 (0 / 100.f), 0.0, 1.0);
-    textureCoords = uv;
-    rayDirection = (camera.rayDirMatrix * vec4 (position, 0, 1)).xyz;
-}
-    )");
-
-    sp->SetFragmentShader (R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout (std140, binding = 0) uniform Time {
-    float time;
-} time;
-
-layout (std140, binding = 3) uniform Camera {
-    mat4 VP;
-    mat4 rayDirMatrix;
-    vec3 position;
-} camera;
-
-layout (binding = 1) uniform sampler2D agy2dSampler;
-layout (binding = 2) uniform sampler3D agySampler;
-
-layout (location = 0) in vec2 uv;
-layout (location = 1) in vec3 rayDirection;
-
-layout (location = 2) out vec4 presented;
-layout (location = 0) out vec4 copy[2];
-
-void main ()
-{
-    vec4 result = vec4 (vec3 (uv, 1.f), 1);
-    presented = vec4 (texture (agySampler, vec3(uv, mod (time.time, fract (time.time*0.1f))  )).rrr, 1);
-    //presented = result;
-    //presented = vec4 (normalize (rayDirection) * 0.5 + 0.5, 1);
-
-    vec3 normRayDir = normalize (rayDirection);
-    vec3 rayStart = camera.position;
-    float rayT = 0.f;
-    float rayStep = 0.02f;
-    float val = 0.f;
-
-    for (int i = 0; i < 64; ++i) {
-        vec3 rayPos = rayStart + rayT * rayStep;
-        val += texture (agySampler, rayPos).r;
-        rayT += rayStep;
-    }
-
-    //presented = vec4 (vec3 (val), 1);
-
-    copy[0] = vec4 (texture (agy2dSampler, uv).rgb, 1);
-    copy[1] = result;
-}
-    )");
+    sp->AddShaders ({
+        PROJECT_ROOT / "shaders" / "brain.vert",
+        PROJECT_ROOT / "shaders" / "brain.frag",
+    });
 
     // resources
     SwapchainImageResource& presented        = graph.CreateResource<SwapchainImageResource> (swapchain);
@@ -236,10 +164,10 @@ void main ()
 
         cameraControl.UpdatePosition (dt);
 
-        CameraUniform["VP"] = c.GetViewProjectionMatrix ();
-        rayDir              = c.GetRayDirMatrix ();
-        time                = TimePoint::SinceApplicationStart ().AsSeconds ();
-        camPosition         = c.GetPosition ();
+        //CameraUniform["VP"] = c.GetViewProjectionMatrix ();
+        rayDir      = c.GetRayDirMatrix ();
+        time        = TimePoint::SinceApplicationStart ().AsSeconds ();
+        camPosition = c.GetPosition ();
 
         unif.Set (frameIndex, Time);
         cameraUniformRes.Set (frameIndex, CameraUniform);

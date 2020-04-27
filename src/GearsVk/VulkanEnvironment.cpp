@@ -5,6 +5,21 @@
 #include "Timer.hpp"
 
 
+void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
+                        VkDebugUtilsMessageTypeFlagsEXT,
+                        const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
+{
+    using namespace TerminalColors;
+    std::cout << callbackData->pMessage << std::endl
+              << std::endl;
+    //std::cout << RED << "validation layer: "
+    //          << YELLOW << callbackData->pMessageIdName << ": "
+    //          << RESET << callbackData->pMessage
+    //          << std::endl
+    //          << std::endl;
+}
+
+
 void VulkanEnvironment::Wait () const
 {
     graphicsQueue->Wait ();

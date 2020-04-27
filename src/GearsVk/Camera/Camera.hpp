@@ -79,9 +79,10 @@ inline void Camera::SetAspectRatio (float value)
 
     f->SetAspectRatio (value);
 
+    viewMatrix.Invalidate ();
     projectionMatrix.Invalidate ();
-    viewProjectionMatrix.Invalidate ();
     rayDirMatrix.Invalidate ();
+    viewProjectionMatrix.Invalidate ();
 }
 
 
@@ -117,9 +118,10 @@ inline void Camera::SetFrontAndBackPlane (float front, float back)
     f->SetFrontPlane (front);
     f->SetBackPlane (back);
 
+    viewMatrix.Invalidate ();
     projectionMatrix.Invalidate ();
-    viewProjectionMatrix.Invalidate ();
     rayDirMatrix.Invalidate ();
+    viewProjectionMatrix.Invalidate ();
 }
 
 #endif

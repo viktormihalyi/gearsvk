@@ -128,7 +128,7 @@ public:
     }
 
 
-    void SetShader (ShaderModule::ShaderKind shaderKind, const std::string& source)
+    void SetShaderFromSourceString (ShaderModule::ShaderKind shaderKind, const std::string& source)
     {
         ASSERT (GetShaderByKind (shaderKind) == nullptr);
         GetShaderByKind (shaderKind) = ShaderModule::CreateFromString (device, shaderKind, source);
@@ -148,9 +148,9 @@ public:
         GetShaderByKind (shaderKind) = ShaderModule::CreateFromString (device, shaderKind, result);
     }
 
-    void SetVertexShader (const std::string& source) { SetShader (ShaderModule::ShaderKind::Vertex, source); }
+    void SetVertexShader (const std::string& source) { SetShaderFromSourceString (ShaderModule::ShaderKind::Vertex, source); }
 
-    void SetFragmentShader (const std::string& source) { SetShader (ShaderModule::ShaderKind::Fragment, source); }
+    void SetFragmentShader (const std::string& source) { SetShaderFromSourceString (ShaderModule::ShaderKind::Fragment, source); }
 
     ShaderPipeline& AddShader (const std::filesystem::path& shaderPath)
     {

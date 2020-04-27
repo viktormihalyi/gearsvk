@@ -44,10 +44,10 @@ public:
             camera.Move (Camera::MovementDirection::Right, dt);
         }
         if (keyboard->IsPressed ('E')) {
-            camera.Move (Camera::MovementDirection::Down, dt);
+            camera.Move (Camera::MovementDirection::Up, dt);
         }
         if (keyboard->IsPressed ('Q')) {
-            camera.Move (Camera::MovementDirection::Up, dt);
+            camera.Move (Camera::MovementDirection::Down, dt);
         }
     }
 

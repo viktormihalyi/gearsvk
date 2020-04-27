@@ -9,17 +9,9 @@
 #include "VulkanWrapper.hpp"
 
 
-static void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
-                               VkDebugUtilsMessageTypeFlagsEXT,
-                               const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
-{
-    using namespace TerminalColors;
-    std::cout << RED << "validation layer: "
-              << YELLOW << callbackData->pMessageIdName << ": "
-              << RESET << callbackData->pMessage
-              << std::endl
-              << std::endl;
-}
+void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
+                        VkDebugUtilsMessageTypeFlagsEXT,
+                        const VkDebugUtilsMessengerCallbackDataEXT* callbackData);
 
 
 class VulkanEnvironment {
