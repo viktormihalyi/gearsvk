@@ -37,6 +37,9 @@
 #include "glmlib.hpp"
 
 
+const std::filesystem::path ShadersFolder = PROJECT_ROOT / "src" / "Main" / "shaders";
+
+
 int main (int, char**)
 {
     Window::U window = GLFWWindow::Create ();
@@ -84,8 +87,8 @@ int main (int, char**)
 
     ShaderPipeline::P sp = ShaderPipeline::CreateShared (device);
     sp->AddShaders ({
-        PROJECT_ROOT / "shaders" / "brain.vert",
-        PROJECT_ROOT / "shaders" / "brain.frag",
+        ShadersFolder / "brain.vert",
+        ShadersFolder / "brain.frag",
     });
 
     // resources

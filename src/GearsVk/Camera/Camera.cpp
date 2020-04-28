@@ -94,17 +94,6 @@ public:
 const GlobalZ upVector;
 
 
-std::string ToString (const glm::vec3& vec)
-{
-    std::stringstream ss;
-    ss << "("
-       << vec.x << ", "
-       << vec.y << ", "
-       << vec.z << ", "
-       << ")";
-    return ss.str ();
-}
-
 // TODO calulcate initial pitch and yaw from ahead vector
 
 Camera::Camera (const glm::vec3& position,
@@ -124,10 +113,10 @@ Camera::Camera (const glm::vec3& position,
 {
     UpdateVectors ();
 
-    //positionChanged += [&] (glm::vec3) {
-    //    std::cout << "position: " << ToString (this->position) << std::endl;
-    //    std::cout << "ahead:    " << ToString (this->ahead) << std::endl;
-    //};
+    positionChanged += [&] (glm::vec3) {
+        std::cout << "position: " << this->position << std::endl;
+        std::cout << "ahead:    " << this->ahead << std::endl;
+    };
 }
 
 

@@ -27,6 +27,10 @@ int main (int argc, char** argv)
     return RUN_ALL_TESTS ();
 }
 
+
+const std::filesystem::path ShadersFolder = PROJECT_ROOT / "src" / "Tests" / "shaders";
+
+
 using namespace RG;
 
 
@@ -141,8 +145,8 @@ TEST_F (HeadlessGoogleTestEnvironment, CompileTest)
     RenderGraph graph (device, commandPool);
     graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
                                                  ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                           PROJECT_ROOT / "shaders" / "test.vert",
-                                                                                           PROJECT_ROOT / "shaders" / "test.frag",
+                                                                                           ShadersFolder / "test.vert",
+                                                                                           ShadersFolder / "test.frag",
                                                                                        })));
 }
 
@@ -285,14 +289,14 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
 
     Operation::Ref dummyPass = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
                                                                             ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                                                      PROJECT_ROOT / "shaders" / "test.vert",
-                                                                                                                      PROJECT_ROOT / "shaders" / "test.frag",
+                                                                                                                      ShadersFolder / "test.vert",
+                                                                                                                      ShadersFolder / "test.frag",
                                                                                                                   })));
 
     Operation::Ref secondPass = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
                                                                              ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                                                       PROJECT_ROOT / "shaders" / "fullscreenquad.vert",
-                                                                                                                       PROJECT_ROOT / "shaders" / "fullscreenquad.frag",
+                                                                                                                       ShadersFolder / "fullscreenquad.vert",
+                                                                                                                       ShadersFolder / "fullscreenquad.frag",
                                                                                                                    })));
 
     graph.CompileResources (s);
@@ -323,17 +327,17 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<WritableImageResource> (finalImg).images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
     std::thread saveThreads[] = {
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (green.get ()).images[0]->image.image, PROJECT_ROOT / "green.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (presented.get ()).images[0]->image.image, PROJECT_ROOT / "presented.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (red.get ()).images[0]->image.image, PROJECT_ROOT / "red.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (finalImg.get ()).images[0]->image.image, PROJECT_ROOT / "final.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (green.get ()).images[0]->image.image, ReferenceImagesFolder / "green.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (presented.get ()).images[0]->image.image, ReferenceImagesFolder / "presented.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (red.get ()).images[0]->image.image, ReferenceImagesFolder / "red.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (finalImg.get ()).images[0]->image.image, ReferenceImagesFolder / "final.png"),
     };
     for (auto& t : saveThreads) {
         t.join ();
         std::cout << "saved" << std::endl;
     }
 
-    ASSERT_TRUE (AreImagesEqual (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (presented.get ()).images[0]->image.image, PROJECT_ROOT / "black.png"));
+    ASSERT_TRUE (AreImagesEqual (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (presented.get ()).images[0]->image.image, ReferenceImagesFolder / "black.png"));
 }
 
 

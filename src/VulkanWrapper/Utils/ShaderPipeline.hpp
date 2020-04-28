@@ -1,6 +1,7 @@
 #ifndef SHADERPIPELINE_HPP
 #define SHADERPIPELINE_HPP
 
+#include "MultithreadedFunction.hpp"
 #include "Timer.hpp"
 #include "VulkanWrapper.hpp"
 
@@ -166,17 +167,9 @@ public:
 
     ShaderPipeline& AddShaders (const std::vector<std::filesystem::path>& shaderPath)
     {
-        std::vector<std::thread> threads;
-
-        for (const std::filesystem::path& p : shaderPath) {
-            threads.emplace_back ([=] () {
-                AddShader (p);
-            });
-        }
-
-        for (std::thread& t : threads) {
-            t.join ();
-        }
+        MultithreadedFunction d (shaderPath.size (), [&] (uint32_t threadCount, uint32_t threadIndex) {
+            AddShader (shaderPath[threadIndex]);
+        });
 
         return *this;
     }

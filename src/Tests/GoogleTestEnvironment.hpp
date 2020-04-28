@@ -2,6 +2,10 @@
 
 #include "gtest/gtest.h"
 
+#include <filesystem>
+
+const std::filesystem::path ReferenceImagesFolder = PROJECT_ROOT / "src" / "Tests" / "ReferenceImages";
+
 
 static void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
                                 VkDebugUtilsMessageTypeFlagsEXT             messageType,
@@ -44,12 +48,12 @@ protected:
             TransitionImageLayout (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, *transitionFrom, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
         }
 
-        const bool imagesMatch = AreImagesEqual (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, PROJECT_ROOT / (imageName + "_reference.png"));
+        const bool imagesMatch = AreImagesEqual (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, ReferenceImagesFolder / (imageName + "_reference.png"));
 
         EXPECT_TRUE (imagesMatch);
 
         if (!imagesMatch) {
-            SaveImageToFileAsync (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, PROJECT_ROOT / (imageName + ".png")).join ();
+            SaveImageToFileAsync (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, ReferenceImagesFolder / (imageName + ".png")).join ();
         }
     }
 };
