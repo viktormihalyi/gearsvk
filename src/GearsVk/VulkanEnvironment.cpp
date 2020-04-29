@@ -4,6 +4,8 @@
 #include "StaticInit.hpp"
 #include "Timer.hpp"
 
+#include <iomanip>
+
 
 constexpr uint32_t LogColumnWidth = 36;
 
