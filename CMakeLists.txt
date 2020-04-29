@@ -24,7 +24,6 @@ else ()
 endif ()
 
 if (${Python3_FOUND})
-    message ("Python3 lib found at " ${Python3_LIBRARIES_RELEASE})
     message ("Python3 headers found at " ${Python3_INCLUDE_DIRS})
 else ()
     error ()
@@ -32,9 +31,21 @@ endif ()
 
 add_definitions (-D_CRT_SECURE_NO_WARNINGS)
 
-include (
-    cmake/external.cmake
-)
+
+# ======================  EXTERNAL LIBS ======================
+set (BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+set (gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+set (GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set (GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set (GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+add_subdirectory (external/googletest)
+add_subdirectory (external/glslang)
+add_subdirectory (external/glfw)
+add_subdirectory (external/pybind11)
+# ======================  EXTERNAL LIBS ======================
+
 
 set (COMMON_SOURCE_FILES
     src/Utils/Assert.cpp
@@ -163,7 +174,7 @@ target_include_directories (${TARGET_DLL_NAME} PRIVATE ${COMMON_INCLUDES}
 
 target_link_libraries (${TARGET_NAME} ${COMMON_LINKS})
 target_link_libraries (${TARGET_TEST_NAME} ${COMMON_LINKS} gtest)
-target_link_libraries (${TARGET_DLL_NAME} ${COMMON_LINKS} ${Python3_LIBRARIES_RELEASE})
+target_link_libraries (${TARGET_DLL_NAME} ${COMMON_LINKS})
 
 if (MSVC)
   set (GEARS_MSVC_FLAGS /MDd /W4)
