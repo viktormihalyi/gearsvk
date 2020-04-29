@@ -47,7 +47,7 @@ int main (int, char**)
     KeyboardState keyboard;
     MouseState    mouse;
 
-    VulkanEnvironment::U testenv = VulkanEnvironment::CreateForBuildType (*window);
+    VulkanEnvironment::U testenv = VulkanEnvironment::Create (*window);
 
     Device&      device        = *testenv->device;
     CommandPool& commandPool   = *testenv->commandPool;
@@ -74,6 +74,7 @@ int main (int, char**)
         {"VP", ST::mat4},
         {"rayDirMatrix", ST::mat4},
         {"position", ST::vec3},
+        {"viewDir", ST::vec3},
     });
 
     UniformBlock Time (0, "time", TimeType);
@@ -84,6 +85,7 @@ int main (int, char**)
     glm::mat4& VP          = CameraUniform.GetRef<glm::mat4> ("VP");
     glm::mat4& rayDir      = CameraUniform.GetRef<glm::mat4> ("rayDirMatrix");
     glm::vec3& camPosition = CameraUniform.GetRef<glm::vec3> ("position");
+    glm::vec3& viewDir     = CameraUniform.GetRef<glm::vec3> ("viewDir");
 
     FullscreenQuad::P fq = FullscreenQuad::CreateShared (deviceExtra);
 
@@ -137,9 +139,9 @@ int main (int, char**)
 
 
     {
-        Utils::TimerLogger    l ("transforming volume data");
-        Utils::TimerScope     s (l);
-        MultithreadedFunction d ([&] (uint32_t threadCount, uint32_t threadIndex) {
+        Utils::DebugTimerLogger l ("transforming volume data");
+        Utils::TimerScope       s (l);
+        MultithreadedFunction   d ([&] (uint32_t threadCount, uint32_t threadIndex) {
             const uint32_t pixelCount = 4096 * 4096;
             for (uint32_t bidx = pixelCount / threadCount * threadIndex; bidx < pixelCount / threadCount * (threadIndex + 1); ++bidx) {
                 sliceData2[BrainDataIndexMapping (bidx)] = brainData[bidx];
@@ -181,6 +183,7 @@ int main (int, char**)
         rayDir      = c.GetRayDirMatrix ();
         time        = TimePoint::SinceApplicationStart ().AsSeconds ();
         camPosition = c.GetPosition ();
+        viewDir     = c.GetViewDirection ();
 
         unif.Set (frameIndex, Time);
         cameraUniformRes.Set (frameIndex, CameraUniform);

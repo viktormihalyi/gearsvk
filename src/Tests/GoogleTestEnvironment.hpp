@@ -64,7 +64,7 @@ class HeadlessGoogleTestEnvironment : public GoogleTestEnvironment {
 protected:
     virtual void SetUp () override
     {
-        env = DebugVulkanEnvironment::Create (std::nullopt, gtestDebugCallback);
+        env = VulkanEnvironment::Create (std::nullopt, gtestDebugCallback);
     }
 
     virtual void TearDown () override
@@ -79,7 +79,7 @@ protected:
     virtual void SetUp () override
     {
         window = GLFWWindow::Create ();
-        env    = DebugVulkanEnvironment::Create (*window, gtestDebugCallback);
+        env    = VulkanEnvironment::Create (*window, gtestDebugCallback);
     }
 
     virtual void TearDown () override
@@ -95,7 +95,7 @@ protected:
     virtual void SetUp () override
     {
         window = HiddenGLFWWindow::Create ();
-        env    = DebugVulkanEnvironment::Create (*window, gtestDebugCallback);
+        env    = VulkanEnvironment::Create (*window, gtestDebugCallback);
     }
 
     virtual void TearDown () override

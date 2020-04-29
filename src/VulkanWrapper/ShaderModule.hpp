@@ -31,9 +31,9 @@ public:
     };
 
     enum class ReadMode {
-        Source,
-        Binary,
-        String,
+        GLSLFilePath,
+        SPVFilePath,
+        GLSLString,
     };
 
 private:
@@ -53,9 +53,9 @@ private:
 public:
     USING_PTR (ShaderModule);
 
-    static ShaderModule::U CreateFromSource (VkDevice device, const std::filesystem::path& fileLocation);
-    static ShaderModule::U CreateFromBinary (VkDevice device, const std::filesystem::path& fileLocation);
-    static ShaderModule::U CreateFromString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource);
+    static ShaderModule::U CreateFromGLSLFilePath (VkDevice device, const std::filesystem::path& fileLocation);
+    static ShaderModule::U CreateFromSPVFilePath (VkDevice device, const std::filesystem::path& fileLocation);
+    static ShaderModule::U CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource);
 
     virtual ~ShaderModule ();
 

@@ -119,7 +119,7 @@ public:
         : ShaderPipeline (device)
     {
         for (auto [kind, source] : sources) {
-            GetShaderByKind (kind) = ShaderModule::CreateFromString (device, kind, source);
+            GetShaderByKind (kind) = ShaderModule::CreateFromGLSLString (device, kind, source);
         }
     }
 
@@ -147,7 +147,7 @@ public:
     void SetShaderFromSourceString (ShaderModule::ShaderKind shaderKind, const std::string& source)
     {
         ASSERT (GetShaderByKind (shaderKind) == nullptr);
-        GetShaderByKind (shaderKind) = ShaderModule::CreateFromString (device, shaderKind, source);
+        GetShaderByKind (shaderKind) = ShaderModule::CreateFromGLSLString (device, shaderKind, source);
     }
 
     void SetProvidedShader (ShaderModule::ShaderKind shaderKind, std::vector<const ShaderSourceBuilder*> builders, const std::string& source)
@@ -161,7 +161,7 @@ public:
 
         result += source;
 
-        GetShaderByKind (shaderKind) = ShaderModule::CreateFromString (device, shaderKind, result);
+        GetShaderByKind (shaderKind) = ShaderModule::CreateFromGLSLString (device, shaderKind, result);
     }
 
     void SetVertexShader (const std::string& source) { SetShaderFromSourceString (ShaderModule::ShaderKind::Vertex, source); }
@@ -174,7 +174,7 @@ public:
 
         ASSERT (moduleFromExtension == nullptr);
 
-        moduleFromExtension = ShaderModule::CreateFromSource (device, shaderPath);
+        moduleFromExtension = ShaderModule::CreateFromGLSLFilePath (device, shaderPath);
 
         return *this;
     }
@@ -223,28 +223,40 @@ public:
 
     void Reload ()
     {
-        Utils::TimerLogger tl ("reloading shaders");
-        Utils::TimerScope  ts (tl);
+        Utils::DebugTimerLogger tl ("reloading shaders");
+        Utils::TimerScope       ts (tl);
 
         MultithreadedFunction reloader (5, [&] (uint32_t, uint32_t threadIndex) {
             ShaderModule::U& currentShader = GetShaderFromIndex (threadIndex);
+            ShaderModule::U  newShader;
+
             if (currentShader != nullptr) {
                 switch (currentShader->GetReadMode ()) {
-                    case ShaderModule::ReadMode::Source:
-                        currentShader = ShaderModule::CreateFromSource (device, currentShader->GetLocation ());
+                    case ShaderModule::ReadMode::GLSLFilePath:
+                        try {
+                            newShader = ShaderModule::CreateFromGLSLFilePath (device, currentShader->GetLocation ());
+                        } catch (ShaderCompileException&) {
+                        }
                         break;
 
-                    case ShaderModule::ReadMode::Binary:
-                        currentShader = ShaderModule::CreateFromBinary (device, currentShader->GetLocation ());
+                    case ShaderModule::ReadMode::SPVFilePath:
+                        try {
+                            newShader = ShaderModule::CreateFromSPVFilePath (device, currentShader->GetLocation ());
+                        } catch (ShaderCompileException&) {
+                        }
                         break;
 
-                    case ShaderModule::ReadMode::String:
+                    case ShaderModule::ReadMode::GLSLString:
                         // cannot reload string shaders
                         break;
 
                     default:
                         ASSERT ("unknown shader read mode");
                         break;
+                }
+
+                if (newShader != nullptr) {
+                    currentShader = std::move (newShader);
                 }
             }
         });

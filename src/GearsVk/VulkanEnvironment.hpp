@@ -21,6 +21,7 @@ public:
     PhysicalDevice::U      physicalDevice;
     Device::U              device;
     Queue::U               graphicsQueue;
+    Queue::U               presentQueue;
     CommandPool::U         commandPool;
     DeviceExtra::U         deviceExtra;
 
@@ -28,40 +29,14 @@ public:
     Surface::U   surface;
     Swapchain::U swapchain;
 
-    enum class Mode {
-        Debug,
-        Release,
-    };
 
     USING_PTR (VulkanEnvironment);
 
-    VulkanEnvironment (Mode mode, std::optional<Window::Ref> window = std::nullopt, std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback);
+    VulkanEnvironment (std::optional<Window::Ref> window = std::nullopt, std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback);
 
     virtual ~VulkanEnvironment ();
 
     void Wait () const;
-
-    static VulkanEnvironment::U CreateForBuildType (std::optional<Window::Ref> window = std::nullopt, std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback);
-};
-
-
-class DebugVulkanEnvironment : public VulkanEnvironment {
-public:
-    USING_PTR (DebugVulkanEnvironment);
-    DebugVulkanEnvironment (std::optional<Window::Ref> window = std::nullopt, std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback)
-        : VulkanEnvironment (Mode::Debug, window, callback)
-    {
-    }
-};
-
-
-class ReleaseVulkanEnvironment : public VulkanEnvironment {
-public:
-    USING_PTR (ReleaseVulkanEnvironment);
-    ReleaseVulkanEnvironment (std::optional<Window::Ref> window = std::nullopt)
-        : VulkanEnvironment (Mode::Release, window, std::nullopt)
-    {
-    }
 };
 
 

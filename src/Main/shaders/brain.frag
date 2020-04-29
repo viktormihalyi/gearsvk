@@ -9,6 +9,7 @@ layout (std140, binding = 3) uniform Camera {
     mat4 VP;
     mat4 rayDirMatrix;
     vec3 position;
+    vec3 viewDir;
 } camera;
 
 layout (binding = 1) uniform sampler2D agy2dSampler;
@@ -109,6 +110,16 @@ float TriangleIntersection (vec3 rayStart, vec3 rayDir, vec3 p1, vec3 p2, vec3 p
     return -1.f;
 }
 
+vec3 GetNormalAt (vec3 rayPos) 
+{
+    float delta = 1.f/256.f * 5.f;
+    vec3 gradient = vec3 (
+        (texture (agySampler, vec3 (rayPos.x + delta, rayPos.y, rayPos.z)).r - texture (agySampler, vec3 (rayPos.x - delta, rayPos.y, rayPos.z)).r) / (2 * delta),
+        (texture (agySampler, vec3 (rayPos.x, rayPos.y + delta, rayPos.z)).r - texture (agySampler, vec3 (rayPos.x, rayPos.y - delta, rayPos.z)).r) / (2 * delta),
+        (texture (agySampler, vec3 (rayPos.x, rayPos.y, rayPos.z + delta)).r - texture (agySampler, vec3 (rayPos.x, rayPos.y, rayPos.z - delta)).r) / (2 * delta)
+    );
+    return normalize (gradient.rgb);
+}
 
 void main ()
 {
@@ -153,25 +164,48 @@ void main ()
     float rayT = bt.x;
     vec3  rayPos  = camera.position + normRayDir * rayT;
 
-    float insideBrain = 10.f;
-    float minConsideredValue = 0.02f;
+    float insideBrain = 0.01f;
+    float minConsideredValue = 0.09f;
 
     int sampleCount = 0;
+    int hagymaSampledCount = 0;
+    int maxHagymaSampleCount = 4;
       
     if (hit) {
 
         vec4 gradient = vec4 (0, 0, 0, 0);
         float volume = 0.f;
 
+        vec4 hagyma = vec4 (vec3 (1), 0.1);
+
+        bool inside     = false;
+        bool lastInside = false;
+
         for (int i = 0; i < steps; ++i) {
             float sampled = texture (agySampler, rayPos).r;
             if (sampled > minConsideredValue) {
-                volume += sampled;
+                inside = true;
+                if (lastInside == false) {
+                }
+                volume += sampled / steps;
                 sampleCount++;
+                if (volume > (hagymaSampledCount) * insideBrain) {
+                    hagyma.w += (1.f - max (0, dot (GetNormalAt (rayPos), normalize (camera.viewDir)))) / maxHagymaSampleCount;
+                    hagymaSampledCount++;
+                
+                    //hagymaSampledCount++;
+                    //hagyma.w += (1.f - abs (dot (GetNormalAt (rayPos), normalize (camera.viewDir)))) / maxHagymaSampleCount;
+                }
+            } else {
+                inside = false;
             }
-            volume += (sampled > minConsideredValue) ? sampled : 0.f;
-            
+
             bool isHit = (volume > insideBrain);
+            
+            // hagyma
+            isHit = (sampleCount == maxHagymaSampleCount);
+
+            isHit = (hagymaSampledCount == maxHagymaSampleCount);
 
             float lastSampled = sampled;
             if (isHit) {
@@ -196,33 +230,29 @@ void main ()
                //     isHit = (volume > insideBrain);
                // }
                 
-                float delta = 1.f/256.f * 5.f;
-                gradient = vec4 (
-                    (texture (agySampler, vec3 (rayPos.x + delta, rayPos.y, rayPos.z)).r - texture (agySampler, vec3 (rayPos.x - delta, rayPos.y, rayPos.z)).r) / (2 * delta),
-                    (texture (agySampler, vec3 (rayPos.x, rayPos.y + delta, rayPos.z)).r - texture (agySampler, vec3 (rayPos.x, rayPos.y - delta, rayPos.z)).r) / (2 * delta),
-                    (texture (agySampler, vec3 (rayPos.x, rayPos.y, rayPos.z + delta)).r - texture (agySampler, vec3 (rayPos.x, rayPos.y, rayPos.z - delta)).r) / (2 * delta),
-                    1
-                );
-                gradient = vec4 (normalize (gradient.rgb), 1.0f);
+                gradient = vec4 (GetNormalAt (rayPos), 1.0f);
                 break;
             }
             
+            lastInside = inside;
             rayT += rayStep;
             rayPos = camera.position + normRayDir * rayT;
         }
 
-        float angle = dot (gradient.rgb, normalize (vec3 (0, 0, -1)));
-        presented = vec4 (vec3 (angle), gradient.w);
-        presented = vec4 (vec3 (sampleCount/100.f), gradient.w);
-        presented = vec4 (vec3 (angle), sampleCount/100.f);
-        presented = vec4 (vec3 (1.f), sampleCount/100.f);
+        if (gradient.w > 0) {
+            vec4 n = gradient * camera.viewMatrix;
+            vec3 matcapTexture = texture (matcapSampler, (n.rg + 1) * 0.5).rgb;
+            float angle = acos (dot (gradient.rgb, normalize (camera.viewDir)));
 
-        vec4 n = gradient * camera.viewMatrix;
-        vec3 matcapTexture = texture (matcapSampler, (n.rg + 1) * 0.5).rgb;
+            presented = vec4 (vec3 (angle), gradient.w);
+            presented = vec4 (vec3 (sampleCount/100.f), gradient.w);
+            presented = vec4 (vec3 (angle), sampleCount/100.f);
+            presented = vec4 (vec3 (sampleCount/100.f), 1.f);
+            presented = hagyma;
 
-        //presented = vec4 (matcapTexture.rgb, gradient.w);
-        //presented = vec4 (gradient.rgb * 0.5 + 0.5, gradient.w);
-
+            //presented = vec4 (matcapTexture.rgb, gradient.w);
+            //presented = vec4 (gradient.rgb * 0.5 + 0.5, gradient.w);
+        }
     }
     //presented = vec4 (texture (matcapSampler, uv).rgb, 1);
 

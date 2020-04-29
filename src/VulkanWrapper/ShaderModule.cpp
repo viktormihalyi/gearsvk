@@ -156,27 +156,27 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
         throw ShaderCompileException (shader.getInfoLog ());
     }
 
-    {
-        // TODO reflection
-        TReflection ref (EShReflectionDefault, shaderKind.esh, shaderKind.esh);
-        ref.addStage (shaderKind.esh, *shader.getIntermediate ());
-        std::cout << "uniforms" << std::endl;
-        const uint32_t uniformCount = ref.getNumUniforms ();
-        for (uint32_t uniformIndex = 0; uniformIndex < uniformCount; ++uniformIndex) {
-            const TObjectReflection& uniform = ref.getUniform (uniformIndex);
-            if (uniform.getType ())
-                std::cout << uniform.getType ()->getCompleteString () << std::endl;
-            uniform.dump ();
-        }
-        std::cout << "uniform blocks" << std::endl;
-        const uint32_t uniformBlockCount = ref.getNumUniformBlocks ();
-        for (uint32_t uniformIndex = 0; uniformIndex < uniformCount; ++uniformIndex) {
-            const TObjectReflection& uniform = ref.getUniformBlock (uniformIndex);
-            if (uniform.getType ())
-                std::cout << uniform.getType ()->getCompleteString () << std::endl;
-            uniform.dump ();
-        }
+    // TODO reflection
+#if 0
+    TReflection ref (EShReflectionDefault, shaderKind.esh, shaderKind.esh);
+    ref.addStage (shaderKind.esh, *shader.getIntermediate ());
+    std::cout << "uniforms" << std::endl;
+    const uint32_t uniformCount = ref.getNumUniforms ();
+    for (uint32_t uniformIndex = 0; uniformIndex < uniformCount; ++uniformIndex) {
+        const TObjectReflection& uniform = ref.getUniform (uniformIndex);
+        if (uniform.getType ())
+            std::cout << uniform.getType ()->getCompleteString () << std::endl;
+        uniform.dump ();
     }
+    std::cout << "uniform blocks" << std::endl;
+    const uint32_t uniformBlockCount = ref.getNumUniformBlocks ();
+    for (uint32_t uniformIndex = 0; uniformIndex < uniformCount; ++uniformIndex) {
+        const TObjectReflection& uniform = ref.getUniformBlock (uniformIndex);
+        if (uniform.getType ())
+            std::cout << uniform.getType ()->getCompleteString () << std::endl;
+        uniform.dump ();
+    }
+#endif
 
     TProgram program;
     program.addShader (&shader);
@@ -243,7 +243,7 @@ ShaderModule::ShaderModule (ShaderModule::ShaderKind shaderKind, ReadMode readMo
 }
 
 
-ShaderModule::U ShaderModule::CreateFromBinary (VkDevice device, const std::filesystem::path& fileLocation)
+ShaderModule::U ShaderModule::CreateFromSPVFilePath (VkDevice device, const std::filesystem::path& fileLocation)
 {
     std::optional<std::vector<char>>     binaryC = Utils::ReadBinaryFile (fileLocation);
     std::optional<std::vector<uint32_t>> binary  = Utils::ReadBinaryFile4Byte (fileLocation);
@@ -253,11 +253,11 @@ ShaderModule::U ShaderModule::CreateFromBinary (VkDevice device, const std::file
 
     VkShaderModule handle = CreateShaderModule (device, *binary);
 
-    return ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::Binary, device, handle, fileLocation, *binary);
+    return ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, *binary);
 }
 
 
-ShaderModule::U ShaderModule::CreateFromSource (VkDevice device, const std::filesystem::path& fileLocation)
+ShaderModule::U ShaderModule::CreateFromGLSLFilePath (VkDevice device, const std::filesystem::path& fileLocation)
 {
     std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation);
     if (ERROR (!binary.has_value ())) {
@@ -266,17 +266,17 @@ ShaderModule::U ShaderModule::CreateFromSource (VkDevice device, const std::file
 
     VkShaderModule handle = CreateShaderModule (device, *binary);
 
-    return ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::Source, device, handle, fileLocation, *binary);
+    return ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::GLSLFilePath, device, handle, fileLocation, *binary);
 }
 
 
-ShaderModule::U ShaderModule::CreateFromString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource)
+ShaderModule::U ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource)
 {
     std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind));
 
     VkShaderModule handle = CreateShaderModule (device, binary);
 
-    return ShaderModule::Create (shaderKind, ReadMode::String, device, handle, "", binary);
+    return ShaderModule::Create (shaderKind, ReadMode::GLSLString, device, handle, "", binary);
 }
 
 
@@ -300,7 +300,7 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 
 void ShaderModule::Reload ()
 {
-    if (readMode == ReadMode::Source) {
+    if (readMode == ReadMode::GLSLFilePath) {
         vkDestroyShaderModule (device, handle, nullptr);
 
         std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation);

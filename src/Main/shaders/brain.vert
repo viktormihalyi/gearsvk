@@ -9,6 +9,7 @@ layout (std140, binding = 3) uniform Camera {
     mat4 VP;
     mat4 rayDirMatrix;
     vec3 position;
+    vec3 viewDir;
 } camera;
 
 layout (location = 0) in vec2 position;

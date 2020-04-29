@@ -64,11 +64,7 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
 
     GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor ();
     glfwSetMonitorCallback ([] (GLFWmonitor* monitor, int event) {
-        if (event == GLFW_CONNECTED) {
-            std::cout << "connected" << std::endl;
-        } else if (event == GLFW_DISCONNECTED) {
-            std::cout << "disconnected" << std::endl;
-        }
+        // TODO
     });
 
     int width_mm, height_mm;
@@ -104,7 +100,6 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     // window settings
 
     glfwSetWindowUserPointer (glfwWindow, this);
-    std::cout << std::boolalpha << "glfwRawMouseMotionSupported is " << (glfwRawMouseMotionSupported () == GLFW_TRUE) << std::endl;
     if (hideMouse) {
         glfwSetInputMode (glfwWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // GLFW_CURSOR_DISABLED
     }

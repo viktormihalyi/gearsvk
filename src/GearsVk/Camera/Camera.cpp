@@ -101,7 +101,7 @@ Camera::Camera (const glm::vec3& position,
                 float            aspect)
     : position (position)
     , ahead (ahead)
-    , frustum (new PerspectiveFrustum (100.f, 0.001f, 90.f, aspect))
+    , frustum (new PerspectiveFrustum (100.f, 0.001f, 80.f, aspect))
     , speed (1.f)
     , yaw (45.f)
     , pitch (0)
@@ -113,10 +113,10 @@ Camera::Camera (const glm::vec3& position,
 {
     UpdateVectors ();
 
-    positionChanged += [&] (glm::vec3) {
-        std::cout << "position: " << this->position << std::endl;
-        std::cout << "ahead:    " << this->ahead << std::endl;
-    };
+    //positionChanged += [&] (glm::vec3) {
+    //    std::cout << "position: " << this->position << std::endl;
+    //    std::cout << "ahead:    " << this->ahead << std::endl;
+    //};
 }
 
 

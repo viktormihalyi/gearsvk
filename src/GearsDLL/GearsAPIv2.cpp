@@ -26,6 +26,7 @@ struct ASDD {
     int a;
     int a2;
 };
+
 Persistent<ASDD>      asd2 ("asd2");
 Persistent<int>       asd3 ("asd3");
 Persistent<glm::vec4> asd4 ("asd4");
@@ -34,7 +35,7 @@ Persistent<glm::vec4> asd4 ("asd4");
 void InitializeEnvironment ()
 {
     window = HiddenGLFWWindow::Create (); // create a hidden window by default
-    env    = VulkanEnvironment::CreateForBuildType (*window);
+    env    = VulkanEnvironment::Create (*window);
 }
 
 
@@ -135,8 +136,8 @@ void StartRendering (const std::function<bool ()>& doRender)
     env->Wait ();
 
     {
-        Utils::TimerLogger tl ("switching to new window");
-        Utils::TimerScope  ts (tl);
+        Utils::DebugTimerLogger tl ("switching to new window");
+        Utils::TimerScope       ts (tl);
 
         window = HiddenGLFWWindow::Create ();
 

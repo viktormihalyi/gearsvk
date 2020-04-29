@@ -72,6 +72,21 @@ public:
     operator VkPhysicalDevice () const { return handle; }
 
     QueueFamilies GetQueueFamilies () const { return queueFamilies; }
+
+    VkPhysicalDeviceProperties GetProperties () const
+    {
+        VkPhysicalDeviceProperties properties;
+        vkGetPhysicalDeviceProperties (handle, &properties);
+        return properties;
+    }
+
+    VkPhysicalDeviceFeatures GetFeatures () const
+    {
+        VkPhysicalDeviceFeatures features;
+        vkGetPhysicalDeviceFeatures (handle, &features);
+        return features;
+    }
+
 };
 
 #endif

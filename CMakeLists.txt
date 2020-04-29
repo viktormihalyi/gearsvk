@@ -47,6 +47,7 @@ add_subdirectory (external/pybind11)
 # ======================  EXTERNAL LIBS ======================
 
 
+# TODO make a dll out of these
 set (COMMON_SOURCE_FILES
     src/Utils/Assert.cpp
     src/Utils/Logger.cpp
@@ -129,9 +130,9 @@ set (EXTRNAL_INCLUDES
     ${Python3_INCLUDE_DIRS}
     external/googletest/googletest/include
     external/glfw/include
-    external/json/single_include
+    #external/json/single_include
     external/glm
-    external/VulkanMemoryAllocator/src
+    #external/VulkanMemoryAllocator/src
     external/stb
     external/pybind11/include
     external/glslang

@@ -1,2 +1,2 @@
-cd C:\Dev\vulkantest\src\UserInterface
+cd C:\Dev\gearsvk\src\UserInterface
 C:\Dev\Python38\python.exe Gears.py

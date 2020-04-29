@@ -160,7 +160,7 @@ DestinationType& DynamicRefCast (std::reference_wrapper<SourceType>& source)
 TEST_F (HeadlessGoogleTestEnvironment, ShaderCompileTests)
 {
     try {
-        ShaderModule::CreateFromString (GetDevice (), ShaderModule::ShaderKind::Vertex, R"(
+        ShaderModule::CreateFromGLSLString (GetDevice (), ShaderModule::ShaderKind::Vertex, R"(
         #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -310,7 +310,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
 
     graph.Compile (s);
 
-    Utils::TimerLogger obs;
+    Utils::DebugTimerLogger obs;
     {
         Utils::TimerScope _ (obs);
         for (uint32_t i = 0; i < 4; ++i) {

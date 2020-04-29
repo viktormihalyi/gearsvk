@@ -1,6 +1,7 @@
 #ifndef UTILS_TIMER
 #define UTILS_TIMER
 
+#include "BuildType.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -43,12 +44,12 @@ private:
 };
 
 
-class TimerLogger final : public TimerObserver {
+class DebugTimerLogger final : public TimerObserver {
 private:
     std::string name;
 
 public:
-    TimerLogger (const std::string& name = "")
+    DebugTimerLogger (const std::string& name = "")
         : name (name)
     {
     }
@@ -56,10 +57,12 @@ public:
 private:
     void TimerEnded (Duration delta) override
     {
-        if (name.empty ()) {
-            std::cout << "operation took " << delta.count () << " sec" << std::endl;
-        } else {
-            std::cout << name << " took " << delta.count () << " sec" << std::endl;
+        if constexpr (IsDebugBuild) {
+            if (name.empty ()) {
+                std::cout << "operation took " << delta.count () << " sec" << std::endl;
+            } else {
+                std::cout << name << " took " << delta.count () << " sec" << std::endl;
+            }
         }
     }
 };

@@ -5,6 +5,9 @@
 #include "Timer.hpp"
 
 
+constexpr uint32_t LogColumnWidth = 36;
+
+
 void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
                         VkDebugUtilsMessageTypeFlagsEXT,
                         const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
@@ -27,21 +30,19 @@ void VulkanEnvironment::Wait () const
 }
 
 
-StaticInit apiVersionLogger ([] () {
+DebugOnlyStaticInit apiVersionLogger ([] () {
     uint32_t apiVersion;
     vkEnumerateInstanceVersion (&apiVersion);
-    std::cout << "api version: " << GetVersionString (apiVersion) << std::endl;
+    std::cout << std::left << std::setw (LogColumnWidth) << "vulkan api version:" << GetVersionString (apiVersion) << std::endl;
 });
 
 
-VulkanEnvironment::VulkanEnvironment (VulkanEnvironment::Mode mode, std::optional<Window::Ref> window, std::optional<DebugUtilsMessenger::Callback> callback)
+VulkanEnvironment::VulkanEnvironment (std::optional<Window::Ref> window, std::optional<DebugUtilsMessenger::Callback> callback)
 {
-    Utils::TimerLogger tl ("creating test environment");
-    Utils::TimerScope  ts (tl);
+    Utils::DebugTimerLogger tl ("creating test environment");
+    Utils::TimerScope       ts (tl);
 
-    ASSERT (mode == Mode::Debug || mode == Mode::Release);
-
-    InstanceSettings is = (mode == Mode::Debug) ? instanceDebugMode : instanceReleaseMode;
+    InstanceSettings is = (IsDebugBuild) ? instanceDebugMode : instanceReleaseMode;
 
     if (window) {
         auto windowExtenions = window->get ().GetExtensions ();
@@ -54,13 +55,38 @@ VulkanEnvironment::VulkanEnvironment (VulkanEnvironment::Mode mode, std::optiona
         surface = Surface::Create (*instance, window->get ().GetSurface (*instance));
     }
 
-    if (mode == Mode::Debug && callback.has_value ()) {
+    if (IsDebugBuild && callback.has_value ()) {
         messenger = DebugUtilsMessenger::Create (*instance, *callback, DebugUtilsMessenger::noPerformance);
     }
 
     VkSurfaceKHR physicalDeviceSurfaceHandle = ((surface != nullptr) ? surface->operator VkSurfaceKHR () : VK_NULL_HANDLE);
 
     physicalDevice = PhysicalDevice::Create (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
+
+    if constexpr (IsDebugBuild) {
+        VkPhysicalDeviceProperties properties = physicalDevice->GetProperties ();
+
+        auto DeviceTypeToString = [] (VkPhysicalDeviceType type) -> std::string {
+            switch (type) {
+                case VK_PHYSICAL_DEVICE_TYPE_OTHER: return "VK_PHYSICAL_DEVICE_TYPE_OTHER";
+                case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU";
+                case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: return "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU";
+                case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: return "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
+                case VK_PHYSICAL_DEVICE_TYPE_CPU: return "VK_PHYSICAL_DEVICE_TYPE_CPU";
+                default:
+                    ASSERT (false);
+                    return "<unknown>";
+            }
+        };
+
+        std::cout << std::left << std::setw (LogColumnWidth) << "physical device api version:" << GetVersionString (properties.apiVersion) << std::endl;
+        std::cout << std::left << std::setw (LogColumnWidth) << "physical device driver version:" << GetVersionString (properties.driverVersion) << " (" << properties.driverVersion << ")" << std::endl;
+        std::cout << std::left << std::setw (LogColumnWidth) << "device name:" << properties.deviceName << std::endl;
+        std::cout << std::left << std::setw (LogColumnWidth) << "device type:" << DeviceTypeToString (properties.deviceType) << std::endl;
+        std::cout << std::left << std::setw (LogColumnWidth) << "device id:" << properties.deviceID << std::endl;
+        std::cout << std::left << std::setw (LogColumnWidth) << "vendor id:" << properties.vendorID << std::endl;
+        std::cout << std::endl;
+    }
 
     std::vector<const char*> deviceExtensions;
 
@@ -95,14 +121,4 @@ VulkanEnvironment::VulkanEnvironment (VulkanEnvironment::Mode mode, std::optiona
 VulkanEnvironment::~VulkanEnvironment ()
 {
     Wait ();
-}
-
-
-VulkanEnvironment::U VulkanEnvironment::CreateForBuildType (std::optional<Window::Ref> window, std::optional<DebugUtilsMessenger::Callback> callback)
-{
-    if constexpr (IsDebugBuild) {
-        return DebugVulkanEnvironment::Create (window, callback);
-    } else {
-        return ReleaseVulkanEnvironment::Create (window);
-    }
 }

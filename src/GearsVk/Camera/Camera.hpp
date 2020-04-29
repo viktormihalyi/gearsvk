@@ -48,6 +48,7 @@ public:
     Camera (const glm::vec3& position, const glm::vec3& ahead, float aspect);
 
     const glm::vec3& GetPosition () const { return position; }
+    const glm::vec3& GetViewDirection () const { return ahead; }
     const glm::mat4& GetRayDirMatrix () { return rayDirMatrix; }
 
     void SetAspectRatio (float value);

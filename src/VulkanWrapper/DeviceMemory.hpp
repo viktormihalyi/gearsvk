@@ -36,7 +36,9 @@ public:
             throw std::runtime_error ("failed to allocate memory");
         }
 
+#if LOG_VULKAN_ALLOCATIONS
         std::cout << "allocated " << allocationSize << " bytes (idx: " << memoryTypeIndex << ")" << std::endl;
+#endif
     }
 
     DeviceMemory (VkDevice device, Device::AllocateInfo allocateInfo)
