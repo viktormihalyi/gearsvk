@@ -21,6 +21,21 @@ private:
     ShaderModule::U tessellationControlShader;
     ShaderModule::U computeShader;
 
+    ShaderModule::U& GetShaderFromIndex (uint32_t index)
+    {
+        switch (index) {
+            case 0: return vertexShader;
+            case 1: return fragmentShader;
+            case 2: return geometryShader;
+            case 3: return tessellationEvaluationShader;
+            case 4: return tessellationControlShader;
+            case 5: return computeShader;
+            default:
+                ASSERT (false);
+                throw std::runtime_error ("no");
+        }
+    }
+
     ShaderModule::U& GetShaderByExtension (const std::string& extension)
     {
         if (extension == ".vert") {
@@ -204,6 +219,35 @@ public:
         compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, {subpass}, {dependency}));
         compileResult.pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, {settings.layout}));
         compileResult.pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, settings.width, settings.height, static_cast<uint32_t> (settings.attachmentReferences.size ()), *compileResult.pipelineLayout, *compileResult.renderPass, GetShaderStages (), settings.inputBindings, settings.inputAttributes));
+    }
+
+    void Reload ()
+    {
+        Utils::TimerLogger tl ("reloading shaders");
+        Utils::TimerScope  ts (tl);
+
+        MultithreadedFunction reloader (5, [&] (uint32_t, uint32_t threadIndex) {
+            ShaderModule::U& currentShader = GetShaderFromIndex (threadIndex);
+            if (currentShader != nullptr) {
+                switch (currentShader->GetReadMode ()) {
+                    case ShaderModule::ReadMode::Source:
+                        currentShader = ShaderModule::CreateFromSource (device, currentShader->GetLocation ());
+                        break;
+
+                    case ShaderModule::ReadMode::Binary:
+                        currentShader = ShaderModule::CreateFromBinary (device, currentShader->GetLocation ());
+                        break;
+
+                    case ShaderModule::ReadMode::String:
+                        // cannot reload string shaders
+                        break;
+
+                    default:
+                        ASSERT ("unknown shader read mode");
+                        break;
+                }
+            }
+        });
     }
 };
 

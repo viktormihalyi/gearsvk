@@ -30,13 +30,13 @@ public:
         Compute,
     };
 
-private:
     enum class ReadMode {
         Source,
         Binary,
         String,
     };
 
+private:
     const ReadMode readMode;
 
     const VkDevice              device;
@@ -64,6 +64,10 @@ public:
     void Reload ();
 
     const std::vector<uint32_t>& GetBinary () const { return binary; }
+
+    const std::filesystem::path& GetLocation () const { return fileLocation; }
+
+    ReadMode GetReadMode () const { return readMode; }
 
     VkPipelineShaderStageCreateInfo GetShaderStageCreateInfo () const;
 };

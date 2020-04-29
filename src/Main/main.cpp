@@ -70,6 +70,7 @@ int main (int, char**)
         {"time", ST::vec1},
     });
     const ShaderStruct CameraStruct ({
+        {"viewMatrix", ST::mat4},
         {"VP", ST::mat4},
         {"rayDirMatrix", ST::mat4},
         {"position", ST::vec3},
@@ -79,6 +80,7 @@ int main (int, char**)
     UniformBlock CameraUniform (1, "camera", CameraStruct);
 
     float&     time        = Time.GetRef<float> ("time");
+    glm::mat4& viewMatrix  = CameraUniform.GetRef<glm::mat4> ("viewMatrix");
     glm::mat4& VP          = CameraUniform.GetRef<glm::mat4> ("VP");
     glm::mat4& rayDir      = CameraUniform.GetRef<glm::mat4> ("rayDirMatrix");
     glm::vec3& camPosition = CameraUniform.GetRef<glm::vec3> ("position");
@@ -94,6 +96,7 @@ int main (int, char**)
     // resources
     SwapchainImageResource& presented        = graph.CreateResource<SwapchainImageResource> (swapchain);
     ReadOnlyImageResource&  agy              = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
+    ReadOnlyImageResource&  matcap           = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
     ReadOnlyImageResource&  agy3d            = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
     WritableImageResource&  presentedCopy    = graph.CreateResource<WritableImageResource> (2);
     UniformBlockResource&   unif             = graph.CreateResource<UniformBlockResource> (TimeType);
@@ -105,6 +108,11 @@ int main (int, char**)
 
 
     graph.CompileResources (s);
+
+    {
+        std::vector<uint8_t> pix = ReadImage (PROJECT_ROOT / "src" / "Main" / "matcap.jpg", 4);
+        matcap.CopyTransitionTransfer (pix);
+    }
 
     Image2DTransferable::U img = Image2DTransferable::Create (device, graphicsQueue, commandPool, ImageBase::RGBA, 512, 512, 0);
     std::vector<uint8_t>   pix (512 * 512 * 4, 127);
@@ -147,6 +155,7 @@ int main (int, char**)
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 3, cameraUniformRes});
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 1, agy});
     graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 2, agy3d});
+    graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 4, matcap});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presentedCopy});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 2, presented});
 
@@ -168,6 +177,7 @@ int main (int, char**)
         cameraControl.UpdatePosition (dt);
 
         //CameraUniform["VP"] = c.GetViewProjectionMatrix ();
+        viewMatrix  = c.GetViewMatrix ();
         rayDir      = c.GetRayDirMatrix ();
         time        = TimePoint::SinceApplicationStart ().AsSeconds ();
         camPosition = c.GetPosition ();
@@ -184,6 +194,13 @@ int main (int, char**)
         if (a == ESC_CODE) {
             // window->ToggleFullscreen ();
             quit = true;
+        }
+        if (a == 'R') {
+            std::cout << "waiting for device... " << std::endl;
+            vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
+            vkQueueWaitIdle (graph.GetGraphSettings ().queue);
+            sp->Reload ();
+            renderer.RecreateStuff ();
         }
         return;
     };

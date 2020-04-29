@@ -65,7 +65,6 @@ public:
 
     void RenderNextFrame () override;
 
-private:
     void RecreateStuff ();
 };
 

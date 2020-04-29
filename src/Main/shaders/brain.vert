@@ -5,6 +5,7 @@ layout (std140, binding = 0) uniform Time {
 } time;
 
 layout (std140, binding = 3) uniform Camera {
+    mat4 viewMatrix;
     mat4 VP;
     mat4 rayDirMatrix;
     vec3 position;

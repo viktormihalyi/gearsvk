@@ -116,11 +116,29 @@ public:
 };
 
 
+static uint32_t GetCompontentCountFromFormat (VkFormat format)
+{
+    switch (format) {
+        case VK_FORMAT_R8_UINT: return 1;
+        case VK_FORMAT_R8G8_UINT: return 2;
+        case VK_FORMAT_R8G8B8_UINT: return 3;
+        case VK_FORMAT_R8G8B8A8_UINT: return 4;
+        case VK_FORMAT_R8_SRGB: return 1;
+        case VK_FORMAT_R8G8_SRGB: return 2;
+        case VK_FORMAT_R8G8B8_SRGB: return 3;
+        case VK_FORMAT_R8G8B8A8_SRGB: return 4;
+        default:
+            ASSERT (false);
+            return 4;
+    }
+}
+
+
 class Image1DTransferable final : public ImageTransferableBase {
 public:
     USING_PTR (Image1DTransferable);
     Image1DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
-        : ImageTransferableBase (device, queue, commandPool, width * 4)
+        : ImageTransferableBase (device, queue, commandPool, width * GetCompontentCountFromFormat (format))
     {
         imageGPU = AllocatedImage::Create (device, Image1D::Create (device, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
     }
@@ -131,7 +149,7 @@ class Image2DTransferable final : public ImageTransferableBase {
 public:
     USING_PTR (Image2DTransferable);
     Image2DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags)
-        : ImageTransferableBase (device, queue, commandPool, width * height * 4)
+        : ImageTransferableBase (device, queue, commandPool, width * height * GetCompontentCountFromFormat (format))
     {
         imageGPU = AllocatedImage::Create (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
     }
@@ -142,7 +160,7 @@ class Image3DTransferable final : public ImageTransferableBase {
 public:
     USING_PTR (Image3DTransferable);
     Image3DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
-        : ImageTransferableBase (device, queue, commandPool, width * height * depth * 1)
+        : ImageTransferableBase (device, queue, commandPool, width * height * depth * GetCompontentCountFromFormat (format))
     {
         imageGPU = AllocatedImage::Create (device, Image3D::Create (device, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
     }

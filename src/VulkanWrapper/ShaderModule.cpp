@@ -231,7 +231,8 @@ static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<uin
     return result;
 }
 
-ShaderModule::ShaderModule (ShaderModule::ShaderKind shaderKind, ReadMode mode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary)
+
+ShaderModule::ShaderModule (ShaderModule::ShaderKind shaderKind, ReadMode readMode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary)
     : readMode (readMode)
     , shaderKind (shaderKind)
     , device (device)
@@ -299,6 +300,17 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 
 void ShaderModule::Reload ()
 {
-    ASSERT (readMode != ReadMode::String);
-    throw std::runtime_error ("unimplemented");
+    if (readMode == ReadMode::Source) {
+        vkDestroyShaderModule (device, handle, nullptr);
+
+        std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation);
+        if (ERROR (!binary.has_value ())) {
+            throw std::runtime_error ("failed to compile shader");
+        }
+
+        VkShaderModule handle = CreateShaderModule (device, *binary);
+
+    } else {
+        ASSERT ("unimplemented");
+    }
 }

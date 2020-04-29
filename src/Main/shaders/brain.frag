@@ -5,6 +5,7 @@ layout (std140, binding = 0) uniform Time {
 } time;
 
 layout (std140, binding = 3) uniform Camera {
+    mat4 viewMatrix;
     mat4 VP;
     mat4 rayDirMatrix;
     vec3 position;
@@ -12,6 +13,7 @@ layout (std140, binding = 3) uniform Camera {
 
 layout (binding = 1) uniform sampler2D agy2dSampler;
 layout (binding = 2) uniform sampler3D agySampler;
+layout (binding = 4) uniform sampler2D matcapSampler;
 
 layout (location = 0) in vec2 uv;
 layout (location = 1) in vec3 rayDirection;
@@ -22,7 +24,7 @@ layout (location = 0) out vec4 copy[2];
 
 
 
-#define EPS 1e-5
+#define EPS 1.0e-5
 #define FLT_MAX 3.402823466e+38
 #define FLT_MIN 1.175494351e-38
 #define DBL_MAX 1.7976931348623158e+308
@@ -44,7 +46,7 @@ bool IsInsideBox (vec3 p, vec3 boxMiddle, float boxRadius)
     return abs (delta.x) <= boxRadius && abs (delta.y) <= boxRadius && abs (delta.z) <= boxRadius;
 }
 
-vec2 Box2Intersection (vec3 rayStart, vec3 rayDir, vec3 middle, float radius)
+vec2 BoxIntersection (vec3 rayStart, vec3 rayDir, vec3 middle, float radius)
 {
     vec3 normalTop    = vec3 (0, 0, +1);
     vec3 normalBottom = vec3 (0, 0, -1);
@@ -53,12 +55,12 @@ vec2 Box2Intersection (vec3 rayStart, vec3 rayDir, vec3 middle, float radius)
     vec3 normalFront  = vec3 (+1, 0, 0);
     vec3 normalBack   = vec3 (-1, 0, 0);
 
-    float top    = SurfaceIntersection (rayStart, rayDir, middle + normalTop    * radius, normalTop);
-    float bottom = SurfaceIntersection (rayStart, rayDir, middle + normalBottom * radius, normalBottom);
-    float right  = SurfaceIntersection (rayStart, rayDir, middle + normalRight  * radius, normalRight);
-    float left   = SurfaceIntersection (rayStart, rayDir, middle + normalLeft   * radius, normalLeft);
-    float front  = SurfaceIntersection (rayStart, rayDir, middle + normalFront  * radius, normalFront);
-    float back   = SurfaceIntersection (rayStart, rayDir, middle + normalBack   * radius, normalBack);
+    float top    = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalTop    * radius, normalTop));
+    float bottom = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalBottom * radius, normalBottom));
+    float right  = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalRight  * radius, normalRight));
+    float left   = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalLeft   * radius, normalLeft));
+    float front  = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalFront  * radius, normalFront));
+    float back   = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalBack   * radius, normalBack));
 
     vec3 topIntersectionPoint    = rayStart + rayDir * top;
     vec3 bottomIntersectionPoint = rayStart + rayDir * bottom;
@@ -67,28 +69,22 @@ vec2 Box2Intersection (vec3 rayStart, vec3 rayDir, vec3 middle, float radius)
     vec3 frontIntersectionPoint  = rayStart + rayDir * front;
     vec3 backIntersectionPoint   = rayStart + rayDir * back;
 
-    float inT  = FLT_MAX;
-    float outT = FLT_MAX;
-
     // find first intersection
+    float belepT_X = min (left, right);
+    float belepT_Y = min (front, back);
+    float belepT_Z = min (bottom, top);
+    float belepT   = max (belepT_X, max (belepT_Y, belepT_Z));
 
-    if (top    < inT && IsInsideBox (topIntersectionPoint,    middle, radius)) { inT = top; } 
-    if (bottom < inT && IsInsideBox (bottomIntersectionPoint, middle, radius)) { inT = bottom; } 
-    if (right  < inT && IsInsideBox (rightIntersectionPoint,  middle, radius)) { inT = right; } 
-    if (left   < inT && IsInsideBox (leftIntersectionPoint,   middle, radius)) { inT = left; } 
-    if (front  < inT && IsInsideBox (frontIntersectionPoint,  middle, radius)) { inT = front; } 
-    if (back   < inT && IsInsideBox (backIntersectionPoint,   middle, radius)) { inT = back; } 
-
-    // find second intersection
+    float kilepT_X = max (left, right);
+    float kilepT_Y = max (front, back);
+    float kilepT_Z = max (bottom, top);
+    float kilepT   = min (kilepT_X, min (kilepT_Y, kilepT_Z));
     
-    if (inT < top    && top    < outT && IsInsideBox (topIntersectionPoint,    middle, radius)) { outT = top; } 
-    if (inT < bottom && bottom < outT && IsInsideBox (bottomIntersectionPoint, middle, radius)) { outT = bottom; } 
-    if (inT < right  && right  < outT && IsInsideBox (rightIntersectionPoint,  middle, radius)) { outT = right; } 
-    if (inT < left   && left   < outT && IsInsideBox (leftIntersectionPoint,   middle, radius)) { outT = left; } 
-    if (inT < front  && front  < outT && IsInsideBox (frontIntersectionPoint,  middle, radius)) { outT = front; } 
-    if (inT < back   && back   < outT && IsInsideBox (backIntersectionPoint,   middle, radius)) { outT = back; } 
+    if (belepT > kilepT) {
+        return vec2 (-1.f, -1.f);
+    }
 
-    return vec2 (inT, outT);
+    return vec2 (belepT, kilepT);
 }
 
 
@@ -147,34 +143,90 @@ void main ()
 
     //float t = SurfaceIntersection (camera.position, normRayDir, vec3 (0, 0, -1), vec3 (0, 0, 1));
     //t = TriangleIntersection (camera.position, normRayDir, vec3 (1, 0, 0), vec3 (0, 0, 1), vec3 (0, 1, 0));
-    vec2 bt = Box2Intersection (camera.position, normRayDir, vec3 (0.5f, 0.5f, 0.5f), 0.5f);
-    bool hit = (bt.x > 0.f  && bt.x < FLT_MAX && bt.y > 0.f && bt.y < FLT_MAX);
-    bool hitFromInside = !hit && (bt.x > 0.f  && bt.x < FLT_MAX);
+    vec2 bt = BoxIntersection (camera.position, normRayDir, vec3 (0.5f, 0.5f, 0.5f), 0.5f);
+    bool hit = (bt.x >= 0.f  && bt.x < FLT_MAX && bt.y >= 0.f && bt.y < FLT_MAX);
 
     presented = vec4 (vec3 (0), 1);
 
+    int   steps = 1024;
+    float rayStep = abs (bt.y - bt.x) / steps;
+    float rayT = bt.x;
+    vec3  rayPos  = camera.position + normRayDir * rayT;
+
+    float insideBrain = 10.f;
+    float minConsideredValue = 0.02f;
+
+    int sampleCount = 0;
+      
     if (hit) {
-        int steps = 128;
-        
-        float rayStep = abs (bt.y - bt.x) / float (steps);
-        float rayT = bt.x;
-        vec3  rayPos  = camera.position + normRayDir * rayT;
-        
+
+        vec4 gradient = vec4 (0, 0, 0, 0);
+        float volume = 0.f;
+
         for (int i = 0; i < steps; ++i) {
-            float volume = texture (agySampler, rayPos).r;
-            if (volume > 0.1f) {
-                presented = vec4 (vec3 (volume), 1.f);
+            float sampled = texture (agySampler, rayPos).r;
+            if (sampled > minConsideredValue) {
+                volume += sampled;
+                sampleCount++;
+            }
+            volume += (sampled > minConsideredValue) ? sampled : 0.f;
+            
+            bool isHit = (volume > insideBrain);
+
+            float lastSampled = sampled;
+            if (isHit) {
+
+               // for (int j = 0; j < 32; ++j) {
+               //     // binary search
+               //     rayStep *= 0.5f;
+               //
+               //     if (isHit) {
+               //         volume -= lastSampled;
+               //         rayT -= rayStep;
+               //     } else {
+               //         rayT += rayStep;
+               //     }
+               //
+               //     rayPos = camera.position + normRayDir * rayT;
+               //
+               //     float sampled = texture (agySampler, rayPos).r;
+               //     lastSampled = sampled;
+               //     volume += (sampled > minConsideredValue) ? sampled : 0.f;
+               //
+               //     isHit = (volume > insideBrain);
+               // }
+                
+                float delta = 1.f/256.f * 5.f;
+                gradient = vec4 (
+                    (texture (agySampler, vec3 (rayPos.x + delta, rayPos.y, rayPos.z)).r - texture (agySampler, vec3 (rayPos.x - delta, rayPos.y, rayPos.z)).r) / (2 * delta),
+                    (texture (agySampler, vec3 (rayPos.x, rayPos.y + delta, rayPos.z)).r - texture (agySampler, vec3 (rayPos.x, rayPos.y - delta, rayPos.z)).r) / (2 * delta),
+                    (texture (agySampler, vec3 (rayPos.x, rayPos.y, rayPos.z + delta)).r - texture (agySampler, vec3 (rayPos.x, rayPos.y, rayPos.z - delta)).r) / (2 * delta),
+                    1
+                );
+                gradient = vec4 (normalize (gradient.rgb), 1.0f);
                 break;
             }
-        
+            
             rayT += rayStep;
             rayPos = camera.position + normRayDir * rayT;
         }
 
+        float angle = dot (gradient.rgb, normalize (vec3 (0, 0, -1)));
+        presented = vec4 (vec3 (angle), gradient.w);
+        presented = vec4 (vec3 (sampleCount/100.f), gradient.w);
+        presented = vec4 (vec3 (angle), sampleCount/100.f);
+        presented = vec4 (vec3 (1.f), sampleCount/100.f);
+
+        vec4 n = gradient * camera.viewMatrix;
+        vec3 matcapTexture = texture (matcapSampler, (n.rg + 1) * 0.5).rgb;
+
+        //presented = vec4 (matcapTexture.rgb, gradient.w);
+        //presented = vec4 (gradient.rgb * 0.5 + 0.5, gradient.w);
 
     }
+    //presented = vec4 (texture (matcapSampler, uv).rgb, 1);
 
-    presented = vec4 (presented.rgb * 1.2f, 1);
+    //presented = vec4 (vec3 (bt.x), 1);
 
     //presented = vec4 (texture (agySampler, vec3 (uv.y, uv.x, fract(time.time*0.1f))).rrr, 1);
     

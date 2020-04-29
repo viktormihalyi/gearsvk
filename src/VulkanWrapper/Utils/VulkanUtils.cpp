@@ -136,6 +136,10 @@ std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t 
 
     unsigned char* imageData = stbi_load (filePath.u8string ().c_str (), &width, &height, &readComponents, components);
 
+    if (ERROR (imageData == nullptr)) {
+        throw std::runtime_error ("failed to load image");
+    }
+
     std::vector<uint8_t> imageBytes (width * height * components);
     memcpy (imageBytes.data (), imageData, width * height * components);
 
