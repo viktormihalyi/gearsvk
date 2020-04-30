@@ -128,7 +128,7 @@ void StartRendering (const std::function<bool ()>& doRender)
 
     window->Show ();
 
-    window->DoEventLoop (swapchainSync.GetInfiniteDrawCallback (doRender));
+    window->DoEventLoop (swapchainSync.GetConditionalDrawCallback (doRender));
 
     window->Hide ();
     window.reset ();
