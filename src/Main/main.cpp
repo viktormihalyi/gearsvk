@@ -44,9 +44,6 @@ int main (int, char**)
 {
     Window::U window = GLFWWindow::Create ();
 
-    KeyboardState keyboard;
-    MouseState    mouse;
-
     VulkanEnvironment::U testenv = VulkanEnvironment::Create (*window);
 
     Device&      device        = *testenv->device;
@@ -55,16 +52,14 @@ int main (int, char**)
     Swapchain&   swapchain     = *testenv->swapchain;
     DeviceExtra& deviceExtra   = *testenv->deviceExtra;
 
-
-    Camera c (glm::vec3 (-1, 0, 0.5f), glm::vec3 (1, 0.2, 0), window->GetAspectRatio ());
-
+    Camera        c (glm::vec3 (-1, 0, 0.5f), glm::vec3 (1, 0.2, 0), window->GetAspectRatio ());
     CameraControl cameraControl (c, window->events);
 
+    const RG::GraphSettings s (device, graphicsQueue, commandPool, swapchain);
+    RG::RenderGraph         graph (device, commandPool);
 
-    using namespace RG;
 
-    const GraphSettings s (device, graphicsQueue, commandPool, swapchain);
-    RenderGraph         graph (device, commandPool);
+    // ========================= UNIFORMS =========================
 
     const ShaderStruct TimeType ({
         {"time", ST::vec1},
@@ -75,6 +70,7 @@ int main (int, char**)
         {"rayDirMatrix", ST::mat4},
         {"position", ST::vec3},
         {"viewDir", ST::vec3},
+        {"displayMode", ST::uint},
     });
 
     UniformBlock Time (0, "time", TimeType);
@@ -86,8 +82,21 @@ int main (int, char**)
     glm::mat4& rayDir      = CameraUniform.GetRef<glm::mat4> ("rayDirMatrix");
     glm::vec3& camPosition = CameraUniform.GetRef<glm::vec3> ("position");
     glm::vec3& viewDir     = CameraUniform.GetRef<glm::vec3> ("viewDir");
+    uint32_t&  displayMode = CameraUniform.GetRef<uint32_t> ("displayMode");
 
-    FullscreenQuad::P fq = FullscreenQuad::CreateShared (deviceExtra);
+
+    // ========================= GRAPH RESOURCES =========================
+
+    RG::SwapchainImageResource& presented        = graph.CreateResource<RG::SwapchainImageResource> (swapchain);
+    RG::ReadOnlyImageResource&  agy              = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512); // TODO remove
+    RG::ReadOnlyImageResource&  matcap           = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
+    RG::ReadOnlyImageResource&  agy3d            = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
+    RG::WritableImageResource&  presentedCopy    = graph.CreateResource<RG::WritableImageResource> (2);
+    RG::UniformBlockResource&   unif             = graph.CreateResource<RG::UniformBlockResource> (TimeType);
+    RG::UniformBlockResource&   cameraUniformRes = graph.CreateResource<RG::UniformBlockResource> (CameraStruct);
+
+
+    // ========================= GRAPH OPERATIONS =========================
 
     ShaderPipeline::P sp = ShaderPipeline::CreateShared (device);
     sp->AddShaders ({
@@ -95,19 +104,10 @@ int main (int, char**)
         ShadersFolder / "brain.frag",
     });
 
-    // resources
-    SwapchainImageResource& presented        = graph.CreateResource<SwapchainImageResource> (swapchain);
-    ReadOnlyImageResource&  agy              = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
-    ReadOnlyImageResource&  matcap           = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
-    ReadOnlyImageResource&  agy3d            = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
-    WritableImageResource&  presentedCopy    = graph.CreateResource<WritableImageResource> (2);
-    UniformBlockResource&   unif             = graph.CreateResource<UniformBlockResource> (TimeType);
-    UniformBlockResource&   cameraUniformRes = graph.CreateResource<UniformBlockResource> (CameraStruct);
+    RG::Operation& brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (deviceExtra), sp);
 
 
-    // operations
-    Operation& redFillOperation = graph.CreateOperation<RenderOperation> (fq, sp);
-
+    // ========================= GRAPH RESOURCE SETUP =========================
 
     graph.CompileResources (s);
 
@@ -126,7 +126,7 @@ int main (int, char**)
 
     std::vector<uint8_t> sliceData2 (256 * 256 * 256);
 
-    auto constexpr BrainDataIndexMapping = [] (uint32_t oirignalDataIndex) {
+    auto BrainDataIndexMapping = [] (uint32_t oirignalDataIndex) {
         const uint32_t x = oirignalDataIndex % 4096;
         const uint32_t y = oirignalDataIndex / 4096;
 
@@ -153,23 +153,60 @@ int main (int, char**)
     agy3d.CopyTransitionTransfer (sliceData2);
 
 
-    graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 0, unif});
-    graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 3, cameraUniformRes});
-    graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 1, agy});
-    graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 2, agy3d});
-    graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 4, matcap});
-    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presentedCopy});
-    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 2, presented});
+    // ========================= GRAPH CONNECTIONS =========================
+
+    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 0, unif});
+    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 3, cameraUniformRes});
+    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 1, agy});
+    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 2, agy3d});
+    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 4, matcap});
+    graph.AddConnection (RG::RenderGraph::OutputConnection {brainRenderOp, 0, presentedCopy});
+    graph.AddConnection (RG::RenderGraph::OutputConnection {brainRenderOp, 2, presented});
 
     graph.Compile (s);
 
-    SynchronizedSwapchainGraphRenderer renderer (graph, swapchain);
 
-    //renderer.recreateEvent += [&] () {
-    //    agy3d.CopyTransitionTransfer (sliceData2);
-    //};
+    // ========================= RENDERING =========================
+
+    RG::SynchronizedSwapchainGraphRenderer renderer (graph, swapchain);
 
     VP = glm::mat4 (1.f);
+
+    enum class DisplayMode : uint32_t {
+        Feladat1 = 1,
+        Feladat2,
+        Feladat3,
+        Feladat4,
+        Feladat5,
+        Feladat6,
+    };
+
+    DisplayMode currentDisplayMode = DisplayMode::Feladat1;
+
+    bool quit = false;
+
+    window->events.keyPressed += [&] (uint32_t key) {
+        constexpr uint8_t ESC_CODE = 27;
+        if (key == ESC_CODE) {
+            // window->ToggleFullscreen ();
+            quit = true;
+        }
+        if (key == 'R') {
+            std::cout << "waiting for device... " << std::endl;
+            vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
+            vkQueueWaitIdle (graph.GetGraphSettings ().queue);
+            sp->Reload ();
+            renderer.Recreate ();
+        }
+        switch (key) {
+            case '1': currentDisplayMode = DisplayMode::Feladat1; break;
+            case '2': currentDisplayMode = DisplayMode::Feladat2; break;
+            case '3': currentDisplayMode = DisplayMode::Feladat3; break;
+            case '4': currentDisplayMode = DisplayMode::Feladat4; break;
+            case '5': currentDisplayMode = DisplayMode::Feladat5; break;
+            case '6': currentDisplayMode = DisplayMode::Feladat6; break;
+        }
+    };
 
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
         TimePoint delta (deltaNs);
@@ -184,32 +221,11 @@ int main (int, char**)
         time        = TimePoint::SinceApplicationStart ().AsSeconds ();
         camPosition = c.GetPosition ();
         viewDir     = c.GetViewDirection ();
+        displayMode = static_cast<uint32_t> (currentDisplayMode);
 
         unif.Set (frameIndex, Time);
         cameraUniformRes.Set (frameIndex, CameraUniform);
     };
 
-    bool quit = false;
-
-    constexpr uint8_t ESC_CODE = 27;
-
-    window->events.keyPressed += [&] (uint32_t a) {
-        if (a == ESC_CODE) {
-            // window->ToggleFullscreen ();
-            quit = true;
-        }
-        if (a == 'R') {
-            std::cout << "waiting for device... " << std::endl;
-            vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
-            vkQueueWaitIdle (graph.GetGraphSettings ().queue);
-            sp->Reload ();
-            renderer.RecreateStuff ();
-        }
-        return;
-    };
-
-    window->DoEventLoop (renderer.GetInfiniteDrawCallback ([&] { return quit; }));
-
-    vkQueueWaitIdle (graphicsQueue);
-    vkDeviceWaitIdle (device);
+    window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] { return quit; }));
 }

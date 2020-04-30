@@ -11,7 +11,7 @@ Window::DrawCallback GraphRenderer::GetInfiniteDrawCallback ()
 }
 
 
-Window::DrawCallback GraphRenderer::GetInfiniteDrawCallback (const std::function<bool ()>& shouldStop)
+Window::DrawCallback GraphRenderer::GetConditionalDrawCallback (const std::function<bool ()>& shouldStop)
 {
     return [&] (bool& stopFlag) -> void {
         stopFlag = shouldStop ();
@@ -35,15 +35,23 @@ Window::DrawCallback GraphRenderer::GetCountLimitedDrawCallback (uint64_t limit)
 }
 
 
-BlockingGraphRenderer::BlockingGraphRenderer (RenderGraph& graph, Swapchain& swapchain)
+RecreatableGraphRenderer::RecreatableGraphRenderer (RenderGraph& graph, Swapchain& swapchain)
     : graph (graph)
+    , swapchain (swapchain)
+{
+}
+
+
+BlockingGraphRenderer::BlockingGraphRenderer (RenderGraph& graph, Swapchain& swapchain)
+    : RecreatableGraphRenderer (graph, swapchain)
+    , graph (graph)
     , swapchain (swapchain)
     , s (graph.GetGraphSettings ().GetDevice ())
 {
 }
 
 
-void BlockingGraphRenderer::RenderNextFrame ()
+void BlockingGraphRenderer::RenderNextRecreatableFrame ()
 {
     const uint32_t currentImageIndex = swapchain.GetNextImageIndex (s);
 
@@ -66,7 +74,8 @@ void BlockingGraphRenderer::RenderNextFrame ()
 
 
 SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (RenderGraph& graph, Swapchain& swapchain)
-    : framesInFlight (graph.GetGraphSettings ().framesInFlight)
+    : RecreatableGraphRenderer (graph, swapchain)
+    , framesInFlight (graph.GetGraphSettings ().framesInFlight)
     , imageCount (swapchain.GetImageCount ())
     , currentFrameIndex (0)
     , graph (graph)
@@ -86,7 +95,7 @@ SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (RenderGr
 }
 
 
-void SynchronizedSwapchainGraphRenderer::RecreateStuff ()
+void RecreatableGraphRenderer::Recreate ()
 {
     std::cout << "waiting for device... " << std::endl;
     vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
@@ -108,17 +117,22 @@ void SynchronizedSwapchainGraphRenderer::RecreateStuff ()
 }
 
 
-void SynchronizedSwapchainGraphRenderer::RenderNextFrame ()
+void RecreatableGraphRenderer::RenderNextFrame ()
+{
+    try {
+        RenderNextRecreatableFrame ();
+    } catch (OutOfDateSwapchain&) {
+        Recreate ();
+    }
+}
+
+
+void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame ()
 {
     inFlightFences[currentFrameIndex]->Wait ();
 
     uint32_t currentImageIndex;
-    try {
-        currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentFrameIndex]);
-    } catch (OutOfDateSwapchain&) {
-        RecreateStuff ();
-        return;
-    }
+    currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentFrameIndex]);
 
     if (imageToFrameMapping[currentImageIndex] != UINT32_MAX) {
         inFlightFences[imageToFrameMapping[currentImageIndex]]->Wait ();
@@ -141,13 +155,17 @@ void SynchronizedSwapchainGraphRenderer::RenderNextFrame ()
 
     ASSERT (swapchain.SupportsPresenting ());
 
-    try {
-        graph.Present (currentImageIndex, swapchain, presentWaitSemaphores);
-    } catch (OutOfDateSwapchain&) {
-        RecreateStuff ();
-    }
+    graph.Present (currentImageIndex, swapchain, presentWaitSemaphores);
 
     currentFrameIndex = (currentFrameIndex + 1) % framesInFlight;
 }
+
+
+SynchronizedSwapchainGraphRenderer::~SynchronizedSwapchainGraphRenderer ()
+{
+    vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
+    vkQueueWaitIdle (graph.GetGraphSettings ().queue);
+}
+
 
 } // namespace RG

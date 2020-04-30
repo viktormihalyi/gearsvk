@@ -10,6 +10,7 @@ layout (std140, binding = 3) uniform Camera {
     mat4 rayDirMatrix;
     vec3 position;
     vec3 viewDir;
+    uint displayMode;
 } camera;
 
 layout (binding = 1) uniform sampler2D agy2dSampler;
@@ -247,8 +248,12 @@ void main ()
             presented = vec4 (vec3 (angle), gradient.w);
             presented = vec4 (vec3 (sampleCount/100.f), gradient.w);
             presented = vec4 (vec3 (angle), sampleCount/100.f);
-            presented = vec4 (vec3 (sampleCount/100.f), 1.f);
-            presented = hagyma;
+
+            if (camera.displayMode == 1) {
+                presented = vec4 (vec3 (sampleCount/100.f), 1.f);
+            } else if (camera.displayMode == 2) {
+                presented = hagyma;
+            }
 
             //presented = vec4 (matcapTexture.rgb, gradient.w);
             //presented = vec4 (gradient.rgb * 0.5 + 0.5, gradient.w);

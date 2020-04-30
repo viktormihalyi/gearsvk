@@ -11,7 +11,7 @@
 namespace RG {
 
 
-struct GraphRenderer {
+class GraphRenderer {
 public:
     Event<uint32_t, uint64_t> preSubmitEvent;
     Event<>                   recreateEvent;
@@ -22,13 +22,29 @@ public:
 
     Window::DrawCallback GetInfiniteDrawCallback ();
 
-    Window::DrawCallback GetInfiniteDrawCallback (const std::function<bool ()>& shouldStop);
+    Window::DrawCallback GetConditionalDrawCallback (const std::function<bool ()>& shouldStop);
 
     Window::DrawCallback GetCountLimitedDrawCallback (uint64_t limit);
 };
 
 
-class BlockingGraphRenderer : public GraphRenderer {
+class RecreatableGraphRenderer : public GraphRenderer {
+private:
+    RenderGraph& graph;
+    Swapchain&   swapchain;
+
+public:
+    RecreatableGraphRenderer (RenderGraph& graph, Swapchain& swapchain);
+    virtual ~RecreatableGraphRenderer () = default;
+
+    void Recreate ();
+
+    void         RenderNextFrame () override;
+    virtual void RenderNextRecreatableFrame () = 0;
+};
+
+
+class BlockingGraphRenderer final : public RecreatableGraphRenderer {
 private:
     RenderGraph& graph;
     Swapchain&   swapchain;
@@ -38,11 +54,11 @@ private:
 public:
     BlockingGraphRenderer (RenderGraph& graph, Swapchain& swapchain);
 
-    void RenderNextFrame () override;
+    void RenderNextRecreatableFrame () override;
 };
 
 
-class SynchronizedSwapchainGraphRenderer : public GraphRenderer {
+class SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
 private:
     const uint32_t framesInFlight;
     const uint32_t imageCount;
@@ -63,9 +79,9 @@ private:
 public:
     SynchronizedSwapchainGraphRenderer (RenderGraph& graph, Swapchain& swapchain);
 
-    void RenderNextFrame () override;
+    ~SynchronizedSwapchainGraphRenderer ();
 
-    void RecreateStuff ();
+    void RenderNextRecreatableFrame () override;
 };
 
 } // namespace RG

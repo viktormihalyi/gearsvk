@@ -67,7 +67,7 @@ struct RenderOperation final : public Operation {
 
     RenderOperation (const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipiline);
 
-    virtual ~RenderOperation () {}
+    virtual ~RenderOperation () = default;
     virtual void Compile (const GraphSettings&) override;
     virtual void Record (uint32_t imageIndex, VkCommandBuffer commandBuffer) override;
 };

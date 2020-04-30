@@ -20,6 +20,8 @@ struct ShaderType {
 
 namespace ST {
 
+static ShaderType uint {1 * sizeof (uint32_t), 4, "uint"};
+
 static ShaderType vec1 {1 * sizeof (float), 4, "float"};
 static ShaderType vec2 {2 * sizeof (float), 8, "vec2"};
 static ShaderType vec3 {3 * sizeof (float), 16, "vec3"};

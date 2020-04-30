@@ -24,9 +24,9 @@ public:
 
     std::vector<const char*> GetExtensions () const override;
 
-    virtual uint32_t GetWidth () const override { return 800; }
-    virtual uint32_t GetHeight () const override { return 600; }
-    virtual float    GetAspectRatio () const override { return 1.33f; }
+    virtual uint32_t GetWidth () const override { return 800; }         // TODO
+    virtual uint32_t GetHeight () const override { return 600; }        // TODO
+    virtual float    GetAspectRatio () const override { return 1.33f; } // TODO
     virtual void     ToggleFullscreen () override {}
 
     virtual void Show () override;
