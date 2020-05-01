@@ -26,12 +26,14 @@ public:
     float pitch;
     float sensitivity;
 
-    // TODO test if this cached stuff is slower or not
+    // TODO test if the cached stuff is significantly slower or not
 
     Cache<glm::mat4> viewMatrix;
     Cache<glm::mat4> projectionMatrix;
     Cache<glm::mat4> viewProjectionMatrix;
     Cache<glm::mat4> rayDirMatrix;
+
+    void InvalidateMatrices ();
 
     Event<glm::vec3> positionChanged;
 
@@ -70,59 +72,5 @@ public:
     void  SetFrontAndBackPlane (float back, float front);
 };
 
-
-inline void Camera::SetAspectRatio (float value)
-{
-    PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
-    if (ERROR (f == nullptr)) {
-        return;
-    }
-
-    f->SetAspectRatio (value);
-
-    viewMatrix.Invalidate ();
-    projectionMatrix.Invalidate ();
-    rayDirMatrix.Invalidate ();
-    viewProjectionMatrix.Invalidate ();
-}
-
-
-inline float Camera::GetBackPlane () const
-{
-    PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
-    if (ERROR (f == nullptr)) {
-        return 0.f;
-    }
-
-    return f->GetBackPlane ();
-}
-
-
-inline float Camera::GetFrontPlane () const
-{
-    PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
-    if (ERROR (f == nullptr)) {
-        return 0.f;
-    }
-
-    return f->GetFrontPlane ();
-}
-
-
-inline void Camera::SetFrontAndBackPlane (float front, float back)
-{
-    PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
-    if (ERROR (f == nullptr)) {
-        return;
-    }
-
-    f->SetFrontPlane (front);
-    f->SetBackPlane (back);
-
-    viewMatrix.Invalidate ();
-    projectionMatrix.Invalidate ();
-    rayDirMatrix.Invalidate ();
-    viewProjectionMatrix.Invalidate ();
-}
 
 #endif

@@ -120,6 +120,15 @@ Camera::Camera (const glm::vec3& position,
 }
 
 
+void Camera::InvalidateMatrices ()
+{
+    viewMatrix.Invalidate ();
+    projectionMatrix.Invalidate ();
+    rayDirMatrix.Invalidate ();
+    viewProjectionMatrix.Invalidate ();
+}
+
+
 void Camera::UpdateVectors ()
 {
     ahead = upVector.GetAheadVector (pitch, yaw);
@@ -127,10 +136,7 @@ void Camera::UpdateVectors ()
     right = glm::normalize (glm::cross (upVector.GetUpVector (), ahead));
     up    = glm::normalize (glm::cross (right, ahead));
 
-    viewMatrix.Invalidate ();
-    projectionMatrix.Invalidate ();
-    rayDirMatrix.Invalidate ();
-    viewProjectionMatrix.Invalidate ();
+    InvalidateMatrices ();
 }
 
 
@@ -163,10 +169,7 @@ void Camera::Move (Camera::MovementDirection dir, float dt)
             break;
     }
 
-    viewMatrix.Invalidate ();
-    projectionMatrix.Invalidate ();
-    rayDirMatrix.Invalidate ();
-    viewProjectionMatrix.Invalidate ();
+    InvalidateMatrices ();
 
     positionChanged (position);
 }
@@ -177,4 +180,53 @@ void Camera::ProcessMouseInput (const glm::vec2& delta)
     upVector.ProcessMouseInput (*this, delta);
 
     UpdateVectors ();
+}
+
+
+void Camera::SetAspectRatio (float value)
+{
+    PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
+    if (ERROR (f == nullptr)) {
+        return;
+    }
+
+    f->SetAspectRatio (value);
+
+    InvalidateMatrices ();
+}
+
+
+float Camera::GetBackPlane () const
+{
+    PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
+    if (ERROR (f == nullptr)) {
+        return 0.f;
+    }
+
+    return f->GetBackPlane ();
+}
+
+
+float Camera::GetFrontPlane () const
+{
+    PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
+    if (ERROR (f == nullptr)) {
+        return 0.f;
+    }
+
+    return f->GetFrontPlane ();
+}
+
+
+void Camera::SetFrontAndBackPlane (float front, float back)
+{
+    PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
+    if (ERROR (f == nullptr)) {
+        return;
+    }
+
+    f->SetFrontPlane (front);
+    f->SetBackPlane (back);
+
+    InvalidateMatrices ();
 }

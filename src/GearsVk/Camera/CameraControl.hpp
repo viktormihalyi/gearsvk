@@ -52,7 +52,7 @@ public:
     }
 
 private:
-    void ProcessMouseInput (uint32_t x, uint32_t y)
+    void ProcessMouseInput (int32_t x, int32_t y)
     {
         static glm::vec2 lastPos (x, y);
         glm::vec2        currentPos (x, y);

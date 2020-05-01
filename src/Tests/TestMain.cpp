@@ -209,7 +209,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
     Resource& red = graph.AddResource (WritableImageResource::Create ());
 
     auto sp = ShaderPipeline::Create (device);
-    sp->SetVertexShader (R"(
+    sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -240,7 +240,7 @@ void main() {
 }
     )");
 
-    sp->SetFragmentShader (R"(
+    sp->SetFragmentShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -370,7 +370,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, SwapchainTest)
     RenderGraph   graph (device, commandPool);
 
     auto sp = ShaderPipeline::Create (device);
-    sp->SetVertexShader (R"(
+    sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -401,7 +401,7 @@ void main() {
 }
     )");
 
-    sp->SetFragmentShader (R"(
+    sp->SetFragmentShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -445,7 +445,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, VertexAndIndexBufferTest)
     RenderGraph   graph (device, commandPool);
 
     auto sp = ShaderPipeline::Create (device);
-    sp->SetVertexShader (R"(
+    sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -464,7 +464,7 @@ void main() {
 }
     )");
 
-    sp->SetFragmentShader (R"(
+    sp->SetFragmentShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -531,7 +531,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, BasicUniformBufferTest)
     RenderGraph   graph (device, commandPool);
 
     auto sp = ShaderPipeline::Create (device);
-    sp->SetVertexShader (R"(
+    sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -554,7 +554,7 @@ void main() {
 }
     )");
 
-    sp->SetFragmentShader (R"(
+    sp->SetFragmentShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 

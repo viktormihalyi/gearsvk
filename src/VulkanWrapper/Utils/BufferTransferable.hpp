@@ -13,17 +13,6 @@
 
 #include <cstring>
 
-class ITransferableBuffer {
-public:
-    virtual void     CopyAndTransfer (const void* data, size_t size) const = 0;
-    virtual VkBuffer GetBufferToBind () const                              = 0;
-};
-
-class ITransferableImage {
-public:
-    virtual void    CopyTransitionTransfer (VkImageLayout currentImageLayout, const void* data, size_t size, std::optional<VkImageLayout> nextLayout = std::nullopt) const = 0;
-    virtual VkImage GetImageToBind () const                                                                                                                                = 0;
-};
 
 class BufferTransferable final {
 public:

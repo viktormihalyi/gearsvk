@@ -85,6 +85,7 @@ static void EnsureParentFolder (const std::filesystem::path& filePath)
     }
 }
 
+
 bool WriteBinaryFile (const std::filesystem::path& filePath, const void* data, size_t size)
 {
     EnsureParentFolder (filePath);

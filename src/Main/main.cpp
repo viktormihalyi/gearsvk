@@ -88,10 +88,8 @@ int main (int, char**)
     // ========================= GRAPH RESOURCES =========================
 
     RG::SwapchainImageResource& presented        = graph.CreateResource<RG::SwapchainImageResource> (swapchain);
-    RG::ReadOnlyImageResource&  agy              = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512); // TODO remove
     RG::ReadOnlyImageResource&  matcap           = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
     RG::ReadOnlyImageResource&  agy3d            = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
-    RG::WritableImageResource&  presentedCopy    = graph.CreateResource<RG::WritableImageResource> (2);
     RG::UniformBlockResource&   unif             = graph.CreateResource<RG::UniformBlockResource> (TimeType);
     RG::UniformBlockResource&   cameraUniformRes = graph.CreateResource<RG::UniformBlockResource> (CameraStruct);
 
@@ -99,7 +97,7 @@ int main (int, char**)
     // ========================= GRAPH OPERATIONS =========================
 
     ShaderPipeline::P sp = ShaderPipeline::CreateShared (device);
-    sp->AddShaders ({
+    sp->SetShadersFromSourceFiles ({
         ShadersFolder / "brain.vert",
         ShadersFolder / "brain.frag",
     });
@@ -111,16 +109,7 @@ int main (int, char**)
 
     graph.CompileResources (s);
 
-    {
-        std::vector<uint8_t> pix = ReadImage (PROJECT_ROOT / "src" / "Main" / "matcap.jpg", 4);
-        matcap.CopyTransitionTransfer (pix);
-    }
-
-    Image2DTransferable::U img = Image2DTransferable::Create (device, graphicsQueue, commandPool, ImageBase::RGBA, 512, 512, 0);
-    std::vector<uint8_t>   pix (512 * 512 * 4, 127);
-    img->CopyTransitionTransfer (ImageBase::INITIAL_LAYOUT, pix.data (), pix.size ());
-
-    agy.CopyTransitionTransfer (pix);
+    matcap.CopyTransitionTransfer (ReadImage (PROJECT_ROOT / "src" / "Main" / "matcap.jpg", 4));
 
     std::vector<uint8_t> brainData = ReadImage (PROJECT_ROOT / "brain.jpg", 1);
 
@@ -130,8 +119,8 @@ int main (int, char**)
         const uint32_t x = oirignalDataIndex % 4096;
         const uint32_t y = oirignalDataIndex / 4096;
 
-        const uint32_t row        = y % 256;
-        const uint32_t column     = x % 256;
+        const uint32_t row        = x % 256;
+        const uint32_t column     = y % 256;
         const uint32_t sliceIndex = 16 * (y / 256) + (x / 256);
 
         return sliceIndex * 256 * 256 + row + column * 256;
@@ -156,12 +145,11 @@ int main (int, char**)
     // ========================= GRAPH CONNECTIONS =========================
 
     graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 0, unif});
-    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 3, cameraUniformRes});
-    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 1, agy});
+    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 1, cameraUniformRes});
     graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 2, agy3d});
-    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 4, matcap});
-    graph.AddConnection (RG::RenderGraph::OutputConnection {brainRenderOp, 0, presentedCopy});
-    graph.AddConnection (RG::RenderGraph::OutputConnection {brainRenderOp, 2, presented});
+    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 3, matcap});
+
+    graph.AddConnection (RG::RenderGraph::OutputConnection {brainRenderOp, 0, presented});
 
     graph.Compile (s);
 
@@ -181,7 +169,13 @@ int main (int, char**)
         Feladat6,
     };
 
-    DisplayMode currentDisplayMode = DisplayMode::Feladat1;
+    std::cout << "1: Befoglalo" << std::endl;
+    std::cout << "2: Szintfelulet (Phong)" << std::endl;
+    std::cout << "3: Matcap" << std::endl;
+    std::cout << "4: Hagymahej" << std::endl;
+    std::cout << "5: Arnyek" << std::endl;
+
+    DisplayMode currentDisplayMode = DisplayMode::Feladat2;
 
     bool quit = false;
 

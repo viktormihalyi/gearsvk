@@ -4,7 +4,7 @@ layout (std140, binding = 0) uniform Time {
     float time;
 } time;
 
-layout (std140, binding = 3) uniform Camera {
+layout (std140, binding = 1) uniform Camera {
     mat4 viewMatrix;
     mat4 VP;
     mat4 rayDirMatrix;

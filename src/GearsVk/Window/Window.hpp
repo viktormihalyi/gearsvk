@@ -26,7 +26,7 @@ public:
         // user input
         Event<uint32_t>           keyPressed;
         Event<uint32_t>           keyReleased;
-        Event<uint32_t, uint32_t> mouseMove;
+        Event<int32_t, int32_t>   mouseMove;
         Event<uint32_t, uint32_t> leftMouseButtonPressed;
         Event<uint32_t, uint32_t> leftMouseButtonReleased;
         Event<uint32_t, uint32_t> rightMouseButtonPressed;

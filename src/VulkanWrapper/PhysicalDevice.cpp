@@ -4,6 +4,27 @@
 DefaultQueueFamilySelector defaultQueueFamilySelector;
 
 
+static std::optional<uint32_t> AcceptFirstGraphicsAndPresentSupport (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>& queueFamilies)
+{
+    if (surface == VK_NULL_HANDLE) {
+        return std::nullopt;
+    }
+
+    uint32_t i = 0;
+    for (const VkQueueFamilyProperties& queueFamily : queueFamilies) {
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR (physicalDevice, i, surface, &presentSupport);
+        if (presentSupport && (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
+            return i;
+        }
+
+        i++;
+    }
+
+    return std::nullopt;
+}
+
+
 static std::optional<uint32_t> AcceptFirstPresentSupport (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>& queueFamilies)
 {
     if (surface == VK_NULL_HANDLE) {
@@ -63,6 +84,10 @@ static PhysicalDevice::QueueFamilies FindQueueFamilyIndices (VkPhysicalDevice ph
     result.presentation = Selector.presentationSelector (physicalDevice, surface, queueFamilies);
     result.compute      = Selector.computeSelector (physicalDevice, surface, queueFamilies);
     result.transfer     = Selector.transferSelector (physicalDevice, surface, queueFamilies);
+
+    if (result.presentation) {
+        ASSERT (result.graphics == result.presentation); // TODO handle different queue indices ...
+    }
 
     return result;
 }

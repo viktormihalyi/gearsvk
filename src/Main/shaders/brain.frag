@@ -4,7 +4,7 @@ layout (std140, binding = 0) uniform Time {
     float time;
 } time;
 
-layout (std140, binding = 3) uniform Camera {
+layout (std140, binding = 1) uniform Camera {
     mat4 viewMatrix;
     mat4 VP;
     mat4 rayDirMatrix;
@@ -13,17 +13,13 @@ layout (std140, binding = 3) uniform Camera {
     uint displayMode;
 } camera;
 
-layout (binding = 1) uniform sampler2D agy2dSampler;
 layout (binding = 2) uniform sampler3D agySampler;
-layout (binding = 4) uniform sampler2D matcapSampler;
+layout (binding = 3) uniform sampler2D matcapSampler;
 
 layout (location = 0) in vec2 uv;
 layout (location = 1) in vec3 rayDirection;
 
-layout (location = 2) out vec4 presented;
-layout (location = 0) out vec4 copy[2];
-
-
+layout (location = 0) out vec4 presented;
 
 
 #define EPS 1.0e-5
@@ -40,13 +36,6 @@ float SurfaceIntersection (vec3 rayStart, vec3 rayDir, vec3 surfacePoint, vec3 s
     return t;
 }
 
-
-bool IsInsideBox (vec3 p, vec3 boxMiddle, float boxRadius)
-{
-    boxRadius += EPS;
-    vec3 delta = p - boxMiddle;
-    return abs (delta.x) <= boxRadius && abs (delta.y) <= boxRadius && abs (delta.z) <= boxRadius;
-}
 
 vec2 BoxIntersection (vec3 rayStart, vec3 rayDir, vec3 middle, float radius)
 {
@@ -90,27 +79,6 @@ vec2 BoxIntersection (vec3 rayStart, vec3 rayDir, vec3 middle, float radius)
 }
 
 
-float TriangleIntersection (vec3 rayStart, vec3 rayDir, vec3 p1, vec3 p2, vec3 p3)
-{
-    vec3 normal = normalize (cross (p2 - p1, p3 - p1));
-
-    float t = dot (p1 - rayStart, normal) / dot (rayDir, normal);
-    //if (t < 0) {
-    //    return -1.f;
-    //}
-
-    vec3 P = rayStart + rayDir * t;
-
-    if (dot (cross (p2 - p1, P - p1), normal) > 0 &&
-        dot (cross (p3 - p2, P - p2), normal) > 0 &&
-        dot (cross (p1 - p3, P - p3), normal) > 0) {
-
-        return t;
-    }
-
-    return -1.f;
-}
-
 vec3 GetNormalAt (vec3 rayPos) 
 {
     float delta = 1.f/256.f * 5.f;
@@ -122,141 +90,146 @@ vec3 GetNormalAt (vec3 rayPos)
     return normalize (gradient.rgb);
 }
 
+
 void main ()
 {
-    vec4 result = vec4 (vec3 (uv, 1.f), 1);
-    presented = vec4 (texture (agySampler, vec3(uv, mod (time.time, fract (time.time*0.1f))  )).rrr, 1);
-    //presented = result;
-    //presented = vec4 (normalize (rayDirection) * 0.5 + 0.5, 1);
-
-    vec3 normRayDir = normalize (rayDirection);
-    //vec3 rayPos = camera.position;
-    //float rayStep = 0.1f;
-    //float val = 0.f;
-//
-//    vec3 sphereCenter = vec3 (0, 0, 0);
-//    float sphereRadius = 1.f;
-//
-//    float minDist = 99999.f;
-//    //presented = vec4 (vec3 (distance (rayPos, sphereCenter) - sphereRadius), 1.f);
-//
-//    for (int i = 0; i < 64; ++i) {
-//        float dist = distance (rayPos, sphereCenter) - sphereRadius;
-//        if (dist < minDist) {
-//            minDist = dist;
-//        }
-//        //val += texture (agySampler, rayPos).r;
-//
-//        rayPos += normRayDir * rayStep;
-//    }
-//
-    //presented = vec4 (vec3 (minDist), 1);
-    //presented = vec4 (normalize (rayDirection) * 0.5 + 0.5, 1);
-
-    //float t = SurfaceIntersection (camera.position, normRayDir, vec3 (0, 0, -1), vec3 (0, 0, 1));
-    //t = TriangleIntersection (camera.position, normRayDir, vec3 (1, 0, 0), vec3 (0, 0, 1), vec3 (0, 1, 0));
-    vec2 bt = BoxIntersection (camera.position, normRayDir, vec3 (0.5f, 0.5f, 0.5f), 0.5f);
-    bool hit = (bt.x >= 0.f  && bt.x < FLT_MAX && bt.y >= 0.f && bt.y < FLT_MAX);
-
     presented = vec4 (vec3 (0), 1);
 
-    int   steps = 1024;
-    float rayStep = abs (bt.y - bt.x) / steps;
-    float rayT = bt.x;
+    const int DP_SZINTFELULET = 2;
+    const int DP_MATCAP = 3;
+    const int DP_HAGYMA = 4;
+    const int DP_ARNYEK = 5;
+
+    const vec3 normRayDir = normalize (rayDirection);
+
+    const vec2 boxT = BoxIntersection (camera.position, normRayDir, vec3 (0.5f, 0.5f, 0.5f), 0.5f);
+    const bool boxHit = (boxT.x >= 0.f && boxT.y >= 0.f);
+
+    const int   steps = 512;
+    const float rayStep = abs (boxT.y - boxT.x) / steps;
+    
+    float rayT = boxT.x;
     vec3  rayPos  = camera.position + normRayDir * rayT;
 
-    float insideBrain = 0.01f;
-    float minConsideredValue = 0.09f;
+    float insideBrain = 0.002f;
+    if (camera.displayMode == DP_HAGYMA) {
+        insideBrain = 0.09f;
+    }
 
-    int sampleCount = 0;
+    const float minConsideredValue = 0.01f;
+
     int hagymaSampledCount = 0;
-    int maxHagymaSampleCount = 4;
+    const int maxHagymaSampleCount = 6;
       
-    if (hit) {
+    const vec3 lightDir = normalize (vec3 (0, 0, -1));
+    
+    if (boxHit) {
 
-        vec4 gradient = vec4 (0, 0, 0, 0);
         float volume = 0.f;
+        int brainHitCount = 0;
 
-        vec4 hagyma = vec4 (vec3 (1), 0.1);
-
-        bool inside     = false;
-        bool lastInside = false;
+        vec4 hagyma = vec4 (vec3 (1), 0.0);
 
         for (int i = 0; i < steps; ++i) {
             float sampled = texture (agySampler, rayPos).r;
             if (sampled > minConsideredValue) {
-                inside = true;
-                if (lastInside == false) {
-                }
+                brainHitCount++;
                 volume += sampled / steps;
-                sampleCount++;
-                if (volume > (hagymaSampledCount) * insideBrain) {
-                    hagyma.w += (1.f - max (0, dot (GetNormalAt (rayPos), normalize (camera.viewDir)))) / maxHagymaSampleCount;
-                    hagymaSampledCount++;
                 
-                    //hagymaSampledCount++;
-                    //hagyma.w += (1.f - abs (dot (GetNormalAt (rayPos), normalize (camera.viewDir)))) / maxHagymaSampleCount;
+                if (camera.displayMode == DP_HAGYMA) {
+                    if (volume > (hagymaSampledCount) * insideBrain) {
+                        hagyma.w = max (hagyma.w, 1.f-max (0, dot (GetNormalAt (rayPos), normalize (rayPos - camera.position))));
+                        hagymaSampledCount++;
+                    }
                 }
-            } else {
-                inside = false;
             }
 
-            bool isHit = (volume > insideBrain);
-            
-            // hagyma
-            isHit = (sampleCount == maxHagymaSampleCount);
+            bool isHit = false;
+            if (camera.displayMode == DP_HAGYMA) {
+                isHit = (hagymaSampledCount == maxHagymaSampleCount);
+            } else  if (camera.displayMode == DP_ARNYEK) {
+                isHit = (brainHitCount > 0);
+            } else {
+                isHit = (volume > insideBrain);
+            }
 
-            isHit = (hagymaSampledCount == maxHagymaSampleCount);
-
-            float lastSampled = sampled;
             if (isHit) {
-
-               // for (int j = 0; j < 32; ++j) {
-               //     // binary search
-               //     rayStep *= 0.5f;
-               //
-               //     if (isHit) {
-               //         volume -= lastSampled;
-               //         rayT -= rayStep;
-               //     } else {
-               //         rayT += rayStep;
-               //     }
-               //
-               //     rayPos = camera.position + normRayDir * rayT;
-               //
-               //     float sampled = texture (agySampler, rayPos).r;
-               //     lastSampled = sampled;
-               //     volume += (sampled > minConsideredValue) ? sampled : 0.f;
-               //
-               //     isHit = (volume > insideBrain);
-               // }
-                
-                gradient = vec4 (GetNormalAt (rayPos), 1.0f);
                 break;
             }
             
-            lastInside = inside;
             rayT += rayStep;
             rayPos = camera.position + normRayDir * rayT;
         }
 
-        if (gradient.w > 0) {
-            vec4 n = gradient * camera.viewMatrix;
-            vec3 matcapTexture = texture (matcapSampler, (n.rg + 1) * 0.5).rgb;
-            float angle = acos (dot (gradient.rgb, normalize (camera.viewDir)));
+        if (brainHitCount > 0) {
+            const vec3 gradient = GetNormalAt (rayPos);
+            const vec3 viewDir = normalize (rayPos - camera.position);
+            const float angle = max (0.5, dot (gradient, lightDir));
 
-            presented = vec4 (vec3 (angle), gradient.w);
-            presented = vec4 (vec3 (sampleCount/100.f), gradient.w);
-            presented = vec4 (vec3 (angle), sampleCount/100.f);
+            const vec3 lightColor = vec3 (255, 241, 224)/255.f;
+            const vec3 objectColor = vec3 (217,165,178)/255.f;
 
-            if (camera.displayMode == 1) {
-                presented = vec4 (vec3 (sampleCount/100.f), 1.f);
-            } else if (camera.displayMode == 2) {
+            const vec3 ambient = 0.1f * lightColor;
+  	
+            const float diff = max(dot(gradient, lightDir), 0.08);
+            const vec3 diffuse = diff * lightColor;
+    
+            const vec3 reflectDir = reflect(-lightDir, gradient);  
+            const float spec = pow(max(dot(viewDir, reflectDir), 0.0), 8);
+            const vec3 specular = 0.5f * spec * lightColor;  
+
+            const vec3 phongColor = (ambient + diffuse + specular) * objectColor;
+
+        
+
+            if (camera.displayMode == DP_SZINTFELULET) {
+                presented = vec4 (phongColor, 1.f);
+            
+            } else if (camera.displayMode == DP_MATCAP) {
+                const vec4 n              = vec4 (gradient, 1) * camera.viewMatrix;
+                const vec3 matcapTexture  = texture (matcapSampler, (n.rg + 1) * 0.5).rgb;
+                presented = vec4 (matcapTexture.rgb, 1.f);
+            
+            } else if (camera.displayMode == DP_HAGYMA) {
                 presented = hagyma;
-            }
+            
+            } else if (camera.displayMode == DP_ARNYEK) {
 
-            //presented = vec4 (matcapTexture.rgb, gradient.w);
-            //presented = vec4 (gradient.rgb * 0.5 + 0.5, gradient.w);
+                // second ray to light dir
+                const vec3 ray2StartPos = rayPos;
+                const vec2 box2T = BoxIntersection (ray2StartPos, lightDir, vec3 (0.5f, 0.5f, 0.5f), 0.5f);
+
+                const int shadowSamples = 256;
+                const float ray2StepSize = box2T.y / shadowSamples; 
+                
+                vec3 ray2Pos = ray2StartPos;
+                float ray2T = 0.0f;
+
+                float ray2AccumulatedVolume = 0;
+
+                for (int i = 0; i < shadowSamples; ++i) {
+                
+                    float sampled = texture (agySampler, ray2Pos).r;
+                    if (sampled > minConsideredValue) {
+                        ray2AccumulatedVolume += sampled / shadowSamples;
+                    }
+
+                    ray2T += ray2StepSize;
+                    ray2Pos = ray2StartPos + lightDir * ray2T;
+                }
+
+                if (ray2AccumulatedVolume > 0.001f) {
+                    presented = vec4 (vec3 (0), 0.2f);
+                } else {
+                    presented = vec4 (vec3 (phongColor), 1.f);
+                }
+
+            } else {
+                // error
+                presented = vec4 (vec3 (1, 0, 0), 1);
+            }
+    
+            //presented = vec4 (gradient.rgb * 0.5 + 0.5, 1.f);
         }
     }
     //presented = vec4 (texture (matcapSampler, uv).rgb, 1);
@@ -264,7 +237,4 @@ void main ()
     //presented = vec4 (vec3 (bt.x), 1);
 
     //presented = vec4 (texture (agySampler, vec3 (uv.y, uv.x, fract(time.time*0.1f))).rrr, 1);
-    
-    copy[0] = vec4 (texture (agy2dSampler, uv).rgb, 1);
-    copy[1] = result;
 }

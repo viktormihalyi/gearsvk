@@ -57,7 +57,7 @@ public:
             queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
             queueCreateInfo.queueFamilyIndex        = queueFamilyIndex;
             queueCreateInfo.queueCount              = 1;
-            float queuePriority                     = 1.0f;
+            const float queuePriority               = 1.0f;
             queueCreateInfo.pQueuePriorities        = &queuePriority;
             queueCreateInfos.push_back (queueCreateInfo);
         }

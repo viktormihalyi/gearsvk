@@ -16,7 +16,7 @@ public:
 
     Queue (VkDevice device, uint32_t index)
     {
-        vkGetDeviceQueue (device, index, 0, &handle); // TODO another index
+        vkGetDeviceQueue (device, index, 0, &handle); // only one queue per device
     }
 
     Queue (VkQueue handle)

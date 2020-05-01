@@ -72,7 +72,7 @@ set (COMMON_SOURCE_FILES
     src/GearsVk/ShaderReflection.cpp
     src/GearsVk/VulkanEnvironment.cpp
     src/Utils/Time.cpp
-    src/Utils/Persistent.cpp)
+    src/Utils/Persistent.cpp "src/VulkanWrapper/Utils/ShaderPipeline.cpp")
 
 add_executable (${TARGET_NAME}
     ${COMMON_SOURCE_FILES}

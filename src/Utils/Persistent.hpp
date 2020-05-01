@@ -10,6 +10,7 @@
 #include <string>
 #include <type_traits>
 
+
 class BinaryIOStrategy {
 public:
     template<typename T>
@@ -25,6 +26,39 @@ public:
     void Write (const std::filesystem::path& file, const T& value)
     {
         Utils::WriteBinaryFile (file, &value, sizeof (T));
+    }
+};
+
+
+class VectorIOStrategy {
+public:
+    template<typename T>
+    void Read (const std::filesystem::path& file, std::vector<T>& val)
+    {
+        const uint32_t vectorSizeLength = sizeof (size_t);
+
+        std::optional<std::vector<char>> binary = Utils::ReadBinaryFile (file);
+        if (binary) {
+            size_t vectorSize = 0;
+            memcpy (&vectorSize, binary.data (), sizeof (size_t));
+
+            val.clear ();
+            val.resize (vectorSize);
+            memcpy (val.data (), binary.data () + sizeof (size_t), binary.size () - sizeof (size_t));
+        }
+    }
+
+    template<typename T>
+    void Write (const std::filesystem::path& file, const std::vector<T>& value)
+    {
+        const uint32_t vectorSizeLength = sizeof (size_t);
+
+        std::vector<uint8_t> binaryData (vectorSizeLength + value.size () * sizeof (T));
+        reinterpret_cast<size_t*> (binaryData.data ())[0] = value.size ();
+
+        memcpy (binaryData.data () + vectorSizeLength, value.data (), value.size () * sizeof (T));
+
+        Utils::WriteBinaryFile (file, binaryData.data (), binaryData.size ());
     }
 };
 
@@ -137,5 +171,8 @@ using PersistentString = PersistentVariable<std::string, StringIOStrategy>;
 
 template<typename T, typename = typename std::enable_if_t<std::is_standard_layout_v<T>>>
 using Persistent = PersistentVariable<T, BinaryIOStrategy>;
+
+template<typename T, typename = typename std::enable_if_t<std::is_standard_layout_v<T>>>
+using PersistentVector = PersistentVariable<std::vector<T>, VectorIOStrategy>;
 
 #endif
