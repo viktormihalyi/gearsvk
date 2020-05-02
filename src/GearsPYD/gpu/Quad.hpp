@@ -21,7 +21,7 @@
 #ifndef _QUAD_
 #define _QUAD_
 
-#include "GearsDLL/OpenGLProxy.hpp"
+#include "OpenGLProxy.hpp"
 
 #include "Shader.hpp"
 

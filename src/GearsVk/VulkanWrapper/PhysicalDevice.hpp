@@ -1,6 +1,8 @@
 #ifndef PHYSICALDEVICE_HPP
 #define PHYSICALDEVICE_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
@@ -40,10 +42,11 @@ public:
 };
 
 
+GEARSVK_API
 extern DefaultQueueFamilySelector defaultQueueFamilySelector;
 
 
-class PhysicalDevice final : public Noncopyable {
+class GEARSVK_API PhysicalDevice final : public Noncopyable {
 public:
     struct QueueFamilies {
         std::optional<uint32_t> graphics;
@@ -86,7 +89,6 @@ public:
         vkGetPhysicalDeviceFeatures (handle, &features);
         return features;
     }
-
 };
 
 #endif

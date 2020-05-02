@@ -1,6 +1,8 @@
 #ifndef VULKANWRAPPER_VULKANUTILS_HPP
 #define VULKANWRAPPER_VULKANUTILS_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Buffer.hpp"
 #include "CommandBuffer.hpp"
 #include "Device.hpp"
@@ -17,21 +19,26 @@
 
 std::string GetVersionString (uint32_t version);
 
+GEARSVK_API
 void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout);
 
 void CopyBufferToImage (VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth = 1);
 void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth = 1);
 
+GEARSVK_API
 void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
+GEARSVK_API
 std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t components = 4);
 
+GEARSVK_API
 bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& expectedImage);
 
+GEARSVK_API
 std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& filePath);
 
 
-struct AllocatedImage final {
+struct GEARSVK_API AllocatedImage final {
     ImageBase::U    image;
     DeviceMemory::U memory;
 
@@ -48,7 +55,7 @@ struct AllocatedImage final {
 };
 
 
-struct AllocatedBuffer final {
+struct GEARSVK_API AllocatedBuffer final {
     Buffer::U       buffer;
     DeviceMemory::U memory;
 

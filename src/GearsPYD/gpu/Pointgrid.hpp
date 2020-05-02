@@ -2,7 +2,7 @@
 #ifndef _POINTGRID_
 #define _POINTGRID_
 
-#include "GearsDLL/OpenGLProxy.hpp"
+#include "OpenGLProxy.hpp"
 
 #include "Shader.hpp"
 

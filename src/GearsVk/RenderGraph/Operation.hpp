@@ -1,6 +1,8 @@
 #ifndef OPERATION_HPP
 #define OPERATION_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "ShaderPipeline.hpp"
 #include "Timer.hpp"
 #include "VulkanUtils.hpp"
@@ -13,7 +15,7 @@
 
 namespace RG {
 
-struct Operation : public Noncopyable {
+struct GEARSVK_API Operation : public Noncopyable {
     USING_PTR_ABSTRACT (Operation);
 
     std::vector<Resource::Ref> inputs;
@@ -36,7 +38,7 @@ struct Operation : public Noncopyable {
 };
 
 
-struct RenderOperation final : public Operation {
+struct GEARSVK_API RenderOperation final : public Operation {
     USING_PTR (RenderOperation);
 
     struct CompileSettings {

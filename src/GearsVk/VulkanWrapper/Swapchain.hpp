@@ -1,6 +1,8 @@
 #ifndef SWAPCHAIN_HPP
 #define SWAPCHAIN_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Assert.hpp"
 #include "Framebuffer.hpp"
 #include "ImageView.hpp"
@@ -20,7 +22,7 @@ public:
 };
 
 
-class DefaultSwapchainSettings final : public SwapchainSettingsProvider {
+class GEARSVK_API DefaultSwapchainSettings final : public SwapchainSettingsProvider {
 public:
     virtual VkSurfaceFormatKHR SelectSurfaceFormat (const std::vector<VkSurfaceFormatKHR>& formats) override;
     virtual VkPresentModeKHR   SelectPresentMode (const std::vector<VkPresentModeKHR>& modes) override;
@@ -28,11 +30,11 @@ public:
     virtual uint32_t           SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities) override;
 };
 
+GEARSVK_API
+extern DefaultSwapchainSettings defaultSwapchainSettings;
 
-static DefaultSwapchainSettings defaultSwapchainSettings;
 
-
-class Swapchain {
+class GEARSVK_API Swapchain {
 public:
     USING_PTR_ABSTRACT (Swapchain);
 
@@ -60,8 +62,8 @@ public:
     }
 };
 
-class RealSwapchain : public Swapchain,
-                      public Noncopyable {
+class GEARSVK_API RealSwapchain : public Swapchain,
+                                  public Noncopyable {
 public:
     static const VkImageUsageFlags ImageUsage;
 
@@ -136,7 +138,7 @@ public:
 };
 
 
-class FakeSwapchain : public Swapchain {
+class GEARSVK_API FakeSwapchain : public Swapchain {
 private:
     AllocatedImage image;
     Device&        device;

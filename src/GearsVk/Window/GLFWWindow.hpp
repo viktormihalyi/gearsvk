@@ -1,12 +1,14 @@
 #ifndef GLFWWINDOW_HPP
 #define GLFWWINDOW_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Window.hpp"
 
 #include <optional>
 #include <vector>
 
-class GLFWWindowBase : public Window {
+class GEARSVK_API GLFWWindowBase : public Window {
 private:
     void*        window;
     VkSurfaceKHR surface;
@@ -37,7 +39,7 @@ public:
 };
 
 
-class GLFWWindow : public GLFWWindowBase {
+class GEARSVK_API GLFWWindow : public GLFWWindowBase {
 public:
     USING_PTR (GLFWWindow);
     GLFWWindow ();
@@ -45,7 +47,7 @@ public:
 };
 
 
-class HiddenGLFWWindow : public GLFWWindowBase {
+class GEARSVK_API HiddenGLFWWindow : public GLFWWindowBase {
 public:
     USING_PTR (HiddenGLFWWindow);
     HiddenGLFWWindow ();

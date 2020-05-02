@@ -1,6 +1,8 @@
 #ifndef RENDERGRAPH_HPP
 #define RENDERGRAPH_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "ShaderPipeline.hpp"
 #include "Timer.hpp"
 #include "VulkanUtils.hpp"
@@ -144,7 +146,7 @@ public:
     std::vector<uint32_t> GetOperationIndices (uint32_t commandBufferIndex) { return commandBufferToOperationMapping[commandBufferIndex]; }
 };
 
-class RenderGraph final : public Noncopyable {
+class GEARSVK_API RenderGraph final : public Noncopyable {
 public:
     struct InputConnection final {
         Operation& operation;

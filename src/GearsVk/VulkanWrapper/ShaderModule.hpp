@@ -1,6 +1,8 @@
 #ifndef SHADERMODULE_HPP
 #define SHADERMODULE_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
@@ -19,7 +21,7 @@ public:
     }
 };
 
-class ShaderModule : public Noncopyable {
+class GEARSVK_API ShaderModule : public Noncopyable {
 public:
     enum class ShaderKind {
         Vertex,

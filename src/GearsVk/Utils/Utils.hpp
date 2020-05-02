@@ -1,6 +1,8 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 
@@ -21,15 +23,22 @@
 
 namespace Utils {
 
+GEARSVK_API
 std::filesystem::path GetProjectRoot ();
 
+GEARSVK_API
 std::optional<std::string> ReadTextFile (const std::filesystem::path& filePath);
 
+GEARSVK_API
 std::optional<std::vector<char>> ReadBinaryFile (const std::filesystem::path& filePath);
 
+GEARSVK_API
 bool WriteBinaryFile (const std::filesystem::path& filePath, const std::vector<uint8_t>& data);
+
+GEARSVK_API
 bool WriteBinaryFile (const std::filesystem::path& filePath, const void* data, size_t size);
 
+GEARSVK_API
 std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem::path& filePath);
 
 template<typename SourceType, typename DestType>

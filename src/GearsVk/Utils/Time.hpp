@@ -1,9 +1,11 @@
 #ifndef TIMEPOINT_HPP
 #define TIMEPOINT_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include <chrono>
 
-class TimePoint {
+class GEARSVK_API TimePoint {
 public:
     using Precision = std::chrono::nanoseconds;
     using Clock     = std::chrono::high_resolution_clock;

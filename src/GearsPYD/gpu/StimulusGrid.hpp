@@ -1,7 +1,7 @@
 #ifndef _STIMULUSGRID_
 #define _STIMULUSGRID_
 
-#include "GearsDLL/OpenGLProxy.hpp"
+#include "OpenGLProxy.hpp"
 
 class StimulusGrid {
 private:

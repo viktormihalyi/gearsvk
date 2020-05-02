@@ -1,13 +1,15 @@
 #ifndef SOURCELOCATION_HPP
 #define SOURCELOCATION_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include <string>
 
 namespace Utils {
 
 // TODO replace std::source_location when c++20 happens
 
-struct SourceLocation {
+struct GEARSVK_API SourceLocation {
     const char* file;
     int         line;
     const char* function;

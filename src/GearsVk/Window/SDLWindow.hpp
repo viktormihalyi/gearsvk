@@ -1,12 +1,14 @@
 #ifndef SDLWINDOW_HPP
 #define SDLWINDOW_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Window.hpp"
 
 #include <optional>
 #include <vector>
 
-class SDLWindowBase : public Window {
+class GEARSVK_API SDLWindowBase : public Window {
 private:
     static uint32_t windowCount;
 

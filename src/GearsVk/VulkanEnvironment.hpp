@@ -1,6 +1,8 @@
 #ifndef VULKANTESTENVIRONMENT_HPP
 #define VULKANTESTENVIRONMENT_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "DeviceExtra.hpp"
 #include "GLFWWindow.hpp"
 #include "Ptr.hpp"
@@ -8,13 +10,13 @@
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 
-
+GEARSVK_API
 void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
                         VkDebugUtilsMessageTypeFlagsEXT,
                         const VkDebugUtilsMessengerCallbackDataEXT* callbackData);
 
 
-class VulkanEnvironment {
+class GEARSVK_API VulkanEnvironment {
 public:
     Instance::U            instance;
     DebugUtilsMessenger::U messenger;

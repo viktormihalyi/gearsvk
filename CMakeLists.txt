@@ -9,6 +9,7 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set (PROJECT_NAME GearsVk)
 
+set (TARGET_LIB GearsVk)
 set (TARGET_VIZHF VizHF)
 set (TARGET_TESTS GearsVkTest)
 set (TARGET_DLL Gears)
@@ -31,6 +32,12 @@ else ()
     error ()
 endif ()
 
+if (MSVC)
+    set (COMPILER_FLAGS /W4)
+else ()
+    set (COMPILER_FLAGS -Wall -Wextra -pedantic)
+endif ()
+
 add_definitions (-D_CRT_SECURE_NO_WARNINGS)
 
 
@@ -50,145 +57,122 @@ add_subdirectory (external/pybind11)
 # ============================================================
 
 
-# TODO make a dll out of these
-set (COMMON_SOURCE_FILES
-    src/Utils/Assert.cpp
-    src/Utils/Logger.cpp
-    src/Utils/MessageBox.cpp
-    src/Utils/SourceLocation.cpp
-    src/Utils/Utils.cpp
-    src/VulkanWrapper/Utils/VulkanUtils.cpp
-    src/VulkanWrapper/Utils/BufferTransferable.cpp
-    src/VulkanWrapper/DebugUtilsMessenger.cpp
-    src/VulkanWrapper/ShaderModule.cpp
-    src/VulkanWrapper/Swapchain.cpp
-    src/VulkanWrapper/PhysicalDevice.cpp
-    src/GearsVk/Camera/Frustum.cpp
-    src/GearsVk/Camera/Camera.cpp
-    src/GearsVk/RenderGraph/RenderGraph.cpp
-    src/GearsVk/RenderGraph/Resource.cpp
-    src/GearsVk/RenderGraph/Operation.cpp
-    
-    src/GearsVk/RenderGraph/GraphRenderer.cpp
-    src/GearsVk/Window/GLFWWindow.cpp
-    src/GearsVk/Window/SDLWindow.cpp
-    src/GearsVk/ShaderReflection.cpp
-    src/GearsVk/VulkanEnvironment.cpp
-    src/Utils/Time.cpp
-    src/Utils/Persistent.cpp
-    src/VulkanWrapper/Utils/ShaderPipeline.cpp)
-
-add_executable (${TARGET_VIZHF}
-    ${COMMON_SOURCE_FILES}
-    src/VizHF/main.cpp
-)
-
-add_executable (${TARGET_TESTS}
-    ${COMMON_SOURCE_FILES}
-    src/Tests/TestMain.cpp
-)
-
-add_library (${TARGET_DLL} SHARED
-    ${COMMON_SOURCE_FILES}
-	
-    src/GearsDLL/Gears.cpp
-    src/GearsDLL/event/events.cpp
-    src/GearsDLL/core/Pass.cpp
-    src/GearsDLL/core/PassRenderer.cpp
-    src/GearsDLL/core/Stimulus.cpp
-    src/GearsDLL/core/StimulusRenderer.cpp
-    src/GearsDLL/core/Sequence.cpp
-    src/GearsDLL/core/SequenceRenderer.cpp
-    src/GearsDLL/core/Response.cpp
-    src/GearsDLL/core/Ticker.cpp
-    src/GearsDLL/core/PortHandlerWin32.cpp
-    src/GearsDLL/core/PortHandlerLinux.cpp
-    src/GearsDLL/core/filter/KernelManager.cpp
-    src/GearsDLL/core/filter/SpatialFilter.cpp
-
-    src/GearsDLL/gpu/Framebuffer.cpp
-    src/GearsDLL/gpu/Nothing.cpp
-    src/GearsDLL/gpu/Pointgrid.cpp
-    src/GearsDLL/gpu/Quad.cpp
-    src/GearsDLL/gpu/RandomSequenceBuffer.cpp
-    src/GearsDLL/gpu/Shader.cpp
-    src/GearsDLL/gpu/StimulusGrid.cpp
-    src/GearsDLL/gpu/Texture.cpp
-    src/GearsDLL/gpu/TextureQueue.cpp
-    src/GearsDLL/GearsAPIv2.cpp)
-
-target_compile_definitions (${TARGET_VIZHF} PRIVATE
-    PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-)
-
-target_compile_definitions (${TARGET_TESTS} PRIVATE
-    PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-)
-
-target_compile_definitions (${TARGET_DLL} PRIVATE
-    PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-)
-
-set (EXTRNAL_INCLUDES
-    ${Vulkan_INCLUDE_DIRS}
-    ${Python3_INCLUDE_DIRS}
-    external/googletest/googletest/include
-    external/glfw/include
-    #external/json/single_include
-    external/glm
-    #external/VulkanMemoryAllocator/src
-    external/stb
-    external/pybind11/include
-    external/glslang
-)
-
-set (COMMON_INCLUDES
-    src
+set (GEARSVK_INCLUDE_FOLDERS
     src/GearsVk
     src/GearsVk/RenderGraph
     src/GearsVk/RenderGraph/DrawRecordable
     src/GearsVk/Window
     src/GearsVk/Camera
-    src/VulkanWrapper
-    src/VulkanWrapper/Utils
-    src/Utils
+    src/GearsVk/VulkanWrapper
+    src/GearsVk/VulkanWrapper/Utils
+    src/GearsVk/Utils
+    
+    # external libs
+    ${Vulkan_INCLUDE_DIRS}
+    ${Python3_INCLUDE_DIRS}
+    
+    external/glfw/include
+    #external/json/single_include
+    external/glm
+    #external/VulkanMemoryAllocator/src
+    external/stb
+    external/glslang
 )
 
-set (COMMON_LINKS
-    ${Vulkan_LIBRARIES}
-    glfw
-    SPIRV
+add_library (${TARGET_LIB} SHARED
+    src/GearsVk/Utils/Assert.cpp
+    src/GearsVk/Utils/Logger.cpp
+    src/GearsVk/Utils/MessageBox.cpp
+    src/GearsVk/Utils/SourceLocation.cpp
+    src/GearsVk/Utils/Utils.cpp
+    src/GearsVk/Utils/Time.cpp
+    src/GearsVk/Utils/Persistent.cpp
+    
+    src/GearsVk/VulkanWrapper/Utils/VulkanUtils.cpp
+    src/GearsVk/VulkanWrapper/Utils/BufferTransferable.cpp
+    src/GearsVk/VulkanWrapper/DebugUtilsMessenger.cpp
+    src/GearsVk/VulkanWrapper/ShaderModule.cpp
+    src/GearsVk/VulkanWrapper/Swapchain.cpp
+    src/GearsVk/VulkanWrapper/PhysicalDevice.cpp
+    src/GearsVk/VulkanWrapper/Utils/ShaderPipeline.cpp
+
+    src/GearsVk/Camera/Frustum.cpp
+    src/GearsVk/Camera/Camera.cpp
+    
+    src/GearsVk/RenderGraph/RenderGraph.cpp
+    src/GearsVk/RenderGraph/Resource.cpp
+    src/GearsVk/RenderGraph/Operation.cpp
+    src/GearsVk/RenderGraph/GraphRenderer.cpp
+    
+    src/GearsVk/Window/GLFWWindow.cpp
+    src/GearsVk/Window/SDLWindow.cpp
+
+    src/GearsVk/ShaderReflection.cpp
+    src/GearsVk/VulkanEnvironment.cpp
 )
 
-set (COMMON_COMPILER_DEFINES
+add_executable (${TARGET_VIZHF}
+    src/VizHF/main.cpp
 )
 
-target_include_directories (${TARGET_VIZHF} PRIVATE ${EXTRNAL_INCLUDES})
-target_include_directories (${TARGET_TESTS} PRIVATE ${EXTRNAL_INCLUDES})
-target_include_directories (${TARGET_DLL} PRIVATE ${EXTRNAL_INCLUDES})
-
-target_compile_definitions (${TARGET_VIZHF} PRIVATE ${COMMON_COMPILER_DEFINES})
-target_compile_definitions (${TARGET_TESTS} PRIVATE ${COMMON_COMPILER_DEFINES})
-target_compile_definitions (${TARGET_DLL} PRIVATE ${COMMON_COMPILER_DEFINES})
-
-target_include_directories (${TARGET_VIZHF} PRIVATE ${COMMON_INCLUDES})
-target_include_directories (${TARGET_TESTS} PRIVATE ${COMMON_INCLUDES})
-target_include_directories (${TARGET_DLL} PRIVATE ${COMMON_INCLUDES}
-    src/GearsDLL
+add_executable (${TARGET_TESTS}
+    src/Tests/TestMain.cpp
 )
 
-target_link_libraries (${TARGET_VIZHF} ${COMMON_LINKS})
-target_link_libraries (${TARGET_TESTS} ${COMMON_LINKS} gtest)
-target_link_libraries (${TARGET_DLL} ${COMMON_LINKS})
+add_library (${TARGET_DLL} SHARED
+    src/GearsPYD/Gears.cpp
+    src/GearsPYD/event/events.cpp
+    src/GearsPYD/core/Pass.cpp
+    src/GearsPYD/core/PassRenderer.cpp
+    src/GearsPYD/core/Stimulus.cpp
+    src/GearsPYD/core/StimulusRenderer.cpp
+    src/GearsPYD/core/Sequence.cpp
+    src/GearsPYD/core/SequenceRenderer.cpp
+    src/GearsPYD/core/Response.cpp
+    src/GearsPYD/core/Ticker.cpp
+    src/GearsPYD/core/PortHandlerWin32.cpp
+    src/GearsPYD/core/PortHandlerLinux.cpp
+    src/GearsPYD/core/filter/KernelManager.cpp
+    src/GearsPYD/core/filter/SpatialFilter.cpp
 
-if (MSVC)
-  set (GEARS_MSVC_FLAGS /W4)
-  target_compile_options(${TARGET_VIZHF} PRIVATE ${GEARS_MSVC_FLAGS})
-  target_compile_options(${TARGET_TESTS} PRIVATE ${GEARS_MSVC_FLAGS})
-  target_compile_options(${TARGET_DLL} PRIVATE ${GEARS_MSVC_FLAGS})
-else ()
-  set (GEARS_GCC_FLAGS -Wall -Wextra -pedantic)
-  target_compile_options(${TARGET_VIZHF} PRIVATE ${GEARS_GCC_FLAGS})
-  target_compile_options(${TARGET_TESTS} PRIVATE ${GEARS_GCC_FLAGS})
-  target_compile_options(${TARGET_DLL} PRIVATE ${GEARS_GCC_FLAGS})
-endif ()
+    src/GearsPYD/gpu/Framebuffer.cpp
+    src/GearsPYD/gpu/Nothing.cpp
+    src/GearsPYD/gpu/Pointgrid.cpp
+    src/GearsPYD/gpu/Quad.cpp
+    src/GearsPYD/gpu/RandomSequenceBuffer.cpp
+    src/GearsPYD/gpu/Shader.cpp
+    src/GearsPYD/gpu/StimulusGrid.cpp
+    src/GearsPYD/gpu/Texture.cpp
+    src/GearsPYD/gpu/TextureQueue.cpp
+    src/GearsPYD/GearsAPIv2.cpp)
+    
+target_compile_definitions (${TARGET_LIB} PRIVATE
+    PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+    GEARSVK_EXPORTS
+)
+target_compile_definitions (${TARGET_VIZHF} PRIVATE)
+target_compile_definitions (${TARGET_TESTS} PRIVATE)
+target_compile_definitions (${TARGET_DLL} PRIVATE)
+
+
+target_include_directories (${TARGET_LIB} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
+target_include_directories (${TARGET_VIZHF} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
+target_include_directories (${TARGET_TESTS} PRIVATE
+    ${GEARSVK_INCLUDE_FOLDERS}
+    external/googletest/googletest/include
+)
+target_include_directories (${TARGET_DLL} PRIVATE
+    ${GEARSVK_INCLUDE_FOLDERS}
+    src/GearsPYD
+    external/pybind11/include
+)
+
+target_link_libraries (${TARGET_LIB} ${Vulkan_LIBRARIES} glfw SPIRV)
+target_link_libraries (${TARGET_VIZHF} ${TARGET_LIB})
+target_link_libraries (${TARGET_TESTS} ${TARGET_LIB} gtest)
+target_link_libraries (${TARGET_DLL} ${TARGET_LIB})
+
+target_compile_options (${TARGET_LIB} PRIVATE ${COMPILER_FLAGS})
+target_compile_options (${TARGET_VIZHF} PRIVATE ${COMPILER_FLAGS})
+target_compile_options (${TARGET_TESTS} PRIVATE ${COMPILER_FLAGS})
+target_compile_options (${TARGET_DLL} PRIVATE ${COMPILER_FLAGS})

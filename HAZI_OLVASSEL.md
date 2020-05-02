@@ -1,10 +1,10 @@
 A `screenshots` mappába tettem képeket a végeredményről ha nem sikerülne fordítani vagy futtatni. A releváns shader a `src/VizHF/shaders` mappában található.
 
+Elérhető git repoként is ha baj lenne a beadott változattal: https://github.com/viktormihalyi/gearsvk
+
 # Fordítás
 
-Külső könyvtárak letöltése: `git submodule update --init`
-
-Ezen kívül szükség lesz a Vulkan SDK-ra is: https://vulkan.lunarg.com/sdk/home
+Szükség lesz a Vulkan SDK-ra is: https://vulkan.lunarg.com/sdk/home
 
 ## a) Windowson Visual Studioval
 A projekt mappát megnyitva a `VizHF` nevű targetet kell fordítani/futtatni. (Ehhez szükség van a C++ CMake tools-ra az installerből.)

@@ -1,6 +1,8 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Assert.hpp"
 #include "Cache.hpp"
 #include "Event.hpp"
@@ -10,7 +12,7 @@
 #include "glmlib.hpp"
 
 
-class Camera {
+class GEARSVK_API Camera {
 public:
     USING_PTR (Camera);
 

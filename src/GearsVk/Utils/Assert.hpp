@@ -1,6 +1,8 @@
 #ifndef ASSERT_HPP
 #define ASSERT_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include <string>
 
 #include "SourceLocation.hpp"
@@ -26,11 +28,13 @@ namespace Utils {
 
 namespace detail {
 
-
+GEARSVK_API
 bool DebugAssertFunc (bool condition, const char* message, const char* conditionString, const SourceLocation& location);
 
+GEARSVK_API
 bool DebugErrorFunc (bool condition, const char* message, const char* conditionString, const SourceLocation& location);
 
+GEARSVK_API
 void ShowAssertPopup (const std::string& title,
                       const std::string& message,
                       const std::string& sourceLocation,

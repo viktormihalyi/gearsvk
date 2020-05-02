@@ -1,6 +1,8 @@
 #ifndef PERSISTENT_HPP
 #define PERSISTENT_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Assert.hpp"
 #include "Utils.hpp"
 
@@ -35,6 +37,8 @@ public:
     template<typename T>
     void Read (const std::filesystem::path& file, std::vector<T>& val)
     {
+        ASSERT (false);
+#if 0
         const uint32_t vectorSizeLength = sizeof (size_t);
 
         std::optional<std::vector<char>> binary = Utils::ReadBinaryFile (file);
@@ -46,11 +50,14 @@ public:
             val.resize (vectorSize);
             memcpy (val.data (), binary->data () + sizeof (size_t), binary->size () - sizeof (size_t));
         }
+#endif
     }
 
     template<typename T>
     void Write (const std::filesystem::path& file, const std::vector<T>& value)
     {
+        ASSERT (false);
+#if 0
         const uint32_t vectorSizeLength = sizeof (size_t);
 
         std::vector<uint8_t> binaryData (vectorSizeLength + value.size () * sizeof (T));
@@ -59,6 +66,7 @@ public:
         memcpy (binaryData->data () + vectorSizeLength, value.data (), value.size () * sizeof (T));
 
         Utils::WriteBinaryFile (file, binaryData->data (), binaryData->size ());
+#endif
     }
 };
 
@@ -82,8 +90,9 @@ public:
 
 
 namespace detail {
+GEARSVK_API
 extern std::set<std::string> uniqueNames;
-}
+} // namespace detail
 
 template<typename T, typename IOStrategy>
 class PersistentVariable final : public Noncopyable {

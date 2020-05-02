@@ -1,6 +1,7 @@
 #ifndef SHADERPIPELINE_HPP
 #define SHADERPIPELINE_HPP
 
+#include "GearsVkAPI.hpp"
 #include "VulkanWrapper.hpp"
 
 #include <thread>
@@ -8,7 +9,7 @@
 #include <vulkan/vulkan.h>
 
 
-class ShaderPipeline {
+class GEARSVK_API ShaderPipeline {
 public:
     USING_PTR (ShaderPipeline);
 

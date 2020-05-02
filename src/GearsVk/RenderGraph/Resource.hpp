@@ -1,6 +1,8 @@
 #ifndef RESOURCE_HPP
 #define RESOURCE_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Event.hpp"
 #include "ShaderPipeline.hpp"
 #include "Timer.hpp"
@@ -14,7 +16,7 @@
 namespace RG {
 
 
-class SingleResource : public Noncopyable {
+class GEARSVK_API SingleResource : public Noncopyable {
 public:
     USING_PTR_ABSTRACT (SingleResource);
 
@@ -76,7 +78,7 @@ public:
 };
 
 
-struct SingleImageResource final : public SingleResource {
+struct GEARSVK_API SingleImageResource final : public SingleResource {
     static const VkFormat FormatRGBA;
     static const VkFormat FormatRGB;
 
@@ -105,7 +107,7 @@ struct SingleImageResource final : public SingleResource {
 };
 
 
-class WritableImageResource : public Resource {
+class GEARSVK_API WritableImageResource : public Resource {
 public:
     uint32_t                            arrayLayers;
     std::vector<SingleImageResource::U> images;
@@ -139,7 +141,7 @@ public:
 };
 
 
-class ReadOnlyImageResource : public OneTimeCompileResource {
+class GEARSVK_API ReadOnlyImageResource : public OneTimeCompileResource {
 public:
     ImageTransferableBase::U image;
     ImageViewBase::U         imageView;
@@ -211,7 +213,7 @@ public:
 };
 
 
-class SwapchainImageResource : public Resource {
+class GEARSVK_API SwapchainImageResource : public Resource {
 public:
     VkFormat                    swapchainSurfaceFormat;
     std::vector<ImageView2D::U> imageViews;
@@ -249,7 +251,7 @@ public:
 };
 
 
-class UniformBlockResource : public Resource {
+class GEARSVK_API UniformBlockResource : public Resource {
 public:
     const uint32_t                  size;
     std::vector<AllocatedBuffer::U> buffers;
@@ -307,7 +309,7 @@ public:
 };
 
 
-class ResourceVisitor final {
+class GEARSVK_API ResourceVisitor final {
 public:
     Event<WritableImageResource&>  onWritableImage;
     Event<ReadOnlyImageResource&>  onReadOnlyImage;

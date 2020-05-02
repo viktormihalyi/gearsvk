@@ -1,7 +1,7 @@
 #ifndef _StimulusQueueTextureArray_
 #define _StimulusQueueTextureArray_
 
-#include "GearsDLL/OpenGLProxy.hpp"
+#include "OpenGLProxy.hpp"
 
 class TextureQueue {
 private:

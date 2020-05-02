@@ -21,7 +21,7 @@
 #ifndef _NOTHING_
 #define _NOTHING_
 
-#include "GearsDLL/OpenGLProxy.hpp"
+#include "OpenGLProxy.hpp"
 
 #include "Shader.hpp"
 

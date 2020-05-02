@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "GearsDLL/OpenGLProxy.hpp"
+#include "OpenGLProxy.hpp"
 
 class Texture1D {
 private:

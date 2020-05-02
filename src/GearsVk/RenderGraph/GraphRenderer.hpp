@@ -1,6 +1,8 @@
 #ifndef GRAPHRENDERER_HPP
 #define GRAPHRENDERER_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Event.hpp"
 #include "RenderGraph.hpp"
 #include "Swapchain.hpp"
@@ -11,7 +13,7 @@
 namespace RG {
 
 
-class Renderer {
+class GEARSVK_API Renderer {
 public:
     Event<uint32_t, uint64_t> preSubmitEvent;
     Event<>                   recreateEvent;
@@ -28,7 +30,7 @@ public:
 };
 
 
-class RecreatableGraphRenderer : public Renderer {
+class GEARSVK_API RecreatableGraphRenderer : public Renderer {
 private:
     RenderGraph& graph;
     Swapchain&   swapchain;
@@ -44,7 +46,7 @@ public:
 };
 
 
-class BlockingGraphRenderer final : public RecreatableGraphRenderer {
+class GEARSVK_API BlockingGraphRenderer final : public RecreatableGraphRenderer {
 private:
     RenderGraph& graph;
     Swapchain&   swapchain;
@@ -58,7 +60,7 @@ public:
 };
 
 
-class SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
+class GEARSVK_API SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
 private:
     const uint32_t framesInFlight;
     const uint32_t imageCount;

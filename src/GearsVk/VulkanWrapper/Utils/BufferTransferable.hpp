@@ -1,6 +1,8 @@
 #ifndef BUFFER_TRANSFERABLE_HPP
 #define BUFFER_TRANSFERABLE_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Buffer.hpp"
 #include "CommandBuffer.hpp"
 #include "Device.hpp"
@@ -14,7 +16,7 @@
 #include <cstring>
 
 
-class BufferTransferable final {
+class GEARSVK_API BufferTransferable final {
 public:
     const VkDevice      device;
     const VkQueue       queue;
@@ -53,7 +55,8 @@ public:
     }
 };
 
-class ImageTransferableBase {
+
+class GEARSVK_API ImageTransferableBase {
 private:
     const VkDevice      device;
     const VkQueue       queue;
@@ -123,7 +126,7 @@ static uint32_t GetCompontentCountFromFormat (VkFormat format)
 }
 
 
-class Image1DTransferable final : public ImageTransferableBase {
+class GEARSVK_API Image1DTransferable final : public ImageTransferableBase {
 public:
     USING_PTR (Image1DTransferable);
     Image1DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
@@ -134,7 +137,7 @@ public:
 };
 
 
-class Image2DTransferable final : public ImageTransferableBase {
+class GEARSVK_API Image2DTransferable final : public ImageTransferableBase {
 public:
     USING_PTR (Image2DTransferable);
     Image2DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags)
@@ -145,7 +148,7 @@ public:
 };
 
 
-class Image3DTransferable final : public ImageTransferableBase {
+class GEARSVK_API Image3DTransferable final : public ImageTransferableBase {
 public:
     USING_PTR (Image3DTransferable);
     Image3DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
@@ -156,7 +159,7 @@ public:
 };
 
 
-class VertexInputInfo final : public ShaderSourceBuilder {
+class GEARSVK_API VertexInputInfo final : public ShaderSourceBuilder {
 public:
     uint32_t                                       size;
     std::vector<VkVertexInputAttributeDescription> attributes;
@@ -169,7 +172,7 @@ public:
 };
 
 
-class VertexBufferTransferableUntyped {
+class GEARSVK_API VertexBufferTransferableUntyped {
 public:
     std::vector<uint8_t>     data;
     const VertexInputInfo    info;
@@ -223,7 +226,7 @@ public:
 };
 
 
-class IndexBufferTransferable {
+class GEARSVK_API IndexBufferTransferable {
 public:
     using IndexType = uint16_t;
 
