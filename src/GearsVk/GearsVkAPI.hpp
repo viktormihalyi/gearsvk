@@ -4,6 +4,6 @@
 #else
 #define GEARSVK_API __declspec(dllimport)
 #endif
-#elif
+#else
 #define GEARSVK_API
 #endif
