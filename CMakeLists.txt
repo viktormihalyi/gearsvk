@@ -33,6 +33,7 @@ add_definitions (-D_CRT_SECURE_NO_WARNINGS)
 
 
 # ======================  EXTERNAL LIBS ======================
+set (ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
 set (BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 set (gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 

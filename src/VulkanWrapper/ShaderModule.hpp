@@ -53,8 +53,8 @@ private:
 public:
     USING_PTR (ShaderModule);
 
-    static ShaderModule::U CreateFromGLSLFilePath (VkDevice device, const std::filesystem::path& fileLocation);
-    static ShaderModule::U CreateFromSPVFilePath (VkDevice device, const std::filesystem::path& fileLocation);
+    static ShaderModule::U CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation);
+    static ShaderModule::U CreateFromSPVFile (VkDevice device, const std::filesystem::path& fileLocation);
     static ShaderModule::U CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource);
 
     virtual ~ShaderModule ();

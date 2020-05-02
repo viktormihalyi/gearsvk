@@ -40,11 +40,11 @@ public:
         std::optional<std::vector<char>> binary = Utils::ReadBinaryFile (file);
         if (binary) {
             size_t vectorSize = 0;
-            memcpy (&vectorSize, binary.data (), sizeof (size_t));
+            memcpy (&vectorSize, binary->data (), sizeof (size_t));
 
             val.clear ();
             val.resize (vectorSize);
-            memcpy (val.data (), binary.data () + sizeof (size_t), binary.size () - sizeof (size_t));
+            memcpy (val.data (), binary->data () + sizeof (size_t), binary->size () - sizeof (size_t));
         }
     }
 
@@ -54,11 +54,11 @@ public:
         const uint32_t vectorSizeLength = sizeof (size_t);
 
         std::vector<uint8_t> binaryData (vectorSizeLength + value.size () * sizeof (T));
-        reinterpret_cast<size_t*> (binaryData.data ())[0] = value.size ();
+        reinterpret_cast<size_t*> (binaryData->data ())[0] = value.size ();
 
-        memcpy (binaryData.data () + vectorSizeLength, value.data (), value.size () * sizeof (T));
+        memcpy (binaryData->data () + vectorSizeLength, value.data (), value.size () * sizeof (T));
 
-        Utils::WriteBinaryFile (file, binaryData.data (), binaryData.size ());
+        Utils::WriteBinaryFile (file, binaryData->data (), binaryData->size ());
     }
 };
 

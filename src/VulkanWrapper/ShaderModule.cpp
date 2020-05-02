@@ -243,7 +243,7 @@ ShaderModule::ShaderModule (ShaderModule::ShaderKind shaderKind, ReadMode readMo
 }
 
 
-ShaderModule::U ShaderModule::CreateFromSPVFilePath (VkDevice device, const std::filesystem::path& fileLocation)
+ShaderModule::U ShaderModule::CreateFromSPVFile (VkDevice device, const std::filesystem::path& fileLocation)
 {
     std::optional<std::vector<char>>     binaryC = Utils::ReadBinaryFile (fileLocation);
     std::optional<std::vector<uint32_t>> binary  = Utils::ReadBinaryFile4Byte (fileLocation);
@@ -257,7 +257,7 @@ ShaderModule::U ShaderModule::CreateFromSPVFilePath (VkDevice device, const std:
 }
 
 
-ShaderModule::U ShaderModule::CreateFromGLSLFilePath (VkDevice device, const std::filesystem::path& fileLocation)
+ShaderModule::U ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation)
 {
     std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation);
     if (ERROR (!binary.has_value ())) {

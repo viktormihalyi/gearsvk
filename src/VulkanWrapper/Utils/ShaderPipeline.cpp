@@ -140,7 +140,7 @@ void ShaderPipeline::SetShaderFromSourceFile (const std::filesystem::path& shade
     // assert on overwriting shader
     ASSERT (moduleFromExtension == nullptr);
 
-    moduleFromExtension = ShaderModule::CreateFromGLSLFilePath (device, shaderPath);
+    moduleFromExtension = ShaderModule::CreateFromGLSLFile (device, shaderPath);
 }
 
 
@@ -159,7 +159,7 @@ void ShaderPipeline::SetShaderFromBinaryFile (const std::filesystem::path& shade
     // assert on overwriting shader
     ASSERT (moduleFromExtension == nullptr);
 
-    moduleFromExtension = ShaderModule::CreateFromSPVFilePath (device, shaderPath);
+    moduleFromExtension = ShaderModule::CreateFromSPVFile (device, shaderPath);
 }
 
 
@@ -217,14 +217,14 @@ void ShaderPipeline::Reload ()
             switch (currentShader->GetReadMode ()) {
                 case ShaderModule::ReadMode::GLSLFilePath:
                     try {
-                        newShader = ShaderModule::CreateFromGLSLFilePath (device, currentShader->GetLocation ());
+                        newShader = ShaderModule::CreateFromGLSLFile (device, currentShader->GetLocation ());
                     } catch (ShaderCompileException&) {
                     }
                     break;
 
                 case ShaderModule::ReadMode::SPVFilePath:
                     try {
-                        newShader = ShaderModule::CreateFromSPVFilePath (device, currentShader->GetLocation ());
+                        newShader = ShaderModule::CreateFromSPVFile (device, currentShader->GetLocation ());
                     } catch (ShaderCompileException&) {
                     }
                     break;
