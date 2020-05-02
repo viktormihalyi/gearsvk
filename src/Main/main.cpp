@@ -111,7 +111,7 @@ int main (int, char**)
 
     matcap.CopyTransitionTransfer (ReadImage (PROJECT_ROOT / "src" / "Main" / "matcap.jpg", 4));
 
-    std::vector<uint8_t> rawBrainData = ReadImage (PROJECT_ROOT / "brain.jpg", 1);
+    std::vector<uint8_t> rawBrainData = ReadImage (PROJECT_ROOT / "src" / "Main" / "brain.jpg", 1);
 
     std::vector<uint8_t> transformedBrainData (256 * 256 * 256);
 
