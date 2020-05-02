@@ -46,21 +46,13 @@ vec2 BoxIntersection (vec3 rayStart, vec3 rayDir, vec3 middle, float radius)
     vec3 normalFront  = vec3 (+1, 0, 0);
     vec3 normalBack   = vec3 (-1, 0, 0);
 
-    float top    = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalTop    * radius, normalTop));
-    float bottom = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalBottom * radius, normalBottom));
-    float right  = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalRight  * radius, normalRight));
-    float left   = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalLeft   * radius, normalLeft));
-    float front  = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalFront  * radius, normalFront));
-    float back   = max (0, SurfaceIntersection (rayStart, rayDir, middle + normalBack   * radius, normalBack));
+    float top    = SurfaceIntersection (rayStart, rayDir, middle + normalTop    * radius, normalTop);
+    float bottom = SurfaceIntersection (rayStart, rayDir, middle + normalBottom * radius, normalBottom);
+    float right  = SurfaceIntersection (rayStart, rayDir, middle + normalRight  * radius, normalRight);
+    float left   = SurfaceIntersection (rayStart, rayDir, middle + normalLeft   * radius, normalLeft);
+    float front  = SurfaceIntersection (rayStart, rayDir, middle + normalFront  * radius, normalFront);
+    float back   = SurfaceIntersection (rayStart, rayDir, middle + normalBack   * radius, normalBack);
 
-    vec3 topIntersectionPoint    = rayStart + rayDir * top;
-    vec3 bottomIntersectionPoint = rayStart + rayDir * bottom;
-    vec3 rightIntersectionPoint  = rayStart + rayDir * right;
-    vec3 leftIntersectionPoint   = rayStart + rayDir * left;
-    vec3 frontIntersectionPoint  = rayStart + rayDir * front;
-    vec3 backIntersectionPoint   = rayStart + rayDir * back;
-
-    // find first intersection
     float belepT_X = min (left, right);
     float belepT_Y = min (front, back);
     float belepT_Z = min (bottom, top);
@@ -73,6 +65,11 @@ vec2 BoxIntersection (vec3 rayStart, vec3 rayDir, vec3 middle, float radius)
     
     if (belepT > kilepT) {
         return vec2 (-1.f, -1.f);
+    }
+
+    // rayStart is inside the box
+    if (belepT < 0 && kilepT > 0) {
+        belepT = 0.f;
     }
 
     return vec2 (belepT, kilepT);
@@ -95,6 +92,7 @@ void main ()
 {
     presented = vec4 (vec3 (0), 1);
 
+    const int DP_BEFOGLALO = 1;
     const int DP_SZINTFELULET = 2;
     const int DP_MATCAP = 3;
     const int DP_HAGYMA = 4;
@@ -120,9 +118,13 @@ void main ()
 
     int hagymaSampledCount = 0;
     const int maxHagymaSampleCount = 6;
-      
-    const vec3 lightDir = normalize (vec3 (0, 0, -1));
-    
+     
+    float timeScale = 2.f;
+    vec3 lightDir = normalize (vec3 (1, 0, 0));
+    if (camera.displayMode == DP_ARNYEK) {
+        lightDir = normalize (vec3 (cos (time.time*timeScale), sin(time.time * timeScale), 0));
+    }
+   
     if (boxHit) {
 
         float volume = 0.f;
@@ -160,6 +162,14 @@ void main ()
             rayT += rayStep;
             rayPos = camera.position + normRayDir * rayT;
         }
+        
+        if (camera.displayMode == 1) {
+            if (brainHitCount > 0) {
+                presented = vec4 (vec3 (0.3f), 1.f);
+            } else {
+                presented = vec4 (vec3 (0.7f), 1.f);
+            }
+        }
 
         if (brainHitCount > 0) {
             const vec3 gradient = GetNormalAt (rayPos);
@@ -195,7 +205,8 @@ void main ()
             
             } else if (camera.displayMode == DP_ARNYEK) {
 
-                // second ray to light dir
+                // second ray towards light dir
+            
                 const vec3 ray2StartPos = rayPos;
                 const vec2 box2T = BoxIntersection (ray2StartPos, lightDir, vec3 (0.5f, 0.5f, 0.5f), 0.5f);
 
@@ -224,17 +235,7 @@ void main ()
                     presented = vec4 (vec3 (phongColor), 1.f);
                 }
 
-            } else {
-                // error
-                presented = vec4 (vec3 (1, 0, 0), 1);
             }
-    
-            //presented = vec4 (gradient.rgb * 0.5 + 0.5, 1.f);
         }
     }
-    //presented = vec4 (texture (matcapSampler, uv).rgb, 1);
-
-    //presented = vec4 (vec3 (bt.x), 1);
-
-    //presented = vec4 (texture (agySampler, vec3 (uv.y, uv.x, fract(time.time*0.1f))).rrr, 1);
 }

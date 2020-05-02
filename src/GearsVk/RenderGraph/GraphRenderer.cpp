@@ -3,7 +3,7 @@
 
 namespace RG {
 
-Window::DrawCallback GraphRenderer::GetInfiniteDrawCallback ()
+Window::DrawCallback Renderer::GetInfiniteDrawCallback ()
 {
     return [&] (bool&) -> void {
         RenderNextFrame ();
@@ -11,7 +11,7 @@ Window::DrawCallback GraphRenderer::GetInfiniteDrawCallback ()
 }
 
 
-Window::DrawCallback GraphRenderer::GetConditionalDrawCallback (const std::function<bool ()>& shouldStop)
+Window::DrawCallback Renderer::GetConditionalDrawCallback (const std::function<bool ()>& shouldStop)
 {
     return [&] (bool& stopFlag) -> void {
         stopFlag = shouldStop ();
@@ -21,7 +21,7 @@ Window::DrawCallback GraphRenderer::GetConditionalDrawCallback (const std::funct
 }
 
 
-Window::DrawCallback GraphRenderer::GetCountLimitedDrawCallback (uint64_t limit)
+Window::DrawCallback Renderer::GetCountLimitedDrawCallback (uint64_t limit)
 {
     uint64_t drawCount = 0;
     return [&] (bool& stopFlag) -> void {

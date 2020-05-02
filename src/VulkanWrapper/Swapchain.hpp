@@ -38,16 +38,18 @@ public:
 
     virtual ~Swapchain () {}
 
-    virtual VkFormat             GetImageFormat () const                                                                            = 0;
-    virtual uint32_t             GetImageCount () const                                                                             = 0;
-    virtual uint32_t             GetWidth () const                                                                                  = 0;
-    virtual uint32_t             GetHeight () const                                                                                 = 0;
-    virtual std::vector<VkImage> GetImages () const                                                                                 = 0;
-    virtual uint32_t             GetNextImageIndex (VkSemaphore signalSemaphore) const                                              = 0;
-    virtual void                 Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const = 0;
-    virtual bool                 SupportsPresenting () const                                                                        = 0;
-    virtual void                 Recreate ()                                                                                        = 0;
-    virtual void                 RecreateForSurface (VkSurfaceKHR surface)                                                          = 0;
+    virtual VkFormat                           GetImageFormat () const = 0;
+    virtual uint32_t                           GetImageCount () const  = 0;
+    virtual uint32_t                           GetWidth () const       = 0;
+    virtual uint32_t                           GetHeight () const      = 0;
+    virtual std::vector<VkImage>               GetImages () const      = 0;
+    virtual const std::vector<ImageView2D::U>& GetImageViews () const  = 0;
+
+    virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const                                              = 0;
+    virtual void     Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const = 0;
+    virtual bool     SupportsPresenting () const                                                                        = 0;
+    virtual void     Recreate ()                                                                                        = 0;
+    virtual void     RecreateForSurface (VkSurfaceKHR surface)                                                          = 0;
 };
 
 class OutOfDateSwapchain : public std::runtime_error {
@@ -118,11 +120,12 @@ public:
 
     operator VkSwapchainKHR () const { return createResult.handle; }
 
-    virtual VkFormat             GetImageFormat () const override { return createResult.surfaceFormat.format; }
-    virtual uint32_t             GetImageCount () const override { return createResult.imageCount; }
-    virtual uint32_t             GetWidth () const override { return createResult.extent.width; }
-    virtual uint32_t             GetHeight () const override { return createResult.extent.height; }
-    virtual std::vector<VkImage> GetImages () const override { return createResult.images; }
+    virtual VkFormat                           GetImageFormat () const override { return createResult.surfaceFormat.format; }
+    virtual uint32_t                           GetImageCount () const override { return createResult.imageCount; }
+    virtual uint32_t                           GetWidth () const override { return createResult.extent.width; }
+    virtual uint32_t                           GetHeight () const override { return createResult.extent.height; }
+    virtual std::vector<VkImage>               GetImages () const override { return createResult.images; }
+    virtual const std::vector<ImageView2D::U>& GetImageViews () const override { return createResult.imageViews; }
 
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override;
@@ -158,6 +161,7 @@ public:
         ASSERT (signalSemaphore == VK_NULL_HANDLE);
         return 0;
     }
+    virtual const std::vector<ImageView2D::U>& GetImageViews () const { throw std::runtime_error ("asd"); }
 
     virtual bool SupportsPresenting () const { return false; }
 

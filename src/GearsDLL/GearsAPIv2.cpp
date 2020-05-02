@@ -53,7 +53,7 @@ void SetRenderGraphFromSequence (Sequence::P seq)
     renderGraph = RenderGraph::Create (*env->device, *env->commandPool);
 
     auto sp = ShaderPipeline::Create (*env->device);
-    sp->SetVertexShader (R"(
+    sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -84,7 +84,7 @@ void main() {
 }
     )");
 
-    sp->SetFragmentShader (R"(
+    sp->SetFragmentShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 

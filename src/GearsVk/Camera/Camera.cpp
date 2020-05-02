@@ -15,6 +15,8 @@ public:
 
     virtual void             ProcessMouseInput (Camera& camera, const glm::vec2& delta) const = 0;
     virtual glm::vec3        GetAheadVector (float pitch, float yaw) const                    = 0;
+    virtual float            GetYaw (const glm::vec3& ahead) const                            = 0;
+    virtual float            GetPitch (const glm::vec3& ahead) const                          = 0;
     virtual const glm::vec3& GetUpVector () const                                             = 0;
 };
 
@@ -48,40 +50,17 @@ public:
         return glm::normalize (ahead);
     }
 
-    virtual const glm::vec3& GetUpVector () const override
+    virtual float GetYaw (const glm::vec3& ahead) const override
     {
-        return upVector;
-    }
-};
-
-// TODO
-class GlobalY final : public GlobalUpVectorProvider {
-private:
-    const glm::vec3 upVector;
-
-public:
-    USING_PTR (GlobalY);
-    GlobalY ()
-        : upVector (0, 1, 0)
-    {
+        if (ahead.y == 0) {
+            return 0;
+        }
+        return ahead.x / -ahead.y;
     }
 
-    virtual void ProcessMouseInput (Camera& camera, const glm::vec2& delta) const override
+    virtual float GetPitch (const glm::vec3& ahead) const override
     {
-        camera.yaw += delta.x * camera.sensitivity;
-        camera.pitch += delta.y * camera.sensitivity;
-        camera.pitch = std::clamp (camera.pitch, -89.f, 89.f);
-    }
-
-    virtual glm::vec3 GetAheadVector (float pitch, float yaw) const override
-    {
-        using std::cos, std::sin;
-
-        glm::vec3 ahead;
-        ahead.x = cos (glm::radians (pitch)) * cos (glm::radians (yaw));
-        ahead.z = cos (glm::radians (pitch)) * sin (glm::radians (yaw));
-        ahead.y = sin (glm::radians (pitch));
-        return glm::normalize (ahead);
+        return std::clamp (std::tanh (glm::length (glm::vec2 (ahead.x, ahead.y)) / ahead.z), -89.f, 89.f);
     }
 
     virtual const glm::vec3& GetUpVector () const override
@@ -94,8 +73,6 @@ public:
 const GlobalZ upVector;
 
 
-// TODO calulcate initial pitch and yaw from ahead vector
-
 Camera::Camera (const glm::vec3& position,
                 const glm::vec3& ahead,
                 float            aspect)
@@ -103,8 +80,8 @@ Camera::Camera (const glm::vec3& position,
     , ahead (ahead)
     , frustum (new PerspectiveFrustum (100.f, 0.001f, 80.f, aspect))
     , speed (1.f)
-    , yaw (45.f)
-    , pitch (0)
+    , yaw (upVector.GetYaw (ahead))
+    , pitch (upVector.GetPitch (ahead))
     , sensitivity (0.2f)
     , viewMatrix ([&] () { return glm::lookAt (this->position, this->position + this->ahead, up); })
     , projectionMatrix ([&] () { return frustum->GetMatrix (); })
@@ -132,6 +109,7 @@ void Camera::InvalidateMatrices ()
 void Camera::UpdateVectors ()
 {
     ahead = upVector.GetAheadVector (pitch, yaw);
+
 
     right = glm::normalize (glm::cross (upVector.GetUpVector (), ahead));
     up    = glm::normalize (glm::cross (right, ahead));

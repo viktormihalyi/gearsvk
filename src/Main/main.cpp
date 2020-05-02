@@ -52,7 +52,7 @@ int main (int, char**)
     Swapchain&   swapchain     = *testenv->swapchain;
     DeviceExtra& deviceExtra   = *testenv->deviceExtra;
 
-    Camera        c (glm::vec3 (-1, 0, 0.5f), glm::vec3 (1, 0.2, 0), window->GetAspectRatio ());
+    Camera        c (glm::vec3 (-1, 0, 0.5f), glm::vec3 (1, 0.0f, 0), window->GetAspectRatio ());
     CameraControl cameraControl (c, window->events);
 
     const RG::GraphSettings s (device, graphicsQueue, commandPool, swapchain);
@@ -111,9 +111,9 @@ int main (int, char**)
 
     matcap.CopyTransitionTransfer (ReadImage (PROJECT_ROOT / "src" / "Main" / "matcap.jpg", 4));
 
-    std::vector<uint8_t> brainData = ReadImage (PROJECT_ROOT / "brain.jpg", 1);
+    std::vector<uint8_t> rawBrainData = ReadImage (PROJECT_ROOT / "brain.jpg", 1);
 
-    std::vector<uint8_t> sliceData2 (256 * 256 * 256);
+    std::vector<uint8_t> transformedBrainData (256 * 256 * 256);
 
     auto BrainDataIndexMapping = [] (uint32_t oirignalDataIndex) {
         const uint32_t x = oirignalDataIndex % 4096;
@@ -126,20 +126,18 @@ int main (int, char**)
         return sliceIndex * 256 * 256 + row + column * 256;
     };
 
-
     {
         Utils::DebugTimerLogger l ("transforming volume data");
         Utils::TimerScope       s (l);
         MultithreadedFunction   d ([&] (uint32_t threadCount, uint32_t threadIndex) {
             const uint32_t pixelCount = 4096 * 4096;
             for (uint32_t bidx = pixelCount / threadCount * threadIndex; bidx < pixelCount / threadCount * (threadIndex + 1); ++bidx) {
-                sliceData2[BrainDataIndexMapping (bidx)] = brainData[bidx];
+                transformedBrainData[BrainDataIndexMapping (bidx)] = rawBrainData[bidx];
             }
         });
     }
 
-
-    agy3d.CopyTransitionTransfer (sliceData2);
+    agy3d.CopyTransitionTransfer (transformedBrainData);
 
 
     // ========================= GRAPH CONNECTIONS =========================
@@ -198,7 +196,6 @@ int main (int, char**)
             case '3': currentDisplayMode = DisplayMode::Feladat3; break;
             case '4': currentDisplayMode = DisplayMode::Feladat4; break;
             case '5': currentDisplayMode = DisplayMode::Feladat5; break;
-            case '6': currentDisplayMode = DisplayMode::Feladat6; break;
         }
     };
 

@@ -11,12 +11,12 @@
 namespace RG {
 
 
-class GraphRenderer {
+class Renderer {
 public:
     Event<uint32_t, uint64_t> preSubmitEvent;
     Event<>                   recreateEvent;
 
-    virtual ~GraphRenderer () = default;
+    virtual ~Renderer () = default;
 
     virtual void RenderNextFrame () = 0;
 
@@ -28,7 +28,7 @@ public:
 };
 
 
-class RecreatableGraphRenderer : public GraphRenderer {
+class RecreatableGraphRenderer : public Renderer {
 private:
     RenderGraph& graph;
     Swapchain&   swapchain;
