@@ -31,7 +31,7 @@ static VkResult CreateDebugUtilsMessengerEXT (VkInstance                        
                                               VkDebugUtilsMessengerEXT*                 pDebugMessenger)
 {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr (instance, "vkCreateDebugUtilsMessengerEXT");
-    if (ASSERT (func != nullptr)) {
+    if (ASSERT (func)) {
         return func (instance, pCreateInfo, pAllocator, pDebugMessenger);
     } else {
         return VK_ERROR_EXTENSION_NOT_PRESENT;

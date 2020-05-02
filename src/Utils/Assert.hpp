@@ -10,13 +10,13 @@
 #define ERROR(condition) (::Utils::detail::DebugErrorFunc (condition, "ERROR", #condition, {__FILE__, __LINE__, __func__}))
 #define BREAK(message) (::Utils::detail::DebugErrorFunc (true, "BREAK", message, {__FILE__, __LINE__, __func__}))
 #else
-#define ASSERT(condition) ((bool)condition)
-#define ERROR(condition) ((bool)condition)
+#define ASSERT(condition) ((bool)(condition))
+#define ERROR(condition) ((bool)(condition))
 #define BREAK(message) (message)
 #endif
 
 
-#define ASSERT_THROW(cond)                               \
+#define ASSERT_THROW(cond)                                \
     if (ERROR (!(cond))) {                                \
         throw std::runtime_error ("precondition failed"); \
     }                                                     \
