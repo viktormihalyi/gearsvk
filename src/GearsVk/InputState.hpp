@@ -6,6 +6,9 @@
 
 #include <array>
 
+//#define ASSERT_ON_KEYS ASSERT
+#define ASSERT_ON_KEYS
+
 class KeyboardState {
 private:
     static const uint32_t KEYCOUNT = 1024;
@@ -22,7 +25,7 @@ public:
 
     bool IsPressed (uint32_t index) const
     {
-        if (ASSERT (index <= 1024)) {
+        if (ASSERT_ON_KEYS (index <= 1024)) {
             return pressedKeys[index];
         }
 
@@ -31,7 +34,7 @@ public:
 
     void SetPressed (uint32_t index)
     {
-        if (ASSERT (index <= 1024)) {
+        if (ASSERT_ON_KEYS (index <= 1024)) {
             pressedKeys[index] = true;
         }
     }

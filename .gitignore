@@ -16,6 +16,7 @@ CMakeFiles/
 **/*.exp
 **/*.pyd
 **/*.pyproj
+screenshots/
 
 // from https://github.com/github/gitignore/blob/master/C%2B%2B.gitignore
 # Prerequisites

@@ -37,7 +37,7 @@
 #include "glmlib.hpp"
 
 
-const std::filesystem::path ShadersFolder = PROJECT_ROOT / "src" / "Main" / "shaders";
+const std::filesystem::path ShadersFolder = PROJECT_ROOT / "src" / "VizHF" / "shaders";
 
 
 int main (int, char**)
@@ -109,9 +109,9 @@ int main (int, char**)
 
     graph.CompileResources (s);
 
-    matcap.CopyTransitionTransfer (ReadImage (PROJECT_ROOT / "src" / "Main" / "matcap.jpg", 4));
+    matcap.CopyTransitionTransfer (ReadImage (PROJECT_ROOT / "src" / "VizHF" / "matcap.jpg", 4));
 
-    std::vector<uint8_t> rawBrainData = ReadImage (PROJECT_ROOT / "src" / "Main" / "brain.jpg", 1);
+    std::vector<uint8_t> rawBrainData = ReadImage (PROJECT_ROOT / "src" / "VizHF" / "brain.jpg", 1);
 
     std::vector<uint8_t> transformedBrainData (256 * 256 * 256);
 

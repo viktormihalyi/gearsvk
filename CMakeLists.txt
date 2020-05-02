@@ -3,15 +3,17 @@ cmake_minimum_required (VERSION 3.10)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED True)
 
+message ("cmake binary dir is " ${CMAKE_BINARY_DIR})
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set (PROJECT_NAME GearsVk)
-set (TARGET_NAME ${PROJECT_NAME})
-set (TARGET_TEST_NAME ${PROJECT_NAME}Test)
-set (TARGET_DLL_NAME Gears)
 
-project (GearsVk)
+set (TARGET_VIZHF VizHF)
+set (TARGET_TESTS GearsVkTest)
+set (TARGET_DLL Gears)
+
+project (${PROJECT_NAME})
 
 find_package (Vulkan REQUIRED)
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
@@ -45,7 +47,7 @@ add_subdirectory (external/googletest)
 add_subdirectory (external/glslang)
 add_subdirectory (external/glfw)
 add_subdirectory (external/pybind11)
-# ======================  EXTERNAL LIBS ======================
+# ============================================================
 
 
 # TODO make a dll out of these
@@ -73,19 +75,20 @@ set (COMMON_SOURCE_FILES
     src/GearsVk/ShaderReflection.cpp
     src/GearsVk/VulkanEnvironment.cpp
     src/Utils/Time.cpp
-    src/Utils/Persistent.cpp "src/VulkanWrapper/Utils/ShaderPipeline.cpp")
+    src/Utils/Persistent.cpp
+    src/VulkanWrapper/Utils/ShaderPipeline.cpp)
 
-add_executable (${TARGET_NAME}
+add_executable (${TARGET_VIZHF}
     ${COMMON_SOURCE_FILES}
-    src/Main/main.cpp
+    src/VizHF/main.cpp
 )
 
-add_executable (${TARGET_TEST_NAME}
+add_executable (${TARGET_TESTS}
     ${COMMON_SOURCE_FILES}
     src/Tests/TestMain.cpp
 )
 
-add_library (${TARGET_DLL_NAME} SHARED
+add_library (${TARGET_DLL} SHARED
     ${COMMON_SOURCE_FILES}
 	
     src/GearsDLL/Gears.cpp
@@ -114,15 +117,15 @@ add_library (${TARGET_DLL_NAME} SHARED
     src/GearsDLL/gpu/TextureQueue.cpp
     src/GearsDLL/GearsAPIv2.cpp)
 
-target_compile_definitions (${TARGET_NAME} PRIVATE
+target_compile_definitions (${TARGET_VIZHF} PRIVATE
     PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
 )
 
-target_compile_definitions (${TARGET_TEST_NAME} PRIVATE
+target_compile_definitions (${TARGET_TESTS} PRIVATE
     PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
 )
 
-target_compile_definitions (${TARGET_DLL_NAME} PRIVATE
+target_compile_definitions (${TARGET_DLL} PRIVATE
     PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
 )
 
@@ -160,32 +163,32 @@ set (COMMON_LINKS
 set (COMMON_COMPILER_DEFINES
 )
 
-target_include_directories (${TARGET_NAME} PRIVATE ${EXTRNAL_INCLUDES})
-target_include_directories (${TARGET_TEST_NAME} PRIVATE ${EXTRNAL_INCLUDES})
-target_include_directories (${TARGET_DLL_NAME} PRIVATE ${EXTRNAL_INCLUDES})
+target_include_directories (${TARGET_VIZHF} PRIVATE ${EXTRNAL_INCLUDES})
+target_include_directories (${TARGET_TESTS} PRIVATE ${EXTRNAL_INCLUDES})
+target_include_directories (${TARGET_DLL} PRIVATE ${EXTRNAL_INCLUDES})
 
-target_compile_definitions (${TARGET_NAME} PRIVATE ${COMMON_COMPILER_DEFINES})
-target_compile_definitions (${TARGET_TEST_NAME} PRIVATE ${COMMON_COMPILER_DEFINES})
-target_compile_definitions (${TARGET_DLL_NAME} PRIVATE ${COMMON_COMPILER_DEFINES})
+target_compile_definitions (${TARGET_VIZHF} PRIVATE ${COMMON_COMPILER_DEFINES})
+target_compile_definitions (${TARGET_TESTS} PRIVATE ${COMMON_COMPILER_DEFINES})
+target_compile_definitions (${TARGET_DLL} PRIVATE ${COMMON_COMPILER_DEFINES})
 
-target_include_directories (${TARGET_NAME} PRIVATE ${COMMON_INCLUDES})
-target_include_directories (${TARGET_TEST_NAME} PRIVATE ${COMMON_INCLUDES})
-target_include_directories (${TARGET_DLL_NAME} PRIVATE ${COMMON_INCLUDES}
+target_include_directories (${TARGET_VIZHF} PRIVATE ${COMMON_INCLUDES})
+target_include_directories (${TARGET_TESTS} PRIVATE ${COMMON_INCLUDES})
+target_include_directories (${TARGET_DLL} PRIVATE ${COMMON_INCLUDES}
     src/GearsDLL
 )
 
-target_link_libraries (${TARGET_NAME} ${COMMON_LINKS})
-target_link_libraries (${TARGET_TEST_NAME} ${COMMON_LINKS} gtest)
-target_link_libraries (${TARGET_DLL_NAME} ${COMMON_LINKS})
+target_link_libraries (${TARGET_VIZHF} ${COMMON_LINKS})
+target_link_libraries (${TARGET_TESTS} ${COMMON_LINKS} gtest)
+target_link_libraries (${TARGET_DLL} ${COMMON_LINKS})
 
 if (MSVC)
   set (GEARS_MSVC_FLAGS /W4)
-  target_compile_options(${TARGET_NAME} PRIVATE ${GEARS_MSVC_FLAGS})
-  target_compile_options(${TARGET_TEST_NAME} PRIVATE ${GEARS_MSVC_FLAGS})
-  target_compile_options(${TARGET_DLL_NAME} PRIVATE ${GEARS_MSVC_FLAGS})
+  target_compile_options(${TARGET_VIZHF} PRIVATE ${GEARS_MSVC_FLAGS})
+  target_compile_options(${TARGET_TESTS} PRIVATE ${GEARS_MSVC_FLAGS})
+  target_compile_options(${TARGET_DLL} PRIVATE ${GEARS_MSVC_FLAGS})
 else ()
   set (GEARS_GCC_FLAGS -Wall -Wextra -pedantic)
-  target_compile_options(${TARGET_NAME} PRIVATE ${GEARS_GCC_FLAGS})
-  target_compile_options(${TARGET_TEST_NAME} PRIVATE ${GEARS_GCC_FLAGS})
-  target_compile_options(${TARGET_DLL_NAME} PRIVATE ${GEARS_GCC_FLAGS})
+  target_compile_options(${TARGET_VIZHF} PRIVATE ${GEARS_GCC_FLAGS})
+  target_compile_options(${TARGET_TESTS} PRIVATE ${GEARS_GCC_FLAGS})
+  target_compile_options(${TARGET_DLL} PRIVATE ${GEARS_GCC_FLAGS})
 endif ()
