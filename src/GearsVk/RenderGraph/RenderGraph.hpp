@@ -244,7 +244,7 @@ public:
     {
         compiled = false;
 
-        resources.push_back (std::move (ResourceType::Create (std::forward<ARGS> (args)...)));
+        resources.emplace_back (std::move (ResourceType::Create (std::forward<ARGS> (args)...)));
         return static_cast<ResourceType&> (*resources[resources.size () - 1]);
     }
 
@@ -257,8 +257,8 @@ public:
         return static_cast<OperationType&> (*operations[operations.size () - 1]);
     }
 
-    template<typename ConnectionType, typename T, typename... ARGS>
-    void CreateConnection (Operation& op, uint32_t binding, T& res, ARGS&&... args)
+    template<typename ConnectionType, typename ResourceType, typename... ARGS>
+    void CreateInputConnection (Operation& op, uint32_t binding, ResourceType& res, ARGS&&... args)
     {
         compiled = false;
 
@@ -266,7 +266,7 @@ public:
         op.newInputBindings.push_back (std::move (ConnectionType::Create (binding, res, std::forward<ARGS> (args)...)));
     }
 
-    void AddConnection (const OutputConnection& c);
+    void CreateOutputConnection (Operation& operation, uint32_t binding, ImageResource& resource);
 
     void CompileResources (const GraphSettings& settings);
     void Compile (const GraphSettings& settings);

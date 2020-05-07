@@ -10,8 +10,8 @@
 #include "VulkanWrapper.hpp"
 
 #include "Connections.hpp"
-#include "ForFrameProvider.hpp"
 #include "GraphSettings.hpp"
+#include "InputBindable.hpp"
 #include "UniformBlock.hpp"
 
 
@@ -29,30 +29,30 @@ public:
 };
 
 
-class IImageResource {
-public:
-    USING_PTR_ABSTRACT (IImageResource);
-    virtual ~IImageResource () {}
-    virtual VkImageLayout GetFinalLayout () const     = 0;
-    virtual VkFormat      GetFormat () const          = 0;
-    virtual uint32_t      GetDescriptorCount () const = 0;
-};
-
-class Resource : public Noncopyable, public IImageResource {
+class Resource : public Noncopyable {
 public:
     USING_PTR_ABSTRACT (Resource);
 
     virtual ~Resource () = default;
 
-    virtual void     BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)  = 0;
-    virtual void     BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) = 0;
-    virtual void     Compile (const GraphSettings&)                                 = 0;
-    virtual VkBuffer GetBufferToBind (uint32_t) { return VK_NULL_HANDLE; }
-    virtual VkImage  GetImageToBind (uint32_t) { return VK_NULL_HANDLE; }
+    virtual void Compile (const GraphSettings&) = 0;
 };
 
 
-class OneTimeCompileResource : public Resource {
+class ImageResource : public Resource {
+public:
+    USING_PTR_ABSTRACT (ImageResource);
+    virtual ~ImageResource () = default;
+
+    virtual void          BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)  = 0;
+    virtual void          BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) = 0;
+    virtual VkImageLayout GetFinalLayout () const                                        = 0;
+    virtual VkFormat      GetFormat () const                                             = 0;
+    virtual uint32_t      GetDescriptorCount () const                                    = 0;
+};
+
+
+class OneTimeCompileResource : public ImageResource {
 private:
     bool compiled;
 
@@ -105,7 +105,7 @@ struct GEARSVK_API SingleImageResource final : public SingleResource {
 };
 
 
-class GEARSVK_API WritableImageResource : public Resource, public ImageViewForFrameProvider {
+class GEARSVK_API WritableImageResource : public ImageResource, public InputImageBindable {
 public:
     uint32_t                            arrayLayers;
     std::vector<SingleImageResource::U> images;
@@ -140,7 +140,7 @@ public:
 };
 
 
-class GEARSVK_API ReadOnlyImageResource : public OneTimeCompileResource, public ImageViewForFrameProvider {
+class GEARSVK_API ReadOnlyImageResource : public OneTimeCompileResource, public InputImageBindable {
 public:
     ImageTransferableBase::U image;
     ImageViewBase::U         imageView;
@@ -170,7 +170,7 @@ public:
     virtual void BindRead (uint32_t, VkCommandBuffer) override {}
     virtual void BindWrite (uint32_t, VkCommandBuffer) override {}
 
-    virtual void CompileOnce (const GraphSettings& settings)
+    virtual void CompileOnce (const GraphSettings& settings) override
     {
         sampler = Sampler::Create (settings.GetDevice ());
 
@@ -203,7 +203,7 @@ public:
 };
 
 
-class GEARSVK_API SwapchainImageResource : public Resource, public ImageViewForFrameProvider {
+class GEARSVK_API SwapchainImageResource : public ImageResource, public InputImageBindable {
 public:
     std::vector<ImageView2D::U> imageViews;
     Swapchain&                  swapchain;
@@ -239,7 +239,7 @@ public:
 }; // namespace RG
 
 
-class GEARSVK_API UniformBlockResource : public Resource, public BufferForFrameProvider {
+class GEARSVK_API UniformBlockResource : public Resource, public InputBufferBindable {
 public:
     const uint32_t                  size;
     std::vector<AllocatedBuffer::U> buffers;
@@ -260,9 +260,6 @@ public:
 
     virtual ~UniformBlockResource () {}
 
-    virtual void BindRead (uint32_t, VkCommandBuffer) override {}
-    virtual void BindWrite (uint32_t, VkCommandBuffer) override {}
-
     virtual void Compile (const GraphSettings& graphSettings) override
     {
         for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
@@ -270,10 +267,6 @@ public:
             mappings.push_back (MemoryMapping::Create (graphSettings.GetDevice (), *buffers[buffers.size () - 1]->memory, 0, size));
         }
     }
-
-    virtual VkImageLayout GetFinalLayout () const override { throw std::runtime_error ("not an img"); }
-    virtual VkFormat      GetFormat () const override { throw std::runtime_error ("not an img"); }
-    virtual uint32_t      GetDescriptorCount () const override { return 1; }
 
     MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
 
@@ -288,7 +281,7 @@ public:
 };
 
 
-class GEARSVK_API CPUBufferResource : public Resource, public BufferForFrameProvider {
+class GEARSVK_API CPUBufferResource : public Resource, public InputBufferBindable {
 public:
     const uint32_t                  size;
     std::vector<AllocatedBuffer::U> buffers;
@@ -304,9 +297,6 @@ public:
 
     virtual ~CPUBufferResource () {}
 
-    virtual void BindRead (uint32_t, VkCommandBuffer) override {}
-    virtual void BindWrite (uint32_t, VkCommandBuffer) override {}
-
     virtual void Compile (const GraphSettings& graphSettings) override
     {
         for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
@@ -315,12 +305,7 @@ public:
         }
     }
 
-    virtual VkImageLayout GetFinalLayout () const override { throw std::runtime_error ("not an img"); }
-    virtual VkFormat      GetFormat () const override { throw std::runtime_error ("not an img"); }
-    virtual uint32_t      GetDescriptorCount () const override { return 1; }
-
-    MemoryMapping&   GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
-    virtual VkBuffer GetBufferToBind (uint32_t frameIndex) override { return *buffers[frameIndex]->buffer; }
+    MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
 
     virtual VkBuffer GetBufferForFrame (uint32_t frameIndex) override { return *buffers[frameIndex]->buffer; }
     virtual uint32_t GetBufferSize () override { return size; }
@@ -332,11 +317,10 @@ public:
     Event<WritableImageResource&>  onWritableImage;
     Event<ReadOnlyImageResource&>  onReadOnlyImage;
     Event<SwapchainImageResource&> onSwapchainImage;
-    Event<UniformBlockResource&>   onUniformImage;
+    Event<UniformBlockResource&>   onUniformBlock;
+    Event<CPUBufferResource&>      onCPUBuffer;
 
     void Visit (Resource& res);
-
-    void Visit (Resource::Ref& res) { Visit (res); }
 
     template<typename Resources>
     void VisitAll (const Resources& resources)

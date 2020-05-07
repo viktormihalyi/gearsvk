@@ -206,7 +206,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
     GraphSettings s (device, graphicsQueue, commandPool, 3, 512, 512);
     RenderGraph   graph (device, commandPool);
 
-    Resource& red = graph.AddResource (WritableImageResource::Create ());
+    ImageResource& red = graph.CreateResource<WritableImageResource> ();
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShaderFromString (R"(
@@ -254,7 +254,7 @@ void main () {
     Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),
                                                                                std::move (sp)));
 
-    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, red});
+    graph.CreateOutputConnection (redFillOperation, 0, red);
 
     graph.Compile (s);
 
@@ -298,12 +298,12 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
                                                                                                           }));
 
 
-    graph.CreateConnection<ImageInputBinding> (dummyPass, 0, green);
-    graph.AddConnection (RenderGraph::OutputConnection {dummyPass, 0, presented});
-    graph.AddConnection (RenderGraph::OutputConnection {dummyPass, 1, red});
+    graph.CreateInputConnection<ImageInputBinding> (dummyPass, 0, green);
+    graph.CreateOutputConnection (dummyPass, 0, presented);
+    graph.CreateOutputConnection (dummyPass, 1, red);
 
-    graph.CreateConnection<ImageInputBinding> (secondPass, 0, red);
-    graph.AddConnection (RenderGraph::OutputConnection {secondPass, 0, finalImg});
+    graph.CreateInputConnection<ImageInputBinding> (secondPass, 0, red);
+    graph.CreateOutputConnection (secondPass, 0, finalImg);
 
     graph.Compile (s);
 
@@ -414,14 +414,14 @@ void main () {
 }
     )");
 
-    Resource& presentedCopy = graph.AddResource (WritableImageResource::Create ());
-    Resource& presented     = graph.AddResource (SwapchainImageResource::Create (swapchain));
+    ImageResource& presentedCopy = graph.CreateResource<WritableImageResource> ();
+    ImageResource& presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
 
     Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),
                                                                                std::move (sp)));
 
-    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presented});
-    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 1, presentedCopy});
+    graph.CreateOutputConnection (redFillOperation, 0, presented);
+    graph.CreateOutputConnection (redFillOperation, 1, presentedCopy);
 
     graph.Compile (s);
 
@@ -501,8 +501,8 @@ void main () {
     RenderOperation& redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
                                                                                 std::move (sp));
 
-    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presented});
-    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 1, presentedCopy});
+    graph.CreateOutputConnection (redFillOperation, 0, presented);
+    graph.CreateOutputConnection (redFillOperation, 1, presentedCopy);
 
     graph.Compile (s);
 
@@ -594,9 +594,9 @@ void main () {
 
     Operation& redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb, ib), std::move (sp));
 
-    graph.CreateConnection<UniformInputBinding> (redFillOperation, 0, unif);
-    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presentedCopy});
-    graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 2, presented});
+    graph.CreateInputConnection<UniformInputBinding> (redFillOperation, 0, unif);
+    graph.CreateOutputConnection (redFillOperation, 0, presentedCopy);
+    graph.CreateOutputConnection (redFillOperation, 2, presented);
 
     graph.Compile (s);
 
@@ -699,7 +699,7 @@ public:
 
 public:
     // either way
-    void AddConnection (OneWayConnection::P conn)
+    void CreateOutputConnection (OneWayConnection::P conn)
     {
         connections.push_back (conn);
 
@@ -718,7 +718,7 @@ public:
     USING_PTR (Graph);
 
     template<typename ConnectionType, typename... ARGS>
-    std::shared_ptr<ConnectionType> AddConnection (Node::P& from, Node::P& to, ARGS&&... args)
+    std::shared_ptr<ConnectionType> CreateOutputConnection (Node::P& from, Node::P& to, ARGS&&... args)
     {
         if (ERROR (!to->CanConnect (from))) {
             return nullptr;
@@ -730,8 +730,8 @@ public:
             return nullptr;
         }
 
-        from->AddConnection (asd);
-        to->AddConnection (asd);
+        from->CreateOutputConnection (asd);
+        to->CreateOutputConnection (asd);
         connections.insert (asd);
         return asd;
     }
@@ -823,11 +823,11 @@ TEST_F (HiddenWindowGoogleTestEnvironment, graphtestttt)
 
     Node::P n1 = g.AddNode<OperationNode> ();
 
-    g.AddConnection<InputConnection> (r00, n1, 1);
-    g.AddConnection<InputConnection> (r01, n1, 1);
-    g.AddConnection<InputConnection> (r02, n1, 1);
-    g.AddConnection<InputConnection> (r03, n1, 1);
-    g.AddConnection<InputConnection> (r04, n1, 1);
+    g.CreateOutputConnection<InputConnection> (r00, n1, 1);
+    g.CreateOutputConnection<InputConnection> (r01, n1, 1);
+    g.CreateOutputConnection<InputConnection> (r02, n1, 1);
+    g.CreateOutputConnection<InputConnection> (r03, n1, 1);
+    g.CreateOutputConnection<InputConnection> (r04, n1, 1);
 
     ASSERT_EQ (5, n1->GetInputs ().size ());
 }

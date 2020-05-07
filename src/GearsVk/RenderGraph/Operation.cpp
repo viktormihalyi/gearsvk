@@ -4,7 +4,7 @@
 namespace RG {
 
 
-void Operation::AddOutput (const uint32_t binding, const Resource::Ref& res)
+void Operation::AddOutput (const uint32_t binding, const ImageResource::Ref& res)
 {
     ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
 

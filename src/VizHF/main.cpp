@@ -107,12 +107,12 @@ int main (int, char**)
 
     // ========================= GRAPH CONNECTIONS =========================
 
-    graph.CreateConnection<RG::UniformInputBinding> (brainRenderOp, 0, unif);
-    graph.CreateConnection<RG::UniformInputBinding> (brainRenderOp, 1, cameraUniformRes);
-    graph.CreateConnection<RG::ImageInputBinding> (brainRenderOp, 2, agy3d);
-    graph.CreateConnection<RG::ImageInputBinding> (brainRenderOp, 3, matcap);
+    graph.CreateInputConnection<RG::UniformInputBinding> (brainRenderOp, 0, unif);
+    graph.CreateInputConnection<RG::UniformInputBinding> (brainRenderOp, 1, cameraUniformRes);
+    graph.CreateInputConnection<RG::ImageInputBinding> (brainRenderOp, 2, agy3d);
+    graph.CreateInputConnection<RG::ImageInputBinding> (brainRenderOp, 3, matcap);
 
-    graph.AddConnection (RG::RenderGraph::OutputConnection {brainRenderOp, 0, presented});
+    graph.CreateOutputConnection (brainRenderOp, 0, presented);
 
 
     // ========================= GRAPH RESOURCE SETUP =========================

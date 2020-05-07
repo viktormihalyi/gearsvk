@@ -1,8 +1,8 @@
 #ifndef RENDERGRAPH_CONNECTIONS_HPP
 #define RENDERGRAPH_CONNECTIONS_HPP
 
-#include "ForFrameProvider.hpp"
 #include "Image.hpp"
+#include "InputBindable.hpp"
 #include <vulkan/vulkan.h>
 
 namespace RG {
@@ -57,12 +57,12 @@ class UniformInputBinding : public IInputBinding {
 public:
     USING_PTR (UniformInputBinding);
 
-    BufferForFrameProvider& bufferProvider;
-    const uint32_t          binding;
-    const uint32_t          size;
-    const uint32_t          offset;
+    InputBufferBindable& bufferProvider;
+    const uint32_t       binding;
+    const uint32_t       size;
+    const uint32_t       offset;
 
-    UniformInputBinding (uint32_t binding, BufferForFrameProvider& bufferProvider, uint32_t size, uint32_t offset)
+    UniformInputBinding (uint32_t binding, InputBufferBindable& bufferProvider, uint32_t size, uint32_t offset)
         : bufferProvider (bufferProvider)
         , binding (binding)
         , size (size)
@@ -70,7 +70,7 @@ public:
     {
     }
 
-    UniformInputBinding (uint32_t binding, BufferForFrameProvider& bufferProvider)
+    UniformInputBinding (uint32_t binding, InputBufferBindable& bufferProvider)
         : bufferProvider (bufferProvider)
         , binding (binding)
         , size (bufferProvider.GetBufferSize ())
@@ -98,10 +98,10 @@ class ImageInputBinding : public IInputBinding {
 public:
     USING_PTR (ImageInputBinding);
 
-    ImageViewForFrameProvider& imageViewProvider;
-    const uint32_t             binding;
+    InputImageBindable& imageViewProvider;
+    const uint32_t      binding;
 
-    ImageInputBinding (uint32_t binding, ImageViewForFrameProvider& imageViewProvider)
+    ImageInputBinding (uint32_t binding, InputImageBindable& imageViewProvider)
         : imageViewProvider (imageViewProvider)
         , binding (binding)
     {

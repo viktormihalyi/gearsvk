@@ -92,11 +92,15 @@ void RenderGraph::Compile (const GraphSettings& settings)
             for (auto& op : operations) {
                 CommandBuffer& currentCommandBuffer = newCR->GetCommandBufferToRecord (frameIndex, opIndex);
 
-                for (auto& inputResource : op->inputs) {
-                    inputResource.get ().BindRead (frameIndex, currentCommandBuffer);
+                for (Resource& inputResource : op->inputs) {
+                    if (auto imgRes = dynamic_cast<ImageResource*> (&inputResource)) {
+                        imgRes->BindRead (frameIndex, currentCommandBuffer);
+                    }
                 }
-                for (auto& outputResource : op->outputs) {
-                    outputResource.get ().BindWrite (frameIndex, currentCommandBuffer);
+                for (Resource& outputResource : op->outputs) {
+                    if (auto imgRes = dynamic_cast<ImageResource*> (&outputResource)) {
+                        imgRes->BindWrite (frameIndex, currentCommandBuffer);
+                    }
                 }
 
                 op->Record (frameIndex, currentCommandBuffer);
@@ -125,11 +129,11 @@ void RenderGraph::Compile (const GraphSettings& settings)
 }
 
 
-void RenderGraph::AddConnection (const RenderGraph::OutputConnection& c)
+void RenderGraph::CreateOutputConnection (Operation& operation, uint32_t binding, ImageResource& resource)
 {
     compiled = false;
 
-    c.operation.AddOutput (c.binding, c.resource);
+    operation.AddOutput (binding, resource);
 }
 
 

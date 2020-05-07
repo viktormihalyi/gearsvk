@@ -65,16 +65,16 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 
     GraphSettings s (*env->device, *env->graphicsQueue, *env->commandPool, *env->swapchain);
 
-    Resource& presented = renderGraph->AddResource (SwapchainImageResource::Create (*env->swapchain));
-    Resource& unif      = renderGraph->CreateResource<UniformBlockResource> (8);
-    Resource& cpubuffer = renderGraph->CreateResource<CPUBufferResource> (1024);
+    Resource&          presented = renderGraph->AddResource (SwapchainImageResource::Create (*env->swapchain));
+    Resource&          unif      = renderGraph->CreateResource<UniformBlockResource> (8);
+    CPUBufferResource& cpubuffer = renderGraph->CreateResource<CPUBufferResource> (1024);
 
     Operation& redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), seqpip));
 
     renderGraph->CompileResources (s);
 
-    renderGraph->AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presented});
-    renderGraph->AddConnection (RenderGraph::UniformConnection {redFillOperation, 0, cpubuffer});
+    renderGraph->CreateOutputConnection (redFillOperation, 0, presented);
+    renderGraph->CreateInputConnection<UniformInputBinding> (redFillOperation, 0, cpubuffer);
 
     renderGraph->Compile (s);
 }

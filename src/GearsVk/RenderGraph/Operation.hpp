@@ -29,7 +29,7 @@ struct GEARSVK_API Operation : public Noncopyable {
     virtual void Compile (const GraphSettings&)                              = 0;
     virtual void Record (uint32_t frameIndex, VkCommandBuffer commandBuffer) = 0;
 
-    void AddOutput (uint32_t binding, const Resource::Ref& res);
+    void AddOutput (uint32_t binding, const ImageResource::Ref& res);
 
     std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const;
     std::vector<VkAttachmentReference>   GetAttachmentReferences () const;
