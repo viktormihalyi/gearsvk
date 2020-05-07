@@ -131,10 +131,12 @@ public:
         }
     }
 
+    // overriding ImageResource
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; }
     virtual VkFormat      GetFormat () const override { return SingleImageResource::FormatRGBA; }
     virtual uint32_t      GetDescriptorCount () const override { return arrayLayers; }
 
+    // overriding InputImageBindable
     virtual VkImageView GetImageViewForFrame (uint32_t frameIndex) override { return *images[frameIndex]->imageViews[0]; }
     virtual VkSampler   GetSampler () override { return *images[0]->sampler; }
 };
@@ -167,9 +169,7 @@ public:
 
     virtual ~ReadOnlyImageResource () {}
 
-    virtual void BindRead (uint32_t, VkCommandBuffer) override {}
-    virtual void BindWrite (uint32_t, VkCommandBuffer) override {}
-
+    // overriding OneTimeCompileResource
     virtual void CompileOnce (const GraphSettings& settings) override
     {
         sampler = Sampler::Create (settings.GetDevice ());
@@ -189,17 +189,21 @@ public:
         image->imageGPU->image->CmdPipelineBarrier (s, ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
+    // overriding ImageResource
+    virtual void          BindRead (uint32_t, VkCommandBuffer) override {}
+    virtual void          BindWrite (uint32_t, VkCommandBuffer) override {}
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; }
     virtual VkFormat      GetFormat () const override { return format; }
     virtual uint32_t      GetDescriptorCount () const override { return 1; }
+
+    // overriding InputImageBindable
+    virtual VkImageView GetImageViewForFrame (uint32_t) override { return *imageView; }
+    virtual VkSampler   GetSampler () override { return *sampler; }
 
     void CopyTransitionTransfer (const std::vector<uint8_t>& pixelData)
     {
         image->CopyTransitionTransfer (VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, pixelData.data (), pixelData.size (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
-
-    virtual VkImageView GetImageViewForFrame (uint32_t) override { return *imageView; }
-    virtual VkSampler   GetSampler () override { return *sampler; }
 };
 
 
@@ -215,11 +219,9 @@ public:
     {
     }
 
-    virtual ~SwapchainImageResource () {}
+    virtual ~SwapchainImageResource () = default;
 
-    virtual void BindRead (uint32_t, VkCommandBuffer) override {}
-    virtual void BindWrite (uint32_t, VkCommandBuffer) override {}
-
+    // overriding Resource
     virtual void Compile (const GraphSettings& graphSettings) override
     {
         std::vector<VkImage> swapChainImages = swapchain.GetImages ();
@@ -230,54 +232,16 @@ public:
         }
     }
 
+    // overriding ImageResource
+    virtual void          BindRead (uint32_t, VkCommandBuffer) override {}
+    virtual void          BindWrite (uint32_t, VkCommandBuffer) override {}
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; }
     virtual VkFormat      GetFormat () const override { return swapchain.GetImageFormat (); }
     virtual uint32_t      GetDescriptorCount () const override { return 1; }
 
+    // overriding InputImageBindable
     virtual VkImageView GetImageViewForFrame (uint32_t frameIndex) override { return *imageViews[frameIndex]; }
     virtual VkSampler   GetSampler () override { return VK_NULL_HANDLE; }
-}; // namespace RG
-
-
-class GEARSVK_API UniformBlockResource : public Resource, public InputBufferBindable {
-public:
-    const uint32_t                  size;
-    std::vector<AllocatedBuffer::U> buffers;
-    std::vector<MemoryMapping::U>   mappings;
-
-public:
-    USING_PTR (UniformBlockResource);
-
-    UniformBlockResource (uint32_t size)
-        : size (size)
-    {
-    }
-
-    UniformBlockResource (const ShaderStruct& structType)
-        : size (structType.GetFullSize ())
-    {
-    }
-
-    virtual ~UniformBlockResource () {}
-
-    virtual void Compile (const GraphSettings& graphSettings) override
-    {
-        for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
-            buffers.push_back (AllocatedBuffer::Create (graphSettings.GetDevice (), UniformBuffer::Create (graphSettings.GetDevice (), size), DeviceMemory::CPU));
-            mappings.push_back (MemoryMapping::Create (graphSettings.GetDevice (), *buffers[buffers.size () - 1]->memory, 0, size));
-        }
-    }
-
-    MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
-
-    void Set (uint32_t frameIndex, UniformBlock& uniformBlock)
-    {
-        ASSERT (uniformBlock.GetSize () == size);
-        GetMapping (frameIndex).Copy (uniformBlock.GetData (), uniformBlock.GetSize (), 0);
-    }
-
-    virtual VkBuffer GetBufferForFrame (uint32_t frameIndex) override { return *buffers[frameIndex]->buffer; }
-    virtual uint32_t GetBufferSize () override { return size; }
 };
 
 
@@ -295,8 +259,9 @@ public:
     {
     }
 
-    virtual ~CPUBufferResource () {}
+    virtual ~CPUBufferResource () = default;
 
+    // overriding Resource
     virtual void Compile (const GraphSettings& graphSettings) override
     {
         for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
@@ -305,10 +270,35 @@ public:
         }
     }
 
-    MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
-
+    // overriding InputBufferBindable
     virtual VkBuffer GetBufferForFrame (uint32_t frameIndex) override { return *buffers[frameIndex]->buffer; }
     virtual uint32_t GetBufferSize () override { return size; }
+
+    MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
+};
+
+
+class GEARSVK_API UniformBlockResource : public CPUBufferResource {
+public:
+    USING_PTR (UniformBlockResource);
+
+    UniformBlockResource (uint32_t size)
+        : CPUBufferResource (size)
+    {
+    }
+
+    UniformBlockResource (const ShaderStruct& structType)
+        : CPUBufferResource (structType.GetFullSize ())
+    {
+    }
+
+    virtual ~UniformBlockResource () = default;
+
+    void Set (uint32_t frameIndex, UniformBlock& uniformBlock)
+    {
+        ASSERT (uniformBlock.GetSize () == size);
+        GetMapping (frameIndex).Copy (uniformBlock.GetData (), uniformBlock.GetSize (), 0);
+    }
 };
 
 
