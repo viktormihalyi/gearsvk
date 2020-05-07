@@ -18,6 +18,7 @@
 #include <memory>
 #include <utility>
 
+
 namespace RG {
 
 class CompileResultProvider {
@@ -148,12 +149,6 @@ public:
 
 class GEARSVK_API RenderGraph final : public Noncopyable {
 public:
-    struct InputConnection final {
-        Operation& operation;
-        uint32_t   binding;
-        Resource&  resource;
-    };
-
     struct OutputConnection final {
         Operation& operation;
         uint32_t   binding;
@@ -262,7 +257,15 @@ public:
         return static_cast<OperationType&> (*operations[operations.size () - 1]);
     }
 
-    void AddConnection (const InputConnection& c);
+    template<typename ConnectionType, typename T, typename... ARGS>
+    void CreateConnection (Operation& op, uint32_t binding, T& res, ARGS&&... args)
+    {
+        compiled = false;
+
+        op.inputs.push_back (res);
+        op.newInputBindings.push_back (std::move (ConnectionType::Create (binding, res, std::forward<ARGS> (args)...)));
+    }
+
     void AddConnection (const OutputConnection& c);
 
     void CompileResources (const GraphSettings& settings);

@@ -6,10 +6,10 @@ layout (binding = 1) uniform P {
 	vec2 value;
 } patternSizeOnRetina;
 
-out vec2 pos;
+layout (location = 0) out vec2 pos;
 
 void main(void) {
-   gl_Position = texelFetch(polymaskVertices, ivec2(gl_VertexIndex, 0));
-   pos = gl_Position * patternSizeOnRetina.value * 0.5;
+   gl_Position = vec4 (texelFetch (polymaskVertices, ivec2 (int (gl_VertexIndex), 0), 0));
+   pos = gl_Position.xy * patternSizeOnRetina.value * 0.5;
 }
 

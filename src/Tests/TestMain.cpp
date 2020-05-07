@@ -254,8 +254,6 @@ void main () {
     Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),
                                                                                std::move (sp)));
 
-    graph.CompileResources (s);
-
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, red});
 
     graph.Compile (s);
@@ -282,30 +280,29 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     GraphSettings s (device, graphicsQueue, commandPool, 4, 512, 512);
     RenderGraph   graph (device, commandPool);
 
-    Resource::Ref presented = graph.CreateResource<WritableImageResource> ();
-    Resource::Ref green     = graph.CreateResource<WritableImageResource> ();
-    Resource::Ref red       = graph.CreateResource<WritableImageResource> ();
-    Resource::Ref finalImg  = graph.CreateResource<WritableImageResource> ();
+    WritableImageResource& presented = graph.CreateResource<WritableImageResource> ();
+    WritableImageResource& green     = graph.CreateResource<WritableImageResource> ();
+    WritableImageResource& red       = graph.CreateResource<WritableImageResource> ();
+    WritableImageResource& finalImg  = graph.CreateResource<WritableImageResource> ();
 
-    Operation::Ref dummyPass = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
-                                                                            ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                                                      ShadersFolder / "test.vert",
-                                                                                                                      ShadersFolder / "test.frag",
-                                                                                                                  })));
+    Operation& dummyPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
+                                                                   ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
+                                                                                                             ShadersFolder / "test.vert",
+                                                                                                             ShadersFolder / "test.frag",
+                                                                                                         }));
 
-    Operation::Ref secondPass = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
-                                                                             ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                                                       ShadersFolder / "fullscreenquad.vert",
-                                                                                                                       ShadersFolder / "fullscreenquad.frag",
-                                                                                                                   })));
+    Operation& secondPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
+                                                                    ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
+                                                                                                              ShadersFolder / "fullscreenquad.vert",
+                                                                                                              ShadersFolder / "fullscreenquad.frag",
+                                                                                                          }));
 
-    graph.CompileResources (s);
 
-    graph.AddConnection (RenderGraph::InputConnection {dummyPass, 0, green});
+    graph.CreateConnection<ImageInputBinding> (dummyPass, 0, green);
     graph.AddConnection (RenderGraph::OutputConnection {dummyPass, 0, presented});
     graph.AddConnection (RenderGraph::OutputConnection {dummyPass, 1, red});
 
-    graph.AddConnection (RenderGraph::InputConnection {secondPass, 0, red});
+    graph.CreateConnection<ImageInputBinding> (secondPass, 0, red);
     graph.AddConnection (RenderGraph::OutputConnection {secondPass, 0, finalImg});
 
     graph.Compile (s);
@@ -313,7 +310,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     Utils::DebugTimerLogger obs;
     {
         Utils::TimerScope _ (obs);
-        for (uint32_t i = 0; i < 4; ++i) {
+        for (uint32_t i = 0; i < 1; ++i) {
             graph.Submit (i);
         }
     }
@@ -321,23 +318,23 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<WritableImageResource> (green).images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<WritableImageResource> (presented).images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<WritableImageResource> (red).images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, graphicsQueue, commandPool, *DynamicRefCast<WritableImageResource> (finalImg).images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, graphicsQueue, commandPool, *green.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, graphicsQueue, commandPool, *presented.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, graphicsQueue, commandPool, *red.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, graphicsQueue, commandPool, *finalImg.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
     std::thread saveThreads[] = {
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (green.get ()).images[0]->image.image, ReferenceImagesFolder / "green.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (presented.get ()).images[0]->image.image, ReferenceImagesFolder / "presented.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (red.get ()).images[0]->image.image, ReferenceImagesFolder / "red.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (finalImg.get ()).images[0]->image.image, ReferenceImagesFolder / "final.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *green.images[0]->image.image, ReferenceImagesFolder / "green.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *presented.images[0]->image.image, ReferenceImagesFolder / "presented.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *red.images[0]->image.image, ReferenceImagesFolder / "red.png"),
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *finalImg.images[0]->image.image, ReferenceImagesFolder / "final.png"),
     };
     for (auto& t : saveThreads) {
         t.join ();
         std::cout << "saved" << std::endl;
     }
 
-    ASSERT_TRUE (AreImagesEqual (device, graphicsQueue, commandPool, *dynamic_cast<WritableImageResource&> (presented.get ()).images[0]->image.image, ReferenceImagesFolder / "black.png"));
+    ASSERT_TRUE (AreImagesEqual (device, graphicsQueue, commandPool, *presented.images[0]->image.image, ReferenceImagesFolder / "black.png"));
 }
 
 
@@ -423,8 +420,6 @@ void main () {
     Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),
                                                                                std::move (sp)));
 
-    graph.CompileResources (s);
-
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presented});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 1, presentedCopy});
 
@@ -505,8 +500,6 @@ void main () {
 
     RenderOperation& redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
                                                                                 std::move (sp));
-
-    graph.CompileResources (s);
 
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presented});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 1, presentedCopy});
@@ -601,9 +594,7 @@ void main () {
 
     Operation& redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb, ib), std::move (sp));
 
-    graph.CompileResources (s);
-
-    graph.AddConnection (RenderGraph::InputConnection {redFillOperation, 0, unif});
+    graph.CreateConnection<UniformInputBinding> (redFillOperation, 0, unif);
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presentedCopy});
     graph.AddConnection (RenderGraph::OutputConnection {redFillOperation, 2, presented});
 

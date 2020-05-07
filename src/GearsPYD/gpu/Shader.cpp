@@ -5,12 +5,50 @@
 #include "Shader.hpp"
 #include "stdafx.h"
 
+#include "GearsAPIv2.hpp"
+
+constexpr bool LogShaderCreation = false;
+
+
+static bool Contains (const std::string& str, const std::string& substring)
+{
+    return str.find (substring) != std::string::npos;
+}
+
+
+static void LogVertexShader (std::string source)
+{
+    if constexpr (LogShaderCreation) {
+        TryCompile (ShaderModule::ShaderKind::Vertex, source);
+    }
+}
+
+static void LogGeometryShader (std::string source)
+{
+    if constexpr (LogShaderCreation) {
+        TryCompile (ShaderModule::ShaderKind::Geometry, source);
+    }
+}
+
+static void LogFragmentShader (std::string source)
+{
+    if constexpr (LogShaderCreation) {
+        TryCompile (ShaderModule::ShaderKind::Fragment, source);
+    }
+}
+
+
 Shader::Shader ()
 {
 }
 
+
 Shader::Shader (std::string vertexShaderSource, std::string fragmentShaderSource, bool dummy)
 {
+    std::cout << "Shader::Shader (std::string vertexShaderSource, std::string fragmentShaderSource, bool dummy)" << std::endl;
+    LogVertexShader (vertexShaderSource);
+    LogFragmentShader (vertexShaderSource);
+
     info.vertex.source   = vertexShaderSource;
     info.fragment.source = fragmentShaderSource;
 
@@ -43,6 +81,11 @@ Shader::Shader (std::string vertexShaderSource, std::string fragmentShaderSource
 
 Shader::Shader (std::string vertexShaderSource, std::string geometryShaderSource, std::string fragmentShaderSource, GLint geomShaderOutputType)
 {
+    std::cout << "Shader::Shader (std::string vertexShaderSource, std::string geometryShaderSource, std::string fragmentShaderSource, GLint geomShaderOutputType)" << std::endl;
+    LogVertexShader (vertexShaderSource);
+    LogGeometryShader (geometryShaderSource);
+    LogFragmentShader (vertexShaderSource);
+
     info.vertex.source   = vertexShaderSource;
     info.geometry.source = geometryShaderSource;
     info.fragment.source = fragmentShaderSource;
@@ -97,6 +140,17 @@ Shader::Shader (std::string vertexShaderSource, std::string geometryShaderSource
 
 Shader::Shader (const char* vertexShaderPath, const char* fragmentShaderPath, const char* geometryShaderPath, GLint geomShaderOutputType)
 {
+    std::cout << "Shader::Shader (const char* vertexShaderPath, const char* fragmentShaderPath, const char* geometryShaderPath, GLint geomShaderOutputType)" << std::endl;
+    if (vertexShaderPath) {
+        LogVertexShader (*Utils::ReadTextFile (vertexShaderPath));
+    }
+    if (fragmentShaderPath) {
+        LogGeometryShader (*Utils::ReadTextFile (fragmentShaderPath));
+    }
+    if (geometryShaderPath) {
+        LogFragmentShader (*Utils::ReadTextFile (geometryShaderPath));
+    }
+
     info.vertex.path   = vertexShaderPath ? vertexShaderPath : "";
     info.geometry.path = geometryShaderPath ? geometryShaderPath : "";
     info.fragment.path = fragmentShaderPath ? fragmentShaderPath : "";
@@ -115,6 +169,10 @@ Shader::Shader (const char* vertexShaderPath, const char* fragmentShaderPath, co
 
 Shader::Shader (std::string vertexShaderPath, std::string fragmentShaderSource)
 {
+    std::cout << "Shader::Shader (std::string vertexShaderPath, std::string fragmentShaderSource)" << std::endl;
+    LogVertexShader (*Utils::ReadTextFile (vertexShaderPath));
+    LogFragmentShader (fragmentShaderSource);
+
     info.vertex.path     = vertexShaderPath;
     info.fragment.source = fragmentShaderSource;
     // throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());

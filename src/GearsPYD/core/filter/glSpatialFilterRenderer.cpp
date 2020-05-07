@@ -9,7 +9,7 @@ GLSpatialFilterRenderer::GLSpatialFilterRenderer (std::shared_ptr<SequenceRender
     , ifft_ba (width, height, 0, true, true)
 {
     convolutionShader = shaderManager->loadShader (R"GLSLC0D3(
-			#version 150 compatibility
+			#version 450
 			#extension GL_ARB_texture_rectangle : enable
 			precision highp float;
 			uniform sampler2DRect kernel;
@@ -36,7 +36,7 @@ GLSpatialFilterRenderer::GLSpatialFilterRenderer (std::shared_ptr<SequenceRender
 		)GLSLC0D3");
 
     copyShader = shaderManager->loadShader (R"GLSLC0D3(
-			#version 150 compatibility
+			#version 450
 	    	#extension GL_ARB_texture_rectangle : enable
 			precision highp float;
 			uniform ivec2 offset;

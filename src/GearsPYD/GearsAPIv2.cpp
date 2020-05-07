@@ -50,68 +50,31 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 {
     ASSERT_THROW (env != nullptr);
 
+    Stimulus::CP stim      = seq->getStimulusAtFrame (60);
+    auto         passes    = stim->getPasses ();
+    auto         firstPass = passes[0];
+    auto         vert      = firstPass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
+    auto         frag      = firstPass->getStimulusGeneratorShaderSource ();
+
+    auto seqpip = ShaderPipeline::CreateShared (*env->device);
+    seqpip->SetVertexShaderFromString (vert);
+    seqpip->SetFragmentShaderFromString (frag);
+
     renderGraph = RenderGraph::Create (*env->device, *env->commandPool);
 
-    auto sp = ShaderPipeline::Create (*env->device);
-    sp->SetVertexShaderFromString (R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout (location = 0) out vec2 textureCoords;
-
-vec2 uvs[6] = vec2[] (
-    vec2 (0.f, 0.f),
-    vec2 (0.f, 1.f),
-    vec2 (1.f, 1.f),
-    vec2 (1.f, 1.f),
-    vec2 (0.f, 0.f),
-    vec2 (1.f, 0.f)
-);
-
-vec2 positions[6] = vec2[] (
-    vec2 (-1.f, -1.f),
-    vec2 (-1.f, +1.f),
-    vec2 (+1.f, +1.f),
-    vec2 (+1.f, +1.f),
-    vec2 (-1.f, -1.f),
-    vec2 (+1.f, -1.f)
-);
-
-
-void main() {
-    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
-    textureCoords = uvs[gl_VertexIndex];
-}
-    )");
-
-    sp->SetFragmentShaderFromString (R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout (location = 0) in vec2 uv;
-
-layout (location = 0) out vec4 outColor;
-layout (location = 1) out vec4 outCopy;
-
-void main () {
-    vec4 result = vec4 (uv, 0, 1);
-    outColor = result;
-    outCopy = result;
-}
-    )");
 
     GraphSettings s (*env->device, *env->graphicsQueue, *env->commandPool, *env->swapchain);
 
-    Resource& presentedCopy = renderGraph->AddResource (WritableImageResource::Create ());
-    Resource& presented     = renderGraph->AddResource (SwapchainImageResource::Create (*env->swapchain));
+    Resource& presented = renderGraph->AddResource (SwapchainImageResource::Create (*env->swapchain));
+    Resource& unif      = renderGraph->CreateResource<UniformBlockResource> (8);
+    Resource& cpubuffer = renderGraph->CreateResource<CPUBufferResource> (1024);
 
-    Operation& redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),
-                                                                                      std::move (sp)));
+    Operation& redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), seqpip));
 
     renderGraph->CompileResources (s);
 
     renderGraph->AddConnection (RenderGraph::OutputConnection {redFillOperation, 0, presented});
-    renderGraph->AddConnection (RenderGraph::OutputConnection {redFillOperation, 1, presentedCopy});
+    renderGraph->AddConnection (RenderGraph::UniformConnection {redFillOperation, 0, cpubuffer});
 
     renderGraph->Compile (s);
 }
@@ -149,5 +112,16 @@ void StartRendering (const std::function<bool ()>& doRender)
 
         renderGraph->CompileResources (s);
         renderGraph->Compile (s);
+    }
+}
+
+void TryCompile (ShaderModule::ShaderKind shaderKind, const std::string& source)
+{
+    try {
+        ShaderModule::CreateFromGLSLString (*env->device, shaderKind, source);
+        std::cout << "compile succeeded" << std::endl;
+    } catch (const ShaderCompileException&) {
+        std::cout << "compile failed, source code: " << std::endl;
+        std::cout << source << std::endl;
     }
 }

@@ -1,6 +1,3 @@
-print("press enter to start...")
-input()
-
 import os
 print(os.getcwd())
 os.chdir("C:/Dev/gearsvk/src/UserInterface")
@@ -14,6 +11,9 @@ import AppData
 from MediaWindow import MediaWindow
 import SequenceLoader
 import time
+
+print("press enter to start...")
+input()
 
 print("initializing appdata...")
 AppData.initConfigParams()

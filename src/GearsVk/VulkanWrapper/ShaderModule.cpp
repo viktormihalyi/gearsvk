@@ -164,16 +164,20 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
     const uint32_t uniformCount = ref.getNumUniforms ();
     for (uint32_t uniformIndex = 0; uniformIndex < uniformCount; ++uniformIndex) {
         const TObjectReflection& uniform = ref.getUniform (uniformIndex);
-        if (uniform.getType ())
+        if (uniform.getType ()) {
+            std::cout << uniform.getType ()->getBasicTypeString () << std::endl;
             std::cout << uniform.getType ()->getCompleteString () << std::endl;
+        }
         uniform.dump ();
     }
     std::cout << "uniform blocks" << std::endl;
     const uint32_t uniformBlockCount = ref.getNumUniformBlocks ();
     for (uint32_t uniformIndex = 0; uniformIndex < uniformCount; ++uniformIndex) {
         const TObjectReflection& uniform = ref.getUniformBlock (uniformIndex);
-        if (uniform.getType ())
+        if (uniform.getType ()) {
+            std::cout << uniform.getType ()->getBasicTypeString () << std::endl;
             std::cout << uniform.getType ()->getCompleteString () << std::endl;
+        }
         uniform.dump ();
     }
 #endif

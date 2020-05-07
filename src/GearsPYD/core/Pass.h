@@ -217,37 +217,7 @@ public:
 
     std::string getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode mode) const;
     std::string getStimulusGeneratorGeometryShaderSource (Pass::RasterizationMode mode) const;
-
-    std::string getStimulusGeneratorShaderSource () const
-    {
-        std::string s ("#version 150\n");
-        s += "precision highp float;\n";
-        s += "uniform vec2 patternSizeOnRetina;\n";
-        s += "uniform int swizzleForFft;\n";
-        s += "uniform int frame;\n";
-        s += "uniform float time;\n";
-
-        for (auto& svar : shaderColors) {
-            s += "uniform vec3 ";
-            s += svar.first;
-            s += ";\n";
-        }
-        for (auto& svar : shaderVectors) {
-            s += "uniform vec2 ";
-            s += svar.first;
-            s += ";\n";
-        }
-        for (auto& svar : shaderVariables) {
-            s += "uniform float ";
-            s += svar.first;
-            s += ";\n";
-        }
-        for (std::string sfunc : shaderFunctionOrder) {
-            s += shaderFunctions.find (sfunc)->second;
-            s += "\n";
-        }
-        return s + stimulusGeneratorShaderSource;
-    }
+    std::string getStimulusGeneratorShaderSource () const;
 
     uint getStartingFrame () const
     {

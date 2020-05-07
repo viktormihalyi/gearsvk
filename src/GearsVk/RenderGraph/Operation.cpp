@@ -3,22 +3,13 @@
 
 namespace RG {
 
-void Operation::AddInput (const uint32_t binding, const Resource::Ref& res)
-{
-    const InputBinding newBinding (binding, res.get ().GetDescriptorType (), res.get ().GetDescriptorCount ());
-
-    ASSERT (std::find (inputBindings.begin (), inputBindings.end (), newBinding) == inputBindings.end ());
-
-    inputs.push_back (res);
-    inputBindings.push_back (newBinding);
-}
-
 
 void Operation::AddOutput (const uint32_t binding, const Resource::Ref& res)
 {
     ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
 
     outputs.push_back (res);
+
     for (uint32_t bindingIndex = binding; bindingIndex < binding + res.get ().GetDescriptorCount (); ++bindingIndex) {
         outputBindings.push_back (OutputBinding (bindingIndex, res.get ().GetFormat (), res.get ().GetFinalLayout ()));
     }
@@ -77,21 +68,22 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
     compileResult.Clear ();
 
     std::vector<VkDescriptorSetLayoutBinding> layout;
-    for (auto& inputBinding : inputBindings) {
-        layout.push_back (inputBinding);
+    for (auto& ii : newInputBindings) {
+        layout.push_back (ii->ToDescriptorSetLayoutBinding ());
     }
 
     compileResult.descriptorSetLayout = DescriptorSetLayout::Create (graphSettings.GetDevice (), layout);
 
-    if (!inputBindings.empty ()) {
-        compileResult.descriptorPool = DescriptorPool::Create (graphSettings.GetDevice (), inputBindings.size () * graphSettings.framesInFlight, inputBindings.size () * graphSettings.framesInFlight, graphSettings.framesInFlight);
+    const uint32_t s = newInputBindings.size () * graphSettings.framesInFlight;
+
+    if (s > 0) {
+        compileResult.descriptorPool = DescriptorPool::Create (graphSettings.GetDevice (), s, s, graphSettings.framesInFlight);
 
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
             DescriptorSet::U descriptorSet = DescriptorSet::Create (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
-            for (uint32_t i = 0; i < inputs.size (); ++i) {
-                Resource& r = inputs[i];
-                r.WriteToDescriptorSet (frameIndex, *descriptorSet, inputBindings[i].binding);
+            for (auto& ii : newInputBindings) {
+                ii->WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);
             }
 
             compileResult.descriptorSets.push_back (std::move (descriptorSet));

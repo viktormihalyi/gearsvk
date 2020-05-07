@@ -75,6 +75,8 @@ void RenderGraph::Compile (const GraphSettings& settings)
     vkQueueWaitIdle (settings.queue);
 
     try {
+        CompileResources (settings);
+
         for (auto& op : operations) {
             op->Compile (settings);
         }
@@ -120,14 +122,6 @@ void RenderGraph::Compile (const GraphSettings& settings)
         std::cout << ex.what () << std::endl;
         compiled = false;
     }
-}
-
-
-void RenderGraph::AddConnection (const RenderGraph::InputConnection& c)
-{
-    compiled = false;
-
-    c.operation.AddInput (c.binding, c.resource);
 }
 
 

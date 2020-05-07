@@ -19,17 +19,6 @@ SingleImageResource::SingleImageResource (const GraphSettings& graphSettings, ui
 }
 
 
-void SingleImageResource::WriteToDescriptorSet (const DescriptorSet& descriptorSet, uint32_t binding) const
-{
-    for (auto& imgView : imageViews) {
-        descriptorSet.WriteOneImageInfo (
-            binding,
-            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            {*sampler, *imgView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL});
-    }
-}
-
-
 void SingleImageResource::BindRead (VkCommandBuffer commandBuffer)
 {
     layoutRead                   = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

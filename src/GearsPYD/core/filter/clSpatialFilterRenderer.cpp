@@ -11,7 +11,7 @@ CLSpatialFilterRenderer::CLSpatialFilterRenderer (std::shared_ptr<SequenceRender
 {
     this->channelMode = channelMode;
     copyShader        = shaderManager->loadShader (R"GLSLC0D3(
-			#version 150 compatibility
+			#version 450
 	    	#extension GL_ARB_texture_rectangle : enable
 			precision highp float;
 			uniform ivec2 offset;

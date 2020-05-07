@@ -1,14 +1,16 @@
 #version 450
 
 layout (location = 0) in vec2 position;
-//in vec2 tex;
-//out vec4 pos;
-//out vec2 fTexCoord;
+layout (location = 1) in vec2 texCoord;
+
+layout (std140, binding = 0) uniform _ {
+    mat4 MVP;
+} MVP;
+
+layout (location = 0) out vec2 texCoord_o;
 
 void main(void) {
-   gl_Position = gl_ModelViewMatrix * vec4(position, 0.5, 1);
-   gl_TexCoord[0] = gl_MultiTexCoord0; 
-   //gl_TexCoord[0] = vec4(tex, 0, 0);
-   gl_FrontColor = gl_Color;
+   gl_Position = MVP.MVP * vec4 (position, 0.5, 1);
+   texCoord_o = texCoord;
 }
 

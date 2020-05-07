@@ -161,7 +161,7 @@ Sequence::P setSequence (Sequence::P sequence)
     textureManager->clear ();
     shaderManager->clear ();
     kernelManager->clear ();
-    //sequenceRenderer->apply (::sequence, shaderManager, textureManager, kernelManager);
+    sequenceRenderer->apply (::sequence, shaderManager, textureManager, kernelManager);
 
     SetRenderGraphFromSequence (sequence);
 

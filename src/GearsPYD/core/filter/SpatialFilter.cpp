@@ -11,6 +11,7 @@ SpatialFilter::SpatialFilter ()
 {
     kernelFuncSource =
         R"GLSLC0D3(
+        	#version 450
 			in vec2 pos;
 			out vec4 outcolor;
 			uniform vec2 texelSize_um;
@@ -39,17 +40,19 @@ SpatialFilter::SpatialFilter ()
     setShaderColor ("plotDarkColor", -2, 0, 0, 0);
     setShaderColor ("plotBrightColor", -2, 1, 1, 1);
     kernelProfileVertexSource =
+        "	#version 450\n"
         "	uniform vec2 patternSizeOnRetina;		 \n"
         "	void main(void) {		 \n"
         "		float x = float(gl_VertexID)/256.0 - 1.0;			\n"
         "		gl_Position	= vec4(x, (kernel(vec2(x*patternSizeOnRetina.x*0.5, 0)).r - plotMin)/(plotMax-plotMin)*2.0-1, 0.5, 1.0);		\n"
         "	}																										\n";
     kernelProfileFragmentSource =
+        "	#version 450\n"
         "	void main() {																							\n"
         "		gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);															\n"
         "	}																										\n";
     spatialDomainConvolutionShaderSource =
-        "	#version 150 compatibility																		  \n"
+        "	#version 450\n"
         "	#extension GL_ARB_texture_rectangle : enable            \n"
         "	precision highp float;																  \n"
         "	uniform sampler2D original;																\n"

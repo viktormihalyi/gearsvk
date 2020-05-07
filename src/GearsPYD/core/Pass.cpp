@@ -11,6 +11,12 @@
 #include <limits>
 #include <sstream>
 
+#include "Utils.hpp"
+
+
+const std::filesystem::path UIShadersDirectory (PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Shaders");
+
+
 Pass::Pass ()
     : name ("N/A")
     , brief ("<no description>")
@@ -27,6 +33,7 @@ Pass::Pass ()
 
     timelineVertexShaderSource =
         R"GLSLC0D3(
+        #version 450
 		uniform float frameInterval;
 		uniform int startFrame;
 		uniform int stride;
@@ -39,6 +46,7 @@ Pass::Pass ()
 		)GLSLC0D3";
     timelineFragmentShaderSource =
         R"GLSLC0D3(
+        #version 450
 		void main() {								
 			gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 		}											
@@ -178,47 +186,48 @@ void Pass::onSequenceComplete ()
     if (stimulus->doesToneMappingInStimulusGenerator) {
         setShaderFunction ("toneMap",
                            R"GLSLC0D3(
-			uniform sampler1D gamma;																	
-			uniform float toneRangeMin;																
-			uniform float toneRangeMax;																
-			uniform float toneRangeMean;																
-			uniform float toneRangeVar;																
-			uniform int gammaSampleCount;																
-			uniform bool doTone;
-			uniform bool doGamma;
+			layout (binding = 17) uniform sampler1D gamma;																	
+			layout (binding = 18) uniform ab { float value; } toneRangeMin;																
+			layout (binding = 19) uniform ac { float value; } toneRangeMax;																
+			layout (binding = 20) uniform ad { float value; } toneRangeMean;																
+			layout (binding = 21) uniform ae { float value; } toneRangeVar;																
+			layout (binding = 22) uniform af { int value; } gammaSampleCount;																
+			layout (binding = 23) uniform ag { bool value; } doTone;
+			layout (binding = 24) uniform ah { bool value; } doGamma;
+
 			vec3 toneMap(vec3 color){																	
 				vec3 outcolor = color;
-				if(doTone)																		
+				if(doTone.value)																		
 				{
-					if(toneRangeVar >= 0)																
+					if(toneRangeVar.value >= 0)																
 					{																						
-						outcolor.r = 1 - 1 / (1 + exp((outcolor.r - toneRangeMean)/toneRangeVar));	
-						outcolor.g = 1 - 1 / (1 + exp((outcolor.g - toneRangeMean)/toneRangeVar));	
-						outcolor.b = 1 - 1 / (1 + exp((outcolor.b - toneRangeMean)/toneRangeVar));	
+						outcolor.r = 1 - 1 / (1 + exp((outcolor.r - toneRangeMean.value)/toneRangeVar.value));	
+						outcolor.g = 1 - 1 / (1 + exp((outcolor.g - toneRangeMean.value)/toneRangeVar.value));	
+						outcolor.b = 1 - 1 / (1 + exp((outcolor.b - toneRangeMean.value)/toneRangeVar.value));	
 					}																						
 					else																					
 					{																						
-						outcolor.r = (outcolor.r - toneRangeMin) / (toneRangeMax - toneRangeMin);	
-						outcolor.g = (outcolor.g - toneRangeMin) / (toneRangeMax - toneRangeMin);	
-						outcolor.b = (outcolor.b - toneRangeMin) / (toneRangeMax - toneRangeMin);	
+						outcolor.r = (outcolor.r - toneRangeMin.value) / (toneRangeMax.value - toneRangeMin.value);	
+						outcolor.g = (outcolor.g - toneRangeMin.value) / (toneRangeMax.value - toneRangeMin.value);	
+						outcolor.b = (outcolor.b - toneRangeMin.value) / (toneRangeMax.value - toneRangeMin.value);	
 					}
 				}
 																										
-				if(doGamma)
+				if(doGamma.value)
 				{																						
 					{																					
 					outcolor.r = clamp(outcolor.r, 0, 1);												
-					float gammaIndex = outcolor.r * (gammaSampleCount-1) + 0.5;							
+					float gammaIndex = outcolor.r * (gammaSampleCount.value-1) + 0.5;							
 					outcolor.r = texture(gamma, gammaIndex/256.0).x;									
 					}																					
 					{																					
 					outcolor.g = clamp(outcolor.g, 0, 1);												
-					float gammaIndex = outcolor.g * (gammaSampleCount-1) + 0.5;							
+					float gammaIndex = outcolor.g * (gammaSampleCount.value-1) + 0.5;							
 					outcolor.g = texture(gamma, gammaIndex/256.0).x;									
 					}																					
 					{																					
 					outcolor.b = clamp(outcolor.b, 0, 1);												
-					float gammaIndex = outcolor.b * (gammaSampleCount-1) + 0.5;							
+					float gammaIndex = outcolor.b * (gammaSampleCount.value-1) + 0.5;							
 					outcolor.b = texture(gamma, gammaIndex/256.0).x;									
 					}																					
 				}																						
@@ -232,6 +241,7 @@ void Pass::onSequenceComplete ()
         if (stimulus->getSequence ()->isMonochrome () && stimulus->mono && mono) {
             setShaderFunction ("temporalProcess",
                                R"GLSLC0D3(
+                #version 450
 				uniform mat4x4 stateTransitionMatrix[4];
 				uniform sampler2DArray temporalProcessingState;
 					vec3 temporalProcess(vec3 inputColor, vec2 x){
@@ -247,6 +257,7 @@ void Pass::onSequenceComplete ()
         } else {
             setShaderFunction ("temporalProcess",
                                R"GLSLC0D3(
+                #version 450
 				uniform mat4x4 stateTransitionMatrix[4];
 				uniform sampler2DArray temporalProcessingState;
 					vec3 temporalProcess(vec3 inputColor, vec2 x){
@@ -276,6 +287,7 @@ void Pass::onSequenceComplete ()
         if (stimulus->getSequence ()->isMonochrome () && stimulus->mono && mono) {
             setShaderFunction ("temporalProcess",
                                R"GLSLC0D3(
+                #version 450
 				uniform mat4x4 stateTransitionMatrix;
 				uniform sampler2DArray temporalProcessingState;
 					vec3 temporalProcess(vec3 inputColor, vec2 x){
@@ -287,6 +299,7 @@ void Pass::onSequenceComplete ()
         } else {
             setShaderFunction ("temporalProcess",
                                R"GLSLC0D3(
+                #version 450
 				uniform mat4x4 stateTransitionMatrix;
 				uniform sampler2DArray temporalProcessingState;
 					vec3 temporalProcess(vec3 inputColor, vec2 x){
@@ -313,27 +326,29 @@ std::string Pass::getStimulusGeneratorVertexShaderSource (Pass::RasterizationMod
 {
     if (mode == Pass::RasterizationMode::fullscreen) {
         std::string s (R"GLSLCODE(
-			#version 150
+#version 450
 
-			uniform vec2 patternSizeOnRetina;
+layout (binding = 0) uniform PatternSizeOnRetina {
+	vec2 value;
+} patternSizeOnRetina;
 
-			out vec2 pos;
-			out vec2 fTexCoord;
+layout (location = 0) out vec2 pos;
+layout (location = 1) out vec2 fTexCoord;
 
-			void main(void) {
-			   gl_Position	= vec4(float(gl_VertexID / 2)*2.0-1.0, 1.0-float(gl_VertexID % 2)*2.0, 0.5, 1.0);
-			   vec2 texCoord = vec2(float(gl_VertexID / 2), float(gl_VertexID % 2));
-			   fTexCoord = texCoord;
-			   fTexCoord.y = -fTexCoord.y;
-			   fTexCoord.y += 1;
-			   pos = (texCoord - vec2(0.5, 0.5) ) * patternSizeOnRetina ;
-			}
+void main(void) {
+   gl_Position	= vec4(float(gl_VertexIndex / 2)*2.0-1.0, 1.0-float(gl_VertexIndex % 2)*2.0, 0.5, 1.0);
+   vec2 texCoord = vec2(float(gl_VertexIndex / 2), float(gl_VertexIndex % 2));
+   fTexCoord = texCoord;
+   fTexCoord.y = -fTexCoord.y;
+   fTexCoord.y += 1;
+   pos = (texCoord - vec2(0.5, 0.5)) * patternSizeOnRetina.value;
+}
 			)GLSLCODE");
         return s;
     }
     if (mode == Pass::RasterizationMode::triangles) {
         std::string s (R"GLSLCODE(
-			#version 150
+			#version 450
 			uniform vec2 patternSizeOnRetina;
 			uniform sampler2D vertices;
 			uniform float time;
@@ -386,7 +401,7 @@ std::string Pass::getStimulusGeneratorVertexShaderSource (Pass::RasterizationMod
         //uniform float time;
         //)GLSLCODE");
         std::string s (R"GLSLCODE(
-				#version 150
+				#version 450
 				void main(void) {}
 				)GLSLCODE");
         return s;
@@ -398,7 +413,7 @@ std::string Pass::getStimulusGeneratorGeometryShaderSource (Pass::RasterizationM
 {
     if (mode == Pass::RasterizationMode::quads) {
         std::string s (R"GLSLCODE(
-			#version 150
+			#version 450
 			uniform vec2 patternSizeOnRetina;
 			#ifndef GEARS_RANDOMS_RESOURCES
 			#define GEARS_RANDOMS_RESOURCES
@@ -462,6 +477,67 @@ std::string Pass::getStimulusGeneratorGeometryShaderSource (Pass::RasterizationM
         return s;
     } else
         return "";
+}
+
+
+static std::string GenerateUniformBlock (uint32_t& binding, const std::string& type, const std::string& name)
+{
+    std::stringstream ss;
+    ss << "layout (binding = " << binding << ") uniform ubo_" << name << " { " << type << " value; } " << name << ";" << std::endl;
+    binding++;
+    return ss.str ();
+}
+
+
+static void ReplaceAll (std::string& str, const std::string& from, const std::string& to)
+{
+    if (from.empty ()) {
+        return;
+    }
+
+    size_t start_pos = str.find ("{");
+    while ((start_pos = str.find (from, start_pos)) != std::string::npos) {
+        str.replace (start_pos, from.length (), to);
+        start_pos += to.length (); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+    }
+}
+
+
+std::string Pass::getStimulusGeneratorShaderSource () const
+{
+    std::string s ("#version 450\n");
+
+    uint32_t lastUniformBinding = 0;
+
+    std::vector<std::string> uniforms = {"patternSizeOnRetina", "swizzleForFft", "frame"};
+
+    s += GenerateUniformBlock (lastUniformBinding, "vec2", "patternSizeOnRetina");
+    s += GenerateUniformBlock (lastUniformBinding, "int", "swizzleForFft");
+    s += GenerateUniformBlock (lastUniformBinding, "int", "frame");
+    s += GenerateUniformBlock (lastUniformBinding, "float", "time");
+
+    for (auto& svar : shaderColors) {
+        s += GenerateUniformBlock (lastUniformBinding, "vec3", svar.first);
+        uniforms.push_back (svar.first);
+    }
+    for (auto& svar : shaderVectors) {
+        s += GenerateUniformBlock (lastUniformBinding, "vec2", svar.first);
+        uniforms.push_back (svar.first);
+    }
+    for (auto& svar : shaderVariables) {
+        s += GenerateUniformBlock (lastUniformBinding, "float", svar.first);
+        uniforms.push_back (svar.first);
+    }
+
+    for (std::string sfunc : shaderFunctionOrder) {
+        std::string funcSource = shaderFunctions.find (sfunc)->second;
+        for (auto& u : uniforms) {
+            ReplaceAll (funcSource, u, u + ".value");
+        }
+        s += funcSource;
+        s += "\n";
+    }
+    return s + stimulusGeneratorShaderSource;
 }
 
 

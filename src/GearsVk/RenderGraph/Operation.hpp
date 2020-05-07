@@ -21,15 +21,14 @@ struct GEARSVK_API Operation : public Noncopyable {
     std::vector<Resource::Ref> inputs;
     std::vector<Resource::Ref> outputs;
 
-    std::vector<InputBinding>  inputBindings;
-    std::vector<OutputBinding> outputBindings;
+    std::vector<IInputBinding::U> newInputBindings;
+    std::vector<OutputBinding>    outputBindings;
 
     virtual ~Operation () {}
 
     virtual void Compile (const GraphSettings&)                              = 0;
     virtual void Record (uint32_t frameIndex, VkCommandBuffer commandBuffer) = 0;
 
-    void AddInput (uint32_t binding, const Resource::Ref& res);
     void AddOutput (uint32_t binding, const Resource::Ref& res);
 
     std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const;

@@ -105,9 +105,20 @@ int main (int, char**)
     RG::Operation& brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (deviceExtra), sp);
 
 
+    // ========================= GRAPH CONNECTIONS =========================
+
+    graph.CreateConnection<RG::UniformInputBinding> (brainRenderOp, 0, unif);
+    graph.CreateConnection<RG::UniformInputBinding> (brainRenderOp, 1, cameraUniformRes);
+    graph.CreateConnection<RG::ImageInputBinding> (brainRenderOp, 2, agy3d);
+    graph.CreateConnection<RG::ImageInputBinding> (brainRenderOp, 3, matcap);
+
+    graph.AddConnection (RG::RenderGraph::OutputConnection {brainRenderOp, 0, presented});
+
+
     // ========================= GRAPH RESOURCE SETUP =========================
 
-    graph.CompileResources (s);
+    graph.Compile (s);
+
 
     matcap.CopyTransitionTransfer (ReadImage (PROJECT_ROOT / "src" / "VizHF" / "matcap.jpg", 4));
 
@@ -138,20 +149,6 @@ int main (int, char**)
     }
 
     agy3d.CopyTransitionTransfer (transformedBrainData);
-
-
-    // ========================= GRAPH CONNECTIONS =========================
-
-    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 0, unif});
-    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 1, cameraUniformRes});
-    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 2, agy3d});
-    graph.AddConnection (RG::RenderGraph::InputConnection {brainRenderOp, 3, matcap});
-
-    graph.AddConnection (RG::RenderGraph::OutputConnection {brainRenderOp, 0, presented});
-
-    graph.Compile (s);
-
-
     // ========================= RENDERING =========================
 
     RG::SynchronizedSwapchainGraphRenderer renderer (graph, swapchain);

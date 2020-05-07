@@ -48,7 +48,15 @@ public:
         handle = VK_NULL_HANDLE;
     }
 
+
     mutable std::vector<std::tuple<uint32_t, VkDescriptorType, VkWriteDescriptorSet>> writtenInfos;
+
+
+    void Write (const std::vector<VkWriteDescriptorSet>& writes) const
+    {
+        vkUpdateDescriptorSets (device, writes.size (), writes.data (), 0, nullptr);
+    }
+
 
     void WriteOneBufferInfo (uint32_t binding, VkDescriptorType descriptorType, const VkDescriptorBufferInfo& bufferInfo) const
     {

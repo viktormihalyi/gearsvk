@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include "ShaderModule.hpp"
+
 void InitializeEnvironment ();
 
 void DestroyEnvironment ();
@@ -10,3 +12,5 @@ void DestroyEnvironment ();
 void SetRenderGraphFromSequence (Sequence::P);
 
 void StartRendering (const std::function<bool ()>&);
+
+void TryCompile (ShaderModule::ShaderKind shaderKind, const std::string& source);

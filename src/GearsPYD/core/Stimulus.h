@@ -150,7 +150,7 @@ public:
 
     std::string getRandomGeneratorShaderSource () const
     {
-        std::string s ("#version 150 compatibility\n");
+        std::string s ("#version 450\n");
         s += "uniform vec2 patternSizeOnRetina;\n";
         s += "uniform bool swizzleForFft;\n";
         s += "uniform int frame;\n";
@@ -179,7 +179,7 @@ public:
 
     std::string getParticleShaderSource () const
     {
-        std::string s ("#version 150 compatibility\n");
+        std::string s ("#version 450\n");
         s += "uniform vec2 patternSizeOnRetina;\n";
         s += "uniform int frame;\n";
         s += "uniform float time;\n";
@@ -189,7 +189,7 @@ public:
 
     std::string getTemporalFilterShaderSource () const
     {
-        std::string s ("#version 150 compatibility\n");
+        std::string s ("#version 450\n");
         return s +
                "	uniform sampler1D gamma;																	\n" +
                temporalFilterFuncSource + temporalFilterShaderSource;
@@ -197,14 +197,14 @@ public:
 
     std::string getTemporalFilterPlotVertexShaderSource () const
     {
-        std::string s ("#version 150 compatibility\n");
+        std::string s ("#version 450\n");
         return s +
                "	uniform sampler1D gamma;																	\n" + temporalFilterFuncSource + temporalFilterPlotVertexShaderSource;
     }
 
     std::string getTemporalFilterPlotFragmentShaderSource () const
     {
-        std::string s ("#version 150 compatibility\n");
+        std::string s ("#version 450\n");
         return s + temporalFilterPlotFragmentShaderSource;
     }
 

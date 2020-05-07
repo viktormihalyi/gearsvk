@@ -35,6 +35,7 @@ Stimulus::Stimulus ()
     temporalWeightMin            = 0.0f;
 
     randomGeneratorShaderSource =
+        "	#version 450\n"
         "	out uvec4 nextElement;																					\n"
         "	void main() { nextElement = uvec4(0u, 0u, 0u, 0u); }													\n";
 
@@ -42,6 +43,7 @@ Stimulus::Stimulus ()
         "float temporalWeight(int i) { if(i==0) return 1.0; else return 0.0; } \n";
 
     linearDynamicToneShaderSource    = R"GLSLC0D3(
+            #version 450
 			uniform sampler2D stimulusImage;
 			uniform float toneRangeMin;
 			uniform float toneRangeMax;
@@ -73,6 +75,7 @@ Stimulus::Stimulus ()
 			}
 			)GLSLC0D3";
     erfDynamicToneShaderSource       = R"GLSLC0D3(
+            #version 450
 			uniform sampler2D stimulusImage;
 			uniform float toneRangeMean;
 			uniform float toneRangeVar;
@@ -104,6 +107,7 @@ Stimulus::Stimulus ()
 			}
 			)GLSLC0D3";
     equalizedDynamicToneShaderSource = R"GLSLC0D3(
+            #version 450
 			uniform sampler2D stimulusImage;
 			uniform sampler2D histogram;
 			uniform vec2 histogramLimits;
@@ -144,6 +148,7 @@ Stimulus::Stimulus ()
 
     temporalFilterShaderSource =
         R"GLSLC0D3(
+            #version 450
 			uniform sampler2DArray stimulusQueue;																	
 			uniform int currentSlice;																				
 			uniform int memoryLength;																				
@@ -203,16 +208,19 @@ Stimulus::Stimulus ()
 			)GLSLC0D3";
 
     temporalFilterPlotVertexShaderSource =
+        "   #version 450\n"
         "	void main(void) {		 \n"
         "		float value = temporalWeight(gl_VertexID/2);											\n"
         "		gl_Position	= gl_ModelViewMatrix * vec4(float((gl_VertexID+1)/2), value, 0.5, 1.0);				\n"
         "	}																										\n";
     temporalFilterPlotFragmentShaderSource =
+        "   #version 450\n"
         "	void main() {																							\n"
         "		gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);															\n"
         "	}																										\n";
 
     spikeVertexShaderSource =
+        "   #version 450\n"
         "	uniform float frameInterval;	\n"
         "	uniform int stride;	\n"
         "	uniform int startOffset;	\n"
@@ -221,6 +229,7 @@ Stimulus::Stimulus ()
         "	}																										\n";
 
     spikeFragmentShaderSource =
+        "   #version 450\n"
         "	void main() {																							\n"
         "		gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);															\n"
         "	}																										\n";
@@ -234,14 +243,14 @@ Stimulus::~Stimulus ()
 pybind11::object Stimulus::setGamma (pybind11::object gammaList, bool invert)
 {
     using namespace pybind11;
-    list l            = extract<list> (gammaList)();
+    list l            = extract<list> (gammaList) ();
     gammaSamplesCount = len (l);
     if (gammaSamplesCount > 101) {
         gammaSamplesCount = 101;
         PyErr_WarnEx (PyExc_UserWarning, "Only the first 101 gamma samples are used!", 2);
     }
     for (int i = 0; i < gammaSamplesCount; i++) {
-        gamma[i] = extract<float> (l[i])();
+        gamma[i] = extract<float> (l[i]) ();
     }
 
     if (invert) {
@@ -747,7 +756,7 @@ void Stimulus::onSequenceComplete ()
 
 std::string Stimulus::getDynamicToneShaderSource () const
 {
-    std::string s ("#version 150 compatibility\n");
+    std::string s ("#version 450\n");
     if (toneMappingMode == ToneMappingMode::LINEAR)
         return s +
                "	uniform sampler1D gamma;																	\n" + linearDynamicToneShaderSource;
