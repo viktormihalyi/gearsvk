@@ -12,8 +12,8 @@ public:
 
 class InputImageBindable {
 public:
-    virtual VkImageView GetImageViewForFrame (uint32_t frameIndex) = 0;
-    virtual VkSampler   GetSampler ()                              = 0;
+    virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t layerIndex) = 0;
+    virtual VkSampler   GetSampler ()                                                   = 0;
 };
 
 #endif

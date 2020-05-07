@@ -8,7 +8,7 @@ void Operation::AddOutput (const uint32_t binding, const ImageResource::Ref& res
 {
     ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
 
-    outputs.push_back (res);
+    outputs.push_back (res.get ());
 
     for (uint32_t bindingIndex = binding; bindingIndex < binding + res.get ().GetDescriptorCount (); ++bindingIndex) {
         outputBindings.push_back (OutputBinding (bindingIndex, res.get ().GetFormat (), res.get ().GetFinalLayout ()));

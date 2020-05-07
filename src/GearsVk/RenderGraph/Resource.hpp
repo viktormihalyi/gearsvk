@@ -17,19 +17,7 @@
 
 namespace RG {
 
-
-class GEARSVK_API SingleResource : public Noncopyable {
-public:
-    USING_PTR_ABSTRACT (SingleResource);
-
-    virtual ~SingleResource () {}
-
-    virtual void BindRead (VkCommandBuffer commandBuffer)  = 0;
-    virtual void BindWrite (VkCommandBuffer commandBuffer) = 0;
-};
-
-
-class Resource : public Noncopyable {
+class GEARSVK_API Resource : public Noncopyable {
 public:
     USING_PTR_ABSTRACT (Resource);
 
@@ -39,7 +27,7 @@ public:
 };
 
 
-class ImageResource : public Resource {
+class GEARSVK_API ImageResource : public Resource {
 public:
     USING_PTR_ABSTRACT (ImageResource);
     virtual ~ImageResource () = default;
@@ -52,7 +40,7 @@ public:
 };
 
 
-class OneTimeCompileResource : public ImageResource {
+class GEARSVK_API OneTimeCompileResource : public ImageResource {
 private:
     bool compiled;
 
@@ -78,34 +66,36 @@ public:
 };
 
 
-struct GEARSVK_API SingleImageResource final : public SingleResource {
-    static const VkFormat FormatRGBA;
-    static const VkFormat FormatRGB;
-
-    const AllocatedImage         image;
-    std::vector<ImageView2D::U>  imageViews;
-    const Sampler::U             sampler;
-    std::optional<VkImageLayout> layoutRead;
-    std::optional<VkImageLayout> layoutWrite;
-
-    // write always happens before read
-    // NO  read, NO  write: general
-    // YES read, NO  write: general -> read
-    // NO  read, YES write: general -> write
-    // YES read, YES write: general -> write -> read
-
-    USING_PTR (SingleImageResource);
-
-    SingleImageResource (const GraphSettings& graphSettings, uint32_t arrayLayers);
-
-    virtual ~SingleImageResource () {}
-
-    virtual void BindRead (VkCommandBuffer commandBuffer) override;
-    virtual void BindWrite (VkCommandBuffer commandBuffer) override;
-};
-
-
 class GEARSVK_API WritableImageResource : public ImageResource, public InputImageBindable {
+private:
+    Sampler::U sampler;
+
+    struct SingleImageResource final {
+        static const VkFormat FormatRGBA;
+        static const VkFormat FormatRGB;
+
+        const AllocatedImage         image;
+        std::vector<ImageView2D::U>  imageViews;
+        std::optional<VkImageLayout> layoutRead;
+        std::optional<VkImageLayout> layoutWrite;
+
+        // write always happens before read
+        // NO  read, NO  write: general
+        // YES read, NO  write: general -> read
+        // NO  read, YES write: general -> write
+        // YES read, YES write: general -> write -> read
+
+        USING_PTR (SingleImageResource);
+
+        SingleImageResource::SingleImageResource (const GraphSettings& graphSettings, uint32_t arrayLayers)
+            : image (graphSettings.GetDevice (), Image2D::Create (graphSettings.GetDevice (), graphSettings.width, graphSettings.height, FormatRGBA, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, arrayLayers), DeviceMemory::GPU)
+        {
+            for (uint32_t layerIndex = 0; layerIndex < arrayLayers; ++layerIndex) {
+                imageViews.push_back (ImageView2D::Create (graphSettings.GetDevice (), *image.image, layerIndex));
+            }
+        }
+    };
+
 public:
     uint32_t                            arrayLayers;
     std::vector<SingleImageResource::U> images;
@@ -120,11 +110,27 @@ public:
 
     virtual ~WritableImageResource () {}
 
-    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindRead (commandBuffer); }
-    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override { images[imageIndex]->BindWrite (commandBuffer); }
+    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override
+    {
+        SingleImageResource& im = *images[imageIndex];
+
+        im.layoutRead                = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        VkImageLayout previousLayout = (im.layoutWrite.has_value ()) ? *im.layoutWrite : ImageBase::INITIAL_LAYOUT;
+        im.image.image->CmdPipelineBarrier (commandBuffer, previousLayout, *im.layoutRead);
+    }
+
+    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override
+    {
+        SingleImageResource& im = *images[imageIndex];
+
+        im.layoutWrite = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        im.image.image->CmdPipelineBarrier (commandBuffer, ImageBase::INITIAL_LAYOUT, *im.layoutWrite);
+    }
 
     virtual void Compile (const GraphSettings& graphSettings)
     {
+        sampler = Sampler::Create (graphSettings.GetDevice ());
+
         images.clear ();
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
             images.push_back (SingleImageResource::Create (graphSettings, arrayLayers));
@@ -137,8 +143,8 @@ public:
     virtual uint32_t      GetDescriptorCount () const override { return arrayLayers; }
 
     // overriding InputImageBindable
-    virtual VkImageView GetImageViewForFrame (uint32_t frameIndex) override { return *images[frameIndex]->imageViews[0]; }
-    virtual VkSampler   GetSampler () override { return *images[0]->sampler; }
+    virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t layerIndex) override { return *images[frameIndex]->imageViews[layerIndex]; }
+    virtual VkSampler   GetSampler () override { return *sampler; }
 };
 
 
@@ -197,7 +203,7 @@ public:
     virtual uint32_t      GetDescriptorCount () const override { return 1; }
 
     // overriding InputImageBindable
-    virtual VkImageView GetImageViewForFrame (uint32_t) override { return *imageView; }
+    virtual VkImageView GetImageViewForFrame (uint32_t, uint32_t) override { return *imageView; }
     virtual VkSampler   GetSampler () override { return *sampler; }
 
     void CopyTransitionTransfer (const std::vector<uint8_t>& pixelData)
@@ -240,7 +246,7 @@ public:
     virtual uint32_t      GetDescriptorCount () const override { return 1; }
 
     // overriding InputImageBindable
-    virtual VkImageView GetImageViewForFrame (uint32_t frameIndex) override { return *imageViews[frameIndex]; }
+    virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t) override { return *imageViews[frameIndex]; }
     virtual VkSampler   GetSampler () override { return VK_NULL_HANDLE; }
 };
 

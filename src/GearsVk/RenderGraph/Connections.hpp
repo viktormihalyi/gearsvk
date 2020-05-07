@@ -100,10 +100,12 @@ public:
 
     InputImageBindable& imageViewProvider;
     const uint32_t      binding;
+    const uint32_t      layerIndex;
 
-    ImageInputBinding (uint32_t binding, InputImageBindable& imageViewProvider)
+    ImageInputBinding (uint32_t binding, InputImageBindable& imageViewProvider, uint32_t layerIndex = 0)
         : imageViewProvider (imageViewProvider)
         , binding (binding)
+        , layerIndex (layerIndex)
     {
     }
 
@@ -117,7 +119,7 @@ public:
     {
         VkDescriptorImageInfo result = {};
         result.sampler               = imageViewProvider.GetSampler ();
-        result.imageView             = imageViewProvider.GetImageViewForFrame (frameIndex);
+        result.imageView             = imageViewProvider.GetImageViewForFrame (frameIndex, layerIndex);
         result.imageLayout           = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         return {result};
     }
