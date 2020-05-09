@@ -2,13 +2,18 @@
 #define UNIFORMBLOCK_HPP
 
 #include "Assert.hpp"
+#include "Noncopyable.hpp"
 #include "Ptr.hpp"
+#include "ShaderReflection.hpp"
 #include "ShaderSourceBuilder.hpp"
 
 #include <cmath>
 #include <cstdint>
-#include <map>
+#include <exception>
+#include <optional>
+#include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 struct ShaderType {
@@ -43,7 +48,7 @@ static ShaderType vec4Array {16 * SIZE, 32, "vec4", SIZE};
 } // namespace ST
 
 
-class ShaderStruct : public ShaderSourceBuilder {
+class ShaderStruct {
 private:
     std::string name;
 
@@ -57,15 +62,6 @@ public:
     ShaderStruct (const std::string& name, const std::vector<std::pair<std::string, ShaderType>>& types)
         : name (name)
     {
-        ASSERT ([&] () {
-            std::set<std::string> uniqueNames;
-            for (const auto& a : types) {
-                uniqueNames.insert (a.first);
-            }
-
-            return uniqueNames.size () == types.size ();
-        }());
-
         uint32_t offset = 0;
         for (auto& s : types) {
             offset = static_cast<uint32_t> (std::ceil (static_cast<float> (offset) / s.second.alignment)) * s.second.alignment;
@@ -79,6 +75,16 @@ public:
     ShaderStruct (const std::vector<std::pair<std::string, ShaderType>>& types)
         : ShaderStruct ("", types)
     {
+    }
+
+    ShaderStruct (const SR::UBO& reflectedUBO)
+        : name (reflectedUBO.name)
+        , fullSize (reflectedUBO.GetFullSize ())
+    {
+        for (const auto& f : reflectedUBO.fields) {
+            variables.emplace_back (f.name, ShaderType {f.size, 0}, f.offset);
+            nameMapping[f.name] = variables.size () - 1;
+        }
     }
 
     uint32_t GetVariableIndex (const std::string& name) const
@@ -110,22 +116,6 @@ public:
     {
         return nameMapping.find (name) != nameMapping.end ();
     }
-
-    std::string GetProvidedShaderSource () const override
-    {
-        std::string result = "struct " + name + " { ";
-
-        for (const auto& [name, type, offset] : variables) {
-            result += type.glslType + " " + name;
-            if (type.arraySize) {
-                result += "[" + std::to_string (*type.arraySize) + "]";
-            }
-            result += "; ";
-        }
-        result += "};";
-
-        return result;
-    }
 };
 
 
@@ -151,10 +141,10 @@ public:
 
 
 class UniformBlock : public Noncopyable, public ShaderSourceBuilder {
-private:
+public:
     const ShaderStruct structType;
 
-    std::vector<uint8_t> data;
+    std::vector<std::vector<uint8_t>> data;
 
     uint32_t    binding;
     std::string variableName;
@@ -167,7 +157,8 @@ public:
         , variableName (variableName)
         , structType (structType)
     {
-        data.resize (structType.GetFullSize (), 0);
+        data.resize (1);
+        data[0].resize (structType.GetFullSize (), 0);
     }
 
     UniformBlock (const std::vector<std::pair<std::string, ShaderType>>& types)
@@ -177,7 +168,7 @@ public:
 
     uint32_t GetSize () const { return structType.GetFullSize (); }
 
-    const void* GetData () const { return data.data (); }
+    const void* GetData () const { return data[0].data (); }
 
     template<typename T>
     void Set (const std::string& name, const T& value)
@@ -192,7 +183,7 @@ public:
         }
 
         const uint32_t offset = structType.GetOffset (name);
-        return reinterpret_cast<void*> (&data[offset]);
+        return reinterpret_cast<void*> (&data[0][offset]);
     }
 
     template<typename ReturnType>
@@ -205,7 +196,7 @@ public:
         ASSERT (sizeof (ReturnType) == structType.GetSize (name));
 
         const uint32_t offset = structType.GetOffset (name);
-        return reinterpret_cast<ReturnType*> (&data[offset]);
+        return reinterpret_cast<ReturnType*> (&data[0][offset]);
     }
 
     template<typename ReturnType>
@@ -228,6 +219,37 @@ public:
     std::string GetProvidedShaderSource () const override
     {
         return "layout (std140, binding = " + std::to_string (binding) + ") uniform " + structType.GetName () + " " + variableName + ";";
+    }
+};
+
+
+struct ShaderBlocks {
+    std::vector<UniformBlock::P>              blocks;
+    std::unordered_map<std::string, uint32_t> nameMapping;
+
+    USING_PTR (ShaderBlocks);
+
+    void AddBlock (const UniformBlock::P& block)
+    {
+        std::string name = block->variableName;
+        blocks.push_back (block);
+        nameMapping[name] = blocks.size () - 1;
+    }
+
+    void Clear ()
+    {
+        blocks.clear ();
+        nameMapping.clear ();
+    }
+
+    UniformBlock& GetBlock (const std::string& name)
+    {
+        return *blocks[nameMapping[name]];
+    }
+
+    UniformBlock& operator[] (const std::string& name)
+    {
+        return GetBlock (name);
     }
 };
 

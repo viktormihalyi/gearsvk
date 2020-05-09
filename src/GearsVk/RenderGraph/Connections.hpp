@@ -10,10 +10,11 @@ namespace RG {
 class IInputBinding {
 public:
     USING_PTR_ABSTRACT (IInputBinding);
-    virtual uint32_t         GetBinding () = 0;
-    virtual VkDescriptorType GetType ()    = 0;
-    virtual uint32_t         GetOffset ()  = 0;
-    virtual uint32_t         GetSize ()    = 0;
+    virtual uint32_t           GetBinding () = 0;
+    virtual VkDescriptorType   GetType ()    = 0;
+    virtual uint32_t           GetOffset ()  = 0;
+    virtual uint32_t           GetSize ()    = 0;
+    virtual VkShaderStageFlags GetStages ()  = 0;
 
     virtual std::vector<VkDescriptorImageInfo>  GetImageInfos (uint32_t frameIndex) { return {}; }
     virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t frameIndex) { return {}; }
@@ -24,7 +25,7 @@ public:
         result.binding                      = GetBinding ();
         result.descriptorType               = GetType ();
         result.descriptorCount              = 1;
-        result.stageFlags                   = VK_SHADER_STAGE_ALL;
+        result.stageFlags                   = GetStages ();
         result.pImmutableSamplers           = nullptr;
         return result;
     }
@@ -57,31 +58,35 @@ class UniformInputBinding : public IInputBinding {
 public:
     USING_PTR (UniformInputBinding);
 
-    InputBufferBindable& bufferProvider;
-    const uint32_t       binding;
-    const uint32_t       size;
-    const uint32_t       offset;
+    InputBufferBindable&     bufferProvider;
+    const uint32_t           binding;
+    const uint32_t           size;
+    const uint32_t           offset;
+    const VkShaderStageFlags stages;
 
-    UniformInputBinding (uint32_t binding, InputBufferBindable& bufferProvider, uint32_t size, uint32_t offset)
+    UniformInputBinding (uint32_t binding, InputBufferBindable& bufferProvider, uint32_t size, uint32_t offset, VkShaderStageFlags stages = VK_SHADER_STAGE_ALL)
         : bufferProvider (bufferProvider)
         , binding (binding)
         , size (size)
         , offset (offset)
+        , stages (stages)
     {
     }
 
-    UniformInputBinding (uint32_t binding, InputBufferBindable& bufferProvider)
+    UniformInputBinding (uint32_t binding, InputBufferBindable& bufferProvider, VkShaderStageFlags stages = VK_SHADER_STAGE_ALL)
         : bufferProvider (bufferProvider)
         , binding (binding)
         , size (bufferProvider.GetBufferSize ())
         , offset (0)
+        , stages (stages)
     {
     }
 
-    virtual uint32_t         GetBinding () override { return binding; }
-    virtual VkDescriptorType GetType () override { return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; }
-    virtual uint32_t         GetOffset () { return size; }
-    virtual uint32_t         GetSize () { return offset; }
+    virtual uint32_t           GetBinding () override { return binding; }
+    virtual VkDescriptorType   GetType () override { return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; }
+    virtual uint32_t           GetOffset () override { return size; }
+    virtual uint32_t           GetSize () override { return offset; }
+    virtual VkShaderStageFlags GetStages () override { return stages; }
 
     virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t frameIndex) override
     {
@@ -98,22 +103,24 @@ class ImageInputBinding : public IInputBinding {
 public:
     USING_PTR (ImageInputBinding);
 
-    InputImageBindable& imageViewProvider;
-    const uint32_t      binding;
-    const uint32_t      layerIndex;
+    InputImageBindable&      imageViewProvider;
+    const uint32_t           binding;
+    const uint32_t           layerIndex;
+    const VkShaderStageFlags stages;
 
-    ImageInputBinding (uint32_t binding, InputImageBindable& imageViewProvider, uint32_t layerIndex = 0)
+    ImageInputBinding (uint32_t binding, InputImageBindable& imageViewProvider, uint32_t layerIndex = 0, VkShaderStageFlags stages = VK_SHADER_STAGE_ALL)
         : imageViewProvider (imageViewProvider)
         , binding (binding)
         , layerIndex (layerIndex)
+        , stages (stages)
     {
     }
 
-    virtual uint32_t         GetBinding () override { return binding; }
-    virtual VkDescriptorType GetType () override { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; }
-
-    virtual uint32_t GetOffset () override { return 0; }
-    virtual uint32_t GetSize () override { return 0; }
+    virtual uint32_t           GetBinding () override { return binding; }
+    virtual VkDescriptorType   GetType () override { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; }
+    virtual uint32_t           GetOffset () override { return 0; }
+    virtual uint32_t           GetSize () override { return 0; }
+    virtual VkShaderStageFlags GetStages () override { return stages; }
 
     virtual std::vector<VkDescriptorImageInfo> GetImageInfos (uint32_t frameIndex) override
     {
@@ -126,22 +133,7 @@ public:
 };
 
 
-struct InputBinding : public VkDescriptorSetLayoutBinding {
-public:
-    uint32_t offset;
-    uint32_t size;
-
-    InputBinding (uint32_t binding, VkDescriptorType type, uint32_t descriptorCount, VkShaderStageFlags stageFlags = VK_SHADER_STAGE_ALL)
-        : offset (0)
-        , size (0)
-    {
-        this->binding            = binding;
-        this->descriptorType     = type;
-        this->descriptorCount    = descriptorCount;
-        this->stageFlags         = stageFlags;
-        this->pImmutableSamplers = nullptr;
-    }
-    bool operator== (const InputBinding& other) const { return binding == other.binding && descriptorType == other.descriptorType; }
+struct UniformReflectionBinding : public IInputBinding {
 };
 
 

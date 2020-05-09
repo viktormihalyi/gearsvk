@@ -62,16 +62,25 @@ public:
 
 class GEARSVK_API SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
 private:
+    // number of render operations able to run simultaneously
+    // optimally equal to imageCount, but may be lower
+    // doesnt make sense to be higher than imageCount
     const uint32_t framesInFlight;
+
+    // number of images in Swapchain
     const uint32_t imageCount;
-    uint32_t       currentFrameIndex;
+
+    uint32_t currentFrameIndex;
 
     // size is framesInFlight
+    // synchronization objects for each frame in flight
     std::vector<Semaphore::U> imageAvailableSemaphore; // present signals, submit  waits
     std::vector<Semaphore::U> renderFinishedSemaphore; // submit  signals, present waits
     std::vector<Fence::U>     inFlightFences;          // waited before submit, signaled by submit
 
     // size is imageCount
+    // determines what frame is rendering to each swapchain image
+    // each value is [0, framesInFlight)
     std::vector<uint32_t> imageToFrameMapping;
 
     RenderGraph& graph;

@@ -94,7 +94,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/VulkanWrapper/ShaderModule.cpp
     src/GearsVk/VulkanWrapper/Swapchain.cpp
     src/GearsVk/VulkanWrapper/PhysicalDevice.cpp
-    src/GearsVk/VulkanWrapper/Utils/ShaderPipeline.cpp
+    "src/GearsVk/RenderGraph/ShaderPipeline.cpp"
 
     src/GearsVk/Camera/Frustum.cpp
     src/GearsVk/Camera/Camera.cpp
@@ -107,7 +107,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/Window/GLFWWindow.cpp
     src/GearsVk/Window/SDLWindow.cpp
 
-    src/GearsVk/ShaderReflection.cpp
+    
     src/GearsVk/VulkanEnvironment.cpp
 )
 

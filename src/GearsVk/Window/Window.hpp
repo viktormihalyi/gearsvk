@@ -22,6 +22,7 @@ public:
         Event<>                   focusLost;
         Event<uint32_t, uint32_t> resized;
         Event<uint32_t, uint32_t> moved;
+        Event<>                   refresh;
 
         // user input
         Event<uint32_t>           keyPressed;

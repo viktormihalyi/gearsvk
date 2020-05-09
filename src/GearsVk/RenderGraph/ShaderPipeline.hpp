@@ -1,7 +1,8 @@
-#ifndef SHADERPIPELINE_HPP
-#define SHADERPIPELINE_HPP
+#ifndef SHADERPIPELINE2_HPP
+#define SHADERPIPELINE2_HPP
 
 #include "GearsVkAPI.hpp"
+#include "UniformBlock.hpp"
 #include "VulkanWrapper.hpp"
 
 #include <thread>
@@ -16,16 +17,34 @@ public:
 private:
     const VkDevice device;
 
-    ShaderModule::U vertexShader;
-    ShaderModule::U fragmentShader;
-    ShaderModule::U geometryShader;
-    ShaderModule::U tessellationEvaluationShader;
-    ShaderModule::U tessellationControlShader;
-    ShaderModule::U computeShader;
+public:
+    struct ShaderObject {
+        ShaderModule::U shader;
+        ShaderBlocks::U ubos;
 
-    ShaderModule::U& GetShaderByIndex (uint32_t index);
-    ShaderModule::U& GetShaderByExtension (const std::string& extension);
-    ShaderModule::U& GetShaderByKind (ShaderModule::ShaderKind kind);
+        void Set (ShaderModule::U&& _shader)
+        {
+            shader = std::move (_shader);
+            ubos   = ShaderBlocks::Create ();
+
+            for (const auto& s : shader->GetReflection ().ubos) {
+                ShaderStruct autoStruct (s);
+                auto         autoBlock = UniformBlock::Create (s.binding, s.name, autoStruct);
+                ubos->AddBlock (std::move (autoBlock));
+            }
+        }
+    };
+
+    ShaderObject vertexShader;
+    ShaderObject fragmentShader;
+    ShaderObject geometryShader;
+    ShaderObject tessellationEvaluationShader;
+    ShaderObject tessellationControlShader;
+    ShaderObject computeShader;
+
+    ShaderObject& GetShaderByIndex (uint32_t index);
+    ShaderObject& GetShaderByExtension (const std::string& extension);
+    ShaderObject& GetShaderByKind (ShaderModule::ShaderKind kind);
 
 public:
     struct CompileSettings {

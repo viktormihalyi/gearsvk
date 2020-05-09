@@ -41,9 +41,15 @@ public:
 static GLFWInitializer globalGLFWInitializer;
 
 
+constexpr uint32_t InitialWindowWidth  = 800;
+constexpr uint32_t InitialWindowHeight = 600;
+
+
 GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     : window (nullptr)
     , surface (VK_NULL_HANDLE)
+    , width (InitialWindowWidth)
+    , height (InitialWindowHeight)
 {
     globalGLFWInitializer.EnsureInitialized ();
 
@@ -72,27 +78,26 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
 
     float xscale, yscale;
     glfwGetMonitorContentScale (primaryMonitor, &xscale, &yscale);
+    ASSERT (xscale == 1.f && yscale == 1.f); // TODO handle different content scale (window size != framebuffer size)
 
     int virtual_xpos, virtual_ypos;
     glfwGetMonitorPos (primaryMonitor, &virtual_xpos, &virtual_ypos);
 
-    int xpos, ypos, width, height;
-    glfwGetMonitorWorkarea (primaryMonitor, &xpos, &ypos, &width, &height);
+    //int xpos, ypos, width, height;
+    //glfwGetMonitorWorkarea (primaryMonitor, &xpos, &ypos, &width, &height);
 
     const GLFWgammaramp* gammaRamp = glfwGetGammaRamp (primaryMonitor);
 
-    int          windowWidth  = 800;
-    int          windowHeight = 600;
-    GLFWmonitor* usedMonitor  = nullptr;
+    GLFWmonitor* usedMonitor = nullptr;
 
     if (useFullscreen) {
         const GLFWvidmode* mode = glfwGetVideoMode (primaryMonitor);
-        windowWidth             = mode->width;
-        windowHeight            = mode->height;
+        width                   = mode->width;
+        height                  = mode->height;
         usedMonitor             = primaryMonitor;
     }
 
-    GLFWwindow* glfwWindow = glfwCreateWindow (windowWidth, windowHeight, "test", usedMonitor, nullptr);
+    GLFWwindow* glfwWindow = glfwCreateWindow (width, height, "test", usedMonitor, nullptr);
     if (ERROR (glfwWindow == nullptr)) {
         throw std::runtime_error ("failed to create window");
     }
@@ -157,6 +162,10 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     glfwSetWindowSizeCallback (glfwWindow, [] (GLFWwindow* window, int width, int height) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
+        self->width  = width;
+        self->height = height;
+
+        std::cout << "window resized" << std::endl;
         self->events.resized (width, height);
     });
 
@@ -176,6 +185,17 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
         }
     });
 
+    glfwSetWindowRefreshCallback (glfwWindow, [] (GLFWwindow* window) {
+        GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
+        self->events.refresh ();
+    });
+
+    glfwSetFramebufferSizeCallback (glfwWindow, [] (GLFWwindow* window, int width, int height) {
+        GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
+
+        std::cout << "framebuffer resized" << std::endl;
+    });
+
     window = reinterpret_cast<void*> (glfwWindow);
 }
 
@@ -190,6 +210,24 @@ GLFWWindowBase::~GLFWWindowBase ()
 void* GLFWWindowBase::GetHandle () const
 {
     return window;
+}
+
+
+uint32_t GLFWWindowBase::GetWidth () const
+{
+    return width;
+}
+
+
+uint32_t GLFWWindowBase::GetHeight () const
+{
+    return height;
+}
+
+
+float GLFWWindowBase::GetAspectRatio () const
+{
+    return static_cast<float> (width) / height;
 }
 
 

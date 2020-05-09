@@ -11,6 +11,7 @@ layout (std140, binding = 1) uniform Camera {
     vec3 position;
     vec3 viewDir;
     uint displayMode;
+    float asd;
 } camera;
 
 layout (binding = 2) uniform sampler3D agySampler;
@@ -90,7 +91,7 @@ vec3 GetNormalAt (vec3 rayPos)
 
 void main ()
 {
-    presented = vec4 (vec3 (0), 1);
+    presented = vec4 (0, 0, 0, 1);
 
     const int DP_BEFOGLALO = 1;
     const int DP_SZINTFELULET = 2;

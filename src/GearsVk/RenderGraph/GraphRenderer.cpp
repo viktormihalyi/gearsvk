@@ -81,7 +81,7 @@ SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (RenderGr
     , graph (graph)
     , swapchain (swapchain)
 {
-    ASSERT (imageCount == framesInFlight);
+    ASSERT (imageCount <= framesInFlight);
 
     for (uint32_t i = 0; i < framesInFlight; ++i) {
         imageAvailableSemaphore.push_back (Semaphore::Create (graph.GetGraphSettings ().GetDevice ()));
@@ -134,9 +134,13 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame ()
     uint32_t currentImageIndex;
     currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentFrameIndex]);
 
-    if (imageToFrameMapping[currentImageIndex] != UINT32_MAX) {
-        inFlightFences[imageToFrameMapping[currentImageIndex]]->Wait ();
+    // the image was last drawn by this frame, wait for its fence
+    const uint32_t previousFrameIndex = imageToFrameMapping[currentImageIndex];
+    if (previousFrameIndex != UINT32_MAX) {
+        inFlightFences[previousFrameIndex]->Wait ();
     }
+
+    // update mapping
     imageToFrameMapping[currentImageIndex] = currentFrameIndex;
 
     const std::vector<VkSemaphore> submitWaitSemaphores   = {*imageAvailableSemaphore[currentFrameIndex]};

@@ -37,7 +37,7 @@ struct GEARSVK_API Operation : public Noncopyable {
 };
 
 
-struct GEARSVK_API RenderOperation final : public Operation {
+struct GEARSVK_API RenderOperation : public Operation {
     USING_PTR (RenderOperation);
 
     struct CompileSettings {
@@ -67,12 +67,17 @@ struct GEARSVK_API RenderOperation final : public Operation {
 
 
     RenderOperation (const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipiline);
-
     virtual ~RenderOperation () = default;
+
     virtual void Compile (const GraphSettings&) override;
     virtual void Record (uint32_t imageIndex, VkCommandBuffer commandBuffer) override;
-};
 
+    ShaderBlocks& operator () (ShaderModule::ShaderKind shaderKind)
+    {
+        return *(compileSettings.pipeline->GetShaderByKind (shaderKind).ubos);
+    }
+
+};
 
 } // namespace RG
 

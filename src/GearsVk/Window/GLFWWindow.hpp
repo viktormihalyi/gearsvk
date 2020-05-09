@@ -10,6 +10,8 @@
 
 class GEARSVK_API GLFWWindowBase : public Window {
 private:
+    uint32_t     width;
+    uint32_t     height;
     void*        window;
     VkSurfaceKHR surface;
 
@@ -26,9 +28,9 @@ public:
 
     std::vector<const char*> GetExtensions () const override;
 
-    virtual uint32_t GetWidth () const override { return 800; }         // TODO
-    virtual uint32_t GetHeight () const override { return 600; }        // TODO
-    virtual float    GetAspectRatio () const override { return 1.33f; } // TODO
+    virtual uint32_t GetWidth () const override;
+    virtual uint32_t GetHeight () const override;
+    virtual float    GetAspectRatio () const override;
     virtual void     ToggleFullscreen () override {}
 
     virtual void Show () override;

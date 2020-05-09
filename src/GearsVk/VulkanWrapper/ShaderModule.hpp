@@ -38,6 +38,17 @@ public:
         GLSLString,
     };
 
+    struct Reflection {
+        std::vector<SR::UBO>     ubos;
+        std::vector<SR::Sampler> samplers;
+
+        void Clear ()
+        {
+            ubos.clear ();
+            samplers.clear ();
+        }
+    };
+
 private:
     const ReadMode readMode;
 
@@ -47,6 +58,8 @@ private:
 
     const ShaderKind            shaderKind;
     const std::filesystem::path fileLocation;
+
+    Reflection reflection;
 
 private:
     // private ctor, use factories
@@ -72,6 +85,8 @@ public:
     ReadMode GetReadMode () const { return readMode; }
 
     VkPipelineShaderStageCreateInfo GetShaderStageCreateInfo () const;
+
+    const Reflection& GetReflection () const { return reflection; }
 };
 
 #endif

@@ -308,6 +308,74 @@ public:
 };
 
 
+class GEARSVK_API UniformReflectionResource : public Resource {
+public:
+    USING_PTR (UniformReflectionResource);
+
+    ShaderPipeline::P& pipeline;
+
+    ShaderBlocks vertUbos;
+    ShaderBlocks fragUbos;
+    ShaderBlocks geomUbos;
+    ShaderBlocks teseUbos;
+    ShaderBlocks tescUbos;
+    ShaderBlocks compUbos;
+
+    std::vector<UniformBlockResource::U> uboRes;
+    std::vector<uint32_t>                bindings;
+    std::vector<UniformBlock::P>         dataBlocks;
+
+    UniformReflectionResource (ShaderPipeline::P& pipeline)
+        : pipeline (pipeline)
+    {
+        vertUbos.Clear ();
+        uboRes.clear ();
+        dataBlocks.clear ();
+
+        auto GatherFor = [&] (const ShaderModule::U& sm, ShaderBlocks& out) {
+            if (sm != nullptr) {
+                ShaderBlocks newblocks;
+                for (const auto& s : sm->GetReflection ().ubos) {
+                    const ShaderStruct autoStruct (s);
+
+                    auto c = UniformBlockResource::Create (autoStruct);
+
+                    UniformBlock::P autoBlock = UniformBlock::CreateShared (s.binding, s.name, autoStruct);
+
+                    dataBlocks.push_back (autoBlock);
+                    bindings.push_back (s.binding);
+                    uboRes.push_back (std::move (c));
+                    out.AddBlock (autoBlock);
+                }
+            }
+        };
+
+        GatherFor (pipeline->vertexShader.shader, vertUbos);
+        GatherFor (pipeline->fragmentShader.shader, fragUbos);
+        GatherFor (pipeline->geometryShader.shader, geomUbos);
+        GatherFor (pipeline->tessellationEvaluationShader.shader, teseUbos);
+        GatherFor (pipeline->tessellationControlShader.shader, tescUbos);
+        GatherFor (pipeline->computeShader.shader, compUbos);
+    }
+
+    virtual ~UniformReflectionResource () = default;
+
+    virtual void Compile (const GraphSettings& settings)
+    {
+        for (auto& res : uboRes) {
+            res->Compile (settings);
+        }
+    }
+
+    void Update (uint32_t frameIndex)
+    {
+        for (uint32_t i = 0; i < uboRes.size (); ++i) {
+            uboRes[i]->Set (frameIndex, *dataBlocks[i]);
+        }
+    }
+};
+
+
 class GEARSVK_API ResourceVisitor final {
 public:
     Event<WritableImageResource&>  onWritableImage;

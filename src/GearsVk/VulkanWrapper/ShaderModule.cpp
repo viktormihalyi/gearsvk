@@ -128,7 +128,119 @@ const ShaderKindInfo ShaderKindInfo::FromEsh (EShLanguage e)
 }
 
 
-static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind)
+static uint32_t GetBasicTypeSize (glslang::TBasicType basicType)
+{
+    using namespace glslang;
+
+    switch (basicType) {
+        case EbtFloat: return sizeof (float);
+        case EbtDouble: return sizeof (double);
+        case EbtFloat16: ASSERT ("WTF"); return 2;
+        case EbtInt8: return sizeof (int8_t);
+        case EbtUint8: return sizeof (uint8_t);
+        case EbtInt16: return sizeof (int16_t);
+        case EbtUint16: return sizeof (uint16_t);
+        case EbtInt: return sizeof (int);
+        case EbtUint: return sizeof (unsigned int);
+        case EbtInt64: return sizeof (int64_t);
+        case EbtUint64: return sizeof (uint64_t);
+        case EbtBool: return sizeof (bool);
+        default: return 0;
+    }
+}
+
+
+static std::optional<uint32_t> GetSize (const glslang::TType& type)
+{
+    using namespace glslang;
+
+    const TBasicType basicType = type.getBasicType ();
+
+    const uint32_t basicTypeSize = GetBasicTypeSize (basicType);
+    if (basicTypeSize == 0) {
+        return std::nullopt;
+    }
+
+    const uint32_t vectorSize = type.getVectorSize ();
+    const uint32_t matrixCols = type.getMatrixCols ();
+    const uint32_t matrixRows = type.getMatrixRows ();
+
+    if (vectorSize > 0) {
+        return basicTypeSize * vectorSize;
+    }
+
+    if (matrixCols > 0 && matrixRows > 0) {
+        return basicTypeSize * matrixCols * matrixRows;
+    }
+
+    ASSERT ("unhandled uniform size case");
+    return std::nullopt;
+}
+
+
+static std::vector<SR::Sampler> GetSamplers (glslang::TReflection& ref)
+{
+    using namespace glslang;
+
+    std::vector<SR::Sampler> result;
+    const uint32_t           uniformCount = ref.getNumUniforms ();
+    for (uint32_t uniformIndex = 0; uniformIndex < uniformCount; ++uniformIndex) {
+        const TObjectReflection& uniform = ref.getUniform (uniformIndex);
+        if (uniform.getType ()) {
+            const TType& type = *uniform.getType ();
+            if (type.getBasicType () == EbtSampler) {
+                SR::Sampler s;
+                s.name                   = uniform.name;
+                const TSampler& tsampler = type.getSampler (); // TODO get sampler dimension etc
+                s.binding                = type.getQualifier ().layoutBinding;
+                result.push_back (s);
+            }
+        }
+    }
+    return result;
+}
+
+
+static std::vector<SR::UBO> GetUniformBlocks (glslang::TReflection& ref)
+{
+    using namespace glslang;
+
+    std::vector<SR::UBO> result;
+
+    for (uint32_t uniformIndex = 0; uniformIndex < ref.getNumUniformBlocks (); ++uniformIndex) {
+        const TObjectReflection& uniform = ref.getUniformBlock (uniformIndex);
+        if (uniform.getType ()) {
+            const TType&      type      = *uniform.getType ();
+            const TQualifier& qualifier = type.getQualifier ();
+
+            if (type.isStruct ()) {
+                SR::UBO ubo;
+                ubo.name    = type.getTypeName ();
+                ubo.binding = qualifier.layoutBinding;
+
+                const TTypeList& structure = *type.getStruct ();
+                for (auto& s : structure) {
+                    if (ASSERT (s.type != nullptr)) {
+                        SR::UBO::Field f;
+                        f.name   = s.type->getFieldName ();
+                        f.offset = s.type->getQualifier ().layoutOffset;
+
+                        const std::optional<uint32_t> size = GetSize (*s.type);
+                        ASSERT (size.has_value ());
+                        f.size = size.value_or (0);
+
+                        ubo.fields.push_back (f);
+                    }
+                }
+                result.push_back (ubo);
+            }
+        }
+    }
+    return result;
+}
+
+
+static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind, ShaderModule::Reflection& reflection)
 {
     using namespace glslang;
 
@@ -137,6 +249,8 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
         init = true;
         InitializeProcess ();
     }
+
+    reflection.Clear ();
 
     const char* const              sourceCstr                  = sourceCode.c_str ();
     const int                      ClientInputSemanticsVersion = 100;
@@ -155,39 +269,18 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
     if (!shader.parse (&resources, 100, false, messages)) {
         throw ShaderCompileException (shader.getInfoLog ());
     }
-
-    // TODO reflection
-#if 0
-    TReflection ref (EShReflectionDefault, shaderKind.esh, shaderKind.esh);
-    ref.addStage (shaderKind.esh, *shader.getIntermediate ());
-    std::cout << "uniforms" << std::endl;
-    const uint32_t uniformCount = ref.getNumUniforms ();
-    for (uint32_t uniformIndex = 0; uniformIndex < uniformCount; ++uniformIndex) {
-        const TObjectReflection& uniform = ref.getUniform (uniformIndex);
-        if (uniform.getType ()) {
-            std::cout << uniform.getType ()->getBasicTypeString () << std::endl;
-            std::cout << uniform.getType ()->getCompleteString () << std::endl;
-        }
-        uniform.dump ();
-    }
-    std::cout << "uniform blocks" << std::endl;
-    const uint32_t uniformBlockCount = ref.getNumUniformBlocks ();
-    for (uint32_t uniformIndex = 0; uniformIndex < uniformCount; ++uniformIndex) {
-        const TObjectReflection& uniform = ref.getUniformBlock (uniformIndex);
-        if (uniform.getType ()) {
-            std::cout << uniform.getType ()->getBasicTypeString () << std::endl;
-            std::cout << uniform.getType ()->getCompleteString () << std::endl;
-        }
-        uniform.dump ();
-    }
-#endif
-
     TProgram program;
     program.addShader (&shader);
 
     if (!program.link (EShMsgDefault)) {
         throw ShaderCompileException (program.getInfoLog ());
     }
+
+    TReflection ref (EShReflectionAllBlockVariables, shaderKind.esh, shaderKind.esh);
+    ref.addStage (shaderKind.esh, *shader.getIntermediate ());
+
+    reflection.samplers = GetSamplers (ref);
+    reflection.ubos     = GetUniformBlocks (ref);
 
     spv::SpvBuildLogger logger;
     glslang::SpvOptions spvOptions;
@@ -198,10 +291,10 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 }
 
 
-static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindInfo& shaderKind)
+static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindInfo& shaderKind, ShaderModule::Reflection& reflection)
 {
     try {
-        return CompileWithGlslangCppInterface (shaderSource, shaderKind);
+        return CompileWithGlslangCppInterface (shaderSource, shaderKind, reflection);
     } catch (ShaderCompileException& ex) {
         std::cout << ex.what () << std::endl;
         throw;
@@ -209,14 +302,14 @@ static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSou
 }
 
 
-static std::optional<std::vector<uint32_t>> CompileShaderFromFile (const std::filesystem::path& fileLocation)
+static std::optional<std::vector<uint32_t>> CompileShaderFromFile (const std::filesystem::path& fileLocation, ShaderModule::Reflection& reflection)
 {
     std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
     if (ERROR (!fileContents.has_value ())) {
         return std::nullopt;
     }
 
-    return CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()));
+    return CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()), reflection);
 }
 
 
@@ -263,24 +356,29 @@ ShaderModule::U ShaderModule::CreateFromSPVFile (VkDevice device, const std::fil
 
 ShaderModule::U ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation)
 {
-    std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation);
+    ShaderModule::Reflection             reflection;
+    std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation, reflection);
     if (ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }
 
     VkShaderModule handle = CreateShaderModule (device, *binary);
 
-    return ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::GLSLFilePath, device, handle, fileLocation, *binary);
+    auto sm        = ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::GLSLFilePath, device, handle, fileLocation, *binary);
+    sm->reflection = reflection;
+    return sm;
 }
-
 
 ShaderModule::U ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource)
 {
-    std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind));
+    ShaderModule::Reflection reflection;
+    std::vector<uint32_t>    binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind), reflection);
 
     VkShaderModule handle = CreateShaderModule (device, binary);
 
-    return ShaderModule::Create (shaderKind, ReadMode::GLSLString, device, handle, "", binary);
+    auto sm        = ShaderModule::Create (shaderKind, ReadMode::GLSLString, device, handle, "", binary);
+    sm->reflection = reflection;
+    return sm;
 }
 
 
@@ -307,7 +405,7 @@ void ShaderModule::Reload ()
     if (readMode == ReadMode::GLSLFilePath) {
         vkDestroyShaderModule (device, handle, nullptr);
 
-        std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation);
+        std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation, reflection);
         if (ERROR (!binary.has_value ())) {
             throw std::runtime_error ("failed to compile shader");
         }
