@@ -20,7 +20,7 @@ private:
 public:
     struct ShaderObject {
         ShaderModule::U shader;
-        ShaderBlocks::U ubos;
+        ShaderBlocks::U ubos; // TODO remove
 
         void Set (ShaderModule::U&& _shader)
         {
