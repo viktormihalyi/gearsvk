@@ -120,7 +120,7 @@ void StimulusRenderer::preRender ()
 
 void StimulusRenderer::renderStimulus (GLuint defaultFrameBuffer, int skippedFrames)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     {
         int err = glGetError ();
@@ -406,7 +406,7 @@ void StimulusRenderer::renderStimulus (GLuint defaultFrameBuffer, int skippedFra
         if (err)
             bool kmaugaz = true;
     }
-    #endif
+#endif
 }
 
 void StimulusRenderer::renderSample (uint sFrame, int left, int top, int width, int height)
@@ -598,9 +598,9 @@ void StimulusRenderer::renderSpatialKernel (float min, float max, float width, f
 void StimulusRenderer::renderSpatialProfile (float min, float max, float width, float height)
 {
     throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
-    /*
+
     if (profileShader == nullptr) {
-        glClear (GL_COLOR_BUFFER_BIT);
+        //    glClear (GL_COLOR_BUFFER_BIT);
         return;
     }
 
@@ -624,7 +624,6 @@ void StimulusRenderer::renderSpatialProfile (float min, float max, float width, 
 
     sequenceRenderer->getNothing ()->renderLineStrip (512);
     profileShader->disable ();
-    */
 }
 
 void StimulusRenderer::reset ()

@@ -67,15 +67,16 @@ int main (int, char**)
         ShadersFolder / "brain.frag",
     });
 
-
     RG::RenderOperation& brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (deviceExtra), sp);
+
 
     // ========================= GRAPH RESOURCES =========================
 
     RG::SwapchainImageResource&    presented = graph.CreateResource<RG::SwapchainImageResource> (swapchain);
     RG::ReadOnlyImageResource&     matcap    = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
     RG::ReadOnlyImageResource&     agy3d     = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
-    RG::UniformReflectionResource& refl      = graph.CreateResource<RG::UniformReflectionResource> (sp);
+    RG::UniformReflectionResource& refl      = graph.CreateResource<RG::UniformReflectionResource> (sp, RG::UniformReflectionResource::Strategy::UniformBlocksOnly);
+
 
     // ========================= GRAPH CONNECTIONS =========================
 
@@ -120,6 +121,8 @@ int main (int, char**)
     }
 
     agy3d.CopyTransitionTransfer (transformedBrainData);
+
+
     // ========================= RENDERING =========================
 
     RG::SynchronizedSwapchainGraphRenderer renderer (graph, swapchain);
@@ -194,9 +197,6 @@ int main (int, char**)
         }
 
         refl.Update (frameIndex);
-
-        //unif.Set (frameIndex, Time);
-        //cameraUniformRes.Set (frameIndex, CameraUniform);
     };
 
     window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] { return quit; }));

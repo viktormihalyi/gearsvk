@@ -7,6 +7,7 @@
 #include "OpenGLProxy.hpp"
 
 #include "VulkanWrapper.hpp"
+#include "Event.hpp"
 
 class UniformBinder {
 public:
@@ -32,6 +33,9 @@ public:
 };
 
 class Shader : public UniformBinder {
+public:
+    static Event<std::string> uniformBoundEvent;
+
 private:
     struct Type {
         std::string path;

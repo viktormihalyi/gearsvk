@@ -8,6 +8,8 @@
 #include "VulkanEnvironment.hpp"
 #include "core/Sequence.h"
 
+#include "gpu/Shader.hpp"
+
 #include <atomic>
 #include <memory>
 #include <set>
@@ -19,17 +21,6 @@ using namespace RG;
 Window::U            window;
 VulkanEnvironment::U env;
 RenderGraph::U       renderGraph;
-
-PersistentString asd ("asd");
-
-struct ASDD {
-    int a;
-    int a2;
-};
-
-Persistent<ASDD>      asd2 ("asd2");
-Persistent<int>       asd3 ("asd3");
-Persistent<glm::vec4> asd4 ("asd4");
 
 
 void InitializeEnvironment ()
@@ -65,18 +56,26 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 
     GraphSettings s (*env->device, *env->graphicsQueue, *env->commandPool, *env->swapchain);
 
-    SwapchainImageResource& presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
-    Resource&               unif      = renderGraph->CreateResource<UniformBlockResource> (8);
-    CPUBufferResource&      cpubuffer = renderGraph->CreateResource<CPUBufferResource> (1024);
+    SwapchainImageResource&    presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
+    UniformReflectionResource& refl      = renderGraph->CreateResource<UniformReflectionResource> (seqpip);
 
     Operation& redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), seqpip));
 
-    renderGraph->CompileResources (s);
-
     renderGraph->CreateOutputConnection (redFillOperation, 0, presented);
-    renderGraph->CreateInputConnection<UniformInputBinding> (redFillOperation, 0, cpubuffer);
+
+    for (uint32_t i = 0; i < refl.uboRes.size (); ++i) {
+        renderGraph->CreateInputConnection<UniformInputBinding> (redFillOperation, refl.bindings[i], *refl.uboRes[i]);
+    }
+
+    for (uint32_t i = 0; i < refl.sampledImages.size (); ++i) {
+        renderGraph->CreateInputConnection<ImageInputBinding> (redFillOperation, refl.samplerBindings[i], *refl.sampledImages[i]);
+    }
 
     renderGraph->Compile (s);
+
+    Shader::uniformBoundEvent += [&] (const std::string& asd) {
+        std::cout << "uniform \"" << asd << "\" bound" << std::endl;
+    };
 }
 
 

@@ -177,6 +177,19 @@ static std::optional<uint32_t> GetSize (const glslang::TType& type)
     return std::nullopt;
 }
 
+static std::optional<SR::Sampler::Type> GetSamplerType (glslang::TSamplerDim glslangType)
+{
+    using namespace glslang;
+
+    switch (glslangType) {
+        case Esd1D: return SR::Sampler::Type::Sampler1D;
+        case Esd2D: return SR::Sampler::Type::Sampler2D;
+        case Esd3D: return SR::Sampler::Type::Sampler3D;
+        case EsdCube: return SR::Sampler::Type::SamplerCube;
+        default: return std::nullopt;
+    }
+}
+
 
 static std::vector<SR::Sampler> GetSamplers (glslang::TReflection& ref)
 {
@@ -190,9 +203,15 @@ static std::vector<SR::Sampler> GetSamplers (glslang::TReflection& ref)
             const TType& type = *uniform.getType ();
             if (type.getBasicType () == EbtSampler) {
                 SR::Sampler s;
-                s.name                   = uniform.name;
-                const TSampler& tsampler = type.getSampler (); // TODO get sampler dimension etc
-                s.binding                = type.getQualifier ().layoutBinding;
+                s.name = uniform.name;
+
+                const std::optional<SR::Sampler::Type> stype = GetSamplerType (type.getSampler ().dim);
+                if (ERROR (!stype.has_value ())) {
+                    continue;
+                }
+                s.type = *stype;
+
+                s.binding = type.getQualifier ().layoutBinding;
                 result.push_back (s);
             }
         }
@@ -224,6 +243,9 @@ static std::vector<SR::UBO> GetUniformBlocks (glslang::TReflection& ref)
                         SR::UBO::Field f;
                         f.name   = s.type->getFieldName ();
                         f.offset = s.type->getQualifier ().layoutOffset;
+                        if (f.offset == UINT32_MAX) {
+                            f.offset = 0;
+                        }
 
                         const std::optional<uint32_t> size = GetSize (*s.type);
                         ASSERT (size.has_value ());

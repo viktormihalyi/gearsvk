@@ -40,8 +40,15 @@ struct UBO {
 
 
 struct Sampler {
+    enum class Type {
+        Sampler1D,
+        Sampler2D,
+        Sampler3D,
+        SamplerCube
+    };
     std::string name;
     uint32_t    binding;
+    Type        type;
 
     bool operator== (const Sampler& other) const
     {

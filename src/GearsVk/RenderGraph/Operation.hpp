@@ -71,12 +71,6 @@ struct GEARSVK_API RenderOperation : public Operation {
 
     virtual void Compile (const GraphSettings&) override;
     virtual void Record (uint32_t imageIndex, VkCommandBuffer commandBuffer) override;
-
-    ShaderBlocks& operator () (ShaderModule::ShaderKind shaderKind)
-    {
-        return *(compileSettings.pipeline->GetShaderByKind (shaderKind).ubos);
-    }
-
 };
 
 } // namespace RG

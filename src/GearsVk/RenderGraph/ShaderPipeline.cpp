@@ -104,23 +104,6 @@ void ShaderPipeline::SetShaderFromSourceString (ShaderModule::ShaderKind shaderK
 }
 
 
-#if 0
-void ShaderPipeline::SetProvidedShader (ShaderModule::ShaderKind shaderKind, std::vector<const ShaderSourceBuilder*> builders, const std::string& source)
-{
-    ASSERT (GetShaderByKind (shaderKind) == nullptr);
-
-    std::string result;
-    for (auto& b : builders) {
-        result += b->GetProvidedShaderSource ();
-    }
-
-    result += source;
-
-    GetShaderByKind (shaderKind) = ShaderModule::CreateFromGLSLString (device, shaderKind, result);
-}
-#endif
-
-
 void ShaderPipeline::SetVertexShaderFromString (const std::string& source)
 {
     SetShaderFromSourceString (ShaderModule::ShaderKind::Vertex, source);
@@ -207,7 +190,7 @@ void ShaderPipeline::Reload ()
 
     MultithreadedFunction reloader (5, [&] (uint32_t, uint32_t threadIndex) {
         ShaderObject& currentShader = GetShaderByIndex (threadIndex);
-        ShaderObject newShader;
+        ShaderObject  newShader;
 
         if (currentShader.shader != nullptr) {
             switch (currentShader.shader->GetReadMode ()) {

@@ -46,11 +46,6 @@ public:
     {
     }
 
-    std::vector<const ShaderSourceBuilder*> GetShaderBuilders ()
-    {
-        return {&vertexBuffer.info};
-    }
-
 private:
     virtual const DrawRecordableInfo& GetDrawRecordableInfo () const override
     {

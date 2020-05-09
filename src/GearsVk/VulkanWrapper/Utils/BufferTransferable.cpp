@@ -92,20 +92,3 @@ static std::string VkFormatToGLSLTypeString (VkFormat format)
             return "vec4";
     }
 }
-
-
-std::string VertexInputInfo::GetProvidedShaderSource () const
-{
-    if (ERROR (!attributeNames.has_value ())) {
-        return "";
-    }
-    if (ERROR (attributeNames->size () != attributes.size ())) {
-        return "";
-    }
-
-    std::string result;
-    for (uint32_t i = 0; i < attributes.size (); ++i) {
-        result += "layout (location = " + std::to_string (attributes[i].location) + ") in " + VkFormatToGLSLTypeString (attributes[i].format) + " " + attributeNames->at (i) + ";\n";
-    }
-    return result;
-}

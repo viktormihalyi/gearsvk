@@ -20,7 +20,6 @@ private:
 public:
     struct ShaderObject {
         ShaderModule::U shader;
-        ShaderBlocks::U ubos; // TODO remove
 
         void Set (ShaderModule::U&& _shader)
         {
@@ -33,6 +32,9 @@ public:
                 ubos->AddBlock (std::move (autoBlock));
             }
         }
+
+    private:
+        ShaderBlocks::U ubos; // TODO remove
     };
 
     ShaderObject vertexShader;
@@ -89,10 +91,6 @@ public:
 
     void SetShaderFromBinaryFile (const std::filesystem::path& shaderPath);
     void SetShadersFromBinaryFiles (const std::vector<std::filesystem::path>& shaderPath);
-
-#if 0
-    void SetProvidedShader (ShaderModule::ShaderKind shaderKind, std::vector<const ShaderSourceBuilder*> builders, const std::string& source);
-#endif
 
     void Compile (const CompileSettings& settings);
 

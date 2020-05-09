@@ -5,7 +5,6 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "ShaderReflection.hpp"
-#include "ShaderSourceBuilder.hpp"
 
 #include <cmath>
 #include <cstdint>
@@ -140,7 +139,7 @@ public:
 };
 
 
-class UniformBlock : public Noncopyable, public ShaderSourceBuilder {
+class UniformBlock : public Noncopyable {
 public:
     const ShaderStruct structType;
 
@@ -214,11 +213,6 @@ public:
     UniformValue operator[] (const std::string& name)
     {
         return {structType.GetSize (name), GetRawPtr (name)};
-    }
-
-    std::string GetProvidedShaderSource () const override
-    {
-        return "layout (std140, binding = " + std::to_string (binding) + ") uniform " + structType.GetName () + " " + variableName + ";";
     }
 };
 

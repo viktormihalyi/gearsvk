@@ -5,13 +5,12 @@
 
 void StimulusWindow::render ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
-#if 0
+    //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 	makeCurrent();
-	glViewport(0, 0, screenw, screenh);
+	//glViewport(0, 0, screenw, screenh);
 
-	glClearColor(0.f, 0.f, 0.f, 1.f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClearColor(0.f, 0.f, 0.f, 1.f);
+	//glClear(GL_COLOR_BUFFER_BIT);
 	if (sequenceRenderer->exporting())
 		setSwapInterval(0);
 	else
@@ -36,8 +35,8 @@ void StimulusWindow::render ()
 	}
 	
 	swapBuffers();
-	glFinish();
-#endif
+	// glFinish();
+
     if (ticker)
         ticker->onBufferSwap ();
 }

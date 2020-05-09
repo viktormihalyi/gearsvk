@@ -240,377 +240,345 @@ void SequenceRenderer::preRender ()
 
 bool SequenceRenderer::renderFrame (GLuint defaultFrameBuffer, unsigned channelIdx)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
-#if 0 
-	typedef std::chrono::high_resolution_clock Clock;
-	typedef std::chrono::duration<float> Fsec;
-	int nSkippedFrames = 0;
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	if(sequence->useHighFreqRender)
-	{
-		glColorMask(_redMaskByIndex[channelIdx], _greenMaskByIndex[channelIdx], _blueMaskByIndex[channelIdx], GL_TRUE);
-	}
+    //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+#if 1
+    typedef std::chrono::high_resolution_clock Clock;
+    typedef std::chrono::duration<float>       Fsec;
+    int                                        nSkippedFrames = 0;
+    //glColorMask (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    //if (sequence->useHighFreqRender) {
+    //    glColorMask (_redMaskByIndex[channelIdx], _greenMaskByIndex[channelIdx], _blueMaskByIndex[channelIdx], GL_TRUE);
+    //}
 
-	//if(iFrame == 182)
-	//	paused = true;
-	if(iFrame >= sequence->getMeasurementStart())
-	{
-		//std::cout << sequence->getMeasurementStart() << ':' << iFrame << '\n';
+    //if(iFrame == 182)
+    //	paused = true;
+    if (iFrame >= sequence->getMeasurementStart ()) {
+        //std::cout << sequence->getMeasurementStart() << ':' << iFrame << '\n';
 
-		if(currentResponse)
-		{
-			if(iFrame > currentResponse->startingFrame + currentResponse->duration)
-			{
-				responseVisible = false;
-				if(currentResponse->loop)
-					iFrame = currentResponse->startingFrame;
-				std::cout << "iFrame:" << iFrame << " response start \n";
-			}
-		}
-		else
-		{
-			Response::CP r = sequence->getResponseAtFrame(iFrame);
-			if(r != nullptr && iFrame < r->startingFrame + r->duration)
-			{
-				currentResponse = r;
-				responseVisible = true;
-				std::cout << "iFrame:" << iFrame << " response end \n";
-			}
-		}
+        if (currentResponse) {
+            if (iFrame > currentResponse->startingFrame + currentResponse->duration) {
+                responseVisible = false;
+                if (currentResponse->loop)
+                    iFrame = currentResponse->startingFrame;
+                std::cout << "iFrame:" << iFrame << " response start \n";
+            }
+        } else {
+            Response::CP r = sequence->getResponseAtFrame (iFrame);
+            if (r != nullptr && iFrame < r->startingFrame + r->duration) {
+                currentResponse = r;
+                responseVisible = true;
+                std::cout << "iFrame:" << iFrame << " response end \n";
+            }
+        }
 
-		if(iFrame == sequence->getMeasurementStart())
-		{
-			firstFrameTimePoint = Clock::now();
-			previousFrameTimePoint = firstFrameTimePoint;
-			cFrame = 1;
-			totalFramesSkipped = 0;
-			skippedFrames.clear();
-		}
-		else if(iFrame > sequence->getMeasurementEnd())
-		{
-		}
-		else if(!calibrating && !randomExportStream.is_open() && !exportingToVideo)
-		{
-			if(channelIdx == 0)
-			{
-				// Calculate how many seconds passed since the last render
-				auto now = Clock::now();
-				Fsec  elapsed = now - firstFrameTimePoint;
-				Fsec  elapsedSinceLastFrame = now - previousFrameTimePoint;
-				previousFrameTimePoint = now;
+        if (iFrame == sequence->getMeasurementStart ()) {
+            firstFrameTimePoint    = Clock::now ();
+            previousFrameTimePoint = firstFrameTimePoint;
+            cFrame                 = 1;
+            totalFramesSkipped     = 0;
+            skippedFrames.clear ();
+        } else if (iFrame > sequence->getMeasurementEnd ()) {
+        } else if (!calibrating && !randomExportStream.is_open () && !exportingToVideo) {
+            if (channelIdx == 0) {
+                // Calculate how many seconds passed since the last render
+                auto now                   = Clock::now ();
+                Fsec elapsed               = now - firstFrameTimePoint;
+                Fsec elapsedSinceLastFrame = now - previousFrameTimePoint;
+                previousFrameTimePoint     = now;
 
-				// Calcultate how many frames we missed, because render has not been called
-				vSyncPeriodsSinceLastFrame = (int)(elapsedSinceLastFrame.count() / sequence->getFrameInterval_s() + 0.5);
-				if(sequence->useHighFreqRender)
-					// If we use high frequency device, than devide with 3, and use in all three channels, 
-					// this way we normalize the time between frames in 1 image
-					vSyncPeriodsSinceLastFrame /= 3;
+                // Calcultate how many frames we missed, because render has not been called
+                vSyncPeriodsSinceLastFrame = (int)(elapsedSinceLastFrame.count () / sequence->getFrameInterval_s () + 0.5);
+                if (sequence->useHighFreqRender)
+                    // If we use high frequency device, than devide with 3, and use in all three channels,
+                    // this way we normalize the time between frames in 1 image
+                    vSyncPeriodsSinceLastFrame /= 3;
+            }
+            // Missed signals for missed frames
+            Sequence::SignalMap::const_iterator iSignal = sequence->getSignals ().lower_bound (iFrame - 1);
+            Sequence::SignalMap::const_iterator eSignal = sequence->getSignals ().upper_bound (iFrame + vSyncPeriodsSinceLastFrame);
+            while (iSignal != eSignal) {
+                if (iSignal->second.clear)
+                    clearSignal (iSignal->second.channel);
+                else
+                    raiseSignal (iSignal->second.channel);
+                iSignal++;
+            }
+            nSkippedFrames = vSyncPeriodsSinceLastFrame - 1; //nem 1, hanem count of frame / swapbuffers
+            if (nSkippedFrames < 0) {
+                //if(!skippedFrames.empty() && skippedFrames.back() == iFrame)
+                //{
+                //	skippedFrames.pop_back();
+                //					}
+                //else
+                skippedFrames.push_back (-(int)iFrame);
+            }
+            totalFramesSkipped += nSkippedFrames;
+            for (uint q = iFrame; q < iFrame + nSkippedFrames; q++)
+                skippedFrames.push_back (q);
+            iFrame += nSkippedFrames;
+            cFrame += vSyncPeriodsSinceLastFrame;
+        }
+    } else {
+        cFrame = 0;
+    }
 
-			}
-			// Missed signals for missed frames
-			Sequence::SignalMap::const_iterator iSignal = sequence->getSignals().lower_bound(iFrame - 1);
-			Sequence::SignalMap::const_iterator eSignal = sequence->getSignals().upper_bound(iFrame + vSyncPeriodsSinceLastFrame);
-			while(iSignal != eSignal)
-			{
-				if(iSignal->second.clear)
-					clearSignal(iSignal->second.channel);
-				else
-					raiseSignal(iSignal->second.channel);
-				iSignal++;
-			}
-			nSkippedFrames = vSyncPeriodsSinceLastFrame - 1; //nem 1, hanem count of frame / swapbuffers
-			if(nSkippedFrames < 0)
-			{
-				//if(!skippedFrames.empty() && skippedFrames.back() == iFrame)
-				//{
-				//	skippedFrames.pop_back();
-				//					}
-				//else
-				skippedFrames.push_back(-(int)iFrame);
-			}
-			totalFramesSkipped += nSkippedFrames;
-			for(uint q = iFrame; q < iFrame + nSkippedFrames; q++)
-				skippedFrames.push_back(q);
-			iFrame += nSkippedFrames;
-			cFrame += vSyncPeriodsSinceLastFrame;
-		}
-	}
-	else
-	{
-		cFrame = 0;
-	}
+    StimulusRendererMap::iterator iStimulusRenderer = stimulusRenderers.lower_bound (iFrame);
+    if (calibrating && iFrame > calibrationStartingFrame + calibrationDuration) {
+        readCalibrationResults ();
+        return false;
+    }
+    if (iStimulusRenderer == stimulusRenderers.end ()) {
+#if 0
+        if (exportingToVideo) {
+            int i = iFrame;
+            for (got_output = 1; got_output; i++) {
+                fflush (stdout);
+                int ret = avcodec_encode_video2 (c, &pkt, NULL, &got_output);
+                if (ret < 0) {
+                    fprintf (stderr, "Error encoding frame\n");
+                    exit (1);
+                }
+                if (got_output) {
+                    printf ("Write frame %3d (size=%5d)\n", i, pkt.size);
+                    fwrite (pkt.data, 1, pkt.size, videoExportFile);
+                    av_free_packet (&pkt);
+                }
+            }
+            /* add sequence end code to have a real mpeg file */
+            uint8_t endcode[] = {0, 0, 1, 0xb7};
+            fwrite (endcode, 1, sizeof (endcode), videoExportFile);
+            fclose (videoExportFile);
+            avcodec_close (c);
+            av_free (c);
+            av_freep (frame->data);
+            av_frame_free (&frame);
+            delete videoExportImage;
+            delete videoExportImageY;
+            delete videoExportImageU;
+            delete videoExportImageV;
+            videoExportImage = nullptr;
+            exportingToVideo = false;
+        }
+        return false;
+#endif
+    }
+    StimulusRenderer::P stimulusRenderer = iStimulusRenderer->second;
+    if (calibrating && iFrame == calibrationStartingFrame)
+        histogramBuffer->clear ();
+    Stimulus::CP stimulus = stimulusRenderer->getStimulus ();
+    if (stimulus->doesDynamicToneMapping) {
+        if (iFrame == stimulus->startingFrame) {
+            histogramBuffer->clear ();
+            calibrationFrameCount = 0;
+        }
+    }
+    stimulusRenderer->renderStimulus (defaultFrameBuffer, nSkippedFrames);
+    if (stimulus->doesDynamicToneMapping && stimulus->toneMappingMode != Stimulus::ToneMappingMode::EQUALIZED)
+        readCalibrationResults ();
 
-	StimulusRendererMap::iterator iStimulusRenderer = stimulusRenderers.lower_bound(iFrame);
-	if(calibrating && iFrame > calibrationStartingFrame + calibrationDuration)
-	{
-		readCalibrationResults();
-		return false;
-	}
-	if(iStimulusRenderer == stimulusRenderers.end())
-	{
-		if(exportingToVideo)
-		{
-			int i = iFrame;
-			for(got_output = 1; got_output; i++) {
-				fflush(stdout);
-				int ret = avcodec_encode_video2(c, &pkt, NULL, &got_output);
-				if(ret < 0) {
-					fprintf(stderr, "Error encoding frame\n");
-					exit(1);
-				}
-				if(got_output) {
-					printf("Write frame %3d (size=%5d)\n", i, pkt.size);
-					fwrite(pkt.data, 1, pkt.size, videoExportFile);
-					av_free_packet(&pkt);
-				}
-			}
-			/* add sequence end code to have a real mpeg file */
-			uint8_t endcode[] = {0, 0, 1, 0xb7};
-			fwrite(endcode, 1, sizeof(endcode), videoExportFile);
-			fclose(videoExportFile);
-			avcodec_close(c);
-			av_free(c);
-			av_freep(frame->data);
-			av_frame_free(&frame);
-			delete videoExportImage;
-			delete videoExportImageY;
-			delete videoExportImageU;
-			delete videoExportImageV;
-			videoExportImage = nullptr;
-			exportingToVideo = false;
-		}
-		return false;
-	}
-	StimulusRenderer::P stimulusRenderer = iStimulusRenderer->second;
-	if(calibrating && iFrame == calibrationStartingFrame)
-		histogramBuffer->clear();
-	Stimulus::CP stimulus = stimulusRenderer->getStimulus();
-	if(stimulus->doesDynamicToneMapping)
-	{
-		if(iFrame == stimulus->startingFrame)
-		{
-			histogramBuffer->clear();
-			calibrationFrameCount = 0;
-		}
-	}
-	stimulusRenderer->renderStimulus(defaultFrameBuffer, nSkippedFrames);
-	if(stimulus->doesDynamicToneMapping &&  stimulus->toneMappingMode != Stimulus::ToneMappingMode::EQUALIZED)
-		readCalibrationResults();
+    if (!paused) {
+        iFrame++;
+        if (sequence->getMaxMemoryLength () > 0)
+            currentSlice = (currentSlice + 1) % sequence->getMaxMemoryLength ();
+    }
 
-	if(!paused)
-	{
-		iFrame++;
-		if(sequence->getMaxMemoryLength() > 0)
-			currentSlice = (currentSlice + 1) % sequence->getMaxMemoryLength();
-	}
+    //glViewport (sequence->fieldLeft_px, sequence->fieldBottom_px, sequence->fieldWidth_px, sequence->fieldHeight_px);
 
-	glViewport(sequence->fieldLeft_px, sequence->fieldBottom_px, sequence->fieldWidth_px, sequence->fieldHeight_px);
+#if 0
+    if (textVisible) {
+        Fsec elapsed = previousFrameTimePoint - firstFrameTimePoint;
+        //elapsed.count() / (cFrame-1.0);
+        std::stringstream ss;
+        ss << "Measured system frame rate [Hz]: " << std::setprecision (4) << (cFrame - 1.0) / elapsed.count ();
+        this->setText ("__GEARS_FPS", ss.str ());
 
-	if(textVisible)
-	{
-		Fsec  elapsed = previousFrameTimePoint - firstFrameTimePoint;
-		//elapsed.count() / (cFrame-1.0);
-		std::stringstream ss;
-		ss << "Measured system frame rate [Hz]: " << std::setprecision(4) << (cFrame - 1.0) / elapsed.count();
-		this->setText("__GEARS_FPS", ss.str());
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glColor3d(1, 0, 0);
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		/*	glBegin(GL_QUADS);
+        glMatrixMode (GL_PROJECTION);
+        glLoadIdentity ();
+        glMatrixMode (GL_MODELVIEW);
+        glLoadIdentity ();
+        glColor3d (1, 0, 0);
+        glDisable (GL_TEXTURE_2D);
+        glDisable (GL_LIGHTING);
+        glDisable (GL_DEPTH_TEST);
+        glEnable (GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        /*	glBegin(GL_QUADS);
 		glVertex2d(1, 1);
 		glVertex2d(1, 0);
 		glVertex2d(0, 0);
 		glVertex2d(0, 1);
 		glEnd();*/
 #ifdef _WIN32
-		// TODO: linux implementation
-		textShader->enable();
-		TexFont* font = fontManager.loadFont("Candara");
-		textShader->bindUniformTexture("glyphTexture", font->getTextureId(), 0);
-		glPushMatrix();
-		glTranslated(-1, 0.9, 0);
-		glScaled(0.002, 0.002, 0.002);
-		bool first = true;
+        // TODO: linux implementation
+        textShader->enable ();
+        TexFont* font = fontManager.loadFont ("Candara");
+        textShader->bindUniformTexture ("glyphTexture", font->getTextureId (), 0);
+        glPushMatrix ();
+        glTranslated (-1, 0.9, 0);
+        glScaled (0.002, 0.002, 0.002);
+        bool first = true;
 
-		Stimulus::CP stim = this->getCurrentStimulus();
-		std::set<std::string> tags = stim->getTags();
+        Stimulus::CP          stim = this->getCurrentStimulus ();
+        std::set<std::string> tags = stim->getTags ();
 
 
-		for(auto label : text)
-		{
-			if(tags.find(label.first) != tags.end() || label.first[0] == '_') {
-				if(first)
-					font->glRenderString(label.second + "\n", "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_OPEN_ONLY);
-				else
-					font->glRenderString(label.second + "\n", "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_CONTINUE);
-				first = false;
-			}
-		}
-		if(!first)
-			glPopMatrix();
-		textShader->disable();
-		glPopMatrix();
+        for (auto label : text) {
+            if (tags.find (label.first) != tags.end () || label.first[0] == '_') {
+                if (first)
+                    font->glRenderString (label.second + "\n", "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_OPEN_ONLY);
+                else
+                    font->glRenderString (label.second + "\n", "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_CONTINUE);
+                first = false;
+            }
+        }
+        if (!first)
+            glPopMatrix ();
+        textShader->disable ();
+        glPopMatrix ();
 #endif
-		glDisable(GL_BLEND);
-	}
-
-	if(currentResponse)
-	{
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glColor3d(1, 0, 0);
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable (GL_BLEND);
+    }
+    if (currentResponse) {
+        glMatrixMode (GL_PROJECTION);
+        glLoadIdentity ();
+        glMatrixMode (GL_MODELVIEW);
+        glLoadIdentity ();
+        glColor3d (1, 0, 0);
+        glDisable (GL_TEXTURE_2D);
+        glDisable (GL_LIGHTING);
+        glDisable (GL_DEPTH_TEST);
+        glEnable (GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 #ifdef _WIN32
-		// TODO: linux implementation
-		TexFont* font = fontManager.loadFont("Candara");
-		textShader->bindUniformTexture("glyphTexture", font->getTextureId(), 0);
-		glPushMatrix();
-		glTranslated(-1, 0.9, 0);
-		glScaled(0.002, 0.002, 0.002);
-		font->glRenderString(currentResponse->question + "\n", "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_OPEN_AND_CLOSE);
-		glPopMatrix();
+        // TODO: linux implementation
+        TexFont* font = fontManager.loadFont ("Candara");
+        textShader->bindUniformTexture ("glyphTexture", font->getTextureId (), 0);
+        glPushMatrix ();
+        glTranslated (-1, 0.9, 0);
+        glScaled (0.002, 0.002, 0.002);
+        font->glRenderString (currentResponse->question + "\n", "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_OPEN_AND_CLOSE);
+        glPopMatrix ();
 #endif
 
-		glPushMatrix();
-		glOrtho(-0.5 * sequence->fieldWidth_um,
-			0.5 * sequence->fieldWidth_um,
-			-0.5 * sequence->fieldHeight_um,
-			0.5 * sequence->fieldHeight_um,
-			0, 1
-		);
-		for(auto& button : currentResponse->buttons)
-		{
-			if(button.visible) {
-				glPushMatrix();
-				glTranslated(button.xcoord, button.ycoord, 0);
-				glColor3d(1, 0, 0);
-				glBegin(GL_QUADS);
-				glVertex2d(button.width * 0.5, button.height * 0.5);
-				glVertex2d(button.width * 0.5, -button.height * 0.5);
-				glVertex2d(-button.width * 0.5, -button.height * 0.5);
-				glVertex2d(-button.width * 0.5, +button.height * 0.5);
-				glEnd();
-				glScaled(3, 3, 3);
-				glColor3d(0, 1, 0);
+        glPushMatrix ();
+        glOrtho (-0.5 * sequence->fieldWidth_um,
+                 0.5 * sequence->fieldWidth_um,
+                 -0.5 * sequence->fieldHeight_um,
+                 0.5 * sequence->fieldHeight_um,
+                 0, 1);
+        for (auto& button : currentResponse->buttons) {
+            if (button.visible) {
+                glPushMatrix ();
+                glTranslated (button.xcoord, button.ycoord, 0);
+                glColor3d (1, 0, 0);
+                glBegin (GL_QUADS);
+                glVertex2d (button.width * 0.5, button.height * 0.5);
+                glVertex2d (button.width * 0.5, -button.height * 0.5);
+                glVertex2d (-button.width * 0.5, -button.height * 0.5);
+                glVertex2d (-button.width * 0.5, +button.height * 0.5);
+                glEnd ();
+                glScaled (3, 3, 3);
+                glColor3d (0, 1, 0);
 #ifdef __WIN32
-				// TODO: linux implementaion
-				glm::vec3 extent = font->getTextExtent(button.label + "\n", "Candara", false, false);
-				glTranslated(-extent.x*0.5, -extent.y*0.5 - extent.z, 0);
-				font->glRenderString(button.label + "\n", "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_OPEN_AND_CLOSE);
+                // TODO: linux implementaion
+                glm::vec3 extent = font->getTextExtent (button.label + "\n", "Candara", false, false);
+                glTranslated (-extent.x * 0.5, -extent.y * 0.5 - extent.z, 0);
+                font->glRenderString (button.label + "\n", "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_OPEN_AND_CLOSE);
 #endif
-				glPopMatrix();
-			}
-		}
-		glPopMatrix();
+                glPopMatrix ();
+            }
+        }
+        glPopMatrix ();
 
-		textShader->disable();
-		glPopMatrix();
-		glDisable(GL_BLEND);
-	}
+        textShader->disable ();
+        glPopMatrix ();
+        glDisable (GL_BLEND);
+    }
 
-	if(exportingToVideo)
-	{
-		showVideoFrame->enable();
-		showVideoFrame->bindUniformTexture("rgb", videoExportImage->getColorBuffer(0), 0);
-		getNothing()->renderQuad();
-		showVideoFrame->disable();
+    if (exportingToVideo) {
+        showVideoFrame->enable ();
+        showVideoFrame->bindUniformTexture ("rgb", videoExportImage->getColorBuffer (0), 0);
+        getNothing ()->renderQuad ();
+        showVideoFrame->disable ();
 
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glColor3d(1, 0, 0);
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glMatrixMode (GL_PROJECTION);
+        glLoadIdentity ();
+        glMatrixMode (GL_MODELVIEW);
+        glLoadIdentity ();
+        glColor3d (1, 0, 0);
+        glDisable (GL_TEXTURE_2D);
+        glDisable (GL_LIGHTING);
+        glDisable (GL_DEPTH_TEST);
+        glEnable (GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 #ifdef __WIN32
-		// TODO: linux implementaion
-		textShader->enable();
-		TexFont* font = fontManager.loadFont("Candara");
-		textShader->bindUniformTexture("glyphTexture", font->getTextureId(), 0);
-		glPushMatrix();
-		glTranslated(-1, 0.9, 0);
-		glScaled(0.002, 0.002, 0.002);
+        // TODO: linux implementaion
+        textShader->enable ();
+        TexFont* font = fontManager.loadFont ("Candara");
+        textShader->bindUniformTexture ("glyphTexture", font->getTextureId (), 0);
+        glPushMatrix ();
+        glTranslated (-1, 0.9, 0);
+        glScaled (0.002, 0.002, 0.002);
 
-		font->glRenderString("Exporting video (Frame " + std::to_string(iFrame) + "/" + std::to_string(sequence->getDuration()) + ")", "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_OPEN_AND_CLOSE);
-		textShader->disable();
-		glPopMatrix();
+        font->glRenderString ("Exporting video (Frame " + std::to_string (iFrame) + "/" + std::to_string (sequence->getDuration ()) + ")", "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_OPEN_AND_CLOSE);
+        textShader->disable ();
+        glPopMatrix ();
 #endif
-		glDisable(GL_BLEND);
-
-	}
-	if(calibrating)
-	{
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glColor3d(0, 0, 0);
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable (GL_BLEND);
+    }
+    if (calibrating) {
+        glMatrixMode (GL_PROJECTION);
+        glLoadIdentity ();
+        glMatrixMode (GL_MODELVIEW);
+        glLoadIdentity ();
+        glColor3d (0, 0, 0);
+        glDisable (GL_TEXTURE_2D);
+        glDisable (GL_LIGHTING);
+        glDisable (GL_DEPTH_TEST);
+        glEnable (GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 #ifdef __WIN32
-		// TODO: linux implementaion
-		textShader->enable();
-		TexFont* font = fontManager.loadFont("Candara");
-		textShader->bindUniformTexture("glyphTexture", font->getTextureId(), 0);
-		for(int i = 0; i <= histogramMax - histogramMin; i++)
-		{
-			int v = i + histogramMin;
-			float p = (v - histogramMin) / (histogramMax - histogramMin) * 2.0f / 1.1f - 0.909f;
-			glPushMatrix();
-			glTranslated(p, -0.8, 0);
-			glScaled(0.004, 0.004, 0.004);
-			font->glRenderString(std::to_string(v), "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_OPEN_AND_CLOSE);
+        // TODO: linux implementaion
+        textShader->enable ();
+        TexFont* font = fontManager.loadFont ("Candara");
+        textShader->bindUniformTexture ("glyphTexture", font->getTextureId (), 0);
+        for (int i = 0; i <= histogramMax - histogramMin; i++) {
+            int   v = i + histogramMin;
+            float p = (v - histogramMin) / (histogramMax - histogramMin) * 2.0f / 1.1f - 0.909f;
+            glPushMatrix ();
+            glTranslated (p, -0.8, 0);
+            glScaled (0.004, 0.004, 0.004);
+            font->glRenderString (std::to_string (v), "Candara", false, false, false, false, 0xefffffff, TEXFONT_MODE_OPEN_AND_CLOSE);
 
-			glPopMatrix();
-		}
-		textShader->disable();
+            glPopMatrix ();
+        }
+        textShader->disable ();
 #endif
-		glDisable(GL_BLEND);
+        glDisable (GL_BLEND);
 
 
-		glEnable(GL_LINE_STIPPLE);
-		glLineWidth(2);
-		glLineStipple(1, 0xcccc);
-		glColor3d(0.6, 0.6, 0.6);
-		for(int i = 0; i <= histogramMax - histogramMin; i++)
-		{
-			int v = i + (int)histogramMin;
-			float p = (v - histogramMin) / (histogramMax - histogramMin) * 2.0f / 1.1f - 0.909f;
-			glPushMatrix();
-			glTranslated(p, 0, 0);
+        glEnable (GL_LINE_STIPPLE);
+        glLineWidth (2);
+        glLineStipple (1, 0xcccc);
+        glColor3d (0.6, 0.6, 0.6);
+        for (int i = 0; i <= histogramMax - histogramMin; i++) {
+            int   v = i + (int)histogramMin;
+            float p = (v - histogramMin) / (histogramMax - histogramMin) * 2.0f / 1.1f - 0.909f;
+            glPushMatrix ();
+            glTranslated (p, 0, 0);
 
-			glBegin(GL_LINES);
-			glVertex2d(0, -10000000);
-			glVertex2d(0, +10000000);
-			glEnd();
-			glPopMatrix();
-		}
-		glDisable(GL_LINE_STIPPLE);
+            glBegin (GL_LINES);
+            glVertex2d (0, -10000000);
+            glVertex2d (0, +10000000);
+            glEnd ();
+            glPopMatrix ();
+        }
+        glDisable (GL_LINE_STIPPLE);
+    }
 
-	}
-
-	return true;
+    return true;
+#endif
 #endif
 }
 

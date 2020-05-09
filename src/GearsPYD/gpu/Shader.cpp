@@ -9,6 +9,8 @@
 
 constexpr bool LogShaderCreation = false;
 
+Event<std::string> Shader::uniformBoundEvent;
+
 
 static bool Contains (const std::string& str, const std::string& substring)
 {
@@ -343,6 +345,7 @@ void Shader::disable ()
 
 void Shader::bindUniformBool (const char* name, bool b)
 {
+    uniformBoundEvent (name);
     // throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint boolLocation = glGetUniformLocation (shaderProgram, name);
     //glUniform1f (boolLocation, b);
@@ -350,6 +353,7 @@ void Shader::bindUniformBool (const char* name, bool b)
 
 void Shader::bindUniformUint (const char* name, GLuint i)
 {
+    uniformBoundEvent (name);
     // throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint vectorLocation = glGetUniformLocation (shaderProgram, name);
     //glUniform1ui (vectorLocation, i);
@@ -357,6 +361,7 @@ void Shader::bindUniformUint (const char* name, GLuint i)
 
 void Shader::bindUniformUint2 (const char* name, GLuint i, GLuint j)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint vectorLocation = glGetUniformLocation (shaderProgram, name);
     //glUniform2ui (vectorLocation, i, j);
@@ -364,6 +369,7 @@ void Shader::bindUniformUint2 (const char* name, GLuint i, GLuint j)
 
 void Shader::bindUniformInt (const char* name, int i)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint vectorLocation = glGetUniformLocation (shaderProgram, name);
     //glUniform1i (vectorLocation, i);
@@ -371,6 +377,7 @@ void Shader::bindUniformInt (const char* name, int i)
 
 void Shader::bindUniformInt2 (const char* name, int i1, int i2)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint vectorLocation = glGetUniformLocation (shaderProgram, name);
     //glUniform2i (vectorLocation, i1, i2);
@@ -378,6 +385,7 @@ void Shader::bindUniformInt2 (const char* name, int i1, int i2)
 
 void Shader::bindUniformFloat (const char* name, float f)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //if (location != -1)
@@ -386,6 +394,7 @@ void Shader::bindUniformFloat (const char* name, float f)
 
 void Shader::bindUniformFloat2 (const char* name, float f1, float f2)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
     GLuint location = glGetUniformLocation (shaderProgram, name);
@@ -399,6 +408,7 @@ void Shader::bindUniformFloat2 (const char* name, float f1, float f2)
 
 void Shader::bindUniformFloat3 (const char* name, float f1, float f2, float f3)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //if (location != -1)
@@ -407,6 +417,7 @@ void Shader::bindUniformFloat3 (const char* name, float f1, float f2, float f3)
 
 void Shader::bindUniformTexture (const char* name, GLuint texture, GLuint unit)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glActiveTexture (GL_TEXTURE0 + unit);
@@ -416,6 +427,7 @@ void Shader::bindUniformTexture (const char* name, GLuint texture, GLuint unit)
 
 void Shader::bindUniformTexture1D (const char* name, GLuint texture, GLuint unit)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glActiveTexture (GL_TEXTURE0 + unit);
@@ -425,6 +437,7 @@ void Shader::bindUniformTexture1D (const char* name, GLuint texture, GLuint unit
 
 void Shader::bindUniformTextureRect (const char* name, GLuint texture, GLuint unit)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glActiveTexture (GL_TEXTURE0 + unit);
@@ -434,6 +447,7 @@ void Shader::bindUniformTextureRect (const char* name, GLuint texture, GLuint un
 
 void Shader::bindUniformTextureArray (const char* name, GLuint texture, GLuint unit)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glActiveTexture (GL_TEXTURE0 + unit);
@@ -443,6 +457,7 @@ void Shader::bindUniformTextureArray (const char* name, GLuint texture, GLuint u
 
 void Shader::bindAttribLocation (GLuint id, const char* name)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //glEnableVertexAttribArray (id);
     //glBindAttribLocation (shaderProgram, id, name);
@@ -450,6 +465,7 @@ void Shader::bindAttribLocation (GLuint id, const char* name)
 
 void Shader::bindUniformMatrix (const char* name, const float* m, unsigned int arraySize)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glUniformMatrix4fv (location, arraySize, false, m);
@@ -457,6 +473,7 @@ void Shader::bindUniformMatrix (const char* name, const float* m, unsigned int a
 
 void Shader::bindUniformVector (const char* name, const float* m, unsigned int arraySize)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glUniform3fv (location, arraySize, m);
@@ -464,6 +481,7 @@ void Shader::bindUniformVector (const char* name, const float* m, unsigned int a
 
 void Shader::bindUniformFloat4Array (const char* name, const float* m, unsigned int arraySize)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glUniform4fv (location, arraySize, m);
@@ -471,6 +489,7 @@ void Shader::bindUniformFloat4Array (const char* name, const float* m, unsigned 
 
 void Shader::bindUniformFloatArray (const char* name, const float* m, unsigned int arraySize)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glUniform1fv (location, arraySize, m);
@@ -478,6 +497,7 @@ void Shader::bindUniformFloatArray (const char* name, const float* m, unsigned i
 
 void Shader::bindUniformIntArray (const char* name, const int* iv, unsigned int arraySize)
 {
+    uniformBoundEvent (name);
     //throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     //GLuint location = glGetUniformLocation (shaderProgram, name);
     //glUniform1iv (location, arraySize, iv);

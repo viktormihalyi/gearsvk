@@ -9,7 +9,6 @@
 #include "DeviceMemory.hpp"
 #include "Image.hpp"
 #include "MemoryMapping.hpp"
-#include "ShaderSourceBuilder.hpp"
 #include "SingleTimeCommand.hpp"
 #include "VulkanUtils.hpp"
 
@@ -159,7 +158,7 @@ public:
 };
 
 
-class GEARSVK_API VertexInputInfo final : public ShaderSourceBuilder {
+class GEARSVK_API VertexInputInfo final {
 public:
     uint32_t                                       size;
     std::vector<VkVertexInputAttributeDescription> attributes;
@@ -167,8 +166,6 @@ public:
     std::optional<std::vector<std::string>>        attributeNames;
 
     VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats, const std::optional<std::vector<std::string>>& attributeNames = std::nullopt);
-
-    std::string GetProvidedShaderSource () const override;
 };
 
 

@@ -325,7 +325,17 @@ public:
     std::vector<uint32_t>                bindings;
     std::vector<UniformBlock::P>         dataBlocks;
 
-    UniformReflectionResource (ShaderPipeline::P& pipeline)
+    std::vector<ReadOnlyImageResource::U> sampledImages;
+    std::vector<uint32_t>                 samplerBindings;
+
+    enum class Strategy {
+        All,
+        UniformBlocksOnly,
+        SamplersOnly,
+    };
+
+
+    UniformReflectionResource (ShaderPipeline::P& pipeline, Strategy s = Strategy::All)
         : pipeline (pipeline)
     {
         vertUbos.Clear ();
@@ -334,18 +344,36 @@ public:
 
         auto GatherFor = [&] (const ShaderModule::U& sm, ShaderBlocks& out) {
             if (sm != nullptr) {
-                ShaderBlocks newblocks;
-                for (const auto& s : sm->GetReflection ().ubos) {
-                    const ShaderStruct autoStruct (s);
+                if (s == Strategy::All || s == Strategy::UniformBlocksOnly) {
+                    ShaderBlocks newblocks;
+                    for (const auto& s : sm->GetReflection ().ubos) {
+                        const ShaderStruct autoStruct (s);
 
-                    auto c = UniformBlockResource::Create (autoStruct);
+                        auto c = UniformBlockResource::Create (autoStruct);
 
-                    UniformBlock::P autoBlock = UniformBlock::CreateShared (s.binding, s.name, autoStruct);
+                        UniformBlock::P autoBlock = UniformBlock::CreateShared (s.binding, s.name, autoStruct);
 
-                    dataBlocks.push_back (autoBlock);
-                    bindings.push_back (s.binding);
-                    uboRes.push_back (std::move (c));
-                    out.AddBlock (autoBlock);
+                        dataBlocks.push_back (autoBlock);
+                        bindings.push_back (s.binding);
+                        uboRes.push_back (std::move (c));
+                        out.AddBlock (autoBlock);
+                    }
+                }
+
+                if (s == Strategy::All || s == Strategy::SamplersOnly) {
+                    for (const auto& s : sm->GetReflection ().samplers) {
+                        samplerBindings.push_back (s.binding);
+                        if (s.type == SR::Sampler::Type::Sampler1D) {
+                            sampledImages.push_back (ReadOnlyImageResource::Create (VK_FORMAT_R8G8B8A8_SRGB, 512));
+                        } else if (s.type == SR::Sampler::Type::Sampler2D) {
+                            sampledImages.push_back (ReadOnlyImageResource::Create (VK_FORMAT_R8G8B8A8_SRGB, 512, 512));
+                        } else if (s.type == SR::Sampler::Type::Sampler3D) {
+                            ASSERT (false);
+                            sampledImages.push_back (ReadOnlyImageResource::Create (VK_FORMAT_R8_SRGB, 512, 512, 512));
+                        } else {
+                            ASSERT (false);
+                        }
+                    }
                 }
             }
         };
@@ -363,6 +391,9 @@ public:
     virtual void Compile (const GraphSettings& settings)
     {
         for (auto& res : uboRes) {
+            res->Compile (settings);
+        }
+        for (auto& res : sampledImages) {
             res->Compile (settings);
         }
     }
