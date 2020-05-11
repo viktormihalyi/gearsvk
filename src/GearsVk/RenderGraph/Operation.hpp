@@ -10,21 +10,20 @@
 
 #include "Connections.hpp"
 #include "DrawRecordable.hpp"
+#include "Node.hpp"
 #include "Resource.hpp"
 
+#include <vector>
 
 namespace RG {
 
-struct GEARSVK_API Operation : public Noncopyable {
+struct GEARSVK_API Operation : public Node {
     USING_PTR_ABSTRACT (Operation);
 
-    std::vector<Resource::Ref> inputs;
-    std::vector<Resource::Ref> outputs;
+    std::vector<InputBinding::U> inputBindings;
+    std::vector<OutputBinding>   outputBindings;
 
-    std::vector<IInputBinding::U> newInputBindings;
-    std::vector<OutputBinding>    outputBindings;
-
-    virtual ~Operation () {}
+    virtual ~Operation () = default;
 
     virtual void Compile (const GraphSettings&)                              = 0;
     virtual void Record (uint32_t frameIndex, VkCommandBuffer commandBuffer) = 0;

@@ -7,9 +7,9 @@
 
 namespace RG {
 
-class IInputBinding {
+class InputBinding {
 public:
-    USING_PTR_ABSTRACT (IInputBinding);
+    USING_PTR_ABSTRACT (InputBinding);
     virtual uint32_t           GetBinding () = 0;
     virtual VkDescriptorType   GetType ()    = 0;
     virtual uint32_t           GetOffset ()  = 0;
@@ -54,7 +54,7 @@ public:
 };
 
 
-class UniformInputBinding : public IInputBinding {
+class UniformInputBinding : public InputBinding {
 public:
     USING_PTR (UniformInputBinding);
 
@@ -99,7 +99,7 @@ public:
 };
 
 
-class ImageInputBinding : public IInputBinding {
+class ImageInputBinding : public InputBinding {
 public:
     USING_PTR (ImageInputBinding);
 
@@ -133,7 +133,7 @@ public:
 };
 
 
-struct UniformReflectionBinding : public IInputBinding {
+struct UniformReflectionBinding : public InputBinding {
 };
 
 

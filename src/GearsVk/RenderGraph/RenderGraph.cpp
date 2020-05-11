@@ -67,12 +67,69 @@ void RenderGraph::Recompile (uint32_t commandBufferIndex)
 }
 
 
+std::set<Operation*> RenderGraph::GetNextOperations (const std::set<Operation*>& lastOperations) const
+{
+    std::set<Operation*> result;
+
+    for (auto& op : lastOperations) {
+        for (auto& res : op->GetPointingTo<Resource> ()) {
+            for (auto& nextOp : res->GetPointingTo<Operation> ()) {
+                result.insert (nextOp);
+            }
+        }
+    }
+
+    return result;
+}
+
+
+std::set<Operation*> RenderGraph::GetFirstPassOperations () const
+{
+    std::set<Operation*> result;
+
+    for (auto& op : operations) {
+        const std::vector<Resource*> opInputs = op->GetPointingHere<Resource> ();
+
+        const bool allInputsAreFirstWrittenByThisOp = std::all_of (opInputs.begin (), opInputs.end (), [] (Resource* res) {
+            return !res->HasPointingHere ();
+        });
+
+        if (allInputsAreFirstWrittenByThisOp || opInputs.empty ()) {
+            result.insert (op.get ());
+        }
+    }
+    return result;
+}
+
+
+std::vector<std::set<Operation*>> RenderGraph::GetPasses () const
+{
+    std::vector<std::set<Operation*>> result;
+
+    std::set<Operation*> initialOperations = GetFirstPassOperations ();
+    if (initialOperations.empty ()) {
+        throw std::runtime_error ("bad graph layout");
+    }
+    result.push_back (initialOperations);
+
+    std::set<Operation*> nextOperations = GetFirstPassOperations ();
+    while (!nextOperations.empty ()) {
+        result.push_back (nextOperations);
+        nextOperations = GetNextOperations (nextOperations);
+    }
+
+    return result;
+}
+
+
 void RenderGraph::Compile (const GraphSettings& settings)
 {
     compileSettings = settings;
 
     settings.GetDevice ().Wait ();
     vkQueueWaitIdle (settings.queue);
+
+    auto passes = GetPasses ();
 
     try {
         CompileResources (settings);
@@ -89,28 +146,28 @@ void RenderGraph::Compile (const GraphSettings& settings)
 
         for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
             uint32_t opIndex = 0;
-            for (auto& op : operations) {
+
+            for (const std::set<Operation*>& pass : passes) {
                 CommandBuffer& currentCommandBuffer = newCR->GetCommandBufferToRecord (frameIndex, opIndex);
 
-                for (Resource& inputResource : op->inputs) {
-                    if (auto imgRes = dynamic_cast<ImageResource*> (&inputResource)) {
-                        imgRes->BindRead (frameIndex, currentCommandBuffer);
+                for (Operation* op : pass) {
+                    for (Resource* inputResource : op->GetPointingHere<Resource> ()) {
+                        if (auto imgRes = dynamic_cast<ImageResource*> (inputResource)) {
+                            imgRes->BindRead (frameIndex, currentCommandBuffer);
+                        }
                     }
-                }
-                for (Resource& outputResource : op->outputs) {
-                    if (auto imgRes = dynamic_cast<ImageResource*> (&outputResource)) {
-                        imgRes->BindWrite (frameIndex, currentCommandBuffer);
+                    for (Resource* outputResource : op->GetPointingTo<Resource> ()) {
+                        if (auto imgRes = dynamic_cast<ImageResource*> (outputResource)) {
+                            imgRes->BindWrite (frameIndex, currentCommandBuffer);
+                        }
                     }
+                    op->Record (frameIndex, currentCommandBuffer);
                 }
 
-                op->Record (frameIndex, currentCommandBuffer);
-
-                if (&op != &operations.back ()) {
-                    currentCommandBuffer.CmdPipelineBarrier (
-                        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // srcStageMask
-                        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT     // dstStageMask
-                    );
-                }
+                currentCommandBuffer.CmdPipelineBarrier (
+                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // srcStageMask
+                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT     // dstStageMask
+                );
 
                 ++opIndex;
             }
@@ -133,6 +190,7 @@ void RenderGraph::CreateOutputConnection (Operation& operation, uint32_t binding
 {
     compiled = false;
 
+    operation.AddConnectionTo (resource);
     operation.AddOutput (binding, resource);
 }
 

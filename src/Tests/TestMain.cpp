@@ -366,7 +366,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, SwapchainTest)
     GraphSettings s (device, graphicsQueue, commandPool, swapchain);
     RenderGraph   graph (device, commandPool);
 
-    auto sp = ShaderPipeline::Create (device);
+    auto sp = ShaderPipeline::CreateShared (device);
     sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -417,8 +417,7 @@ void main () {
     ImageResource& presentedCopy = graph.CreateResource<WritableImageResource> ();
     ImageResource& presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
 
-    Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),
-                                                                               std::move (sp)));
+    Operation& redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
 
     graph.CreateOutputConnection (redFillOperation, 0, presented);
     graph.CreateOutputConnection (redFillOperation, 1, presentedCopy);

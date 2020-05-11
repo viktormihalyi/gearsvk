@@ -262,8 +262,8 @@ public:
     {
         compiled = false;
 
-        op.inputs.push_back (res);
-        op.newInputBindings.push_back (std::move (ConnectionType::Create (binding, res, std::forward<ARGS> (args)...)));
+        res.AddConnectionTo (op);
+        op.inputBindings.push_back (std::move (ConnectionType::Create (binding, res, std::forward<ARGS> (args)...)));
     }
 
     void CreateOutputConnection (Operation& operation, uint32_t binding, ImageResource& resource);
@@ -280,6 +280,11 @@ public:
     }
 
     const GraphSettings& GetGraphSettings () const { return compileSettings; }
+
+private:
+    std::set<Operation*>              GetNextOperations (const std::set<Operation*>& lastOperations) const;
+    std::set<Operation*>              GetFirstPassOperations () const;
+    std::vector<std::set<Operation*>> GetPasses () const;
 };
 
 

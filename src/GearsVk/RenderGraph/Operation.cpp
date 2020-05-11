@@ -8,8 +8,6 @@ void Operation::AddOutput (const uint32_t binding, const ImageResource::Ref& res
 {
     ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
 
-    outputs.push_back (res.get ());
-
     for (uint32_t bindingIndex = binding; bindingIndex < binding + res.get ().GetDescriptorCount (); ++bindingIndex) {
         outputBindings.push_back (OutputBinding (bindingIndex, res.get ().GetFormat (), res.get ().GetFinalLayout ()));
     }
@@ -52,7 +50,7 @@ std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) co
         result.push_back (*res.imageViews[frameIndex]);
     };
 
-    v.VisitAll (outputs);
+    v.VisitAll (GetPointingTo<Resource> ());
 
     return result;
 }
@@ -68,13 +66,13 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
     compileResult.Clear ();
 
     std::vector<VkDescriptorSetLayoutBinding> layout;
-    for (auto& ii : newInputBindings) {
+    for (auto& ii : inputBindings) {
         layout.push_back (ii->ToDescriptorSetLayoutBinding ());
     }
 
     compileResult.descriptorSetLayout = DescriptorSetLayout::Create (graphSettings.GetDevice (), layout);
 
-    const uint32_t s = newInputBindings.size () * graphSettings.framesInFlight;
+    const uint32_t s = inputBindings.size () * graphSettings.framesInFlight;
 
     if (s > 0) {
         compileResult.descriptorPool = DescriptorPool::Create (graphSettings.GetDevice (), s, s, graphSettings.framesInFlight);
@@ -82,7 +80,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
             DescriptorSet::U descriptorSet = DescriptorSet::Create (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
-            for (auto& ii : newInputBindings) {
+            for (auto& ii : inputBindings) {
                 ii->WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);
             }
 
@@ -90,19 +88,21 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
         }
     }
 
-    ASSERT ([&] () -> bool {
-        ASSERT (GetAttachmentReferences ().size () == GetAttachmentDescriptions ().size ());
+    const auto attachmentReferences   = GetAttachmentReferences ();
+    const auto attachmentDescriptions = GetAttachmentDescriptions ();
+
+    if constexpr (IsDebugBuild) {
+        ASSERT (attachmentReferences.size () == attachmentDescriptions.size ());
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            ASSERT (GetAttachmentReferences ().size () == GetOutputImageViews (frameIndex).size ());
+            ASSERT (attachmentReferences.size () == GetOutputImageViews (frameIndex).size ());
         }
-        return true;
-    }());
+    }
 
     compileSettings.pipeline->Compile ({graphSettings.width,
                                         graphSettings.height,
                                         *compileResult.descriptorSetLayout,
-                                        GetAttachmentReferences (),
-                                        GetAttachmentDescriptions (),
+                                        attachmentReferences,
+                                        attachmentDescriptions,
                                         compileSettings.drawRecordable->GetBindings (),
                                         compileSettings.drawRecordable->GetAttributes ()});
 

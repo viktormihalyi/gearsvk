@@ -12,12 +12,14 @@
 #include "Connections.hpp"
 #include "GraphSettings.hpp"
 #include "InputBindable.hpp"
+#include "Node.hpp"
 #include "UniformBlock.hpp"
 
 
 namespace RG {
 
-class GEARSVK_API Resource : public Noncopyable {
+
+class GEARSVK_API Resource : public Node {
 public:
     USING_PTR_ABSTRACT (Resource);
 
@@ -44,13 +46,14 @@ class GEARSVK_API OneTimeCompileResource : public ImageResource {
 private:
     bool compiled;
 
-public:
-    USING_PTR_ABSTRACT (OneTimeCompileResource);
-
+protected:
     OneTimeCompileResource ()
         : compiled (false)
     {
     }
+
+public:
+    USING_PTR_ABSTRACT (OneTimeCompileResource);
 
     virtual ~OneTimeCompileResource () = default;
 
@@ -257,13 +260,14 @@ public:
     std::vector<AllocatedBuffer::U> buffers;
     std::vector<MemoryMapping::U>   mappings;
 
-public:
-    USING_PTR (CPUBufferResource);
-
+protected:
     CPUBufferResource (uint32_t size)
         : size (size)
     {
     }
+
+public:
+    USING_PTR (CPUBufferResource);
 
     virtual ~CPUBufferResource () = default;
 
@@ -342,6 +346,8 @@ public:
         uboRes.clear ();
         dataBlocks.clear ();
 
+        // TODO move this logic and the input binding connection stuff to a seperate class
+
         auto GatherFor = [&] (const ShaderModule::U& sm, ShaderBlocks& out) {
             if (sm != nullptr) {
                 if (s == Strategy::All || s == Strategy::UniformBlocksOnly) {
@@ -409,13 +415,18 @@ public:
 
 class GEARSVK_API ResourceVisitor final {
 public:
-    Event<WritableImageResource&>  onWritableImage;
-    Event<ReadOnlyImageResource&>  onReadOnlyImage;
-    Event<SwapchainImageResource&> onSwapchainImage;
-    Event<UniformBlockResource&>   onUniformBlock;
-    Event<CPUBufferResource&>      onCPUBuffer;
+    Event<WritableImageResource&>     onWritableImage;
+    Event<ReadOnlyImageResource&>     onReadOnlyImage;
+    Event<SwapchainImageResource&>    onSwapchainImage;
+    Event<UniformBlockResource&>      onUniformBlock;
+    Event<UniformReflectionResource&> onUniformReflection;
 
     void Visit (Resource& res);
+
+    void Visit (Resource* res)
+    {
+        Visit (*res);
+    }
 
     template<typename Resources>
     void VisitAll (const Resources& resources)
