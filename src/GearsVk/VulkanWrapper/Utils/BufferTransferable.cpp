@@ -35,16 +35,6 @@ static ShaderType GetShaderTypeFromFormat (VkFormat format)
 }
 
 
-static uint32_t GetAlignedBlockSize (const std::vector<VkFormat>& formats)
-{
-    uint32_t size = 0;
-    for (auto& a : formats) {
-        size += GetShaderTypeFromFormat (a).alignment;
-    }
-    return size;
-}
-
-
 VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats, const std::optional<std::vector<std::string>>& attributeNames)
     : size (0)
     , attributeNames (attributeNames)
@@ -76,19 +66,4 @@ VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormat
     bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     bindings = {bindingDescription};
-}
-
-
-static std::string VkFormatToGLSLTypeString (VkFormat format)
-{
-    switch (format) {
-        case VK_FORMAT_R32_SFLOAT: return "float";
-        case VK_FORMAT_R32G32_SFLOAT: return "vec2";
-        case VK_FORMAT_R32G32B32_SFLOAT: return "vec3";
-        case VK_FORMAT_R32G32B32A32_SFLOAT: return "vec4";
-
-        default:
-            ASSERT (true);
-            return "vec4";
-    }
 }

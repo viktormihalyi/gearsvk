@@ -7,7 +7,7 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
-class CommandPool : public Noncopyable {
+class GEARSVK_API CommandPool : public Noncopyable {
 private:
     const VkDevice device;
     VkCommandPool  handle;

@@ -9,7 +9,7 @@
 #include "Utils.hpp"
 
 
-class DescriptorSetLayout : public Noncopyable {
+class GEARSVK_API DescriptorSetLayout : public Noncopyable {
 private:
     const VkDevice        device;
     VkDescriptorSetLayout handle;

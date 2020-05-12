@@ -9,7 +9,7 @@
 
 #include <vulkan/vulkan.h>
 
-class ImageViewBase : public Noncopyable {
+class GEARSVK_API ImageViewBase : public Noncopyable {
 private:
     const VkDevice device;
     const VkFormat format;
@@ -62,7 +62,7 @@ public:
 };
 
 
-class ImageView1D : public ImageViewBase {
+class GEARSVK_API ImageView1D : public ImageViewBase {
 public:
     USING_PTR (ImageView1D);
 
@@ -78,7 +78,7 @@ public:
 };
 
 
-class ImageView2D : public ImageViewBase {
+class GEARSVK_API ImageView2D : public ImageViewBase {
 public:
     USING_PTR (ImageView2D);
 
@@ -94,7 +94,7 @@ public:
 };
 
 
-class ImageView3D : public ImageViewBase {
+class GEARSVK_API ImageView3D : public ImageViewBase {
 public:
     USING_PTR (ImageView3D);
 
@@ -110,7 +110,7 @@ public:
 };
 
 
-class ImageViewCube : public ImageViewBase {
+class GEARSVK_API ImageViewCube : public ImageViewBase {
 public:
     USING_PTR (ImageViewCube);
 

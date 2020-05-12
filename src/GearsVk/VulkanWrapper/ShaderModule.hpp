@@ -13,7 +13,7 @@
 
 #include <vulkan/vulkan.h>
 
-class ShaderCompileException : public std::runtime_error {
+class GEARSVK_API ShaderCompileException : public std::runtime_error {
 public:
     ShaderCompileException (const std::string& errorMessage)
         : std::runtime_error (errorMessage)

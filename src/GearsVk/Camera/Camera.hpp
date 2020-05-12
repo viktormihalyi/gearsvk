@@ -14,8 +14,6 @@
 
 class GEARSVK_API Camera {
 public:
-    USING_PTR (Camera);
-
     glm::vec3 position;
     glm::vec3 ahead;
     glm::vec3 up;
@@ -40,6 +38,8 @@ public:
     Event<glm::vec3> positionChanged;
 
 public:
+    USING_PTR (Camera);
+
     enum class MovementDirection {
         Forward,
         Backward,

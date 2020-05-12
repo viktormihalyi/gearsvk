@@ -9,7 +9,7 @@
 
 namespace SR {
 
-struct UBO {
+struct GEARSVK_API UBO {
     struct Field {
         std::string name;
         uint32_t    offset;
@@ -39,7 +39,7 @@ struct UBO {
 };
 
 
-struct Sampler {
+struct GEARSVK_API Sampler {
     enum class Type {
         Sampler1D,
         Sampler2D,

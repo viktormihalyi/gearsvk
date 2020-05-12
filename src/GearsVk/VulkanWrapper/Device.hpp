@@ -8,7 +8,7 @@
 
 #include <vulkan/vulkan.h>
 
-class DeviceInterface {
+class GEARSVK_API DeviceInterface {
 public:
     virtual ~DeviceInterface () = default;
 
@@ -24,7 +24,7 @@ public:
 };
 
 
-class Device : public Noncopyable, public DeviceInterface {
+class GEARSVK_API Device : public Noncopyable, public DeviceInterface {
 private:
     const VkPhysicalDevice physicalDevice;
     VkDevice               handle;

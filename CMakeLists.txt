@@ -33,7 +33,7 @@ else ()
 endif ()
 
 if (MSVC)
-    set (COMPILER_FLAGS /W4)
+    set (COMPILER_FLAGS /W4 /wd4251 /wd4100 /wd4189)
 else ()
     set (COMPILER_FLAGS -Wall -Wextra -pedantic)
 endif ()

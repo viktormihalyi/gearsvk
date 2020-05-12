@@ -13,7 +13,7 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
-struct InstanceSettings {
+struct GEARSVK_API InstanceSettings {
     std::vector<const char*> extensions;
     std::vector<const char*> layers;
 };
@@ -21,7 +21,7 @@ struct InstanceSettings {
 static const InstanceSettings instanceDebugMode {{VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, {"VK_LAYER_KHRONOS_validation"}};
 static const InstanceSettings instanceReleaseMode {{}, {}};
 
-class Instance : public Noncopyable {
+class GEARSVK_API Instance : public Noncopyable {
 private:
     VkInstance handle;
 

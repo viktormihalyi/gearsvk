@@ -1,3 +1,6 @@
+#ifndef GEARSVK_API_HPP
+#define GEARSVK_API_HPP
+
 #ifdef _WIN32
 #ifdef GEARSVK_EXPORTS
 #define GEARSVK_API __declspec(dllexport)
@@ -6,4 +9,7 @@
 #endif
 #else
 #define GEARSVK_API
+#endif
+
+
 #endif

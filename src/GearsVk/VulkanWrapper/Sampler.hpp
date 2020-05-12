@@ -8,7 +8,7 @@
 
 #include <vulkan/vulkan.h>
 
-class Sampler : public Noncopyable {
+class GEARSVK_API Sampler : public Noncopyable {
 private:
     const VkDevice device;
     VkSampler      handle;

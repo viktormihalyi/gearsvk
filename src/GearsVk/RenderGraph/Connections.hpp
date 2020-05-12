@@ -10,14 +10,16 @@ namespace RG {
 class InputBinding {
 public:
     USING_PTR_ABSTRACT (InputBinding);
+    virtual ~InputBinding () = default;
+
     virtual uint32_t           GetBinding () = 0;
     virtual VkDescriptorType   GetType ()    = 0;
     virtual uint32_t           GetOffset ()  = 0;
     virtual uint32_t           GetSize ()    = 0;
     virtual VkShaderStageFlags GetStages ()  = 0;
 
-    virtual std::vector<VkDescriptorImageInfo>  GetImageInfos (uint32_t frameIndex) { return {}; }
-    virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t frameIndex) { return {}; }
+    virtual std::vector<VkDescriptorImageInfo>  GetImageInfos (uint32_t) { return {}; }
+    virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t) { return {}; }
 
     VkDescriptorSetLayoutBinding ToDescriptorSetLayoutBinding ()
     {
@@ -32,10 +34,10 @@ public:
 
     void WriteToDescriptorSet (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex)
     {
-        std::vector<VkDescriptorImageInfo>  imgInfos = GetImageInfos (frameIndex);
-        std::vector<VkDescriptorBufferInfo> bufInfos = GetBufferInfos (frameIndex);
+        const std::vector<VkDescriptorImageInfo>  imgInfos = GetImageInfos (frameIndex);
+        const std::vector<VkDescriptorBufferInfo> bufInfos = GetBufferInfos (frameIndex);
 
-        uint32_t infosSize = imgInfos.size () + bufInfos.size ();
+        size_t infosSize = imgInfos.size () + bufInfos.size ();
         ASSERT (infosSize != 0);
 
         VkWriteDescriptorSet result = {};
@@ -44,7 +46,7 @@ public:
         result.dstBinding           = GetBinding ();
         result.dstArrayElement      = 0;
         result.descriptorType       = GetType ();
-        result.descriptorCount      = infosSize;
+        result.descriptorCount      = static_cast<uint32_t> (infosSize);
         result.pBufferInfo          = bufInfos.data ();
         result.pImageInfo           = imgInfos.data ();
         result.pTexelBufferView     = nullptr;

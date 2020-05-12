@@ -7,7 +7,7 @@
 #include "Device.hpp"
 #include "Queue.hpp"
 
-class DeviceExtra : public DeviceInterface {
+class GEARSVK_API DeviceExtra : public DeviceInterface {
 public:
     Device&      device;
     CommandPool& commandPool;

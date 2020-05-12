@@ -11,7 +11,7 @@
 #include <vulkan/vulkan.h>
 
 
-class QueueFamilySelector {
+class GEARSVK_API QueueFamilySelector {
 public:
     using Selector = std::function<std::optional<uint32_t> (VkPhysicalDevice, VkSurfaceKHR, const std::vector<VkQueueFamilyProperties>&)>;
 
@@ -36,7 +36,7 @@ public:
 };
 
 
-class DefaultQueueFamilySelector final : public QueueFamilySelector {
+class GEARSVK_API DefaultQueueFamilySelector final : public QueueFamilySelector {
 public:
     DefaultQueueFamilySelector ();
 };

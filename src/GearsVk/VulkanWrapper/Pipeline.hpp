@@ -7,7 +7,7 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
-class Pipeline : public Noncopyable {
+class GEARSVK_API Pipeline : public Noncopyable {
 private:
     const VkDevice device;
     VkPipeline     handle;

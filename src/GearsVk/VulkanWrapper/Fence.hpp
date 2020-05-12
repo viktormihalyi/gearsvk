@@ -8,7 +8,7 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
-class Fence : public Noncopyable {
+class GEARSVK_API Fence : public Noncopyable {
 private:
     const VkDevice device;
     VkFence        handle;

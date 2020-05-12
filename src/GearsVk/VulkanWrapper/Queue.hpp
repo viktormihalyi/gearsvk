@@ -7,7 +7,7 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
-class Queue : public Noncopyable {
+class GEARSVK_API Queue : public Noncopyable {
 private:
     VkQueue handle;
 

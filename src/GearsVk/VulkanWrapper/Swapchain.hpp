@@ -13,7 +13,7 @@
 #include <vulkan/vulkan.h>
 
 
-class SwapchainSettingsProvider {
+class GEARSVK_API SwapchainSettingsProvider {
 public:
     virtual VkSurfaceFormatKHR SelectSurfaceFormat (const std::vector<VkSurfaceFormatKHR>&) = 0;
     virtual VkPresentModeKHR   SelectPresentMode (const std::vector<VkPresentModeKHR>&)     = 0;
@@ -38,7 +38,7 @@ class GEARSVK_API Swapchain {
 public:
     USING_PTR_ABSTRACT (Swapchain);
 
-    virtual ~Swapchain () {}
+    virtual ~Swapchain () = default;
 
     virtual VkFormat                           GetImageFormat () const = 0;
     virtual uint32_t                           GetImageCount () const  = 0;

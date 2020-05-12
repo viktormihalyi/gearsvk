@@ -7,7 +7,7 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
-class RenderPass : public Noncopyable {
+class GEARSVK_API RenderPass : public Noncopyable {
 private:
     const VkDevice device;
     VkRenderPass   handle;

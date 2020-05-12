@@ -8,7 +8,7 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
-class DebugUtilsMessenger : public Noncopyable {
+class GEARSVK_API DebugUtilsMessenger : public Noncopyable {
 private:
     const VkInstance         instance;
     VkDebugUtilsMessengerEXT handle;

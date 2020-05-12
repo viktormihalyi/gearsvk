@@ -8,7 +8,7 @@
 
 #include <vulkan/vulkan.h>
 
-class ImageBase : public Noncopyable {
+class GEARSVK_API ImageBase : public Noncopyable {
 public:
     static const VkImageLayout INITIAL_LAYOUT = VK_IMAGE_LAYOUT_UNDEFINED;
 
@@ -152,7 +152,7 @@ public:
 };
 
 
-class Image1D : public ImageBase {
+class GEARSVK_API Image1D : public ImageBase {
 public:
     USING_PTR (Image1D);
     Image1D (VkDevice device, uint32_t width, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
@@ -162,7 +162,7 @@ public:
 };
 
 
-class Image2D : public ImageBase {
+class GEARSVK_API Image2D : public ImageBase {
 public:
     USING_PTR (Image2D);
     Image2D (VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
@@ -172,7 +172,7 @@ public:
 };
 
 
-class Image3D : public ImageBase {
+class GEARSVK_API Image3D : public ImageBase {
 public:
     USING_PTR (Image3D);
     Image3D (VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0)

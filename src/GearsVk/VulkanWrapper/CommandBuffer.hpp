@@ -8,7 +8,7 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
-class CommandBuffer : public Noncopyable {
+class GEARSVK_API CommandBuffer : public Noncopyable {
 private:
     const VkDevice      device;
     const VkCommandPool commandPool;

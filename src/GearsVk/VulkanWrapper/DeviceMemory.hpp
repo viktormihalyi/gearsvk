@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-class DeviceMemory : public Noncopyable {
+class GEARSVK_API DeviceMemory : public Noncopyable {
 public:
     static constexpr VkMemoryPropertyFlags GPU = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     static constexpr VkMemoryPropertyFlags CPU = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;

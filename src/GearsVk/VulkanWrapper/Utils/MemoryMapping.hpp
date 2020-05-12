@@ -10,7 +10,7 @@
 
 #include <cstring>
 
-class MemoryMapping : public Noncopyable {
+class GEARSVK_API MemoryMapping : public Noncopyable {
 private:
     const VkDevice       device;
     const VkDeviceMemory memory;

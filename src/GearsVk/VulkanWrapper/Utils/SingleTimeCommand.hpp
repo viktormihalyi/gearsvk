@@ -9,7 +9,7 @@
 #include <vulkan/vulkan.h>
 
 
-class SingleTimeCommand final : public Noncopyable {
+class GEARSVK_API SingleTimeCommand final : public Noncopyable {
 private:
     const VkDevice      device;
     const VkCommandPool commandPool;

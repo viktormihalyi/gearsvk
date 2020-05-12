@@ -9,7 +9,7 @@
 #include "Utils.hpp"
 
 
-class Buffer : public Noncopyable {
+class GEARSVK_API Buffer : public Noncopyable {
 private:
     const VkDevice device;
     VkBuffer       handle;

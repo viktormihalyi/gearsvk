@@ -1,7 +1,9 @@
 #ifndef NONCOPYABLE_HPP
 #define NONCOPYABLE_HPP
 
-class Noncopyable {
+#include "GearsVkAPI.hpp"
+
+class GEARSVK_API Noncopyable {
 public:
     Noncopyable ()          = default;
     virtual ~Noncopyable () = default;

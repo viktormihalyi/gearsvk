@@ -338,23 +338,6 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
 }
 
 
-static void LimitedEventLoop (Window& window, const uint32_t maxRenders, const Window::DrawCallback& callback)
-{
-    uint32_t renderCount = 0;
-
-    bool dummy = false;
-
-    window.DoEventLoop ([&] (bool& stopFlag) {
-        callback (dummy);
-
-        renderCount++;
-        if (renderCount >= maxRenders) {
-            stopFlag = true;
-        }
-    });
-}
-
-
 TEST_F (HiddenWindowGoogleTestEnvironment, SwapchainTest)
 {
     Device&      device        = GetDevice ();
