@@ -40,7 +40,9 @@ try:
     gears.StartRendering(lambda: False)
 
     print("success")
+    gears.DestroyEnvironment()
 
 except Exception as e:
+    gears.DestroyEnvironment()
     print("EXCEPTION")
     print(e)

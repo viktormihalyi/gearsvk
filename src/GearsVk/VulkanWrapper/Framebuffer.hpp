@@ -9,7 +9,7 @@
 
 #include <vulkan/vulkan.h>
 
-class GEARSVK_API Framebuffer : public Noncopyable {
+class GEARSVK_API Framebuffer final : public Noncopyable {
 private:
     const VkDevice device;
     VkFramebuffer  handle;

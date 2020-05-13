@@ -65,6 +65,10 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
 {
     compileResult.Clear ();
 
+    std::sort (inputBindings.begin (), inputBindings.end (), [&] (auto& a, auto& b) {
+        return a->GetBinding () < b->GetBinding ();
+    });
+
     std::vector<VkDescriptorSetLayoutBinding> layout;
     for (auto& ii : inputBindings) {
         layout.push_back (ii->ToDescriptorSetLayoutBinding ());

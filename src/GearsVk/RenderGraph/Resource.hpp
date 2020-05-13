@@ -318,12 +318,12 @@ public:
 
     ShaderPipeline::P& pipeline;
 
-    ShaderBlocks vertUbos;
-    ShaderBlocks fragUbos;
-    ShaderBlocks geomUbos;
-    ShaderBlocks teseUbos;
-    ShaderBlocks tescUbos;
-    ShaderBlocks compUbos;
+    ShaderBlocks vert;
+    ShaderBlocks frag;
+    ShaderBlocks geom;
+    ShaderBlocks tese;
+    ShaderBlocks tesc;
+    ShaderBlocks comp;
 
     std::vector<UniformBlockResource::U> uboRes;
     std::vector<uint32_t>                bindings;
@@ -342,7 +342,7 @@ public:
     UniformReflectionResource (ShaderPipeline::P& pipeline, Strategy s = Strategy::All)
         : pipeline (pipeline)
     {
-        vertUbos.Clear ();
+        vert.Clear ();
         uboRes.clear ();
         dataBlocks.clear ();
 
@@ -384,12 +384,12 @@ public:
             }
         };
 
-        GatherFor (pipeline->vertexShader.shader, vertUbos);
-        GatherFor (pipeline->fragmentShader.shader, fragUbos);
-        GatherFor (pipeline->geometryShader.shader, geomUbos);
-        GatherFor (pipeline->tessellationEvaluationShader.shader, teseUbos);
-        GatherFor (pipeline->tessellationControlShader.shader, tescUbos);
-        GatherFor (pipeline->computeShader.shader, compUbos);
+        GatherFor (pipeline->vertexShader.shader, vert);
+        GatherFor (pipeline->fragmentShader.shader, frag);
+        GatherFor (pipeline->geometryShader.shader, geom);
+        GatherFor (pipeline->tessellationEvaluationShader.shader, tese);
+        GatherFor (pipeline->tessellationControlShader.shader, tesc);
+        GatherFor (pipeline->computeShader.shader, comp);
     }
 
     virtual ~UniformReflectionResource () = default;
@@ -409,6 +409,17 @@ public:
         for (uint32_t i = 0; i < uboRes.size (); ++i) {
             uboRes[i]->Set (frameIndex, *dataBlocks[i]);
         }
+    }
+
+    template<typename T>
+    void SetAll (const std::string& ubo, const std::string& variableName, const T& oss)
+    {
+        vert[ubo][variableName] = value;
+        frag[ubo][variableName] = value;
+        geom[ubo][variableName] = value;
+        tese[ubo][variableName] = value;
+        tesc[ubo][variableName] = value;
+        comp[ubo][variableName] = value;
     }
 };
 

@@ -2,8 +2,10 @@
 
 
 #include <iostream>
+#include <string>
 #include <vector>
 
+#include "Assert.hpp"
 
 namespace MessageBox {
 
@@ -49,6 +51,22 @@ Result Show (const std::string& title, const std::string& message)
     return buttonOrder[buttonIndex];
 }
 
+#elif _WIN32
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+Result Show (const std::string& title, const std::string& message)
+{
+    const int msgBoxResult = MessageBox (NULL, message.c_str (), title.c_str (), MB_YESNOCANCEL);
+    switch (msgBoxResult) {
+        case IDYES: return Result::Yes;
+        case IDNO: return Result::No;
+        case IDCANCEL: return Result::Third;
+        default: ASSERT (false); return Result::Error;
+    }
+}
+
 #else
 
 // "messagebox" in terminal
@@ -65,6 +83,7 @@ Result Show (const std::string& title, const std::string& message)
     while (choice != 'y' && choice != 'n' && choice != 'i') {
         std::cout << "[y/n/i] ";
         std::cin >> choice;
+        choice = std::tolower (choice);
     }
 
     if (choice == 'y') {

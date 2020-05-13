@@ -186,14 +186,14 @@ void Pass::onSequenceComplete ()
     if (stimulus->doesToneMappingInStimulusGenerator) {
         setShaderFunction ("toneMap",
                            R"GLSLC0D3(
-			layout (binding = 17) uniform sampler1D gamma;																	
-			layout (binding = 18) uniform ab { float value; } toneRangeMin;																
-			layout (binding = 19) uniform ac { float value; } toneRangeMax;																
-			layout (binding = 20) uniform ad { float value; } toneRangeMean;																
-			layout (binding = 21) uniform ae { float value; } toneRangeVar;																
-			layout (binding = 22) uniform af { int value; } gammaSampleCount;																
-			layout (binding = 23) uniform ag { bool value; } doTone;
-			layout (binding = 24) uniform ah { bool value; } doGamma;
+			layout (binding = 20) uniform sampler1D gamma;																	
+			layout (binding = 21) uniform ubo_toneRangeMin { float value; } toneRangeMin;																
+			layout (binding = 22) uniform ubo_toneRangeMax { float value; } toneRangeMax;																
+			layout (binding = 23) uniform ubo_toneRangeMean { float value; } toneRangeMean;																
+			layout (binding = 24) uniform ubo_toneRangeVar { float value; } toneRangeVar;																
+			layout (binding = 25) uniform ubo_gammaSampleCount { int value; } gammaSampleCount;																
+			layout (binding = 26) uniform ubo_doTone { bool value; } doTone;
+			layout (binding = 27) uniform ubo_doGamma { bool value; } doGamma;
 
 			vec3 toneMap(vec3 color){																	
 				vec3 outcolor = color;

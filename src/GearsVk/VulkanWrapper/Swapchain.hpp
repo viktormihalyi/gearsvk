@@ -163,7 +163,8 @@ public:
         ASSERT (signalSemaphore == VK_NULL_HANDLE);
         return 0;
     }
-    virtual const std::vector<ImageView2D::U>& GetImageViews () const { throw std::runtime_error ("asd"); }
+
+    virtual const std::vector<ImageView2D::U>& GetImageViews () const { throw std::runtime_error ("no imageview for fake swapchain"); }
 
     virtual bool SupportsPresenting () const { return false; }
 

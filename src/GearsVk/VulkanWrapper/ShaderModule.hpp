@@ -50,19 +50,20 @@ public:
     };
 
 private:
-    const ReadMode readMode;
+    const VkDevice   device;
+    VkShaderModule   handle;
+    const ReadMode   readMode;
+    const ShaderKind shaderKind;
 
-    const VkDevice              device;
-    VkShaderModule              handle;
+    const std::string           sourceCode;
+    const std::filesystem::path fileLocation;
     const std::vector<uint32_t> binary;
 
-    const ShaderKind            shaderKind;
-    const std::filesystem::path fileLocation;
-
+    // only available when compiled from GLSL
     Reflection reflection;
 
 private:
-    // private ctor, use factories
+    // private ctor, use factories instead
     ShaderModule (ShaderKind shaderKind, ReadMode mode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary);
 
 public:

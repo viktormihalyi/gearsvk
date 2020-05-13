@@ -2,6 +2,7 @@
 #define UNIFORMBLOCK_HPP
 
 #include "Assert.hpp"
+#include "Dummy.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "ShaderReflection.hpp"
@@ -47,19 +48,16 @@ static ShaderType vec4Array {16 * SIZE, 32, "vec4", SIZE};
 } // namespace ST
 
 
+// represents one uniform buffer object _type_
 class ShaderStruct {
 private:
-    std::string name;
-
-    uint32_t fullSize;
-
+    uint32_t                                                   fullSize;
     std::unordered_map<std::string, uint32_t>                  nameMapping;
     std::vector<std::tuple<std::string, ShaderType, uint32_t>> variables;
 
 public:
     USING_PTR (ShaderStruct);
-    ShaderStruct (const std::string& name, const std::vector<std::pair<std::string, ShaderType>>& types)
-        : name (name)
+    ShaderStruct (const std::vector<std::pair<std::string, ShaderType>>& types)
     {
         uint32_t offset = 0;
         for (auto& s : types) {
@@ -71,14 +69,9 @@ public:
         fullSize = offset;
     }
 
-    ShaderStruct (const std::vector<std::pair<std::string, ShaderType>>& types)
-        : ShaderStruct ("", types)
-    {
-    }
 
     ShaderStruct (const SR::UBO& reflectedUBO)
-        : name (reflectedUBO.name)
-        , fullSize (reflectedUBO.GetFullSize ())
+        : fullSize (reflectedUBO.GetFullSize ())
     {
         for (const auto& f : reflectedUBO.fields) {
             variables.emplace_back (f.name, ShaderType {f.size, 0}, f.offset);
@@ -86,9 +79,20 @@ public:
         }
     }
 
+    // intentionally empty
+    ShaderStruct (std::nullptr_t)
+    {
+        fullSize = 0;
+    }
+
     uint32_t GetVariableIndex (const std::string& name) const
     {
         return nameMapping.at (name);
+    }
+
+    bool ContainsName (const std::string& name) const
+    {
+        return nameMapping.find (name) != nameMapping.end ();
     }
 
     uint32_t GetOffset (const std::string& name) const
@@ -106,11 +110,6 @@ public:
         return fullSize;
     }
 
-    std::string GetName () const
-    {
-        return name;
-    }
-
     bool HasUniform (const std::string& name) const
     {
         return nameMapping.find (name) != nameMapping.end ();
@@ -118,32 +117,56 @@ public:
 };
 
 
-class UniformValue {
+class UniformView {
+private:
+    const size_t size;
+    void* const  value;
+    const bool   valid;
+
 public:
-    size_t size;
-    void*  value;
+    UniformView (size_t size, void* value, bool valid)
+        : size (size)
+        , value (value)
+        , valid (valid)
+    {
+    }
 
     template<typename T>
     T& As ()
     {
+        if (ERROR (!valid)) {
+            return dummy<T>;
+        }
+
         return *reinterpret_cast<T*> (value);
     }
 
     template<typename T>
     void operator= (const T& other)
     {
+        if (ERROR (!valid)) {
+            return;
+        }
+
         if (ASSERT (size == sizeof (T))) {
             *reinterpret_cast<T*> (value) = other;
         }
     }
 };
 
+using UniformVariableView = UniformView;
+using UniformBlockView    = UniformView;
 
+
+// represents one uniform buffer object in one shader
 class UniformBlock : public Noncopyable {
 public:
+    friend class ShaderBlocks;
+
+private:
     const ShaderStruct structType;
 
-    std::vector<std::vector<uint8_t>> data;
+    std::vector<uint8_t> data;
 
     uint32_t    binding;
     std::string variableName;
@@ -156,33 +179,64 @@ public:
         , variableName (variableName)
         , structType (structType)
     {
-        data.resize (1);
-        data[0].resize (structType.GetFullSize (), 0);
+        data.resize (structType.GetFullSize (), 0);
     }
 
-    UniformBlock (const std::vector<std::pair<std::string, ShaderType>>& types)
-        : UniformBlock (0, "", types)
+    // intentionally empty
+    UniformBlock (std::nullptr_t)
+        : UniformBlock (0, "", ShaderStruct (nullptr))
     {
     }
 
-    uint32_t GetSize () const { return structType.GetFullSize (); }
-
-    const void* GetData () const { return data[0].data (); }
-
-    template<typename T>
-    void Set (const std::string& name, const T& value)
+    uint32_t GetSize () const
     {
-        GetRef<T> (name) = value;
+        return structType.GetFullSize ();
     }
 
-    void* GetRawPtr (const std::string& name)
+    void* GetData ()
+    {
+        return data.data ();
+    }
+
+    void* GetPtrTo (const std::string& name)
     {
         if (ERROR (!structType.HasUniform (name))) {
             throw std::runtime_error ("no uniform name '" + name + "'");
         }
 
         const uint32_t offset = structType.GetOffset (name);
-        return reinterpret_cast<void*> (&data[0][offset]);
+        return reinterpret_cast<void*> (&data[offset]);
+    }
+
+    UniformVariableView operator[] (const std::string& name)
+    {
+        if (!structType.ContainsName (name)) {
+            return UniformVariableView (0, nullptr, false);
+        }
+
+        return UniformVariableView (structType.GetSize (name), GetPtrTo (name), true);
+    }
+
+    UniformBlockView GetView ()
+    {
+        return UniformBlockView (GetSize (), GetData (), true);
+    }
+
+    template<typename T>
+    void operator= (const T& other)
+    {
+        ASSERT (data.size () == GetSize ());
+
+        if (ASSERT (data.size () == sizeof (other))) {
+            memcpy (data.data (), &other, sizeof (T));
+        }
+    }
+
+#if 0
+    template<typename T>
+    void Set (const std::string& name, const T& value)
+    {
+        GetRef<T> (name) = value;
     }
 
     template<typename ReturnType>
@@ -195,7 +249,7 @@ public:
         ASSERT (sizeof (ReturnType) == structType.GetSize (name));
 
         const uint32_t offset = structType.GetOffset (name);
-        return reinterpret_cast<ReturnType*> (&data[0][offset]);
+        return reinterpret_cast<ReturnType*> (&data[offset]);
     }
 
     template<typename ReturnType>
@@ -209,19 +263,25 @@ public:
     {
         return *GetPtr<ReturnType> (name);
     }
-
-    UniformValue operator[] (const std::string& name)
-    {
-        return {structType.GetSize (name), GetRawPtr (name)};
-    }
+#endif
 };
 
 
-struct ShaderBlocks {
+// contains all uniform buffer objects for a single shader
+class ShaderBlocks {
+private:
+    UniformBlock dummy;
+
     std::vector<UniformBlock::P>              blocks;
     std::unordered_map<std::string, uint32_t> nameMapping;
 
+public:
     USING_PTR (ShaderBlocks);
+
+    ShaderBlocks ()
+        : dummy (nullptr)
+    {
+    }
 
     void AddBlock (const UniformBlock::P& block)
     {
@@ -238,6 +298,10 @@ struct ShaderBlocks {
 
     UniformBlock& GetBlock (const std::string& name)
     {
+        if (nameMapping.find (name) == nameMapping.end ()) {
+            return dummy;
+        }
+
         return *blocks[nameMapping[name]];
     }
 

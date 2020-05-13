@@ -58,6 +58,8 @@ class Generic(Base) :
                 }
 
                 presented = outcolor;
+                presented = vec4 (pos, 0, 1);
+                presented = vec4 (fig(pos, time.value), 1);
             }
 		"""
 

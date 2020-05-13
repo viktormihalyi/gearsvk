@@ -34,18 +34,23 @@ void DestroyEnvironment ()
 {
     env.reset ();
     window.reset ();
+    renderGraph.reset ();
 }
 
+UniformReflectionResource* global_refl    = nullptr;
+Pass*                      glob_firstPass = nullptr;
 
 void SetRenderGraphFromSequence (Sequence::P seq)
 {
     ASSERT_THROW (env != nullptr);
 
-    Stimulus::CP stim      = seq->getStimulusAtFrame (60);
-    auto         passes    = stim->getPasses ();
-    auto         firstPass = passes[0];
-    auto         vert      = firstPass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
-    auto         frag      = firstPass->getStimulusGeneratorShaderSource ();
+    Stimulus::CP stim = seq->getStimulusAtFrame (4908);
+
+    auto passes    = stim->getPasses ();
+    auto firstPass = passes[0];
+    glob_firstPass = firstPass.get ();
+    auto vert      = firstPass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
+    auto frag      = firstPass->getStimulusGeneratorShaderSource ();
 
     auto seqpip = ShaderPipeline::CreateShared (*env->device);
     seqpip->SetVertexShaderFromString (vert);
@@ -58,6 +63,7 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 
     SwapchainImageResource&    presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
     UniformReflectionResource& refl      = renderGraph->CreateResource<UniformReflectionResource> (seqpip);
+    global_refl                          = &refl;
 
     Operation& redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), seqpip));
 
@@ -87,6 +93,30 @@ void StartRendering (const std::function<bool ()>& doRender)
     env->Wait ();
 
     SynchronizedSwapchainGraphRenderer swapchainSync (*renderGraph, *env->swapchain);
+
+    const glm::vec2 patternSizeOnRetina (0.5, 0.5);
+
+    for (auto [name, value] : glob_firstPass->shaderVariables) {
+        global_refl->frag[std::string ("ubo_" + name)]["value"] = static_cast<float> (value);
+    }
+
+    for (auto [name, value] : glob_firstPass->shaderVectors) {
+        global_refl->frag[std::string ("ubo_" + name)]["value"] = static_cast<glm::vec2> (value);
+    }
+
+    for (auto [name, value] : glob_firstPass->shaderColors) {
+        global_refl->frag[std::string ("ubo_" + name)]["value"] = static_cast<glm::vec3> (value);
+    }
+
+    uint32_t frameCount = 0;
+    swapchainSync.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t timeNs) {
+        global_refl->vert["PatternSizeOnRetina"] = patternSizeOnRetina;
+
+        global_refl->frag["ubo_frame"] = static_cast<int> (frameCount++);
+        global_refl->frag["ubo_time"]  = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
+
+        global_refl->Update (frameIndex);
+    };
 
     window->Show ();
 

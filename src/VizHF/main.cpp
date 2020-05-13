@@ -168,8 +168,9 @@ int main (int, char**)
         }
     };
 
-    refl.vertUbos["Camera"]["VP"] = glm::mat4 (1.f);
-    refl.fragUbos["Camera"]["VP"] = glm::mat4 (1.f);
+    refl.vert["NON"]["EXISTING"] = glm::mat4 (1.f);
+    refl.vert["Camera"]["VP"]    = glm::mat4 (1.f);
+    refl.frag["Camera"]["VP"]    = glm::mat4 (1.f);
 
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
         TimePoint delta (deltaNs);
@@ -179,21 +180,21 @@ int main (int, char**)
         cameraControl.UpdatePosition (dt);
 
         {
-            refl.vertUbos["Camera"]["viewMatrix"] = c.GetViewMatrix ();
-            //refl.vertUbos["Camera"]["VP"]           = c.GetViewProjectionMatrix ();
-            refl.vertUbos["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
-            refl.vertUbos["Camera"]["camPosition"]  = c.GetPosition ();
-            refl.vertUbos["Camera"]["viewDir"]      = c.GetViewDirection ();
-            refl.vertUbos["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
+            refl.vert["Camera"]["viewMatrix"] = c.GetViewMatrix ();
+            //refl.vert["Camera"]["VP"]           = c.GetViewProjectionMatrix ();
+            refl.vert["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
+            refl.vert["Camera"]["camPosition"]  = c.GetPosition ();
+            refl.vert["Camera"]["viewDir"]      = c.GetViewDirection ();
+            refl.vert["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
 
-            refl.fragUbos["Camera"]["viewMatrix"] = c.GetViewMatrix ();
-            //refl.fragUbos["Camera"]["VP"]           = c.GetViewProjectionMatrix ();
-            refl.fragUbos["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
-            refl.fragUbos["Time"]["time"]           = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
-            refl.fragUbos["Camera"]["position"]     = c.GetPosition ();
-            auto s                                  = refl.fragUbos["Camera"]["position"].As<glm::vec3> ();
-            refl.fragUbos["Camera"]["viewDir"]      = c.GetViewDirection ();
-            refl.fragUbos["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
+            refl.frag["Camera"]["viewMatrix"] = c.GetViewMatrix ();
+            //refl.frag["Camera"]["VP"]           = c.GetViewProjectionMatrix ();
+            refl.frag["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
+            refl.frag["Time"]["time"]           = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
+            refl.frag["Camera"]["position"]     = c.GetPosition ();
+            auto s                              = refl.frag["Camera"]["position"].As<glm::vec3> ();
+            refl.frag["Camera"]["viewDir"]      = c.GetViewDirection ();
+            refl.frag["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
         }
 
         refl.Update (frameIndex);
