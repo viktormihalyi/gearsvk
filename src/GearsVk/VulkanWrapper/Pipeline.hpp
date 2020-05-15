@@ -23,7 +23,8 @@ public:
               VkRenderPass                                          renderPass,
               const std::vector<VkPipelineShaderStageCreateInfo>&   shaderStages,
               const std::vector<VkVertexInputBindingDescription>&   vertexBindingDescriptions,
-              const std::vector<VkVertexInputAttributeDescription>& vertexAttributeDescriptions)
+              const std::vector<VkVertexInputAttributeDescription>& vertexAttributeDescriptions,
+              VkPrimitiveTopology                                   topology)
         : device (device)
     {
         VkPipelineVertexInputStateCreateInfo vertexInputInfo     = {};
@@ -34,7 +35,7 @@ public:
         vertexInputInfo.pVertexAttributeDescriptions             = vertexAttributeDescriptions.data ();
         VkPipelineInputAssemblyStateCreateInfo inputAssembly     = {};
         inputAssembly.sType                                      = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssembly.topology                                   = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        inputAssembly.topology                                   = topology; // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         inputAssembly.primitiveRestartEnable                     = VK_FALSE;
         VkViewport viewport                                      = {};
         viewport.x                                               = 0.0f;

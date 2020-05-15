@@ -57,6 +57,7 @@ public:
         std::vector<VkAttachmentDescription>           attachmentDescriptions;
         std::vector<VkVertexInputBindingDescription>   inputBindings;
         std::vector<VkVertexInputAttributeDescription> inputAttributes;
+        VkPrimitiveTopology                            topology;
     };
 
 

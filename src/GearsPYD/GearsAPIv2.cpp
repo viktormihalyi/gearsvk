@@ -32,9 +32,9 @@ void InitializeEnvironment ()
 
 void DestroyEnvironment ()
 {
+    renderGraph.reset ();
     env.reset ();
     window.reset ();
-    renderGraph.reset ();
 }
 
 UniformReflectionResource* global_refl    = nullptr;
@@ -44,7 +44,7 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 {
     ASSERT_THROW (env != nullptr);
 
-    Stimulus::CP stim = seq->getStimulusAtFrame (4908);
+    Stimulus::CP stim = seq->getStimulusAtFrame (61);
 
     auto passes    = stim->getPasses ();
     auto firstPass = passes[0];
@@ -52,7 +52,12 @@ void SetRenderGraphFromSequence (Sequence::P seq)
     auto vert      = firstPass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
     auto frag      = firstPass->getStimulusGeneratorShaderSource ();
 
+    std::cout << " ========================= fragment shader BEGIN ========================= " << std::endl;
+    std::cout << frag << std::endl;
+    std::cout << " ========================= fragment shader END =========================== " << std::endl;
+
     auto seqpip = ShaderPipeline::CreateShared (*env->device);
+
     seqpip->SetVertexShaderFromString (vert);
     seqpip->SetFragmentShaderFromString (frag);
 
@@ -62,12 +67,14 @@ void SetRenderGraphFromSequence (Sequence::P seq)
     GraphSettings s (*env->device, *env->graphicsQueue, *env->commandPool, *env->swapchain);
 
     SwapchainImageResource&    presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
+    // ImageResource&             writ      = renderGraph->CreateResource<WritableImageResource> ();
     UniformReflectionResource& refl      = renderGraph->CreateResource<UniformReflectionResource> (seqpip);
     global_refl                          = &refl;
 
-    Operation& redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), seqpip));
+    Operation& redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 4), seqpip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP));
 
     renderGraph->CreateOutputConnection (redFillOperation, 0, presented);
+    // renderGraph->CreateOutputConnection (redFillOperation, 1, writ);
 
     for (uint32_t i = 0; i < refl.uboRes.size (); ++i) {
         renderGraph->CreateInputConnection<UniformInputBinding> (redFillOperation, refl.bindings[i], *refl.uboRes[i]);
@@ -94,7 +101,7 @@ void StartRendering (const std::function<bool ()>& doRender)
 
     SynchronizedSwapchainGraphRenderer swapchainSync (*renderGraph, *env->swapchain);
 
-    const glm::vec2 patternSizeOnRetina (0.5, 0.5);
+    const glm::vec2 patternSizeOnRetina (1920, 1080);
 
     for (auto [name, value] : glob_firstPass->shaderVariables) {
         global_refl->frag[std::string ("ubo_" + name)]["value"] = static_cast<float> (value);
@@ -112,8 +119,7 @@ void StartRendering (const std::function<bool ()>& doRender)
     swapchainSync.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t timeNs) {
         global_refl->vert["PatternSizeOnRetina"] = patternSizeOnRetina;
 
-        global_refl->frag["ubo_frame"] = static_cast<int> (frameCount++);
-        global_refl->frag["ubo_time"]  = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
+        global_refl->frag["ubo_time"] = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
 
         global_refl->Update (frameIndex);
     };

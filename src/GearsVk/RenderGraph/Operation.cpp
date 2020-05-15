@@ -56,8 +56,8 @@ std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) co
 }
 
 
-RenderOperation::RenderOperation (const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipeline)
-    : compileSettings ({drawRecordable, shaderPipeline})
+RenderOperation::RenderOperation (const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipeline, VkPrimitiveTopology topology)
+    : compileSettings ({drawRecordable, shaderPipeline, topology})
 {
 }
 
@@ -102,13 +102,16 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
         }
     }
 
-    compileSettings.pipeline->Compile ({graphSettings.width,
-                                        graphSettings.height,
-                                        *compileResult.descriptorSetLayout,
-                                        attachmentReferences,
-                                        attachmentDescriptions,
-                                        compileSettings.drawRecordable->GetBindings (),
-                                        compileSettings.drawRecordable->GetAttributes ()});
+    ShaderPipeline::CompileSettings pipelineSettigns = {graphSettings.width,
+                                                        graphSettings.height,
+                                                        *compileResult.descriptorSetLayout,
+                                                        attachmentReferences,
+                                                        attachmentDescriptions,
+                                                        compileSettings.drawRecordable->GetBindings (),
+                                                        compileSettings.drawRecordable->GetAttributes (),
+                                                        compileSettings.topology};
+
+    compileSettings.pipeline->Compile (pipelineSettigns);
 
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
         compileResult.framebuffers.push_back (Framebuffer::Create (graphSettings.GetDevice (), *compileSettings.pipeline->compileResult.renderPass, GetOutputImageViews (frameIndex), graphSettings.width, graphSettings.height));

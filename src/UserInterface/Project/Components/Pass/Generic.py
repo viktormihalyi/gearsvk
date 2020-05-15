@@ -46,7 +46,7 @@ class Generic(Base) :
 		    void main ()
             {
                 
-                vec4 outcolor = vec4(fig(pos, time.value), alphaMask(pos, time.value).x); 
+                vec4 outcolor = vec4 (fig (pos, time.value), alphaMask (pos, time.value).x); 
                 
                 outcolor.rgb = temporalProcess(outcolor.rgb, fTexCoord);
                 outcolor.rgb = toneMap(outcolor.rgb);
@@ -58,8 +58,8 @@ class Generic(Base) :
                 }
 
                 presented = outcolor;
-                presented = vec4 (pos, 0, 1);
-                presented = vec4 (fig(pos, time.value), 1);
+                // presented = vec4 (fig_modulated_shape (pos, time.value), 1);
+                // presented = vec4 (fig_modulated_shape_moved_warped (pos, time.value), 1);
             }
 		"""
 

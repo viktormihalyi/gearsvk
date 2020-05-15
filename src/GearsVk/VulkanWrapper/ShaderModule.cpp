@@ -133,19 +133,29 @@ static uint32_t GetBasicTypeSize (glslang::TBasicType basicType)
     using namespace glslang;
 
     switch (basicType) {
-        case EbtFloat: return sizeof (float);
-        case EbtDouble: return sizeof (double);
-        case EbtFloat16: ASSERT ("WTF"); return 2;
-        case EbtInt8: return sizeof (int8_t);
-        case EbtUint8: return sizeof (uint8_t);
-        case EbtInt16: return sizeof (int16_t);
-        case EbtUint16: return sizeof (uint16_t);
-        case EbtInt: return sizeof (int);
-        case EbtUint: return sizeof (unsigned int);
-        case EbtInt64: return sizeof (int64_t);
-        case EbtUint64: return sizeof (uint64_t);
-        case EbtBool: return sizeof (bool);
-        default: return 0;
+        case EbtInt8:
+        case EbtUint8:
+            return 1;
+
+        case EbtFloat16:
+            ASSERT ("WTF");
+        case EbtInt16:
+        case EbtUint16:
+            return 2;
+
+        case EbtBool:
+        case EbtInt:
+        case EbtUint:
+        case EbtFloat:
+            return 4;
+
+        case EbtInt64:
+        case EbtUint64:
+        case EbtDouble:
+            return 8;
+
+        default:
+            return 0;
     }
 }
 
