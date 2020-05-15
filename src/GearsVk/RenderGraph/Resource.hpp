@@ -410,17 +410,6 @@ public:
             uboRes[i]->Set (frameIndex, *dataBlocks[i]);
         }
     }
-
-    template<typename T>
-    void SetAll (const std::string& ubo, const std::string& variableName, const T& oss)
-    {
-        vert[ubo][variableName] = value;
-        frag[ubo][variableName] = value;
-        geom[ubo][variableName] = value;
-        tese[ubo][variableName] = value;
-        tesc[ubo][variableName] = value;
-        comp[ubo][variableName] = value;
-    }
 };
 
 
