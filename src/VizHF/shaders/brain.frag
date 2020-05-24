@@ -14,6 +14,16 @@ layout (std140, binding = 1) uniform Camera {
     float asd;
 } camera;
 
+struct TestStruct {
+    vec4 aa;
+    mat4 asd;
+};
+
+layout (std140, binding = 5) uniform Test {
+    TestStruct data[5];
+} tests;
+
+
 layout (binding = 2) uniform sampler3D agySampler;
 layout (binding = 3) uniform sampler2D matcapSampler;
 
@@ -91,6 +101,7 @@ vec3 GetNormalAt (vec3 rayPos)
 
 void main ()
 {
+    presented = tests.data[1].aa.xyzw;
     presented = vec4 (0, 0, 0, 1);
 
     const int DP_BEFOGLALO = 1;

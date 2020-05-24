@@ -232,6 +232,16 @@ public:
         }
     }
 
+    template<typename T, size_t N>
+    void operator= (const std::array<T, N>& other)
+    {
+        ASSERT (data.size () == GetSize ());
+
+        if (ASSERT (data.size () == sizeof (T) * other.size ())) {
+            memcpy (data.data (), other.data (), sizeof (T) * other.size ());
+        }
+    }
+
 #if 0
     template<typename T>
     void Set (const std::string& name, const T& value)

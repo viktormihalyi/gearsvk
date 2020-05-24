@@ -168,9 +168,15 @@ int main (int, char**)
         }
     };
 
-    refl.vert["NON"]["EXISTING"] = glm::mat4 (1.f);
-    refl.vert["Camera"]["VP"]    = glm::mat4 (1.f);
-    refl.frag["Camera"]["VP"]    = glm::mat4 (1.f);
+    // refl.vert["NON"]["EXISTING"] = glm::mat4 (1.f);
+
+    refl.vert["Camera"]["VP"] = glm::mat4 (1.f);
+    refl.frag["Camera"]["VP"] = glm::mat4 (1.f);
+
+    std::array<float, 100> dat;
+    dat.fill (0.5f);
+
+    refl.frag["Test"] = dat;
 
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
         TimePoint delta (deltaNs);

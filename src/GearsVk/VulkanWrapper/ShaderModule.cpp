@@ -166,6 +166,21 @@ static std::optional<uint32_t> GetSize (const glslang::TType& type)
 
     const TBasicType basicType = type.getBasicType ();
 
+    if (type.isStruct ()) {
+        const TTypeList& innerTypeList = *type.getStruct ();
+        uint32_t         result        = 0;
+
+        for (uint32_t arrayIndex = 0; arrayIndex < type.getCumulativeArraySize (); ++arrayIndex) {
+            for (auto& t : innerTypeList) {
+                const std::optional<uint32_t> innerSize = GetSize (*t.type);
+                ASSERT (innerSize.has_value ());
+                result += innerSize.value_or (0);
+            }
+        }
+
+        return result;
+    }
+
     const uint32_t basicTypeSize = GetBasicTypeSize (basicType);
     if (basicTypeSize == 0) {
         return std::nullopt;
@@ -186,6 +201,146 @@ static std::optional<uint32_t> GetSize (const glslang::TType& type)
     ASSERT ("unhandled uniform size case");
     return std::nullopt;
 }
+
+
+static std::optional<SR::UBO::FieldType> GetUboFieldType (const glslang::TType& type)
+{
+    using namespace glslang;
+
+    if (type.isStruct ()) {
+        return SR::UBO::FieldType::Struct;
+    }
+
+    const TBasicType basicType = type.getBasicType ();
+
+    const uint32_t vectorSize = type.getVectorSize ();
+    const uint32_t matrixCols = type.getMatrixCols ();
+    const uint32_t matrixRows = type.getMatrixRows ();
+
+    if (vectorSize > 0) {
+        switch (basicType) {
+            case EbtUint:
+            case EbtUint8:
+                switch (vectorSize) {
+                    case 1: return SR::UBO::FieldType::Uint;
+                    case 2: return SR::UBO::FieldType::Uvec2;
+                    case 3: return SR::UBO::FieldType::Uvec3;
+                    case 4: return SR::UBO::FieldType::Uvec4;
+                    default: return std::nullopt;
+                }
+
+            case EbtInt:
+            case EbtInt8:
+                switch (vectorSize) {
+                    case 1: return SR::UBO::FieldType::Int;
+                    case 2: return SR::UBO::FieldType::Ivec2;
+                    case 3: return SR::UBO::FieldType::Ivec3;
+                    case 4: return SR::UBO::FieldType::Ivec4;
+                    default: return std::nullopt;
+                }
+
+            case EbtBool:
+                switch (vectorSize) {
+                    case 1: return SR::UBO::FieldType::Bool;
+                    case 2: return SR::UBO::FieldType::Bvec2;
+                    case 3: return SR::UBO::FieldType::Bvec3;
+                    case 4: return SR::UBO::FieldType::Bvec4;
+                    default: return std::nullopt;
+                }
+
+            case EbtFloat:
+                switch (vectorSize) {
+                    case 1: return SR::UBO::FieldType::Int;
+                    case 2: return SR::UBO::FieldType::Vec2;
+                    case 3: return SR::UBO::FieldType::Vec3;
+                    case 4: return SR::UBO::FieldType::Vec4;
+                    default: return std::nullopt;
+                }
+
+            case EbtDouble:
+                switch (vectorSize) {
+                    case 1: return SR::UBO::FieldType::Double;
+                    case 2: return SR::UBO::FieldType::Dvec2;
+                    case 3: return SR::UBO::FieldType::Dvec3;
+                    case 4: return SR::UBO::FieldType::Dvec4;
+                    default: return std::nullopt;
+                }
+
+            case EbtInt64:
+            case EbtUint64:
+            case EbtInt16:
+            case EbtUint16:
+            case EbtFloat16:
+                ASSERT ("WTF");
+            default:
+                return std::nullopt;
+        }
+    }
+
+    if (matrixCols > 0 && matrixRows > 0) {
+        ASSERT (2 <= matrixCols && matrixCols <= 4);
+        ASSERT (2 <= matrixRows && matrixRows <= 4);
+
+        switch (basicType) {
+            case EbtFloat:
+                switch (matrixCols) {
+                    case 2:
+                        switch (matrixRows) {
+                            case 2: return SR::UBO::FieldType::Mat2x2;
+                            case 3: return SR::UBO::FieldType::Mat2x3;
+                            case 4: return SR::UBO::FieldType::Mat2x4;
+                            default: return std::nullopt;
+                        }
+                    case 3:
+                        switch (matrixRows) {
+                            case 2: return SR::UBO::FieldType::Mat3x2;
+                            case 3: return SR::UBO::FieldType::Mat3x3;
+                            case 4: return SR::UBO::FieldType::Mat3x4;
+                            default: return std::nullopt;
+                        }
+                    case 4:
+                        switch (matrixRows) {
+                            case 2: return SR::UBO::FieldType::Mat4x2;
+                            case 3: return SR::UBO::FieldType::Mat4x3;
+                            case 4: return SR::UBO::FieldType::Mat4x4;
+                            default: return std::nullopt;
+                        }
+                    default: return std::nullopt;
+                }
+
+            case EbtDouble:
+                switch (matrixCols) {
+                    case 2:
+                        switch (matrixRows) {
+                            case 2: return SR::UBO::FieldType::Dmat2x2;
+                            case 3: return SR::UBO::FieldType::Dmat2x3;
+                            case 4: return SR::UBO::FieldType::Dmat2x4;
+                            default: return std::nullopt;
+                        }
+                    case 3:
+                        switch (matrixRows) {
+                            case 2: return SR::UBO::FieldType::Dmat3x2;
+                            case 3: return SR::UBO::FieldType::Dmat3x3;
+                            case 4: return SR::UBO::FieldType::Dmat3x4;
+                            default: return std::nullopt;
+                        }
+                    case 4:
+                        switch (matrixRows) {
+                            case 2: return SR::UBO::FieldType::Dmat4x2;
+                            case 3: return SR::UBO::FieldType::Dmat4x3;
+                            case 4: return SR::UBO::FieldType::Dmat4x4;
+                            default: return std::nullopt;
+                        }
+                    default: return std::nullopt;
+                }
+
+            default: return std::nullopt;
+        }
+
+        return std::nullopt;
+    }
+}
+
 
 static std::optional<SR::Sampler::Type> GetSamplerType (glslang::TSamplerDim glslangType)
 {
@@ -244,7 +399,7 @@ static std::vector<SR::UBO> GetUniformBlocks (glslang::TReflection& ref)
 
             if (type.isStruct ()) {
                 SR::UBO ubo;
-                ubo.name    = type.getTypeName ();
+                ubo.name    = uniform.name;
                 ubo.binding = qualifier.layoutBinding;
 
                 const TTypeList& structure = *type.getStruct ();
@@ -260,6 +415,10 @@ static std::vector<SR::UBO> GetUniformBlocks (glslang::TReflection& ref)
                         const std::optional<uint32_t> size = GetSize (*s.type);
                         ASSERT (size.has_value ());
                         f.size = size.value_or (0);
+
+                        const std::optional<SR::UBO::FieldType> fieldType = GetUboFieldType (*s.type);
+                        ASSERT (fieldType.has_value ());
+                        f.type = fieldType.value_or (SR::UBO::FieldType::Unknown);
 
                         ubo.fields.push_back (f);
                     }
