@@ -9,9 +9,9 @@ const VkFormat WritableImageResource::SingleImageResource::FormatRGBA = VK_FORMA
 const VkFormat WritableImageResource::SingleImageResource::FormatRGB  = VK_FORMAT_R8G8B8_SRGB;
 
 
-#define ADDVISITOR(type, callback)                           \
-    if (auto castedRes##type## = dynamic_cast<type*> (&res)) \
-        callback (*castedRes##type##);                       \
+#define ADDVISITOR(type, callback)                         \
+    if (auto castedRes##type = dynamic_cast<type*> (&res)) \
+        callback (*castedRes##type);                       \
     else
 
 
