@@ -385,6 +385,42 @@ static std::vector<SR::Sampler> GetSamplers (glslang::TReflection& ref)
 }
 
 
+static SR::UBO::Field GetUBOField (const glslang::TType& type)
+{
+    using namespace glslang;
+
+    SR::UBO::Field result;
+
+    result.name = type.getFieldName ();
+
+    result.offset = type.getQualifier ().layoutOffset;
+    if (result.offset == UINT32_MAX) {
+        result.offset = 0;
+    }
+
+    const std::optional<uint32_t> size = GetSize ( type);
+    ASSERT (size.has_value ());
+    result.size = size.value_or (0);
+
+    const std::optional<SR::UBO::FieldType> fieldType = GetUboFieldType (type);
+    ASSERT (fieldType.has_value ());
+    result.type = fieldType.value_or (SR::UBO::FieldType::Unknown);
+
+    result.arraySize = type.getArraySizes () != nullptr ? type.getCumulativeArraySize () : 1;
+
+    if (type.isStruct ()) {
+        const TTypeList& innerTypeList = *type.getStruct ();
+        for (auto& t : innerTypeList) {
+            if (ASSERT (t.type != nullptr)) {
+                result.structFields.push_back (GetUBOField (*t.type));
+            }
+        }
+    }
+
+    return result;
+}
+
+
 static std::vector<SR::UBO> GetUniformBlocks (glslang::TReflection& ref)
 {
     using namespace glslang;
@@ -405,22 +441,7 @@ static std::vector<SR::UBO> GetUniformBlocks (glslang::TReflection& ref)
                 const TTypeList& structure = *type.getStruct ();
                 for (auto& s : structure) {
                     if (ASSERT (s.type != nullptr)) {
-                        SR::UBO::Field f;
-                        f.name   = s.type->getFieldName ();
-                        f.offset = s.type->getQualifier ().layoutOffset;
-                        if (f.offset == UINT32_MAX) {
-                            f.offset = 0;
-                        }
-
-                        const std::optional<uint32_t> size = GetSize (*s.type);
-                        ASSERT (size.has_value ());
-                        f.size = size.value_or (0);
-
-                        const std::optional<SR::UBO::FieldType> fieldType = GetUboFieldType (*s.type);
-                        ASSERT (fieldType.has_value ());
-                        f.type = fieldType.value_or (SR::UBO::FieldType::Unknown);
-
-                        ubo.fields.push_back (f);
+                        ubo.fields.push_back (GetUBOField (*s.type));
                     }
                 }
                 result.push_back (ubo);

@@ -23,7 +23,7 @@ public:
     USING_PTR (FullscreenQuad);
 
     FullscreenQuad (const Device& device, VkQueue queue, VkCommandPool commandPool)
-        : vertexBuffer (device, queue, commandPool, 4, {{ShaderTypes::Vec2f}, {ShaderTypes::Vec2f}}, std::vector<std::string> {"position", "uv"})
+        : vertexBuffer (device, queue, commandPool, 4, {VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32_SFLOAT})
         , indexBuffer (device, queue, commandPool, 6)
     {
         vertexBuffer = std::vector<Vertex> {

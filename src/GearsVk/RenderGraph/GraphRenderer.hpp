@@ -63,7 +63,7 @@ public:
 class GEARSVK_API SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
 private:
     // number of render operations able to run simultaneously
-    // optimally equal to imageCount, but may be lower
+    // optimally equal to imageCount, but may be lower.
     // doesnt make sense to be higher than imageCount
     const uint32_t framesInFlight;
 

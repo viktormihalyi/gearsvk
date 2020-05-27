@@ -35,9 +35,8 @@ static ShaderType GetShaderTypeFromFormat (VkFormat format)
 }
 
 
-VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats, const std::optional<std::vector<std::string>>& attributeNames)
+VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats)
     : size (0)
-    , attributeNames (attributeNames)
 {
     uint32_t location = 0;
     size              = 0;

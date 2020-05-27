@@ -13,6 +13,7 @@
 #include "GraphSettings.hpp"
 #include "InputBindable.hpp"
 #include "Node.hpp"
+#include "Ptr.hpp"
 #include "UniformBlock.hpp"
 
 
