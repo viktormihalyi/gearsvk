@@ -1,5 +1,14 @@
-#include "Buffer.hpp"
+#ifndef VULKANWRAPPER_HPP
+#define VULKANWRAPPER_HPP
+
+// utils
 #include "BufferTransferable.hpp"
+#include "MemoryMapping.hpp"
+#include "SingleTimeCommand.hpp"
+#include "VulkanUtils.hpp"
+
+// object wrappers
+#include "Buffer.hpp"
 #include "CommandBuffer.hpp"
 #include "CommandPool.hpp"
 #include "DebugUtilsMessenger.hpp"
@@ -7,13 +16,13 @@
 #include "DescriptorSet.hpp"
 #include "DescriptorSetLayout.hpp"
 #include "Device.hpp"
+#include "DeviceExtra.hpp"
 #include "DeviceMemory.hpp"
 #include "Fence.hpp"
 #include "Framebuffer.hpp"
 #include "Image.hpp"
 #include "ImageView.hpp"
 #include "Instance.hpp"
-#include "MemoryMapping.hpp"
 #include "PhysicalDevice.hpp"
 #include "Pipeline.hpp"
 #include "PipelineLayout.hpp"
@@ -22,7 +31,8 @@
 #include "Sampler.hpp"
 #include "Semaphore.hpp"
 #include "ShaderModule.hpp"
-#include "ShaderPipeline.hpp"
-#include "SingleTimeCommand.hpp"
+#include "ShaderReflection.hpp"
 #include "Surface.hpp"
 #include "Swapchain.hpp"
+
+#endif

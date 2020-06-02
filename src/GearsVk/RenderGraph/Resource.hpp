@@ -30,6 +30,9 @@ public:
 };
 
 
+class GEARSVK_API OutputImageBindable {
+};
+
 class GEARSVK_API ImageResource : public Resource {
 public:
     USING_PTR_ABSTRACT (ImageResource);

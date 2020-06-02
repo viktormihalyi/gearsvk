@@ -40,6 +40,11 @@ public:
 
     using DrawCallback = std::function<void (bool& stopFlag)>;
 
+    enum class Mode {
+        Fullscreen,
+        Windowed,
+    };
+
     virtual ~Window () = default;
 
     virtual void  DoEventLoop (const DrawCallback&) = 0;
@@ -58,6 +63,8 @@ public:
     virtual void Focus () = 0;
 
     virtual void ToggleFullscreen () = 0;
+    virtual void SetWindowMode (Mode) {}
+    virtual Mode GetWindowMode () { throw std::runtime_error ("unimplemeted"); }
 };
 
 #endif

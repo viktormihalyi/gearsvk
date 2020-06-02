@@ -393,14 +393,14 @@ static SR::UBO::Field GetUBOField (const glslang::TType& type)
 
     result.name = type.getFieldName ();
 
+    const std::optional<uint32_t> size = GetSize (type);
+    ASSERT (size.has_value ());
+    result.size = size.value_or (0);
+
     result.offset = type.getQualifier ().layoutOffset;
     if (result.offset == UINT32_MAX) {
         result.offset = 0;
     }
-
-    const std::optional<uint32_t> size = GetSize ( type);
-    ASSERT (size.has_value ());
-    result.size = size.value_or (0);
 
     const std::optional<SR::UBO::FieldType> fieldType = GetUboFieldType (type);
     ASSERT (fieldType.has_value ());
@@ -487,6 +487,8 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
     if (!program.link (EShMsgDefault)) {
         throw ShaderCompileException (program.getInfoLog ());
     }
+
+    program.buildReflection ();
 
     TReflection ref (EShReflectionAllBlockVariables, shaderKind.esh, shaderKind.esh);
     ref.addStage (shaderKind.esh, *shader.getIntermediate ());

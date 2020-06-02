@@ -11,6 +11,7 @@ set (PROJECT_NAME GearsVk)
 
 set (TARGET_LIB GearsVk)
 set (TARGET_VIZHF VizHF)
+set (TARGET_VIZHF2 VizHF2)
 set (TARGET_TESTS GearsVkTest)
 set (TARGET_DLL Gears)
 
@@ -115,6 +116,10 @@ add_executable (${TARGET_VIZHF}
     src/VizHF/main.cpp
 )
 
+add_executable (${TARGET_VIZHF2}
+    src/VizHF2/main.cpp
+)
+
 add_executable (${TARGET_TESTS}
     src/Tests/TestMain.cpp
 )
@@ -151,12 +156,14 @@ target_compile_definitions (${TARGET_LIB} PRIVATE
     GEARSVK_EXPORTS
 )
 target_compile_definitions (${TARGET_VIZHF} PRIVATE)
+target_compile_definitions (${TARGET_VIZHF2} PRIVATE)
 target_compile_definitions (${TARGET_TESTS} PRIVATE)
 target_compile_definitions (${TARGET_DLL} PRIVATE)
 
 
 target_include_directories (${TARGET_LIB} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_VIZHF} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
+target_include_directories (${TARGET_VIZHF2} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_TESTS} PRIVATE
     ${GEARSVK_INCLUDE_FOLDERS}
     external/googletest/googletest/include
@@ -169,10 +176,12 @@ target_include_directories (${TARGET_DLL} PRIVATE
 
 target_link_libraries (${TARGET_LIB} ${Vulkan_LIBRARIES} glfw SPIRV)
 target_link_libraries (${TARGET_VIZHF} ${TARGET_LIB})
+target_link_libraries (${TARGET_VIZHF2} ${TARGET_LIB})
 target_link_libraries (${TARGET_TESTS} ${TARGET_LIB} gtest)
 target_link_libraries (${TARGET_DLL} ${TARGET_LIB})
 
 target_compile_options (${TARGET_LIB} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_VIZHF} PRIVATE ${COMPILER_FLAGS})
+target_compile_options (${TARGET_VIZHF2} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_TESTS} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL} PRIVATE ${COMPILER_FLAGS})

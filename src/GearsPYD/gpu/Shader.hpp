@@ -6,8 +6,10 @@
 
 #include "OpenGLProxy.hpp"
 
-#include "VulkanWrapper.hpp"
 #include "Event.hpp"
+#include "VulkanWrapper.hpp"
+
+#include "ShaderPipeline.hpp"
 
 class UniformBinder {
 public:

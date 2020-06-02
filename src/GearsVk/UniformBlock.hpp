@@ -223,6 +223,36 @@ public:
     }
 
     template<typename T>
+    struct is_array_or_vector {
+        enum { value = false };
+    };
+
+    template<typename T, typename A>
+    struct is_array_or_vector<std::vector<T, A>> {
+        enum { value = true };
+    };
+
+    template<typename T, std::size_t N>
+    struct is_array_or_vector<std::array<T, N>> {
+        enum { value = true };
+    };
+
+    template<typename T>
+    void operator= (const std::vector<T>& other)
+    {
+        const uint32_t uniformVariableSize = data.size ();
+        const uint32_t arraySize           = other.size ();
+        const uint32_t arrayElementSize    = sizeof (T);
+        const uint32_t arrayFullSize       = arrayElementSize * arraySize;
+
+        ASSERT (data.size () == GetSize ());
+
+        if (ASSERT (data.size () == sizeof (T) * other.size ())) {
+            memcpy (data.data (), other.data (), sizeof (T) * other.size ());
+        }
+    }
+
+    template<typename T>
     void operator= (const T& other)
     {
         ASSERT (data.size () == GetSize ());
@@ -233,13 +263,9 @@ public:
     }
 
     template<typename T, size_t N>
-    void operator= (const std::array<T, N>& other)
+    void operator!= (const std::array<T, N>& other)
     {
-        ASSERT (data.size () == GetSize ());
-
-        if (ASSERT (data.size () == sizeof (T) * other.size ())) {
-            memcpy (data.data (), other.data (), sizeof (T) * other.size ());
-        }
+        memcpy (data.data (), other.data (), sizeof (T) * other.size ());
     }
 
 #if 0
