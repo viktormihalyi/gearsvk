@@ -18,9 +18,9 @@ struct Quadric {
     mat4 surface;
     mat4 clipper;
     vec4 kd;
-    vec4 kr;
+    vec4 reflectance;
     vec4 ks;
-    vec4 d2;
+    vec4 transmittace;
 };
 
 struct Light {
@@ -28,7 +28,7 @@ struct Light {
     vec4 powerDensity;
 };
 
-#define QUADRIC_COUNT 5
+#define QUADRIC_COUNT 6
 #define LIGHT_COUNT 2
 
 layout (std140, binding = 2) uniform Quadrics {
@@ -107,15 +107,18 @@ Hit FindBestHit (vec4 e, vec4 d) {
 vec3 Shade (vec3 normal, vec3 viewDir, vec3 lightDir, vec3 powerDensity, vec3 kd, vec3 ks) 
 {
     const vec3 halfway = normalize (viewDir + lightDir);
+    
     if (dot (normal, lightDir) < 0.f) {
         return vec3 (0, 0, 0);
     }
+    
     const float cosa = max (dot (normal, lightDir), 0.f);
     const float cosb = max (dot (normal, viewDir), 0.f);
+
     return 
         powerDensity * kd * cosa
         +
-        powerDensity * ks * pow (max (dot (halfway, normal), 0), 20) * cosa / max (cosa, cosb);
+        powerDensity * ks * pow (max (dot (halfway, normal), 0), 20) * cosa / max (cosa, cosb)
         ;
 }
 
@@ -126,14 +129,17 @@ const bool showShadows = true;
 vec3 DirectLighting (vec4 x, vec3 normal, vec3 viewDir, vec3 kd, vec3 ks)
 {
     vec3 radiance = vec3 (0, 0, 0);
-    for (int i = 0; i < LIGHT_COUNT; ++i) {
-        vec3 lightDir = lights[i].position.xyz;
-        vec3 powerDensity = lights[i].powerDensity.rgb;
+    for (int i = 0; i < 2; ++i) {
+
+        const vec3 lightDiff    = lights[i].position.xyz - x.xyz * lights[i].position.w;
+        const vec3 lightDir     = normalize (lightDiff);
+        const vec3 powerDensity = lights[i].powerDensity.rgb / dot (lightDiff, lightDiff);
     
-        Hit shadowHit = FindBestHit (x + vec4 (normal, 0) * EPS, vec4 (lightDir, 0));
+        const Hit shadowHit = FindBestHit (x + vec4 (normal, 0) * EPS, vec4 (lightDir, 0));
         if (!showShadows || shadowHit.t < 0.f) {
             radiance += Shade (normal, viewDir, lightDir, powerDensity, kd, ks);
         }
+
     }
     return radiance;
 }
@@ -159,9 +165,9 @@ void main ()
     
     // vec3 reflectanceProduct = vec3 (1, 1, 1);
 
-    const vec3 background = vec3 (0.2);
+    const vec3 background = vec3 (0.02);
 
-    #define MAX_RAY_COUNT 64
+    #define MAX_RAY_COUNT 32
     Ray rays[MAX_RAY_COUNT];
     int rayCount = 0;
 
@@ -174,7 +180,7 @@ void main ()
     initialRay.inside             = false;
     ADD_RAY (initialRay);
 
-    const int maxStartedRays = 8;
+    const int maxStartedRays = 16;
     int startedRays = 0;
 
     while (rayCount > 0 && startedRays++ <= maxStartedRays) {
@@ -186,10 +192,10 @@ void main ()
         if (hit.t > 0.f) {
             vec3 normal = GetQuadricNormal (quadrics[hit.quadricIndex].surface, hit.position);
         
-                if (dot (normal, currentRay.direction.xyz) > 0.f) {
-                    normal = -normal;
-                }
-//
+            if (dot (normal, currentRay.direction.xyz) > 0.f) {
+                normal = -normal;
+            }
+    
             radiance +=
                 currentRay.reflectanceProduct * 
                 DirectLighting (hit.position, normal, -currentRay.direction.xyz, quadrics[hit.quadricIndex].kd.rgb, quadrics[hit.quadricIndex].ks.rgb);
@@ -198,7 +204,7 @@ void main ()
                 Ray reflectedRay;
                 reflectedRay.startPos           = hit.position + vec4 (normal, 0) * EPS;
                 reflectedRay.direction          = vec4 (reflect (currentRay.direction.xyz, normal), 0);
-                reflectedRay.reflectanceProduct = currentRay.reflectanceProduct * quadrics[hit.quadricIndex].kr.rgb;
+                reflectedRay.reflectanceProduct = currentRay.reflectanceProduct * quadrics[hit.quadricIndex].reflectance.rgb;
                 reflectedRay.inside             = currentRay.inside;
                 if (length (reflectedRay.reflectanceProduct) > EPS) {
                     ADD_RAY (reflectedRay);
@@ -206,10 +212,13 @@ void main ()
             }
 
             {
+                const float refractionIndex = 1.333f;
+                const float eta = (currentRay.inside) ? 1.0 / refractionIndex : refractionIndex;
+
                 Ray refractedRay;
                 refractedRay.startPos           = hit.position - vec4 (normal, 0) * EPS;
-                refractedRay.direction          = vec4 (refract (currentRay.direction.xyz, normal, 1.3333), 0);
-                refractedRay.reflectanceProduct = currentRay.reflectanceProduct * quadrics[hit.quadricIndex].kr.rgb;
+                refractedRay.direction          = vec4 (refract (currentRay.direction.xyz, normal, eta), 0);
+                refractedRay.reflectanceProduct = currentRay.reflectanceProduct * quadrics[hit.quadricIndex].transmittace.rgb;
                 refractedRay.inside             = !currentRay.inside;
                 if (length (refractedRay.reflectanceProduct) > EPS) {
                     ADD_RAY (refractedRay);
@@ -220,33 +229,6 @@ void main ()
             radiance += currentRay.reflectanceProduct * background;
         }
     }
-
-//
-//    for (int i = 0; i < 6; ++i) {
-//        Hit hit = FindBestHit (e, d);
-//
-//        if (hit.t > 0.f) {        
-//            vec4 hitPosition = e + d * hit.t;            
-//            vec3 normal = GetQuadricNormal (quadrics[hit.quadricIndex].surface, hitPosition);
-//        
-//            if (dot (normal, d.xyz) > 0.f) {
-//                normal = -normal;
-//            }
-//
-//            radiance +=
-//                reflectanceProduct * 
-//                DirectLighting (hitPosition, normal, -d.xyz, quadrics[hit.quadricIndex].kd.rgb, quadrics[hit.quadricIndex].ks.rgb);
-//
-//            reflectanceProduct *= quadrics[hit.quadricIndex].kr.rgb;
-//
-//            e = hitPosition + vec4 (normal, 0) * EPS;            
-//            d.xyz = reflect (d.xyz, normal);
-//
-//        } else {
-//            radiance += reflectanceProduct * background;            
-//            break;
-//        }
-//    }
 
     presented = vec4 (radiance, 1);
 }
