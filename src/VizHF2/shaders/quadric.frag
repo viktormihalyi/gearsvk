@@ -29,7 +29,7 @@ struct Light {
 };
 
 #define QUADRIC_COUNT 6
-#define LIGHT_COUNT 2
+#define LIGHT_COUNT 4
 
 layout (std140, binding = 2) uniform Quadrics {
     Quadric quadrics[QUADRIC_COUNT];
@@ -122,6 +122,7 @@ vec3 Shade (vec3 normal, vec3 viewDir, vec3 lightDir, vec3 powerDensity, vec3 kd
         ;
 }
 
+
 #define EPS 1e-3
 
 const bool showShadows = true;
@@ -129,7 +130,7 @@ const bool showShadows = true;
 vec3 DirectLighting (vec4 x, vec3 normal, vec3 viewDir, vec3 kd, vec3 ks)
 {
     vec3 radiance = vec3 (0, 0, 0);
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < LIGHT_COUNT; ++i) {
 
         const vec3 lightDiff    = lights[i].position.xyz - x.xyz * lights[i].position.w;
         const vec3 lightDir     = normalize (lightDiff);
@@ -163,8 +164,6 @@ void main ()
 {
     vec3 radiance = vec3 (0, 0, 0);
     
-    // vec3 reflectanceProduct = vec3 (1, 1, 1);
-
     const vec3 background = vec3 (0.02);
 
     #define MAX_RAY_COUNT 32

@@ -45,37 +45,40 @@ static const glm::mat4 UnitMatrix = glm::mat4 (
     0.f, 0.f, 1.f, 0.f,
     0.f, 0.f, 0.f, 1.f);
 
-struct Quadric {
-    glm::mat4 surface;
-    glm::mat4 clipper;
-    glm::vec4 kd;
-    glm::vec4 reflectance;
-    glm::vec4 ks;
-    glm::vec4 transmittace;
+class QuadricMat4 : public glm::mat4 {
+public:
+    using glm::mat4::mat4;
 
+    QuadricMat4 Scale (const glm::vec3& v) const
+    {
+        return QuadricTransform (*this, glm::scale (UnitMatrix, v));
+    }
+
+    QuadricMat4 Rotate (float angle, const glm::vec3& v)
+    {
+        return QuadricTransform (*this, glm::rotate (UnitMatrix, angle, v));
+    }
+
+    QuadricMat4 Translate (const glm::vec3& v) const
+    {
+        return QuadricTransform (*this, glm::translate (UnitMatrix, v));
+    }
+
+private:
     static glm::mat4 QuadricTransform (const glm::mat4& surface, const glm::mat4& trafo)
     {
         const glm::mat4 tinv = glm::inverse (trafo);
         return glm::transpose (tinv) * surface * tinv;
     }
+};
 
-    Quadric& Scale (const glm::vec3& v)
-    {
-        surface = QuadricTransform (surface, glm::scale (UnitMatrix, v));
-        return *this;
-    }
-
-    Quadric& Rotate (float angle, const glm::vec3& v)
-    {
-        surface = QuadricTransform (surface, glm::rotate (UnitMatrix, angle, v));
-        return *this;
-    }
-
-    Quadric& Translate (const glm::vec3& v)
-    {
-        surface = QuadricTransform (surface, glm::translate (UnitMatrix, v));
-        return *this;
-    }
+struct Quadric {
+    QuadricMat4 surface;
+    QuadricMat4 clipper;
+    glm::vec4   kd;
+    glm::vec4   reflectance;
+    glm::vec4   ks;
+    glm::vec4   transmittace;
 };
 
 
@@ -103,8 +106,8 @@ int main (int, char**)
 
     ShaderPipeline::P sp = ShaderPipeline::CreateShared (device);
     sp->SetShadersFromSourceFiles ({
-        ShadersFolder / "quadratic.vert",
-        ShadersFolder / "quadratic.frag",
+        ShadersFolder / "quadric.vert",
+        ShadersFolder / "quadric.frag",
     });
 
     RG::RenderOperation& brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (deviceExtra), sp);
@@ -158,37 +161,43 @@ int main (int, char**)
         Toro    = 2,
     };
 
-    constexpr glm::mat4 zplane = glm::mat4 (
+    constexpr QuadricMat4 zplane = glm::mat4 (
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, -1.0f);
 
-    constexpr glm::mat4 unitSphere = glm::mat4 (
+    constexpr QuadricMat4 unitSphere = glm::mat4 (
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, -1.0f);
 
-    constexpr glm::mat4 cylinder = glm::mat4 (
+    constexpr QuadricMat4 cylinder = glm::mat4 (
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, -9.0f);
+        0.0f, 0.0f, 0.0f, -1.0f);
 
-    constexpr glm::mat4 halfUnitSphere = glm::mat4 (
+    constexpr QuadricMat4 hyperboloid = glm::mat4 (
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, -0.5f);
+        0.0f, 0.0f, -1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, -1.0f);
 
-    constexpr glm::mat4 all = glm::mat4 (
+    constexpr QuadricMat4 paraboloid = glm::mat4 (
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, -1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.5f,
+        0.0f, 0.0f, 0.5f, 0.0f);
+
+    constexpr QuadricMat4 all = glm::mat4 (
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, -1.0f);
 
-    constexpr glm::mat4 outside = glm::mat4 (
+    constexpr QuadricMat4 outside = glm::mat4 (
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
@@ -202,69 +211,59 @@ int main (int, char**)
     std::vector<Quadric> quadrics;
     {
         quadrics.emplace_back ();
-#define LAST quadrics.size () - 1
-        quadrics[LAST].surface     = zplane;
-        quadrics[LAST].clipper     = all;
-        quadrics[LAST].kd          = glm::vec4 (34 / 255.f, 139 / 255.f, 34 / 255.f, 0);
-        quadrics[LAST].reflectance = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].ks          = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].Translate (glm::vec3 (0, 0, -3));
+#define QLAST quadrics.size () - 1
+        quadrics[QLAST].surface = zplane.Translate (glm::vec3 (0, 0, -3));
+        quadrics[QLAST].clipper = all;
+        quadrics[QLAST].kd      = glm::vec4 (0.1, 0.2, 0.2, 0);
 
         quadrics.emplace_back ();
-        quadrics[LAST].surface     = unitSphere;
-        quadrics[LAST].clipper     = all;
-        quadrics[LAST].kd          = glm::vec4 (1, 0.1, 0.1, 0);
-        quadrics[LAST].reflectance = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].ks          = glm::vec4 (1, 1, 1, 0);
-        quadrics[LAST].Translate (glm::vec3 (4, -3, 3));
+        quadrics[QLAST].surface = unitSphere.Scale (glm::vec3 (1.2, 1.2, 0.5)).Translate (glm::vec3 (4, -3, 3));
+        quadrics[QLAST].clipper = all;
+        quadrics[QLAST].kd      = glm::vec4 (1, 0.1, 0.1, 0);
+        quadrics[QLAST].ks      = glm::vec4 (0.5, 0.5, 0, 0);
 
         quadrics.emplace_back ();
-        quadrics[LAST].surface     = unitSphere;
-        quadrics[LAST].clipper     = all;
-        quadrics[LAST].kd          = glm::vec4 (0.1, 1, 0.1, 0);
-        quadrics[LAST].reflectance = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].ks          = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].Translate (glm::vec3 (4, 0, 3));
+        quadrics[QLAST].surface = paraboloid.Translate (glm::vec3 (4, 0, 3));
+        quadrics[QLAST].clipper = unitSphere.Translate (glm::vec3 (4, 0, 3));
+        quadrics[QLAST].kd      = glm::vec4 (0.1, 1, 0.1, 0);
 
         // idealias tukor
         quadrics.emplace_back ();
-        quadrics[LAST].surface     = cylinder;
-        quadrics[LAST].clipper     = all;
-        quadrics[LAST].kd          = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].reflectance = glm::vec4 (1, 1, 1, 0);
-        quadrics[LAST].ks          = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].Translate (glm::vec3 (4, 9, 3));
+        quadrics[QLAST].surface     = unitSphere.Scale (glm::vec3 (8, 1, 5)).Translate (glm::vec3 (4, 14, 6));
+        quadrics[QLAST].clipper     = all;
+        quadrics[QLAST].reflectance = glm::vec4 (1, 1, 1, 0);
 
         // uveg
         quadrics.emplace_back ();
-        quadrics[LAST].surface      = unitSphere;
-        quadrics[LAST].clipper      = all;
-        quadrics[LAST].kd           = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].reflectance  = glm::vec4 (0.75, 0.75, 0.75, 0);
-        quadrics[LAST].transmittace = glm::vec4 (0.75, 0.75, 0.75, 0);
-        quadrics[LAST].ks           = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].Translate (glm::vec3 (4, 0, 6));
+        quadrics[QLAST].surface      = unitSphere.Translate (glm::vec3 (4, 0, 6));
+        quadrics[QLAST].clipper      = all;
+        quadrics[QLAST].reflectance  = glm::vec4 (0.75, 0.75, 0.75, 0);
+        quadrics[QLAST].transmittace = glm::vec4 (0.75, 0.75, 0.75, 0);
 
         // idealis toro
         quadrics.emplace_back ();
-        quadrics[LAST].surface      = unitSphere;
-        quadrics[LAST].clipper      = all;
-        quadrics[LAST].kd           = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].reflectance  = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].ks           = glm::vec4 (0, 0, 0, 0);
-        quadrics[LAST].transmittace = glm::vec4 (1, 1, 1, 0);
-        quadrics[LAST].Translate (glm::vec3 (4, -3, 6));
+        quadrics[QLAST].surface      = unitSphere.Translate (glm::vec3 (4, -3, 6));
+        quadrics[QLAST].clipper      = all;
+        quadrics[QLAST].transmittace = glm::vec4 (1, 1, 1, 0);
     }
 
     std::vector<Light> lights;
     {
         lights.emplace_back ();
         lights[0].position     = glm::normalize (glm::vec4 (0.6, -0.6, 1, 0));
-        lights[0].powerDensity = glm::vec4 (0, 0.1, 1, 0) * 3.f;
+        lights[0].powerDensity = glm::vec4 (0.1, 0.1, 0.1, 0);
 
         lights.emplace_back ();
-        lights[1].position     = glm::vec4 (0, 0, 10, 1);
-        lights[1].powerDensity = glm::vec4 (0.95, 0.87, 0.8, 0) * 100.f;
+        lights[1].position     = glm::vec4 (10, 0, 10, 1);
+        lights[1].powerDensity = glm::vec4 (0.95, 0.87, 0.8, 0) * 300.f;
+
+        lights.emplace_back ();
+        lights[2].position     = glm::vec4 (0, 0, 10, 1);
+        lights[2].powerDensity = glm::vec4 (0.1, 0.87, 0.34, 0) * 300.f;
+
+        lights.emplace_back ();
+        lights[3].position     = glm::vec4 (5, 5, 4, 1);
+        lights[3].powerDensity = glm::vec4 (187 / 255.f, 143 / 255.f, 206 / 255.f, 0) * 100.f;
     }
 
     refl.frag["Quadrics"] = quadrics;
