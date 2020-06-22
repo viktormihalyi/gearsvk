@@ -43,6 +43,7 @@ public:
 };
 
 
+USING_PTR_2 (SDLWindow);
 class SDLWindow final : public SDLWindowBase {
 public:
     USING_PTR (SDLWindow);
@@ -50,6 +51,7 @@ public:
 };
 
 
+USING_PTR_2 (HiddenSDLWindow);
 class HiddenSDLWindow final : public SDLWindowBase {
 public:
     USING_PTR (HiddenSDLWindow);

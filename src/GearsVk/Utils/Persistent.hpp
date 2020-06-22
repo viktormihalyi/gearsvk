@@ -117,8 +117,6 @@ private:
     }
 
 public:
-    USING_PTR (PersistentVariable);
-
     PersistentVariable (const std::string& name, const T& defaultValue = T ())
         : name (name)
         , file (std::filesystem::temp_directory_path () / "GearsVk" / (name + ".bin"))

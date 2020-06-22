@@ -15,6 +15,7 @@
 #include <cstring>
 
 
+USING_PTR_2 (BufferTransferable);
 class GEARSVK_API BufferTransferable final {
 public:
     const VkDevice      device;
@@ -55,6 +56,7 @@ public:
 };
 
 
+USING_PTR_2 (ImageTransferableBase);
 class GEARSVK_API ImageTransferableBase {
 private:
     const VkDevice      device;
@@ -125,6 +127,7 @@ static uint32_t GetCompontentCountFromFormat (VkFormat format)
 }
 
 
+USING_PTR_2 (Image1DTransferable);
 class GEARSVK_API Image1DTransferable final : public ImageTransferableBase {
 public:
     USING_PTR (Image1DTransferable);
@@ -136,6 +139,7 @@ public:
 };
 
 
+USING_PTR_2 (Image2DTransferable);
 class GEARSVK_API Image2DTransferable final : public ImageTransferableBase {
 public:
     USING_PTR (Image2DTransferable);
@@ -147,6 +151,7 @@ public:
 };
 
 
+USING_PTR_2 (Image3DTransferable);
 class GEARSVK_API Image3DTransferable final : public ImageTransferableBase {
 public:
     USING_PTR (Image3DTransferable);
@@ -168,6 +173,7 @@ public:
 };
 
 
+USING_PTR_2 (VertexBufferTransferableUntyped);
 class GEARSVK_API VertexBufferTransferableUntyped {
 public:
     std::vector<uint8_t>     data;
@@ -199,6 +205,8 @@ public:
 };
 
 
+USING_PTR_2 (VertexBufferTransferableUntyped);
+
 template<typename VertexType>
 class VertexBufferTransferable : public VertexBufferTransferableUntyped {
 public:
@@ -222,6 +230,7 @@ public:
 };
 
 
+USING_PTR_2 (IndexBufferTransferable);
 class GEARSVK_API IndexBufferTransferable {
 public:
     using IndexType = uint16_t;

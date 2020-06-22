@@ -8,6 +8,7 @@
 
 #include <vulkan/vulkan.h>
 
+USING_PTR_2 (ImageBase);
 class GEARSVK_API ImageBase : public Noncopyable {
 public:
     static const VkImageLayout INITIAL_LAYOUT = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -152,6 +153,7 @@ public:
 };
 
 
+USING_PTR_2 (Image1D);
 class GEARSVK_API Image1D : public ImageBase {
 public:
     USING_PTR (Image1D);
@@ -162,6 +164,7 @@ public:
 };
 
 
+USING_PTR_2 (Image2D);
 class GEARSVK_API Image2D : public ImageBase {
 public:
     USING_PTR (Image2D);
@@ -172,6 +175,7 @@ public:
 };
 
 
+USING_PTR_2 (Image3D);
 class GEARSVK_API Image3D : public ImageBase {
 public:
     USING_PTR (Image3D);

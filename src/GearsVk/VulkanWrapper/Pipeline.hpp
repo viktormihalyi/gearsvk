@@ -7,6 +7,7 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
+USING_PTR_2 (Pipeline);
 class GEARSVK_API Pipeline : public Noncopyable {
 private:
     const VkDevice device;

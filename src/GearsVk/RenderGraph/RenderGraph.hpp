@@ -57,6 +57,7 @@ public:
 // {f1, o1}, {f1, o2}, {f1, o3}, {f1, o4}, {f1, o5},
 // {f2, o1}, {f2, o2}, {f2, o3}, {f2, o4}, {f2, o5},
 // {f3, o1}, {f3, o2}, {f3, o3}, {f3, o4}, {f3, o5},
+USING_PTR_2 (DefaultOperationToCommandBufferMappingStrategy);
 
 class DefaultOperationToCommandBufferMappingStrategy : public OperationToCommandBufferMappingStrategy {
 public:
@@ -87,6 +88,7 @@ public:
     }
 }; // namespace RG
 
+USING_PTR_2 (SeperatedOperationToCommandBufferMappingStrategy);
 class SeperatedOperationToCommandBufferMappingStrategy : public OperationToCommandBufferMappingStrategy {
 public:
     USING_PTR (SeperatedOperationToCommandBufferMappingStrategy);
@@ -147,6 +149,9 @@ public:
     std::vector<uint32_t> GetOperationIndices (uint32_t commandBufferIndex) { return commandBufferToOperationMapping[commandBufferIndex]; }
 };
 
+
+USING_PTR_2 (RenderGraph);
+
 class GEARSVK_API RenderGraph final : public Noncopyable {
 public:
     struct OutputConnection final {
@@ -156,6 +161,7 @@ public:
     };
 
 private:
+    USING_PTR_2 (CompileResult);
     struct CompileResult : public CompileResultProvider {
         USING_PTR (CompileResult);
 

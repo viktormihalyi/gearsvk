@@ -73,9 +73,13 @@ public:
 };
 
 
+USING_PTR_2 (WritableImageResource);
+
 class GEARSVK_API WritableImageResource : public ImageResource, public InputImageBindable {
 private:
     Sampler::U sampler;
+
+    USING_PTR_2 (SingleImageResource);
 
     struct SingleImageResource final {
         static const VkFormat FormatRGBA;
@@ -154,6 +158,7 @@ public:
     virtual VkSampler   GetSampler () override { return *sampler; }
 };
 
+USING_PTR_2 (ReadOnlyImageResource);
 
 class GEARSVK_API ReadOnlyImageResource : public OneTimeCompileResource, public InputImageBindable {
 public:
@@ -219,6 +224,7 @@ public:
     }
 };
 
+USING_PTR_2 (SwapchainImageResource);
 
 class GEARSVK_API SwapchainImageResource : public ImageResource, public InputImageBindable {
 public:
@@ -258,6 +264,8 @@ public:
 };
 
 
+USING_PTR_2 (CPUBufferResource);
+
 class GEARSVK_API CPUBufferResource : public Resource, public InputBufferBindable {
 public:
     const uint32_t                  size;
@@ -291,6 +299,7 @@ public:
     MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
 };
 
+USING_PTR_2 (UniformBlockResource);
 
 class GEARSVK_API UniformBlockResource : public CPUBufferResource {
 public:
@@ -315,6 +324,7 @@ public:
     }
 };
 
+USING_PTR_2 (UniformReflectionResource);
 
 class GEARSVK_API UniformReflectionResource : public Resource {
 public:

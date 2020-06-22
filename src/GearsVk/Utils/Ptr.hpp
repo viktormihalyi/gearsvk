@@ -4,6 +4,13 @@
 
 #include <memory>
 
+#define USING_PTR_2(classname)                       \
+    class classname;                                 \
+    using classname##U = std::unique_ptr<classname>; \
+    using classname##P = std::shared_ptr<classname>;
+
+USING_PTR_2 (Asd);
+
 #define USING_PTR_ABSTRACT(T)               \
     using P    = std::shared_ptr<T>;        \
     using W    = std::weak_ptr<T>;          \

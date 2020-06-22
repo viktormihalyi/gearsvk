@@ -9,6 +9,7 @@
 
 #include <vulkan/vulkan.h>
 
+USING_PTR_2 (ImageViewBase);
 class GEARSVK_API ImageViewBase : public Noncopyable {
 private:
     const VkDevice device;
@@ -62,6 +63,7 @@ public:
 };
 
 
+USING_PTR_2 (ImageView1D);
 class GEARSVK_API ImageView1D : public ImageViewBase {
 public:
     USING_PTR (ImageView1D);
@@ -78,6 +80,7 @@ public:
 };
 
 
+USING_PTR_2 (ImageView2D);
 class GEARSVK_API ImageView2D : public ImageViewBase {
 public:
     USING_PTR (ImageView2D);
@@ -94,6 +97,7 @@ public:
 };
 
 
+USING_PTR_2 (ImageView3D);
 class GEARSVK_API ImageView3D : public ImageViewBase {
 public:
     USING_PTR (ImageView3D);
@@ -110,6 +114,7 @@ public:
 };
 
 
+USING_PTR_2 (ImageViewCube);
 class GEARSVK_API ImageViewCube : public ImageViewBase {
 public:
     USING_PTR (ImageViewCube);

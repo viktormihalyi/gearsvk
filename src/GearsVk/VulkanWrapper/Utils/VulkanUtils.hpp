@@ -38,6 +38,7 @@ GEARSVK_API
 std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& filePath);
 
 
+USING_PTR_2 (AllocatedImage);
 struct GEARSVK_API AllocatedImage final {
     ImageBase::U    image;
     DeviceMemory::U memory;
@@ -55,6 +56,7 @@ struct GEARSVK_API AllocatedImage final {
 };
 
 
+USING_PTR_2 (AllocatedBuffer);
 struct GEARSVK_API AllocatedBuffer final {
     Buffer::U       buffer;
     DeviceMemory::U memory;

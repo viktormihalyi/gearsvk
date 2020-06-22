@@ -15,6 +15,7 @@ void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
                         VkDebugUtilsMessageTypeFlagsEXT,
                         const VkDebugUtilsMessengerCallbackDataEXT* callbackData);
 
+USING_PTR_2 (VulkanEnvironment);
 
 class GEARSVK_API VulkanEnvironment {
 public:

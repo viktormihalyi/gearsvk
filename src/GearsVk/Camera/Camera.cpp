@@ -21,6 +21,8 @@ public:
 };
 
 
+USING_PTR_2 (GlobalZ);
+
 class GlobalZ final : public GlobalUpVectorProvider {
 private:
     const glm::vec3 upVector;

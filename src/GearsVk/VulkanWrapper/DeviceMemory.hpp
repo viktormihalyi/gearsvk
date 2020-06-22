@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+USING_PTR_2 (DeviceMemory);
 class GEARSVK_API DeviceMemory : public Noncopyable {
 public:
     static constexpr VkMemoryPropertyFlags GPU = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;

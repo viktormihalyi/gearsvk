@@ -9,6 +9,8 @@
 //#define ASSERT_ON_KEYS ASSERT
 #define ASSERT_ON_KEYS
 
+USING_PTR_2 (KeyboardState);
+
 class KeyboardState {
 private:
     static const uint32_t KEYCOUNT = 1024;

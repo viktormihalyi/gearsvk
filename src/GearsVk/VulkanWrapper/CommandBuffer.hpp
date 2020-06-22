@@ -8,6 +8,8 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
+USING_PTR_2 (CommandBuffer);
+
 class GEARSVK_API CommandBuffer : public Noncopyable {
 private:
     const VkDevice      device;

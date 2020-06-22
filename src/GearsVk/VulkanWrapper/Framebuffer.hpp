@@ -9,6 +9,7 @@
 
 #include <vulkan/vulkan.h>
 
+USING_PTR_2 (Framebuffer);
 class GEARSVK_API Framebuffer final : public Noncopyable {
 private:
     const VkDevice device;

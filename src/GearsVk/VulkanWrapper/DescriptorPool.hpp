@@ -7,6 +7,8 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
+USING_PTR_2 (DescriptorPool);
+
 class GEARSVK_API DescriptorPool : public Noncopyable {
 private:
     const VkDevice   device;

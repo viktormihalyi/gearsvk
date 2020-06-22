@@ -23,6 +23,7 @@ public:
     virtual AllocateInfo GetBufferAllocateInfo (VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) const = 0;
 };
 
+USING_PTR_2 (Device);
 
 class GEARSVK_API Device : public Noncopyable, public DeviceInterface {
 private:

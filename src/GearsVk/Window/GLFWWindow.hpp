@@ -41,6 +41,7 @@ public:
 };
 
 
+USING_PTR_2 (GLFWWindow);
 class GEARSVK_API GLFWWindow : public GLFWWindowBase {
 public:
     USING_PTR (GLFWWindow);
@@ -49,6 +50,7 @@ public:
 };
 
 
+USING_PTR_2 (HiddenGLFWWindow);
 class GEARSVK_API HiddenGLFWWindow : public GLFWWindowBase {
 public:
     USING_PTR (HiddenGLFWWindow);

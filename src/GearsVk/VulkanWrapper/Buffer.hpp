@@ -8,6 +8,7 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
+USING_PTR_2 (Buffer);
 
 class GEARSVK_API Buffer : public Noncopyable {
 private:
@@ -44,6 +45,7 @@ public:
     }
 };
 
+USING_PTR_2 (UniformBuffer);
 
 class UniformBuffer : public Buffer {
 public:
@@ -54,6 +56,7 @@ public:
     }
 };
 
+USING_PTR_2 (StorageBuffer);
 
 class StorageBuffer : public Buffer {
 public:
@@ -64,6 +67,7 @@ public:
     }
 };
 
+USING_PTR_2 (IndexBuffer);
 
 class IndexBuffer : public Buffer {
 public:
@@ -74,6 +78,7 @@ public:
     }
 };
 
+USING_PTR_2 (VertexBuffer);
 
 class VertexBuffer : public Buffer {
 public:

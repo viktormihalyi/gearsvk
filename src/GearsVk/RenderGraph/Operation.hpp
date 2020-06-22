@@ -35,6 +35,7 @@ struct GEARSVK_API Operation : public Node {
     std::vector<VkImageView>             GetOutputImageViews (uint32_t frameIndex) const;
 };
 
+USING_PTR_2 (RenderOperation);
 
 struct GEARSVK_API RenderOperation : public Operation {
     USING_PTR (RenderOperation);

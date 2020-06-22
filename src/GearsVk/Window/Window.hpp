@@ -10,6 +10,7 @@
 
 #include <vulkan/vulkan.h>
 
+USING_PTR_2 (Window);
 
 class Window : public Noncopyable {
 public:

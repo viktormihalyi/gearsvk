@@ -49,6 +49,7 @@ static ShaderType vec4Array {16 * SIZE, 32, "vec4", SIZE};
 
 
 // represents one uniform buffer object _type_
+USING_PTR_2 (ShaderStruct);
 class ShaderStruct {
 private:
     uint32_t                                                   fullSize;
@@ -159,6 +160,7 @@ using UniformBlockView    = UniformView;
 
 
 // represents one uniform buffer object in one shader
+USING_PTR_2 (UniformBlock);
 class UniformBlock : public Noncopyable {
 public:
     friend class ShaderBlocks;
@@ -304,6 +306,7 @@ public:
 
 
 // contains all uniform buffer objects for a single shader
+USING_PTR_2 (ShaderBlocks);
 class ShaderBlocks {
 private:
     UniformBlock dummy;

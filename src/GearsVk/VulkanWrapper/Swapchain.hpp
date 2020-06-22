@@ -62,6 +62,7 @@ public:
     }
 };
 
+USING_PTR_2 (RealSwapchain);
 class GEARSVK_API RealSwapchain : public Swapchain,
                                   public Noncopyable {
 public:
@@ -138,6 +139,7 @@ public:
 };
 
 
+USING_PTR_2 (FakeSwapchain);
 class GEARSVK_API FakeSwapchain : public Swapchain {
 private:
     AllocatedImage image;

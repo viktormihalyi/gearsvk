@@ -21,6 +21,7 @@ public:
     }
 };
 
+USING_PTR_2 (ShaderModule);
 class GEARSVK_API ShaderModule : public Noncopyable {
 public:
     enum class ShaderKind {

@@ -10,6 +10,7 @@
 
 #include <cstring>
 
+USING_PTR_2 (MemoryMapping);
 class GEARSVK_API MemoryMapping : public Noncopyable {
 private:
     const VkDevice       device;

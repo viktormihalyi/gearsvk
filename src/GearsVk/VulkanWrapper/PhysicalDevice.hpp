@@ -46,6 +46,7 @@ GEARSVK_API
 extern DefaultQueueFamilySelector defaultQueueFamilySelector;
 
 
+USING_PTR_2 (PhysicalDevice);
 class GEARSVK_API PhysicalDevice final : public Noncopyable {
 public:
     struct QueueFamilies {

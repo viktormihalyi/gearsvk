@@ -11,6 +11,7 @@
 
 #include "glmlib.hpp"
 
+USING_PTR_2 (Camera);
 
 class GEARSVK_API Camera {
 public:

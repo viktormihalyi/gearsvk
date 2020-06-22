@@ -9,6 +9,7 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
+USING_PTR_2 (ShaderPipeline);
 
 class GEARSVK_API ShaderPipeline {
 public:

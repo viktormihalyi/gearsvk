@@ -8,6 +8,7 @@
 
 #include <vulkan/vulkan.h>
 
+USING_PTR_2 (Sampler);
 class GEARSVK_API Sampler : public Noncopyable {
 private:
     const VkDevice device;

@@ -11,6 +11,8 @@
 #include "DescriptorPool.hpp"
 #include "DescriptorSetLayout.hpp"
 
+USING_PTR_2 (DescriptorSet);
+
 class GEARSVK_API DescriptorSet : public Noncopyable {
 private:
     const VkDevice         device;

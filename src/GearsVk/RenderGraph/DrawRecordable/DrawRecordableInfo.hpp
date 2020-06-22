@@ -8,6 +8,8 @@
 #include "BufferTransferable.hpp"
 
 
+USING_PTR_2 (DrawRecordableInfo);
+
 struct DrawRecordableInfo : public DrawRecordable {
 public:
     const uint32_t instanceCount;

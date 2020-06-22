@@ -56,6 +56,8 @@ public:
 };
 
 
+USING_PTR_2 (UniformInputBinding);
+
 class UniformInputBinding : public InputBinding {
 public:
     USING_PTR (UniformInputBinding);
@@ -100,6 +102,8 @@ public:
     }
 };
 
+
+USING_PTR_2 (ImageInputBinding);
 
 class ImageInputBinding : public InputBinding {
 public:

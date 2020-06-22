@@ -6,6 +6,7 @@
 
 #include "glmlib.hpp"
 
+USING_PTR_2 (FullscreenQuad);
 
 class FullscreenQuad : public DrawRecordableInfoProvider {
 private:

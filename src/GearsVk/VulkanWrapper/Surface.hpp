@@ -5,6 +5,7 @@
 
 #include <vulkan/vulkan.h>
 
+USING_PTR_2 (Surface);
 class GEARSVK_API Surface : public Noncopyable {
 private:
     VkInstance   instance;
