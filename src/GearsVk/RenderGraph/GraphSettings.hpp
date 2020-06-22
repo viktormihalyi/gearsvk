@@ -29,6 +29,12 @@ struct GraphSettings {
     }
 
     GraphSettings ()
+        : device (nullptr)
+        , queue (VK_NULL_HANDLE)
+        , commandPool (VK_NULL_HANDLE)
+        , framesInFlight (0)
+        , width (0)
+        , height (0)
     {
     }
 

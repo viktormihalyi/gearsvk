@@ -17,9 +17,11 @@ public:
         : camera (camera)
         , keyboard (KeyboardState::Create ())
     {
-        windowEvents.mouseMove += std::bind (&CameraControl::ProcessMouseInput, this, std::placeholders::_1, std::placeholders::_2);
-        windowEvents.keyPressed += std::bind (&KeyboardState::SetPressed, keyboard.get (), std::placeholders::_1);
-        windowEvents.keyReleased += std::bind (&KeyboardState::SetReleased, keyboard.get (), std::placeholders::_1);
+        using namespace std::placeholders;
+
+        windowEvents.mouseMove += std::bind (&CameraControl::ProcessMouseInput, this, _1, _2);
+        windowEvents.keyPressed += std::bind (&KeyboardState::SetPressed, keyboard.get (), _1);
+        windowEvents.keyReleased += std::bind (&KeyboardState::SetReleased, keyboard.get (), _1);
         windowEvents.leftMouseButtonPressed += [&] (auto...) { mouse.leftButton = true; };
         windowEvents.leftMouseButtonReleased += [&] (auto...) { mouse.leftButton = false; };
 

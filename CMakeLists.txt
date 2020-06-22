@@ -95,7 +95,8 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/VulkanWrapper/ShaderModule.cpp
     src/GearsVk/VulkanWrapper/Swapchain.cpp
     src/GearsVk/VulkanWrapper/PhysicalDevice.cpp
-    "src/GearsVk/RenderGraph/ShaderPipeline.cpp"
+    src/GearsVk/VulkanWrapper/Pipeline.cpp
+    src/GearsVk/RenderGraph/ShaderPipeline.cpp
 
     src/GearsVk/Camera/Frustum.cpp
     src/GearsVk/Camera/Camera.cpp

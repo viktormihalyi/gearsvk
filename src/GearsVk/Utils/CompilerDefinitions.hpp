@@ -13,4 +13,8 @@
 #define COMPILER_CLANG
 #endif
 
+#if !defined(COMPILER_MSVC) && !defined(COMPILER_GCC) && !defined(COMPILER_CLANG)
+#error unknown compiler
+#endif
+
 #endif
