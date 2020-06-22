@@ -11,7 +11,7 @@
 #include "DescriptorPool.hpp"
 #include "DescriptorSetLayout.hpp"
 
-USING_PTR_2 (DescriptorSet);
+USING_PTR (DescriptorSet);
 
 class GEARSVK_API DescriptorSet : public Noncopyable {
 private:
@@ -20,7 +20,7 @@ private:
     VkDescriptorSet        handle;
 
 public:
-    USING_PTR (DescriptorSet);
+    USING_CREATE (DescriptorSet);
 
     DescriptorSet (VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout layout)
         : device (device)

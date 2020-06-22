@@ -7,9 +7,9 @@
 
 namespace RG {
 
+USING_PTR (InputBinding);
 class InputBinding {
 public:
-    USING_PTR_ABSTRACT (InputBinding);
     virtual ~InputBinding () = default;
 
     virtual uint32_t           GetBinding () = 0;
@@ -56,11 +56,11 @@ public:
 };
 
 
-USING_PTR_2 (UniformInputBinding);
+USING_PTR (UniformInputBinding);
 
 class UniformInputBinding : public InputBinding {
 public:
-    USING_PTR (UniformInputBinding);
+    USING_CREATE (UniformInputBinding);
 
     InputBufferBindable&     bufferProvider;
     const uint32_t           binding;
@@ -103,11 +103,11 @@ public:
 };
 
 
-USING_PTR_2 (ImageInputBinding);
+USING_PTR (ImageInputBinding);
 
 class ImageInputBinding : public InputBinding {
 public:
-    USING_PTR (ImageInputBinding);
+    USING_CREATE (ImageInputBinding);
 
     InputImageBindable&      imageViewProvider;
     const uint32_t           binding;

@@ -49,7 +49,7 @@ static ShaderType vec4Array {16 * SIZE, 32, "vec4", SIZE};
 
 
 // represents one uniform buffer object _type_
-USING_PTR_2 (ShaderStruct);
+USING_PTR (ShaderStruct);
 class ShaderStruct {
 private:
     uint32_t                                                   fullSize;
@@ -57,7 +57,7 @@ private:
     std::vector<std::tuple<std::string, ShaderType, uint32_t>> variables;
 
 public:
-    USING_PTR (ShaderStruct);
+    USING_CREATE (ShaderStruct);
     ShaderStruct (const std::vector<std::pair<std::string, ShaderType>>& types)
     {
         uint32_t offset = 0;
@@ -160,7 +160,7 @@ using UniformBlockView    = UniformView;
 
 
 // represents one uniform buffer object in one shader
-USING_PTR_2 (UniformBlock);
+USING_PTR (UniformBlock);
 class UniformBlock : public Noncopyable {
 public:
     friend class ShaderBlocks;
@@ -174,7 +174,7 @@ private:
     std::string variableName;
 
 public:
-    USING_PTR (UniformBlock);
+    USING_CREATE (UniformBlock);
 
     UniformBlock (uint32_t binding, const std::string& variableName, const ShaderStruct& structType)
         : binding (binding)
@@ -306,23 +306,23 @@ public:
 
 
 // contains all uniform buffer objects for a single shader
-USING_PTR_2 (ShaderBlocks);
+USING_PTR (ShaderBlocks);
 class ShaderBlocks {
 private:
     UniformBlock dummy;
 
-    std::vector<UniformBlock::P>              blocks;
+    std::vector<UniformBlockP>                blocks;
     std::unordered_map<std::string, uint32_t> nameMapping;
 
 public:
-    USING_PTR (ShaderBlocks);
+    USING_CREATE (ShaderBlocks);
 
     ShaderBlocks ()
         : dummy (nullptr)
     {
     }
 
-    void AddBlock (const UniformBlock::P& block)
+    void AddBlock (const UniformBlockP& block)
     {
         std::string name = block->variableName;
         blocks.push_back (block);

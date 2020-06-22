@@ -12,7 +12,7 @@ RenderGraph::RenderGraph (VkDevice device, VkCommandPool commandPool)
 }
 
 
-Resource& RenderGraph::AddResource (Resource::U&& resource)
+Resource& RenderGraph::AddResource (ResourceU&& resource)
 {
     compiled = false;
 
@@ -21,7 +21,7 @@ Resource& RenderGraph::AddResource (Resource::U&& resource)
 }
 
 
-Operation& RenderGraph::AddOperation (Operation::U&& operation)
+Operation& RenderGraph::AddOperation (OperationU&& operation)
 {
     compiled = false;
 
@@ -140,7 +140,7 @@ void RenderGraph::Compile (const GraphSettings& settings)
 
         compileResult.reset ();
 
-        CompileResult::U newCR = CompileResult::Create (settings.GetDevice (), settings.commandPool, settings.framesInFlight);
+        CompileResultU newCR = CompileResult::Create (settings.GetDevice (), settings.commandPool, settings.framesInFlight);
 
         newCR->BeginAll ();
 

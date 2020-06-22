@@ -8,9 +8,9 @@
 
 class CameraControl {
 private:
-    Camera&          camera;
-    MouseState       mouse;
-    KeyboardState::U keyboard;
+    Camera&        camera;
+    MouseState     mouse;
+    KeyboardStateU keyboard;
 
 public:
     CameraControl (Camera& camera, Window::Events& windowEvents)

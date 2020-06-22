@@ -7,7 +7,7 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
-USING_PTR_2 (DescriptorPool);
+USING_PTR (DescriptorPool);
 
 class GEARSVK_API DescriptorPool : public Noncopyable {
 private:
@@ -15,7 +15,7 @@ private:
     VkDescriptorPool handle;
 
 public:
-    USING_PTR (DescriptorPool);
+    USING_CREATE (DescriptorPool);
 
     DescriptorPool (VkDevice device, uint32_t descriptorCountUbo, uint32_t descriptorCountSampler, uint32_t maxSets)
         : device (device)

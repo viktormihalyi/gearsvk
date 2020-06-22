@@ -4,7 +4,7 @@
 namespace RG {
 
 
-void Operation::AddOutput (const uint32_t binding, const ImageResource::Ref& res)
+void Operation::AddOutput (const uint32_t binding, const ImageResourceRef& res)
 {
     ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
 
@@ -56,7 +56,7 @@ std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) co
 }
 
 
-RenderOperation::RenderOperation (const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipeline, VkPrimitiveTopology topology)
+RenderOperation::RenderOperation (const DrawRecordableP& drawRecordable, const ShaderPipelineP& shaderPipeline, VkPrimitiveTopology topology)
     : compileSettings ({drawRecordable, shaderPipeline, topology})
 {
 }
@@ -82,7 +82,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
         compileResult.descriptorPool = DescriptorPool::Create (graphSettings.GetDevice (), s, s, graphSettings.framesInFlight);
 
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            DescriptorSet::U descriptorSet = DescriptorSet::Create (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
+            DescriptorSetU descriptorSet = DescriptorSet::Create (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
             for (auto& ii : inputBindings) {
                 ii->WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);

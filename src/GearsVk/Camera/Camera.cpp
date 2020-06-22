@@ -7,10 +7,9 @@
 #include "glmlib.hpp"
 
 
+USING_PTR (GlobalUpVectorProvider);
 class GlobalUpVectorProvider {
 public:
-    USING_PTR_ABSTRACT (GlobalUpVectorProvider);
-
     virtual ~GlobalUpVectorProvider () = default;
 
     virtual void             ProcessMouseInput (Camera& camera, const glm::vec2& delta) const = 0;
@@ -21,14 +20,14 @@ public:
 };
 
 
-USING_PTR_2 (GlobalZ);
+USING_PTR (GlobalZ);
 
 class GlobalZ final : public GlobalUpVectorProvider {
 private:
     const glm::vec3 upVector;
 
 public:
-    USING_PTR (GlobalZ);
+    USING_CREATE (GlobalZ);
     GlobalZ ()
         : upVector (0, 0, 1)
     {

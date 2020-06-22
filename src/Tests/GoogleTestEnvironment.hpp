@@ -28,8 +28,8 @@ protected:
 
 class GoogleTestEnvironment : public ::testing::Test {
 protected:
-    Window::U            window;
-    VulkanEnvironment::U env;
+    WindowU            window;
+    VulkanEnvironmentU env;
 
     PhysicalDevice& GetPhysicalDevice () { return *env->physicalDevice; }
     Device&         GetDevice () { return *env->device; }

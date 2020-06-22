@@ -8,6 +8,7 @@
 #include <optional>
 #include <vector>
 
+USING_PTR (GLFWWindowBase);
 class GEARSVK_API GLFWWindowBase : public Window {
 private:
     uint32_t     width;
@@ -19,8 +20,6 @@ protected:
     GLFWWindowBase (const std::vector<std::pair<int, int>>& hints);
 
 public:
-    USING_PTR_ABSTRACT (GLFWWindowBase);
-
     virtual ~GLFWWindowBase () override;
 
     void  DoEventLoop (const DrawCallback&) override;
@@ -41,19 +40,19 @@ public:
 };
 
 
-USING_PTR_2 (GLFWWindow);
+USING_PTR (GLFWWindow);
 class GEARSVK_API GLFWWindow : public GLFWWindowBase {
 public:
-    USING_PTR (GLFWWindow);
+    USING_CREATE (GLFWWindow);
     GLFWWindow ();
     virtual ~GLFWWindow () = default;
 };
 
 
-USING_PTR_2 (HiddenGLFWWindow);
+USING_PTR (HiddenGLFWWindow);
 class GEARSVK_API HiddenGLFWWindow : public GLFWWindowBase {
 public:
-    USING_PTR (HiddenGLFWWindow);
+    USING_CREATE (HiddenGLFWWindow);
     HiddenGLFWWindow ();
     virtual ~HiddenGLFWWindow () = default;
 };

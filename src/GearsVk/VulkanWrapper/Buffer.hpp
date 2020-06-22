@@ -8,7 +8,7 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
-USING_PTR_2 (Buffer);
+USING_PTR (Buffer);
 
 class GEARSVK_API Buffer : public Noncopyable {
 private:
@@ -16,7 +16,7 @@ private:
     VkBuffer       handle;
 
 public:
-    USING_PTR (Buffer);
+    USING_CREATE (Buffer);
 
     Buffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags)
         : device (device)
@@ -45,44 +45,44 @@ public:
     }
 };
 
-USING_PTR_2 (UniformBuffer);
+USING_PTR (UniformBuffer);
 
 class UniformBuffer : public Buffer {
 public:
-    USING_PTR (UniformBuffer);
+    USING_CREATE (UniformBuffer);
     UniformBuffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags = 0)
         : Buffer (device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | usageFlags)
     {
     }
 };
 
-USING_PTR_2 (StorageBuffer);
+USING_PTR (StorageBuffer);
 
 class StorageBuffer : public Buffer {
 public:
-    USING_PTR (StorageBuffer);
+    USING_CREATE (StorageBuffer);
     StorageBuffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags = 0)
         : Buffer (device, bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | usageFlags)
     {
     }
 };
 
-USING_PTR_2 (IndexBuffer);
+USING_PTR (IndexBuffer);
 
 class IndexBuffer : public Buffer {
 public:
-    USING_PTR (IndexBuffer);
+    USING_CREATE (IndexBuffer);
     IndexBuffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags = 0)
         : Buffer (device, bufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | usageFlags)
     {
     }
 };
 
-USING_PTR_2 (VertexBuffer);
+USING_PTR (VertexBuffer);
 
 class VertexBuffer : public Buffer {
 public:
-    USING_PTR (VertexBuffer);
+    USING_CREATE (VertexBuffer);
     VertexBuffer (VkDevice device, size_t bufferSize, VkBufferUsageFlags usageFlags = 0)
         : Buffer (device, bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | usageFlags)
     {

@@ -15,7 +15,7 @@
 #include <cstring>
 
 
-USING_PTR_2 (BufferTransferable);
+USING_PTR (BufferTransferable);
 class GEARSVK_API BufferTransferable final {
 public:
     const VkDevice      device;
@@ -29,7 +29,7 @@ public:
     AllocatedBuffer bufferCPU;
     MemoryMapping   bufferCPUMapping;
 
-    USING_PTR (BufferTransferable);
+    USING_CREATE (BufferTransferable);
 
     BufferTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t bufferSize, VkBufferUsageFlags usageFlags)
         : device (device)
@@ -56,7 +56,7 @@ public:
 };
 
 
-USING_PTR_2 (ImageTransferableBase);
+USING_PTR (ImageTransferableBase);
 class GEARSVK_API ImageTransferableBase {
 private:
     const VkDevice      device;
@@ -69,9 +69,9 @@ private:
     MemoryMapping   bufferCPUMapping;
 
 public:
-    AllocatedImage::U imageGPU;
+    AllocatedImageU imageGPU;
 
-    USING_PTR (ImageTransferableBase);
+    USING_CREATE (ImageTransferableBase);
 
 protected:
     ImageTransferableBase (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t bufferSize)
@@ -127,10 +127,10 @@ static uint32_t GetCompontentCountFromFormat (VkFormat format)
 }
 
 
-USING_PTR_2 (Image1DTransferable);
+USING_PTR (Image1DTransferable);
 class GEARSVK_API Image1DTransferable final : public ImageTransferableBase {
 public:
-    USING_PTR (Image1DTransferable);
+    USING_CREATE (Image1DTransferable);
     Image1DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
         : ImageTransferableBase (device, queue, commandPool, width * GetCompontentCountFromFormat (format))
     {
@@ -139,10 +139,10 @@ public:
 };
 
 
-USING_PTR_2 (Image2DTransferable);
+USING_PTR (Image2DTransferable);
 class GEARSVK_API Image2DTransferable final : public ImageTransferableBase {
 public:
-    USING_PTR (Image2DTransferable);
+    USING_CREATE (Image2DTransferable);
     Image2DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags)
         : ImageTransferableBase (device, queue, commandPool, width * height * GetCompontentCountFromFormat (format))
     {
@@ -151,10 +151,10 @@ public:
 };
 
 
-USING_PTR_2 (Image3DTransferable);
+USING_PTR (Image3DTransferable);
 class GEARSVK_API Image3DTransferable final : public ImageTransferableBase {
 public:
-    USING_PTR (Image3DTransferable);
+    USING_CREATE (Image3DTransferable);
     Image3DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
         : ImageTransferableBase (device, queue, commandPool, width * height * depth * GetCompontentCountFromFormat (format))
     {
@@ -173,7 +173,7 @@ public:
 };
 
 
-USING_PTR_2 (VertexBufferTransferableUntyped);
+USING_PTR (VertexBufferTransferableUntyped);
 class GEARSVK_API VertexBufferTransferableUntyped {
 public:
     std::vector<uint8_t>     data;
@@ -181,7 +181,7 @@ public:
     const BufferTransferable buffer;
     const uint32_t           vertexSize;
 
-    USING_PTR (VertexBufferTransferableUntyped);
+    USING_CREATE (VertexBufferTransferableUntyped);
 
     VertexBufferTransferableUntyped (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t vertexSize, uint32_t maxVertexCount, const std::vector<VkFormat>& vertexInputFormats)
         : info (vertexInputFormats)
@@ -205,12 +205,12 @@ public:
 };
 
 
-USING_PTR_2 (VertexBufferTransferableUntyped);
+USING_PTR (VertexBufferTransferableUntyped);
 
 template<typename VertexType>
 class VertexBufferTransferable : public VertexBufferTransferableUntyped {
 public:
-    USING_PTR (VertexBufferTransferable);
+    USING_CREATE (VertexBufferTransferable);
 
     VertexBufferTransferable (const Device&                device,
                               VkQueue                      queue,
@@ -230,7 +230,7 @@ public:
 };
 
 
-USING_PTR_2 (IndexBufferTransferable);
+USING_PTR (IndexBufferTransferable);
 class GEARSVK_API IndexBufferTransferable {
 public:
     using IndexType = uint16_t;
@@ -238,7 +238,7 @@ public:
     std::vector<IndexType>   data;
     const BufferTransferable buffer;
 
-    USING_PTR (IndexBufferTransferable);
+    USING_CREATE (IndexBufferTransferable);
 
     IndexBufferTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t maxIndexCount)
         : buffer (device, queue, commandPool, sizeof (IndexType) * maxIndexCount, VK_BUFFER_USAGE_INDEX_BUFFER_BIT)

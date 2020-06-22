@@ -38,14 +38,14 @@ GEARSVK_API
 std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& filePath);
 
 
-USING_PTR_2 (AllocatedImage);
+USING_PTR (AllocatedImage);
 struct GEARSVK_API AllocatedImage final {
-    ImageBase::U    image;
-    DeviceMemory::U memory;
+    ImageBaseU    image;
+    DeviceMemoryU memory;
 
-    USING_PTR (AllocatedImage);
+    USING_CREATE (AllocatedImage);
 
-    AllocatedImage (const Device& device, ImageBase::U&& image, VkMemoryPropertyFlags memoryPropertyFlags)
+    AllocatedImage (const Device& device, ImageBaseU&& image, VkMemoryPropertyFlags memoryPropertyFlags)
         : image (std::move (image))
         , memory (DeviceMemory::Create (device, device.GetImageAllocateInfo (*this->image, memoryPropertyFlags)))
     {
@@ -56,14 +56,14 @@ struct GEARSVK_API AllocatedImage final {
 };
 
 
-USING_PTR_2 (AllocatedBuffer);
+USING_PTR (AllocatedBuffer);
 struct GEARSVK_API AllocatedBuffer final {
-    Buffer::U       buffer;
-    DeviceMemory::U memory;
+    BufferU       buffer;
+    DeviceMemoryU memory;
 
-    USING_PTR (AllocatedBuffer);
+    USING_CREATE (AllocatedBuffer);
 
-    AllocatedBuffer (const Device& device, Buffer::U&& buffer, VkMemoryPropertyFlags memoryPropertyFlags)
+    AllocatedBuffer (const Device& device, BufferU&& buffer, VkMemoryPropertyFlags memoryPropertyFlags)
         : buffer (std::move (buffer))
         , memory (DeviceMemory::Create (device, device.GetBufferAllocateInfo (*this->buffer, memoryPropertyFlags)))
     {

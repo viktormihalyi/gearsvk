@@ -20,10 +20,9 @@
 namespace RG {
 
 
+USING_PTR (Resource);
 class GEARSVK_API Resource : public Node {
 public:
-    USING_PTR_ABSTRACT (Resource);
-
     virtual ~Resource () = default;
 
     virtual void Compile (const GraphSettings&) = 0;
@@ -33,9 +32,9 @@ public:
 class GEARSVK_API OutputImageBindable {
 };
 
+USING_PTR (ImageResource);
 class GEARSVK_API ImageResource : public Resource {
 public:
-    USING_PTR_ABSTRACT (ImageResource);
     virtual ~ImageResource () = default;
 
     virtual void          BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)  = 0;
@@ -46,6 +45,7 @@ public:
 };
 
 
+USING_PTR (OneTimeCompileResource);
 class GEARSVK_API OneTimeCompileResource : public ImageResource {
 private:
     bool compiled;
@@ -57,8 +57,6 @@ protected:
     }
 
 public:
-    USING_PTR_ABSTRACT (OneTimeCompileResource);
-
     virtual ~OneTimeCompileResource () = default;
 
     void Compile (const GraphSettings& settings) override
@@ -73,20 +71,20 @@ public:
 };
 
 
-USING_PTR_2 (WritableImageResource);
+USING_PTR (WritableImageResource);
 
 class GEARSVK_API WritableImageResource : public ImageResource, public InputImageBindable {
 private:
-    Sampler::U sampler;
+    SamplerU sampler;
 
-    USING_PTR_2 (SingleImageResource);
+    USING_PTR (SingleImageResource);
 
     struct SingleImageResource final {
         static const VkFormat FormatRGBA;
         static const VkFormat FormatRGB;
 
         const AllocatedImage         image;
-        std::vector<ImageView2D::U>  imageViews;
+        std::vector<ImageView2DU>    imageViews;
         std::optional<VkImageLayout> layoutRead;
         std::optional<VkImageLayout> layoutWrite;
 
@@ -96,7 +94,7 @@ private:
         // NO  read, YES write: general -> write
         // YES read, YES write: general -> write -> read
 
-        USING_PTR (SingleImageResource);
+        USING_CREATE (SingleImageResource);
 
         SingleImageResource (const GraphSettings& graphSettings, uint32_t arrayLayers)
             : image (graphSettings.GetDevice (), Image2D::Create (graphSettings.GetDevice (), graphSettings.width, graphSettings.height, FormatRGBA, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, arrayLayers), DeviceMemory::GPU)
@@ -108,11 +106,11 @@ private:
     };
 
 public:
-    uint32_t                            arrayLayers;
-    std::vector<SingleImageResource::U> images;
+    uint32_t                          arrayLayers;
+    std::vector<SingleImageResourceU> images;
 
 public:
-    USING_PTR (WritableImageResource);
+    USING_CREATE (WritableImageResource);
 
     WritableImageResource (uint32_t arrayLayers = 1)
         : arrayLayers (arrayLayers)
@@ -158,13 +156,13 @@ public:
     virtual VkSampler   GetSampler () override { return *sampler; }
 };
 
-USING_PTR_2 (ReadOnlyImageResource);
+USING_PTR (ReadOnlyImageResource);
 
 class GEARSVK_API ReadOnlyImageResource : public OneTimeCompileResource, public InputImageBindable {
 public:
-    ImageTransferableBase::U image;
-    ImageViewBase::U         imageView;
-    Sampler::U               sampler;
+    ImageTransferableBaseU image;
+    ImageViewBaseU         imageView;
+    SamplerU               sampler;
 
     const VkFormat format;
     const uint32_t width;
@@ -172,7 +170,7 @@ public:
     const uint32_t depth;
 
 public:
-    USING_PTR (ReadOnlyImageResource);
+    USING_CREATE (ReadOnlyImageResource);
 
     ReadOnlyImageResource (VkFormat format, uint32_t width, uint32_t height = 1, uint32_t depth = 1)
         : format (format)
@@ -224,15 +222,15 @@ public:
     }
 };
 
-USING_PTR_2 (SwapchainImageResource);
+USING_PTR (SwapchainImageResource);
 
 class GEARSVK_API SwapchainImageResource : public ImageResource, public InputImageBindable {
 public:
-    std::vector<ImageView2D::U> imageViews;
-    Swapchain&                  swapchain;
+    std::vector<ImageView2DU> imageViews;
+    Swapchain&                swapchain;
 
 public:
-    USING_PTR (SwapchainImageResource);
+    USING_CREATE (SwapchainImageResource);
     SwapchainImageResource (Swapchain& swapchain)
         : swapchain (swapchain)
     {
@@ -264,13 +262,13 @@ public:
 };
 
 
-USING_PTR_2 (CPUBufferResource);
+USING_PTR (CPUBufferResource);
 
 class GEARSVK_API CPUBufferResource : public Resource, public InputBufferBindable {
 public:
-    const uint32_t                  size;
-    std::vector<AllocatedBuffer::U> buffers;
-    std::vector<MemoryMapping::U>   mappings;
+    const uint32_t                size;
+    std::vector<AllocatedBufferU> buffers;
+    std::vector<MemoryMappingU>   mappings;
 
 protected:
     CPUBufferResource (uint32_t size)
@@ -279,7 +277,7 @@ protected:
     }
 
 public:
-    USING_PTR (CPUBufferResource);
+    USING_CREATE (CPUBufferResource);
 
     virtual ~CPUBufferResource () = default;
 
@@ -299,11 +297,11 @@ public:
     MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
 };
 
-USING_PTR_2 (UniformBlockResource);
+USING_PTR (UniformBlockResource);
 
 class GEARSVK_API UniformBlockResource : public CPUBufferResource {
 public:
-    USING_PTR (UniformBlockResource);
+    USING_CREATE (UniformBlockResource);
 
     UniformBlockResource (uint32_t size)
         : CPUBufferResource (size)
@@ -324,13 +322,13 @@ public:
     }
 };
 
-USING_PTR_2 (UniformReflectionResource);
+USING_PTR (UniformReflectionResource);
 
 class GEARSVK_API UniformReflectionResource : public Resource {
 public:
-    USING_PTR (UniformReflectionResource);
+    USING_CREATE (UniformReflectionResource);
 
-    ShaderPipeline::P& pipeline;
+    ShaderPipelineP& pipeline;
 
     ShaderBlocks vert;
     ShaderBlocks frag;
@@ -339,12 +337,12 @@ public:
     ShaderBlocks tesc;
     ShaderBlocks comp;
 
-    std::vector<UniformBlockResource::U> uboRes;
-    std::vector<uint32_t>                bindings;
-    std::vector<UniformBlock::P>         dataBlocks;
+    std::vector<UniformBlockResourceU> uboRes;
+    std::vector<uint32_t>              bindings;
+    std::vector<UniformBlockP>         dataBlocks;
 
-    std::vector<ReadOnlyImageResource::U> sampledImages;
-    std::vector<uint32_t>                 samplerBindings;
+    std::vector<ReadOnlyImageResourceU> sampledImages;
+    std::vector<uint32_t>               samplerBindings;
 
     enum class Strategy {
         All,
@@ -353,7 +351,7 @@ public:
     };
 
 
-    UniformReflectionResource (ShaderPipeline::P& pipeline, Strategy s = Strategy::All)
+    UniformReflectionResource (ShaderPipelineP& pipeline, Strategy s = Strategy::All)
         : pipeline (pipeline)
     {
         vert.Clear ();
@@ -362,7 +360,7 @@ public:
 
         // TODO move this logic and the input binding connection stuff to a seperate class
 
-        auto GatherFor = [&] (const ShaderModule::U& sm, ShaderBlocks& out) {
+        auto GatherFor = [&] (const ShaderModuleU& sm, ShaderBlocks& out) {
             if (sm != nullptr) {
                 if (s == Strategy::All || s == Strategy::UniformBlocksOnly) {
                     ShaderBlocks newblocks;
@@ -371,7 +369,7 @@ public:
 
                         auto c = UniformBlockResource::Create (autoStruct);
 
-                        UniformBlock::P autoBlock = UniformBlock::CreateShared (s.binding, s.name, autoStruct);
+                        UniformBlockP autoBlock = UniformBlock::CreateShared (s.binding, s.name, autoStruct);
 
                         dataBlocks.push_back (autoBlock);
                         bindings.push_back (s.binding);

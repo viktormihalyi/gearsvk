@@ -7,6 +7,7 @@
 
 namespace RG {
 
+USING_PTR (Node);
 class GEARSVK_API Node : public Noncopyable {
 private:
     template<typename ToType, typename FromType>
@@ -27,7 +28,6 @@ public:
     std::vector<Node*> pointingHere;
     std::vector<Node*> pointingTo;
 
-    USING_PTR_ABSTRACT (Node);
 
     void AddConnectionTo (Node& to)
     {

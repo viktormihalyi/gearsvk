@@ -607,7 +607,7 @@ public:
     std::weak_ptr<Node> from;
     std::weak_ptr<Node> to;
 
-    USING_PTR (OneWayConnection);
+    USING_CREATE (OneWayConnection);
 
     OneWayConnection (std::shared_ptr<Node>& from, std::shared_ptr<Node>& to)
         : from (from)
@@ -622,7 +622,7 @@ public:
 
 class Node : public std::enable_shared_from_this<Node> {
 public:
-    USING_PTR (Node);
+    USING_CREATE (Node);
     friend class Graph;
 
 private:
@@ -697,7 +697,7 @@ private:
     std::set<OneWayConnection::P> connections;
 
 public:
-    USING_PTR (Graph);
+    USING_CREATE (Graph);
 
     template<typename ConnectionType, typename... ARGS>
     std::shared_ptr<ConnectionType> CreateOutputConnection (Node::P& from, Node::P& to, ARGS&&... args)

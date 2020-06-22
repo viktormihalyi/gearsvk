@@ -8,7 +8,7 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
-USING_PTR_2 (CommandBuffer);
+USING_PTR (CommandBuffer);
 
 class GEARSVK_API CommandBuffer : public Noncopyable {
 private:
@@ -17,7 +17,7 @@ private:
     VkCommandBuffer     handle;
 
 public:
-    USING_PTR (CommandBuffer);
+    USING_CREATE (CommandBuffer);
 
     CommandBuffer (VkDevice device, VkCommandPool commandPool)
         : device (device)

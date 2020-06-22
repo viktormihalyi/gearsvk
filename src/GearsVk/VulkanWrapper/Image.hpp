@@ -8,7 +8,7 @@
 
 #include <vulkan/vulkan.h>
 
-USING_PTR_2 (ImageBase);
+USING_PTR (ImageBase);
 class GEARSVK_API ImageBase : public Noncopyable {
 public:
     static const VkImageLayout INITIAL_LAYOUT = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -28,7 +28,7 @@ private:
     uint32_t       arrayLayers;
 
 public:
-    USING_PTR (ImageBase);
+    USING_CREATE (ImageBase);
 
     ImageBase (VkDevice device, VkImageType imageType, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, uint32_t arrayLayers)
         : device (device)
@@ -153,10 +153,10 @@ public:
 };
 
 
-USING_PTR_2 (Image1D);
+USING_PTR (Image1D);
 class GEARSVK_API Image1D : public ImageBase {
 public:
-    USING_PTR (Image1D);
+    USING_CREATE (Image1D);
     Image1D (VkDevice device, uint32_t width, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
         : ImageBase (device, VK_IMAGE_TYPE_1D, width, 1, 1, format, tiling, usage, arrayLayers)
     {
@@ -164,10 +164,10 @@ public:
 };
 
 
-USING_PTR_2 (Image2D);
+USING_PTR (Image2D);
 class GEARSVK_API Image2D : public ImageBase {
 public:
-    USING_PTR (Image2D);
+    USING_CREATE (Image2D);
     Image2D (VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
         : ImageBase (device, VK_IMAGE_TYPE_2D, width, height, 1, format, tiling, usage, arrayLayers)
     {
@@ -175,10 +175,10 @@ public:
 };
 
 
-USING_PTR_2 (Image3D);
+USING_PTR (Image3D);
 class GEARSVK_API Image3D : public ImageBase {
 public:
-    USING_PTR (Image3D);
+    USING_CREATE (Image3D);
     Image3D (VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0)
         : ImageBase (device, VK_IMAGE_TYPE_3D, width, height, depth, format, tiling, usage, 1)
     {

@@ -9,7 +9,7 @@
 
 #include <vulkan/vulkan.h>
 
-USING_PTR_2 (ImageViewBase);
+USING_PTR (ImageViewBase);
 class GEARSVK_API ImageViewBase : public Noncopyable {
 private:
     const VkDevice device;
@@ -17,7 +17,7 @@ private:
     VkImageView    handle;
 
 public:
-    USING_PTR (ImageViewBase);
+    USING_CREATE (ImageViewBase);
 
     ImageViewBase (VkDevice device, VkImage image, VkFormat format, VkImageViewType viewType, uint32_t layerIndex = 0)
         : device (device)
@@ -63,10 +63,10 @@ public:
 };
 
 
-USING_PTR_2 (ImageView1D);
+USING_PTR (ImageView1D);
 class GEARSVK_API ImageView1D : public ImageViewBase {
 public:
-    USING_PTR (ImageView1D);
+    USING_CREATE (ImageView1D);
 
     ImageView1D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
         : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_1D, layerIndex)
@@ -80,10 +80,10 @@ public:
 };
 
 
-USING_PTR_2 (ImageView2D);
+USING_PTR (ImageView2D);
 class GEARSVK_API ImageView2D : public ImageViewBase {
 public:
-    USING_PTR (ImageView2D);
+    USING_CREATE (ImageView2D);
 
     ImageView2D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
         : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_2D, layerIndex)
@@ -97,10 +97,10 @@ public:
 };
 
 
-USING_PTR_2 (ImageView3D);
+USING_PTR (ImageView3D);
 class GEARSVK_API ImageView3D : public ImageViewBase {
 public:
-    USING_PTR (ImageView3D);
+    USING_CREATE (ImageView3D);
 
     ImageView3D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
         : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_3D, layerIndex)
@@ -114,10 +114,10 @@ public:
 };
 
 
-USING_PTR_2 (ImageViewCube);
+USING_PTR (ImageViewCube);
 class GEARSVK_API ImageViewCube : public ImageViewBase {
 public:
-    USING_PTR (ImageViewCube);
+    USING_CREATE (ImageViewCube);
 
     ImageViewCube (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
         : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_CUBE, layerIndex)

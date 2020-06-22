@@ -50,7 +50,7 @@ private:
         Type fragment;
     } info;
 
-    ShaderPipeline::U ppl;
+    ShaderPipelineU ppl;
 
     GLuint shaderProgram;
     GLuint vertexProgram;

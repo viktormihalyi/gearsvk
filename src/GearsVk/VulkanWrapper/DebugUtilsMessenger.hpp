@@ -8,7 +8,7 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
-USING_PTR_2 (DebugUtilsMessenger);
+USING_PTR (DebugUtilsMessenger);
 
 class GEARSVK_API DebugUtilsMessenger : public Noncopyable {
 private:
@@ -43,7 +43,7 @@ public:
 
     Callback callback;
 
-    USING_PTR (DebugUtilsMessenger);
+    USING_CREATE (DebugUtilsMessenger);
 
     DebugUtilsMessenger (VkInstance instance, const Callback& callback, const Settings& settings = defaultSettings);
 

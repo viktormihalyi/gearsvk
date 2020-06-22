@@ -74,9 +74,9 @@ private:
 
     // size is framesInFlight
     // synchronization objects for each frame in flight
-    std::vector<Semaphore::U> imageAvailableSemaphore; // present signals, submit  waits
-    std::vector<Semaphore::U> renderFinishedSemaphore; // submit  signals, present waits
-    std::vector<Fence::U>     inFlightFences;          // waited before submit, signaled by submit
+    std::vector<SemaphoreU> imageAvailableSemaphore; // present signals, submit  waits
+    std::vector<SemaphoreU> renderFinishedSemaphore; // submit  signals, present waits
+    std::vector<FenceU>     inFlightFences;          // waited before submit, signaled by submit
 
     // size is imageCount
     // determines what frame is rendering to each swapchain image

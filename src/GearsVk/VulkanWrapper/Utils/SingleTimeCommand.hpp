@@ -8,6 +8,7 @@
 
 #include <vulkan/vulkan.h>
 
+USING_PTR (SingleTimeCommand);
 
 class GEARSVK_API SingleTimeCommand final : public Noncopyable {
 private:

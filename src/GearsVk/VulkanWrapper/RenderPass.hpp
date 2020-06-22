@@ -7,14 +7,14 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
-USING_PTR_2 (RenderPass);
+USING_PTR (RenderPass);
 class GEARSVK_API RenderPass : public Noncopyable {
 private:
     const VkDevice device;
     VkRenderPass   handle;
 
 public:
-    USING_PTR (RenderPass);
+    USING_CREATE (RenderPass);
 
     RenderPass (VkDevice                                    device,
                 const std::vector<VkAttachmentDescription>& attachments,

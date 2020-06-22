@@ -7,13 +7,13 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
-USING_PTR_2 (Queue);
+USING_PTR (Queue);
 class GEARSVK_API Queue : public Noncopyable {
 private:
     VkQueue handle;
 
 public:
-    USING_PTR (Queue);
+    USING_CREATE (Queue);
 
     Queue (VkDevice device, uint32_t index)
     {

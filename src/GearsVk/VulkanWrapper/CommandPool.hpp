@@ -7,7 +7,7 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
-USING_PTR_2 (CommandPool);
+USING_PTR (CommandPool);
 
 class GEARSVK_API CommandPool : public Noncopyable {
 private:
@@ -15,7 +15,7 @@ private:
     VkCommandPool  handle;
 
 public:
-    USING_PTR (CommandPool);
+    USING_CREATE (CommandPool);
 
     CommandPool (VkDevice device, uint32_t queueIndex)
         : device (device)

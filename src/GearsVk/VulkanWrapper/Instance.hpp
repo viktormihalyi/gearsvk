@@ -21,7 +21,7 @@ struct GEARSVK_API InstanceSettings {
 static const InstanceSettings instanceDebugMode {{VK_EXT_DEBUG_UTILS_EXTENSION_NAME}, {"VK_LAYER_KHRONOS_validation"}};
 static const InstanceSettings instanceReleaseMode {{}, {}};
 
-USING_PTR_2 (Instance);
+USING_PTR (Instance);
 class GEARSVK_API Instance : public Noncopyable {
 private:
     VkInstance handle;
@@ -102,7 +102,7 @@ private:
     }
 
 public:
-    USING_PTR (Instance);
+    USING_CREATE (Instance);
 
     Instance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers)
         : handle (CreateInstance (instanceExtensions, instanceLayers))

@@ -9,10 +9,9 @@
 #include "Ptr.hpp"
 
 
+USING_PTR (DrawRecordable);
 class DrawRecordable {
 public:
-    USING_PTR_ABSTRACT (DrawRecordable);
-
     virtual ~DrawRecordable () = default;
 
     virtual void                                           Record (VkCommandBuffer) const = 0;

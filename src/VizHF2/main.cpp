@@ -84,9 +84,9 @@ struct Quadric {
 
 int main (int, char**)
 {
-    Window::U window = GLFWWindow::Create ();
+    WindowU window = GLFWWindow::Create ();
 
-    VulkanEnvironment::U testenv = VulkanEnvironment::Create (*window);
+    VulkanEnvironmentU testenv = VulkanEnvironment::Create (*window);
 
     Device&      device        = *testenv->device;
     CommandPool& commandPool   = *testenv->commandPool;
@@ -104,7 +104,7 @@ int main (int, char**)
 
     // ========================= GRAPH OPERATIONS =========================
 
-    ShaderPipeline::P sp = ShaderPipeline::CreateShared (device);
+    ShaderPipelineP sp = ShaderPipeline::CreateShared (device);
     sp->SetShadersFromSourceFiles ({
         ShadersFolder / "quadric.vert",
         ShadersFolder / "quadric.frag",

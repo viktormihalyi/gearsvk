@@ -9,20 +9,20 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
-USING_PTR_2 (ShaderPipeline);
+USING_PTR (ShaderPipeline);
 
 class GEARSVK_API ShaderPipeline {
 public:
-    USING_PTR (ShaderPipeline);
+    USING_CREATE (ShaderPipeline);
 
 private:
     const VkDevice device;
 
 public:
     struct ShaderObject {
-        ShaderModule::U shader;
+        ShaderModuleU shader;
 
-        void Set (ShaderModule::U&& _shader)
+        void Set (ShaderModuleU&& _shader)
         {
             shader = std::move (_shader);
             ubos   = ShaderBlocks::Create ();
@@ -35,7 +35,7 @@ public:
         }
 
     private:
-        ShaderBlocks::U ubos; // TODO remove
+        ShaderBlocksU ubos; // TODO remove
     };
 
     ShaderObject vertexShader;
@@ -63,9 +63,9 @@ public:
 
 
     struct CompileResult {
-        RenderPass::U     renderPass;
-        PipelineLayout::U pipelineLayout;
-        Pipeline::U       pipeline;
+        RenderPassU     renderPass;
+        PipelineLayoutU pipelineLayout;
+        PipelineU       pipeline;
 
         void Clear ()
         {

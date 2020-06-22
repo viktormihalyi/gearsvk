@@ -8,14 +8,14 @@
 
 #include <vulkan/vulkan.h>
 
-USING_PTR_2 (Sampler);
+USING_PTR (Sampler);
 class GEARSVK_API Sampler : public Noncopyable {
 private:
     const VkDevice device;
     VkSampler      handle;
 
 public:
-    USING_PTR (Sampler);
+    USING_CREATE (Sampler);
 
     Sampler (VkDevice device, VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER)
         : device (device)

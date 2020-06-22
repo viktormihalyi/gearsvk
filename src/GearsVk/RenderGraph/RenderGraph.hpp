@@ -21,10 +21,9 @@
 
 namespace RG {
 
+USING_PTR (CompileResultProvider);
 class CompileResultProvider {
 public:
-    USING_PTR_ABSTRACT (CompileResultProvider);
-
     virtual ~CompileResultProvider () = default;
 
     virtual std::vector<VkCommandBuffer> GetCommandBuffersToSubmit (uint32_t frameIndex)                          = 0;
@@ -34,13 +33,12 @@ public:
     virtual std::vector<uint32_t>        GetOperationsToRecord (uint32_t frameIndex, uint32_t commandBufferIndex) = 0;
 };
 
+USING_PTR (OperationToCommandBufferMappingStrategy);
 class OperationToCommandBufferMappingStrategy {
 protected:
     const uint32_t operationCount;
 
 public:
-    USING_PTR_ABSTRACT (OperationToCommandBufferMappingStrategy);
-
     OperationToCommandBufferMappingStrategy (uint32_t operationCount)
         : operationCount (operationCount)
     {
@@ -57,11 +55,11 @@ public:
 // {f1, o1}, {f1, o2}, {f1, o3}, {f1, o4}, {f1, o5},
 // {f2, o1}, {f2, o2}, {f2, o3}, {f2, o4}, {f2, o5},
 // {f3, o1}, {f3, o2}, {f3, o3}, {f3, o4}, {f3, o5},
-USING_PTR_2 (DefaultOperationToCommandBufferMappingStrategy);
+USING_PTR (DefaultOperationToCommandBufferMappingStrategy);
 
 class DefaultOperationToCommandBufferMappingStrategy : public OperationToCommandBufferMappingStrategy {
 public:
-    USING_PTR (DefaultOperationToCommandBufferMappingStrategy);
+    USING_CREATE (DefaultOperationToCommandBufferMappingStrategy);
 
     using OperationToCommandBufferMappingStrategy::OperationToCommandBufferMappingStrategy;
 
@@ -88,10 +86,10 @@ public:
     }
 }; // namespace RG
 
-USING_PTR_2 (SeperatedOperationToCommandBufferMappingStrategy);
+USING_PTR (SeperatedOperationToCommandBufferMappingStrategy);
 class SeperatedOperationToCommandBufferMappingStrategy : public OperationToCommandBufferMappingStrategy {
 public:
-    USING_PTR (SeperatedOperationToCommandBufferMappingStrategy);
+    USING_CREATE (SeperatedOperationToCommandBufferMappingStrategy);
 
     using OperationToCommandBufferMappingStrategy::OperationToCommandBufferMappingStrategy;
 
@@ -115,8 +113,8 @@ public:
 
 struct CommandBufferHolder {
 public:
-    std::vector<CommandBuffer::U> commandBuffers;
-    std::vector<VkCommandBuffer>  commandBufferHandles;
+    std::vector<CommandBufferU>  commandBuffers;
+    std::vector<VkCommandBuffer> commandBufferHandles;
 
     // one commandbuffer can hold multiple operations
     // one operation can only be inside one commandbuffer
@@ -150,7 +148,7 @@ public:
 };
 
 
-USING_PTR_2 (RenderGraph);
+USING_PTR (RenderGraph);
 
 class GEARSVK_API RenderGraph final : public Noncopyable {
 public:
@@ -161,9 +159,9 @@ public:
     };
 
 private:
-    USING_PTR_2 (CompileResult);
+    USING_PTR (CompileResult);
     struct CompileResult : public CompileResultProvider {
-        USING_PTR (CompileResult);
+        USING_CREATE (CompileResult);
 
         std::vector<CommandBufferHolder> c; // one for each frame
 
@@ -230,19 +228,19 @@ private:
     const VkDevice      device;
     const VkCommandPool commandPool;
 
-    GraphSettings            compileSettings;
-    CompileResultProvider::U compileResult;
+    GraphSettings          compileSettings;
+    CompileResultProviderU compileResult;
 
-    std::vector<Resource::U>  resources;
-    std::vector<Operation::U> operations;
+    std::vector<ResourceU>  resources;
+    std::vector<OperationU> operations;
 
 public:
-    USING_PTR (RenderGraph);
+    USING_CREATE (RenderGraph);
 
     RenderGraph (VkDevice device, VkCommandPool commandPool);
 
-    Resource&  AddResource (Resource::U&& resource);
-    Operation& AddOperation (Operation::U&& resource);
+    Resource&  AddResource (ResourceU&& resource);
+    Operation& AddOperation (OperationU&& resource);
 
 
     template<typename ResourceType, typename... ARGS>

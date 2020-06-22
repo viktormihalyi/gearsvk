@@ -8,7 +8,7 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
-USING_PTR_2 (Semaphore);
+USING_PTR (Semaphore);
 class GEARSVK_API Semaphore : public Noncopyable {
 private:
     const VkDevice device;
@@ -27,7 +27,7 @@ private:
     }
 
 public:
-    USING_PTR (Semaphore);
+    USING_CREATE (Semaphore);
 
     Semaphore (VkDevice device)
         : device (device)

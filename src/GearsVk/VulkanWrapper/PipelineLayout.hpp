@@ -7,7 +7,7 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
-USING_PTR_2 (PipelineLayout);
+USING_PTR (PipelineLayout);
 class GEARSVK_API PipelineLayout : public Noncopyable {
 private:
     const VkDevice   device;
@@ -32,7 +32,7 @@ private:
     }
 
 public:
-    USING_PTR (PipelineLayout);
+    USING_CREATE (PipelineLayout);
 
     PipelineLayout (VkDevice device, const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts)
         : device (device)

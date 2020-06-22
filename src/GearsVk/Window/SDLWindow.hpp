@@ -8,6 +8,7 @@
 #include <optional>
 #include <vector>
 
+USING_PTR (SDLWindowBase);
 class GEARSVK_API SDLWindowBase : public Window {
 private:
     static uint32_t windowCount;
@@ -24,8 +25,6 @@ protected:
     SDLWindowBase (uint32_t flags);
 
 public:
-    USING_PTR_ABSTRACT (SDLWindowBase);
-
     virtual ~SDLWindowBase () override;
 
     void  DoEventLoop (const DrawCallback&) override;
@@ -43,18 +42,18 @@ public:
 };
 
 
-USING_PTR_2 (SDLWindow);
+USING_PTR (SDLWindow);
 class SDLWindow final : public SDLWindowBase {
 public:
-    USING_PTR (SDLWindow);
+    USING_CREATE (SDLWindow);
     SDLWindow ();
 };
 
 
-USING_PTR_2 (HiddenSDLWindow);
+USING_PTR (HiddenSDLWindow);
 class HiddenSDLWindow final : public SDLWindowBase {
 public:
-    USING_PTR (HiddenSDLWindow);
+    USING_CREATE (HiddenSDLWindow);
     HiddenSDLWindow ();
 };
 

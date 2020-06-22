@@ -4,24 +4,13 @@
 
 #include <memory>
 
-#define USING_PTR_2(classname)                       \
-    class classname;                                 \
-    using classname##U = std::unique_ptr<classname>; \
-    using classname##P = std::shared_ptr<classname>;
+#define USING_PTR(classname)                           \
+    class classname;                                   \
+    using classname##U   = std::unique_ptr<classname>; \
+    using classname##P   = std::shared_ptr<classname>; \
+    using classname##Ref = std::reference_wrapper<classname>;
 
-USING_PTR_2 (Asd);
-
-#define USING_PTR_ABSTRACT(T)               \
-    using P    = std::shared_ptr<T>;        \
-    using W    = std::weak_ptr<T>;          \
-    using U    = std::unique_ptr<T>;        \
-    using Ref  = std::reference_wrapper<T>; \
-    using CP   = std::shared_ptr<const T>;  \
-    using CW   = std::weak_ptr<const T>;    \
-    using CU   = std::unique_ptr<const T>;  \
-    using CRef = std::reference_wrapper<const T>
-
-#define USING_PTR(T)                                                        \
+#define USING_CREATE(T)                                                     \
     template<class... Types>                                                \
     static std::unique_ptr<T> Create (Types&&... _Args)                     \
     {                                                                       \
@@ -32,9 +21,7 @@ USING_PTR_2 (Asd);
     static std::shared_ptr<T> CreateShared (Types&&... _Args)               \
     {                                                                       \
         return std::shared_ptr<T> (new T (std::forward<Types> (_Args)...)); \
-    }                                                                       \
-                                                                            \
-    USING_PTR_ABSTRACT (T)
+    }
 
 
 #endif

@@ -554,7 +554,7 @@ ShaderModule::ShaderModule (ShaderModule::ShaderKind shaderKind, ReadMode readMo
 }
 
 
-ShaderModule::U ShaderModule::CreateFromSPVFile (VkDevice device, const std::filesystem::path& fileLocation)
+ShaderModuleU ShaderModule::CreateFromSPVFile (VkDevice device, const std::filesystem::path& fileLocation)
 {
     std::optional<std::vector<char>>     binaryC = Utils::ReadBinaryFile (fileLocation);
     std::optional<std::vector<uint32_t>> binary  = Utils::ReadBinaryFile4Byte (fileLocation);
@@ -568,7 +568,7 @@ ShaderModule::U ShaderModule::CreateFromSPVFile (VkDevice device, const std::fil
 }
 
 
-ShaderModule::U ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation)
+ShaderModuleU ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation)
 {
     ShaderModule::Reflection             reflection;
     std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation, reflection);
@@ -583,7 +583,7 @@ ShaderModule::U ShaderModule::CreateFromGLSLFile (VkDevice device, const std::fi
     return sm;
 }
 
-ShaderModule::U ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource)
+ShaderModuleU ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource)
 {
     ShaderModule::Reflection reflection;
     std::vector<uint32_t>    binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind), reflection);

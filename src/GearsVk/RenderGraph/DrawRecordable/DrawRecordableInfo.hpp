@@ -8,7 +8,7 @@
 #include "BufferTransferable.hpp"
 
 
-USING_PTR_2 (DrawRecordableInfo);
+USING_PTR (DrawRecordableInfo);
 
 struct DrawRecordableInfo : public DrawRecordable {
 public:
@@ -22,7 +22,7 @@ public:
     const uint32_t indexCount;
     const VkBuffer indexBuffer;
 
-    USING_PTR (DrawRecordableInfo);
+    USING_CREATE (DrawRecordableInfo);
 
     DrawRecordableInfo (const uint32_t                                        instanceCount,
                         uint32_t                                              vertexCount,

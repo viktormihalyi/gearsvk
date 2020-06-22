@@ -7,7 +7,7 @@
 #include "Device.hpp"
 #include "Queue.hpp"
 
-USING_PTR_2 (DeviceExtra);
+USING_PTR (DeviceExtra);
 
 class GEARSVK_API DeviceExtra : public DeviceInterface {
 public:
@@ -16,7 +16,7 @@ public:
     Queue&       graphicsQueue;
     Queue&       presentationQueue = dummyQueue;
 
-    USING_PTR (DeviceExtra);
+    USING_CREATE (DeviceExtra);
 
     DeviceExtra (Device& device, CommandPool& commandPool, Queue& graphicsQueue, Queue& presentationQueue = dummyQueue)
         : device (device)

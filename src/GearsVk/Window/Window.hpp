@@ -10,7 +10,7 @@
 
 #include <vulkan/vulkan.h>
 
-USING_PTR_2 (Window);
+USING_PTR (Window);
 
 class Window : public Noncopyable {
 public:
@@ -37,7 +37,7 @@ public:
     } events;
 
 public:
-    USING_PTR (Window);
+    USING_CREATE (Window);
 
     using DrawCallback = std::function<void (bool& stopFlag)>;
 

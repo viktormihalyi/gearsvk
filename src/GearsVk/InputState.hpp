@@ -9,7 +9,7 @@
 //#define ASSERT_ON_KEYS ASSERT
 #define ASSERT_ON_KEYS
 
-USING_PTR_2 (KeyboardState);
+USING_PTR (KeyboardState);
 
 class KeyboardState {
 private:
@@ -18,7 +18,7 @@ private:
     std::array<bool, KEYCOUNT> pressedKeys;
 
 public:
-    USING_PTR (KeyboardState);
+    USING_CREATE (KeyboardState);
 
     KeyboardState ()
     {

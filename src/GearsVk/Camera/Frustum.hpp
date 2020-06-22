@@ -6,10 +6,9 @@
 #include "glmlib.hpp"
 
 
+USING_PTR (Frustum);
 class Frustum {
 public:
-    USING_PTR_ABSTRACT (Frustum);
-
     virtual ~Frustum () = default;
 
     virtual glm::mat4 GetMatrix () const = 0;

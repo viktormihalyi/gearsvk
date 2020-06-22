@@ -9,7 +9,7 @@
 
 #include <vulkan/vulkan.h>
 
-USING_PTR_2 (Framebuffer);
+USING_PTR (Framebuffer);
 class GEARSVK_API Framebuffer final : public Noncopyable {
 private:
     const VkDevice device;
@@ -19,7 +19,7 @@ private:
     const uint32_t height;
 
 public:
-    USING_PTR (Framebuffer);
+    USING_CREATE (Framebuffer);
 
     Framebuffer (VkDevice device, VkRenderPass renderPass, const std::vector<std::reference_wrapper<ImageView2D>>& attachments, uint32_t width, uint32_t height)
         : Framebuffer (device, renderPass, Utils::ConvertToHandles<ImageView2D, VkImageView> (attachments), width, height)

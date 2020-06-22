@@ -6,7 +6,7 @@
 
 #include "glmlib.hpp"
 
-USING_PTR_2 (FullscreenQuad);
+USING_PTR (FullscreenQuad);
 
 class FullscreenQuad : public DrawRecordableInfoProvider {
 private:
@@ -18,10 +18,10 @@ private:
     VertexBufferTransferable<Vertex> vertexBuffer;
     IndexBufferTransferable          indexBuffer;
 
-    DrawRecordableInfo::U info;
+    DrawRecordableInfoU info;
 
 public:
-    USING_PTR (FullscreenQuad);
+    USING_CREATE (FullscreenQuad);
 
     FullscreenQuad (const Device& device, VkQueue queue, VkCommandPool commandPool)
         : vertexBuffer (device, queue, commandPool, 4, {VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32_SFLOAT})

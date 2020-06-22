@@ -8,7 +8,7 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
-USING_PTR_2 (DescriptorSetLayout);
+USING_PTR (DescriptorSetLayout);
 
 class GEARSVK_API DescriptorSetLayout : public Noncopyable {
 private:
@@ -17,7 +17,7 @@ private:
 
 
 public:
-    USING_PTR (DescriptorSetLayout);
+    USING_CREATE (DescriptorSetLayout);
 
     DescriptorSetLayout (VkDevice device, const std::vector<VkDescriptorSetLayoutBinding>& bindings)
         : device (device)

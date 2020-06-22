@@ -21,7 +21,7 @@ public:
     }
 };
 
-USING_PTR_2 (ShaderModule);
+USING_PTR (ShaderModule);
 class GEARSVK_API ShaderModule : public Noncopyable {
 public:
     enum class ShaderKind {
@@ -68,11 +68,11 @@ private:
     ShaderModule (ShaderKind shaderKind, ReadMode mode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary);
 
 public:
-    USING_PTR (ShaderModule);
+    USING_CREATE (ShaderModule);
 
-    static ShaderModule::U CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation);
-    static ShaderModule::U CreateFromSPVFile (VkDevice device, const std::filesystem::path& fileLocation);
-    static ShaderModule::U CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource);
+    static ShaderModuleU CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation);
+    static ShaderModuleU CreateFromSPVFile (VkDevice device, const std::filesystem::path& fileLocation);
+    static ShaderModuleU CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource);
 
     virtual ~ShaderModule ();
 

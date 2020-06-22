@@ -46,7 +46,7 @@ GEARSVK_API
 extern DefaultQueueFamilySelector defaultQueueFamilySelector;
 
 
-USING_PTR_2 (PhysicalDevice);
+USING_PTR (PhysicalDevice);
 class GEARSVK_API PhysicalDevice final : public Noncopyable {
 public:
     struct QueueFamilies {
@@ -65,7 +65,7 @@ private:
     QueueFamilies    queueFamilies;
 
 public:
-    USING_PTR (PhysicalDevice);
+    USING_CREATE (PhysicalDevice);
 
     PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet, const QueueFamilySelector& Selector = defaultQueueFamilySelector);
 

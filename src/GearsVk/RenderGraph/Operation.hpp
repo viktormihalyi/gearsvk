@@ -17,42 +17,41 @@
 
 namespace RG {
 
+USING_PTR (Operation);
 struct GEARSVK_API Operation : public Node {
-    USING_PTR_ABSTRACT (Operation);
-
-    std::vector<InputBinding::U> inputBindings;
-    std::vector<OutputBinding>   outputBindings;
+    std::vector<InputBindingU> inputBindings;
+    std::vector<OutputBinding> outputBindings;
 
     virtual ~Operation () = default;
 
     virtual void Compile (const GraphSettings&)                              = 0;
     virtual void Record (uint32_t frameIndex, VkCommandBuffer commandBuffer) = 0;
 
-    void AddOutput (uint32_t binding, const ImageResource::Ref& res);
+    void AddOutput (uint32_t binding, const ImageResourceRef& res);
 
     std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const;
     std::vector<VkAttachmentReference>   GetAttachmentReferences () const;
     std::vector<VkImageView>             GetOutputImageViews (uint32_t frameIndex) const;
 };
 
-USING_PTR_2 (RenderOperation);
+USING_PTR (RenderOperation);
 
 struct GEARSVK_API RenderOperation : public Operation {
-    USING_PTR (RenderOperation);
+    USING_CREATE (RenderOperation);
 
     struct CompileSettings {
-        DrawRecordable::P   drawRecordable;
-        ShaderPipeline::P   pipeline;
+        DrawRecordableP     drawRecordable;
+        ShaderPipelineP     pipeline;
         VkPrimitiveTopology topology;
     };
 
     struct CompileResult {
-        uint32_t                      width;
-        uint32_t                      height;
-        DescriptorPool::U             descriptorPool;
-        DescriptorSetLayout::U        descriptorSetLayout;
-        std::vector<DescriptorSet::U> descriptorSets;
-        std::vector<Framebuffer::U>   framebuffers;
+        uint32_t                    width;
+        uint32_t                    height;
+        DescriptorPoolU             descriptorPool;
+        DescriptorSetLayoutU        descriptorSetLayout;
+        std::vector<DescriptorSetU> descriptorSets;
+        std::vector<FramebufferU>   framebuffers;
 
         void Clear ()
         {
@@ -67,7 +66,7 @@ struct GEARSVK_API RenderOperation : public Operation {
     CompileResult   compileResult;
 
 
-    RenderOperation (const DrawRecordable::P& drawRecordable, const ShaderPipeline::P& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    RenderOperation (const DrawRecordableP& drawRecordable, const ShaderPipelineP& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
     virtual ~RenderOperation () = default;
 
     virtual void Compile (const GraphSettings&) override;

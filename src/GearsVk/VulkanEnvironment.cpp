@@ -39,7 +39,7 @@ DebugOnlyStaticInit apiVersionLogger ([] () {
 });
 
 
-VulkanEnvironment::VulkanEnvironment (std::optional<Window::Ref> window, std::optional<DebugUtilsMessenger::Callback> callback)
+VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::optional<DebugUtilsMessenger::Callback> callback)
 {
     Utils::DebugTimerLogger tl ("creating test environment");
     Utils::TimerScope       ts (tl);

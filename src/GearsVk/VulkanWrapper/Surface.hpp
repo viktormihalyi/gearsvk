@@ -5,14 +5,14 @@
 
 #include <vulkan/vulkan.h>
 
-USING_PTR_2 (Surface);
+USING_PTR (Surface);
 class GEARSVK_API Surface : public Noncopyable {
 private:
     VkInstance   instance;
     VkSurfaceKHR handle;
 
 public:
-    USING_PTR (Surface);
+    USING_CREATE (Surface);
 
     Surface (VkInstance instance, VkSurfaceKHR&& handle)
         : instance (instance)

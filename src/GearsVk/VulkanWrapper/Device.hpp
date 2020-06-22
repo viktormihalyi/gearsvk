@@ -23,7 +23,7 @@ public:
     virtual AllocateInfo GetBufferAllocateInfo (VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) const = 0;
 };
 
-USING_PTR_2 (Device);
+USING_PTR (Device);
 
 class GEARSVK_API Device : public Noncopyable, public DeviceInterface {
 private:
@@ -46,7 +46,7 @@ private:
 
 
 public:
-    USING_PTR (Device);
+    USING_CREATE (Device);
 
     Device (VkPhysicalDevice physicalDevice, std::vector<uint32_t> queueFamilyIndices, std::vector<const char*> requestedDeviceExtensions)
         : physicalDevice (physicalDevice)

@@ -11,7 +11,7 @@
 
 #include "glmlib.hpp"
 
-USING_PTR_2 (Camera);
+USING_PTR (Camera);
 
 class GEARSVK_API Camera {
 public:
@@ -20,7 +20,7 @@ public:
     glm::vec3 up;
     glm::vec3 right;
 
-    Frustum::U frustum;
+    FrustumU frustum;
 
     float speed;
     float yaw;
@@ -39,7 +39,7 @@ public:
     Event<glm::vec3> positionChanged;
 
 public:
-    USING_PTR (Camera);
+    USING_CREATE (Camera);
 
     enum class MovementDirection {
         Forward,

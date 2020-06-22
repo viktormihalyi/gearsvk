@@ -18,9 +18,9 @@
 
 using namespace RG;
 
-Window::U            window;
-VulkanEnvironment::U env;
-RenderGraph::U       renderGraph;
+WindowU            window;
+VulkanEnvironmentU env;
+RenderGraphU       renderGraph;
 
 
 void InitializeEnvironment ()
@@ -66,10 +66,10 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 
     GraphSettings s (*env->device, *env->graphicsQueue, *env->commandPool, *env->swapchain);
 
-    SwapchainImageResource&    presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
+    SwapchainImageResource& presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
     // ImageResource&             writ      = renderGraph->CreateResource<WritableImageResource> ();
-    UniformReflectionResource& refl      = renderGraph->CreateResource<UniformReflectionResource> (seqpip);
-    global_refl                          = &refl;
+    UniformReflectionResource& refl = renderGraph->CreateResource<UniformReflectionResource> (seqpip);
+    global_refl                     = &refl;
 
     Operation& redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 4), seqpip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP));
 

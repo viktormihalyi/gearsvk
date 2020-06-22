@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-USING_PTR_2 (DeviceMemory);
+USING_PTR (DeviceMemory);
 class GEARSVK_API DeviceMemory : public Noncopyable {
 public:
     static constexpr VkMemoryPropertyFlags GPU = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -21,7 +21,7 @@ private:
     VkDeviceMemory handle;
 
 public:
-    USING_PTR (DeviceMemory);
+    USING_CREATE (DeviceMemory);
 
     DeviceMemory (VkDevice device, size_t allocationSize, uint32_t memoryTypeIndex)
         : device (device)
