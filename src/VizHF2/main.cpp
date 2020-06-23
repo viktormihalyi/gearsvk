@@ -47,7 +47,14 @@ static const glm::mat4 UnitMatrix = glm::mat4 (
 
 class QuadricMat4 : public glm::mat4 {
 public:
-    using glm::mat4::mat4;
+    QuadricMat4 ()
+    {
+    }
+
+    QuadricMat4 (const glm::mat4& m)
+    {
+        glm::mat4::operator= (m);
+    }
 
     QuadricMat4 Scale (const glm::vec3& v) const
     {
@@ -161,47 +168,47 @@ int main (int, char**)
         Toro    = 2,
     };
 
-    constexpr QuadricMat4 zplane = glm::mat4 (
+    const QuadricMat4 zplane (glm::mat4 (
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, -1.0f);
+        0.0f, 0.0f, 0.0f, -1.0f));
 
-    constexpr QuadricMat4 unitSphere = glm::mat4 (
+    const QuadricMat4 unitSphere (glm::mat4 (
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, -1.0f);
+        0.0f, 0.0f, 0.0f, -1.0f));
 
-    constexpr QuadricMat4 cylinder = glm::mat4 (
+    const QuadricMat4 cylinder (glm::mat4 (
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, -1.0f);
+        0.0f, 0.0f, 0.0f, -1.0f));
 
-    constexpr QuadricMat4 hyperboloid = glm::mat4 (
+    const QuadricMat4 hyperboloid (glm::mat4 (
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, -1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, -1.0f);
+        0.0f, 0.0f, 0.0f, -1.0f));
 
-    constexpr QuadricMat4 paraboloid = glm::mat4 (
+    const QuadricMat4 paraboloid (glm::mat4 (
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, -1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.5f,
-        0.0f, 0.0f, 0.5f, 0.0f);
+        0.0f, 0.0f, 0.5f, 0.0f));
 
-    constexpr QuadricMat4 all = glm::mat4 (
+    const QuadricMat4 all (glm::mat4 (
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, -1.0f);
+        0.0f, 0.0f, 0.0f, -1.0f));
 
-    constexpr QuadricMat4 outside = glm::mat4 (
+    const QuadricMat4 outside (glm::mat4 (
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f);
+        0.0f, 0.0f, 0.0f, 1.0f));
 
     struct Light {
         glm::vec4 position;
