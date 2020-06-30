@@ -179,7 +179,9 @@ target_include_directories (${TARGET_DLL} PRIVATE
     external/pybind11/include
 )
 
-target_link_directories (${TARGET_LIB} PUBLIC external/msdfgen/freetype/win64)
+if (WIN32)
+    target_link_directories (${TARGET_LIB} PUBLIC external/msdfgen/freetype/win64)
+endif ()
 
 target_link_libraries (${TARGET_LIB} ${Vulkan_LIBRARIES} glfw SPIRV msdfgen msdfgen-ext freetype)
 target_link_libraries (${TARGET_VIZHF} ${TARGET_LIB})
