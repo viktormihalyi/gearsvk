@@ -119,7 +119,6 @@ int main (int, char**)
 
     RG::RenderOperation& brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (deviceExtra), sp);
 
-
     // ========================= GRAPH RESOURCES =========================
 
     RG::SwapchainImageResource&    presented = graph.CreateResource<RG::SwapchainImageResource> (swapchain);

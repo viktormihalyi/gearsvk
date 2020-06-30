@@ -15,7 +15,7 @@ public:
     const uint32_t instanceCount;
 
     const uint32_t                                       vertexCount;
-    const VkBuffer                                       vertexBuffer;
+    const std::vector<VkBuffer>                          vertexBuffer;
     const std::vector<VkVertexInputBindingDescription>   vertexInputBindings;
     const std::vector<VkVertexInputAttributeDescription> vertexInputAttributes;
 
@@ -33,7 +33,7 @@ public:
                         VkBuffer                                              indexBuffer           = VK_NULL_HANDLE)
         : instanceCount (instanceCount)
         , vertexCount (vertexCount)
-        , vertexBuffer (vertexBuffer)
+        , vertexBuffer ((vertexBuffer == VK_NULL_HANDLE) ? std::vector<VkBuffer> {} : std::vector<VkBuffer> {vertexBuffer})
         , vertexInputBindings (vertexInputBindings)
         , vertexInputAttributes (vertexInputAttributes)
         , indexCount (indexCount)
@@ -46,7 +46,7 @@ public:
                         const IndexBufferTransferable&         indexBuffer)
         : instanceCount (instanceCount)
         , vertexCount (vertexBuffer.data.size ())
-        , vertexBuffer (vertexBuffer.buffer.GetBufferToBind ())
+        , vertexBuffer ({vertexBuffer.buffer.GetBufferToBind ()})
         , vertexInputBindings (vertexBuffer.info.bindings)
         , vertexInputAttributes (vertexBuffer.info.attributes)
         , indexCount (indexBuffer.data.size ())
@@ -58,7 +58,7 @@ public:
                         const VertexBufferTransferableUntyped& vertexBuffer)
         : instanceCount (instanceCount)
         , vertexCount (vertexBuffer.data.size ())
-        , vertexBuffer (vertexBuffer.buffer.GetBufferToBind ())
+        , vertexBuffer ({vertexBuffer.buffer.GetBufferToBind ()})
         , vertexInputBindings (vertexBuffer.info.bindings)
         , vertexInputAttributes (vertexBuffer.info.attributes)
         , indexCount (0)
@@ -70,9 +70,9 @@ public:
     {
         ASSERT (instanceCount == 1);
 
-        if (vertexBuffer != VK_NULL_HANDLE) {
-            VkDeviceSize offsets[] = {0};
-            vkCmdBindVertexBuffers (commandBuffer, 0, 1, &vertexBuffer, offsets);
+        if (!vertexBuffer.empty ()) {
+            std::vector<VkDeviceSize> offsets (vertexBuffer.size (), 0);
+            vkCmdBindVertexBuffers (commandBuffer, 0, vertexBuffer.size (), vertexBuffer.data (), offsets.data ());
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {

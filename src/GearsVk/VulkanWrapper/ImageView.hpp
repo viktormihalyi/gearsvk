@@ -19,7 +19,7 @@ private:
 public:
     USING_CREATE (ImageViewBase);
 
-    ImageViewBase (VkDevice device, VkImage image, VkFormat format, VkImageViewType viewType, uint32_t layerIndex = 0)
+    ImageViewBase (VkDevice device, VkImage image, VkFormat format, VkImageViewType viewType, uint32_t layerIndex = 0, uint32_t layerCount = 1)
         : device (device)
         , format (format)
         , handle (VK_NULL_HANDLE)
@@ -38,7 +38,7 @@ public:
         createInfo.subresourceRange.baseMipLevel   = 0;
         createInfo.subresourceRange.levelCount     = 1;
         createInfo.subresourceRange.baseArrayLayer = layerIndex;
-        createInfo.subresourceRange.layerCount     = 1;
+        createInfo.subresourceRange.layerCount     = layerCount;
 
         VkResult result = vkCreateImageView (device, &createInfo, nullptr, &handle);
         if (ERROR (result != VK_SUCCESS)) {
@@ -85,13 +85,13 @@ class GEARSVK_API ImageView2D : public ImageViewBase {
 public:
     USING_CREATE (ImageView2D);
 
-    ImageView2D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
-        : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_2D, layerIndex)
+    ImageView2D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0, uint32_t layerCount = 1)
+        : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_2D, layerIndex, layerCount)
     {
     }
 
-    ImageView2D (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0)
-        : ImageView2D (device, image, image.GetFormat (), layerIndex)
+    ImageView2D (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0, uint32_t layerCount = 1)
+        : ImageView2D (device, image, image.GetFormat (), layerIndex, layerCount)
     {
     }
 };

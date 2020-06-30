@@ -40,9 +40,10 @@ struct GEARSVK_API RenderOperation : public Operation {
     USING_CREATE (RenderOperation);
 
     struct CompileSettings {
-        DrawRecordableP     drawRecordable;
-        ShaderPipelineP     pipeline;
-        VkPrimitiveTopology topology;
+        PureDrawRecordableP      drawRecordable;
+        VertexAttributeProviderP vertexAttributeProvider;
+        ShaderPipelineP          pipeline;
+        VkPrimitiveTopology      topology;
     };
 
     struct CompileResult {
@@ -67,6 +68,8 @@ struct GEARSVK_API RenderOperation : public Operation {
 
 
     RenderOperation (const DrawRecordableP& drawRecordable, const ShaderPipelineP& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    RenderOperation (const PureDrawRecordableP& drawRecordable, const VertexAttributeProviderP&, const ShaderPipelineP& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+
     virtual ~RenderOperation () = default;
 
     virtual void Compile (const GraphSettings&) override;

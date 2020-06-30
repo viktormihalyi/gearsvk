@@ -102,6 +102,31 @@ public:
         }
     }
 
+    void CopyLayer (VkImageLayout currentImageLayout, const void* data, size_t size, uint32_t layerIndex, std::optional<VkImageLayout> nextLayout = std::nullopt) const
+    {
+        bufferCPUMapping.Copy (data, size, 0);
+
+        SingleTimeCommand commandBuffer (device, commandPool, queue);
+
+        imageGPU->image->CmdPipelineBarrier (commandBuffer, currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+        VkBufferImageCopy region               = {};
+        region.bufferOffset                    = 0;
+        region.bufferRowLength                 = 0;
+        region.bufferImageHeight               = 0;
+        region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.mipLevel       = 0;
+        region.imageSubresource.baseArrayLayer = layerIndex;
+        region.imageSubresource.layerCount     = 1;
+        region.imageOffset                     = {0, 0, 0};
+        region.imageExtent                     = {imageGPU->image->GetWidth (), imageGPU->image->GetHeight (), imageGPU->image->GetDepth ()};
+
+        imageGPU->image->CmdCopyBufferPartToImage (commandBuffer, *bufferCPU.buffer, region);
+        if (nextLayout.has_value ()) {
+            imageGPU->image->CmdPipelineBarrier (commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
+        }
+    }
+
     VkImage GetImageToBind () const
     {
         return *imageGPU->image;
@@ -120,6 +145,10 @@ static uint32_t GetCompontentCountFromFormat (VkFormat format)
         case VK_FORMAT_R8G8_SRGB: return 2;
         case VK_FORMAT_R8G8B8_SRGB: return 3;
         case VK_FORMAT_R8G8B8A8_SRGB: return 4;
+        case VK_FORMAT_R32_SFLOAT: return 4;
+        case VK_FORMAT_R32G32_SFLOAT: return 8;
+        case VK_FORMAT_R32G32B32_SFLOAT: return 12;
+        case VK_FORMAT_R32G32B32A32_SFLOAT: return 16;
         default:
             ASSERT (false);
             return 4;
@@ -143,10 +172,22 @@ USING_PTR (Image2DTransferable);
 class GEARSVK_API Image2DTransferable final : public ImageTransferableBase {
 public:
     USING_CREATE (Image2DTransferable);
-    Image2DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags)
+    Image2DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
         : ImageTransferableBase (device, queue, commandPool, width * height * GetCompontentCountFromFormat (format))
     {
-        imageGPU = AllocatedImage::Create (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
+        imageGPU = AllocatedImage::Create (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers), DeviceMemory::GPU);
+    }
+};
+
+
+USING_PTR (Image2DTransferableLinear);
+class GEARSVK_API Image2DTransferableLinear final : public ImageTransferableBase {
+public:
+    USING_CREATE (Image2DTransferableLinear);
+    Image2DTransferableLinear (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
+        : ImageTransferableBase (device, queue, commandPool, width * height * GetCompontentCountFromFormat (format))
+    {
+        imageGPU = AllocatedImage::Create (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_LINEAR, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers), DeviceMemory::GPU);
     }
 };
 

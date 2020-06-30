@@ -88,6 +88,11 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
         std::cout << std::left << std::setw (LogColumnWidth) << "device id:" << properties.deviceID << std::endl;
         std::cout << std::left << std::setw (LogColumnWidth) << "vendor id:" << properties.vendorID << std::endl;
         std::cout << std::endl;
+
+        VkFormatProperties props;
+        vkGetPhysicalDeviceFormatProperties (*physicalDevice, VK_FORMAT_R32_SFLOAT, &props);
+        vkGetPhysicalDeviceFormatProperties (*physicalDevice, VK_FORMAT_R32G32B32_SFLOAT, &props);
+        vkGetPhysicalDeviceFormatProperties (*physicalDevice, VK_FORMAT_R32G32B32_SFLOAT, &props);
     }
 
     std::vector<const char*> deviceExtensions;

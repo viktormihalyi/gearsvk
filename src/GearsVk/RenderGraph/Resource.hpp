@@ -168,15 +168,17 @@ public:
     const uint32_t width;
     const uint32_t height;
     const uint32_t depth;
+    const uint32_t layerCount;
 
 public:
     USING_CREATE (ReadOnlyImageResource);
 
-    ReadOnlyImageResource (VkFormat format, uint32_t width, uint32_t height = 1, uint32_t depth = 1)
+    ReadOnlyImageResource (VkFormat format, uint32_t width, uint32_t height = 1, uint32_t depth = 1, uint32_t layerCount = 1)
         : format (format)
         , width (width)
         , height (height)
         , depth (depth)
+        , layerCount (layerCount)
     {
         ASSERT_THROW (width > 0);
         ASSERT_THROW (height > 0);
@@ -194,8 +196,8 @@ public:
             image     = Image1DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, VK_IMAGE_USAGE_SAMPLED_BIT);
             imageView = ImageView1D::Create (settings.GetDevice (), *image->imageGPU->image);
         } else if (depth == 1) {
-            image     = Image2DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
-            imageView = ImageView2D::Create (settings.GetDevice (), *image->imageGPU->image);
+            image     = Image2DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT, layerCount);
+            imageView = ImageView2D::Create (settings.GetDevice (), *image->imageGPU->image, 0, layerCount);
         } else {
             image     = Image3DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, depth, VK_IMAGE_USAGE_SAMPLED_BIT);
             imageView = ImageView3D::Create (settings.GetDevice (), *image->imageGPU->image);

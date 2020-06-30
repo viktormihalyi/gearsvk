@@ -150,6 +150,17 @@ public:
             1,
             &region);
     }
+
+    void CmdCopyBufferPartToImage (VkCommandBuffer commandBuffer, VkBuffer buffer, VkBufferImageCopy region) const
+    {
+        vkCmdCopyBufferToImage (
+            commandBuffer,
+            buffer,
+            handle,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &region);
+    }
 };
 
 

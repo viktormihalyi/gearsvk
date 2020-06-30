@@ -57,9 +57,16 @@ std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) co
 
 
 RenderOperation::RenderOperation (const DrawRecordableP& drawRecordable, const ShaderPipelineP& shaderPipeline, VkPrimitiveTopology topology)
-    : compileSettings ({drawRecordable, shaderPipeline, topology})
+    : compileSettings ({drawRecordable, drawRecordable, shaderPipeline, topology})
 {
 }
+
+
+RenderOperation::RenderOperation (const PureDrawRecordableP& drawRecordable, const VertexAttributeProviderP& vap, const ShaderPipelineP& shaderPipeline, VkPrimitiveTopology topology)
+    : compileSettings ({drawRecordable, vap, shaderPipeline, topology})
+{
+}
+
 
 void RenderOperation::Compile (const GraphSettings& graphSettings)
 {
@@ -107,8 +114,8 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
                                                         *compileResult.descriptorSetLayout,
                                                         attachmentReferences,
                                                         attachmentDescriptions,
-                                                        compileSettings.drawRecordable->GetBindings (),
-                                                        compileSettings.drawRecordable->GetAttributes (),
+                                                        compileSettings.vertexAttributeProvider->GetBindings (),
+                                                        compileSettings.vertexAttributeProvider->GetAttributes (),
                                                         compileSettings.topology};
 
     compileSettings.pipeline->Compile (pipelineSettigns);

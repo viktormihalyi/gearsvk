@@ -55,6 +55,7 @@ add_subdirectory (external/googletest)
 add_subdirectory (external/glslang)
 add_subdirectory (external/glfw)
 add_subdirectory (external/pybind11)
+add_subdirectory (external/msdfgen)
 # ============================================================
 
 
@@ -75,9 +76,10 @@ set (GEARSVK_INCLUDE_FOLDERS
     external/glfw/include
     #external/json/single_include
     external/glm
-    #external/VulkanMemoryAllocator/src
+    external/VulkanMemoryAllocator/src
     external/stb
     external/glslang
+    external/msdfgen
 )
 
 add_library (${TARGET_LIB} SHARED
@@ -109,8 +111,8 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/Window/GLFWWindow.cpp
     src/GearsVk/Window/SDLWindow.cpp
 
-    
     src/GearsVk/VulkanEnvironment.cpp
+    src/GearsVk/VulkanMemoryAllocatorImpl.cpp
 )
 
 add_executable (${TARGET_VIZHF}
@@ -175,7 +177,9 @@ target_include_directories (${TARGET_DLL} PRIVATE
     external/pybind11/include
 )
 
-target_link_libraries (${TARGET_LIB} ${Vulkan_LIBRARIES} glfw SPIRV)
+target_link_directories (${TARGET_LIB} PUBLIC external/msdfgen/freetype/win64)
+
+target_link_libraries (${TARGET_LIB} ${Vulkan_LIBRARIES} glfw SPIRV msdfgen msdfgen-ext freetype)
 target_link_libraries (${TARGET_VIZHF} ${TARGET_LIB})
 target_link_libraries (${TARGET_VIZHF2} ${TARGET_LIB})
 target_link_libraries (${TARGET_TESTS} ${TARGET_LIB} gtest)
