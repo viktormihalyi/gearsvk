@@ -89,17 +89,7 @@ public:
 
     void CopyTransitionTransfer (VkImageLayout currentImageLayout, const void* data, size_t size, std::optional<VkImageLayout> nextLayout = std::nullopt) const
     {
-        ASSERT (size == bufferSize);
-
-        bufferCPUMapping.Copy (data, size, 0);
-
-        SingleTimeCommand commandBuffer (device, commandPool, queue);
-
-        imageGPU->image->CmdPipelineBarrier (commandBuffer, currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        imageGPU->image->CmdCopyBufferToImage (commandBuffer, *bufferCPU.buffer);
-        if (nextLayout.has_value ()) {
-            imageGPU->image->CmdPipelineBarrier (commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
-        }
+        CopyLayer (currentImageLayout, data, size, 0, nextLayout);
     }
 
     void CopyLayer (VkImageLayout currentImageLayout, const void* data, size_t size, uint32_t layerIndex, std::optional<VkImageLayout> nextLayout = std::nullopt) const

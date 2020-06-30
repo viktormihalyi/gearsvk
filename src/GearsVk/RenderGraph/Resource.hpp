@@ -196,8 +196,13 @@ public:
             image     = Image1DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, VK_IMAGE_USAGE_SAMPLED_BIT);
             imageView = ImageView1D::Create (settings.GetDevice (), *image->imageGPU->image);
         } else if (depth == 1) {
-            image     = Image2DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT, layerCount);
-            imageView = ImageView2D::Create (settings.GetDevice (), *image->imageGPU->image, 0, layerCount);
+            if (layerCount == 1) {
+                image     = Image2DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
+                imageView = ImageView2D::Create (settings.GetDevice (), *image->imageGPU->image, 0);
+            } else {
+                image     = Image2DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT, layerCount);
+                imageView = ImageView2DArray::Create (settings.GetDevice (), *image->imageGPU->image, 0, layerCount);
+            }
         } else {
             image     = Image3DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, depth, VK_IMAGE_USAGE_SAMPLED_BIT);
             imageView = ImageView3D::Create (settings.GetDevice (), *image->imageGPU->image);
@@ -218,9 +223,16 @@ public:
     virtual VkImageView GetImageViewForFrame (uint32_t, uint32_t) override { return *imageView; }
     virtual VkSampler   GetSampler () override { return *sampler; }
 
-    void CopyTransitionTransfer (const std::vector<uint8_t>& pixelData)
+    template<typename T>
+    void CopyTransitionTransfer (const std::vector<T>& pixelData)
     {
-        image->CopyTransitionTransfer (VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, pixelData.data (), pixelData.size (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        CopyLayer (pixelData, 0);
+    }
+
+    template<typename T>
+    void CopyLayer (const std::vector<T>& pixelData, uint32_t layerIndex)
+    {
+        image->CopyLayer (VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, pixelData.data (), pixelData.size () * sizeof (T), layerIndex, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 };
 

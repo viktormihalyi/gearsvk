@@ -32,10 +32,10 @@ GEARSVK_API
 std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t components = 4);
 
 GEARSVK_API
-bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& expectedImage);
+bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& expectedImage, uint32_t layerIndex = 0);
 
 GEARSVK_API
-std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& filePath);
+std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& filePath, uint32_t layerIndex = 0);
 
 
 USING_PTR (AllocatedImage);

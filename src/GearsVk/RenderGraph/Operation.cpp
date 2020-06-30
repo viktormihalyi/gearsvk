@@ -83,7 +83,11 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
 
     compileResult.descriptorSetLayout = DescriptorSetLayout::Create (graphSettings.GetDevice (), layout);
 
-    const uint32_t s = static_cast<uint32_t> (inputBindings.size ()) * graphSettings.framesInFlight;
+    uint32_t s = 0;
+    for (auto& a : inputBindings) {
+        s += a->GetLayerCount ();
+    }
+    s *= graphSettings.framesInFlight;
 
     if (s > 0) {
         compileResult.descriptorPool = DescriptorPool::Create (graphSettings.GetDevice (), s, s, graphSettings.framesInFlight);

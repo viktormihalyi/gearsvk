@@ -98,7 +98,7 @@ AllocatedImage AllocatedImage::CreatePreinitialized (const Device& device, uint3
 }
 
 
-static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image)
+static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, uint32_t layerIndex = 0)
 {
     const uint32_t width  = image.GetWidth ();
     const uint32_t height = image.GetHeight ();
@@ -109,14 +109,15 @@ static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue,
     {
         SingleTimeCommand single (device, commandPool, queue);
 
-        VkImageCopy imageCopyRegion               = {};
-        imageCopyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        imageCopyRegion.srcSubresource.layerCount = 1;
-        imageCopyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        imageCopyRegion.dstSubresource.layerCount = 1;
-        imageCopyRegion.extent.width              = image.GetWidth ();
-        imageCopyRegion.extent.height             = image.GetHeight ();
-        imageCopyRegion.extent.depth              = 1;
+        VkImageCopy imageCopyRegion                   = {};
+        imageCopyRegion.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageCopyRegion.srcSubresource.layerCount     = 1;
+        imageCopyRegion.srcSubresource.baseArrayLayer = layerIndex;
+        imageCopyRegion.dstSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageCopyRegion.dstSubresource.layerCount     = 1;
+        imageCopyRegion.extent.width                  = image.GetWidth ();
+        imageCopyRegion.extent.height                 = image.GetHeight ();
+        imageCopyRegion.extent.depth                  = 1;
 
         vkCmdCopyImage (
             single,
@@ -149,14 +150,14 @@ std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t 
 }
 
 // copy image to cpu and compare with a reference
-bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& expectedImage)
+bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& expectedImage, uint32_t layerIndex)
 {
     const uint32_t width      = image.GetWidth ();
     const uint32_t height     = image.GetHeight ();
     const uint32_t pixelCount = width * height;
     const uint32_t byteCount  = pixelCount * 4;
 
-    AllocatedImage dst = CreateCopyImageOnCPU (device, queue, commandPool, image);
+    AllocatedImage dst = CreateCopyImageOnCPU (device, queue, commandPool, image, layerIndex);
 
 
     std::vector<std::array<uint8_t, 4>> mapped (pixelCount);
@@ -181,24 +182,26 @@ bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandP
 }
 
 
-std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& filePath)
+std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& filePath, uint32_t layerIndex)
 {
     std::cout << "saving an image to" << filePath << std::endl;
 
     const uint32_t width  = image.GetWidth ();
     const uint32_t height = image.GetHeight ();
 
-    AllocatedImage dst = CreateCopyImageOnCPU (device, queue, commandPool, image);
+    AllocatedImage dst = CreateCopyImageOnCPU (device, queue, commandPool, image, layerIndex);
 
-    std::vector<std::array<uint8_t, 4>> mapped (width * height);
+    constexpr uint32_t components = 4;
+
+    std::vector<std::array<uint8_t, components>> mapped (width * height);
 
     {
-        MemoryMapping mapping (device, *dst.memory, 0, width * height * 4);
-        memcpy (mapped.data (), mapping.Get (), width * height * 4);
+        MemoryMapping mapping (device, *dst.memory, 0, width * height * components);
+        memcpy (mapped.data (), mapping.Get (), width * height * components);
     }
 
     return std::thread ([=] () {
-        stbi_write_png (filePath.u8string ().c_str (), width, height, 4, mapped.data (), width * 4);
+        stbi_write_png (filePath.u8string ().c_str (), width, height, components, mapped.data (), width * components);
         std::cout << "writing png done" << std::endl;
     });
 };

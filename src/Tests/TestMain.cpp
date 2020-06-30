@@ -19,6 +19,7 @@
 #include <thread>
 
 #include "GoogleTestEnvironment.hpp"
+#include "SDF.hpp"
 
 
 int main (int argc, char** argv)
@@ -34,48 +35,6 @@ const std::filesystem::path ShadersFolder = PROJECT_ROOT / "src" / "Tests" / "sh
 using namespace RG;
 
 
-#include "msdfgen-ext.h"
-#include "msdfgen.h"
-
-#include "StaticInit.hpp"
-
-msdfgen::FreetypeHandle* ft = nullptr;
-
-std::array<float, 32 * 32 * 1 * 4> GetGlyphSDF (const std::string& fontFile, uint32_t unicode)
-{
-    using namespace msdfgen;
-
-    if (ft == nullptr) {
-        ft = initializeFreetype ();
-    }
-
-    ASSERT (ft != nullptr);
-
-    FontHandle* font = loadFont (ft, fontFile.c_str ());
-
-    ASSERT (font != nullptr);
-
-    Shape shape;
-    ASSERT (loadGlyph (shape, font, 'A'));
-
-    destroyFont (font);
-
-    shape.normalize ();
-
-    edgeColoringSimple (shape, 3.0);
-
-    constexpr int c = 1;
-
-    Bitmap<float, c> msdf (32, 32);
-    generateSDF (msdf, shape, 4.0, 1.0, Vector2 (4.0, 4.0));
-
-    std::array<float, 32 * 32 * c * 4> asd;
-    memmove (asd.data (), static_cast<float*> (msdf), 32 * 32 * c);
-
-    return asd;
-}
-
-
 TEST_F (HiddenWindowGoogleTestEnvironment, MSDFGEN)
 {
     // Image2DTransferable glyphs (GetDevice (), GetGraphicsQueue (), GetCommandPool (), VK_FORMAT_R8G8B8A8_UINT, 16, 16, VK_IMAGE_USAGE_SAMPLED_BIT, 128);
@@ -88,7 +47,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, MSDFGEN)
     RenderGraph   graph (device, commandPool);
 
     WritableImageResource& red    = graph.CreateResource<WritableImageResource> ();
-    ReadOnlyImageResource& glyphs = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, 32, 32);
+    ReadOnlyImageResource& glyphs = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, 32, 32, 1, 3);
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShaderFromString (R"(
@@ -129,10 +88,10 @@ void main() {
 layout (location = 0) in vec2 textureCoords;
 layout (location = 0) out vec4 outColor;
 
-layout (binding = 0) uniform sampler2D sampl[1];
+layout (binding = 0) uniform sampler2DArray sampl;
 
 void main () {
-    outColor = vec4 (vec3 (texture (sampl[0], textureCoords).r), 1.f);
+    outColor = vec4 (vec3 (texture (sampl, vec3 (textureCoords, 2)).r), 1.f);
 }
     )");
 
@@ -145,9 +104,13 @@ void main () {
     graph.Compile (s);
 
 
-    std::array<float, 32 * 32 * 1 * 4> asd = GetGlyphSDF ("C:\\Windows\\Fonts\\arialbd.ttf", 'A');
-
-    glyphs.image->CopyTransitionTransfer (ImageBase::INITIAL_LAYOUT, static_cast<float*> (asd.data ()), 32 * 32 * 4, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    std::vector<float> asd;
+    asd = GetGlyphSDF32x32x1 ("C:\\Windows\\Fonts\\arialbd.ttf", 'B');
+    glyphs.CopyLayer (asd, 0);
+    asd = GetGlyphSDF32x32x1 ("C:\\Windows\\Fonts\\arialbd.ttf", 'G');
+    glyphs.CopyLayer (asd, 1);
+    asd = GetGlyphSDF32x32x1 ("C:\\Windows\\Fonts\\arialbd.ttf", 'C');
+    glyphs.CopyLayer (asd, 2);
 
 
     graph.Submit (0);
@@ -157,9 +120,10 @@ void main () {
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    auto a = SaveImageToFileAsync (device, graphicsQueue, commandPool, *red.images[0]->image.image, ReferenceImagesFolder / "glyphs.png");
-
-    a.join ();
+    //SaveImageToFileAsync (device, graphicsQueue, commandPool, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphA.png", 0).join ();
+    //SaveImageToFileAsync (device, graphicsQueue, commandPool, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphB.png", 1).join ();
+    //SaveImageToFileAsync (device, graphicsQueue, commandPool, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphC.png", 2).join ();
+    SaveImageToFileAsync (device, graphicsQueue, commandPool, *red.images[0]->image.image, ReferenceImagesFolder / "glyphAout.png").join ();
 }
 
 TEST_F (EmptyTestEnvironment, UniformBlockTest)

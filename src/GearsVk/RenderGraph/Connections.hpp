@@ -17,6 +17,7 @@ public:
     virtual uint32_t           GetOffset ()  = 0;
     virtual uint32_t           GetSize ()    = 0;
     virtual VkShaderStageFlags GetStages ()  = 0;
+    virtual uint32_t           GetLayerCount () { return 1; }
 
     virtual std::vector<VkDescriptorImageInfo>  GetImageInfos (uint32_t) { return {}; }
     virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t) { return {}; }
@@ -26,7 +27,7 @@ public:
         VkDescriptorSetLayoutBinding result = {};
         result.binding                      = GetBinding ();
         result.descriptorType               = GetType ();
-        result.descriptorCount              = 1;
+        result.descriptorCount              = GetLayerCount ();
         result.stageFlags                   = GetStages ();
         result.pImmutableSamplers           = nullptr;
         return result;
@@ -111,13 +112,13 @@ public:
 
     InputImageBindable&      imageViewProvider;
     const uint32_t           binding;
-    const uint32_t           layerIndex;
+    const uint32_t           layerCount;
     const VkShaderStageFlags stages;
 
-    ImageInputBinding (uint32_t binding, InputImageBindable& imageViewProvider, uint32_t layerIndex = 0, VkShaderStageFlags stages = VK_SHADER_STAGE_ALL)
+    ImageInputBinding (uint32_t binding, InputImageBindable& imageViewProvider, uint32_t layerCount = 1, VkShaderStageFlags stages = VK_SHADER_STAGE_ALL)
         : imageViewProvider (imageViewProvider)
         , binding (binding)
-        , layerIndex (layerIndex)
+        , layerCount (layerCount)
         , stages (stages)
     {
     }
@@ -127,12 +128,13 @@ public:
     virtual uint32_t           GetOffset () override { return 0; }
     virtual uint32_t           GetSize () override { return 0; }
     virtual VkShaderStageFlags GetStages () override { return stages; }
+    virtual uint32_t           GetLayerCount () override { return layerCount; }
 
     virtual std::vector<VkDescriptorImageInfo> GetImageInfos (uint32_t frameIndex) override
     {
         VkDescriptorImageInfo result = {};
         result.sampler               = imageViewProvider.GetSampler ();
-        result.imageView             = imageViewProvider.GetImageViewForFrame (frameIndex, layerIndex);
+        result.imageView             = imageViewProvider.GetImageViewForFrame (frameIndex, 0);
         result.imageLayout           = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         return {result};
     }
