@@ -36,7 +36,7 @@ endif ()
 if (MSVC)
     set (COMPILER_FLAGS /W4 /wd4251 /wd4100 /wd4189)
 else ()
-    set (COMPILER_FLAGS -Wall -Wextra -pedantic)
+    set (COMPILER_FLAGS -Wall -Wextra -pedantic -fPIC)
 endif ()
 
 add_definitions (-D_CRT_SECURE_NO_WARNINGS)
