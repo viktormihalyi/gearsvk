@@ -84,7 +84,7 @@ std::vector<float> GetGlyphSDF32x32x1 (const std::filesystem::path& fontFile, ui
 
     generateSDF (msdf, shape, 4.0, 1.0, Vector2 (4.0, 4.0));
 
-    return ToVector (msdf);
+    return ToVector<float, 1> (msdf);
 }
 
 
@@ -96,5 +96,5 @@ std::vector<float> GetGlyphMDF16x16x3 (const std::filesystem::path& fontFile, ui
 
     generateMSDF (msdf, shape, 4.0, 1.0, Vector2 (4.0, 4.0));
 
-    return ToVector (msdf);
+    return ToVector<float, 3> (msdf);
 }
