@@ -1,4 +1,4 @@
-#include <vulkan/vulkan.h>
+﻿#include <vulkan/vulkan.h>
 
 #include "FullscreenQuad.hpp"
 #include "GraphRenderer.hpp"
@@ -47,7 +47,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, MSDFGEN)
     RenderGraph   graph (device, commandPool);
 
     WritableImageResource& red    = graph.CreateResource<WritableImageResource> ();
-    ReadOnlyImageResource& glyphs = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, 32, 32, 1, 3);
+    ReadOnlyImageResource& glyphs = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, 32, 32, 1, 512);
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShaderFromString (R"(
@@ -104,13 +104,15 @@ void main () {
     graph.Compile (s);
 
 
-    std::vector<float> asd;
-    asd = GetGlyphSDF32x32x1 ("C:\\Windows\\Fonts\\arialbd.ttf", 'B');
-    glyphs.CopyLayer (asd, 0);
-    asd = GetGlyphSDF32x32x1 ("C:\\Windows\\Fonts\\arialbd.ttf", 'G');
-    glyphs.CopyLayer (asd, 1);
-    asd = GetGlyphSDF32x32x1 ("C:\\Windows\\Fonts\\arialbd.ttf", 'C');
-    glyphs.CopyLayer (asd, 2);
+    std::map<char, uint32_t> charToLayerMapping;
+    std::vector<float>       asd;
+    for (uint32_t i = 0; i < 255; ++i) {
+        if (i == 32 || i == 160)
+            continue;
+        asd = GetGlyphSDF32x32x1 ("C:\\Windows\\Fonts\\arialbd.ttf", i);
+        glyphs.CopyLayer (asd, i);
+        charToLayerMapping[i] = i;
+    }
 
 
     graph.Submit (0);
@@ -119,6 +121,10 @@ void main () {
 
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
+
+    for (uint32_t i = 0; i < 255; ++i) {
+        SaveImageToFileAsync (device, graphicsQueue, commandPool, *glyphs.image->imageGPU->image, ReferenceImagesFolder / ("" + std::to_string (i) + "glyphA.png"), i).join ();
+    }
 
     //SaveImageToFileAsync (device, graphicsQueue, commandPool, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphA.png", 0).join ();
     //SaveImageToFileAsync (device, graphicsQueue, commandPool, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphB.png", 1).join ();

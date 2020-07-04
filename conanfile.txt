@@ -1,0 +1,13 @@
+[requires]
+glfw/3.3.2
+pybind11/2.5.0
+gtest/1.10.0
+glm/0.9.9.8
+stb/20200203
+freetype/2.10.2
+
+[generators]
+cmake
+
+[options]
+gtest:build_gmock=False

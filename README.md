@@ -7,12 +7,14 @@ git submodule update --init
 Also:
 * Vulkan SDK: https://vulkan.lunarg.com/sdk/home
 * Python 3
+* conan (`pip install conan`)
 
 ## Building on Windows with MSVC
 You will need [CMake](https://cmake.org/download/) and the Developer Command Prompt for Visual Studio:
 
 ```
 mkdir build
+conan install .. -s
 cd build
 cmake ..
 msbuild ALL_BUILD.vcxproj -property:Configuration=Release
@@ -25,11 +27,10 @@ msbuild ALL_BUILD.vcxproj -property:Configuration=Release
 ## Building on Linux
 For installing the Vulkan SDK on Ubuntu see: https://vulkan.lunarg.com/doc/sdk/latest/linux/getting_started_ubuntu.html
 
-On Ubuntu you will need these packages for compiling GLFW: `libxinerama-dev libxcursor-dev libxi-dev`
-
 ```
 mkdir build
 cd build
+conan install .. -s
 cmake ..
 make
 ```

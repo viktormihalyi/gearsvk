@@ -20,6 +20,9 @@ project (${PROJECT_NAME})
 find_package (Vulkan REQUIRED)
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 
+include (build/conanbuildinfo.cmake)
+conan_basic_setup ()
+
 if (${Vulkan_FOUND})
     message ("Vulkan lib found at " ${Vulkan_LIBRARIES})
     message ("Vulkan headers found at " ${Vulkan_INCLUDE_DIRS})
@@ -44,17 +47,9 @@ add_definitions (-D_CRT_SECURE_NO_WARNINGS)
 
 # ======================  EXTERNAL LIBS ======================
 set (ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
-set (BUILD_GMOCK OFF CACHE BOOL "" FORCE)
-set (gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set (MSDFGEN_BUILD_MSDFGEN_STANDALONE OFF CACHE BOOL "" FORCE)
 
-set (GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set (GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set (GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
-add_subdirectory (external/googletest)
 add_subdirectory (external/glslang)
-add_subdirectory (external/glfw)
-add_subdirectory (external/pybind11)
 add_subdirectory (external/msdfgen)
 # ============================================================
 
@@ -73,11 +68,7 @@ set (GEARSVK_INCLUDE_FOLDERS
     ${Vulkan_INCLUDE_DIRS}
     ${Python3_INCLUDE_DIRS}
     
-    external/glfw/include
-    #external/json/single_include
-    external/glm
     external/VulkanMemoryAllocator/src
-    external/stb
     external/glslang
     external/msdfgen
 )
@@ -115,6 +106,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/VulkanMemoryAllocatorImpl.cpp
     
     "src/GearsVk/SDF.cpp"
+    external/msdfgen/ext/import-font.cpp # THIS FUCK DOESNT LINK FREETYPED FOR DEBUG BUILDS
 )
 
 add_executable (${TARGET_VIZHF}
@@ -169,24 +161,17 @@ target_compile_definitions (${TARGET_DLL} PRIVATE)
 target_include_directories (${TARGET_LIB} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_VIZHF} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_VIZHF2} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
-target_include_directories (${TARGET_TESTS} PRIVATE
-    ${GEARSVK_INCLUDE_FOLDERS}
-    external/googletest/googletest/include
-)
+target_include_directories (${TARGET_TESTS} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_DLL} PRIVATE
     ${GEARSVK_INCLUDE_FOLDERS}
     src/GearsPYD
-    external/pybind11/include
 )
 
-if (WIN32)
-    target_link_directories (${TARGET_LIB} PUBLIC external/msdfgen/freetype/win64)
-endif ()
 
-target_link_libraries (${TARGET_LIB} ${Vulkan_LIBRARIES} glfw SPIRV msdfgen msdfgen-ext freetype)
+target_link_libraries (${TARGET_LIB} ${Vulkan_LIBRARIES} ${CONAN_LIBS} SPIRV msdfgen)
 target_link_libraries (${TARGET_VIZHF} ${TARGET_LIB})
 target_link_libraries (${TARGET_VIZHF2} ${TARGET_LIB})
-target_link_libraries (${TARGET_TESTS} ${TARGET_LIB} gtest)
+target_link_libraries (${TARGET_TESTS} ${TARGET_LIB})
 target_link_libraries (${TARGET_DLL} ${TARGET_LIB})
 
 target_compile_options (${TARGET_LIB} PRIVATE ${COMPILER_FLAGS})

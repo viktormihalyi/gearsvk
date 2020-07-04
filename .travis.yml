@@ -19,10 +19,12 @@ before_install:
   - wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
   - sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-xenial.list http://packages.lunarg.com/vulkan/lunarg-vulkan-xenial.list
   - sudo apt update
-  - sudo apt install vulkan-sdk libxinerama-dev libxcursor-dev libxi-dev libfreetype6-dev
+  - sudo apt install vulkan-sdk
+  - pip install conan
 
 script:
   - mkdir build
   - cd build
+  - conan install ..
   - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.5
   - make VERBOSE=1
