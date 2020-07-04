@@ -22,6 +22,8 @@ before_install:
   - sudo apt install vulkan-sdk python3-pip python3-setuptools
   - python3 -m pip install wheel
   - python3 -m pip install conan
+  - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+
 
 script:
   - mkdir build

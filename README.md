@@ -13,6 +13,7 @@ Also:
 You will need [CMake](https://cmake.org/download/) and the Developer Command Prompt for Visual Studio:
 
 ```
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 mkdir build
 conan install .. -s
 cd build
@@ -28,6 +29,7 @@ msbuild ALL_BUILD.vcxproj -property:Configuration=Release
 For installing the Vulkan SDK on Ubuntu see: https://vulkan.lunarg.com/doc/sdk/latest/linux/getting_started_ubuntu.html
 
 ```
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 mkdir build
 cd build
 conan install .. -s
