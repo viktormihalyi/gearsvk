@@ -8,6 +8,3 @@ freetype/2.10.2
 
 [generators]
 cmake
-
-[options]
-gtest:build_gmock=False
