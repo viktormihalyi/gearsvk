@@ -133,23 +133,6 @@ void ShaderPipeline::SetShadersFromSourceFiles (const std::vector<std::filesyste
 }
 
 
-void ShaderPipeline::SetShaderFromBinaryFile (const std::filesystem::path& shaderPath)
-{
-    // assert on overwriting shader
-    ASSERT (GetShaderByExtension (shaderPath.extension ().u8string ()).shader == nullptr);
-
-    GetShaderByExtension (shaderPath.extension ().u8string ()).Set (ShaderModule::CreateFromSPVFile (device, shaderPath));
-}
-
-
-void ShaderPipeline::SetShadersFromBinaryFiles (const std::vector<std::filesystem::path>& shaderPath)
-{
-    for (auto& p : shaderPath) {
-        SetShaderFromBinaryFile (p);
-    }
-}
-
-
 void ShaderPipeline::Compile (const CompileSettings& settings)
 {
     compileSettings = settings;
@@ -203,7 +186,7 @@ void ShaderPipeline::Reload ()
 
                 case ShaderModule::ReadMode::SPVFilePath:
                     try {
-                        newShader.Set (ShaderModule::CreateFromSPVFile (device, currentShader.shader->GetLocation ()));
+                        newShader.Set (ShaderModule::CreateFromSPVFile (device, currentShader.shader->GetShaderKind (), currentShader.shader->GetLocation ()));
                     } catch (ShaderCompileException&) {
                     }
                     break;

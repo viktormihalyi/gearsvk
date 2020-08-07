@@ -7,8 +7,6 @@ message ("cmake binary dir is " ${CMAKE_BINARY_DIR})
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-set (CONAN_DISABLE_CHECK_COMPILER OFF)
-
 set (PROJECT_NAME GearsVk)
 
 set (TARGET_LIB GearsVk)
@@ -23,6 +21,7 @@ find_package (Vulkan REQUIRED)
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 
 include (build/conanbuildinfo.cmake)
+
 conan_basic_setup ()
 
 if (${Vulkan_FOUND})
@@ -107,7 +106,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/VulkanEnvironment.cpp
     src/GearsVk/VulkanMemoryAllocatorImpl.cpp
     
-    "src/GearsVk/SDF.cpp"
+    src/GearsVk/SDF.cpp
     external/msdfgen/ext/import-font.cpp # THIS FUCK DOESNT LINK FREETYPED FOR DEBUG BUILDS
 )
 
@@ -120,6 +119,7 @@ add_executable (${TARGET_VIZHF2}
 )
 
 add_executable (${TARGET_TESTS}
+    src/Tests/RenderGraphTests.cpp
     src/Tests/TestMain.cpp
 )
 

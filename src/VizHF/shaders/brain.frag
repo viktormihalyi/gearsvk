@@ -15,12 +15,14 @@ layout (std140, binding = 1) uniform Camera {
 } camera;
 
 struct TestStruct {
-    vec4 aa;
     mat4 asd;
+    vec4 aa;
+    vec3 as;
 };
 
 layout (std140, binding = 5) uniform Test {
     TestStruct data[5];
+    float a3434sd[5];
 } tests;
 
 

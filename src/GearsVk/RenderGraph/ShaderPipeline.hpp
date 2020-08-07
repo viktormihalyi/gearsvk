@@ -91,9 +91,6 @@ public:
     void SetShaderFromSourceFile (const std::filesystem::path& shaderPath);
     void SetShadersFromSourceFiles (const std::vector<std::filesystem::path>& shaderPath);
 
-    void SetShaderFromBinaryFile (const std::filesystem::path& shaderPath);
-    void SetShadersFromBinaryFiles (const std::vector<std::filesystem::path>& shaderPath);
-
     void Compile (const CompileSettings& settings);
 
     void Reload ();

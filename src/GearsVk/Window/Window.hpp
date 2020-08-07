@@ -12,7 +12,7 @@
 
 USING_PTR (Window);
 
-class Window : public Noncopyable {
+class GEARSVK_API Window : public Noncopyable {
 public:
     struct Events {
         // window events

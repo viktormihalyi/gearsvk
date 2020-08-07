@@ -4,13 +4,13 @@
 #include "Assert.hpp"
 
 #include <cstdint>
+#include <iostream>
 #include <string>
 #include <vector>
 
 namespace SR {
 
 struct GEARSVK_API UBO {
-    
     // clang-format off
 
     enum class FieldType {
@@ -43,35 +43,89 @@ struct GEARSVK_API UBO {
 
     // clang-format on
 
-    struct Field {
-        std::string        name;
-        uint32_t           offset;
-        uint32_t           size; // in case of an array, size means the cumulative size
-        FieldType          type;
-        uint32_t           arraySize; // 1 for non-arrays
+    USING_PTR (Field);
 
-        std::vector<Field> structFields; // when type == FieldType::Struct
+    struct Field final {
+        std::string name;
+        FieldType   type;
+
+        // with respect to parent struct
+        uint32_t offset;
+
+        // 0 for structs
+        // single element size for arrays
+        uint32_t size;
+
+        uint32_t arraySize;   // 0 for non-arrays
+        uint32_t arrayStride; // 0 for non-arrays
+
+        std::vector<FieldP> structFields; // when type == FieldType::Struct
+
+        USING_CREATE (Field);
+
+        Field ()
+            : name ("")
+            , type (FieldType::Unknown)
+            , offset (0)
+            , size (0)
+            , arraySize (0)
+            , arrayStride (0)
+        {
+        }
+
+        bool IsArray () const
+        {
+            return arraySize > 0;
+        }
+
+        bool IsStruct () const
+        {
+            return type == FieldType::Struct;
+        }
+
+        uint32_t GetSize () const
+        {
+            if (IsArray ()) {
+                return arrayStride * arraySize;
+            }
+
+            if (IsStruct ()) {
+                if (ERROR (structFields.empty ())) {
+                    return 0;
+                }
+
+                const Field& lastField = *structFields[structFields.size () - 1];
+                return lastField.offset + lastField.GetSize ();
+            }   
+            
+            return size;
+        }
     };
 
-    uint32_t           binding;
-    std::string        name;
-    std::vector<Field> fields;
+    uint32_t            binding;
+    uint32_t            descriptorSet;
+    std::string         name;
+    std::vector<FieldP> fields;
+
+    UBO ()
+        : binding ()
+        , name ("")
+    {
+    }
 
     uint32_t GetFullSize () const
     {
-        if (fields.empty ()) {
+        if (ERROR (fields.empty ())) {
             return 0;
         }
 
-        const Field& lastField = fields[fields.size () - 1];
-        ASSERT (lastField.size != 0);
-
-        return lastField.offset + lastField.size;
+        const Field& lastField = *fields[fields.size () - 1];
+        return lastField.offset + lastField.GetSize ();
     }
 
     bool operator== (const UBO& other) const
     {
-        return binding == other.binding;
+        return binding == other.binding && descriptorSet == other.descriptorSet;
     }
 };
 

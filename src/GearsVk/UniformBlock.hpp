@@ -75,8 +75,8 @@ public:
         : fullSize (reflectedUBO.GetFullSize ())
     {
         for (const auto& f : reflectedUBO.fields) {
-            variables.emplace_back (f.name, ShaderType {f.size, 0}, f.offset);
-            nameMapping[f.name] = variables.size () - 1;
+            variables.emplace_back (f->name, ShaderType {f->size, 0}, f->offset);
+            nameMapping[f->name] = variables.size () - 1;
         }
     }
 

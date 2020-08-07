@@ -71,7 +71,7 @@ public:
     USING_CREATE (ShaderModule);
 
     static ShaderModuleU CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation);
-    static ShaderModuleU CreateFromSPVFile (VkDevice device, const std::filesystem::path& fileLocation);
+    static ShaderModuleU CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation);
     static ShaderModuleU CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource);
 
     virtual ~ShaderModule ();
@@ -83,6 +83,8 @@ public:
     const std::vector<uint32_t>& GetBinary () const { return binary; }
 
     const std::filesystem::path& GetLocation () const { return fileLocation; }
+
+    ShaderKind GetShaderKind () const { return shaderKind; }
 
     ReadMode GetReadMode () const { return readMode; }
 

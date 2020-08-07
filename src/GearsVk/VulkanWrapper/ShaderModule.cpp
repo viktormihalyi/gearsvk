@@ -385,34 +385,35 @@ static std::vector<SR::Sampler> GetSamplers (glslang::TReflection& ref)
 }
 
 
-static SR::UBO::Field GetUBOField (const glslang::TType& type)
+static SR::UBO::FieldP GetUBOField (const glslang::TType& type)
 {
     using namespace glslang;
 
-    SR::UBO::Field result;
+    SR::UBO::FieldP result = SR::UBO::Field::Create ();
 
-    result.name = type.getFieldName ();
+    result->name = type.getFieldName ();
 
     const std::optional<uint32_t> size = GetSize (type);
     ASSERT (size.has_value ());
-    result.size = size.value_or (0);
+    result->size = size.value_or (0);
 
-    result.offset = type.getQualifier ().layoutOffset;
-    if (result.offset == UINT32_MAX) {
-        result.offset = 0;
+    result->offset = type.getQualifier ().layoutOffset;
+    if (result->offset == UINT32_MAX) {
+        result->offset = 0;
     }
 
     const std::optional<SR::UBO::FieldType> fieldType = GetUboFieldType (type);
     ASSERT (fieldType.has_value ());
-    result.type = fieldType.value_or (SR::UBO::FieldType::Unknown);
+    result->type = fieldType.value_or (SR::UBO::FieldType::Unknown);
 
-    result.arraySize = type.getArraySizes () != nullptr ? type.getCumulativeArraySize () : 1;
+    result->arraySize = type.getArraySizes () != nullptr ? type.getCumulativeArraySize () : 1;
 
     if (type.isStruct ()) {
         const TTypeList& innerTypeList = *type.getStruct ();
         for (auto& t : innerTypeList) {
             if (ASSERT (t.type != nullptr)) {
-                result.structFields.push_back (GetUBOField (*t.type));
+                SR::UBO::FieldP fasd = GetUBOField (*t.type);
+                result->structFields.push_back (fasd);
             }
         }
     }
@@ -543,6 +544,22 @@ static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<uin
 }
 
 
+static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<char>& binary)
+{
+    VkShaderModuleCreateInfo createInfo = {};
+    createInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize                 = binary.size ();
+    createInfo.pCode                    = reinterpret_cast<const uint32_t*> (binary.data ());
+
+    VkShaderModule result = VK_NULL_HANDLE;
+    if (ERROR (vkCreateShaderModule (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
+        throw std::runtime_error ("failed to create shader module");
+    }
+
+    return result;
+}
+
+
 ShaderModule::ShaderModule (ShaderModule::ShaderKind shaderKind, ReadMode readMode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary)
     : readMode (readMode)
     , shaderKind (shaderKind)
@@ -554,17 +571,20 @@ ShaderModule::ShaderModule (ShaderModule::ShaderKind shaderKind, ReadMode readMo
 }
 
 
-ShaderModuleU ShaderModule::CreateFromSPVFile (VkDevice device, const std::filesystem::path& fileLocation)
+ShaderModuleU ShaderModule::CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation)
 {
-    std::optional<std::vector<char>>     binaryC = Utils::ReadBinaryFile (fileLocation);
-    std::optional<std::vector<uint32_t>> binary  = Utils::ReadBinaryFile4Byte (fileLocation);
-    if (ERROR (!binary.has_value ())) {
+    std::optional<std::vector<char>> binaryC = Utils::ReadBinaryFile (fileLocation);
+    if (ERROR (!binaryC.has_value ())) {
         throw std::runtime_error ("failed to read shader");
     }
 
-    VkShaderModule handle = CreateShaderModule (device, *binary);
+    std::vector<uint32_t> code;
+    code.resize (binaryC->size () / sizeof (uint32_t));
+    memcpy (code.data (), binaryC->data (), binaryC->size ());
 
-    return ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, *binary);
+    VkShaderModule handle = CreateShaderModule (device, *binaryC);
+
+    return ShaderModule::Create (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code);
 }
 
 
