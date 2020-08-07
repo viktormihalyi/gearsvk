@@ -2,6 +2,7 @@
 #define SHADERREFLECTION_HPP
 
 #include "Assert.hpp"
+#include "Ptr.hpp"
 
 #include <cstdint>
 #include <iostream>
@@ -46,6 +47,8 @@ struct GEARSVK_API UBO {
     USING_PTR (Field);
 
     struct Field final {
+        USING_CREATE (Field);
+
         std::string name;
         FieldType   type;
 
@@ -60,8 +63,6 @@ struct GEARSVK_API UBO {
         uint32_t arrayStride; // 0 for non-arrays
 
         std::vector<FieldP> structFields; // when type == FieldType::Struct
-
-        USING_CREATE (Field);
 
         Field ()
             : name ("")
@@ -96,8 +97,8 @@ struct GEARSVK_API UBO {
 
                 const Field& lastField = *structFields[structFields.size () - 1];
                 return lastField.offset + lastField.GetSize ();
-            }   
-            
+            }
+
             return size;
         }
     };
@@ -146,6 +147,10 @@ struct GEARSVK_API Sampler {
         return binding == other.binding;
     }
 };
+
+
+GEARSVK_API
+std::vector<UBO> GetUBOsFromBinary (const std::vector<uint32_t>& binary);
 
 } // namespace SR
 
