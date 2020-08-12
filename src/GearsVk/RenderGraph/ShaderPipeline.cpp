@@ -206,3 +206,26 @@ void ShaderPipeline::Reload ()
         }
     });
 }
+
+
+void ShaderPipeline::IterateShaders (const std::function<void (ShaderModule&)>& func) const
+{
+    if (vertexShader.shader) {
+        func (*vertexShader.shader);
+    }
+    if (fragmentShader.shader) {
+        func (*fragmentShader.shader);
+    }
+    if (geometryShader.shader) {
+        func (*geometryShader.shader);
+    }
+    if (tessellationEvaluationShader.shader) {
+        func (*tessellationEvaluationShader.shader);
+    }
+    if (tessellationControlShader.shader) {
+        func (*tessellationControlShader.shader);
+    }
+    if (computeShader.shader) {
+        func (*computeShader.shader);
+    }
+}

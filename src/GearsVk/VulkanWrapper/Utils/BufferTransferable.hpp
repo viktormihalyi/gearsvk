@@ -18,9 +18,7 @@
 USING_PTR (BufferTransferable);
 class GEARSVK_API BufferTransferable final {
 public:
-    const VkDevice      device;
-    const VkQueue       queue;
-    const VkCommandPool commandPool;
+    const DeviceExtra& device;
 
     uint32_t bufferSize;
 
@@ -31,10 +29,8 @@ public:
 
     USING_CREATE (BufferTransferable);
 
-    BufferTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t bufferSize, VkBufferUsageFlags usageFlags)
+    BufferTransferable (const DeviceExtra& device, uint32_t bufferSize, VkBufferUsageFlags usageFlags)
         : device (device)
-        , queue (queue)
-        , commandPool (commandPool)
         , bufferSize (bufferSize)
         , bufferGPU (device, Buffer::Create (device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU)
         , bufferCPU (device, Buffer::Create (device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), DeviceMemory::CPU)
@@ -46,7 +42,7 @@ public:
     {
         ASSERT (size == bufferSize);
         bufferCPUMapping.Copy (data, size, 0);
-        CopyBuffer (device, queue, commandPool, *bufferCPU.buffer, *bufferGPU.buffer, bufferSize);
+        CopyBuffer (device, *bufferCPU.buffer, *bufferGPU.buffer, bufferSize);
     }
 
     VkBuffer GetBufferToBind () const
@@ -59,9 +55,7 @@ public:
 USING_PTR (ImageTransferableBase);
 class GEARSVK_API ImageTransferableBase {
 private:
-    const VkDevice      device;
-    const VkQueue       queue;
-    const VkCommandPool commandPool;
+    const DeviceExtra& device;
 
     uint32_t bufferSize;
 
@@ -74,10 +68,8 @@ public:
     USING_CREATE (ImageTransferableBase);
 
 protected:
-    ImageTransferableBase (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t bufferSize)
+    ImageTransferableBase (const DeviceExtra& device, uint32_t bufferSize)
         : device (device)
-        , queue (queue)
-        , commandPool (commandPool)
         , bufferSize (bufferSize)
         , bufferCPU (device, Buffer::Create (device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), DeviceMemory::CPU)
         , bufferCPUMapping (device, *bufferCPU.memory, 0, bufferSize)
@@ -96,7 +88,7 @@ public:
     {
         bufferCPUMapping.Copy (data, size, 0);
 
-        SingleTimeCommand commandBuffer (device, commandPool, queue);
+        SingleTimeCommand commandBuffer (device);
 
         imageGPU->image->CmdPipelineBarrier (commandBuffer, currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
@@ -150,8 +142,8 @@ USING_PTR (Image1DTransferable);
 class GEARSVK_API Image1DTransferable final : public ImageTransferableBase {
 public:
     USING_CREATE (Image1DTransferable);
-    Image1DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
-        : ImageTransferableBase (device, queue, commandPool, width * GetCompontentCountFromFormat (format))
+    Image1DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
+        : ImageTransferableBase (device, width * GetCompontentCountFromFormat (format))
     {
         imageGPU = AllocatedImage::Create (device, Image1D::Create (device, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
     }
@@ -162,8 +154,8 @@ USING_PTR (Image2DTransferable);
 class GEARSVK_API Image2DTransferable final : public ImageTransferableBase {
 public:
     USING_CREATE (Image2DTransferable);
-    Image2DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
-        : ImageTransferableBase (device, queue, commandPool, width * height * GetCompontentCountFromFormat (format))
+    Image2DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
+        : ImageTransferableBase (device, width * height * GetCompontentCountFromFormat (format))
     {
         imageGPU = AllocatedImage::Create (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers), DeviceMemory::GPU);
     }
@@ -174,8 +166,8 @@ USING_PTR (Image2DTransferableLinear);
 class GEARSVK_API Image2DTransferableLinear final : public ImageTransferableBase {
 public:
     USING_CREATE (Image2DTransferableLinear);
-    Image2DTransferableLinear (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
-        : ImageTransferableBase (device, queue, commandPool, width * height * GetCompontentCountFromFormat (format))
+    Image2DTransferableLinear (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
+        : ImageTransferableBase (device, width * height * GetCompontentCountFromFormat (format))
     {
         imageGPU = AllocatedImage::Create (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_LINEAR, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers), DeviceMemory::GPU);
     }
@@ -186,8 +178,8 @@ USING_PTR (Image3DTransferable);
 class GEARSVK_API Image3DTransferable final : public ImageTransferableBase {
 public:
     USING_CREATE (Image3DTransferable);
-    Image3DTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
-        : ImageTransferableBase (device, queue, commandPool, width * height * depth * GetCompontentCountFromFormat (format))
+    Image3DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
+        : ImageTransferableBase (device, width * height * depth * GetCompontentCountFromFormat (format))
     {
         imageGPU = AllocatedImage::Create (device, Image3D::Create (device, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
     }
@@ -214,9 +206,9 @@ public:
 
     USING_CREATE (VertexBufferTransferableUntyped);
 
-    VertexBufferTransferableUntyped (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t vertexSize, uint32_t maxVertexCount, const std::vector<VkFormat>& vertexInputFormats)
+    VertexBufferTransferableUntyped (const DeviceExtra& device, uint32_t vertexSize, uint32_t maxVertexCount, const std::vector<VkFormat>& vertexInputFormats)
         : info (vertexInputFormats)
-        , buffer (device, queue, commandPool, info.size * maxVertexCount, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
+        , buffer (device, info.size * maxVertexCount, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
         , vertexSize (vertexSize)
     {
         data.resize (vertexSize * maxVertexCount);
@@ -243,12 +235,10 @@ class VertexBufferTransferable : public VertexBufferTransferableUntyped {
 public:
     USING_CREATE (VertexBufferTransferable);
 
-    VertexBufferTransferable (const Device&                device,
-                              VkQueue                      queue,
-                              VkCommandPool                commandPool,
+    VertexBufferTransferable (const DeviceExtra&           device,
                               uint32_t                     maxVertexCount,
                               const std::vector<VkFormat>& vertexInputFormats)
-        : VertexBufferTransferableUntyped (device, queue, commandPool, sizeof (VertexType), maxVertexCount, vertexInputFormats)
+        : VertexBufferTransferableUntyped (device, sizeof (VertexType), maxVertexCount, vertexInputFormats)
     {
     }
 
@@ -271,8 +261,8 @@ public:
 
     USING_CREATE (IndexBufferTransferable);
 
-    IndexBufferTransferable (const Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t maxIndexCount)
-        : buffer (device, queue, commandPool, sizeof (IndexType) * maxIndexCount, VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
+    IndexBufferTransferable (const DeviceExtra& device, uint32_t maxIndexCount)
+        : buffer (device, sizeof (IndexType) * maxIndexCount, VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
     {
         data.resize (maxIndexCount);
     }

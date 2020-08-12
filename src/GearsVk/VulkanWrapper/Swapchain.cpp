@@ -200,11 +200,11 @@ void RealSwapchain::Present (VkQueue queue, uint32_t imageIndex, const std::vect
 }
 
 
-FakeSwapchain::FakeSwapchain (Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t width, uint32_t height)
+FakeSwapchain::FakeSwapchain (const DeviceExtra& device, uint32_t width, uint32_t height)
     : device (device)
     , width (width)
     , height (height)
     , image (device, Image2D::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1), DeviceMemory::GPU)
 {
-    TransitionImageLayout (device, queue, commandPool, *image.image, Image2D::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    TransitionImageLayout (device, *image.image, Image2D::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 }

@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
+#include "Device.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 

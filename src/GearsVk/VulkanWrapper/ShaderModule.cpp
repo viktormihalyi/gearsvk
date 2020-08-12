@@ -128,332 +128,7 @@ const ShaderKindInfo ShaderKindInfo::FromEsh (EShLanguage e)
 }
 
 
-static uint32_t GetBasicTypeSize (glslang::TBasicType basicType)
-{
-    using namespace glslang;
-
-    switch (basicType) {
-        case EbtInt8:
-        case EbtUint8:
-            return 1;
-
-        case EbtFloat16:
-            ASSERT ("WTF");
-        case EbtInt16:
-        case EbtUint16:
-            return 2;
-
-        case EbtBool:
-        case EbtInt:
-        case EbtUint:
-        case EbtFloat:
-            return 4;
-
-        case EbtInt64:
-        case EbtUint64:
-        case EbtDouble:
-            return 8;
-
-        default:
-            return 0;
-    }
-}
-
-
-static std::optional<uint32_t> GetSize (const glslang::TType& type)
-{
-    using namespace glslang;
-
-    const TBasicType basicType = type.getBasicType ();
-
-    if (type.isStruct ()) {
-        const TTypeList& innerTypeList = *type.getStruct ();
-        uint32_t         result        = 0;
-
-        for (uint32_t arrayIndex = 0; arrayIndex < type.getCumulativeArraySize (); ++arrayIndex) {
-            for (auto& t : innerTypeList) {
-                const std::optional<uint32_t> innerSize = GetSize (*t.type);
-                ASSERT (innerSize.has_value ());
-                result += innerSize.value_or (0);
-            }
-        }
-
-        return result;
-    }
-
-    const uint32_t basicTypeSize = GetBasicTypeSize (basicType);
-    if (basicTypeSize == 0) {
-        return std::nullopt;
-    }
-
-    const uint32_t vectorSize = type.getVectorSize ();
-    const uint32_t matrixCols = type.getMatrixCols ();
-    const uint32_t matrixRows = type.getMatrixRows ();
-
-    if (vectorSize > 0) {
-        return basicTypeSize * vectorSize;
-    }
-
-    if (matrixCols > 0 && matrixRows > 0) {
-        return basicTypeSize * matrixCols * matrixRows;
-    }
-
-    ASSERT ("unhandled uniform size case");
-    return std::nullopt;
-}
-
-
-static std::optional<SR::UBO::FieldType> GetUboFieldType (const glslang::TType& type)
-{
-    using namespace glslang;
-
-    if (type.isStruct ()) {
-        return SR::UBO::FieldType::Struct;
-    }
-
-    const TBasicType basicType = type.getBasicType ();
-
-    const uint32_t vectorSize = type.getVectorSize ();
-    const uint32_t matrixCols = type.getMatrixCols ();
-    const uint32_t matrixRows = type.getMatrixRows ();
-
-    if (vectorSize > 0) {
-        switch (basicType) {
-            case EbtUint:
-            case EbtUint8:
-                switch (vectorSize) {
-                    case 1: return SR::UBO::FieldType::Uint;
-                    case 2: return SR::UBO::FieldType::Uvec2;
-                    case 3: return SR::UBO::FieldType::Uvec3;
-                    case 4: return SR::UBO::FieldType::Uvec4;
-                    default: return std::nullopt;
-                }
-
-            case EbtInt:
-            case EbtInt8:
-                switch (vectorSize) {
-                    case 1: return SR::UBO::FieldType::Int;
-                    case 2: return SR::UBO::FieldType::Ivec2;
-                    case 3: return SR::UBO::FieldType::Ivec3;
-                    case 4: return SR::UBO::FieldType::Ivec4;
-                    default: return std::nullopt;
-                }
-
-            case EbtBool:
-                switch (vectorSize) {
-                    case 1: return SR::UBO::FieldType::Bool;
-                    case 2: return SR::UBO::FieldType::Bvec2;
-                    case 3: return SR::UBO::FieldType::Bvec3;
-                    case 4: return SR::UBO::FieldType::Bvec4;
-                    default: return std::nullopt;
-                }
-
-            case EbtFloat:
-                switch (vectorSize) {
-                    case 1: return SR::UBO::FieldType::Int;
-                    case 2: return SR::UBO::FieldType::Vec2;
-                    case 3: return SR::UBO::FieldType::Vec3;
-                    case 4: return SR::UBO::FieldType::Vec4;
-                    default: return std::nullopt;
-                }
-
-            case EbtDouble:
-                switch (vectorSize) {
-                    case 1: return SR::UBO::FieldType::Double;
-                    case 2: return SR::UBO::FieldType::Dvec2;
-                    case 3: return SR::UBO::FieldType::Dvec3;
-                    case 4: return SR::UBO::FieldType::Dvec4;
-                    default: return std::nullopt;
-                }
-
-            case EbtInt64:
-            case EbtUint64:
-            case EbtInt16:
-            case EbtUint16:
-            case EbtFloat16:
-                ASSERT ("WTF");
-            default:
-                return std::nullopt;
-        }
-    }
-
-    if (matrixCols > 0 && matrixRows > 0) {
-        ASSERT (2 <= matrixCols && matrixCols <= 4);
-        ASSERT (2 <= matrixRows && matrixRows <= 4);
-
-        switch (basicType) {
-            case EbtFloat:
-                switch (matrixCols) {
-                    case 2:
-                        switch (matrixRows) {
-                            case 2: return SR::UBO::FieldType::Mat2x2;
-                            case 3: return SR::UBO::FieldType::Mat2x3;
-                            case 4: return SR::UBO::FieldType::Mat2x4;
-                            default: return std::nullopt;
-                        }
-                    case 3:
-                        switch (matrixRows) {
-                            case 2: return SR::UBO::FieldType::Mat3x2;
-                            case 3: return SR::UBO::FieldType::Mat3x3;
-                            case 4: return SR::UBO::FieldType::Mat3x4;
-                            default: return std::nullopt;
-                        }
-                    case 4:
-                        switch (matrixRows) {
-                            case 2: return SR::UBO::FieldType::Mat4x2;
-                            case 3: return SR::UBO::FieldType::Mat4x3;
-                            case 4: return SR::UBO::FieldType::Mat4x4;
-                            default: return std::nullopt;
-                        }
-                    default: return std::nullopt;
-                }
-
-            case EbtDouble:
-                switch (matrixCols) {
-                    case 2:
-                        switch (matrixRows) {
-                            case 2: return SR::UBO::FieldType::Dmat2x2;
-                            case 3: return SR::UBO::FieldType::Dmat2x3;
-                            case 4: return SR::UBO::FieldType::Dmat2x4;
-                            default: return std::nullopt;
-                        }
-                    case 3:
-                        switch (matrixRows) {
-                            case 2: return SR::UBO::FieldType::Dmat3x2;
-                            case 3: return SR::UBO::FieldType::Dmat3x3;
-                            case 4: return SR::UBO::FieldType::Dmat3x4;
-                            default: return std::nullopt;
-                        }
-                    case 4:
-                        switch (matrixRows) {
-                            case 2: return SR::UBO::FieldType::Dmat4x2;
-                            case 3: return SR::UBO::FieldType::Dmat4x3;
-                            case 4: return SR::UBO::FieldType::Dmat4x4;
-                            default: return std::nullopt;
-                        }
-                    default: return std::nullopt;
-                }
-
-            default: return std::nullopt;
-        }
-
-        return std::nullopt;
-    }
-}
-
-
-static std::optional<SR::Sampler::Type> GetSamplerType (glslang::TSamplerDim glslangType)
-{
-    using namespace glslang;
-
-    switch (glslangType) {
-        case Esd1D: return SR::Sampler::Type::Sampler1D;
-        case Esd2D: return SR::Sampler::Type::Sampler2D;
-        case Esd3D: return SR::Sampler::Type::Sampler3D;
-        case EsdCube: return SR::Sampler::Type::SamplerCube;
-        default: return std::nullopt;
-    }
-}
-
-
-static std::vector<SR::Sampler> GetSamplers (glslang::TReflection& ref)
-{
-    using namespace glslang;
-
-    std::vector<SR::Sampler> result;
-    const uint32_t           uniformCount = ref.getNumUniforms ();
-    for (uint32_t uniformIndex = 0; uniformIndex < uniformCount; ++uniformIndex) {
-        const TObjectReflection& uniform = ref.getUniform (uniformIndex);
-        if (uniform.getType ()) {
-            const TType& type = *uniform.getType ();
-            if (type.getBasicType () == EbtSampler) {
-                SR::Sampler s;
-                s.name = uniform.name;
-
-                const std::optional<SR::Sampler::Type> stype = GetSamplerType (type.getSampler ().dim);
-                if (ERROR (!stype.has_value ())) {
-                    continue;
-                }
-                s.type = *stype;
-
-                s.binding = type.getQualifier ().layoutBinding;
-                result.push_back (s);
-            }
-        }
-    }
-    return result;
-}
-
-
-static SR::UBO::FieldP GetUBOField (const glslang::TType& type)
-{
-    using namespace glslang;
-
-    SR::UBO::FieldP result = SR::UBO::Field::Create ();
-
-    result->name = type.getFieldName ();
-
-    const std::optional<uint32_t> size = GetSize (type);
-    ASSERT (size.has_value ());
-    result->size = size.value_or (0);
-
-    result->offset = type.getQualifier ().layoutOffset;
-    if (result->offset == UINT32_MAX) {
-        result->offset = 0;
-    }
-
-    const std::optional<SR::UBO::FieldType> fieldType = GetUboFieldType (type);
-    ASSERT (fieldType.has_value ());
-    result->type = fieldType.value_or (SR::UBO::FieldType::Unknown);
-
-    result->arraySize = type.getArraySizes () != nullptr ? type.getCumulativeArraySize () : 1;
-
-    if (type.isStruct ()) {
-        const TTypeList& innerTypeList = *type.getStruct ();
-        for (auto& t : innerTypeList) {
-            if (ASSERT (t.type != nullptr)) {
-                SR::UBO::FieldP fasd = GetUBOField (*t.type);
-                result->structFields.push_back (fasd);
-            }
-        }
-    }
-
-    return result;
-}
-
-
-static std::vector<SR::UBO> GetUniformBlocks (glslang::TReflection& ref)
-{
-    using namespace glslang;
-
-    std::vector<SR::UBO> result;
-
-    for (uint32_t uniformIndex = 0; uniformIndex < ref.getNumUniformBlocks (); ++uniformIndex) {
-        const TObjectReflection& uniform = ref.getUniformBlock (uniformIndex);
-        if (uniform.getType ()) {
-            const TType&      type      = *uniform.getType ();
-            const TQualifier& qualifier = type.getQualifier ();
-
-            if (type.isStruct ()) {
-                SR::UBO ubo;
-                ubo.name    = uniform.name;
-                ubo.binding = qualifier.layoutBinding;
-
-                const TTypeList& structure = *type.getStruct ();
-                for (auto& s : structure) {
-                    if (ASSERT (s.type != nullptr)) {
-                        ubo.fields.push_back (GetUBOField (*s.type));
-                    }
-                }
-                result.push_back (ubo);
-            }
-        }
-    }
-    return result;
-}
-
-
-static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind, ShaderModule::Reflection& reflection)
+static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind)
 {
     using namespace glslang;
 
@@ -462,8 +137,6 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
         init = true;
         InitializeProcess ();
     }
-
-    reflection.Clear ();
 
     const char* const              sourceCstr                  = sourceCode.c_str ();
     const int                      ClientInputSemanticsVersion = 100;
@@ -489,14 +162,6 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
         throw ShaderCompileException (program.getInfoLog ());
     }
 
-    program.buildReflection ();
-
-    TReflection ref (EShReflectionAllBlockVariables, shaderKind.esh, shaderKind.esh);
-    ref.addStage (shaderKind.esh, *shader.getIntermediate ());
-
-    reflection.samplers = GetSamplers (ref);
-    reflection.ubos     = GetUniformBlocks (ref);
-
     spv::SpvBuildLogger logger;
     glslang::SpvOptions spvOptions;
 
@@ -506,10 +171,10 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 }
 
 
-static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindInfo& shaderKind, ShaderModule::Reflection& reflection)
+static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindInfo& shaderKind)
 {
     try {
-        return CompileWithGlslangCppInterface (shaderSource, shaderKind, reflection);
+        return CompileWithGlslangCppInterface (shaderSource, shaderKind);
     } catch (ShaderCompileException& ex) {
         std::cout << ex.what () << std::endl;
         throw;
@@ -517,14 +182,14 @@ static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSou
 }
 
 
-static std::optional<std::vector<uint32_t>> CompileShaderFromFile (const std::filesystem::path& fileLocation, ShaderModule::Reflection& reflection)
+static std::optional<std::vector<uint32_t>> CompileShaderFromFile (const std::filesystem::path& fileLocation)
 {
     std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
     if (ERROR (!fileContents.has_value ())) {
         return std::nullopt;
     }
 
-    return CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()), reflection);
+    return CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()));
 }
 
 
@@ -567,6 +232,7 @@ ShaderModule::ShaderModule (ShaderModule::ShaderKind shaderKind, ReadMode readMo
     , handle (handle)
     , fileLocation (fileLocation)
     , binary (binary)
+    , reflection (binary)
 {
 }
 
@@ -590,29 +256,24 @@ ShaderModuleU ShaderModule::CreateFromSPVFile (VkDevice device, ShaderKind shade
 
 ShaderModuleU ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation)
 {
-    ShaderModule::Reflection             reflection;
-    std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation, reflection);
+    std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation);
     if (ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }
 
     VkShaderModule handle = CreateShaderModule (device, *binary);
 
-    auto sm        = ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::GLSLFilePath, device, handle, fileLocation, *binary);
-    sm->reflection = reflection;
-    return sm;
+    return ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::GLSLFilePath, device, handle, fileLocation, *binary);
 }
+
 
 ShaderModuleU ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource)
 {
-    ShaderModule::Reflection reflection;
-    std::vector<uint32_t>    binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind), reflection);
+    std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind));
 
     VkShaderModule handle = CreateShaderModule (device, binary);
 
-    auto sm        = ShaderModule::Create (shaderKind, ReadMode::GLSLString, device, handle, "", binary);
-    sm->reflection = reflection;
-    return sm;
+    return ShaderModule::Create (shaderKind, ReadMode::GLSLString, device, handle, "", binary);
 }
 
 
@@ -634,19 +295,47 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 }
 
 
+ShaderModule::Reflection::Reflection (const std::vector<uint32_t>& binary)
+    : ubos (SR::GetUBOsFromBinary (binary))
+    , samplers (SR::GetSamplersFromBinary (binary))
+{
+}
+
+
 void ShaderModule::Reload ()
 {
     if (readMode == ReadMode::GLSLFilePath) {
         vkDestroyShaderModule (device, handle, nullptr);
 
-        std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation, reflection);
-        if (ERROR (!binary.has_value ())) {
+        std::optional<std::vector<uint32_t>> newBinary = CompileShaderFromFile (fileLocation);
+        if (ERROR (!newBinary.has_value ())) {
             throw std::runtime_error ("failed to compile shader");
         }
 
-        VkShaderModule handle = CreateShaderModule (device, *binary);
+        handle = CreateShaderModule (device, *newBinary);
+
+        reflection = Reflection (binary);
+
+    } else if (readMode == ReadMode::SPVFilePath) {
+        vkDestroyShaderModule (device, handle, nullptr);
+
+        std::optional<std::vector<char>> binaryC = Utils::ReadBinaryFile (fileLocation);
+        if (ERROR (!binaryC.has_value ())) {
+            throw std::runtime_error ("failed to read shader");
+        }
+
+        std::vector<uint32_t> code;
+        code.resize (binaryC->size () / sizeof (uint32_t));
+        memcpy (code.data (), binaryC->data (), binaryC->size ());
+
+        handle = CreateShaderModule (device, *binaryC);
+
+        reflection = Reflection (binary);
+
+    } else if (readMode == ReadMode::GLSLString) {
+        BREAK ("cannot reload shaders from hard coded strings");
 
     } else {
-        ASSERT ("unimplemented");
+        BREAK ("unknown read mode");
     }
 }

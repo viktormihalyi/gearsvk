@@ -61,10 +61,10 @@ void SetRenderGraphFromSequence (Sequence::P seq)
     seqpip->SetVertexShaderFromString (vert);
     seqpip->SetFragmentShaderFromString (frag);
 
-    renderGraph = RenderGraph::Create (*env->device, *env->commandPool);
+    renderGraph = RenderGraph::Create ();
 
 
-    GraphSettings s (*env->device, *env->graphicsQueue, *env->commandPool, *env->swapchain);
+    GraphSettings s (*env->deviceExtra, *env->swapchain);
 
     SwapchainImageResource& presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
     // ImageResource&             writ      = renderGraph->CreateResource<WritableImageResource> ();
@@ -143,7 +143,7 @@ void StartRendering (const std::function<bool ()>& doRender)
 
         env->swapchain->RecreateForSurface (window->GetSurface (*env->instance));
 
-        GraphSettings s (*env->device, *env->graphicsQueue, *env->commandPool, *env->swapchain);
+        GraphSettings s (*env->deviceExtra, *env->swapchain);
 
         renderGraph->CompileResources (s);
         renderGraph->Compile (s);

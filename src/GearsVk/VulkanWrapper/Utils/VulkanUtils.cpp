@@ -24,16 +24,16 @@ std::string GetVersionString (uint32_t version)
 }
 
 
-void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout)
+void TransitionImageLayout (const DeviceExtra& device, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
-    SingleTimeCommand commandBuffer (device, commandPool, queue);
+    SingleTimeCommand commandBuffer (device);
     image.CmdPipelineBarrier (commandBuffer, oldLayout, newLayout);
 }
 
 
-void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth)
+void CopyBufferToImage (const DeviceExtra& device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth)
 {
-    SingleTimeCommand commandBuffer (device, commandPool, graphicsQueue);
+    SingleTimeCommand commandBuffer (device);
     CopyBufferToImage (commandBuffer, buffer, image, width, height, depth);
 }
 
@@ -61,9 +61,9 @@ void CopyBufferToImage (VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage 
 }
 
 
-void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
-    SingleTimeCommand commandBuffer (device, commandPool, graphicsQueue);
+    SingleTimeCommand commandBuffer (device);
 
     VkBufferCopy copyRegion = {};
     copyRegion.size         = size;
@@ -71,11 +71,11 @@ void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPo
 }
 
 
-AllocatedImage AllocatedImage::CreatePreinitialized (const Device& device, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool)
+AllocatedImage AllocatedImage::CreatePreinitialized (const DeviceExtra& device, uint32_t width, uint32_t height)
 {
     AllocatedImage result (device, Image2D::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 1), DeviceMemory::GPU);
 
-    TransitionImageLayout (device, queue, commandPool, *result.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    TransitionImageLayout (device, *result.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     {
         AllocatedBuffer stagingMemory (device, Buffer::Create (device, width * height * 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), DeviceMemory::CPU);
         {
@@ -89,25 +89,25 @@ AllocatedImage AllocatedImage::CreatePreinitialized (const Device& device, uint3
 
             bm.Copy (pixels);
         }
-        CopyBufferToImage (device, queue, commandPool, *stagingMemory.buffer, *result.image, width, height);
+        CopyBufferToImage (device, *stagingMemory.buffer, *result.image, width, height);
     }
-    TransitionImageLayout (device, queue, commandPool, *result.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    TransitionImageLayout (device, *result.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 
     return std::move (result);
 }
 
 
-static AllocatedImage CreateCopyImageOnCPU (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, uint32_t layerIndex = 0)
+static AllocatedImage CreateCopyImageOnCPU (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex = 0)
 {
     const uint32_t width  = image.GetWidth ();
     const uint32_t height = image.GetHeight ();
 
     AllocatedImage dst (device, Image2D::Create (device, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1), DeviceMemory::CPU);
-    TransitionImageLayout (device, queue, commandPool, *dst.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    TransitionImageLayout (device, *dst.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     {
-        SingleTimeCommand single (device, commandPool, queue);
+        SingleTimeCommand single (device);
 
         VkImageCopy imageCopyRegion                   = {};
         imageCopyRegion.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -150,14 +150,14 @@ std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t 
 }
 
 // copy image to cpu and compare with a reference
-bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& expectedImage, uint32_t layerIndex)
+bool AreImagesEqual (const DeviceExtra& device, const ImageBase& image, const std::filesystem::path& expectedImage, uint32_t layerIndex)
 {
     const uint32_t width      = image.GetWidth ();
     const uint32_t height     = image.GetHeight ();
     const uint32_t pixelCount = width * height;
     const uint32_t byteCount  = pixelCount * 4;
 
-    AllocatedImage dst = CreateCopyImageOnCPU (device, queue, commandPool, image, layerIndex);
+    AllocatedImage dst = CreateCopyImageOnCPU (device, image, layerIndex);
 
 
     std::vector<std::array<uint8_t, 4>> mapped (pixelCount);
@@ -182,14 +182,65 @@ bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandP
 }
 
 
-std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& filePath, uint32_t layerIndex)
+RawImageData::RawImageData (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex)
+{
+    width  = image.GetWidth ();
+    height = image.GetHeight ();
+
+    AllocatedImage dst = CreateCopyImageOnCPU (device, image, layerIndex);
+
+    data.resize (width * height * components);
+
+    {
+        MemoryMapping mapping (device, *dst.memory, 0, width * height * components);
+        memcpy (data.data (), mapping.Get (), width * height * components);
+    }
+}
+
+
+RawImageData::RawImageData (const std::filesystem::path& path)
+{
+    int            w, h, comp;
+    unsigned char* stbiData = stbi_load (path.u8string ().c_str (), &w, &h, &comp, STBI_rgb_alpha);
+
+    width  = w;
+    height = h;
+
+    data.resize (width * height * components);
+
+    memcpy (data.data (), stbiData, width * height * 4);
+    stbi_image_free (stbiData);
+}
+
+
+bool RawImageData::operator== (const RawImageData& other) const
+{
+    if (width != other.width || height != other.height) {
+        return false;
+    }
+
+    ASSERT (data.size () == other.data.size ());
+
+    return memcmp (data.data (), other.data.data (), data.size ()) == 0;
+}
+
+
+uint32_t RawImageData::GetByteCount () const
+{
+    ASSERT (data.size () == width * height * components);
+    return data.size ();
+}
+
+
+std::thread
+SaveImageToFileAsync (const DeviceExtra& device, const ImageBase& image, const std::filesystem::path& filePath, uint32_t layerIndex)
 {
     std::cout << "saving an image to" << filePath << std::endl;
 
     const uint32_t width  = image.GetWidth ();
     const uint32_t height = image.GetHeight ();
 
-    AllocatedImage dst = CreateCopyImageOnCPU (device, queue, commandPool, image, layerIndex);
+    AllocatedImage dst = CreateCopyImageOnCPU (device, image, layerIndex);
 
     constexpr uint32_t components = 4;
 

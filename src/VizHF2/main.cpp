@@ -105,8 +105,8 @@ int main (int, char**)
     CameraControl cameraControl (c, window->events);
     c.SetSpeed (3.f);
 
-    const RG::GraphSettings s (device, graphicsQueue, commandPool, swapchain);
-    RG::RenderGraph         graph (device, commandPool);
+    RG::GraphSettings s (deviceExtra, swapchain);
+    RG::RenderGraph   graph;
 
 
     // ========================= GRAPH OPERATIONS =========================
@@ -152,7 +152,7 @@ int main (int, char**)
         if (key == 'R') {
             std::cout << "waiting for device... " << std::endl;
             vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
-            vkQueueWaitIdle (graph.GetGraphSettings ().queue);
+            vkQueueWaitIdle (graph.GetGraphSettings ().GetDevice ().GetGraphicsQueue ());
             sp->Reload ();
             renderer.Recreate ();
         }
@@ -274,6 +274,7 @@ int main (int, char**)
 
     refl.frag["Quadrics"] = quadrics;
     refl.frag["Lights"]   = lights;
+
 
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
         TimePoint delta (deltaNs);

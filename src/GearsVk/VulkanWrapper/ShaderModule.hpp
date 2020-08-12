@@ -24,6 +24,8 @@ public:
 USING_PTR (ShaderModule);
 class GEARSVK_API ShaderModule : public Noncopyable {
 public:
+    static constexpr uint32_t ShaderKindCount = 6;
+
     enum class ShaderKind {
         Vertex,
         Fragment,
@@ -40,14 +42,10 @@ public:
     };
 
     struct Reflection {
-        std::vector<SR::UBO>     ubos;
+        std::vector<SR::UBOP>    ubos;
         std::vector<SR::Sampler> samplers;
 
-        void Clear ()
-        {
-            ubos.clear ();
-            samplers.clear ();
-        }
+        Reflection (const std::vector<uint32_t>& binary);
     };
 
 private:
@@ -60,7 +58,6 @@ private:
     const std::filesystem::path fileLocation;
     const std::vector<uint32_t> binary;
 
-    // only available when compiled from GLSL
     Reflection reflection;
 
 private:

@@ -3,6 +3,7 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
+#include "UUID.hpp"
 #include <vector>
 
 namespace RG {
@@ -10,6 +11,8 @@ namespace RG {
 USING_PTR (Node);
 class GEARSVK_API Node : public Noncopyable {
 private:
+    GearsVk::UUID uuid;
+
     template<typename ToType, typename FromType>
     static std::vector<ToType*> CastAll (const std::vector<FromType*>& container)
     {
@@ -55,6 +58,11 @@ public:
     bool HasPointingTo () const
     {
         return !pointingTo.empty ();
+    }
+
+    GearsVk::UUID GetUUID () const
+    {
+        return uuid;
     }
 };
 

@@ -62,12 +62,12 @@ void BlockingGraphRenderer::RenderNextRecreatableFrame ()
     }
 
     graph.Submit (currentImageIndex);
-    vkQueueWaitIdle (graph.GetGraphSettings ().queue);
+    vkQueueWaitIdle (graph.GetGraphSettings ().GetDevice ().GetGraphicsQueue ());
     vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
 
     if (swapchain.SupportsPresenting ()) {
         graph.Present (currentImageIndex, swapchain, {s});
-        vkQueueWaitIdle (graph.GetGraphSettings ().queue);
+        vkQueueWaitIdle (graph.GetGraphSettings ().GetDevice ().GetGraphicsQueue ());
         vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
     }
 }
@@ -99,7 +99,7 @@ void RecreatableGraphRenderer::Recreate ()
 {
     std::cout << "waiting for device... " << std::endl;
     vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
-    vkQueueWaitIdle (graph.GetGraphSettings ().queue);
+    vkQueueWaitIdle (graph.GetGraphSettings ().GetDevice ().GetGraphicsQueue ());
 
     std::cout << "recreating swapchain... " << std::endl;
     swapchain.Recreate ();
@@ -168,7 +168,7 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame ()
 SynchronizedSwapchainGraphRenderer::~SynchronizedSwapchainGraphRenderer ()
 {
     vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
-    vkQueueWaitIdle (graph.GetGraphSettings ().queue);
+    vkQueueWaitIdle (graph.GetGraphSettings ().GetGrahpicsQueue ());
 }
 
 

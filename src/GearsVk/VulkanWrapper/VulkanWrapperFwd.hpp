@@ -16,7 +16,7 @@ USING_PTR (DebugUtilsMessenger);
 USING_PTR (DescriptorPool);
 USING_PTR (DescriptorSet);
 USING_PTR (DescriptorSetLayout);
-USING_PTR (Device);
+USING_PTR (DeviceObject);
 USING_PTR (DeviceExtra);
 USING_PTR (DeviceMemory);
 USING_PTR (Fence);

@@ -34,29 +34,34 @@
 #include <set>
 #include <vector>
 
+#include "UUID.hpp"
+#include "UniformView.hpp"
+
 #include "glmlib.hpp"
+
+#include <unordered_map>
 
 
 const std::filesystem::path ShadersFolder = PROJECT_ROOT / "src" / "VizHF" / "shaders";
 
-
 int main (int, char**)
 {
+    GearsVk::UUID id;
+
     WindowU window = GLFWWindow::Create ();
 
     VulkanEnvironmentU testenv = VulkanEnvironment::Create (*window);
 
-    Device&      device        = *testenv->device;
+    DeviceExtra& device        = *testenv->deviceExtra;
     CommandPool& commandPool   = *testenv->commandPool;
     Queue&       graphicsQueue = *testenv->graphicsQueue;
     Swapchain&   swapchain     = *testenv->swapchain;
-    DeviceExtra& deviceExtra   = *testenv->deviceExtra;
 
     Camera        c (glm::vec3 (-1, 0, 0.5f), glm::vec3 (1, 0.0f, 0), window->GetAspectRatio ());
     CameraControl cameraControl (c, window->events);
 
-    const RG::GraphSettings s (device, graphicsQueue, commandPool, swapchain);
-    RG::RenderGraph         graph (device, commandPool);
+    RG::GraphSettings s (device, swapchain);
+    RG::RenderGraph   graph;
 
 
     // ========================= GRAPH OPERATIONS =========================
@@ -67,15 +72,115 @@ int main (int, char**)
         ShadersFolder / "brain.frag",
     });
 
-    RG::RenderOperation& brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (deviceExtra), sp);
+    RG::RenderOperation& brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (device), sp);
 
 
     // ========================= GRAPH RESOURCES =========================
 
-    RG::SwapchainImageResource&    presented = graph.CreateResource<RG::SwapchainImageResource> (swapchain);
-    RG::ReadOnlyImageResource&     matcap    = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
-    RG::ReadOnlyImageResource&     agy3d     = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
-    RG::UniformReflectionResource& refl      = graph.CreateResource<RG::UniformReflectionResource> (sp, RG::UniformReflectionResource::Strategy::UniformBlocksOnly);
+    RG::SwapchainImageResource& presented = graph.CreateResource<RG::SwapchainImageResource> (swapchain);
+    RG::ReadOnlyImageResource&  matcap    = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
+    RG::ReadOnlyImageResource&  agy3d     = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
+
+    class RenderGraphUniformReflection {
+    private:
+        class UboSelector {
+        private:
+            std::unordered_map<std::string, SR::IUDataP> udatas;
+
+        public:
+            SR::IUData& operator[] (const std::string& uboName)
+            {
+                // TODO uhh
+                return *udatas.at (uboName);
+            }
+
+            void Set (const std::string& uboName, const SR::IUDataP& uboData)
+            {
+                udatas[uboName] = uboData;
+            }
+        };
+
+        struct ShaderKindSelector {
+        private:
+            std::unordered_map<ShaderModule::ShaderKind, UboSelector> uboSelectors;
+
+        public:
+            UboSelector& operator[] (ShaderModule::ShaderKind shaderKind)
+            {
+                return uboSelectors.at (shaderKind);
+            }
+
+            void Set (ShaderModule::ShaderKind shaderKind, UboSelector&& uboSel)
+            {
+                uboSelectors[shaderKind] = std::move (uboSel);
+            }
+        };
+
+        std::unordered_map<GearsVk::UUID, ShaderKindSelector> selectors;
+
+
+        struct CopyOperation {
+            void*    destination;
+            void*    source;
+            uint64_t size;
+
+            void Do () const
+            {
+                memcpy (destination, source, size);
+            }
+        };
+
+        std::vector<std::vector<CopyOperation>> copyOperations;
+
+    public:
+        RenderGraphUniformReflection (RG::RenderGraph& graph, const RG::GraphSettings& settings)
+        {
+            copyOperations.resize (settings.framesInFlight);
+
+            for (const auto& a : graph.operations) {
+                auto asd = a.get ();
+                if (auto renderOp = dynamic_cast<RG::RenderOperation*> (asd)) {
+                    ShaderKindSelector newsel;
+
+                    renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
+                        UboSelector ubosel;
+                        for (SR::UBOP ubo : shaderModule.GetReflection ().ubos) {
+                            auto& uboRes = graph.CreateResource<RG::UniformBlockResource> (*ubo);
+                            // TODO connection
+                            SR::UDataInternalP uboData = SR::UDataInternal::Create (ubo);
+                            ubosel.Set (ubo->name, uboData);
+
+                            for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
+                                // TODO mappings are only available after compile
+                                ASSERT (uboRes.mappings[frameIndex]->GetSize () == uboData->GetSize ());
+                                copyOperations[frameIndex].push_back (CopyOperation {
+                                    uboRes.mappings[frameIndex]->Get (),
+                                    uboData->GetData (),
+                                    uboData->GetSize ()});
+                            }
+                        }
+                        newsel.Set (shaderModule.GetShaderKind (), std::move (ubosel));
+                    });
+                    selectors.emplace (a->GetUUID (), std::move (newsel));
+                }
+            }
+        }
+
+        ShaderKindSelector& operator[] (const RG::RenderOperation& renderOp)
+        {
+            return selectors.at (renderOp.GetUUID ());
+        }
+
+        void Flush (uint32_t frameIndex)
+        {
+            for (auto& copy : copyOperations[frameIndex]) {
+                copy.Do ();
+            }
+        }
+    };
+
+
+    RG::UniformReflectionResource& refl = graph.CreateResource<RG::UniformReflectionResource> (sp, RG::UniformReflectionResource::Strategy::UniformBlocksOnly);
 
 
     // ========================= GRAPH CONNECTIONS =========================
@@ -91,6 +196,10 @@ int main (int, char**)
     // ========================= GRAPH RESOURCE SETUP =========================
 
     graph.Compile (s);
+
+    RenderGraphUniformReflection r (graph, s);
+    float                        a                                        = 3.f;
+    r[brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["asd"] = a;
 
     matcap.CopyTransitionTransfer (ReadImage (PROJECT_ROOT / "src" / "VizHF" / "matcap.jpg", 4));
 
@@ -155,7 +264,7 @@ int main (int, char**)
         if (key == 'R') {
             std::cout << "waiting for device... " << std::endl;
             vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
-            vkQueueWaitIdle (graph.GetGraphSettings ().queue);
+            vkQueueWaitIdle (graph.GetGraphSettings ().GetDevice ().GetGraphicsQueue ());
             sp->Reload ();
             renderer.Recreate ();
         }

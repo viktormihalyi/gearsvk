@@ -3,10 +3,8 @@
 
 namespace RG {
 
-RenderGraph::RenderGraph (VkDevice device, VkCommandPool commandPool)
-    : device (device)
-    , commandPool (commandPool)
-    , compiled (false)
+RenderGraph::RenderGraph ()
+    : compiled (false)
     , compileSettings ()
 {
 }
@@ -127,7 +125,7 @@ void RenderGraph::Compile (const GraphSettings& settings)
     compileSettings = settings;
 
     settings.GetDevice ().Wait ();
-    vkQueueWaitIdle (settings.queue);
+    vkQueueWaitIdle (settings.GetDevice ().GetGraphicsQueue ());
 
     auto passes = GetPasses ();
 
@@ -140,7 +138,7 @@ void RenderGraph::Compile (const GraphSettings& settings)
 
         compileResult.reset ();
 
-        CompileResultU newCR = CompileResult::Create (settings.GetDevice (), settings.commandPool, settings.framesInFlight);
+        CompileResultU newCR = CompileResult::Create (settings.GetDevice (), settings.framesInFlight);
 
         newCR->BeginAll ();
 
@@ -220,7 +218,7 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
     result.signalSemaphoreCount = static_cast<uint32_t> (signalSemaphores.size ());
     result.pSignalSemaphores    = signalSemaphores.data ();
 
-    vkQueueSubmit (compileSettings.queue, 1, &result, fenceToSignal);
+    vkQueueSubmit (compileSettings.GetDevice ().GetGraphicsQueue (), 1, &result, fenceToSignal);
 }
 
 } // namespace RG

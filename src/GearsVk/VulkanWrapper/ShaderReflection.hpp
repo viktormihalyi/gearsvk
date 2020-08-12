@@ -2,6 +2,7 @@
 #define SHADERREFLECTION_HPP
 
 #include "Assert.hpp"
+#include "Noncopyable.hpp"
 #include "Ptr.hpp"
 
 #include <cstdint>
@@ -9,104 +10,129 @@
 #include <string>
 #include <vector>
 
+
+// NOTE: SSBOs are not supported
+
+
 namespace SR {
 
-struct GEARSVK_API UBO {
-    // clang-format off
+USING_PTR (Field);
 
-    enum class FieldType {
-        // Scalars
-        Bool,
-        Int,
-        Uint,
-        Float,
-        Double,
+USING_PTR (FieldProvider);
+class FieldProvider {
+public:
+    virtual std::vector<SR::FieldP> GetFields () const = 0;
+};
 
-        // vectors
-        Bvec2, Ivec2, Uvec2, Vec2, Dvec2,
-        Bvec3, Ivec3, Uvec3, Vec3, Dvec3,
-        Bvec4, Ivec4, Uvec4, Vec4, Dvec4,
 
-        // float matrices
-        Mat2x2, Mat2x3, Mat2x4,
-        Mat3x2, Mat3x3, Mat3x4,
-        Mat4x2, Mat4x3, Mat4x4,
+// clang-format off
 
-        // double matrices
-        Dmat2x2, Dmat2x3, Dmat2x4,
-        Dmat3x2, Dmat3x3, Dmat3x4,
-        Dmat4x2, Dmat4x3, Dmat4x4,
+enum class FieldType {
+    // Scalars
+    Bool,
+    Int,
+    Uint,
+    Float,
+    Double,
 
-        // ...
-        Struct,
-        Unknown
-    };
+    // vectors
+    Bvec2, Ivec2, Uvec2, Vec2, Dvec2,
+    Bvec3, Ivec3, Uvec3, Vec3, Dvec3,
+    Bvec4, Ivec4, Uvec4, Vec4, Dvec4,
 
-    // clang-format on
+    // float matrices
+    Mat2x2, Mat2x3, Mat2x4,
+    Mat3x2, Mat3x3, Mat3x4,
+    Mat4x2, Mat4x3, Mat4x4,
 
-    USING_PTR (Field);
+    // double matrices
+    Dmat2x2, Dmat2x3, Dmat2x4,
+    Dmat3x2, Dmat3x3, Dmat3x4,
+    Dmat4x2, Dmat4x3, Dmat4x4,
 
-    struct Field final {
-        USING_CREATE (Field);
+    // ...
+    Struct,
+    Unknown
+};
 
-        std::string name;
-        FieldType   type;
+GEARSVK_API
+std::string FieldTypeToString (FieldType fieldType);
 
-        // with respect to parent struct
-        uint32_t offset;
+// clang-format on
 
-        // 0 for structs
-        // single element size for arrays
-        uint32_t size;
 
-        uint32_t arraySize;   // 0 for non-arrays
-        uint32_t arrayStride; // 0 for non-arrays
+struct Field final : public FieldProvider, public Noncopyable {
+    USING_CREATE (Field);
 
-        std::vector<FieldP> structFields; // when type == FieldType::Struct
+    std::string name;
+    FieldType   type;
 
-        Field ()
-            : name ("")
-            , type (FieldType::Unknown)
-            , offset (0)
-            , size (0)
-            , arraySize (0)
-            , arrayStride (0)
-        {
+    // with respect to parent struct
+    uint32_t offset;
+
+    // 0 for structs
+    // single element size for arrays
+    // otherwise the number of bytes a variable takes up (eg. 4 for floats)
+    uint32_t size;
+
+    uint32_t arraySize;   // 0 for non-arrays
+    uint32_t arrayStride; // 0 for non-arrays
+
+    std::vector<FieldP> structFields; // when type == FieldType::Struct
+
+    Field ()
+        : name ("")
+        , type (FieldType::Unknown)
+        , offset (0)
+        , size (0)
+        , arraySize (0)
+        , arrayStride (0)
+    {
+    }
+
+    bool IsArray () const
+    {
+        return arraySize > 0;
+    }
+
+    bool IsStruct () const
+    {
+        return type == FieldType::Struct;
+    }
+
+    uint32_t GetSize () const
+    {
+        if (IsArray ()) {
+            return arrayStride * arraySize;
         }
 
-        bool IsArray () const
-        {
-            return arraySize > 0;
-        }
-
-        bool IsStruct () const
-        {
-            return type == FieldType::Struct;
-        }
-
-        uint32_t GetSize () const
-        {
-            if (IsArray ()) {
-                return arrayStride * arraySize;
+        if (IsStruct ()) {
+            if (ERROR (structFields.empty ())) {
+                return 0;
             }
 
-            if (IsStruct ()) {
-                if (ERROR (structFields.empty ())) {
-                    return 0;
-                }
-
-                const Field& lastField = *structFields[structFields.size () - 1];
-                return lastField.offset + lastField.GetSize ();
-            }
-
-            return size;
+            const Field& lastField = *structFields[structFields.size () - 1];
+            return lastField.offset + lastField.GetSize ();
         }
-    };
 
+        return size;
+    }
+
+    std::vector<SR::FieldP> GetFields () const override
+    {
+        return structFields;
+    }
+};
+
+
+USING_PTR (UBO);
+struct GEARSVK_API UBO final : public FieldProvider /*, public Noncopyable */ {
     uint32_t            binding;
     uint32_t            descriptorSet;
     std::string         name;
     std::vector<FieldP> fields;
+
+    USING_CREATE (UBO);
 
     UBO ()
         : binding ()
@@ -128,29 +154,39 @@ struct GEARSVK_API UBO {
     {
         return binding == other.binding && descriptorSet == other.descriptorSet;
     }
+
+    std::vector<SR::FieldP> GetFields () const override
+    {
+        return fields;
+    }
 };
 
 
-struct GEARSVK_API Sampler {
+struct GEARSVK_API Sampler final {
     enum class Type {
         Sampler1D,
         Sampler2D,
         Sampler3D,
         SamplerCube
     };
+
     std::string name;
     uint32_t    binding;
+    uint32_t    descriptorSet;
     Type        type;
 
     bool operator== (const Sampler& other) const
     {
-        return binding == other.binding;
+        return binding == other.binding && descriptorSet == other.descriptorSet;
     }
 };
 
 
 GEARSVK_API
-std::vector<UBO> GetUBOsFromBinary (const std::vector<uint32_t>& binary);
+std::vector<UBOP> GetUBOsFromBinary (const std::vector<uint32_t>& binary);
+
+GEARSVK_API
+std::vector<Sampler> GetSamplersFromBinary (const std::vector<uint32_t>& binary);
 
 } // namespace SR
 

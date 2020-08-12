@@ -9,7 +9,7 @@
 
 USING_PTR (DeviceExtra);
 
-class GEARSVK_API DeviceExtra : public DeviceInterface {
+class GEARSVK_API DeviceExtra : public Device {
 public:
     Device&      device;
     CommandPool& commandPool;
@@ -26,6 +26,11 @@ public:
     {
     }
 
+    const Device&      GetDevice () const { return device; }
+    const CommandPool& GetCommandPool () const { return commandPool; }
+    const Queue&       GetGraphicsQueue () const { return graphicsQueue; }
+    const Queue&       GetPresentationQueue () const { return presentationQueue; }
+
     Device&      GetDevice () { return device; }
     CommandPool& GetCommandPool () { return commandPool; }
     Queue&       GetGraphicsQueue () { return graphicsQueue; }
@@ -33,7 +38,7 @@ public:
 
     operator Device& () { return device; }
 
-    // implementing DeviceInterface
+    // implementing Device
     virtual              operator VkDevice () const override { return device; }
     virtual void         Wait () const override { device.Wait (); }
     virtual AllocateInfo GetImageAllocateInfo (VkImage image, VkMemoryPropertyFlags propertyFlags) const override { return device.GetImageAllocateInfo (image, propertyFlags); }

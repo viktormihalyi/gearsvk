@@ -8,9 +8,10 @@
 
 #include <vulkan/vulkan.h>
 
-class GEARSVK_API DeviceInterface {
+USING_PTR (Device);
+class GEARSVK_API Device {
 public:
-    virtual ~DeviceInterface () = default;
+    virtual ~Device () = default;
 
     struct AllocateInfo {
         uint32_t size;
@@ -23,9 +24,10 @@ public:
     virtual AllocateInfo GetBufferAllocateInfo (VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) const = 0;
 };
 
-USING_PTR (Device);
 
-class GEARSVK_API Device : public Noncopyable, public DeviceInterface {
+USING_PTR (DeviceObject);
+
+class GEARSVK_API DeviceObject : public Noncopyable, public Device {
 private:
     const VkPhysicalDevice physicalDevice;
     VkDevice               handle;
@@ -46,9 +48,9 @@ private:
 
 
 public:
-    USING_CREATE (Device);
+    USING_CREATE (DeviceObject);
 
-    Device (VkPhysicalDevice physicalDevice, std::vector<uint32_t> queueFamilyIndices, std::vector<const char*> requestedDeviceExtensions)
+    DeviceObject (VkPhysicalDevice physicalDevice, std::vector<uint32_t> queueFamilyIndices, std::vector<const char*> requestedDeviceExtensions)
         : physicalDevice (physicalDevice)
         , handle (VK_NULL_HANDLE)
     {
@@ -79,7 +81,7 @@ public:
         }
     }
 
-    virtual ~Device ()
+    virtual ~DeviceObject ()
     {
         vkDeviceWaitIdle (handle);
         vkDestroyDevice (handle, nullptr);

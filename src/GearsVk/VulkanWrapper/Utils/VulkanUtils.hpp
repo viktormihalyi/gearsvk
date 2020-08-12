@@ -6,6 +6,7 @@
 #include "Buffer.hpp"
 #include "CommandBuffer.hpp"
 #include "Device.hpp"
+#include "DeviceExtra.hpp"
 #include "DeviceMemory.hpp"
 #include "Image.hpp"
 #include "MemoryMapping.hpp"
@@ -19,23 +20,40 @@
 
 std::string GetVersionString (uint32_t version);
 
+class GEARSVK_API RawImageData {
+private:
+    static constexpr uint32_t components = 4; // rgba
+
+public:
+    uint32_t             width;
+    uint32_t             height;
+    std::vector<uint8_t> data;
+
+    RawImageData (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex = 0);
+    RawImageData (const std::filesystem::path& path);
+
+    bool operator== (const RawImageData& other) const;
+
+    uint32_t GetByteCount () const;
+};
+
 GEARSVK_API
-void TransitionImageLayout (VkDevice device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout);
+void TransitionImageLayout (const DeviceExtra& device, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout);
 
 void CopyBufferToImage (VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth = 1);
-void CopyBufferToImage (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth = 1);
+void CopyBufferToImage (const DeviceExtra& device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth = 1);
 
 GEARSVK_API
-void CopyBuffer (VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
 GEARSVK_API
 std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t components = 4);
 
 GEARSVK_API
-bool AreImagesEqual (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& expectedImage, uint32_t layerIndex = 0);
+bool AreImagesEqual (const DeviceExtra& device, const ImageBase& image, const std::filesystem::path& expectedImage, uint32_t layerIndex = 0);
 
 GEARSVK_API
-std::thread SaveImageToFileAsync (const Device& device, VkQueue queue, VkCommandPool commandPool, const ImageBase& image, const std::filesystem::path& filePath, uint32_t layerIndex = 0);
+std::thread SaveImageToFileAsync (const DeviceExtra& device, const ImageBase& image, const std::filesystem::path& filePath, uint32_t layerIndex = 0);
 
 
 USING_PTR (AllocatedImage);
@@ -45,14 +63,14 @@ struct GEARSVK_API AllocatedImage final {
 
     USING_CREATE (AllocatedImage);
 
-    AllocatedImage (const Device& device, ImageBaseU&& image, VkMemoryPropertyFlags memoryPropertyFlags)
+    AllocatedImage (const DeviceExtra& device, ImageBaseU&& image, VkMemoryPropertyFlags memoryPropertyFlags)
         : image (std::move (image))
         , memory (DeviceMemory::Create (device, device.GetImageAllocateInfo (*this->image, memoryPropertyFlags)))
     {
         vkBindImageMemory (device, *this->image, *memory, 0);
     }
 
-    static AllocatedImage CreatePreinitialized (const Device& device, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool);
+    static AllocatedImage CreatePreinitialized (const DeviceExtra& device, uint32_t width, uint32_t height);
 };
 
 

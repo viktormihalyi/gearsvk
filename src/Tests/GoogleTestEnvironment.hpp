@@ -20,11 +20,13 @@ static void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      mess
     FAIL ();
 }
 
+
 class EmptyTestEnvironment : public ::testing::Test {
 protected:
     virtual void SetUp () {}
     virtual void TearDown () {}
 };
+
 
 class GoogleTestEnvironment : public ::testing::Test {
 protected:
@@ -36,6 +38,7 @@ protected:
     CommandPool&    GetCommandPool () { return *env->commandPool; }
     Queue&          GetGraphicsQueue () { return *env->graphicsQueue; }
     Swapchain&      GetSwapchain () { return *env->swapchain; }
+    DeviceExtra&    GetDeviceExtra () { return *env->deviceExtra; }
 
     virtual ~GoogleTestEnvironment () {}
 
@@ -45,15 +48,15 @@ protected:
     void CompareImages (const std::string& imageName, const ImageBase& image, std::optional<VkImageLayout> transitionFrom = std::nullopt)
     {
         if (transitionFrom.has_value ()) {
-            TransitionImageLayout (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, *transitionFrom, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+            TransitionImageLayout (GetDeviceExtra (), image, *transitionFrom, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
         }
 
-        const bool imagesMatch = AreImagesEqual (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, ReferenceImagesFolder / (imageName + "_reference.png"));
+        const bool imagesMatch = AreImagesEqual (GetDeviceExtra (), image, ReferenceImagesFolder / (imageName + "_reference.png"));
 
         EXPECT_TRUE (imagesMatch);
 
         if (!imagesMatch) {
-            SaveImageToFileAsync (GetDevice (), GetGraphicsQueue (), GetCommandPool (), image, ReferenceImagesFolder / (imageName + ".png")).join ();
+            SaveImageToFileAsync (GetDeviceExtra (), image, ReferenceImagesFolder / (imageName + ".png")).join ();
         }
     }
 };

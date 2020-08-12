@@ -82,6 +82,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/Utils/Utils.cpp
     src/GearsVk/Utils/Time.cpp
     src/GearsVk/Utils/Persistent.cpp
+    src/GearsVk/Utils/UUID.cpp
     
     src/GearsVk/VulkanWrapper/Utils/VulkanUtils.cpp
     src/GearsVk/VulkanWrapper/Utils/BufferTransferable.cpp

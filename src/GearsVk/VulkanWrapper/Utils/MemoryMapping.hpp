@@ -72,7 +72,9 @@ public:
         memcpy (mappedMemory, reinterpret_cast<const uint8_t*> (data) + copiedOffset, copiedSize);
     }
 
-    void* Get () const { return mappedMemory; }
+    void*    Get () const { return mappedMemory; }
+    uint32_t GetSize () { return size; }
+    uint32_t GetOffset () { return offset; }
 };
 
 #endif

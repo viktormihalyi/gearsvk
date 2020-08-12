@@ -28,8 +28,8 @@ public:
             ubos   = ShaderBlocks::Create ();
 
             for (const auto& s : shader->GetReflection ().ubos) {
-                ShaderStruct autoStruct (s);
-                auto         autoBlock = UniformBlock::Create (s.binding, s.name, autoStruct);
+                ShaderStruct autoStruct (*s);
+                auto         autoBlock = UniformBlock::Create (s->binding, s->name, autoStruct);
                 ubos->AddBlock (std::move (autoBlock));
             }
         }
@@ -94,6 +94,8 @@ public:
     void Compile (const CompileSettings& settings);
 
     void Reload ();
+
+    void IterateShaders (const std::function<void (ShaderModule&)>& func) const;
 
     std::vector<VkPipelineShaderStageCreateInfo> GetShaderStages () const;
 };

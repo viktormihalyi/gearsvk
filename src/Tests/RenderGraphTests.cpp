@@ -27,6 +27,7 @@ const std::filesystem::path ShadersFolder = PROJECT_ROOT / "src" / "Tests" / "sh
 
 using namespace RG;
 
+#include "UniformView.hpp"
 
 TEST_F (HiddenWindowGoogleTestEnvironment, Spirvrross2)
 {
@@ -55,6 +56,8 @@ layout (std140, binding = 2) uniform Quadrics {
 };
 
 layout (location = 0) out vec4 presented;
+layout (binding = 3) uniform sampler3D agySampler;
+layout (binding = 4) uniform sampler2D matcapSampler;
 
 void main ()
 {
@@ -63,22 +66,24 @@ void main ()
 
 )");
 
-    std::vector<SR::UBO> ubos = SR::GetUBOsFromBinary (sm->GetBinary ());
+    SR::ShaderUData refl (sm);
 
-    EXPECT_EQ (4256, ubos[0].GetFullSize ());
+    refl["Quadrics"]["quadrics"][0]["WTF"] = glm::mat3x4 ();
+
+
+    EXPECT_EQ (4256, refl.GetUbo ("Quadrics")->GetFullSize ());
 }
-
 
 TEST_F (HiddenWindowGoogleTestEnvironment, DISABLED_MSDFGEN)
 {
     // Image2DTransferable glyphs (GetDevice (), GetGraphicsQueue (), GetCommandPool (), VK_FORMAT_R8G8B8A8_UINT, 16, 16, VK_IMAGE_USAGE_SAMPLED_BIT, 128);
 
-    Device&      device        = GetDevice ();
+    DeviceExtra& device        = GetDeviceExtra ();
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    GraphSettings s (device, graphicsQueue, commandPool, 3, 512, 512);
-    RenderGraph   graph (device, commandPool);
+    GraphSettings s (device, 3, 512, 512);
+    RenderGraph   graph;
 
     WritableImageResource& red    = graph.CreateResource<WritableImageResource> ();
     ReadOnlyImageResource& glyphs = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, 32, 32, 1, 512);
@@ -157,114 +162,13 @@ void main () {
     vkDeviceWaitIdle (device);
 
     for (uint32_t i = 0; i < 255; ++i) {
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *glyphs.image->imageGPU->image, ReferenceImagesFolder / ("" + std::to_string (i) + "glyphA.png"), i).join ();
+        SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / ("" + std::to_string (i) + "glyphA.png"), i).join ();
     }
 
-    //SaveImageToFileAsync (device, graphicsQueue, commandPool, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphA.png", 0).join ();
-    //SaveImageToFileAsync (device, graphicsQueue, commandPool, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphB.png", 1).join ();
-    //SaveImageToFileAsync (device, graphicsQueue, commandPool, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphC.png", 2).join ();
-    SaveImageToFileAsync (device, graphicsQueue, commandPool, *red.images[0]->image.image, ReferenceImagesFolder / "glyphAout.png").join ();
-}
-
-TEST_F (EmptyTestEnvironment, UniformBlockTest)
-{
-    using namespace ST;
-
-    {
-        ShaderStruct b ({
-            {"f", ST::vec1},
-            {"m", ST::mat4},
-        });
-        EXPECT_EQ (80, b.GetFullSize ());
-        EXPECT_EQ (0, b.GetOffset ("f"));
-        EXPECT_EQ (16, b.GetOffset ("m"));
-    }
-
-    {
-        ShaderStruct b ({
-            {"m", ST::mat4},
-            {"f", ST::vec1},
-        });
-        EXPECT_EQ (68, b.GetFullSize ());
-        EXPECT_EQ (64, b.GetOffset ("f"));
-        EXPECT_EQ (0, b.GetOffset ("m"));
-    }
-
-    {
-        ShaderStruct b ({
-            {"f", ST::vec1},
-            {"m", ST::mat4},
-            {"f2", ST::vec1},
-        });
-        EXPECT_EQ (80, b.GetOffset ("f2"));
-    }
-
-    {
-        ShaderStruct b ({
-            {"asd", vec1},
-            {"4635", mat4},
-            {"fd", vec4},
-            {"f4", vec3},
-            {"865", vec4Array<3>},
-            {"23", vec1Array<6>},
-        });
-
-        ASSERT (b.GetOffset ("4635") == 16);
-    }
-
-    EXPECT_TRUE (true);
-}
-
-
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_RenderGraphConnectionTest)
-{
-    Device&      device        = GetDevice ();
-    CommandPool& commandPool   = GetCommandPool ();
-    Queue&       graphicsQueue = GetGraphicsQueue ();
-
-    RenderGraph graph (device, commandPool);
-
-    Resource& depthBuffer    = graph.AddResource (WritableImageResource::Create ());
-    Resource& depthBuffer2   = graph.AddResource (WritableImageResource::Create ());
-    Resource& gbuffer1       = graph.AddResource (WritableImageResource::Create ());
-    Resource& gbuffer2       = graph.AddResource (WritableImageResource::Create ());
-    Resource& gbuffer3       = graph.AddResource (WritableImageResource::Create ());
-    Resource& debugOutput    = graph.AddResource (WritableImageResource::Create ());
-    Resource& lightingBuffer = graph.AddResource (WritableImageResource::Create ());
-    Resource& finalTarget    = graph.AddResource (WritableImageResource::Create ());
-
-    Operation& depthPass   = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& gbufferPass = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& debugView   = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& move        = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& lighting    = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& post        = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-    Operation& present     = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3), ShaderPipeline::CreateShared (device)));
-
-    // depthPass.AddOutput (0, depthBuffer);
-    //
-    // gbufferPass.AddInput (0, depthBuffer);
-    // gbufferPass.AddOutput (0, depthBuffer2);
-    // gbufferPass.AddOutput (1, gbuffer1);
-    // gbufferPass.AddOutput (2, gbuffer2);
-    // gbufferPass.AddOutput (3, gbuffer3);
-    //
-    // debugView.AddInput (0, gbuffer3);
-    // debugView.AddOutput (0, debugOutput);
-    //
-    // lighting.AddInput (0, depthBuffer);
-    // lighting.AddInput (1, gbuffer1);
-    // lighting.AddInput (2, gbuffer2);
-    // lighting.AddInput (3, gbuffer3);
-    // lighting.AddOutput (0, lightingBuffer);
-    //
-    // post.AddInput (0, lightingBuffer);
-    // post.AddOutput (0, finalTarget);
-    //
-    // move.AddInput (0, debugOutput);
-    // move.AddOutput (0, finalTarget);
-    //
-    // present.AddInput (0, finalTarget);
+    //SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphA.png", 0).join ();
+    //SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphB.png", 1).join ();
+    //SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphC.png", 2).join ();
+    SaveImageToFileAsync (device, *red.images[0]->image.image, ReferenceImagesFolder / "glyphAout.png").join ();
 }
 
 
@@ -274,18 +178,12 @@ TEST_F (HeadlessGoogleTestEnvironment, CompileTest)
     Queue&       queue       = GetGraphicsQueue ();
     CommandPool& commandPool = GetCommandPool ();
 
-    RenderGraph graph (device, commandPool);
+    RenderGraph graph;
     graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
                                                  ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
                                                                                            ShadersFolder / "test.vert",
                                                                                            ShadersFolder / "test.frag",
                                                                                        })));
-}
-
-template<typename DestinationType, typename SourceType>
-DestinationType& DynamicRefCast (std::reference_wrapper<SourceType>& source)
-{
-    return dynamic_cast<DestinationType&> (source.get ());
 }
 
 
@@ -328,15 +226,30 @@ layout (location = 0) out vec2 textureCoords;
     }
 }
 
+namespace RenderGraphUtils {
+
+
+RawImageData RenderAndGetImageData (RenderGraph& renderGraph, ImageResource& sw)
+{
+    renderGraph.Submit (0);
+
+    vkQueueWaitIdle (renderGraph.GetGraphSettings ().GetGrahpicsQueue ());
+    vkDeviceWaitIdle (renderGraph.GetGraphSettings ().GetDevice ());
+
+    return RawImageData (renderGraph.GetGraphSettings ().GetDevice (), sw.GetImages ()[0]);
+}
+
+} // namespace RenderGraphUtils
+
 
 TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
 {
-    Device&      device        = GetDevice ();
+    DeviceExtra& device        = GetDeviceExtra ();
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    GraphSettings s (device, graphicsQueue, commandPool, 3, 512, 512);
-    RenderGraph   graph (device, commandPool);
+    GraphSettings s (device, 3, 512, 512);
+    RenderGraph   graph;
 
     ImageResource& red = graph.CreateResource<WritableImageResource> ();
 
@@ -405,12 +318,12 @@ void main () {
 
 TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
 {
-    Device&      device        = GetDevice ();
+    DeviceExtra& device        = GetDeviceExtra ();
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    GraphSettings s (device, graphicsQueue, commandPool, 4, 512, 512);
-    RenderGraph   graph (device, commandPool);
+    GraphSettings s (device, 4, 512, 512);
+    RenderGraph   graph;
 
     WritableImageResource& presented = graph.CreateResource<WritableImageResource> ();
     WritableImageResource& green     = graph.CreateResource<WritableImageResource> ();
@@ -450,36 +363,36 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    TransitionImageLayout (device, graphicsQueue, commandPool, *green.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, graphicsQueue, commandPool, *presented.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, graphicsQueue, commandPool, *red.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, graphicsQueue, commandPool, *finalImg.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, *green.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, *presented.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, *red.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    TransitionImageLayout (device, *finalImg.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
     std::thread saveThreads[] = {
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *green.images[0]->image.image, ReferenceImagesFolder / "green.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *presented.images[0]->image.image, ReferenceImagesFolder / "presented.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *red.images[0]->image.image, ReferenceImagesFolder / "red.png"),
-        SaveImageToFileAsync (device, graphicsQueue, commandPool, *finalImg.images[0]->image.image, ReferenceImagesFolder / "final.png"),
+        SaveImageToFileAsync (device, *green.images[0]->image.image, ReferenceImagesFolder / "green.png"),
+        SaveImageToFileAsync (device, *presented.images[0]->image.image, ReferenceImagesFolder / "presented.png"),
+        SaveImageToFileAsync (device, *red.images[0]->image.image, ReferenceImagesFolder / "red.png"),
+        SaveImageToFileAsync (device, *finalImg.images[0]->image.image, ReferenceImagesFolder / "final.png"),
     };
     for (auto& t : saveThreads) {
         t.join ();
         std::cout << "saved" << std::endl;
     }
 
-    ASSERT_TRUE (AreImagesEqual (device, graphicsQueue, commandPool, *presented.images[0]->image.image, ReferenceImagesFolder / "black.png"));
+    ASSERT_TRUE (AreImagesEqual (device, *presented.images[0]->image.image, ReferenceImagesFolder / "black.png"));
 }
 
 
 TEST_F (HiddenWindowGoogleTestEnvironment, SwapchainTest)
 {
-    Device&      device        = GetDevice ();
+    DeviceExtra& device        = GetDeviceExtra ();
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
     Swapchain&   swapchain     = GetSwapchain ();
 
 
-    GraphSettings s (device, graphicsQueue, commandPool, swapchain);
-    RenderGraph   graph (device, commandPool);
+    GraphSettings s (device, swapchain);
+    RenderGraph   graph;
 
     auto sp = ShaderPipeline::CreateShared (device);
     sp->SetVertexShaderFromString (R"(
@@ -546,12 +459,12 @@ void main () {
 
 TEST_F (HiddenWindowGoogleTestEnvironment, VertexAndIndexBufferTest)
 {
-    Device&       device        = GetDevice ();
+    DeviceExtra&  device        = GetDeviceExtra ();
     CommandPool&  commandPool   = GetCommandPool ();
     Queue&        graphicsQueue = GetGraphicsQueue ();
     Swapchain&    swapchain     = GetSwapchain ();
-    GraphSettings s (device, graphicsQueue, commandPool, swapchain);
-    RenderGraph   graph (device, commandPool);
+    GraphSettings s (device, swapchain);
+    RenderGraph   graph;
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShaderFromString (R"(
@@ -599,7 +512,7 @@ void main () {
         float     asd;
     };
 
-    VertexBufferTransferable<Vert> vbb (device, graphicsQueue, commandPool, 4, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float});
+    VertexBufferTransferable<Vert> vbb (device, 4, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float});
     vbb = std::vector<Vert> {
         {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
         {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
@@ -608,7 +521,7 @@ void main () {
     };
     vbb.Flush ();
 
-    IndexBufferTransferable ib (device, graphicsQueue, commandPool, 6);
+    IndexBufferTransferable ib (device, 6);
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
@@ -629,13 +542,13 @@ void main () {
 
 TEST_F (HiddenWindowGoogleTestEnvironment, BasicUniformBufferTest)
 {
-    Device&      device        = GetDevice ();
+    DeviceExtra& device        = GetDeviceExtra ();
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
     Swapchain&   swapchain     = GetSwapchain ();
 
-    GraphSettings s (device, graphicsQueue, commandPool, swapchain);
-    RenderGraph   graph (device, commandPool);
+    GraphSettings s (device, swapchain);
+    RenderGraph   graph;
 
     auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShaderFromString (R"(
@@ -693,7 +606,7 @@ void main () {
         float     asd;
     };
 
-    VertexBufferTransferable<Vert> vbb (device, graphicsQueue, commandPool, 4, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float});
+    VertexBufferTransferable<Vert> vbb (device, 4, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float});
     vbb = std::vector<Vert> {
         {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
         {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
@@ -702,7 +615,7 @@ void main () {
     };
     vbb.Flush ();
 
-    IndexBufferTransferable ib (device, graphicsQueue, commandPool, 6);
+    IndexBufferTransferable ib (device, 6);
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
@@ -725,224 +638,3 @@ void main () {
 
     CompareImages ("uvoffset", *presentedCopy.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
-
-/*
-#include "Cache.hpp"
-#include <utility>
-
-namespace GraphV2 {
-
-class Node;
-
-class OneWayConnection : public std::enable_shared_from_this<OneWayConnection> {
-public:
-    std::weak_ptr<Node> from;
-    std::weak_ptr<Node> to;
-
-    USING_CREATE (OneWayConnection);
-
-    OneWayConnection (std::shared_ptr<Node>& from, std::shared_ptr<Node>& to)
-        : from (from)
-        , to (to)
-    {
-        ASSERT (IsValidConnection ());
-    }
-
-    virtual bool IsValidConnection () const { return true; }
-};
-
-
-class Node : public std::enable_shared_from_this<Node> {
-public:
-    USING_CREATE (Node);
-    friend class Graph;
-
-private:
-    using NodeList       = std::vector<Node::W>;
-    using ConnectionList = std::vector<OneWayConnection::W>;
-
-    ConnectionList  connections;
-    Cache<NodeList> pointingHere;
-    Cache<NodeList> pointingTo;
-
-    NodeList Node::GetNodesConnectedFromThis ()
-    {
-        auto thisShared = shared_from_this ();
-
-        NodeList result;
-        for (auto& c : connections) {
-            if (auto cs = c.lock ()) {
-                if (thisShared == cs->from.lock ()) {
-                    result.push_back (cs->to);
-                }
-            }
-        }
-        return result;
-    }
-
-    NodeList Node::GetNodesConnectedToThis ()
-    {
-        auto thisShared = shared_from_this ();
-
-        NodeList result;
-        for (auto& c : connections) {
-            if (auto cs = c.lock ()) {
-                if (thisShared == cs->to.lock ()) {
-                    result.push_back (cs->from);
-                }
-            }
-        }
-        return result;
-    }
-
-
-public:
-    Node ()
-        : pointingHere (std::bind (&Node::GetNodesConnectedToThis, this))
-        , pointingTo (std::bind (&Node::GetNodesConnectedFromThis, this))
-    {
-    }
-
-    virtual ~Node () = default;
-
-    const NodeList& GetInputs () { return pointingHere; }
-    const NodeList& GetOutputs () { return pointingTo; }
-
-    virtual bool operator== (const Node& other) const { return false; }
-    virtual bool CanConnect (const Node::P& other) const { return true; }
-
-public:
-    // either way
-    void CreateOutputConnection (OneWayConnection::P conn)
-    {
-        connections.push_back (conn);
-
-        pointingHere.Invalidate ();
-        pointingTo.Invalidate ();
-    }
-};
-
-
-class Graph {
-private:
-    std::set<Node::P>             nodes;
-    std::set<OneWayConnection::P> connections;
-
-public:
-    USING_CREATE (Graph);
-
-    template<typename ConnectionType, typename... ARGS>
-    std::shared_ptr<ConnectionType> CreateOutputConnection (Node::P& from, Node::P& to, ARGS&&... args)
-    {
-        if (ERROR (!to->CanConnect (from))) {
-            return nullptr;
-        }
-
-        std::shared_ptr<ConnectionType> asd = std::make_shared<ConnectionType> (from, to, std::forward<ARGS> (args)...);
-
-        if (ERROR (!asd->IsValidConnection ())) {
-            return nullptr;
-        }
-
-        from->CreateOutputConnection (asd);
-        to->CreateOutputConnection (asd);
-        connections.insert (asd);
-        return asd;
-    }
-
-    template<typename NodeType, typename... ARGS>
-    std::shared_ptr<NodeType> AddNode (ARGS&&... args)
-    {
-        std::shared_ptr<NodeType> asd = std::make_shared<NodeType> (std::forward<ARGS> (args)...);
-
-        for (Node::P n : nodes) {
-            if (*n == *asd) {
-                return nullptr;
-            }
-        }
-
-        nodes.insert (asd);
-        return asd;
-    }
-};
-
-
-class ResourceNode : public Node {
-public:
-    int i = 2;
-
-    virtual bool CanConnect (const Node::P& other) const
-    {
-        // cannot connect to itself
-        return std::dynamic_pointer_cast<ResourceNode> (other) == nullptr;
-    }
-};
-
-
-class OperationNode : public Node {
-public:
-    int i = 3;
-
-    virtual bool CanConnect (const Node::P& other) const
-    {
-        // cannot connect to itself
-        return std::dynamic_pointer_cast<OperationNode> (other) == nullptr;
-    }
-};
-
-
-class InputConnection : public OneWayConnection {
-public:
-    InputConnection (Node::P& from, Node::P& to, uint32_t)
-        : OneWayConnection (from, to)
-    {
-    }
-
-    virtual bool IsValidConnection () const override
-    {
-        return std::dynamic_pointer_cast<ResourceNode> (from.lock ()) != nullptr &&
-               std::dynamic_pointer_cast<OperationNode> (to.lock ()) != nullptr;
-    }
-};
-
-
-class OutputConnection : public OneWayConnection {
-public:
-    OutputConnection (Node::P& from, Node::P& to, uint32_t)
-        : OneWayConnection (from, to)
-    {
-    }
-
-    virtual bool IsValidConnection () const override
-    {
-        return std::dynamic_pointer_cast<OperationNode> (from.lock ()) != nullptr &&
-               std::dynamic_pointer_cast<ResourceNode> (to.lock ()) != nullptr;
-    }
-};
-
-} // namespace GraphV2
-
-
-TEST_F (HiddenWindowGoogleTestEnvironment, graphtestttt)
-{
-    using namespace GraphV2;
-
-    GraphV2::Graph g;
-
-    Node::P r00 = g.AddNode<ResourceNode> ();
-    Node::P r01 = g.AddNode<ResourceNode> ();
-    Node::P r02 = g.AddNode<ResourceNode> ();
-    Node::P r03 = g.AddNode<ResourceNode> ();
-    Node::P r04 = g.AddNode<ResourceNode> ();
-
-    Node::P n1 = g.AddNode<OperationNode> ();
-
-    g.CreateOutputConnection<InputConnection> (r00, n1, 1);
-    g.CreateOutputConnection<InputConnection> (r01, n1, 1);
-    g.CreateOutputConnection<InputConnection> (r02, n1, 1);
-    g.CreateOutputConnection<InputConnection> (r03, n1, 1);
-    g.CreateOutputConnection<InputConnection> (r04, n1, 1);
-
-    ASSERT_EQ (5, n1->GetInputs ().size ());
-}
-*/

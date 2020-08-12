@@ -23,9 +23,9 @@ private:
 public:
     USING_CREATE (FullscreenQuad);
 
-    FullscreenQuad (const Device& device, VkQueue queue, VkCommandPool commandPool)
-        : vertexBuffer (device, queue, commandPool, 4, {VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32_SFLOAT})
-        , indexBuffer (device, queue, commandPool, 6)
+    FullscreenQuad (const DeviceExtra& device)
+        : vertexBuffer (device, 4, {VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32_SFLOAT})
+        , indexBuffer (device, 6)
     {
         vertexBuffer = std::vector<Vertex> {
             {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f)},
@@ -40,11 +40,6 @@ public:
         indexBuffer.Flush ();
 
         info = DrawRecordableInfo::Create (1, vertexBuffer, indexBuffer);
-    }
-
-    FullscreenQuad (const DeviceExtra& device)
-        : FullscreenQuad (device.device, device.graphicsQueue, device.commandPool)
-    {
     }
 
 private:

@@ -3,6 +3,7 @@
 
 #include "Assert.hpp"
 #include "CommandBuffer.hpp"
+#include "DeviceExtra.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
@@ -31,6 +32,11 @@ public:
         if (ERROR (vkBeginCommandBuffer (commandBuffer, &beginInfo) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to begin one time commandbuffer");
         }
+    }
+
+    SingleTimeCommand (const DeviceExtra& device)
+        : SingleTimeCommand (device, device.GetCommandPool (), device.GetGraphicsQueue ())
+    {
     }
 
     ~SingleTimeCommand ()

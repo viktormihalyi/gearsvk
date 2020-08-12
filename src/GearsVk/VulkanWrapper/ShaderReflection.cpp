@@ -395,7 +395,7 @@ static std::string BaseTypeToString (spirv_cross::SPIRType::BaseType b)
     }
 };
 
-static SR::UBO::FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uint32_t vecSize, uint32_t columns)
+static SR::FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uint32_t vecSize, uint32_t columns)
 {
     using BaseType = spirv_cross::SPIRType::BaseType;
 
@@ -404,31 +404,31 @@ static SR::UBO::FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseTy
             switch (columns) {
                 case 1:
                     switch (vecSize) {
-                        case 1: return SR::UBO::FieldType::Float;
-                        case 2: return SR::UBO::FieldType::Vec2;
-                        case 3: return SR::UBO::FieldType::Vec3;
-                        case 4: return SR::UBO::FieldType::Vec4;
+                        case 1: return SR::FieldType::Float;
+                        case 2: return SR::FieldType::Vec2;
+                        case 3: return SR::FieldType::Vec3;
+                        case 4: return SR::FieldType::Vec4;
                         default: throw std::runtime_error ("wtf");
                     }
                 case 2:
                     switch (vecSize) {
-                        case 2: return SR::UBO::FieldType::Mat2x2;
-                        case 3: return SR::UBO::FieldType::Mat2x3;
-                        case 4: return SR::UBO::FieldType::Mat2x4;
+                        case 2: return SR::FieldType::Mat2x2;
+                        case 3: return SR::FieldType::Mat2x3;
+                        case 4: return SR::FieldType::Mat2x4;
                         default: throw std::runtime_error ("wtf");
                     }
                 case 3:
                     switch (vecSize) {
-                        case 2: return SR::UBO::FieldType::Mat3x2;
-                        case 3: return SR::UBO::FieldType::Mat3x3;
-                        case 4: return SR::UBO::FieldType::Mat3x4;
+                        case 2: return SR::FieldType::Mat3x2;
+                        case 3: return SR::FieldType::Mat3x3;
+                        case 4: return SR::FieldType::Mat3x4;
                         default: throw std::runtime_error ("wtf");
                     }
                 case 4:
                     switch (vecSize) {
-                        case 2: return SR::UBO::FieldType::Mat4x2;
-                        case 3: return SR::UBO::FieldType::Mat4x3;
-                        case 4: return SR::UBO::FieldType::Mat4x4;
+                        case 2: return SR::FieldType::Mat4x2;
+                        case 3: return SR::FieldType::Mat4x3;
+                        case 4: return SR::FieldType::Mat4x4;
                         default: throw std::runtime_error ("wtf");
                     }
             }
@@ -437,73 +437,73 @@ static SR::UBO::FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseTy
             switch (columns) {
                 case 1:
                     switch (vecSize) {
-                        case 1: return SR::UBO::FieldType::Double;
-                        case 2: return SR::UBO::FieldType::Dvec2;
-                        case 3: return SR::UBO::FieldType::Dvec3;
-                        case 4: return SR::UBO::FieldType::Dvec4;
+                        case 1: return SR::FieldType::Double;
+                        case 2: return SR::FieldType::Dvec2;
+                        case 3: return SR::FieldType::Dvec3;
+                        case 4: return SR::FieldType::Dvec4;
                         default: throw std::runtime_error ("wtf");
                     }
                 case 2:
                     switch (vecSize) {
-                        case 2: return SR::UBO::FieldType::Dmat2x2;
-                        case 3: return SR::UBO::FieldType::Dmat2x3;
-                        case 4: return SR::UBO::FieldType::Dmat2x4;
+                        case 2: return SR::FieldType::Dmat2x2;
+                        case 3: return SR::FieldType::Dmat2x3;
+                        case 4: return SR::FieldType::Dmat2x4;
                         default: throw std::runtime_error ("wtf");
                     }
                 case 3:
                     switch (vecSize) {
-                        case 2: return SR::UBO::FieldType::Dmat3x2;
-                        case 3: return SR::UBO::FieldType::Dmat3x3;
-                        case 4: return SR::UBO::FieldType::Dmat3x4;
+                        case 2: return SR::FieldType::Dmat3x2;
+                        case 3: return SR::FieldType::Dmat3x3;
+                        case 4: return SR::FieldType::Dmat3x4;
                         default: throw std::runtime_error ("wtf");
                     }
                 case 4:
                     switch (vecSize) {
-                        case 2: return SR::UBO::FieldType::Dmat4x2;
-                        case 3: return SR::UBO::FieldType::Dmat4x3;
-                        case 4: return SR::UBO::FieldType::Dmat4x4;
+                        case 2: return SR::FieldType::Dmat4x2;
+                        case 3: return SR::FieldType::Dmat4x3;
+                        case 4: return SR::FieldType::Dmat4x4;
                         default: throw std::runtime_error ("wtf");
                     }
             }
 
         case BaseType::Boolean:
             switch (vecSize) {
-                case 1: return SR::UBO::FieldType::Bool;
-                case 2: return SR::UBO::FieldType::Bvec2;
-                case 3: return SR::UBO::FieldType::Bvec3;
-                case 4: return SR::UBO::FieldType::Bvec4;
+                case 1: return SR::FieldType::Bool;
+                case 2: return SR::FieldType::Bvec2;
+                case 3: return SR::FieldType::Bvec3;
+                case 4: return SR::FieldType::Bvec4;
                 default: throw std::runtime_error ("wtf");
             }
 
         case BaseType::Int:
             switch (vecSize) {
-                case 1: return SR::UBO::FieldType::Int;
-                case 2: return SR::UBO::FieldType::Ivec2;
-                case 3: return SR::UBO::FieldType::Ivec3;
-                case 4: return SR::UBO::FieldType::Ivec4;
+                case 1: return SR::FieldType::Int;
+                case 2: return SR::FieldType::Ivec2;
+                case 3: return SR::FieldType::Ivec3;
+                case 4: return SR::FieldType::Ivec4;
                 default: throw std::runtime_error ("wtf");
             }
 
         case BaseType::UInt:
             switch (vecSize) {
-                case 1: return SR::UBO::FieldType::Uint;
-                case 2: return SR::UBO::FieldType::Uvec2;
-                case 3: return SR::UBO::FieldType::Uvec3;
-                case 4: return SR::UBO::FieldType::Uvec4;
+                case 1: return SR::FieldType::Uint;
+                case 2: return SR::FieldType::Uvec2;
+                case 3: return SR::FieldType::Uvec3;
+                case 4: return SR::FieldType::Uvec4;
                 default: throw std::runtime_error ("wtf");
             }
 
         case BaseType::Struct:
-            return SR::UBO::FieldType::Struct;
+            return SR::FieldType::Struct;
 
         default:
             ASSERT (false);
-            return SR::UBO::FieldType::Unknown;
+            return SR::FieldType::Unknown;
     }
 }
 
 
-static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeID typeId, std::vector<SR::UBO::FieldP>& parentFields, const uint32_t depth = 0)
+static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeID typeId, std::vector<SR::FieldP>& parentFields, const uint32_t depth = 0)
 {
     const spirv_cross::SPIRType& type = compiler.get_type (typeId);
 
@@ -514,13 +514,13 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
         AllDecorations               typeMemDecor (compiler, type.self, i);
         const spirv_cross::SPIRType& Mtype = compiler.get_type (type.member_types[i]);
 
-        SR::UBO::FieldP f = SR::UBO::Field::Create ();
-        f->name           = typeMemDecor.name;
-        f->offset         = *typeMemDecor.Offset;
-        f->arrayStride    = typeMemDecorA.ArrayStride ? *typeMemDecorA.ArrayStride : 0;
-        f->arraySize      = !Mtype.array.empty () ? Mtype.array[0] : 0;
-        f->size           = (Mtype.width * Mtype.vecsize * Mtype.columns) / 8;
-        f->type           = BaseTypeNMToSRFieldType (Mtype.basetype, Mtype.vecsize, Mtype.columns);
+        SR::FieldP f   = SR::Field::Create ();
+        f->name        = typeMemDecor.name;
+        f->offset      = *typeMemDecor.Offset;
+        f->arrayStride = typeMemDecorA.ArrayStride ? *typeMemDecorA.ArrayStride : 0;
+        f->arraySize   = !Mtype.array.empty () ? Mtype.array[0] : 0;
+        f->size        = (Mtype.width * Mtype.vecsize * Mtype.columns) / 8;
+        f->type        = BaseTypeNMToSRFieldType (Mtype.basetype, Mtype.vecsize, Mtype.columns);
 
         parentFields.push_back (f);
 
@@ -528,30 +528,139 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
     }
 }
 
-std::vector<UBO> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
+
+std::vector<UBOP> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
 {
     spirv_cross::Compiler compiler (binary);
 
     const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
 
-    std::vector<SR::UBO> ubos;
+    std::vector<SR::UBOP> ubos;
 
     for (auto& resource : resources.uniform_buffers) {
         AllDecorations decorations (compiler, resource.id);
+        auto           resType   = compiler.get_type (resource.type_id);
+        const uint32_t arraySize = !resType.array.empty () ? resType.array[0] : 0;
 
-        SR::UBO root;
-        root.name          = resource.name;
-        root.binding       = *decorations.Binding;
-        root.descriptorSet = *decorations.DescriptorSet;
+        // using arrays on ubos will create seperate bindings,
+        // eg. array of 4 on binding 2 will create 4 different bindings: 2, 3, 4, 5
+        ASSERT (arraySize == 0);
 
-        IterateTypeTree (compiler, resource.base_type_id, root.fields);
+        SR::UBOP root       = SR::UBO::Create ();
+        root->name          = resource.name;
+        root->binding       = *decorations.Binding;
+        root->descriptorSet = *decorations.DescriptorSet;
 
-        ASSERT (compiler.get_declared_struct_size (compiler.get_type (resource.base_type_id)) == root.GetFullSize ());
-        
+        IterateTypeTree (compiler, resource.base_type_id, root->fields);
+
+        ASSERT (compiler.get_declared_struct_size (compiler.get_type (resource.base_type_id)) == root->GetFullSize ());
+
         ubos.push_back (root);
     }
 
     return ubos;
+}
+
+
+static SR::Sampler::Type SpvDimToSamplerType (spv::Dim dim)
+{
+    switch (dim) {
+        case spv::Dim::Dim1D: return SR::Sampler::Type::Sampler1D;
+        case spv::Dim::Dim2D: return SR::Sampler::Type::Sampler2D;
+        case spv::Dim::Dim3D: return SR::Sampler::Type::Sampler3D;
+        case spv::Dim::DimCube: return SR::Sampler::Type::SamplerCube;
+
+        default:
+            ASSERT (false);
+            throw std::runtime_error ("not supported type");
+    }
+}
+
+
+std::vector<Sampler> GetSamplersFromBinary (const std::vector<uint32_t>& binary)
+{
+    spirv_cross::Compiler compiler (binary);
+
+    const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
+
+    std::vector<SR::Sampler> result;
+
+    for (auto& resource : resources.sampled_images) {
+        AllDecorations decorations (compiler, resource.id);
+        auto           type = compiler.get_type (resource.type_id);
+
+        SR::Sampler sampler;
+        sampler.name          = resource.name;
+        sampler.binding       = *decorations.Binding;
+        sampler.descriptorSet = *decorations.DescriptorSet;
+        sampler.type          = SpvDimToSamplerType (type.image.dim);
+
+        result.push_back (sampler);
+    }
+
+    return result;
+}
+
+
+#define ENUM_TO_STRING_CASE(enumname, type) \
+    case enumname::type:                    \
+        return #type;
+#define ENUM_TO_STRING_DEFAULT(enumname) \
+    default: ASSERT (false); return #enumname "::[unknown]";
+
+
+std::string FieldTypeToString (FieldType fieldType)
+{
+    switch (fieldType) {
+        ENUM_TO_STRING_CASE (FieldType, Bool);
+        ENUM_TO_STRING_CASE (FieldType, Int);
+        ENUM_TO_STRING_CASE (FieldType, Uint);
+        ENUM_TO_STRING_CASE (FieldType, Float);
+        ENUM_TO_STRING_CASE (FieldType, Double);
+
+        ENUM_TO_STRING_CASE (FieldType, Bvec2);
+        ENUM_TO_STRING_CASE (FieldType, Ivec2);
+        ENUM_TO_STRING_CASE (FieldType, Uvec2);
+        ENUM_TO_STRING_CASE (FieldType, Vec2);
+        ENUM_TO_STRING_CASE (FieldType, Dvec2);
+
+        ENUM_TO_STRING_CASE (FieldType, Bvec3);
+        ENUM_TO_STRING_CASE (FieldType, Ivec3);
+        ENUM_TO_STRING_CASE (FieldType, Uvec3);
+        ENUM_TO_STRING_CASE (FieldType, Vec3);
+        ENUM_TO_STRING_CASE (FieldType, Dvec3);
+
+        ENUM_TO_STRING_CASE (FieldType, Bvec4);
+        ENUM_TO_STRING_CASE (FieldType, Ivec4);
+        ENUM_TO_STRING_CASE (FieldType, Uvec4);
+        ENUM_TO_STRING_CASE (FieldType, Vec4);
+        ENUM_TO_STRING_CASE (FieldType, Dvec4);
+
+        ENUM_TO_STRING_CASE (FieldType, Mat2x2);
+        ENUM_TO_STRING_CASE (FieldType, Mat2x3);
+        ENUM_TO_STRING_CASE (FieldType, Mat2x4);
+        ENUM_TO_STRING_CASE (FieldType, Mat3x2);
+        ENUM_TO_STRING_CASE (FieldType, Mat3x3);
+        ENUM_TO_STRING_CASE (FieldType, Mat3x4);
+        ENUM_TO_STRING_CASE (FieldType, Mat4x2);
+        ENUM_TO_STRING_CASE (FieldType, Mat4x3);
+        ENUM_TO_STRING_CASE (FieldType, Mat4x4);
+
+        ENUM_TO_STRING_CASE (FieldType, Dmat2x2);
+        ENUM_TO_STRING_CASE (FieldType, Dmat2x3);
+        ENUM_TO_STRING_CASE (FieldType, Dmat2x4);
+        ENUM_TO_STRING_CASE (FieldType, Dmat3x2);
+        ENUM_TO_STRING_CASE (FieldType, Dmat3x3);
+        ENUM_TO_STRING_CASE (FieldType, Dmat3x4);
+        ENUM_TO_STRING_CASE (FieldType, Dmat4x2);
+        ENUM_TO_STRING_CASE (FieldType, Dmat4x3);
+        ENUM_TO_STRING_CASE (FieldType, Dmat4x4);
+
+        ENUM_TO_STRING_CASE (FieldType, Struct);
+        ENUM_TO_STRING_CASE (FieldType, Unknown);
+
+        ENUM_TO_STRING_DEFAULT (FieldType);
+    }
 }
 
 }; // namespace SR

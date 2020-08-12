@@ -141,15 +141,15 @@ public:
 USING_PTR (FakeSwapchain);
 class GEARSVK_API FakeSwapchain : public Swapchain {
 private:
-    AllocatedImage image;
-    Device&        device;
-    const uint32_t width;
-    const uint32_t height;
+    AllocatedImage     image;
+    const DeviceExtra& device;
+    const uint32_t     width;
+    const uint32_t     height;
 
 public:
     USING_CREATE (FakeSwapchain);
 
-    FakeSwapchain (Device& device, VkQueue queue, VkCommandPool commandPool, uint32_t width, uint32_t height);
+    FakeSwapchain (const DeviceExtra& device, uint32_t width, uint32_t height);
 
     virtual VkFormat             GetImageFormat () const override { return image.image->GetFormat (); }
     virtual uint32_t             GetImageCount () const override { return 1; }

@@ -165,11 +165,11 @@ private:
 
         std::vector<CommandBufferHolder> c; // one for each frame
 
-        CompileResult (VkDevice device, VkCommandPool commandPool, uint32_t frameCount)
+        CompileResult (const DeviceExtra& device, uint32_t frameCount)
         {
             for (uint32_t i = 0; i < frameCount; ++i) {
                 SeperatedOperationToCommandBufferMappingStrategy s (frameCount);
-                c.emplace_back (device, commandPool, s);
+                c.emplace_back (device, device.GetCommandPool (), s);
             }
         }
 
@@ -225,19 +225,18 @@ private:
 
     bool compiled;
 
-    const VkDevice      device;
-    const VkCommandPool commandPool;
-
     GraphSettings          compileSettings;
     CompileResultProviderU compileResult;
 
-    std::vector<ResourceU>  resources;
+    std::vector<ResourceU> resources;
+
+public: // TODO
     std::vector<OperationU> operations;
 
 public:
     USING_CREATE (RenderGraph);
 
-    RenderGraph (VkDevice device, VkCommandPool commandPool);
+    RenderGraph ();
 
     Resource&  AddResource (ResourceU&& resource);
     Operation& AddOperation (OperationU&& resource);
@@ -280,9 +279,11 @@ public:
     void Present (uint32_t imageIndex, Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores = {})
     {
         ASSERT (swapchain.SupportsPresenting ());
-        swapchain.Present (compileSettings.queue, imageIndex, waitSemaphores);
+        // TODO itt present queue kene
+        swapchain.Present (compileSettings.GetDevice ().GetGraphicsQueue (), imageIndex, waitSemaphores);
     }
 
+    GraphSettings&       GetGraphSettings () { return compileSettings; }
     const GraphSettings& GetGraphSettings () const { return compileSettings; }
 
 private:

@@ -37,11 +37,15 @@ class GEARSVK_API ImageResource : public Resource {
 public:
     virtual ~ImageResource () = default;
 
-    virtual void          BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)  = 0;
-    virtual void          BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) = 0;
-    virtual VkImageLayout GetFinalLayout () const                                        = 0;
-    virtual VkFormat      GetFormat () const                                             = 0;
-    virtual uint32_t      GetDescriptorCount () const                                    = 0;
+    virtual void                      BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)  = 0;
+    virtual void                      BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) = 0;
+    virtual VkImageLayout             GetFinalLayout () const                                        = 0;
+    virtual VkFormat                  GetFormat () const                                             = 0;
+    virtual uint32_t                  GetDescriptorCount () const                                    = 0;
+    virtual std::vector<ImageBaseRef> GetImages () const
+    {
+        return {};
+    }
 };
 
 
@@ -183,6 +187,7 @@ public:
         ASSERT_THROW (width > 0);
         ASSERT_THROW (height > 0);
         ASSERT_THROW (depth > 0);
+        ASSERT_THROW (layerCount > 0);
     }
 
     virtual ~ReadOnlyImageResource () {}
@@ -193,22 +198,22 @@ public:
         sampler = Sampler::Create (settings.GetDevice ());
 
         if (height == 1 && depth == 1) {
-            image     = Image1DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, VK_IMAGE_USAGE_SAMPLED_BIT);
+            image     = Image1DTransferable::Create (settings.GetDevice (), format, width, VK_IMAGE_USAGE_SAMPLED_BIT);
             imageView = ImageView1D::Create (settings.GetDevice (), *image->imageGPU->image);
         } else if (depth == 1) {
             if (layerCount == 1) {
-                image     = Image2DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
+                image     = Image2DTransferable::Create (settings.GetDevice (), format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
                 imageView = ImageView2D::Create (settings.GetDevice (), *image->imageGPU->image, 0);
             } else {
-                image     = Image2DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT, layerCount);
+                image     = Image2DTransferable::Create (settings.GetDevice (), format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT, layerCount);
                 imageView = ImageView2DArray::Create (settings.GetDevice (), *image->imageGPU->image, 0, layerCount);
             }
         } else {
-            image     = Image3DTransferable::Create (settings.GetDevice (), settings.queue, settings.commandPool, format, width, height, depth, VK_IMAGE_USAGE_SAMPLED_BIT);
+            image     = Image3DTransferable::Create (settings.GetDevice (), format, width, height, depth, VK_IMAGE_USAGE_SAMPLED_BIT);
             imageView = ImageView3D::Create (settings.GetDevice (), *image->imageGPU->image);
         }
 
-        SingleTimeCommand s (settings.GetDevice (), settings.commandPool, settings.queue);
+        SingleTimeCommand s (settings.GetDevice ());
         image->imageGPU->image->CmdPipelineBarrier (s, ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
@@ -327,6 +332,11 @@ public:
     {
     }
 
+    UniformBlockResource (const SR::UBO& ubo)
+        : CPUBufferResource (ubo.GetFullSize ())
+    {
+    }
+
     virtual ~UniformBlockResource () = default;
 
     void Set (uint32_t frameIndex, UniformBlock& uniformBlock)
@@ -379,14 +389,14 @@ public:
                 if (s == Strategy::All || s == Strategy::UniformBlocksOnly) {
                     ShaderBlocks newblocks;
                     for (const auto& s : sm->GetReflection ().ubos) {
-                        const ShaderStruct autoStruct (s);
+                        const ShaderStruct autoStruct (*s);
 
                         auto c = UniformBlockResource::Create (autoStruct);
 
-                        UniformBlockP autoBlock = UniformBlock::CreateShared (s.binding, s.name, autoStruct);
+                        UniformBlockP autoBlock = UniformBlock::CreateShared (s->binding, s->name, autoStruct);
 
                         dataBlocks.push_back (autoBlock);
-                        bindings.push_back (s.binding);
+                        bindings.push_back (s->binding);
                         uboRes.push_back (std::move (c));
                         out.AddBlock (autoBlock);
                     }

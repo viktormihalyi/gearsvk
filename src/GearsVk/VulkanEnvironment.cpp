@@ -101,7 +101,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
         deviceExtensions.push_back (VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
-    device = Device::Create (*physicalDevice, std::vector<uint32_t> {*physicalDevice->GetQueueFamilies ().graphics}, deviceExtensions);
+    device = DeviceObject::Create (*physicalDevice, std::vector<uint32_t> {*physicalDevice->GetQueueFamilies ().graphics}, deviceExtensions);
 
     graphicsQueue = Queue::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
@@ -112,7 +112,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
     if (window) {
         swapchain = RealSwapchain::Create (*physicalDevice, *device, *surface);
     } else {
-        swapchain = FakeSwapchain::Create (*device, *graphicsQueue, *commandPool, 512, 512);
+        swapchain = FakeSwapchain::Create (*deviceExtra, 512, 512);
     }
 
 #ifdef TESTENV_LOG_VERSION
