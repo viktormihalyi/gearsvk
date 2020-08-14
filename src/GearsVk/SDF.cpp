@@ -62,7 +62,7 @@ static Shape LoadShape (const std::filesystem::path& fontFile, uint32_t unicode)
 
 
 template<typename T, uint32_t N>
-static std::vector<T> ToVector (const Bitmap<T, N>& bitmap)
+static std::vector<T> BitmapToVector (const Bitmap<T, N>& bitmap)
 {
     std::vector<T> result;
 
@@ -81,10 +81,9 @@ std::vector<float> GetGlyphSDF32x32x1 (const std::filesystem::path& fontFile, ui
     const Shape shape = LoadShape (fontFile, unicode);
 
     Bitmap<float, 1> msdf (32, 32);
-
     generateSDF (msdf, shape, 4.0, 1.0, Vector2 (4.0, 4.0));
 
-    return ToVector<float, 1> (msdf);
+    return BitmapToVector<float, 1> (msdf);
 }
 
 
@@ -93,8 +92,7 @@ std::vector<float> GetGlyphMDF16x16x3 (const std::filesystem::path& fontFile, ui
     const Shape shape = LoadShape (fontFile, unicode);
 
     Bitmap<float, 3> msdf (16, 16);
-
     generateMSDF (msdf, shape, 4.0, 1.0, Vector2 (4.0, 4.0));
 
-    return ToVector<float, 3> (msdf);
+    return BitmapToVector<float, 3> (msdf);
 }
