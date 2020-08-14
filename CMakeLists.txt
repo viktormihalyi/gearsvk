@@ -21,7 +21,11 @@ project (${PROJECT_NAME})
 find_package (Vulkan REQUIRED)
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 
-include (build/conanbuildinfo.cmake)
+if (DEFINED CONAN_BUILDINFO_FILE)
+    include (${CONAN_BUILDINFO_FILE})
+else ()
+    include (build/conanbuildinfo.cmake)
+endif ()
 
 conan_basic_setup ()
 

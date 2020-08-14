@@ -7,7 +7,6 @@ stb/20200203
 freetype/2.10.2
 spirv-cross/20200519
 spirv-tools/v2020.3
-wxwidgets/3.1.3@bincrafters/stable
 glslang/8.13.3559
 
 [generators]
