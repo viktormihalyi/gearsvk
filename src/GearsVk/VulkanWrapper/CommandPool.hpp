@@ -6,10 +6,11 @@
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 USING_PTR (CommandPool);
 
-class GEARSVK_API CommandPool : public Noncopyable {
+class GEARSVK_API CommandPool : public VulkanObject {
 private:
     const VkDevice device;
     VkCommandPool  handle;

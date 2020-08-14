@@ -1,5 +1,8 @@
 #include "VulkanEnvironment.hpp"
 
+#include "GLFWWindow.hpp"
+#include "TerminalColors.hpp"
+
 #include "gtest/gtest.h"
 
 #include <filesystem>

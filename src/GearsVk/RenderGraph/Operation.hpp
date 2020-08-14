@@ -40,6 +40,7 @@ struct GEARSVK_API RenderOperation : public Operation {
     USING_CREATE (RenderOperation);
 
     struct CompileSettings {
+        // TODO add width and height here, remove them from GraphSettings, add them to WritableImageResouce as well
         PureDrawRecordableP      drawRecordable;
         VertexAttributeProviderP vertexAttributeProvider;
         ShaderPipelineP          pipeline;

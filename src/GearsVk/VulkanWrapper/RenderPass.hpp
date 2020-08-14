@@ -6,9 +6,10 @@
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 USING_PTR (RenderPass);
-class GEARSVK_API RenderPass : public Noncopyable {
+class GEARSVK_API RenderPass : public VulkanObject {
 private:
     const VkDevice device;
     VkRenderPass   handle;

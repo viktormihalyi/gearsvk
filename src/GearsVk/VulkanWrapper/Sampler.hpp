@@ -5,11 +5,12 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 #include <vulkan/vulkan.h>
 
 USING_PTR (Sampler);
-class GEARSVK_API Sampler : public Noncopyable {
+class GEARSVK_API Sampler : public VulkanObject {
 private:
     const VkDevice device;
     VkSampler      handle;

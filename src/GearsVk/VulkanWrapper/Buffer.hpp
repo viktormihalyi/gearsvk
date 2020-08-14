@@ -7,10 +7,11 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 USING_PTR (Buffer);
 
-class GEARSVK_API Buffer : public Noncopyable {
+class GEARSVK_API Buffer : public VulkanObject {
 private:
     const VkDevice device;
     VkBuffer       handle;

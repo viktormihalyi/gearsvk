@@ -34,6 +34,6 @@
 #include "ShaderReflection.hpp"
 #include "Surface.hpp"
 #include "Swapchain.hpp"
-#include "VulkanContext.hpp"
+#include "VulkanObject.hpp"
 
 #endif

@@ -118,7 +118,7 @@ public:
 
     virtual void RecreateForSurface (VkSurfaceKHR surface) override;
 
-    ~RealSwapchain ();
+    virtual ~RealSwapchain ();
 
     operator VkSwapchainKHR () const { return createResult.handle; }
 

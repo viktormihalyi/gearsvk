@@ -5,6 +5,7 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -27,7 +28,7 @@ public:
 
 USING_PTR (DeviceObject);
 
-class GEARSVK_API DeviceObject : public Noncopyable, public Device {
+class GEARSVK_API DeviceObject : public VulkanObject, public Device {
 private:
     const VkPhysicalDevice physicalDevice;
     VkDevice               handle;

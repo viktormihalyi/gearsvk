@@ -1,5 +1,25 @@
 #include "UUID.hpp"
 
+#include "Assert.hpp"
+#include "Platform.hpp"
+
+#ifdef PLATFORM_WINDOWS
+#pragma comment(lib, "rpcrt4.lib")
+#include <windows.h>
+
+static std::string GenerateUUID ()
+{
+    UUID uuid;
+    UuidCreate (&uuid);
+    char* str;
+    UuidToStringA (&uuid, (RPC_CSTR*)&str);
+    const std::string result (str);
+    RpcStringFreeA ((RPC_CSTR*)&str);
+    return result;
+}
+
+#else // TODO handle other platforms
+
 #include <random>
 #include <sstream>
 
@@ -7,7 +27,6 @@ static std::random_device              rd;
 static std::mt19937                    gen (rd ());
 static std::uniform_int_distribution<> dis (0, 15);
 static std::uniform_int_distribution<> dis2 (8, 11);
-
 
 static std::string GenerateUUID ()
 {
@@ -37,8 +56,11 @@ static std::string GenerateUUID ()
     return ss.str ();
 }
 
+#endif
+
 
 GearsVk::UUID::UUID ()
     : value (GenerateUUID ())
 {
+    ASSERT (value.size () == 36);
 }

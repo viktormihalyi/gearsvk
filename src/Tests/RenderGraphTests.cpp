@@ -162,13 +162,13 @@ void main () {
     vkDeviceWaitIdle (device);
 
     for (uint32_t i = 0; i < 255; ++i) {
-        SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / ("" + std::to_string (i) + "glyphA.png"), i).join ();
+        //SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / ("" + std::to_string (i) + "glyphA.png"), i).join ();
     }
 
     //SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphA.png", 0).join ();
     //SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphB.png", 1).join ();
     //SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphC.png", 2).join ();
-    SaveImageToFileAsync (device, *red.images[0]->image.image, ReferenceImagesFolder / "glyphAout.png").join ();
+    //SaveImageToFileAsync (device, *red.images[0]->image.image, ReferenceImagesFolder / "glyphAout.png").join ();
 }
 
 
@@ -236,7 +236,7 @@ RawImageData RenderAndGetImageData (RenderGraph& renderGraph, ImageResource& sw)
     vkQueueWaitIdle (renderGraph.GetGraphSettings ().GetGrahpicsQueue ());
     vkDeviceWaitIdle (renderGraph.GetGraphSettings ().GetDevice ());
 
-    return RawImageData (renderGraph.GetGraphSettings ().GetDevice (), sw.GetImages ()[0]);
+    return RawImageData (renderGraph.GetGraphSettings ().GetDevice (), *sw.GetImages ()[0], 0);
 }
 
 } // namespace RenderGraphUtils
@@ -363,21 +363,10 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    TransitionImageLayout (device, *green.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, *presented.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, *red.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    TransitionImageLayout (device, *finalImg.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-
-    std::thread saveThreads[] = {
-        SaveImageToFileAsync (device, *green.images[0]->image.image, ReferenceImagesFolder / "green.png"),
-        SaveImageToFileAsync (device, *presented.images[0]->image.image, ReferenceImagesFolder / "presented.png"),
-        SaveImageToFileAsync (device, *red.images[0]->image.image, ReferenceImagesFolder / "red.png"),
-        SaveImageToFileAsync (device, *finalImg.images[0]->image.image, ReferenceImagesFolder / "final.png"),
-    };
-    for (auto& t : saveThreads) {
-        t.join ();
-        std::cout << "saved" << std::endl;
-    }
+    RawImageData (device, *green.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "green.png");
+    RawImageData (device, *presented.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presented.png");
+    RawImageData (device, *red.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "red.png");
+    RawImageData (device, *finalImg.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "final.png");
 
     ASSERT_TRUE (AreImagesEqual (device, *presented.images[0]->image.image, ReferenceImagesFolder / "black.png"));
 }

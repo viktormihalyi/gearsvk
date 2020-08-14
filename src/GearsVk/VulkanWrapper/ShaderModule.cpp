@@ -1,17 +1,22 @@
 #include "ShaderModule.hpp"
+
+// from Utils
 #include "Assert.hpp"
-#include "ShaderReflection.hpp"
 #include "Utils.hpp"
 
+// from VulkanWrapper
+#include "ResourceLimits.hpp"
+#include "ShaderReflection.hpp"
+
+// from std
 #include <array>
 #include <iostream>
 
-
+// from glslang
 #include <SPIRV/GlslangToSpv.h>
 #include <glslang/MachineIndependent/reflection.h>
 #include <glslang/Public/ShaderLang.h>
 
-#include "ResourceLimits.hpp"
 
 class ShaderKindInfo final {
 public:

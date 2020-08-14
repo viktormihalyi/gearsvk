@@ -8,8 +8,10 @@ namespace RG {
 struct GraphSettings {
     const DeviceExtra* device;
     uint32_t           framesInFlight;
-    uint32_t           width;
-    uint32_t           height;
+
+    // TODO remove
+    uint32_t width;
+    uint32_t height;
 
     GraphSettings (const DeviceExtra& device, VkQueue queue, VkCommandPool commandPool, uint32_t framesInFlight, uint32_t width, uint32_t height)
         : device (&device)

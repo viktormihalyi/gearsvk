@@ -6,6 +6,7 @@
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 USING_PTR (PipelineLayout);
 class GEARSVK_API PipelineLayout : public Noncopyable {

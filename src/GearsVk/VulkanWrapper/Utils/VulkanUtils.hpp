@@ -29,12 +29,16 @@ public:
     uint32_t             height;
     std::vector<uint8_t> data;
 
-    RawImageData (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex = 0);
+    RawImageData (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex = 0, std::optional<VkImageLayout> currentLayout = std::nullopt);
+    RawImageData (const DeviceExtra& device, const ImageBase& image, std::optional<VkImageLayout> currentLayout = std::nullopt);
     RawImageData (const std::filesystem::path& path);
 
     bool operator== (const RawImageData& other) const;
 
     uint32_t GetByteCount () const;
+
+    void SaveTo (const std::filesystem::path& path) const;
+    void UploadTo (const DeviceExtra& device, const ImageBase& image, std::optional<VkImageLayout> currentLayout = std::nullopt) const;
 };
 
 GEARSVK_API

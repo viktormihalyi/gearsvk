@@ -6,11 +6,12 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 #include <vulkan/vulkan.h>
 
 USING_PTR (Framebuffer);
-class GEARSVK_API Framebuffer final : public Noncopyable {
+class GEARSVK_API Framebuffer final : public VulkanObject {
 private:
     const VkDevice device;
     VkFramebuffer  handle;

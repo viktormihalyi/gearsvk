@@ -7,6 +7,7 @@
 USING_PTR (BufferTransferable);
 USING_PTR (MemoryMapping);
 USING_PTR (SingleTimeCommand);
+USING_PTR (VulkanObject);
 
 // object wrappers
 USING_PTR (Buffer);

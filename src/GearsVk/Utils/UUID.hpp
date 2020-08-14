@@ -22,7 +22,8 @@ public:
     bool operator!= (const UUID& other) const { return value != other.value; }
 };
 
-}; // namespace GearsVk
+} // namespace GearsVk
+
 
 namespace std {
 template<>

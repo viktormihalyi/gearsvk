@@ -1,6 +1,8 @@
 #ifndef RESOURCELIMITS_HPP
 #define RESOURCELIMITS_HPP
 
+#include <glslang/Public/ShaderLang.h>
+
 const TBuiltInResource DefaultResourceLimits = {
     /* .MaxLights = */ 32,
     /* .MaxClipPlanes = */ 6,

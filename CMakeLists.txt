@@ -6,6 +6,7 @@ set (CMAKE_CXX_STANDARD_REQUIRED True)
 message ("cmake binary dir is " ${CMAKE_BINARY_DIR})
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set (CONAN_DISABLE_CHECK_COMPILER ON CACHE BOOL "" FORCE)
 
 set (PROJECT_NAME GearsVk)
 
@@ -49,9 +50,7 @@ add_definitions (-D_CRT_SECURE_NO_WARNINGS)
 # ======================  EXTERNAL LIBS ======================
 set (ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
 set (MSDFGEN_BUILD_MSDFGEN_STANDALONE OFF CACHE BOOL "" FORCE)
-set (CONAN_DISABLE_CHECK_COMPILER ON CACHE BOOL "" FORCE)
 
-add_subdirectory (external/glslang)
 add_subdirectory (external/msdfgen)
 # ============================================================
 
@@ -71,7 +70,6 @@ set (GEARSVK_INCLUDE_FOLDERS
     ${Python3_INCLUDE_DIRS}
     
     external/VulkanMemoryAllocator/src
-    external/glslang
     external/msdfgen
 )
 
@@ -173,7 +171,7 @@ target_include_directories (${TARGET_DLL} PRIVATE
 )
 
 
-target_link_libraries (${TARGET_LIB} ${Vulkan_LIBRARIES} ${CONAN_LIBS} SPIRV msdfgen)
+target_link_libraries (${TARGET_LIB} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
 target_link_libraries (${TARGET_VIZHF} ${TARGET_LIB})
 target_link_libraries (${TARGET_VIZHF2} ${TARGET_LIB})
 target_link_libraries (${TARGET_TESTS} ${TARGET_LIB})

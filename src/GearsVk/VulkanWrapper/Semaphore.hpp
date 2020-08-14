@@ -7,9 +7,10 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 USING_PTR (Semaphore);
-class GEARSVK_API Semaphore : public Noncopyable {
+class GEARSVK_API Semaphore : public VulkanObject {
 private:
     const VkDevice device;
     VkSemaphore    handle;

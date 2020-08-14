@@ -5,11 +5,12 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 #include <vulkan/vulkan.h>
 
 USING_PTR (ImageBase);
-class GEARSVK_API ImageBase : public Noncopyable {
+class GEARSVK_API ImageBase : public VulkanObject {
 public:
     static const VkImageLayout INITIAL_LAYOUT = VK_IMAGE_LAYOUT_UNDEFINED;
 
@@ -18,17 +19,32 @@ public:
     static constexpr VkFormat RGB  = VK_FORMAT_R8G8B8_UINT;
     static constexpr VkFormat RGBA = VK_FORMAT_R8G8B8A8_UINT;
 
+protected:
+    VkImage handle;
+
 private:
     const VkDevice device;
     const VkFormat format;
-    VkImage        handle;
     uint32_t       width;
     uint32_t       height;
     uint32_t       depth;
     uint32_t       arrayLayers;
 
+protected:
+    ImageBase (VkImage handle, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
+        : handle (handle)
+        , device (device)
+        , format (format)
+        , width (width)
+        , height (height)
+        , depth (depth)
+        , arrayLayers (arrayLayers)
+    {
+    }
+
 public:
     USING_CREATE (ImageBase);
+
 
     ImageBase (VkDevice device, VkImageType imageType, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, uint32_t arrayLayers)
         : device (device)
@@ -62,6 +78,7 @@ public:
 
     virtual ~ImageBase ()
     {
+        ASSERT (device != VK_NULL_HANDLE);
         vkDestroyImage (device, handle, nullptr);
         handle = VK_NULL_HANDLE;
     }
@@ -160,6 +177,22 @@ public:
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             1,
             &region);
+    }
+};
+
+
+USING_PTR (InheritedImage);
+class GEARSVK_API InheritedImage : public ImageBase {
+public:
+    USING_CREATE (InheritedImage);
+    InheritedImage (VkImage handle, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
+        : ImageBase (handle, VK_NULL_HANDLE, width, height, depth, format, arrayLayers)
+    {
+    }
+
+    virtual ~InheritedImage () override
+    {
+        handle = VK_NULL_HANDLE;
     }
 };
 

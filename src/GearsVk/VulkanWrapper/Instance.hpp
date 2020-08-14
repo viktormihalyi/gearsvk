@@ -4,6 +4,7 @@
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 #include "VulkanUtils.hpp"
 
 #include <iostream>
@@ -22,7 +23,7 @@ static const InstanceSettings instanceDebugMode {{VK_EXT_DEBUG_UTILS_EXTENSION_N
 static const InstanceSettings instanceReleaseMode {{}, {}};
 
 USING_PTR (Instance);
-class GEARSVK_API Instance : public Noncopyable {
+class GEARSVK_API Instance : public VulkanObject {
 private:
     VkInstance handle;
 

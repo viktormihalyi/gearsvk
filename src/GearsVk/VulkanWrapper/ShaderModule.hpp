@@ -8,6 +8,7 @@
 #include "Ptr.hpp"
 #include "ShaderReflection.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 #include <filesystem>
 
@@ -22,7 +23,7 @@ public:
 };
 
 USING_PTR (ShaderModule);
-class GEARSVK_API ShaderModule : public Noncopyable {
+class GEARSVK_API ShaderModule : public VulkanObject {
 public:
     static constexpr uint32_t ShaderKindCount = 6;
 

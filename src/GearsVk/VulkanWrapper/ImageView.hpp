@@ -6,11 +6,12 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 #include <vulkan/vulkan.h>
 
 USING_PTR (ImageViewBase);
-class GEARSVK_API ImageViewBase : public Noncopyable {
+class GEARSVK_API ImageViewBase : public VulkanObject {
 private:
     const VkDevice device;
     const VkFormat format;

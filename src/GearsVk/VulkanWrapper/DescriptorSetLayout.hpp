@@ -7,10 +7,11 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 USING_PTR (DescriptorSetLayout);
 
-class GEARSVK_API DescriptorSetLayout : public Noncopyable {
+class GEARSVK_API DescriptorSetLayout : public VulkanObject {
 private:
     const VkDevice        device;
     VkDescriptorSetLayout handle;

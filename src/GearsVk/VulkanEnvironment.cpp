@@ -2,6 +2,7 @@
 
 #include "BuildType.hpp"
 #include "StaticInit.hpp"
+#include "TerminalColors.hpp"
 #include "Timer.hpp"
 
 #include <iomanip>
@@ -41,9 +42,6 @@ DebugOnlyStaticInit apiVersionLogger ([] () {
 
 VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::optional<DebugUtilsMessenger::Callback> callback)
 {
-    Utils::DebugTimerLogger tl ("creating test environment");
-    Utils::TimerScope       ts (tl);
-
     InstanceSettings is = (IsDebugBuild) ? instanceDebugMode : instanceReleaseMode;
 
     if (window) {
@@ -65,7 +63,8 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
 
     physicalDevice = PhysicalDevice::Create (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
 
-    if constexpr (IsDebugBuild) {
+#if LOG_VULKAN_INFO
+    {
         VkPhysicalDeviceProperties properties = physicalDevice->GetProperties ();
 
         auto DeviceTypeToString = [] (VkPhysicalDeviceType type) -> std::string {
@@ -94,6 +93,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
         vkGetPhysicalDeviceFormatProperties (*physicalDevice, VK_FORMAT_R32G32B32_SFLOAT, &props);
         vkGetPhysicalDeviceFormatProperties (*physicalDevice, VK_FORMAT_R32G32B32_SFLOAT, &props);
     }
+#endif
 
     std::vector<const char*> deviceExtensions;
 
@@ -128,4 +128,23 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
 VulkanEnvironment::~VulkanEnvironment ()
 {
     Wait ();
+}
+
+
+std::shared_ptr<VulkanObject> VulkanEnvironment::FindObject (const GearsVk::UUID& uuid)
+{
+    for (const auto& objW : objects) {
+        if (auto objS = objW.lock ()) {
+            if (objS->GetUUID () == uuid) {
+                return objS;
+            }
+        }
+    }
+    return nullptr;
+}
+
+
+void VulkanEnvironment::Register (const VulkanObjectP& obj)
+{
+    objects.push_back (obj);
 }

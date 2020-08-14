@@ -6,10 +6,11 @@
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 USING_PTR (DescriptorPool);
 
-class GEARSVK_API DescriptorPool : public Noncopyable {
+class GEARSVK_API DescriptorPool : public VulkanObject {
 private:
     const VkDevice   device;
     VkDescriptorPool handle;

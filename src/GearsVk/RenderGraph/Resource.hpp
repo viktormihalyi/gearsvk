@@ -37,15 +37,12 @@ class GEARSVK_API ImageResource : public Resource {
 public:
     virtual ~ImageResource () = default;
 
-    virtual void                      BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)  = 0;
-    virtual void                      BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) = 0;
-    virtual VkImageLayout             GetFinalLayout () const                                        = 0;
-    virtual VkFormat                  GetFormat () const                                             = 0;
-    virtual uint32_t                  GetDescriptorCount () const                                    = 0;
-    virtual std::vector<ImageBaseRef> GetImages () const
-    {
-        return {};
-    }
+    virtual void                    BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)  = 0;
+    virtual void                    BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) = 0;
+    virtual VkImageLayout           GetFinalLayout () const                                        = 0;
+    virtual VkFormat                GetFormat () const                                             = 0;
+    virtual uint32_t                GetDescriptorCount () const                                    = 0;
+    virtual std::vector<ImageBase*> GetImages () const                                             = 0;
 };
 
 
@@ -155,6 +152,17 @@ public:
     virtual VkFormat      GetFormat () const override { return SingleImageResource::FormatRGBA; }
     virtual uint32_t      GetDescriptorCount () const override { return arrayLayers; }
 
+    virtual std::vector<ImageBase*> GetImages () const override
+    {
+        std::vector<ImageBase*> result;
+
+        for (auto& img : images) {
+            result.push_back (img->image.image.get ());
+        }
+
+        return result;
+    }
+
     // overriding InputImageBindable
     virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t layerIndex) override { return *images[frameIndex]->imageViews[layerIndex]; }
     virtual VkSampler   GetSampler () override { return *sampler; }
@@ -224,6 +232,11 @@ public:
     virtual VkFormat      GetFormat () const override { return format; }
     virtual uint32_t      GetDescriptorCount () const override { return 1; }
 
+    virtual std::vector<ImageBase*> GetImages () const override
+    {
+        return {image->imageGPU->image.get ()};
+    }
+
     // overriding InputImageBindable
     virtual VkImageView GetImageViewForFrame (uint32_t, uint32_t) override { return *imageView; }
     virtual VkSampler   GetSampler () override { return *sampler; }
@@ -245,8 +258,9 @@ USING_PTR (SwapchainImageResource);
 
 class GEARSVK_API SwapchainImageResource : public ImageResource, public InputImageBindable {
 public:
-    std::vector<ImageView2DU> imageViews;
-    Swapchain&                swapchain;
+    std::vector<ImageView2DU>    imageViews;
+    Swapchain&                   swapchain;
+    std::vector<InheritedImageU> inheritedImages;
 
 public:
     USING_CREATE (SwapchainImageResource);
@@ -260,11 +274,18 @@ public:
     // overriding Resource
     virtual void Compile (const GraphSettings& graphSettings) override
     {
-        std::vector<VkImage> swapChainImages = swapchain.GetImages ();
+        const std::vector<VkImage> swapChainImages = swapchain.GetImages ();
 
         imageViews.clear ();
         for (size_t i = 0; i < swapChainImages.size (); ++i) {
             imageViews.push_back (ImageView2D::Create (graphSettings.GetDevice (), swapChainImages[i], swapchain.GetImageFormat ()));
+            inheritedImages.push_back (InheritedImage::Create (
+                swapChainImages[i],
+                swapchain.GetWidth (),
+                swapchain.GetHeight (),
+                1,
+                swapchain.GetImageFormat (),
+                1));
         }
     }
 
@@ -274,6 +295,18 @@ public:
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; }
     virtual VkFormat      GetFormat () const override { return swapchain.GetImageFormat (); }
     virtual uint32_t      GetDescriptorCount () const override { return 1; }
+
+    virtual std::vector<ImageBase*> GetImages () const override
+    {
+        std::vector<ImageBase*> result;
+
+        for (auto& img : inheritedImages) {
+            result.push_back (img.get ());
+        }
+
+        return result;
+    }
+
 
     // overriding InputImageBindable
     virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t) override { return *imageViews[frameIndex]; }

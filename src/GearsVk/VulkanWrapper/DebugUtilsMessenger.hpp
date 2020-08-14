@@ -7,10 +7,11 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 USING_PTR (DebugUtilsMessenger);
 
-class GEARSVK_API DebugUtilsMessenger : public Noncopyable {
+class GEARSVK_API DebugUtilsMessenger : public VulkanObject {
 private:
     const VkInstance         instance;
     VkDebugUtilsMessengerEXT handle;
