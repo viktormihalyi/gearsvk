@@ -49,6 +49,7 @@ add_definitions (-D_CRT_SECURE_NO_WARNINGS)
 # ======================  EXTERNAL LIBS ======================
 set (ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
 set (MSDFGEN_BUILD_MSDFGEN_STANDALONE OFF CACHE BOOL "" FORCE)
+set (CONAN_DISABLE_CHECK_COMPILER OFF CACHE BOOL "" FORCE)
 
 add_subdirectory (external/glslang)
 add_subdirectory (external/msdfgen)
