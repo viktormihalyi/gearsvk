@@ -42,7 +42,7 @@ Pass*                      glob_firstPass = nullptr;
 
 void SetRenderGraphFromSequence (Sequence::P seq)
 {
-    ASSERT_THROW (env != nullptr);
+    GVK_ASSERT_THROW (env != nullptr);
 
     Stimulus::CP stim = seq->getStimulusAtFrame (61);
 
@@ -94,8 +94,8 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 
 void StartRendering (const std::function<bool ()>& doRender)
 {
-    ASSERT_THROW (env != nullptr);
-    ASSERT_THROW (renderGraph != nullptr);
+    GVK_ASSERT_THROW (env != nullptr);
+    GVK_ASSERT_THROW (renderGraph != nullptr);
 
     env->Wait ();
 

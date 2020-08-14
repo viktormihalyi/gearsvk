@@ -18,7 +18,7 @@
 #endif
 
 
-#define ASSERT_THROW(cond)                                \
+#define GVK_ASSERT_THROW(cond)                            \
     if (ERROR (!(cond))) {                                \
         throw std::runtime_error ("precondition failed"); \
     }                                                     \

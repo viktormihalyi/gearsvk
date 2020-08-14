@@ -192,10 +192,10 @@ public:
         , depth (depth)
         , layerCount (layerCount)
     {
-        ASSERT_THROW (width > 0);
-        ASSERT_THROW (height > 0);
-        ASSERT_THROW (depth > 0);
-        ASSERT_THROW (layerCount > 0);
+        GVK_ASSERT_THROW (width > 0);
+        GVK_ASSERT_THROW (height > 0);
+        GVK_ASSERT_THROW (depth > 0);
+        GVK_ASSERT_THROW (layerCount > 0);
     }
 
     virtual ~ReadOnlyImageResource () {}
