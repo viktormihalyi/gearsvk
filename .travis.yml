@@ -28,6 +28,6 @@ before_install:
 script:
   - mkdir build
   - cd build
-  - conan install ..
+  - conan install .. --build=missing
   - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.5
   - make VERBOSE=1
