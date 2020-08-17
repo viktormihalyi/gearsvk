@@ -3,11 +3,11 @@
 
 #include <string>
 
-#include "GearsVkAPI.hpp"
+#include "GVKUtilsAPI.hpp"
 
 namespace GearsVk {
 
-class GEARSVK_API UUID {
+class GVK_UTILS_API UUID {
 private:
     std::string value;
 

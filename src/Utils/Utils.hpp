@@ -1,7 +1,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GVKUtilsAPI.hpp"
 
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
@@ -23,23 +23,29 @@
 
 namespace Utils {
 
-GEARSVK_API
+GVK_UTILS_API
 std::filesystem::path GetProjectRoot ();
 
-GEARSVK_API
+GVK_UTILS_API
 std::optional<std::string> ReadTextFile (const std::filesystem::path& filePath);
 
-GEARSVK_API
+GVK_UTILS_API
 std::optional<std::vector<char>> ReadBinaryFile (const std::filesystem::path& filePath);
 
-GEARSVK_API
+GVK_UTILS_API
 bool WriteBinaryFile (const std::filesystem::path& filePath, const std::vector<uint8_t>& data);
 
-GEARSVK_API
+GVK_UTILS_API
 bool WriteBinaryFile (const std::filesystem::path& filePath, const void* data, size_t size);
 
-GEARSVK_API
+GVK_UTILS_API
 std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem::path& filePath);
+
+GVK_UTILS_API
+std::vector<std::string> SplitString (const std::string& str, const char delim, const bool keepEmpty = false);
+
+GVK_UTILS_API
+std::vector<std::string> SplitString (const std::string& str, const std::string& delim, const bool keepEmpty = false);
 
 template<typename SourceType, typename DestType>
 std::set<DestType> ToSet (const std::vector<SourceType>& vec)

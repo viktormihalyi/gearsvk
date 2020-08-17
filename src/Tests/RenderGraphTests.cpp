@@ -19,7 +19,6 @@
 #include <thread>
 
 #include "GoogleTestEnvironment.hpp"
-#include "SDF.hpp"
 
 
 const std::filesystem::path ShadersFolder = PROJECT_ROOT / "src" / "Tests" / "shaders";
@@ -72,103 +71,6 @@ void main ()
 
 
     EXPECT_EQ (4256, refl.GetUbo ("Quadrics")->GetFullSize ());
-}
-
-TEST_F (HiddenWindowGoogleTestEnvironment, DISABLED_MSDFGEN)
-{
-    // Image2DTransferable glyphs (GetDevice (), GetGraphicsQueue (), GetCommandPool (), VK_FORMAT_R8G8B8A8_UINT, 16, 16, VK_IMAGE_USAGE_SAMPLED_BIT, 128);
-
-    DeviceExtra& device        = GetDeviceExtra ();
-    CommandPool& commandPool   = GetCommandPool ();
-    Queue&       graphicsQueue = GetGraphicsQueue ();
-
-    GraphSettings s (device, 3, 512, 512);
-    RenderGraph   graph;
-
-    WritableImageResource& red    = graph.CreateResource<WritableImageResource> ();
-    ReadOnlyImageResource& glyphs = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, 32, 32, 1, 512);
-
-    auto sp = ShaderPipeline::Create (device);
-    sp->SetVertexShaderFromString (R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout (location = 0) out vec2 textureCoords;
-
-vec2 uvs[6] = vec2[] (
-    vec2 (0.f, 0.f),
-    vec2 (0.f, 1.f),
-    vec2 (1.f, 1.f),
-    vec2 (1.f, 1.f),
-    vec2 (0.f, 0.f),
-    vec2 (1.f, 0.f)
-);
-
-vec2 positions[6] = vec2[] (
-    vec2 (-1.f, -1.f),
-    vec2 (-1.f, +1.f),
-    vec2 (+1.f, +1.f),
-    vec2 (+1.f, +1.f),
-    vec2 (-1.f, -1.f),
-    vec2 (+1.f, -1.f)
-);
-
-
-void main() {
-    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
-    textureCoords = uvs[gl_VertexIndex];
-}
-    )");
-
-    sp->SetFragmentShaderFromString (R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout (location = 0) in vec2 textureCoords;
-layout (location = 0) out vec4 outColor;
-
-layout (binding = 0) uniform sampler2DArray sampl;
-
-void main () {
-    outColor = vec4 (vec3 (texture (sampl, vec3 (textureCoords, 2)).r), 1.f);
-}
-    )");
-
-    Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),
-                                                                               std::move (sp)));
-
-    graph.CreateOutputConnection (redFillOperation, 0, red);
-    graph.CreateInputConnection<ImageInputBinding> (redFillOperation, 0, glyphs);
-
-    graph.Compile (s);
-
-
-    std::map<char, uint32_t> charToLayerMapping;
-    std::vector<float>       asd;
-    for (uint32_t i = 0; i < 255; ++i) {
-        if (i == 32 || i == 160)
-            continue;
-        asd = GetGlyphSDF32x32x1 ("C:\\Windows\\Fonts\\arialbd.ttf", i);
-        glyphs.CopyLayer (asd, i);
-        charToLayerMapping[i] = i;
-    }
-
-
-    graph.Submit (0);
-    graph.Submit (1);
-    graph.Submit (2);
-
-    vkQueueWaitIdle (graphicsQueue);
-    vkDeviceWaitIdle (device);
-
-    for (uint32_t i = 0; i < 255; ++i) {
-        //SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / ("" + std::to_string (i) + "glyphA.png"), i).join ();
-    }
-
-    //SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphA.png", 0).join ();
-    //SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphB.png", 1).join ();
-    //SaveImageToFileAsync (device, *glyphs.image->imageGPU->image, ReferenceImagesFolder / "glyphC.png", 2).join ();
-    //SaveImageToFileAsync (device, *red.images[0]->image.image, ReferenceImagesFolder / "glyphAout.png").join ();
 }
 
 
@@ -363,12 +265,12 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    RawImageData (device, *green.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "green.png");
-    RawImageData (device, *presented.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presented.png");
-    RawImageData (device, *red.images[0]->image.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "red.png");
-    RawImageData (device, *finalImg.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "final.png");
+    RawImageData (device, *green.GetImages ()[0], 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "green.png");
+    RawImageData (device, *presented.GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presented.png");
+    RawImageData (device, *red.GetImages ()[0], 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "red.png");
+    RawImageData (device, *finalImg.GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "final.png");
 
-    ASSERT_TRUE (AreImagesEqual (device, *presented.images[0]->image.image, ReferenceImagesFolder / "black.png"));
+    ASSERT_TRUE (RawImageData (device, *presented.GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == RawImageData (ReferenceImagesFolder / "black.png"));
 }
 
 

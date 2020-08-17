@@ -29,5 +29,5 @@ script:
   - mkdir build
   - cd build
   - conan install .. --build=missing
-  - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.5
+  - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.6
   - make VERBOSE=1

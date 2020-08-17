@@ -183,6 +183,7 @@ bool AreImagesEqual (const DeviceExtra& device, const ImageBase& image, const st
 
 
 RawImageData::RawImageData (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout)
+    : components (4)
 {
     width  = image.GetWidth ();
     height = image.GetHeight ();
@@ -191,6 +192,8 @@ RawImageData::RawImageData (const DeviceExtra& device, const ImageBase& image, u
         TransitionImageLayout (device, image, *currentLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
     AllocatedImage dst (device, Image2D::Create (device, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1), DeviceMemory::CPU);
+
+    TransitionImageLayout (device, *dst.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     {
         SingleTimeCommand single (device);
@@ -231,6 +234,7 @@ RawImageData::RawImageData (const DeviceExtra& device, const ImageBase& image, s
 
 
 RawImageData::RawImageData (const std::filesystem::path& path)
+    : components (4)
 {
     int            w, h, comp;
     unsigned char* stbiData = stbi_load (path.u8string ().c_str (), &w, &h, &comp, STBI_rgb_alpha);
@@ -242,6 +246,44 @@ RawImageData::RawImageData (const std::filesystem::path& path)
 
     memcpy (data.data (), stbiData, width * height * 4);
     stbi_image_free (stbiData);
+}
+
+
+RawImageData RawImageData::FromDataUint (const std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t components)
+{
+    ASSERT (data.size () == width * height * components);
+
+    RawImageData result;
+    result.data       = data;
+    result.width      = width;
+    result.height     = height;
+    result.components = components;
+    return result;
+}
+
+
+static std::vector<uint8_t> ToUint (const std::vector<float>& data)
+{
+    std::vector<uint8_t> result;
+    result.reserve (data.size ());
+    for (float f : data) {
+        uint8_t val;
+        if (f < 0.f) {
+            val = 0;
+        } else if (f > 1.f) {
+            val = -1;
+        } else {
+            val = f * 255.f;
+        }
+        result.push_back (val);
+    }
+    return result;
+}
+
+
+RawImageData RawImageData::FromDataFloat (const std::vector<float>& data, uint32_t width, uint32_t height, uint32_t components)
+{
+    return FromDataUint (ToUint (data), width, height, components);
 }
 
 

@@ -197,10 +197,11 @@ int main (int, char**)
 
     graph.Compile (s);
 
+    if (false) {
     RenderGraphUniformReflection r (graph, s);
     float                        a                                        = 3.f;
     r[brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["asd"] = a;
-
+    }
     matcap.CopyTransitionTransfer (ReadImage (PROJECT_ROOT / "src" / "VizHF" / "matcap.jpg", 4));
 
     std::vector<uint8_t> rawBrainData = ReadImage (PROJECT_ROOT / "src" / "VizHF" / "brain.jpg", 1);
@@ -282,10 +283,6 @@ int main (int, char**)
     refl.vert["Camera"]["VP"] = glm::mat4 (1.f);
     refl.frag["Camera"]["VP"] = glm::mat4 (1.f);
 
-    std::array<float, 100> dat;
-    dat.fill (0.5f);
-
-    refl.frag["Test"] = dat;
 
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
         TimePoint delta (deltaNs);

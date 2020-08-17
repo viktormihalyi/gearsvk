@@ -29,6 +29,10 @@ static ShaderType GetShaderTypeFromFormat (VkFormat format)
         case VK_FORMAT_R32G32_SFLOAT: return vec2;
         case VK_FORMAT_R32G32B32_SFLOAT: return vec3;
         case VK_FORMAT_R32G32B32A32_SFLOAT: return vec4;
+        case VK_FORMAT_R32_UINT: return vec1;
+        case VK_FORMAT_R32G32_UINT: return vec2;
+        case VK_FORMAT_R32G32B32_UINT: return vec3;
+        case VK_FORMAT_R32G32B32A32_UINT: return vec4;
     }
 
     throw std::runtime_error ("unhandled VkFormat value");

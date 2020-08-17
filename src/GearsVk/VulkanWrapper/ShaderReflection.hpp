@@ -2,6 +2,7 @@
 #define SHADERREFLECTION_HPP
 
 #include "Assert.hpp"
+#include "GearsVkAPI.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 

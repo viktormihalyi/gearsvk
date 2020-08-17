@@ -22,16 +22,20 @@ std::string GetVersionString (uint32_t version);
 
 class GEARSVK_API RawImageData {
 private:
-    static constexpr uint32_t components = 4; // rgba
+    RawImageData () = default;
 
 public:
+    uint32_t             components;
     uint32_t             width;
     uint32_t             height;
     std::vector<uint8_t> data;
 
-    RawImageData (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex = 0, std::optional<VkImageLayout> currentLayout = std::nullopt);
+    RawImageData (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout = std::nullopt);
     RawImageData (const DeviceExtra& device, const ImageBase& image, std::optional<VkImageLayout> currentLayout = std::nullopt);
     RawImageData (const std::filesystem::path& path);
+
+    static RawImageData FromDataUint (const std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t components);
+    static RawImageData FromDataFloat (const std::vector<float>& data, uint32_t width, uint32_t height, uint32_t components);
 
     bool operator== (const RawImageData& other) const;
 

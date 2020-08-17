@@ -1,7 +1,7 @@
 #ifndef MESSAGEBOX_HPP
 #define MESSAGEBOX_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GVKUtilsAPI.hpp"
 
 #include <string>
 
@@ -14,7 +14,7 @@ enum class Result {
     Error,
 };
 
-GEARSVK_API
+GVK_UTILS_API
 Result Show (const std::string& title, const std::string& message);
 
 } // namespace MessageBox

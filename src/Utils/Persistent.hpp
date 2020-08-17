@@ -1,7 +1,7 @@
 #ifndef PERSISTENT_HPP
 #define PERSISTENT_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GVKUtilsAPI.hpp"
 
 #include "Assert.hpp"
 #include "Utils.hpp"
@@ -90,7 +90,7 @@ public:
 
 
 namespace detail {
-GEARSVK_API
+GVK_UTILS_API
 extern std::set<std::string> uniqueNames;
 } // namespace detail
 

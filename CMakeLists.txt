@@ -10,6 +10,7 @@ set (CONAN_DISABLE_CHECK_COMPILER ON CACHE BOOL "" FORCE)
 
 set (PROJECT_NAME GearsVk)
 
+set (TARGET_UTILS GVkUtils)
 set (TARGET_LIB GearsVk)
 set (TARGET_VIZHF VizHF)
 set (TARGET_VIZHF2 VizHF2)
@@ -68,7 +69,7 @@ set (GEARSVK_INCLUDE_FOLDERS
     src/GearsVk/Camera
     src/GearsVk/VulkanWrapper
     src/GearsVk/VulkanWrapper/Utils
-    src/GearsVk/Utils
+    src/Utils
     
     # external libs
     ${Vulkan_INCLUDE_DIRS}
@@ -78,16 +79,18 @@ set (GEARSVK_INCLUDE_FOLDERS
     external/msdfgen
 )
 
+add_library (${TARGET_UTILS} SHARED
+    src/Utils/Assert.cpp
+    src/Utils/Logger.cpp
+    src/Utils/MessageBox.cpp
+    src/Utils/SourceLocation.cpp
+    src/Utils/Utils.cpp
+    src/Utils/Time.cpp
+    src/Utils/Persistent.cpp
+    src/Utils/UUID.cpp
+)
+
 add_library (${TARGET_LIB} SHARED
-    src/GearsVk/Utils/Assert.cpp
-    src/GearsVk/Utils/Logger.cpp
-    src/GearsVk/Utils/MessageBox.cpp
-    src/GearsVk/Utils/SourceLocation.cpp
-    src/GearsVk/Utils/Utils.cpp
-    src/GearsVk/Utils/Time.cpp
-    src/GearsVk/Utils/Persistent.cpp
-    src/GearsVk/Utils/UUID.cpp
-    
     src/GearsVk/VulkanWrapper/Utils/VulkanUtils.cpp
     src/GearsVk/VulkanWrapper/Utils/BufferTransferable.cpp
     src/GearsVk/VulkanWrapper/DebugUtilsMessenger.cpp
@@ -95,8 +98,8 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/VulkanWrapper/Swapchain.cpp
     src/GearsVk/VulkanWrapper/PhysicalDevice.cpp
     src/GearsVk/VulkanWrapper/Pipeline.cpp
-    src/GearsVk/RenderGraph/ShaderPipeline.cpp
     src/GearsVk/VulkanWrapper/ShaderReflection.cpp
+    src/GearsVk/VulkanWrapper/Sampler.cpp
 
     src/GearsVk/Camera/Frustum.cpp
     src/GearsVk/Camera/Camera.cpp
@@ -105,14 +108,15 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/RenderGraph/Resource.cpp
     src/GearsVk/RenderGraph/Operation.cpp
     src/GearsVk/RenderGraph/GraphRenderer.cpp
+    src/GearsVk/RenderGraph/ShaderPipeline.cpp
     
     src/GearsVk/Window/GLFWWindow.cpp
     src/GearsVk/Window/SDLWindow.cpp
 
     src/GearsVk/VulkanEnvironment.cpp
     src/GearsVk/VulkanMemoryAllocatorImpl.cpp
-    
-    src/GearsVk/SDF.cpp
+    src/GearsVk/Font.cpp
+
     external/msdfgen/ext/import-font.cpp # THIS FUCK DOESNT LINK FREETYPED FOR DEBUG BUILDS
 )
 
@@ -125,6 +129,7 @@ add_executable (${TARGET_VIZHF2}
 )
 
 add_executable (${TARGET_TESTS}
+    src/Tests/FontRenderingTests.cpp
     src/Tests/RenderGraphTests.cpp
     src/Tests/TestMain.cpp
 )
@@ -156,6 +161,10 @@ add_library (${TARGET_DLL} SHARED
     src/GearsPYD/gpu/TextureQueue.cpp
     src/GearsPYD/GearsAPIv2.cpp)
     
+target_compile_definitions (${TARGET_UTILS} PRIVATE
+    PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+    GVK_UTILS_EXPORTS
+)   
 target_compile_definitions (${TARGET_LIB} PRIVATE
     PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
     GEARSVK_EXPORTS
@@ -165,7 +174,7 @@ target_compile_definitions (${TARGET_VIZHF2} PRIVATE)
 target_compile_definitions (${TARGET_TESTS} PRIVATE)
 target_compile_definitions (${TARGET_DLL} PRIVATE)
 
-
+target_include_directories (${TARGET_UTILS} PRIVATE src/Utils)
 target_include_directories (${TARGET_LIB} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_VIZHF} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_VIZHF2} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
@@ -176,12 +185,14 @@ target_include_directories (${TARGET_DLL} PRIVATE
 )
 
 
-target_link_libraries (${TARGET_LIB} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
+target_link_libraries (${TARGET_UTILS})
+target_link_libraries (${TARGET_LIB} ${TARGET_UTILS} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
 target_link_libraries (${TARGET_VIZHF} ${TARGET_LIB})
 target_link_libraries (${TARGET_VIZHF2} ${TARGET_LIB})
 target_link_libraries (${TARGET_TESTS} ${TARGET_LIB})
 target_link_libraries (${TARGET_DLL} ${TARGET_LIB} ${Python3_LIBRARIES})
 
+target_compile_options (${TARGET_UTILS} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_LIB} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_VIZHF} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_VIZHF2} PRIVATE ${COMPILER_FLAGS})

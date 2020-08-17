@@ -78,8 +78,8 @@ public:
 
     virtual ~ImageBase ()
     {
-        ASSERT (device != VK_NULL_HANDLE);
-        vkDestroyImage (device, handle, nullptr);
+        if (device != VK_NULL_HANDLE)
+            vkDestroyImage (device, handle, nullptr);
         handle = VK_NULL_HANDLE;
     }
 
@@ -188,11 +188,6 @@ public:
     InheritedImage (VkImage handle, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
         : ImageBase (handle, VK_NULL_HANDLE, width, height, depth, format, arrayLayers)
     {
-    }
-
-    virtual ~InheritedImage () override
-    {
-        handle = VK_NULL_HANDLE;
     }
 };
 
