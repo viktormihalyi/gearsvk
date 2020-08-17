@@ -109,10 +109,10 @@ private:
     }
 
 #define DEC(DecorName) \
-    DecorName (GetDecor (compiler, resId, spv::Decoration##DecorName##))
+    DecorName (GetDecor (compiler, resId, spv::Decoration##DecorName ))
 
 #define MDEC(DecorName) \
-    DecorName (GetMemberDecor (compiler, resId, spv::Decoration##DecorName##, memberIdx))
+    DecorName (GetMemberDecor (compiler, resId, spv::Decoration##DecorName , memberIdx))
 
 public:
     AllDecorations (const spirv_cross::Compiler& compiler, const spirv_cross::SPIRType& type)
