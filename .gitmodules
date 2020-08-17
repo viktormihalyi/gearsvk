@@ -3,4 +3,4 @@
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
 [submodule "external/msdfgen"]
 	path = external/msdfgen
-	url = https://github.com/Chlumsky/msdfgen
+	url = https://github.com/viktormihalyi/msdfgen
