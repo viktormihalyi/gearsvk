@@ -29,7 +29,7 @@ public:
         layoutInfo.bindingCount                    = static_cast<uint32_t> (bindings.size ());
         layoutInfo.pBindings                       = bindings.data ();
 
-        if (ERROR (vkCreateDescriptorSetLayout (device, &layoutInfo, nullptr, &handle) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkCreateDescriptorSetLayout (device, &layoutInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create descriptor set layout!");
         }
     }

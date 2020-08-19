@@ -37,7 +37,7 @@ public:
     template<typename T>
     void Read (const std::filesystem::path& file, std::vector<T>& val)
     {
-        ASSERT (false);
+        GVK_ASSERT (false);
 #if 0
         const uint32_t vectorSizeLength = sizeof (size_t);
 
@@ -56,7 +56,7 @@ public:
     template<typename T>
     void Write (const std::filesystem::path& file, const std::vector<T>& value)
     {
-        ASSERT (false);
+        GVK_ASSERT (false);
 #if 0
         const uint32_t vectorSizeLength = sizeof (size_t);
 
@@ -108,7 +108,7 @@ private:
         const uint32_t previousSize = detail::uniqueNames.size ();
         detail::uniqueNames.insert (name);
         const uint32_t newSize = detail::uniqueNames.size ();
-        ASSERT (newSize == previousSize + 1);
+        GVK_ASSERT (newSize == previousSize + 1);
     }
 
     bool FileExists () const

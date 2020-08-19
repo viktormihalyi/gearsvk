@@ -29,7 +29,7 @@ public:
         bufferInfo.usage              = usageFlags;
         bufferInfo.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
 
-        if (ERROR (vkCreateBuffer (device, &bufferInfo, nullptr, &handle) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkCreateBuffer (device, &bufferInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create buffer");
         }
     }

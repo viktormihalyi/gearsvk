@@ -63,7 +63,7 @@ Result Show (const std::string& title, const std::string& message)
         case IDYES: return Result::Yes;
         case IDNO: return Result::No;
         case IDCANCEL: return Result::Third;
-        default: ASSERT (false); return Result::Error;
+        default: GVK_ASSERT (false); return Result::Error;
     }
 }
 

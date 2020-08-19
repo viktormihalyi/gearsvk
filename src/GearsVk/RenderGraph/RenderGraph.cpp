@@ -10,21 +10,23 @@ RenderGraph::RenderGraph ()
 }
 
 
-Resource& RenderGraph::AddResource (ResourceU&& resource)
+ResourceP RenderGraph::AddResource (ResourceP resource)
 {
     compiled = false;
 
-    resources.push_back (std::move (resource));
-    return *resources[resources.size () - 1];
+    resources.push_back (resource);
+
+    return resource;
 }
 
 
-Operation& RenderGraph::AddOperation (OperationU&& operation)
+OperationP RenderGraph::AddOperation (OperationP operation)
 {
     compiled = false;
 
-    operations.push_back (std::move (operation));
-    return *operations[operations.size () - 1];
+    operations.push_back (operation);
+
+    return operation;
 }
 
 
@@ -52,7 +54,7 @@ void RenderGraph::CompileResources (const GraphSettings& settings)
 
 void RenderGraph::Recompile (uint32_t commandBufferIndex)
 {
-    ASSERT (compiled);
+    GVK_ASSERT (compiled);
 
     for (uint32_t frameIndex = 0; frameIndex < compileSettings.framesInFlight; ++frameIndex) {
         std::vector<uint32_t> operationsToRecompile = compileResult->GetOperationsToRecord (frameIndex, commandBufferIndex);
@@ -177,10 +179,20 @@ void RenderGraph::Compile (const GraphSettings& settings)
         compiled      = true;
 
     } catch (std::exception& ex) {
-        ERROR (true);
+        GVK_ERROR (true);
         std::cout << ex.what () << std::endl;
         compiled = false;
     }
+}
+
+
+void RenderGraph::CreateInputConnection (Operation& op, Resource& res, InputBindingU&& conn)
+{
+    compiled = false;
+
+    res.AddConnectionTo (op);
+
+    op.AddInput (std::move (conn));
 }
 
 
@@ -189,17 +201,18 @@ void RenderGraph::CreateOutputConnection (Operation& operation, uint32_t binding
     compiled = false;
 
     operation.AddConnectionTo (resource);
+
     operation.AddOutput (binding, resource);
 }
 
 
 void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores, const std::vector<VkSemaphore>& signalSemaphores, VkFence fenceToSignal)
 {
-    if (ERROR (!compiled)) {
+    if (GVK_ERROR (!compiled)) {
         return;
     }
 
-    if (ERROR (frameIndex >= compileSettings.framesInFlight)) {
+    if (GVK_ERROR (frameIndex >= compileSettings.framesInFlight)) {
         return;
     }
 

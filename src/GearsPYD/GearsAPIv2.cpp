@@ -37,7 +37,7 @@ void DestroyEnvironment ()
     window.reset ();
 }
 
-UniformReflectionResource* global_refl    = nullptr;
+UniformReflectionResourceP global_refl    = nullptr;
 Pass*                      glob_firstPass = nullptr;
 
 void SetRenderGraphFromSequence (Sequence::P seq)
@@ -66,22 +66,22 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 
     GraphSettings s (*env->deviceExtra, *env->swapchain);
 
-    SwapchainImageResource& presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
+    SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
     // ImageResource&             writ      = renderGraph->CreateResource<WritableImageResource> ();
-    UniformReflectionResource& refl = renderGraph->CreateResource<UniformReflectionResource> (seqpip);
-    global_refl                     = &refl;
+    UniformReflectionResourceP refl = renderGraph->CreateResource<UniformReflectionResource> (seqpip);
+    global_refl                     = refl;
 
-    Operation& redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 4), seqpip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP));
+    OperationP redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 4), seqpip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP));
 
-    renderGraph->CreateOutputConnection (redFillOperation, 0, presented);
+    renderGraph->CreateOutputConnection (*redFillOperation, 0, *presented);
     // renderGraph->CreateOutputConnection (redFillOperation, 1, writ);
 
-    for (uint32_t i = 0; i < refl.uboRes.size (); ++i) {
-        renderGraph->CreateInputConnection<UniformInputBinding> (redFillOperation, refl.bindings[i], *refl.uboRes[i]);
+    for (uint32_t i = 0; i < refl->uboRes.size (); ++i) {
+        renderGraph->CreateInputConnection (*redFillOperation, *refl->uboRes[i], UniformInputBinding::Create (refl->bindings[i], *refl->uboRes[i]));
     }
 
-    for (uint32_t i = 0; i < refl.sampledImages.size (); ++i) {
-        renderGraph->CreateInputConnection<ImageInputBinding> (redFillOperation, refl.samplerBindings[i], *refl.sampledImages[i]);
+    for (uint32_t i = 0; i < refl->sampledImages.size (); ++i) {
+        renderGraph->CreateInputConnection (*redFillOperation, *refl->sampledImages[i], ImageInputBinding::Create (refl->samplerBindings[i], *refl->sampledImages[i]));
     }
 
     renderGraph->Compile (s);

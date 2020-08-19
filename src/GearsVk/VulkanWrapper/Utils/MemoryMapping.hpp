@@ -31,7 +31,7 @@ public:
         , size (size)
         , mappedMemory (nullptr)
     {
-        if (ERROR (vkMapMemory (device, memory, offset, size, 0, &mappedMemory) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkMapMemory (device, memory, offset, size, 0, &mappedMemory) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to map memory");
         }
     }
@@ -51,7 +51,7 @@ public:
     void Copy (const std::vector<T>& obj) const
     {
         const size_t copiedObjSize = sizeof (T);
-        ASSERT (copiedObjSize * obj.size () == size);
+        GVK_ASSERT (copiedObjSize * obj.size () == size);
         memcpy (mappedMemory, obj.data (), size);
     }
 
@@ -59,13 +59,13 @@ public:
     void Copy (const T& obj) const
     {
         const size_t copiedObjSize = sizeof (T);
-        ASSERT (copiedObjSize == size);
+        GVK_ASSERT (copiedObjSize == size);
         memcpy (mappedMemory, &obj, size);
     }
 
     void Copy (const void* data, size_t copiedSize, size_t copiedOffset) const
     {
-        if (ERROR (copiedSize + copiedOffset > size)) {
+        if (GVK_ERROR (copiedSize + copiedOffset > size)) {
             throw std::runtime_error ("overflow");
         }
 

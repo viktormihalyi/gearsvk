@@ -86,7 +86,7 @@ static PhysicalDevice::QueueFamilies FindQueueFamilyIndices (VkPhysicalDevice ph
     result.transfer     = Selector.transferSelector (physicalDevice, surface, queueFamilies);
 
     if (result.presentation) {
-        ASSERT (result.graphics == result.presentation); // TODO handle different queue indices ...
+        GVK_ASSERT (result.graphics == result.presentation); // TODO handle different queue indices ...
     }
 
     return result;
@@ -131,7 +131,7 @@ static VkPhysicalDevice CreatePhysicalDevice (VkInstance instance, const std::se
         ++i;
     }
 
-    if (ERROR (!physicalDeviceIndex.has_value ())) {
+    if (GVK_ERROR (!physicalDeviceIndex.has_value ())) {
         throw std::runtime_error ("No physical device available");
     }
 
@@ -162,7 +162,6 @@ PhysicalDevice::PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const
     vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8_UNORM, &prop);
     vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8_UNORM, &prop);
     vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8A8_UNORM, &prop);
-
 }
 
 

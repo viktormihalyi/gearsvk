@@ -81,7 +81,7 @@ SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (RenderGr
     , graph (graph)
     , swapchain (swapchain)
 {
-    ASSERT (imageCount <= framesInFlight);
+    GVK_ASSERT (imageCount <= framesInFlight);
 
     for (uint32_t i = 0; i < framesInFlight; ++i) {
         imageAvailableSemaphore.push_back (Semaphore::Create (graph.GetGraphSettings ().GetDevice ()));
@@ -157,7 +157,7 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame ()
 
     graph.Submit (currentFrameIndex, submitWaitSemaphores, submitSignalSemaphores, *inFlightFences[currentFrameIndex]);
 
-    ASSERT (swapchain.SupportsPresenting ());
+    GVK_ASSERT (swapchain.SupportsPresenting ());
 
     graph.Present (currentImageIndex, swapchain, presentWaitSemaphores);
 

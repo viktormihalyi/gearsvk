@@ -153,9 +153,9 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
     GraphSettings s (device, 3, 512, 512);
     RenderGraph   graph;
 
-    ImageResource& red = graph.CreateResource<WritableImageResource> ();
+    ImageResourceP red = graph.CreateResource<WritableImageResource> ();
 
-    auto sp = ShaderPipeline::Create (device);
+    auto sp = ShaderPipeline::CreateShared (device);
     sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -198,10 +198,9 @@ void main () {
 }
     )");
 
-    Operation& redFillOperation = graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6),
-                                                                               std::move (sp)));
+    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
 
-    graph.CreateOutputConnection (redFillOperation, 0, red);
+    graph.CreateOutputConnection (*redFillOperation, 0, *red);
 
     graph.Compile (s);
 
@@ -212,9 +211,9 @@ void main () {
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    CompareImages ("red", *dynamic_cast<WritableImageResource&> (red).images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    CompareImages ("red", *dynamic_cast<WritableImageResource&> (red).images[1]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    CompareImages ("red", *dynamic_cast<WritableImageResource&> (red).images[2]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    CompareImages ("red", *red->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    CompareImages ("red", *red->GetImages ()[1], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    CompareImages ("red", *red->GetImages ()[2], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
 
 
@@ -227,30 +226,30 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     GraphSettings s (device, 4, 512, 512);
     RenderGraph   graph;
 
-    WritableImageResource& presented = graph.CreateResource<WritableImageResource> ();
-    WritableImageResource& green     = graph.CreateResource<WritableImageResource> ();
-    WritableImageResource& red       = graph.CreateResource<WritableImageResource> ();
-    WritableImageResource& finalImg  = graph.CreateResource<WritableImageResource> ();
+    WritableImageResourceP presented = graph.CreateResource<WritableImageResource> ();
+    WritableImageResourceP green     = graph.CreateResource<WritableImageResource> ();
+    WritableImageResourceP red       = graph.CreateResource<WritableImageResource> ();
+    WritableImageResourceP finalImg  = graph.CreateResource<WritableImageResource> ();
 
-    Operation& dummyPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
+    OperationP dummyPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
                                                                    ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
                                                                                                              ShadersFolder / "test.vert",
                                                                                                              ShadersFolder / "test.frag",
                                                                                                          }));
 
-    Operation& secondPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
+    OperationP secondPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
                                                                     ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
                                                                                                               ShadersFolder / "fullscreenquad.vert",
                                                                                                               ShadersFolder / "fullscreenquad.frag",
                                                                                                           }));
 
 
-    graph.CreateInputConnection<ImageInputBinding> (dummyPass, 0, green);
-    graph.CreateOutputConnection (dummyPass, 0, presented);
-    graph.CreateOutputConnection (dummyPass, 1, red);
+    graph.CreateInputConnection (*dummyPass, *green, ImageInputBinding::Create (0, *green));
+    graph.CreateOutputConnection (*dummyPass, 0, *presented);
+    graph.CreateOutputConnection (*dummyPass, 1, *red);
 
-    graph.CreateInputConnection<ImageInputBinding> (secondPass, 0, red);
-    graph.CreateOutputConnection (secondPass, 0, finalImg);
+    graph.CreateInputConnection (*secondPass, *red, ImageInputBinding::Create (0, *red));
+    graph.CreateOutputConnection (*secondPass, 0, *finalImg);
 
     graph.Compile (s);
 
@@ -265,12 +264,12 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    RawImageData (device, *green.GetImages ()[0], 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "green.png");
-    RawImageData (device, *presented.GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presented.png");
-    RawImageData (device, *red.GetImages ()[0], 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "red.png");
-    RawImageData (device, *finalImg.GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "final.png");
+    RawImageData (device, *green->GetImages ()[0], 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "green.png");
+    RawImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presented.png");
+    RawImageData (device, *red->GetImages ()[0], 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "red.png");
+    RawImageData (device, *finalImg->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "final.png");
 
-    ASSERT_TRUE (RawImageData (device, *presented.GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == RawImageData (ReferenceImagesFolder / "black.png"));
+    ASSERT_TRUE (RawImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == RawImageData (ReferenceImagesFolder / "black.png"));
 }
 
 
@@ -333,13 +332,13 @@ void main () {
 }
     )");
 
-    ImageResource& presentedCopy = graph.CreateResource<WritableImageResource> ();
-    ImageResource& presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
+    ImageResourceP presentedCopy = graph.CreateResource<WritableImageResource> ();
+    ImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
 
-    Operation& redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
+    OperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
 
-    graph.CreateOutputConnection (redFillOperation, 0, presented);
-    graph.CreateOutputConnection (redFillOperation, 1, presentedCopy);
+    graph.CreateOutputConnection (*redFillOperation, 0, *presented);
+    graph.CreateOutputConnection (*redFillOperation, 1, *presentedCopy);
 
     graph.Compile (s);
 
@@ -357,7 +356,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, VertexAndIndexBufferTest)
     GraphSettings s (device, swapchain);
     RenderGraph   graph;
 
-    auto sp = ShaderPipeline::Create (device);
+    auto sp = ShaderPipeline::CreateShared (device);
     sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -394,8 +393,8 @@ void main () {
 }
     )");
 
-    WritableImageResource&  presentedCopy = graph.CreateResource<WritableImageResource> ();
-    SwapchainImageResource& presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
+    WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> ();
+    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
 
     struct Vert {
         glm::vec2 position;
@@ -403,7 +402,7 @@ void main () {
         float     asd;
     };
 
-    VertexBufferTransferable<Vert> vbb (device, 4, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float});
+    VertexBufferTransferable<Vert> vbb (device, 4, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, VK_VERTEX_INPUT_RATE_VERTEX);
     vbb = std::vector<Vert> {
         {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
         {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
@@ -416,18 +415,18 @@ void main () {
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
-    RenderOperation& redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
+    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
                                                                                 std::move (sp));
 
-    graph.CreateOutputConnection (redFillOperation, 0, presented);
-    graph.CreateOutputConnection (redFillOperation, 1, presentedCopy);
+    graph.CreateOutputConnection (*redFillOperation, 0, *presented);
+    graph.CreateOutputConnection (*redFillOperation, 1, *presentedCopy);
 
     graph.Compile (s);
 
     BlockingGraphRenderer renderer (graph, swapchain);
     window->DoEventLoop (renderer.GetCountLimitedDrawCallback (10));
 
-    CompareImages ("uv", *presentedCopy.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    CompareImages ("uv", *presentedCopy->images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
 
 
@@ -441,7 +440,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, BasicUniformBufferTest)
     GraphSettings s (device, swapchain);
     RenderGraph   graph;
 
-    auto sp = ShaderPipeline::Create (device);
+    auto sp = ShaderPipeline::CreateShared (device);
     sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -487,9 +486,9 @@ void main () {
 }
     )");
 
-    SwapchainImageResource& presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
-    WritableImageResource&  presentedCopy = graph.CreateResource<WritableImageResource> (2);
-    UniformBlockResource&   unif          = graph.CreateResource<UniformBlockResource> (4);
+    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
+    WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> (2);
+    UniformBlockResourceP   unif          = graph.CreateResource<UniformBlockResource> (4);
 
     struct Vert {
         glm::vec2 position;
@@ -497,24 +496,26 @@ void main () {
         float     asd;
     };
 
-    VertexBufferTransferable<Vert> vbb (device, 4, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float});
-    vbb = std::vector<Vert> {
+    std::shared_ptr<VertexBufferTransferable<Vert>> vbb = VertexBufferTransferable<Vert>::CreateShared (
+        device, 4, std::vector<VkFormat> {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, VK_VERTEX_INPUT_RATE_VERTEX);
+
+    *vbb = std::vector<Vert> {
         {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
         {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
         {glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f), 0.3f},
         {glm::vec2 (+1.f, -1.f), glm::vec2 (1.f, 0.f), 0.6f},
     };
-    vbb.Flush ();
+    vbb->Flush ();
 
     IndexBufferTransferable ib (device, 6);
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
-    Operation& redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb, ib), std::move (sp));
+    OperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, *vbb, ib), std::move (sp));
 
-    graph.CreateInputConnection<UniformInputBinding> (redFillOperation, 0, unif);
-    graph.CreateOutputConnection (redFillOperation, 0, presentedCopy);
-    graph.CreateOutputConnection (redFillOperation, 2, presented);
+    graph.CreateInputConnection (*redFillOperation, *unif, UniformInputBinding::Create (0, *unif));
+    graph.CreateOutputConnection (*redFillOperation, 0, *presentedCopy);
+    graph.CreateOutputConnection (*redFillOperation, 2, *presented);
 
     graph.Compile (s);
 
@@ -522,10 +523,10 @@ void main () {
 
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t) {
         float time = 0.5f;
-        unif.GetMapping (frameIndex).Copy (time);
+        unif->GetMapping (frameIndex).Copy (time);
     };
 
     window->DoEventLoop (renderer.GetCountLimitedDrawCallback (10));
 
-    CompareImages ("uvoffset", *presentedCopy.images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    CompareImages ("uvoffset", *presentedCopy->images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }

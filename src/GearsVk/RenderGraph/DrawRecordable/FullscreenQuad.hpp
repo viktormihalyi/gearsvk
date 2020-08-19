@@ -24,7 +24,7 @@ public:
     USING_CREATE (FullscreenQuad);
 
     FullscreenQuad (const DeviceExtra& device)
-        : vertexBuffer (device, 4, {VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32_SFLOAT})
+        : vertexBuffer (device, 4, {VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32_SFLOAT}, VK_VERTEX_INPUT_RATE_VERTEX)
         , indexBuffer (device, 6)
     {
         vertexBuffer = std::vector<Vertex> {

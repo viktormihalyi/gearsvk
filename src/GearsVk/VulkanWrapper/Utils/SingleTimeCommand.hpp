@@ -29,7 +29,7 @@ public:
         beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        if (ERROR (vkBeginCommandBuffer (commandBuffer, &beginInfo) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkBeginCommandBuffer (commandBuffer, &beginInfo) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to begin one time commandbuffer");
         }
     }
@@ -41,7 +41,7 @@ public:
 
     ~SingleTimeCommand ()
     {
-        if (ERROR (vkEndCommandBuffer (commandBuffer) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkEndCommandBuffer (commandBuffer) != VK_SUCCESS)) {
             return;
         }
 

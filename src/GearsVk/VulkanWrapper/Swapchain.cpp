@@ -90,10 +90,10 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
 
     uint32_t queueFamilyIndicesData[] = {*createSettings.queueFamilyIndices.graphics, *createSettings.queueFamilyIndices.presentation};
     if (createSettings.queueFamilyIndices.presentation) {
-        ASSERT (*createSettings.queueFamilyIndices.graphics == *createSettings.queueFamilyIndices.presentation);
+        GVK_ASSERT (*createSettings.queueFamilyIndices.graphics == *createSettings.queueFamilyIndices.presentation);
     }
 
-    //if (ERROR (*queueFamilyIndices.graphics != *queueFamilyIndices.presentation)) {
+    //if (GVK_ERROR (*queueFamilyIndices.graphics != *queueFamilyIndices.presentation)) {
     createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
     createInfo.queueFamilyIndexCount = 1;
     createInfo.pQueueFamilyIndices   = queueFamilyIndicesData;
@@ -108,7 +108,7 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
     createInfo.clipped        = VK_TRUE;
     createInfo.oldSwapchain   = VK_NULL_HANDLE;
 
-    if (ERROR (vkCreateSwapchainKHR (createSettings.device, &createInfo, nullptr, &createResult.handle) != VK_SUCCESS)) {
+    if (GVK_ERROR (vkCreateSwapchainKHR (createSettings.device, &createInfo, nullptr, &createResult.handle) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create swapchain");
     }
 
@@ -165,7 +165,7 @@ uint32_t RealSwapchain::GetNextImageIndex (VkSemaphore signalSemaphore) const
     uint32_t result;
 
     VkResult err = vkAcquireNextImageKHR (createSettings.device, createResult.handle, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &result);
-    if (ERROR (err != VK_SUCCESS && err != VK_ERROR_OUT_OF_DATE_KHR && err != VK_SUBOPTIMAL_KHR)) {
+    if (GVK_ERROR (err != VK_SUCCESS && err != VK_ERROR_OUT_OF_DATE_KHR && err != VK_SUBOPTIMAL_KHR)) {
         throw std::runtime_error ("bro");
     }
 
@@ -190,7 +190,7 @@ void RealSwapchain::Present (VkQueue queue, uint32_t imageIndex, const std::vect
     presentInfo.pResults           = nullptr;
 
     VkResult err = vkQueuePresentKHR (queue, &presentInfo);
-    if (ERROR (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR)) {
+    if (GVK_ERROR (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR)) {
         throw std::runtime_error ("failed to present");
     }
 

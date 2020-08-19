@@ -25,7 +25,7 @@ private:
         pipelineLayoutInfo.pushConstantRangeCount     = 0;       // Optional
         pipelineLayoutInfo.pPushConstantRanges        = nullptr; // Optional
 
-        if (ERROR (vkCreatePipelineLayout (device, &pipelineLayoutInfo, nullptr, &handle) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkCreatePipelineLayout (device, &pipelineLayoutInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create pipeline layout");
         }
 

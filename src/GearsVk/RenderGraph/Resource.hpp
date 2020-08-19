@@ -374,7 +374,7 @@ public:
 
     void Set (uint32_t frameIndex, UniformBlock& uniformBlock)
     {
-        ASSERT (uniformBlock.GetSize () == size);
+        GVK_ASSERT (uniformBlock.GetSize () == size);
         GetMapping (frameIndex).Copy (uniformBlock.GetData (), uniformBlock.GetSize (), 0);
     }
 };
@@ -443,10 +443,10 @@ public:
                         } else if (s.type == SR::Sampler::Type::Sampler2D) {
                             sampledImages.push_back (ReadOnlyImageResource::Create (VK_FORMAT_R8G8B8A8_SRGB, 512, 512));
                         } else if (s.type == SR::Sampler::Type::Sampler3D) {
-                            ASSERT (false);
+                            GVK_ASSERT (false);
                             sampledImages.push_back (ReadOnlyImageResource::Create (VK_FORMAT_R8_SRGB, 512, 512, 512));
                         } else {
-                            ASSERT (false);
+                            GVK_ASSERT (false);
                         }
                     }
                 }

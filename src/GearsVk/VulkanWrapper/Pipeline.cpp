@@ -102,7 +102,7 @@ Pipeline::Pipeline (VkDevice                                              device
     pipelineInfo.basePipelineHandle           = VK_NULL_HANDLE; // Optional
     pipelineInfo.basePipelineIndex            = -1;             // Optional
 
-    if (ERROR (vkCreateGraphicsPipelines (device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &handle) != VK_SUCCESS)) {
+    if (GVK_ERROR (vkCreateGraphicsPipelines (device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &handle) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create pipeline");
     }
 }

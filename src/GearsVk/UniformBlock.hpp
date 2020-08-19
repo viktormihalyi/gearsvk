@@ -135,7 +135,7 @@ public:
     template<typename T>
     T& As ()
     {
-        if (ERROR (!valid)) {
+        if (GVK_ERROR (!valid)) {
             return dummy<T>;
         }
 
@@ -145,11 +145,11 @@ public:
     template<typename T>
     void operator= (const T& other)
     {
-        if (ERROR (!valid)) {
+        if (GVK_ERROR (!valid)) {
             return;
         }
 
-        if (ASSERT (size == sizeof (T))) {
+        if (GVK_ASSERT (size == sizeof (T))) {
             *reinterpret_cast<T*> (value) = other;
         }
     }
@@ -202,7 +202,7 @@ public:
 
     void* GetPtrTo (const std::string& name)
     {
-        if (ERROR (!structType.HasUniform (name))) {
+        if (GVK_ERROR (!structType.HasUniform (name))) {
             throw std::runtime_error ("no uniform name '" + name + "'");
         }
 
@@ -247,9 +247,9 @@ public:
         const uint32_t arrayElementSize    = sizeof (T);
         const uint32_t arrayFullSize       = arrayElementSize * arraySize;
 
-        ASSERT (data.size () == GetSize ());
+        GVK_ASSERT (data.size () == GetSize ());
 
-        if (ASSERT (data.size () == sizeof (T) * other.size ())) {
+        if (GVK_ASSERT (data.size () == sizeof (T) * other.size ())) {
             memcpy (data.data (), other.data (), sizeof (T) * other.size ());
         }
     }
@@ -257,9 +257,9 @@ public:
     template<typename T>
     void operator= (const T& other)
     {
-        ASSERT (data.size () == GetSize ());
+        GVK_ASSERT (data.size () == GetSize ());
 
-        if (ASSERT (data.size () == sizeof (other))) {
+        if (GVK_ASSERT (data.size () == sizeof (other))) {
             memcpy (data.data (), &other, sizeof (T));
         }
     }
@@ -280,11 +280,11 @@ public:
     template<typename ReturnType>
     ReturnType* GetPtr (const std::string& name)
     {
-        if (ERROR (!structType.HasUniform (name))) {
+        if (GVK_ERROR (!structType.HasUniform (name))) {
             throw std::runtime_error ("no uniform name '" + name + "'");
         }
 
-        ASSERT (sizeof (ReturnType) == structType.GetSize (name));
+        GVK_ASSERT (sizeof (ReturnType) == structType.GetSize (name));
 
         const uint32_t offset = structType.GetOffset (name);
         return reinterpret_cast<ReturnType*> (&data[offset]);

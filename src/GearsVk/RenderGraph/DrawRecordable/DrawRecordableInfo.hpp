@@ -8,8 +8,77 @@
 #include "BufferTransferable.hpp"
 
 
-USING_PTR (DrawRecordableInfo);
+class VertexBufferList {
+private:
+    template<typename T>
+    std::vector<T> Get (std::function<T (const VertexBufferTransferableUntypedP&)> getterFunc) const
+    {
+        std::vector<T> result;
 
+        for (auto& vb : vertexBuffers) {
+            result.push_back (getterFunc (vb));
+        }
+
+        return result;
+    }
+
+    template<typename T>
+    std::vector<T> GetFromVector (std::function<std::vector<T> (const VertexBufferTransferableUntypedP&)> getterFunc) const
+    {
+        std::vector<T> result;
+
+        for (auto& vb : vertexBuffers) {
+            std::vector<T> res = getterFunc (vb);
+            result.insert (result.end (), res.begin (), res.end ());
+        }
+
+        return result;
+    }
+
+public:
+    std::vector<VertexBufferTransferableUntypedP> vertexBuffers;
+
+    VertexBufferList () = default;
+
+    VertexBufferList (std::vector<VertexBufferTransferableUntypedP> vertexBuffers)
+        : vertexBuffers (vertexBuffers)
+    {
+    }
+
+    void Add (VertexBufferTransferableUntypedP vb)
+    {
+        vertexBuffers.push_back (vb);
+    }
+
+    std::vector<VkBuffer> GetHandles () const
+    {
+        return Get<VkBuffer> ([] (const VertexBufferTransferableUntypedP& vb) {
+            return vb->buffer.GetBufferToBind ();
+        });
+    }
+
+    std::vector<VkVertexInputBindingDescription> GetBindings () const
+    {
+        uint32_t nextBinding = 0;
+        return GetFromVector<VkVertexInputBindingDescription> ([&] (const VertexBufferTransferableUntypedP& vb) {
+            return vb->info.GetBindings (nextBinding++);
+        });
+    }
+
+    std::vector<VkVertexInputAttributeDescription> GetAttributes () const
+    {
+        uint32_t nextLocation = 0;
+        uint32_t nextBinding = 0;
+        return GetFromVector<VkVertexInputAttributeDescription> ([&] (const VertexBufferTransferableUntypedP& vb) {
+            auto attribs = vb->info.GetAttributes (nextLocation, nextBinding++);
+            nextLocation += attribs.size ();
+            return attribs;
+        });
+    }
+};
+
+
+USING_PTR (DrawRecordableInfo);
 struct DrawRecordableInfo : public DrawRecordable {
 public:
     const uint32_t instanceCount;
@@ -66,9 +135,24 @@ public:
     {
     }
 
+    DrawRecordableInfo (const uint32_t   instanceCount,
+                        uint32_t         vertexCount,
+                        VertexBufferList vertexBuffers,
+                        uint32_t         indexCount,
+                        VkBuffer         indexBuffer)
+        : instanceCount (instanceCount)
+        , vertexCount (vertexCount)
+        , vertexBuffer (vertexBuffers.GetHandles ())
+        , vertexInputBindings (vertexBuffers.GetBindings ())
+        , vertexInputAttributes (vertexBuffers.GetAttributes ())
+        , indexCount (indexCount)
+        , indexBuffer (indexBuffer)
+    {
+    }
+
     void Record (VkCommandBuffer commandBuffer) const override
     {
-        ASSERT (instanceCount == 1);
+        GVK_ASSERT (instanceCount == 1);
 
         if (!vertexBuffer.empty ()) {
             std::vector<VkDeviceSize> offsets (vertexBuffer.size (), 0);

@@ -30,7 +30,7 @@ public:
         commandBufferAllocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         commandBufferAllocInfo.commandBufferCount          = 1;
 
-        if (ERROR (vkAllocateCommandBuffers (device, &commandBufferAllocInfo, &handle) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkAllocateCommandBuffers (device, &commandBufferAllocInfo, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to allocate command buffer");
         }
     }
@@ -48,7 +48,7 @@ public:
         beginInfo.flags                    = 0;       // Optional
         beginInfo.pInheritanceInfo         = nullptr; // Optional
 
-        if (ERROR (vkBeginCommandBuffer (handle, &beginInfo) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkBeginCommandBuffer (handle, &beginInfo) != VK_SUCCESS)) {
             throw std::runtime_error ("commandbuffer begin failed");
         }
     }
@@ -56,14 +56,14 @@ public:
 
     void End () const
     {
-        if (ERROR (vkEndCommandBuffer (handle) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkEndCommandBuffer (handle) != VK_SUCCESS)) {
             throw std::runtime_error ("commandbuffer end failed");
         }
     }
 
     void Reset (bool releaseResources = true) const
     {
-        if (ERROR (vkResetCommandBuffer (handle, (releaseResources) ? VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT : 0) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkResetCommandBuffer (handle, (releaseResources) ? VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT : 0) != VK_SUCCESS)) {
             throw std::runtime_error ("commandbuffer reset failed");
         }
     }

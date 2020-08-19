@@ -19,45 +19,19 @@ public:
 private:
     const VkDevice device;
     const size_t   allocationSize;
+    const uint32_t memoryTypeIndex;
     VkDeviceMemory handle;
 
 public:
     USING_CREATE (DeviceMemory);
 
-    DeviceMemory (VkDevice device, size_t allocationSize, uint32_t memoryTypeIndex)
-        : device (device)
-        , allocationSize (allocationSize)
-        , handle (VK_NULL_HANDLE)
-    {
-        VkMemoryAllocateInfo allocInfo = {};
-        allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize       = allocationSize;
-        allocInfo.memoryTypeIndex      = memoryTypeIndex;
+    DeviceMemory (VkDevice device, const size_t allocationSize, const uint32_t memoryTypeIndex);
 
-        if (ERROR (vkAllocateMemory (device, &allocInfo, nullptr, &handle) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to allocate memory");
-        }
+    DeviceMemory (VkDevice device, const Device::AllocateInfo allocateInfo);
 
-#if LOG_VULKAN_ALLOCATIONS
-        std::cout << "allocated " << allocationSize << " bytes (idx: " << memoryTypeIndex << ")" << std::endl;
-#endif
-    }
+    ~DeviceMemory ();
 
-    DeviceMemory (VkDevice device, Device::AllocateInfo allocateInfo)
-        : DeviceMemory (device, allocateInfo.size, allocateInfo.memoryTypeIndex)
-    {
-    }
-
-    ~DeviceMemory ()
-    {
-        vkFreeMemory (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
-    }
-
-    operator VkDeviceMemory () const
-    {
-        return handle;
-    }
+    operator VkDeviceMemory () const { return handle; }
 
     size_t GetSize () const { return allocationSize; }
 };

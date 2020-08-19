@@ -24,10 +24,10 @@ static void DebugBreak ()
 }
 
 
-void ShowAssertPopup (const std::string& title,
-                      const std::string& message,
-                      const std::string& sourceLocation,
-                      bool&              wasIgnored)
+static void ShowAssertPopup (const std::string& title,
+                             const std::string& message,
+                             const std::string& sourceLocation,
+                             bool&              wasIgnored)
 {
     static std::set<std::string> ignoredLocations;
 
@@ -64,23 +64,12 @@ void ShowAssertPopup (const std::string& title,
 }
 
 
-bool DebugAssertFunc (bool condition, const char* message, const char* conditionString, const SourceLocation& location)
+bool DebugAssertFunc (bool condition, const bool shouldBe, const char* message, const char* conditionString, const SourceLocation& location)
 {
-    if (!condition) {
+    if (condition != shouldBe) {
         const std::string assertLocation = location.ToString ();
         bool              ignored        = true;
         ShowAssertPopup (message, std::string (conditionString) + " is false", assertLocation, ignored);
-    }
-    return condition;
-}
-
-
-bool DebugErrorFunc (bool condition, const char* message, const char* conditionString, const SourceLocation& location)
-{
-    if (condition) {
-        const std::string assertLocation = location.ToString ();
-        bool              ignored        = true;
-        ShowAssertPopup (message, std::string (conditionString) + " is true", assertLocation, ignored);
     }
     return condition;
 }

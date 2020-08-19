@@ -75,7 +75,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
                 case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: return "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
                 case VK_PHYSICAL_DEVICE_TYPE_CPU: return "VK_PHYSICAL_DEVICE_TYPE_CPU";
                 default:
-                    ASSERT (false);
+                    GVK_ASSERT (false);
                     return "<unknown>";
             }
         };
@@ -115,7 +115,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
         swapchain = FakeSwapchain::Create (*deviceExtra, 512, 512);
     }
 
-#ifdef TESTENV_LOG_VERSION
+#ifdef LOG_VULKAN_INFO
     VkPhysicalDeviceProperties deviceProperties;
     vkGetPhysicalDeviceProperties (*physicalDevice, &deviceProperties);
 
@@ -131,7 +131,7 @@ VulkanEnvironment::~VulkanEnvironment ()
 }
 
 
-std::shared_ptr<VulkanObject> VulkanEnvironment::FindObject (const GearsVk::UUID& uuid)
+VulkanObjectP VulkanEnvironment::FindObject (const GearsVk::UUID& uuid)
 {
     for (const auto& objW : objects) {
         if (auto objS = objW.lock ()) {
@@ -144,7 +144,7 @@ std::shared_ptr<VulkanObject> VulkanEnvironment::FindObject (const GearsVk::UUID
 }
 
 
-void VulkanEnvironment::Register (const VulkanObjectP& obj)
+void VulkanEnvironment::RegisterObject (const VulkanObjectP& obj)
 {
     objects.push_back (obj);
 }

@@ -7,6 +7,7 @@
 
 namespace RG {
 
+
 USING_PTR (InputBinding);
 class InputBinding {
 public:
@@ -39,7 +40,7 @@ public:
         const std::vector<VkDescriptorBufferInfo> bufInfos = GetBufferInfos (frameIndex);
 
         size_t infosSize = imgInfos.size () + bufInfos.size ();
-        ASSERT (infosSize != 0);
+        GVK_ASSERT (infosSize != 0);
 
         VkWriteDescriptorSet result = {};
         result.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

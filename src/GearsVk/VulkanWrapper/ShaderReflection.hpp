@@ -108,7 +108,7 @@ struct Field final : public FieldProvider, public Noncopyable {
         }
 
         if (IsStruct ()) {
-            if (ERROR (structFields.empty ())) {
+            if (GVK_ERROR (structFields.empty ())) {
                 return 0;
             }
 
@@ -143,7 +143,7 @@ struct GEARSVK_API UBO final : public FieldProvider /*, public Noncopyable */ {
 
     uint32_t GetFullSize () const
     {
-        if (ERROR (fields.empty ())) {
+        if (GVK_ERROR (fields.empty ())) {
             return 0;
         }
 

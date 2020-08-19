@@ -152,7 +152,7 @@ int main (int, char**)
 
                             for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
                                 // TODO mappings are only available after compile
-                                ASSERT (uboRes.mappings[frameIndex]->GetSize () == uboData->GetSize ());
+                                GVK_ASSERT (uboRes.mappings[frameIndex]->GetSize () == uboData->GetSize ());
                                 copyOperations[frameIndex].push_back (CopyOperation {
                                     uboRes.mappings[frameIndex]->Get (),
                                     uboData->GetData (),
@@ -198,9 +198,9 @@ int main (int, char**)
     graph.Compile (s);
 
     if (false) {
-    RenderGraphUniformReflection r (graph, s);
-    float                        a                                        = 3.f;
-    r[brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["asd"] = a;
+        RenderGraphUniformReflection r (graph, s);
+        float                        a                                        = 3.f;
+        r[brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["asd"] = a;
     }
     matcap.CopyTransitionTransfer (ReadImage (PROJECT_ROOT / "src" / "VizHF" / "matcap.jpg", 4));
 

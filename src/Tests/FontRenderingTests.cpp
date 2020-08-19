@@ -18,10 +18,10 @@ TEST_F (FontRenderingTests, MSDFGEN)
     RG::GraphSettings s (device, 3, 512, 512);
     RG::RenderGraph   graph;
 
-    RG::WritableImageResource& outputImage = graph.CreateResource<RG::WritableImageResource> ();
-    RG::ReadOnlyImageResource& glyphs      = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R32G32B32A32_SFLOAT, 16, 16, 1, 512);
+    RG::WritableImageResourceP outputImage = graph.CreateResource<RG::WritableImageResource> ();
+    RG::ReadOnlyImageResourceP glyphs      = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R32G32B32A32_SFLOAT, 16, 16, 1, 512);
 
-    auto sp = ShaderPipeline::Create (device);
+    auto sp = ShaderPipeline::CreateShared (device);
 
     sp->SetVertexShaderFromString (R"(
 #version 450
@@ -30,12 +30,13 @@ TEST_F (FontRenderingTests, MSDFGEN)
 layout (location = 0) in vec2 position;
 layout (location = 1) in vec2 uv;
 layout (location = 2) in uint glyphIndex;
+layout (location = 3) in float test;
 
 layout (location = 0) out vec2 textureCoords;
 layout (location = 1) out uint glyphIdx;
 
 void main() {
-    gl_Position = vec4 (position, 0.0, 1.0);
+    gl_Position = vec4 (position, test, 1.0);
     textureCoords = uv;
     glyphIdx = glyphIndex;
 }
@@ -85,8 +86,9 @@ void main () {
         uint32_t  asd;
     };
 
-    VertexBufferTransferable<Vert> vbb (device, 4, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Uint});
-    vbb = std::vector<Vert> {
+    auto vbb = VertexBufferTransferable<Vert>::CreateShared (device, 512, std::vector<VkFormat> {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Uint}, VK_VERTEX_INPUT_RATE_VERTEX);
+
+    *vbb = std::vector<Vert> {
         {
             glm::vec2 (0.0f, 0.0f),
             glm::vec2 (0.f, 0.f),
@@ -108,17 +110,24 @@ void main () {
             6,
         },
     };
-    vbb.Flush ();
+    vbb->Flush ();
 
     IndexBufferTransferable ib (device, 6);
     ib.data = {0, 1, 2, 0, 3, 2};
     ib.Flush ();
 
-    RG::Operation& renderOp = graph.AddOperation (RG::RenderOperation::Create (DrawRecordableInfo::CreateShared (1, vbb, ib),
-                                                                               std::move (sp)));
+    auto instanceBuffer = VertexBufferTransferable<float>::CreateShared (device, 512, std::vector<VkFormat> {ShaderTypes::Float}, VK_VERTEX_INPUT_RATE_INSTANCE);
+    *instanceBuffer     = {0.f};
+    instanceBuffer->Flush ();
 
-    graph.CreateInputConnection<RG::ImageInputBinding> (renderOp, 0, glyphs);
-    graph.CreateOutputConnection (renderOp, 0, outputImage);
+    VertexBufferList vbs;
+    vbs.Add (vbb);
+    vbs.Add (instanceBuffer);
+
+    RG::OperationP renderOp = graph.CreateOperation<RG::RenderOperation> (DrawRecordableInfo::CreateShared (1, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
+
+    graph.CreateInputConnection (*renderOp, *glyphs, RG::ImageInputBinding::Create (0, *glyphs));
+    graph.CreateOutputConnection (*renderOp, 0, *outputImage);
 
     graph.Compile (s);
 
@@ -129,13 +138,13 @@ void main () {
         const std::vector<float> glyphData = arial.GetGlyphMTDF (16, 16, unicode).data;
         auto                     r         = RawImageData::FromDataFloat (glyphData, 16, 16, 4);
         r.SaveTo (ReferenceImagesFolder / "test.png");
-        glyphs.CopyLayer (glyphData, nextGlyphIndex++);
+        glyphs->CopyLayer (glyphData, nextGlyphIndex++);
     }
     for (uint32_t unicode = 'a'; unicode < 'z'; ++unicode) {
         const std::vector<float> glyphData = arial.GetGlyphMTDF (16, 16, unicode).data;
         auto                     r         = RawImageData::FromDataFloat (glyphData, 16, 16, 4);
         r.SaveTo (ReferenceImagesFolder / "test.png");
-        glyphs.CopyLayer (glyphData, nextGlyphIndex++);
+        glyphs->CopyLayer (glyphData, nextGlyphIndex++);
     }
 
     graph.Submit (0);
@@ -143,5 +152,5 @@ void main () {
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    EXPECT_TRUE (RawImageData (ReferenceImagesFolder / "G.png") == RawImageData (GetDeviceExtra (), *outputImage.GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+    EXPECT_TRUE (RawImageData (ReferenceImagesFolder / "G.png") == RawImageData (GetDeviceExtra (), *outputImage->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
 }

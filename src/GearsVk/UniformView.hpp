@@ -59,8 +59,8 @@ public:
     template<typename T>
     void operator= (T& other)
     {
-        ASSERT (type == Type::Variable);
-        ASSERT (sizeof (T) == size);
+        GVK_ASSERT (type == Type::Variable);
+        GVK_ASSERT (sizeof (T) == size);
 
 #ifndef NDEBUG
         std::cout << "setting uniform \"" << currentField->name << "\" (type: " << SR::FieldTypeToString (currentField->type)
@@ -78,8 +78,8 @@ public:
 
     UView operator[] (std::string_view str)
     {
-        ASSERT (type != Type::Array);
-        ASSERT (parentContainer != nullptr);
+        GVK_ASSERT (type != Type::Array);
+        GVK_ASSERT (parentContainer != nullptr);
 
         for (auto& f : parentContainer->GetFields ()) {
             if (str == f->name) {
@@ -94,10 +94,10 @@ public:
 
     UView operator[] (uint32_t index)
     {
-        ASSERT (type == Type::Array);
-        ASSERT (currentField != nullptr);
-        ASSERT (currentField->IsArray ());
-        ASSERT (index < currentField->arraySize);
+        GVK_ASSERT (type == Type::Array);
+        GVK_ASSERT (currentField != nullptr);
+        GVK_ASSERT (currentField->IsArray ());
+        GVK_ASSERT (index < currentField->arraySize);
 
         return UView (Type::Variable, data, index * currentField->arrayStride, size, parentContainer, currentField);
     }
@@ -130,7 +130,7 @@ public:
         , bytes (bytes)
         , size (size)
     {
-        ASSERT (ubo->GetFullSize () == size);
+        GVK_ASSERT (ubo->GetFullSize () == size);
         memset (bytes, 0, size);
     }
 

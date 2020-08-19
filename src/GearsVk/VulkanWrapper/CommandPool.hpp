@@ -26,7 +26,7 @@ public:
         commandPoolInfo.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         commandPoolInfo.queueFamilyIndex        = queueIndex;
         commandPoolInfo.flags                   = 0;
-        if (ERROR (vkCreateCommandPool (device, &commandPoolInfo, nullptr, &handle) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkCreateCommandPool (device, &commandPoolInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create commandpool");
         }
     }

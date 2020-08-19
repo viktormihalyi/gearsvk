@@ -48,7 +48,7 @@ private:
         // check if the required extensions are supported
         {
             const std::set<std::string> unsupportedExtensionSet = Utils::SetDiff (requiredExtensionSet, supportedExtensionSet);
-            if (ERROR (!unsupportedExtensionSet.empty ())) {
+            if (GVK_ERROR (!unsupportedExtensionSet.empty ())) {
                 throw std::runtime_error ("not all instance extensions are supported");
             }
         }
@@ -71,7 +71,7 @@ private:
         // check if the required validation layers are supported
         {
             const std::set<std::string> unsupportedValidationLayerSet = Utils::SetDiff (requiredValidationLayerSet, supportedValidationLayerSet);
-            if (ERROR (!unsupportedValidationLayerSet.empty ())) {
+            if (GVK_ERROR (!unsupportedValidationLayerSet.empty ())) {
                 throw std::runtime_error ("not all validation layers are supported");
             }
         }
@@ -95,7 +95,7 @@ private:
 
         VkInstance instance = VK_NULL_HANDLE;
         VkResult   result   = vkCreateInstance (&createInfo, nullptr, &instance);
-        if (ERROR (result != VK_SUCCESS)) {
+        if (GVK_ERROR (result != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create vulkan instance");
         }
 

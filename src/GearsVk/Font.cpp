@@ -18,7 +18,7 @@ static msdfgen::FontHandle* GetFont (const std::filesystem::path& fontFile)
     if (ft == nullptr) {
         ft = msdfgen::initializeFreetype ();
     }
-    if (ERROR (ft == nullptr)) {
+    if (GVK_ERROR (ft == nullptr)) {
         throw std::runtime_error ("failed to initialize freetype");
     }
 
@@ -29,7 +29,7 @@ static msdfgen::FontHandle* GetFont (const std::filesystem::path& fontFile)
     }
 
     msdfgen::FontHandle* font = msdfgen::loadFont (ft, fontFile.u8string ().c_str ());
-    if (ERROR (font == nullptr)) {
+    if (GVK_ERROR (font == nullptr)) {
         throw std::runtime_error ("failed to load font");
     }
 
@@ -72,18 +72,18 @@ Font::~Font ()
 
 static msdfgen::Shape LoadShape (msdfgen::FontHandle* font, uint32_t unicode)
 {
-    if (ERROR (font == nullptr)) {
+    if (GVK_ERROR (font == nullptr)) {
         throw std::runtime_error ("failed to load font");
     }
 
     msdfgen::Shape shape;
-    ASSERT (msdfgen::loadGlyph (shape, font, unicode));
+    GVK_ASSERT (msdfgen::loadGlyph (shape, font, unicode));
 
     shape.normalize ();
 
     msdfgen::edgeColoringSimple (shape, 3.0);
 
-    ASSERT (shape.validate ());
+    GVK_ASSERT (shape.validate ());
 
     shape.inverseYAxis = true;
 
@@ -94,7 +94,7 @@ static msdfgen::Shape LoadShape (msdfgen::FontHandle* font, uint32_t unicode)
 void Font::GetFontWhitespaceWidth (double& spaceAdvance, double& tabAdvance) const
 {
     const bool success = msdfgen::getFontWhitespaceWidth (spaceAdvance, tabAdvance, impl->fontHandle);
-    ASSERT (success);
+    GVK_ASSERT (success);
 }
 
 
@@ -103,7 +103,7 @@ double Font::GetKerning (uint32_t unicode1, uint32_t unicode2) const
     double result = 0.0;
 
     const bool success = msdfgen::getKerning (result, impl->fontHandle, unicode1, unicode2);
-    ASSERT (success);
+    GVK_ASSERT (success);
 
     return result;
 }
@@ -135,7 +135,7 @@ static void GetAutoFrame (const msdfgen::Shape::Bounds& bounds, uint32_t width, 
     if (l >= r || b >= t)
         l = 0, b = 0, r = 1, t = 1;
     if (frame.x <= 0 || frame.y <= 0)
-        ASSERT (false); // Cannot fit the specified pixel range
+        GVK_ASSERT (false); // Cannot fit the specified pixel range
     msdfgen::Vector2 dims (r - l, t - b);
 
     if (dims.x * frame.y < dims.y * frame.x) {

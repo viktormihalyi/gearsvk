@@ -52,7 +52,7 @@ private:
         std::ofstream ost;
         ost.open ("c:\\users\\viktor\\test.txt", std::ios::out | std::ios::app);
 
-        if (ERROR (ost.fail ()))
+        if (GVK_ERROR (ost.fail ()))
             return;
 
         ost << message << std::endl;
@@ -62,7 +62,7 @@ private:
 public:
     void ErrorImpl (const std::string& message) override
     {
-        AppendToFile (std::string ("[ERROR ") + GetCurrentTimeString () + "] " + message);
+        AppendToFile (std::string ("[GVK_ERROR ") + GetCurrentTimeString () + "] " + message);
     }
 
     void InfoImpl (const std::string& message) override
@@ -83,7 +83,7 @@ class ConsoleLogger final : public Logger {
 public:
     void ErrorImpl (const std::string& message) override
     {
-        std::cerr << "[ERROR " << GetCurrentTimeString () << "] " << message << std::endl;
+        std::cerr << "[GVK_ERROR " << GetCurrentTimeString () << "] " << message << std::endl;
     }
 
     void InfoImpl (const std::string& message) override

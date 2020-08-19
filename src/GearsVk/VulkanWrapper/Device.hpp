@@ -77,7 +77,7 @@ public:
         createInfo.ppEnabledExtensionNames = requestedDeviceExtensions.data ();
         createInfo.enabledLayerCount       = 0;
 
-        if (ERROR (vkCreateDevice (physicalDevice, &createInfo, nullptr, &handle) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkCreateDevice (physicalDevice, &createInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create device");
         }
     }

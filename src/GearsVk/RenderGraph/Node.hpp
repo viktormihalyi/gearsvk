@@ -21,7 +21,7 @@ private:
             if (ToType* casted = dynamic_cast<ToType*> (elem)) {
                 result.push_back (casted);
             } else {
-                ASSERT (true);
+                GVK_ASSERT (true);
             }
         }
         return result;

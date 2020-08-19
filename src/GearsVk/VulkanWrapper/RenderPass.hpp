@@ -32,7 +32,7 @@ public:
         renderPassInfo.dependencyCount        = static_cast<uint32_t> (subpassDependencies.size ());
         renderPassInfo.pDependencies          = subpassDependencies.data ();
 
-        if (ERROR (vkCreateRenderPass (device, &renderPassInfo, nullptr, &handle) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkCreateRenderPass (device, &renderPassInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create renderpass");
         }
     }

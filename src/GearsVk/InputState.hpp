@@ -6,7 +6,7 @@
 
 #include <array>
 
-//#define ASSERT_ON_KEYS ASSERT
+//#define ASSERT_ON_KEYS GVK_ASSERT
 #define ASSERT_ON_KEYS
 
 USING_PTR (KeyboardState);
@@ -43,7 +43,7 @@ public:
 
     void SetReleased (uint32_t index)
     {
-        if (ASSERT (index <= 1024)) {
+        if (GVK_ASSERT (index <= 1024)) {
             pressedKeys[index] = false;
         }
     }

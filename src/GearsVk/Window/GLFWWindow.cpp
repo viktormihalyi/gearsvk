@@ -25,7 +25,7 @@ public:
         if (!initialized) {
             initialized = true;
             int result  = glfwInit ();
-            ASSERT (result == GLFW_TRUE);
+            GVK_ASSERT (result == GLFW_TRUE);
         }
     }
 
@@ -57,7 +57,7 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     const bool useFullscreen = false;
     const bool hideMouse     = false;
 
-    ASSERT (glfwVulkanSupported () == GLFW_TRUE);
+    GVK_ASSERT (glfwVulkanSupported () == GLFW_TRUE);
 
     glfwWindowHint (GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint (GLFW_RESIZABLE, GLFW_TRUE);
@@ -78,7 +78,7 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
 
     float xscale, yscale;
     glfwGetMonitorContentScale (primaryMonitor, &xscale, &yscale);
-    ASSERT (xscale == 1.f && yscale == 1.f); // TODO handle different content scale (window size != framebuffer size)
+    GVK_ASSERT (xscale == 1.f && yscale == 1.f); // TODO handle different content scale (window size != framebuffer size)
 
     int virtual_xpos, virtual_ypos;
     glfwGetMonitorPos (primaryMonitor, &virtual_xpos, &virtual_ypos);
@@ -98,7 +98,7 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     }
 
     GLFWwindow* glfwWindow = glfwCreateWindow (width, height, "test", usedMonitor, nullptr);
-    if (ERROR (glfwWindow == nullptr)) {
+    if (GVK_ERROR (glfwWindow == nullptr)) {
         throw std::runtime_error ("failed to create window");
     }
 
@@ -233,7 +233,7 @@ float GLFWWindowBase::GetAspectRatio () const
 
 void GLFWWindowBase::DoEventLoop (const DrawCallback& drawCallback)
 {
-    if (ERROR (window == nullptr)) {
+    if (GVK_ERROR (window == nullptr)) {
         return;
     }
 
@@ -255,7 +255,7 @@ std::vector<const char*> GLFWWindowBase::GetExtensions () const
 {
     uint32_t     glfwExtensionCount = 0;
     const char** glfwExtensions     = glfwGetRequiredInstanceExtensions (&glfwExtensionCount);
-    ASSERT (glfwExtensionCount != 0);
+    GVK_ASSERT (glfwExtensionCount != 0);
 
     std::vector<const char*> result;
     for (uint32_t i = 0; i < glfwExtensionCount; ++i) {
@@ -267,7 +267,7 @@ std::vector<const char*> GLFWWindowBase::GetExtensions () const
 
 VkSurfaceKHR GLFWWindowBase::GetSurface (VkInstance instance)
 {
-    ASSERT (window != nullptr);
+    GVK_ASSERT (window != nullptr);
 
     if (surface != VK_NULL_HANDLE) {
         return surface;

@@ -25,7 +25,7 @@ public:
         VkFenceCreateInfo fenceInfo = {};
         fenceInfo.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
-        if (ERROR (vkCreateFence (device, &fenceInfo, nullptr, &handle) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkCreateFence (device, &fenceInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create fence");
         }
     }

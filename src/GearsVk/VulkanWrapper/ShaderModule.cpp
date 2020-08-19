@@ -190,7 +190,7 @@ static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSou
 static std::optional<std::vector<uint32_t>> CompileShaderFromFile (const std::filesystem::path& fileLocation)
 {
     std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
-    if (ERROR (!fileContents.has_value ())) {
+    if (GVK_ERROR (!fileContents.has_value ())) {
         return std::nullopt;
     }
 
@@ -206,7 +206,7 @@ static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<uin
     createInfo.pCode                    = reinterpret_cast<const uint32_t*> (binary.data ());
 
     VkShaderModule result = VK_NULL_HANDLE;
-    if (ERROR (vkCreateShaderModule (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
+    if (GVK_ERROR (vkCreateShaderModule (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create shader module");
     }
 
@@ -222,7 +222,7 @@ static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<cha
     createInfo.pCode                    = reinterpret_cast<const uint32_t*> (binary.data ());
 
     VkShaderModule result = VK_NULL_HANDLE;
-    if (ERROR (vkCreateShaderModule (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
+    if (GVK_ERROR (vkCreateShaderModule (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create shader module");
     }
 
@@ -245,7 +245,7 @@ ShaderModule::ShaderModule (ShaderModule::ShaderKind shaderKind, ReadMode readMo
 ShaderModuleU ShaderModule::CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation)
 {
     std::optional<std::vector<char>> binaryC = Utils::ReadBinaryFile (fileLocation);
-    if (ERROR (!binaryC.has_value ())) {
+    if (GVK_ERROR (!binaryC.has_value ())) {
         throw std::runtime_error ("failed to read shader");
     }
 
@@ -262,7 +262,7 @@ ShaderModuleU ShaderModule::CreateFromSPVFile (VkDevice device, ShaderKind shade
 ShaderModuleU ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation)
 {
     std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation);
-    if (ERROR (!binary.has_value ())) {
+    if (GVK_ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }
 
@@ -313,7 +313,7 @@ void ShaderModule::Reload ()
         vkDestroyShaderModule (device, handle, nullptr);
 
         std::optional<std::vector<uint32_t>> newBinary = CompileShaderFromFile (fileLocation);
-        if (ERROR (!newBinary.has_value ())) {
+        if (GVK_ERROR (!newBinary.has_value ())) {
             throw std::runtime_error ("failed to compile shader");
         }
 
@@ -325,7 +325,7 @@ void ShaderModule::Reload ()
         vkDestroyShaderModule (device, handle, nullptr);
 
         std::optional<std::vector<char>> binaryC = Utils::ReadBinaryFile (fileLocation);
-        if (ERROR (!binaryC.has_value ())) {
+        if (GVK_ERROR (!binaryC.has_value ())) {
             throw std::runtime_error ("failed to read shader");
         }
 
@@ -338,9 +338,9 @@ void ShaderModule::Reload ()
         reflection = Reflection (binary);
 
     } else if (readMode == ReadMode::GLSLString) {
-        BREAK ("cannot reload shaders from hard coded strings");
+        GVK_BREAK ("cannot reload shaders from hard coded strings");
 
     } else {
-        BREAK ("unknown read mode");
+        GVK_BREAK ("unknown read mode");
     }
 }

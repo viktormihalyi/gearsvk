@@ -62,5 +62,5 @@ static std::string GenerateUUID ()
 GearsVk::UUID::UUID ()
     : value (GenerateUUID ())
 {
-    ASSERT (value.size () == 36);
+    GVK_ASSERT (value.size () == 36);
 }

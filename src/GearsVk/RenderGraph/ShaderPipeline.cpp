@@ -14,7 +14,7 @@ ShaderPipeline::ShaderObject& ShaderPipeline::GetShaderByIndex (uint32_t index)
         case 4: return tessellationControlShader;
         case 5: return computeShader;
         default:
-            ASSERT (false);
+            GVK_ASSERT (false);
             throw std::runtime_error ("no");
     }
 }
@@ -34,7 +34,7 @@ ShaderPipeline::ShaderObject& ShaderPipeline::GetShaderByExtension (const std::s
         return computeShader;
     }
 
-    ERROR (true);
+    GVK_ERROR (true);
     throw std::runtime_error ("bad shader extension");
 }
 
@@ -50,7 +50,7 @@ ShaderPipeline::ShaderObject& ShaderPipeline::GetShaderByKind (ShaderModule::Sha
         case ShaderModule::ShaderKind::Compute: return computeShader;
     }
 
-    ERROR (true);
+    GVK_ERROR (true);
     throw std::runtime_error ("unknown shader kind");
 }
 
@@ -99,7 +99,7 @@ std::vector<VkPipelineShaderStageCreateInfo> ShaderPipeline::GetShaderStages () 
 
 void ShaderPipeline::SetShaderFromSourceString (ShaderModule::ShaderKind shaderKind, const std::string& source)
 {
-    ASSERT (GetShaderByKind (shaderKind).shader == nullptr);
+    GVK_ASSERT (GetShaderByKind (shaderKind).shader == nullptr);
     GetShaderByKind (shaderKind).Set (ShaderModule::CreateFromGLSLString (device, shaderKind, source));
 }
 
@@ -119,7 +119,7 @@ void ShaderPipeline::SetFragmentShaderFromString (const std::string& source)
 void ShaderPipeline::SetShaderFromSourceFile (const std::filesystem::path& shaderPath)
 {
     // assert on overwriting shader
-    ASSERT (GetShaderByExtension (shaderPath.extension ().u8string ()).shader == nullptr);
+    GVK_ASSERT (GetShaderByExtension (shaderPath.extension ().u8string ()).shader == nullptr);
 
     GetShaderByExtension (shaderPath.extension ().u8string ()).Set (ShaderModule::CreateFromGLSLFile (device, shaderPath));
 }
@@ -196,7 +196,7 @@ void ShaderPipeline::Reload ()
                     break;
 
                 default:
-                    ASSERT ("unknown shader read mode");
+                    GVK_ASSERT ("unknown shader read mode");
                     break;
             }
 

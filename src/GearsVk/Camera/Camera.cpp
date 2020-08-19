@@ -144,7 +144,7 @@ void Camera::Move (Camera::MovementDirection dir, float dt)
             break;
 
         default:
-            ASSERT (false);
+            GVK_ASSERT (false);
             break;
     }
 
@@ -165,7 +165,7 @@ void Camera::ProcessMouseInput (const glm::vec2& delta)
 void Camera::SetAspectRatio (float value)
 {
     PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
-    if (ERROR (f == nullptr)) {
+    if (GVK_ERROR (f == nullptr)) {
         return;
     }
 
@@ -178,7 +178,7 @@ void Camera::SetAspectRatio (float value)
 float Camera::GetBackPlane () const
 {
     PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
-    if (ERROR (f == nullptr)) {
+    if (GVK_ERROR (f == nullptr)) {
         return 0.f;
     }
 
@@ -189,7 +189,7 @@ float Camera::GetBackPlane () const
 float Camera::GetFrontPlane () const
 {
     PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
-    if (ERROR (f == nullptr)) {
+    if (GVK_ERROR (f == nullptr)) {
         return 0.f;
     }
 
@@ -200,7 +200,7 @@ float Camera::GetFrontPlane () const
 void Camera::SetFrontAndBackPlane (float front, float back)
 {
     PerspectiveFrustum* f = dynamic_cast<PerspectiveFrustum*> (frustum.get ());
-    if (ERROR (f == nullptr)) {
+    if (GVK_ERROR (f == nullptr)) {
         return;
     }
 

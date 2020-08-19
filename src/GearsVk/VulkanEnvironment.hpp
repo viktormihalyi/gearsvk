@@ -51,26 +51,9 @@ public:
 
     void Wait () const;
 
-    template<typename ObjectType, typename... ARGS>
-    std::shared_ptr<ObjectType> CreateRaw (ARGS&&... args)
-    {
-        auto result = ObjectType::CreateShared (std::forward<ARGS> (args)...);
-        Register (result);
-        return result;
-    }
+    VulkanObjectP FindObject (const GearsVk::UUID& uuid);
 
-    template<typename ObjectType, typename... ARGS>
-    std::shared_ptr<ObjectType> Create (ARGS&&... args)
-    {
-        auto result = ObjectType::CreateShared (*device, std::forward<ARGS> (args)...);
-        Register (result);
-        return result;
-    }
-
-    std::shared_ptr<VulkanObject> FindObject (const GearsVk::UUID& uuid);
-
-private:
-    void Register (const VulkanObjectP& obj);
+    void RegisterObject (const VulkanObjectP& obj);
 };
 
 

@@ -74,7 +74,7 @@ public:
     inline void Notify (ARGS... args) const
     {
         for (auto& ob : observers) {
-            ASSERT (ob != nullptr);
+            GVK_ASSERT (ob != nullptr);
             (*ob) (std::forward<ARGS> (args)...);
         }
     }
@@ -104,7 +104,7 @@ public:
 
     inline ObserverHandle operator+= (Callback f)
     {
-        ASSERT (f != nullptr);
+        GVK_ASSERT (f != nullptr);
         observers.push_back (f);
         return ObserverHandle (*this, reinterpret_cast<ObserverHandle::HandleType> (f.get ()));
     }

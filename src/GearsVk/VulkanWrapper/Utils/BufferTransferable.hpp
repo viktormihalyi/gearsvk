@@ -40,7 +40,7 @@ public:
 
     void CopyAndTransfer (const void* data, size_t size) const
     {
-        ASSERT (size == bufferSize);
+        GVK_ASSERT (size == bufferSize);
         bufferCPUMapping.Copy (data, size, 0);
         CopyBuffer (device, *bufferCPU.buffer, *bufferGPU.buffer, bufferSize);
     }
@@ -132,7 +132,7 @@ static uint32_t GetCompontentCountFromFormat (VkFormat format)
         case VK_FORMAT_R32G32B32_SFLOAT: return 12;
         case VK_FORMAT_R32G32B32A32_SFLOAT: return 16;
         default:
-            ASSERT (false);
+            GVK_ASSERT (false);
             return 4;
     }
 }
@@ -192,7 +192,10 @@ public:
     std::vector<VkVertexInputAttributeDescription> attributes;
     std::vector<VkVertexInputBindingDescription>   bindings;
 
-    VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats);
+    VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats, VkVertexInputRate inputRate);
+
+    std::vector<VkVertexInputAttributeDescription> GetAttributes (uint32_t nextLocation, uint32_t binding) const;
+    std::vector<VkVertexInputBindingDescription>   GetBindings (uint32_t binding) const;
 };
 
 
@@ -206,8 +209,8 @@ public:
 
     USING_CREATE (VertexBufferTransferableUntyped);
 
-    VertexBufferTransferableUntyped (const DeviceExtra& device, uint32_t vertexSize, uint32_t maxVertexCount, const std::vector<VkFormat>& vertexInputFormats)
-        : info (vertexInputFormats)
+    VertexBufferTransferableUntyped (const DeviceExtra& device, uint32_t vertexSize, uint32_t maxVertexCount, const std::vector<VkFormat>& vertexInputFormats, VkVertexInputRate inputRate)
+        : info (vertexInputFormats, inputRate)
         , buffer (device, info.size * maxVertexCount, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
         , vertexSize (vertexSize)
     {
@@ -237,15 +240,16 @@ public:
 
     VertexBufferTransferable (const DeviceExtra&           device,
                               uint32_t                     maxVertexCount,
-                              const std::vector<VkFormat>& vertexInputFormats)
-        : VertexBufferTransferableUntyped (device, sizeof (VertexType), maxVertexCount, vertexInputFormats)
+                              const std::vector<VkFormat>& vertexInputFormats,
+                              VkVertexInputRate            inputRate)
+        : VertexBufferTransferableUntyped (device, sizeof (VertexType), maxVertexCount, vertexInputFormats, inputRate)
     {
     }
 
     void operator= (const std::vector<VertexType>& copiedData)
     {
         const uint32_t copiedBytes = copiedData.size () * sizeof (VertexType);
-        ASSERT (copiedBytes <= data.size ());
+        GVK_ASSERT (copiedBytes <= data.size ());
         memcpy (data.data (), copiedData.data (), copiedBytes);
     }
 };
@@ -274,7 +278,7 @@ public:
 
     void operator= (const std::vector<uint16_t>& copiedData)
     {
-        ASSERT (copiedData.size () == data.size ());
+        GVK_ASSERT (copiedData.size () == data.size ());
         memcpy (data.data (), copiedData.data (), copiedData.size () * sizeof (IndexType));
     }
 

@@ -23,7 +23,7 @@ void ResourceVisitor::Visit (Resource& res)
     ADDVISITOR (UniformBlockResource, onUniformBlock)
     ADDVISITOR (UniformReflectionResource, onUniformReflection)
     {
-        BREAK ("unexpected resource type");
+        GVK_BREAK ("unexpected resource type");
         throw std::runtime_error ("unexpected resource type");
     }
 }

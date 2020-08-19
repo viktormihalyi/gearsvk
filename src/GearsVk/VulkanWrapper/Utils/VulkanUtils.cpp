@@ -137,7 +137,7 @@ std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t 
 
     unsigned char* imageData = stbi_load (filePath.u8string ().c_str (), &width, &height, &readComponents, components);
 
-    if (ERROR (imageData == nullptr)) {
+    if (GVK_ERROR (imageData == nullptr)) {
         throw std::runtime_error ("failed to load image");
     }
 
@@ -170,7 +170,7 @@ bool AreImagesEqual (const DeviceExtra& device, const ImageBase& image, const st
     std::vector<std::array<uint8_t, 4>> expected (pixelCount);
     int                                 expectedWidth, expectedHeight, expectedComponents;
     unsigned char*                      exepctedData = stbi_load (expectedImage.u8string ().c_str (), &expectedWidth, &expectedHeight, &expectedComponents, STBI_rgb_alpha);
-    if (ERROR (expectedWidth != width || expectedHeight != height || expectedComponents != 4)) {
+    if (GVK_ERROR (expectedWidth != width || expectedHeight != height || expectedComponents != 4)) {
         stbi_image_free (exepctedData);
         return false;
     }
@@ -251,7 +251,7 @@ RawImageData::RawImageData (const std::filesystem::path& path)
 
 RawImageData RawImageData::FromDataUint (const std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t components)
 {
-    ASSERT (data.size () == width * height * components);
+    GVK_ASSERT (data.size () == width * height * components);
 
     RawImageData result;
     result.data       = data;
@@ -293,7 +293,7 @@ bool RawImageData::operator== (const RawImageData& other) const
         return false;
     }
 
-    ASSERT (data.size () == other.data.size ());
+    GVK_ASSERT (data.size () == other.data.size ());
 
     return memcmp (data.data (), other.data.data (), data.size ()) == 0;
 }
@@ -301,7 +301,7 @@ bool RawImageData::operator== (const RawImageData& other) const
 
 uint32_t RawImageData::GetByteCount () const
 {
-    ASSERT (data.size () == width * height * components);
+    GVK_ASSERT (data.size () == width * height * components);
     return data.size ();
 }
 

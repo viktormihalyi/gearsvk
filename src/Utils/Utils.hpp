@@ -82,7 +82,7 @@ std::vector<DestinationType> ConvertToHandles (const std::vector<std::unique_ptr
     std::vector<DestinationType> result;
     result.reserve (src.size ());
     for (const std::unique_ptr<SourceType>& s : src) {
-        ASSERT (s != nullptr);
+        GVK_ASSERT (s != nullptr);
         result.push_back (static_cast<DestinationType> (*s));
     }
     return result;
@@ -95,7 +95,7 @@ std::vector<DestinationType> ConvertToHandles (const std::vector<std::shared_ptr
     std::vector<DestinationType> result;
     result.reserve (src.size ());
     for (const std::shared_ptr<SourceType>& s : src) {
-        ASSERT (s != nullptr);
+        GVK_ASSERT (s != nullptr);
         result.push_back (static_cast<DestinationType> (*s));
     }
     return result;

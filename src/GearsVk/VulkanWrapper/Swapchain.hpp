@@ -161,7 +161,7 @@ public:
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override
     {
-        ASSERT (signalSemaphore == VK_NULL_HANDLE);
+        GVK_ASSERT (signalSemaphore == VK_NULL_HANDLE);
         return 0;
     }
 

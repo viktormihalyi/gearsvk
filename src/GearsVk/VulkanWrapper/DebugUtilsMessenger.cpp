@@ -31,7 +31,7 @@ static VkResult CreateDebugUtilsMessengerEXT (VkInstance                        
                                               VkDebugUtilsMessengerEXT*                 pDebugMessenger)
 {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr (instance, "vkCreateDebugUtilsMessengerEXT");
-    if (ASSERT (func)) {
+    if (GVK_VERIFY (func)) {
         return func (instance, pCreateInfo, pAllocator, pDebugMessenger);
     } else {
         return VK_ERROR_EXTENSION_NOT_PRESENT;
@@ -44,7 +44,7 @@ static void DestroyDebugUtilsMessengerEXT (VkInstance                   instance
                                            const VkAllocationCallbacks* pAllocator)
 {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr (instance, "vkDestroyDebugUtilsMessengerEXT");
-    if (ASSERT (func != nullptr)) {
+    if (GVK_VERIFY (func != nullptr)) {
         func (instance, debugMessenger, pAllocator);
     }
 }
@@ -56,7 +56,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsMessenger::debugCallback (
     const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
     void*                                       userData)
 {
-    if (ASSERT (userData != nullptr)) {
+    if (GVK_VERIFY (userData != nullptr)) {
         reinterpret_cast<DebugUtilsMessenger*> (userData)->callback (messageSeverity, messageType, callbackData);
     }
 
@@ -87,7 +87,7 @@ DebugUtilsMessenger::DebugUtilsMessenger (VkInstance instance, const Callback& c
     createInfo.pUserData       = this;
 
     VkResult result = CreateDebugUtilsMessengerEXT (instance, &createInfo, nullptr, &handle);
-    if (result != VK_SUCCESS) {
+    if (GVK_ERROR (result != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create debug utils messenger");
     }
 }

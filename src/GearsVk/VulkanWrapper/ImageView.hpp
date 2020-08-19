@@ -42,7 +42,7 @@ public:
         createInfo.subresourceRange.layerCount     = layerCount;
 
         VkResult result = vkCreateImageView (device, &createInfo, nullptr, &handle);
-        if (ERROR (result != VK_SUCCESS)) {
+        if (GVK_ERROR (result != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create swapchain image views");
         }
     }

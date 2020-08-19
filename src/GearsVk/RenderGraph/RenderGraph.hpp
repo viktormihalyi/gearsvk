@@ -65,13 +65,13 @@ public:
 
     virtual uint32_t GetCommandBufferIndex (uint32_t operationIndex) override
     {
-        ASSERT (operationIndex < operationCount);
+        GVK_ASSERT (operationIndex < operationCount);
         return 0;
     }
 
     virtual std::vector<uint32_t> GetOperationIndices (uint32_t commandBufferIndex)
     {
-        ASSERT (commandBufferIndex == 0);
+        GVK_ASSERT (commandBufferIndex == 0);
 
         std::vector<uint32_t> result;
         for (uint32_t i = 0; i < operationCount; ++i) {
@@ -95,7 +95,7 @@ public:
 
     virtual uint32_t GetCommandBufferIndex (uint32_t operationIndex) override
     {
-        ASSERT (operationIndex < operationCount);
+        GVK_ASSERT (operationIndex < operationCount);
         return operationIndex;
     }
 
@@ -228,47 +228,38 @@ private:
     GraphSettings          compileSettings;
     CompileResultProviderU compileResult;
 
-    std::vector<ResourceU> resources;
+    std::vector<ResourceP> resources;
 
 public: // TODO
-    std::vector<OperationU> operations;
+    std::vector<OperationP> operations;
 
 public:
     USING_CREATE (RenderGraph);
 
     RenderGraph ();
 
-    Resource&  AddResource (ResourceU&& resource);
-    Operation& AddOperation (OperationU&& resource);
+    ResourceP  AddResource (ResourceP resource);
+    OperationP AddOperation (OperationP operation);
 
 
     template<typename ResourceType, typename... ARGS>
-    ResourceType& CreateResource (ARGS&&... args)
+    std::shared_ptr<ResourceType> CreateResource (ARGS&&... args)
     {
-        compiled = false;
-
-        resources.emplace_back (std::move (ResourceType::Create (std::forward<ARGS> (args)...)));
-        return static_cast<ResourceType&> (*resources[resources.size () - 1]);
+        auto newRes = ResourceType::CreateShared (std::forward<ARGS> (args)...);
+        AddResource (newRes);
+        return newRes;
     }
 
     template<typename OperationType, typename... ARGS>
-    OperationType& CreateOperation (ARGS&&... args)
+    std::shared_ptr<OperationType> CreateOperation (ARGS&&... args)
     {
-        compiled = false;
-
-        operations.push_back (std::move (OperationType::Create (std::forward<ARGS> (args)...)));
-        return static_cast<OperationType&> (*operations[operations.size () - 1]);
+        auto newOp = OperationType::CreateShared (std::forward<ARGS> (args)...);
+        AddOperation (newOp);
+        return newOp;
     }
 
-    template<typename ConnectionType, typename ResourceType, typename... ARGS>
-    void CreateInputConnection (Operation& op, uint32_t binding, ResourceType& res, ARGS&&... args)
-    {
-        compiled = false;
 
-        res.AddConnectionTo (op);
-        op.inputBindings.push_back (std::move (ConnectionType::Create (binding, res, std::forward<ARGS> (args)...)));
-    }
-
+    void CreateInputConnection (Operation& op, Resource& res, InputBindingU&& conn);
     void CreateOutputConnection (Operation& operation, uint32_t binding, ImageResource& resource);
 
     void CompileResources (const GraphSettings& settings);
@@ -278,7 +269,7 @@ public:
 
     void Present (uint32_t imageIndex, Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores = {})
     {
-        ASSERT (swapchain.SupportsPresenting ());
+        GVK_ASSERT (swapchain.SupportsPresenting ());
         // TODO itt present queue kene
         swapchain.Present (compileSettings.GetDevice ().GetGraphicsQueue (), imageIndex, waitSemaphores);
     }

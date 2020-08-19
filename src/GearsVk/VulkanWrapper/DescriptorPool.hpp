@@ -28,7 +28,7 @@ public:
         if (descriptorCountSampler > 0)
             poolSizes.push_back ({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler});
 
-        if (ERROR (poolSizes.empty ())) {
+        if (GVK_ERROR (poolSizes.empty ())) {
             throw std::runtime_error ("empty pool");
         }
 
@@ -38,7 +38,7 @@ public:
         poolInfo.pPoolSizes                 = poolSizes.data ();
         poolInfo.maxSets                    = maxSets;
 
-        if (ERROR (vkCreateDescriptorPool (device, &poolInfo, nullptr, &handle) != VK_SUCCESS)) {
+        if (GVK_ERROR (vkCreateDescriptorPool (device, &poolInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create descriptor pool");
         }
     }

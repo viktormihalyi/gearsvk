@@ -4,9 +4,15 @@
 namespace RG {
 
 
+void Operation::AddInput (InputBindingU&& inputBinding)
+{
+    inputBindings.push_back (std::move (inputBinding));
+}
+
+
 void Operation::AddOutput (const uint32_t binding, const ImageResourceRef& res)
 {
-    ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
+    GVK_ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
 
     for (uint32_t bindingIndex = binding; bindingIndex < binding + res.get ().GetDescriptorCount (); ++bindingIndex) {
         outputBindings.push_back (OutputBinding (bindingIndex, res.get ().GetFormat (), res.get ().GetFinalLayout ()));
@@ -107,9 +113,9 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
     const auto attachmentDescriptions = GetAttachmentDescriptions ();
 
     if constexpr (IsDebugBuild) {
-        ASSERT (attachmentReferences.size () == attachmentDescriptions.size ());
+        GVK_ASSERT (attachmentReferences.size () == attachmentDescriptions.size ());
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            ASSERT (attachmentReferences.size () == GetOutputImageViews (frameIndex).size ());
+            GVK_ASSERT (attachmentReferences.size () == GetOutputImageViews (frameIndex).size ());
         }
     }
 

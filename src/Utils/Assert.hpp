@@ -8,18 +8,20 @@
 #include "SourceLocation.hpp"
 
 #ifndef NDEBUG
-#define ASSERT(condition) (::Utils::detail::DebugAssertFunc (condition, "ASSERTION", #condition, {__FILE__, __LINE__, __func__}))
-#define ERROR(condition) (::Utils::detail::DebugErrorFunc (condition, "ERROR", #condition, {__FILE__, __LINE__, __func__}))
-#define BREAK(message) (::Utils::detail::DebugErrorFunc (true, "BREAK", message, {__FILE__, __LINE__, __func__}))
+#define GVK_ASSERT(condition) (::Utils::detail::DebugAssertFunc (condition, true, "ASSERTION", #condition, {__FILE__, __LINE__, __func__}))
+#define GVK_VERIFY(condition) (::Utils::detail::DebugAssertFunc (condition, true, "ASSERTION", #condition, {__FILE__, __LINE__, __func__}))
+#define GVK_ERROR(condition) (::Utils::detail::DebugAssertFunc (condition, false, "GVK_ERROR", #condition, {__FILE__, __LINE__, __func__}))
+#define GVK_BREAK(message) (::Utils::detail::DebugAssertFunc (true, false, "BREAK", message, {__FILE__, __LINE__, __func__}))
 #else
-#define ASSERT(condition) ((bool)(condition))
-#define ERROR(condition) ((bool)(condition))
-#define BREAK(message) (message)
+#define GVK_ASSERT(condition)
+#define GVK_VERIFY(condition) ((bool)(condition))
+#define GVK_ERROR(condition) ((bool)(condition))
+#define GVK_BREAK(message)
 #endif
 
 
 #define GVK_ASSERT_THROW(cond)                            \
-    if (ERROR (!(cond))) {                                \
+    if (GVK_ERROR (!(cond))) {                            \
         throw std::runtime_error ("precondition failed"); \
     }                                                     \
     (void)0
@@ -29,16 +31,7 @@ namespace Utils {
 namespace detail {
 
 GVK_UTILS_API
-bool DebugAssertFunc (bool condition, const char* message, const char* conditionString, const SourceLocation& location);
-
-GVK_UTILS_API
-bool DebugErrorFunc (bool condition, const char* message, const char* conditionString, const SourceLocation& location);
-
-GVK_UTILS_API
-void ShowAssertPopup (const std::string& title,
-                      const std::string& message,
-                      const std::string& sourceLocation,
-                      bool&              wasIgnored);
+bool DebugAssertFunc (const bool condition, const bool shouldBe, const char* message, const char* conditionString, const SourceLocation& location);
 
 } // namespace detail
 

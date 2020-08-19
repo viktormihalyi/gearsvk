@@ -109,10 +109,10 @@ private:
     }
 
 #define DEC(DecorName) \
-    DecorName (GetDecor (compiler, resId, spv::Decoration##DecorName ))
+    DecorName (GetDecor (compiler, resId, spv::Decoration##DecorName))
 
 #define MDEC(DecorName) \
-    DecorName (GetMemberDecor (compiler, resId, spv::Decoration##DecorName , memberIdx))
+    DecorName (GetMemberDecor (compiler, resId, spv::Decoration##DecorName, memberIdx))
 
 public:
     AllDecorations (const spirv_cross::Compiler& compiler, const spirv_cross::SPIRType& type)
@@ -497,7 +497,7 @@ static SR::FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b,
             return SR::FieldType::Struct;
 
         default:
-            ASSERT (false);
+            GVK_ASSERT (false);
             return SR::FieldType::Unknown;
     }
 }
@@ -544,7 +544,7 @@ std::vector<UBOP> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
 
         // using arrays on ubos will create seperate bindings,
         // eg. array of 4 on binding 2 will create 4 different bindings: 2, 3, 4, 5
-        ASSERT (arraySize == 0);
+        GVK_ASSERT (arraySize == 0);
 
         SR::UBOP root       = SR::UBO::Create ();
         root->name          = resource.name;
@@ -553,7 +553,7 @@ std::vector<UBOP> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
 
         IterateTypeTree (compiler, resource.base_type_id, root->fields);
 
-        ASSERT (compiler.get_declared_struct_size (compiler.get_type (resource.base_type_id)) == root->GetFullSize ());
+        GVK_ASSERT (compiler.get_declared_struct_size (compiler.get_type (resource.base_type_id)) == root->GetFullSize ());
 
         ubos.push_back (root);
     }
@@ -571,7 +571,7 @@ static SR::Sampler::Type SpvDimToSamplerType (spv::Dim dim)
         case spv::Dim::DimCube: return SR::Sampler::Type::SamplerCube;
 
         default:
-            ASSERT (false);
+            GVK_ASSERT (false);
             throw std::runtime_error ("not supported type");
     }
 }
@@ -606,7 +606,7 @@ std::vector<Sampler> GetSamplersFromBinary (const std::vector<uint32_t>& binary)
     case enumname::type:                    \
         return #type;
 #define ENUM_TO_STRING_DEFAULT(enumname) \
-    default: ASSERT (false); return #enumname "::[unknown]";
+    default: GVK_ASSERT (false); return #enumname "::[unknown]";
 
 
 std::string FieldTypeToString (FieldType fieldType)

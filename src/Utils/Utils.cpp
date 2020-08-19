@@ -10,38 +10,6 @@
 
 namespace Utils {
 
-inline bool PLSfunc (bool condition, const SourceLocation& srcLoc)
-{
-    if constexpr (IsDebugBuild) {
-        if (!condition) {
-            Utils::detail::ShowAssertPopup ("PLS failed", "here", srcLoc.ToString (), dummy<bool>);
-        }
-    }
-    return condition;
-}
-
-inline bool PLSNOfunc (bool condition, const SourceLocation& srcLoc)
-{
-    if constexpr (IsDebugBuild) {
-        if (condition) {
-            Utils::detail::ShowAssertPopup ("PLSNO failed", "here", srcLoc.ToString (), dummy<bool>);
-        }
-    }
-    return condition;
-}
-
-#define CURRENTSRCLOC \
-    SourceLocation { __FILE__, __LINE__, __func__ }
-
-#define PLS(cond) PLSfunc (cond, CURRENTSRCLOC)
-#define PLSNO(cond) PLSfunc (cond, CURRENTSRCLOC)
-
-void Test ()
-{
-    if (PLSNO (false)) {
-    }
-}
-
 std::filesystem::path GetProjectRoot ()
 {
 #ifdef PROJECT_ROOT_FULL_PATH
@@ -56,7 +24,7 @@ std::filesystem::path GetProjectRoot ()
 template<typename T>
 static T ReadOpenedFile (std::ifstream& file)
 {
-    if (ERROR (!file.is_open ())) {
+    if (GVK_ERROR (!file.is_open ())) {
         return T ();
     }
 
@@ -113,7 +81,7 @@ static std::optional<T> OpenAndReadFile (const std::filesystem::path& filePath)
 
     T result = ReadOpenedFile<T> (file);
 
-    if (ERROR (file.fail ())) {
+    if (GVK_ERROR (file.fail ())) {
         return std::nullopt;
     }
 
@@ -140,7 +108,7 @@ std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem:
         return std::nullopt;
     }
 
-    ASSERT (readResult->size () % 4 == 0);
+    GVK_ASSERT (readResult->size () % 4 == 0);
     uint32_t binarySize = readResult->size () / 4;
     while (binarySize % 4 != 0) {
         ++binarySize;

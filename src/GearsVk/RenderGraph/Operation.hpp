@@ -19,6 +19,8 @@ namespace RG {
 
 USING_PTR (Operation);
 struct GEARSVK_API Operation : public Node {
+    USING_CREATE (Operation);
+
     std::vector<InputBindingU> inputBindings;
     std::vector<OutputBinding> outputBindings;
 
@@ -27,6 +29,7 @@ struct GEARSVK_API Operation : public Node {
     virtual void Compile (const GraphSettings&)                              = 0;
     virtual void Record (uint32_t frameIndex, VkCommandBuffer commandBuffer) = 0;
 
+    void AddInput (InputBindingU&& inputBinding);
     void AddOutput (uint32_t binding, const ImageResourceRef& res);
 
     std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const;
@@ -35,7 +38,6 @@ struct GEARSVK_API Operation : public Node {
 };
 
 USING_PTR (RenderOperation);
-
 struct GEARSVK_API RenderOperation : public Operation {
     USING_CREATE (RenderOperation);
 

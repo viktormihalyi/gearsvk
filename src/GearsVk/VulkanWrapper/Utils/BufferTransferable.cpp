@@ -39,7 +39,7 @@ static ShaderType GetShaderTypeFromFormat (VkFormat format)
 }
 
 
-VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats)
+VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats, VkVertexInputRate inputRate)
     : size (0)
 {
     uint32_t location = 0;
@@ -66,7 +66,28 @@ VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormat
     bindingDescription           = {};
     bindingDescription.binding   = 0;
     bindingDescription.stride    = size;
-    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    bindingDescription.inputRate = inputRate;
 
     bindings = {bindingDescription};
+}
+
+
+std::vector<VkVertexInputAttributeDescription> VertexInputInfo::GetAttributes (uint32_t firstLocation, uint32_t binding) const
+{
+    std::vector<VkVertexInputAttributeDescription> result = attributes;
+    for (auto& a : result) {
+        a.location += firstLocation;
+        a.binding = binding;
+    }
+    return result;
+}
+
+
+std::vector<VkVertexInputBindingDescription> VertexInputInfo::GetBindings (uint32_t binding) const
+{
+    std::vector<VkVertexInputBindingDescription> result = bindings;
+    for (auto& a : result) {
+        a.binding = binding;
+    }
+    return result;
 }

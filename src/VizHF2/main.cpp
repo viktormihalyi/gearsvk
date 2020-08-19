@@ -117,20 +117,20 @@ int main (int, char**)
         ShadersFolder / "quadric.frag",
     });
 
-    RG::RenderOperation& brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (deviceExtra), sp);
+    RG::RenderOperationP brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (deviceExtra), sp);
 
     // ========================= GRAPH RESOURCES =========================
 
-    RG::SwapchainImageResource&    presented = graph.CreateResource<RG::SwapchainImageResource> (swapchain);
-    RG::UniformReflectionResource& refl      = graph.CreateResource<RG::UniformReflectionResource> (sp, RG::UniformReflectionResource::Strategy::UniformBlocksOnly);
+    RG::SwapchainImageResourceP    presented = graph.CreateResource<RG::SwapchainImageResource> (swapchain);
+    RG::UniformReflectionResourceP refl      = graph.CreateResource<RG::UniformReflectionResource> (sp, RG::UniformReflectionResource::Strategy::UniformBlocksOnly);
 
 
     // ========================= GRAPH CONNECTIONS =========================
 
-    for (uint32_t i = 0; i < refl.uboRes.size (); ++i) {
-        graph.CreateInputConnection<RG::UniformInputBinding> (brainRenderOp, refl.bindings[i], *refl.uboRes[i]);
+    for (uint32_t i = 0; i < refl->uboRes.size (); ++i) {
+        graph.CreateInputConnection<RG::UniformInputBinding> (*brainRenderOp, refl->bindings[i], *refl->uboRes[i]);
     }
-    graph.CreateOutputConnection (brainRenderOp, 0, presented);
+    graph.CreateOutputConnection (*brainRenderOp, 0, *presented);
 
 
     // ========================= GRAPH COMPILE =========================
@@ -158,8 +158,8 @@ int main (int, char**)
         }
     };
 
-    refl.vert["Camera"]["VP"] = glm::mat4 (1.f);
-    refl.frag["Camera"]["VP"] = glm::mat4 (1.f);
+    refl->vert["Camera"]["VP"] = glm::mat4 (1.f);
+    refl->frag["Camera"]["VP"] = glm::mat4 (1.f);
 
     enum class QuadricSurfaceType : uint32_t {
         Diffuse = 0,
@@ -272,8 +272,8 @@ int main (int, char**)
         lights[3].powerDensity = glm::vec4 (187 / 255.f, 143 / 255.f, 206 / 255.f, 0) * 100.f;
     }
 
-    refl.frag["Quadrics"] = quadrics;
-    refl.frag["Lights"]   = lights;
+    refl->frag["Quadrics"] = quadrics;
+    refl->frag["Lights"]   = lights;
 
 
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
@@ -284,18 +284,18 @@ int main (int, char**)
         cameraControl.UpdatePosition (dt);
 
         {
-            refl.vert["Camera"]["viewMatrix"]   = c.GetViewMatrix ();
-            refl.vert["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
-            refl.vert["Camera"]["camPosition"]  = c.GetPosition ();
-            refl.vert["Camera"]["viewDir"]      = c.GetViewDirection ();
+            refl->vert["Camera"]["viewMatrix"]   = c.GetViewMatrix ();
+            refl->vert["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
+            refl->vert["Camera"]["camPosition"]  = c.GetPosition ();
+            refl->vert["Camera"]["viewDir"]      = c.GetViewDirection ();
 
-            refl.frag["Camera"]["viewMatrix"]   = c.GetViewMatrix ();
-            refl.frag["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
-            refl.frag["Camera"]["position"]     = c.GetPosition ();
-            refl.frag["Camera"]["viewDir"]      = c.GetViewDirection ();
+            refl->frag["Camera"]["viewMatrix"]   = c.GetViewMatrix ();
+            refl->frag["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
+            refl->frag["Camera"]["position"]     = c.GetPosition ();
+            refl->frag["Camera"]["viewDir"]      = c.GetViewDirection ();
         }
 
-        refl.Update (frameIndex);
+        refl->Update (frameIndex);
     };
 
     window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] { return quit; }));

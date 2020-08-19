@@ -60,6 +60,9 @@ set (MSDFGEN_BUILD_MSDFGEN_STANDALONE OFF CACHE BOOL "" FORCE)
 add_subdirectory (external/msdfgen)
 # ============================================================
 
+set (GVK_UTILS_PUBLIC_HEADERS
+    Assert.hpp
+)
 
 set (GEARSVK_INCLUDE_FOLDERS
     src/GearsVk
@@ -100,6 +103,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/VulkanWrapper/Pipeline.cpp
     src/GearsVk/VulkanWrapper/ShaderReflection.cpp
     src/GearsVk/VulkanWrapper/Sampler.cpp
+    src/GearsVk/VulkanWrapper/DeviceMemory.cpp
 
     src/GearsVk/Camera/Frustum.cpp
     src/GearsVk/Camera/Camera.cpp
