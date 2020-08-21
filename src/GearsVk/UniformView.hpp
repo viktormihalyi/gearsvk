@@ -34,6 +34,8 @@ private:
     const SR::FieldProviderP parentContainer;
     const SR::FieldP         currentField;
 
+    static const UView invalidUview;
+
 public:
     USING_CREATE (UView);
     UView (Type                      type,
@@ -59,6 +61,10 @@ public:
     template<typename T>
     void operator= (T& other)
     {
+        if (GVK_ERROR (data == nullptr)) {
+            return;
+        }
+
         GVK_ASSERT (type == Type::Variable);
         GVK_ASSERT (sizeof (T) == size);
 
@@ -78,6 +84,10 @@ public:
 
     UView operator[] (std::string_view str)
     {
+        if (GVK_ERROR (data == nullptr)) {
+            return invalidUview;
+        }
+
         GVK_ASSERT (type != Type::Array);
         GVK_ASSERT (parentContainer != nullptr);
 
@@ -90,10 +100,16 @@ public:
                 }
             }
         }
+
+        return invalidUview;
     }
 
     UView operator[] (uint32_t index)
     {
+        if (GVK_ERROR (data == nullptr)) {
+            return invalidUview;
+        }
+
         GVK_ASSERT (type == Type::Array);
         GVK_ASSERT (currentField != nullptr);
         GVK_ASSERT (currentField->IsArray ());
@@ -102,6 +118,9 @@ public:
         return UView (Type::Variable, data, index * currentField->arrayStride, size, parentContainer, currentField);
     }
 };
+
+
+const UView UView::invalidUview (UView::Type::Variable, nullptr, 0, 0, nullptr, nullptr);
 
 
 // view to a single UBO + properly sized byte array for it
