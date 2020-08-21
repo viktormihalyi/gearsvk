@@ -59,7 +59,7 @@ public:
     }
 
     template<typename T>
-    void operator= (T& other)
+    void operator= (const T& other)
     {
         if (GVK_ERROR (data == nullptr)) {
             return;

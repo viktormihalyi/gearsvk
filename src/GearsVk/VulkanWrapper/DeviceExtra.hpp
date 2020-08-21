@@ -36,8 +36,6 @@ public:
     Queue&       GetGraphicsQueue () { return graphicsQueue; }
     Queue&       GetPresentationQueue () { return presentationQueue; }
 
-    operator Device& () { return device; }
-
     // implementing Device
     virtual              operator VkDevice () const override { return device; }
     virtual void         Wait () const override { device.Wait (); }

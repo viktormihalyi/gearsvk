@@ -8,8 +8,6 @@ freetype/2.10.2
 spirv-cross/20200519
 spirv-tools/v2020.3
 glslang/8.13.3559
-ncurses/6.2
-websocketpp/0.8.2
 
 [generators]
 cmake
