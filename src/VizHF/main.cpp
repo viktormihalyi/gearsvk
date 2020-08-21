@@ -28,6 +28,7 @@
 
 #include <array>
 #include <cstdint>
+#include <filesytem>
 #include <iostream>
 #include <iterator>
 #include <memory>
