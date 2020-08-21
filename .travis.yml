@@ -28,6 +28,6 @@ before_install:
 script:
   - mkdir build
   - cd build
-  - conan install .. --build=missing --profile ./conanProfileTravis
+  - conan install .. --build=missing --profile ../conanProfileTravis
   - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.6
   - make VERBOSE=1
