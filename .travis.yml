@@ -12,6 +12,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
+      - build-essential
       - libstdc++-9-dev
       - g++-9
       
