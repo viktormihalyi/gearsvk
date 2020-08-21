@@ -5,15 +5,15 @@ compiler: gcc
 os: linux
 dist: bionic
 
-env: CXX=g++-9
+env: CXX=g++-8
 
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - libstdc++-9-dev
-      - g++-9
+      - libstdc++-8-dev
+      - g++-8
       
 before_install:
   - wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
@@ -26,10 +26,10 @@ before_install:
 
 
 script:
-  - export CC=/usr/bin/gcc-9
-  - export CXX=/usr/bin/g++-9
+  - export CC=/usr/bin/gcc-8
+  - export CXX=/usr/bin/g++-8
   - mkdir build
   - cd build
-  - conan install .. --build=missing --profile ../conanProfileTravis
+  - conan install .. --build=missing
   - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.6
   - make VERBOSE=1
