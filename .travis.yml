@@ -5,15 +5,15 @@ compiler: gcc
 os: linux
 dist: bionic
 
-env: CXX=g++-8
+env: CXX=g++-9
 
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - libstdc++-8-dev
-      - g++-8
+      - libstdc++-9-dev
+      - g++-9
       
 before_install:
   - wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
@@ -26,8 +26,8 @@ before_install:
 
 
 script:
-  - export CC=/usr/bin/gcc-8
-  - export CXX=/usr/bin/g++-8
+  - export CC=/usr/bin/gcc-9
+  - export CXX=/usr/bin/g++-9
   - mkdir build
   - cd build
   - conan profile new default --detect
