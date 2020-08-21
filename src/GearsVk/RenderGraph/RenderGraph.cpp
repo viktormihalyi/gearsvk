@@ -1,5 +1,6 @@
 #include "RenderGraph.hpp"
 
+#include "RenderGraphCompileResult.hpp"
 
 namespace RG {
 
@@ -232,6 +233,15 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
     result.pSignalSemaphores    = signalSemaphores.data ();
 
     vkQueueSubmit (compileSettings.GetDevice ().GetGraphicsQueue (), 1, &result, fenceToSignal);
+}
+
+
+void RenderGraph::Present (uint32_t imageIndex, Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores)
+{
+    GVK_ASSERT (swapchain.SupportsPresenting ());
+
+    // TODO itt present queue kene
+    swapchain.Present (compileSettings.GetDevice ().GetGraphicsQueue (), imageIndex, waitSemaphores);
 }
 
 } // namespace RG

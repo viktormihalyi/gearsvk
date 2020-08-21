@@ -4,11 +4,28 @@
 
 #include <memory>
 
-#define USING_PTR(classname)                           \
-    class classname;                                   \
-    using classname##U   = std::unique_ptr<classname>; \
-    using classname##P   = std::shared_ptr<classname>; \
-    using classname##W   = std::weak_ptr<classname>;   \
+template<typename T>
+using P = std::shared_ptr<T>;
+
+template<typename T>
+using PC = std::shared_ptr<const T>;
+
+template<typename T>
+using U = std::unique_ptr<T>;
+
+template<typename T>
+using UC = std::unique_ptr<const T>;
+
+template<typename T>
+using W = std::weak_ptr<T>;
+
+#define USING_PTR(classname)                                 \
+    class classname;                                         \
+    using classname##U   = std::unique_ptr<classname>;       \
+    using classname##UC  = std::unique_ptr<const classname>; \
+    using classname##P   = std::shared_ptr<classname>;       \
+    using classname##PC  = std::shared_ptr<const classname>; \
+    using classname##W   = std::weak_ptr<classname>;         \
     using classname##Ref = std::reference_wrapper<classname>;
 
 #define USING_CREATE(T)                                                     \

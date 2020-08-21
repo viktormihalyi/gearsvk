@@ -47,7 +47,7 @@ endif ()
 if (MSVC)
     set (COMPILER_FLAGS /W4 /wd4251 /wd4100 /wd4189)
 else ()
-    set (COMPILER_FLAGS -Wall -Wextra -pedantic)
+    set (COMPILER_FLAGS -fPIC)
 endif ()
 
 add_definitions (-D_CRT_SECURE_NO_WARNINGS)
@@ -96,6 +96,8 @@ add_library (${TARGET_UTILS} SHARED
 add_library (${TARGET_LIB} SHARED
     src/GearsVk/VulkanWrapper/Utils/VulkanUtils.cpp
     src/GearsVk/VulkanWrapper/Utils/BufferTransferable.cpp
+    src/GearsVk/VulkanWrapper/Utils/ImageData.cpp
+    src/GearsVk/VulkanWrapper/Utils/STBImpl.cpp
     src/GearsVk/VulkanWrapper/DebugUtilsMessenger.cpp
     src/GearsVk/VulkanWrapper/ShaderModule.cpp
     src/GearsVk/VulkanWrapper/Swapchain.cpp
@@ -121,7 +123,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/VulkanMemoryAllocatorImpl.cpp
     src/GearsVk/Font.cpp
 
-    external/msdfgen/ext/import-font.cpp # THIS FUCK DOESNT LINK FREETYPED FOR DEBUG BUILDS
+    external/msdfgen/ext/import-font.cpp
 )
 
 add_executable (${TARGET_VIZHF}

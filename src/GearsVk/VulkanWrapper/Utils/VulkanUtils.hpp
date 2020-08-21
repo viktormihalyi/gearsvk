@@ -20,31 +20,6 @@
 
 std::string GetVersionString (uint32_t version);
 
-class GEARSVK_API RawImageData {
-private:
-    RawImageData () = default;
-
-public:
-    uint32_t             components;
-    uint32_t             width;
-    uint32_t             height;
-    std::vector<uint8_t> data;
-
-    RawImageData (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout = std::nullopt);
-    RawImageData (const DeviceExtra& device, const ImageBase& image, std::optional<VkImageLayout> currentLayout = std::nullopt);
-    RawImageData (const std::filesystem::path& path);
-
-    static RawImageData FromDataUint (const std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t components);
-    static RawImageData FromDataFloat (const std::vector<float>& data, uint32_t width, uint32_t height, uint32_t components);
-
-    bool operator== (const RawImageData& other) const;
-
-    uint32_t GetByteCount () const;
-
-    void SaveTo (const std::filesystem::path& path) const;
-    void UploadTo (const DeviceExtra& device, const ImageBase& image, std::optional<VkImageLayout> currentLayout = std::nullopt) const;
-};
-
 GEARSVK_API
 void TransitionImageLayout (const DeviceExtra& device, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout);
 
@@ -53,9 +28,6 @@ void CopyBufferToImage (const DeviceExtra& device, VkBuffer buffer, VkImage imag
 
 GEARSVK_API
 void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-
-GEARSVK_API
-std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t components = 4);
 
 GEARSVK_API
 bool AreImagesEqual (const DeviceExtra& device, const ImageBase& image, const std::filesystem::path& expectedImage, uint32_t layerIndex = 0);

@@ -128,7 +128,7 @@ int main (int, char**)
     // ========================= GRAPH CONNECTIONS =========================
 
     for (uint32_t i = 0; i < refl->uboRes.size (); ++i) {
-        graph.CreateInputConnection<RG::UniformInputBinding> (*brainRenderOp, refl->bindings[i], *refl->uboRes[i]);
+        graph.CreateInputConnection (*brainRenderOp, *refl->uboRes[i], RG::UniformInputBinding::Create (refl->bindings[i], *refl->uboRes[i]));
     }
     graph.CreateOutputConnection (*brainRenderOp, 0, *presented);
 

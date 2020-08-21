@@ -2,8 +2,9 @@
 .vs/
 .vscode/
 build/
-build.dev/
-build.rel/
+build.debug/
+build.release/
+temp/
 out/
 cmake-build-debug/
 .idea/

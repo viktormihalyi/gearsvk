@@ -4,6 +4,7 @@
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
 #include "GraphSettings.hpp"
+#include "ImageData.hpp"
 #include "Logger.hpp"
 #include "MultithreadedFunction.hpp"
 #include "Noncopyable.hpp"
@@ -72,14 +73,14 @@ int main (int, char**)
         ShadersFolder / "brain.frag",
     });
 
-    RG::RenderOperation& brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (device), sp);
+    RG::RenderOperationP brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (device), sp);
 
 
     // ========================= GRAPH RESOURCES =========================
 
-    RG::SwapchainImageResource& presented = graph.CreateResource<RG::SwapchainImageResource> (swapchain);
-    RG::ReadOnlyImageResource&  matcap    = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
-    RG::ReadOnlyImageResource&  agy3d     = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
+    RG::SwapchainImageResourceP presented = graph.CreateResource<RG::SwapchainImageResource> (swapchain);
+    RG::ReadOnlyImageResourceP  matcap    = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
+    RG::ReadOnlyImageResourceP  agy3d     = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
 
     class RenderGraphUniformReflection {
     private:
@@ -145,18 +146,18 @@ int main (int, char**)
                     renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
                         UboSelector ubosel;
                         for (SR::UBOP ubo : shaderModule.GetReflection ().ubos) {
-                            auto& uboRes = graph.CreateResource<RG::UniformBlockResource> (*ubo);
+                            auto uboRes = graph.CreateResource<RG::UniformBlockResource> (*ubo);
                             // TODO connection
                             SR::UDataInternalP uboData = SR::UDataInternal::Create (ubo);
                             ubosel.Set (ubo->name, uboData);
 
                             for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
                                 // TODO mappings are only available after compile
-                                GVK_ASSERT (uboRes.mappings[frameIndex]->GetSize () == uboData->GetSize ());
+                                GVK_ASSERT (uboRes->mappings[frameIndex]->GetSize () == uboData->GetSize ());
                                 copyOperations[frameIndex].push_back (CopyOperation {
-                                    uboRes.mappings[frameIndex]->Get (),
+                                    uboRes->mappings[frameIndex]->Get (),
                                     uboData->GetData (),
-                                    uboData->GetSize ()});
+                                    uboData->GetSize () });
                             }
                         }
                         newsel.Set (shaderModule.GetShaderKind (), std::move (ubosel));
@@ -180,17 +181,17 @@ int main (int, char**)
     };
 
 
-    RG::UniformReflectionResource& refl = graph.CreateResource<RG::UniformReflectionResource> (sp, RG::UniformReflectionResource::Strategy::UniformBlocksOnly);
+    RG::UniformReflectionResourceP refl = graph.CreateResource<RG::UniformReflectionResource> (sp, RG::UniformReflectionResource::Strategy::UniformBlocksOnly);
 
 
     // ========================= GRAPH CONNECTIONS =========================
 
-    for (uint32_t i = 0; i < refl.uboRes.size (); ++i) {
-        graph.CreateInputConnection<RG::UniformInputBinding> (brainRenderOp, refl.bindings[i], *refl.uboRes[i]);
+    for (uint32_t i = 0; i < refl->uboRes.size (); ++i) {
+        graph.CreateInputConnection (*brainRenderOp, *refl->uboRes[i], RG::UniformInputBinding::Create (refl->bindings[i], *refl->uboRes[i]));
     }
-    graph.CreateInputConnection<RG::ImageInputBinding> (brainRenderOp, 2, agy3d);
-    graph.CreateInputConnection<RG::ImageInputBinding> (brainRenderOp, 3, matcap);
-    graph.CreateOutputConnection (brainRenderOp, 0, presented);
+    graph.CreateInputConnection (*brainRenderOp, *agy3d, RG::ImageInputBinding::Create (2, *agy3d));
+    graph.CreateInputConnection (*brainRenderOp, *matcap, RG::ImageInputBinding::Create (3, *matcap));
+    graph.CreateOutputConnection (*brainRenderOp, 0, *presented);
 
 
     // ========================= GRAPH RESOURCE SETUP =========================
@@ -199,12 +200,12 @@ int main (int, char**)
 
     if (false) {
         RenderGraphUniformReflection r (graph, s);
-        float                        a                                        = 3.f;
-        r[brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["asd"] = a;
+        float                        a                                         = 3.f;
+        r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["asd"] = a;
     }
-    matcap.CopyTransitionTransfer (ReadImage (PROJECT_ROOT / "src" / "VizHF" / "matcap.jpg", 4));
+    matcap->CopyTransitionTransfer (ImageData (PROJECT_ROOT / "src" / "VizHF" / "matcap.jpg").data);
 
-    std::vector<uint8_t> rawBrainData = ReadImage (PROJECT_ROOT / "src" / "VizHF" / "brain.jpg", 1);
+    std::vector<uint8_t> rawBrainData = ImageData (PROJECT_ROOT / "src" / "VizHF" / "brain.jpg", 1).data;
 
     std::vector<uint8_t> transformedBrainData (256 * 256 * 256);
 
@@ -230,7 +231,7 @@ int main (int, char**)
         });
     }
 
-    agy3d.CopyTransitionTransfer (transformedBrainData);
+    agy3d->CopyTransitionTransfer (transformedBrainData);
 
 
     // ========================= RENDERING =========================
@@ -278,10 +279,10 @@ int main (int, char**)
         }
     };
 
-    // refl.vert["NON"]["EXISTING"] = glm::mat4 (1.f);
+    // refl->vert["NON"]["EXISTING"] = glm::mat4 (1.f);
 
-    refl.vert["Camera"]["VP"] = glm::mat4 (1.f);
-    refl.frag["Camera"]["VP"] = glm::mat4 (1.f);
+    refl->vert["Camera"]["VP"] = glm::mat4 (1.f);
+    refl->frag["Camera"]["VP"] = glm::mat4 (1.f);
 
 
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
@@ -292,24 +293,24 @@ int main (int, char**)
         cameraControl.UpdatePosition (dt);
 
         {
-            refl.vert["Camera"]["viewMatrix"] = c.GetViewMatrix ();
-            //refl.vert["Camera"]["VP"]           = c.GetViewProjectionMatrix ();
-            refl.vert["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
-            refl.vert["Camera"]["camPosition"]  = c.GetPosition ();
-            refl.vert["Camera"]["viewDir"]      = c.GetViewDirection ();
-            refl.vert["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
+            refl->vert["Camera"]["viewMatrix"] = c.GetViewMatrix ();
+            //refl->vert["Camera"]["VP"]           = c.GetViewProjectionMatrix ();
+            refl->vert["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
+            refl->vert["Camera"]["camPosition"]  = c.GetPosition ();
+            refl->vert["Camera"]["viewDir"]      = c.GetViewDirection ();
+            refl->vert["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
 
-            refl.frag["Camera"]["viewMatrix"] = c.GetViewMatrix ();
-            //refl.frag["Camera"]["VP"]           = c.GetViewProjectionMatrix ();
-            refl.frag["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
-            refl.frag["Time"]["time"]           = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
-            refl.frag["Camera"]["position"]     = c.GetPosition ();
-            auto s                              = refl.frag["Camera"]["position"].As<glm::vec3> ();
-            refl.frag["Camera"]["viewDir"]      = c.GetViewDirection ();
-            refl.frag["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
+            refl->frag["Camera"]["viewMatrix"] = c.GetViewMatrix ();
+            //refl->frag["Camera"]["VP"]           = c.GetViewProjectionMatrix ();
+            refl->frag["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
+            refl->frag["Time"]["time"]           = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
+            refl->frag["Camera"]["position"]     = c.GetPosition ();
+            auto s                               = refl->frag["Camera"]["position"].As<glm::vec3> ();
+            refl->frag["Camera"]["viewDir"]      = c.GetViewDirection ();
+            refl->frag["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
         }
 
-        refl.Update (frameIndex);
+        refl->Update (frameIndex);
     };
 
     window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] { return quit; }));

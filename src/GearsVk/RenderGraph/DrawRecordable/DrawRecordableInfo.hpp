@@ -152,8 +152,6 @@ public:
 
     void Record (VkCommandBuffer commandBuffer) const override
     {
-        GVK_ASSERT (instanceCount == 1);
-
         if (!vertexBuffer.empty ()) {
             std::vector<VkDeviceSize> offsets (vertexBuffer.size (), 0);
             vkCmdBindVertexBuffers (commandBuffer, 0, vertexBuffer.size (), vertexBuffer.data (), offsets.data ());

@@ -19,6 +19,7 @@
 #include <thread>
 
 #include "GoogleTestEnvironment.hpp"
+#include "ImageData.hpp"
 
 
 const std::filesystem::path ShadersFolder = PROJECT_ROOT / "src" / "Tests" / "shaders";
@@ -127,21 +128,6 @@ layout (location = 0) out vec2 textureCoords;
         std::cout << e.what () << std::endl;
     }
 }
-
-namespace RenderGraphUtils {
-
-
-RawImageData RenderAndGetImageData (RenderGraph& renderGraph, ImageResource& sw)
-{
-    renderGraph.Submit (0);
-
-    vkQueueWaitIdle (renderGraph.GetGraphSettings ().GetGrahpicsQueue ());
-    vkDeviceWaitIdle (renderGraph.GetGraphSettings ().GetDevice ());
-
-    return RawImageData (renderGraph.GetGraphSettings ().GetDevice (), *sw.GetImages ()[0], 0);
-}
-
-} // namespace RenderGraphUtils
 
 
 TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
@@ -264,12 +250,12 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    RawImageData (device, *green->GetImages ()[0], 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "green.png");
-    RawImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presented.png");
-    RawImageData (device, *red->GetImages ()[0], 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "red.png");
-    RawImageData (device, *finalImg->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "final.png");
+    ImageData (device, *green->GetImages ()[0], 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "green.png");
+    ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presented.png");
+    ImageData (device, *red->GetImages ()[0], 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL).SaveTo (ReferenceImagesFolder / "red.png");
+    ImageData (device, *finalImg->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "final.png");
 
-    ASSERT_TRUE (RawImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == RawImageData (ReferenceImagesFolder / "black.png"));
+    ASSERT_TRUE (ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == ImageData (ReferenceImagesFolder / "black.png"));
 }
 
 

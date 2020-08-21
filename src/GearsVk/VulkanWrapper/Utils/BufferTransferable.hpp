@@ -100,8 +100,8 @@ public:
         region.imageSubresource.mipLevel       = 0;
         region.imageSubresource.baseArrayLayer = layerIndex;
         region.imageSubresource.layerCount     = 1;
-        region.imageOffset                     = {0, 0, 0};
-        region.imageExtent                     = {imageGPU->image->GetWidth (), imageGPU->image->GetHeight (), imageGPU->image->GetDepth ()};
+        region.imageOffset                     = { 0, 0, 0 };
+        region.imageExtent                     = { imageGPU->image->GetWidth (), imageGPU->image->GetHeight (), imageGPU->image->GetDepth () };
 
         imageGPU->image->CmdCopyBufferPartToImage (commandBuffer, *bufferCPU.buffer, region);
         if (nextLayout.has_value ()) {
@@ -224,8 +224,8 @@ public:
 
     void Bind (VkCommandBuffer commandBuffer) const
     {
-        VkBuffer buffers[1] = {buffer.GetBufferToBind ()};
-        uint64_t offsets[1] = {0};
+        VkBuffer buffers[1] = { buffer.GetBufferToBind () };
+        uint64_t offsets[1] = { 0 };
         vkCmdBindVertexBuffers (commandBuffer, 0, 1, buffers, offsets);
     }
 };
