@@ -51,7 +51,7 @@ DeviceMemory::DeviceMemory (VkDevice device, const size_t allocationSize, const 
         throw std::runtime_error ("failed to allocate memory");
     }
 
-#if 1
+#if 0
     LogAllocation (allocationSize, memoryTypeIndex);
 #endif
 }
@@ -68,7 +68,7 @@ DeviceMemory::~DeviceMemory ()
     vkFreeMemory (device, handle, nullptr);
     handle = VK_NULL_HANDLE;
 
-#if 1
+#if 0
     LogFree (allocationSize, memoryTypeIndex);
 #endif
 }

@@ -78,10 +78,23 @@ Pipeline::Pipeline (VkDevice                                              device
     colorBlending.blendConstants[1]                                = 0.0f; // Optional
     colorBlending.blendConstants[2]                                = 0.0f; // Optional
     colorBlending.blendConstants[3]                                = 0.0f; // Optional
+
     VkPipelineDynamicStateCreateInfo dynamicState                  = {};
     dynamicState.sType                                             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     dynamicState.dynamicStateCount                                 = 0;
     dynamicState.pDynamicStates                                    = nullptr;
+
+    VkPipelineDepthStencilStateCreateInfo depthStencil = {};
+    depthStencil.sType                                 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depthStencil.depthTestEnable                       = VK_TRUE;
+    depthStencil.depthWriteEnable                      = VK_TRUE;
+    depthStencil.depthCompareOp                        = VK_COMPARE_OP_LESS;
+    depthStencil.depthBoundsTestEnable                 = VK_FALSE;
+    depthStencil.minDepthBounds                        = 0.0f; // Optional
+    depthStencil.maxDepthBounds                        = 1.0f; // Optional
+    depthStencil.stencilTestEnable                     = VK_FALSE;
+    depthStencil.front                                 = VkStencilOpState (); // Optional
+    depthStencil.back                                  = VkStencilOpState (); // Optional
 
 
     VkGraphicsPipelineCreateInfo pipelineInfo = {};
@@ -93,7 +106,7 @@ Pipeline::Pipeline (VkDevice                                              device
     pipelineInfo.pViewportState               = &viewportState;
     pipelineInfo.pRasterizationState          = &rasterizer;
     pipelineInfo.pMultisampleState            = &multisampling;
-    pipelineInfo.pDepthStencilState           = nullptr; // Optional
+    pipelineInfo.pDepthStencilState           = nullptr;
     pipelineInfo.pColorBlendState             = &colorBlending;
     pipelineInfo.pDynamicState                = nullptr; // Optional
     pipelineInfo.layout                       = pipelineLayout;

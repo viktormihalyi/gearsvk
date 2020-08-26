@@ -32,8 +32,10 @@ TEST_F (FontRenderingTests, MSDFGEN)
     RG::GraphSettings s (device, 3, 512, 512);
     RG::RenderGraph   graph;
 
+    constexpr uint32_t glyphWidthHeight = 64;
+
     RG::WritableImageResourceP outputImage = graph.CreateResource<RG::WritableImageResource> ();
-    RG::ReadOnlyImageResourceP glyphs      = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R32G32B32A32_SFLOAT, 16, 16, 1, 512);
+    RG::ReadOnlyImageResourceP glyphs      = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, glyphWidthHeight, glyphWidthHeight, 1, 512);
 
     auto sp = ShaderPipeline::CreateShared (device);
 
@@ -43,15 +45,21 @@ TEST_F (FontRenderingTests, MSDFGEN)
 
 layout (location = 0) in vec2 position;
 layout (location = 1) in vec2 uv;
-layout (location = 2) in vec2 glyphPos;   // instanced
-layout (location = 3) in uint glyphIndex; // instanced
+
+layout (location = 2) in vec2 glyphPos;       // instanced
+layout (location = 3) in vec2 glyphTranslate; // instanced
+layout (location = 4) in vec2 glyphScale;     // instanced
+layout (location = 5) in vec2 glyphAsp;       // instanced
+layout (location = 6) in uint glyphIndex;     // instanced
 
 layout (location = 0) out vec2 textureCoords;
 layout (location = 1) out uint glyphIdx;
 
-void main() {
-    gl_Position = vec4 (position + glyphPos, 0.0, 1.0);
-    textureCoords = uv;
+void main ()
+{
+    const vec2 vertexPos = (position * glyphScale + glyphTranslate) * 0.2f;
+    gl_Position = vec4 (vertexPos + glyphPos, 0.0, 1.0);
+    textureCoords = 0.5f + glyphAsp / 2.f * (uv * 2.f - 1.f);
     glyphIdx = glyphIndex;
 }
     )");
@@ -87,10 +95,18 @@ float GetOpacity (sampler2DArray glyphArray, vec2 textureCoordinates, uint glyph
     return opacity;
 }
 
-void main () {
-    outColor = vec4 (vec3 (texture (sampl, vec3 (textureCoords.x, textureCoords.y, glyphIndex)).rgb), 1.f);
+void main ()
+{
+    const float dist = texture (sampl, vec3 (textureCoords.x, textureCoords.y, glyphIndex)).r;
+    if (dist > 0.5f) {
+        outColor = vec4 (vec3 (1), 1.f);
+    } else {
+        outColor = vec4 (vec3 (0), 1.f);
+    }
+    const float opacity = smoothstep (0.4, 0.6, dist);
+    outColor = vec4 (vec3 (0), 1.f - opacity);
 
-    outColor = vec4 (vec3 (0), 1.f - GetOpacity (sampl, textureCoords, glyphIndex));
+    // outColor = vec4 (vec3 (0), 0.9f - GetOpacity (sampl, textureCoords, glyphIndex));
 }
     )");
 
@@ -102,10 +118,10 @@ void main () {
     auto vbb = VertexBufferTransferable<Vert>::CreateShared (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Vec2f }, VK_VERTEX_INPUT_RATE_VERTEX);
 
     *vbb = std::vector<Vert> {
-        { glm::vec2 (0.00f, 0.00f), glm::vec2 (0.f, 0.f) },
-        { glm::vec2 (0.00f, 0.25f), glm::vec2 (0.f, 1.f) },
-        { glm::vec2 (0.25f, 0.25f), glm::vec2 (1.f, 1.f) },
-        { glm::vec2 (0.25f, 0.00f), glm::vec2 (1.f, 0.f) },
+        { glm::vec2 (0.0f, 0.0f), glm::vec2 (0.f, 0.f) },
+        { glm::vec2 (0.0f, -1.0f), glm::vec2 (0.f, 1.f) },
+        { glm::vec2 (1.0f, -1.0f), glm::vec2 (1.f, 1.f) },
+        { glm::vec2 (1.0f, 0.0f), glm::vec2 (1.f, 0.f) },
     };
     vbb->Flush ();
 
@@ -115,15 +131,23 @@ void main () {
 
     struct InstVert {
         glm::vec2 glyphPos;
+        glm::vec2 glyphTranslate;
+        glm::vec2 glyphScale;
+        glm::vec2 glyphAsp;
         uint32_t  glyphIndex;
     };
 
-    auto instanceBuffer = VertexBufferTransferable<InstVert>::CreateShared (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Uint }, VK_VERTEX_INPUT_RATE_INSTANCE);
+    FontManager fm ("C:\\Windows\\Fonts\\arialbd.ttf", glyphWidthHeight, glyphWidthHeight, FontManager::Type::SDF);
+
+    auto instanceBuffer = VertexBufferTransferable<InstVert>::CreateShared (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Uint }, VK_VERTEX_INPUT_RATE_INSTANCE);
     *instanceBuffer     = {
-        { glm::vec2 (0.0, 0.0), 'H' },
-        { glm::vec2 (0.3, 0.0), 'i' },
-        { glm::vec2 (0.6, 0.0), '!' },
+        { glm::vec2 (-0.3, 0.0), fm.GetGlyph ('g').translation, fm.GetGlyph ('g').scale, fm.GetGlyph ('g').aspectRatio, 'g' },
+        { glm::vec2 (+0.0, 0.0), fm.GetGlyph ('T').translation, fm.GetGlyph ('T').scale, fm.GetGlyph ('T').aspectRatio, 'T' },
+        { glm::vec2 (+0.4, 0.0), fm.GetGlyph ('e').translation, fm.GetGlyph ('e').scale, fm.GetGlyph ('e').aspectRatio, 'e' },
+        { glm::vec2 (+0.8, 0.0), fm.GetGlyph ('h').translation, fm.GetGlyph ('h').scale, fm.GetGlyph ('h').aspectRatio, 'h' },
+        { glm::vec2 (+0.6, 0.0), fm.GetGlyph ('l').translation, fm.GetGlyph ('l').scale, fm.GetGlyph ('l').aspectRatio, 'l' },
     };
+
 
     instanceBuffer->Flush ();
 
@@ -131,26 +155,20 @@ void main () {
     vbs.Add (vbb);
     vbs.Add (instanceBuffer);
 
-    RG::OperationP renderOp = graph.CreateOperation<RG::RenderOperation> (DrawRecordableInfo::CreateShared (3, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
+    RG::OperationP renderOp = graph.CreateOperation<RG::RenderOperation> (DrawRecordableInfo::CreateShared (5, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
 
     graph.CreateInputConnection (*renderOp, *glyphs, RG::ImageInputBinding::Create (0, *glyphs));
     graph.CreateOutputConnection (*renderOp, 0, *outputImage);
 
     graph.Compile (s);
 
-    // load font, populate texture array
-    uint32_t   nextGlyphIndex = 0;
-    const Font arial ("C:\\Windows\\Fonts\\arialbd.ttf");
     for (uint32_t unicode = 'A'; unicode < 'Z'; ++unicode) {
-        const std::vector<float> glyphData = arial.GetGlyphMTDF (16, 16, unicode).data;
-        glyphs->CopyLayer (glyphData, unicode);
+        glyphs->CopyLayer (fm.GetGlyph (unicode).data, unicode);
     }
     for (uint32_t unicode = 'a'; unicode < 'z'; ++unicode) {
-        const std::vector<float> glyphData = arial.GetGlyphMTDF (16, 16, unicode).data;
-        glyphs->CopyLayer (glyphData, unicode);
+        glyphs->CopyLayer (fm.GetGlyph (unicode).data, unicode);
     }
-    auto dd = arial.GetGlyphMTDF (16, 16, '!').data;
-    glyphs->CopyLayer (dd, '!');
+    glyphs->CopyLayer (fm.GetGlyph ('!').data, '!');
 
     graph.Submit (0);
 

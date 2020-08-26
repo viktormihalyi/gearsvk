@@ -4,10 +4,18 @@
 #include "msdfgen.h"
 
 #include "Assert.hpp"
+#include "ImageData.hpp"
 
 #include <cstring>
 #include <functional>
 #include <map>
+
+
+glm::mat4 GlyphData::GetTransforMatrix () const
+{
+    static constexpr glm::mat4 identity (1.f);
+    return glm::translate (glm::scale (identity, { scale.x, scale.y, 1.f }), { translation.x, translation.y, 0 });
+}
 
 
 static msdfgen::FontHandle* GetFont (const std::filesystem::path& fontFile)
@@ -85,7 +93,7 @@ static msdfgen::Shape LoadShape (msdfgen::FontHandle* font, uint32_t unicode)
 
     GVK_ASSERT (shape.validate ());
 
-    shape.inverseYAxis = true;
+    // shape.inverseYAxis = true;
 
     return shape;
 }
@@ -123,20 +131,38 @@ static std::vector<T> BitmapToVector (const msdfgen::Bitmap<T, N>& bitmap)
     return result;
 }
 
+
 // from https://github.com/Chlumsky/msdfgen/blob/master/main.cpp#L739
-static void GetAutoFrame (const msdfgen::Shape::Bounds& bounds, uint32_t width, uint32_t height, msdfgen::Vector2& scale, msdfgen::Vector2& translate)
+static void GetAutoFrame (const uint32_t emSize, const msdfgen::Shape::Bounds& bounds, uint32_t width, uint32_t height,
+                          msdfgen::Vector2& scale, msdfgen::Vector2& translate, msdfgen::Vector2& aspectRatio, msdfgen::Vector2& actScale)
 {
-    double l = bounds.l, b = bounds.b, r = bounds.r, t = bounds.t;
-    double range = 1;
+    double l = bounds.l;
+    double b = bounds.b;
+    double r = bounds.r;
+    double t = bounds.t;
+
+    constexpr double range = 1.0;
 
     msdfgen::Vector2 frame (width, height);
 
-    l -= .5 * range, b -= .5 * range, r += .5 * range, t += .5 * range;
+    l -= .5 * range;
+    b -= .5 * range;
+    r += .5 * range;
+    t += .5 * range;
+
     if (l >= r || b >= t)
         l = 0, b = 0, r = 1, t = 1;
-    if (frame.x <= 0 || frame.y <= 0)
-        GVK_ASSERT (false); // Cannot fit the specified pixel range
-    msdfgen::Vector2 dims (r - l, t - b);
+
+    const msdfgen::Vector2 dims (r - l, t - b);
+
+    const msdfgen::Vector2 actdims (bounds.r - bounds.l, bounds.t - bounds.b);
+
+    if (actdims.x < actdims.y) {
+        aspectRatio = { actdims.x / actdims.y, 1.f };
+    } else {
+        aspectRatio = { 1.f, actdims.y / actdims.x };
+    }
+    actScale = actdims / static_cast<float> (emSize);
 
     if (dims.x * frame.y < dims.y * frame.x) {
         translate.set (.5 * (frame.x / frame.y * dims.y - dims.x) - l, -b);
@@ -157,17 +183,20 @@ using DistanceMapGeneratorFunc = std::function<void (
 
 
 template<size_t Components>
-static Font::GlyphData GetGlyph (msdfgen::FontHandle*                 fontHandle,
-                                 const uint32_t                       width,
-                                 const uint32_t                       height,
-                                 const uint32_t                       unicode,
-                                 DistanceMapGeneratorFunc<Components> bitmapGeneratorFunc)
+static GlyphData GetGlyph (msdfgen::FontHandle*                 fontHandle,
+                           const uint32_t                       width,
+                           const uint32_t                       height,
+                           const uint32_t                       emSize,
+                           const uint32_t                       unicode,
+                           DistanceMapGeneratorFunc<Components> bitmapGeneratorFunc)
 {
     msdfgen::Shape shape = LoadShape (fontHandle, unicode);
 
-    msdfgen::Vector2 translate;
-    msdfgen::Vector2 scale;
-    GetAutoFrame (shape.getBounds (), width, height, scale, translate);
+    msdfgen::Vector2 translate (0, 0);
+    msdfgen::Vector2 scale (0.5, 0.5);
+    msdfgen::Vector2 asp (0.5, 0.5);
+    msdfgen::Vector2 actScale (0.5, 0.5);
+    GetAutoFrame (emSize, shape.getBounds (), width, height, scale, translate, asp, actScale);
 
     msdfgen::Bitmap<float, Components> bitmapData (width, height);
 
@@ -175,17 +204,21 @@ static Font::GlyphData GetGlyph (msdfgen::FontHandle*                 fontHandle
 
     bitmapGeneratorFunc (bitmapData, shape, range, scale, translate);
 
-    Font::GlyphData result;
-    result.scale       = {scale.x, scale.y};
-    result.translation = {translate.x, translate.y};
+    GlyphData result;
+    result.scale       = glm::vec2 { actScale.x, actScale.y };
+    result.translation = glm::vec2 { 0, -shape.getBounds ().b } / static_cast<float> (emSize);
     result.data        = BitmapToVector<float, Components> (bitmapData);
     result.width       = width;
     result.height      = height;
+    result.aspectRatio = glm::vec2 { asp.x, asp.y };
+
+    ImageData::FromDataFloat (result.data, width, height, Components).SaveTo (PROJECT_ROOT / "temp" / (std::to_string (unicode) + ".png"));
+
     return result;
 }
 
 
-Font::GlyphData Font::GetGlyphSDF (uint32_t width, uint32_t height, uint32_t unicode) const
+GlyphData Font::GetGlyphSDF (uint32_t width, uint32_t height, uint32_t unicode) const
 {
     auto generator = [] (const msdfgen::BitmapRef<float, 1>& output,
                          const msdfgen::Shape&               shape,
@@ -195,11 +228,11 @@ Font::GlyphData Font::GetGlyphSDF (uint32_t width, uint32_t height, uint32_t uni
         msdfgen::generateSDF (output, shape, range, scale, translate);
     };
 
-    return GetGlyph<1> (impl->fontHandle, width, height, unicode, generator);
+    return GetGlyph<1> (impl->fontHandle, width, height, emSize, unicode, generator);
 }
 
 
-Font::GlyphData Font::GetGlyphMDF (uint32_t width, uint32_t height, uint32_t unicode) const
+GlyphData Font::GetGlyphMDF (uint32_t width, uint32_t height, uint32_t unicode) const
 {
     auto generator = [] (const msdfgen::BitmapRef<float, 3>& output,
                          const msdfgen::Shape&               shape,
@@ -209,11 +242,11 @@ Font::GlyphData Font::GetGlyphMDF (uint32_t width, uint32_t height, uint32_t uni
         msdfgen::generateMSDF (output, shape, range, scale, translate);
     };
 
-    return GetGlyph<3> (impl->fontHandle, width, height, unicode, generator);
+    return GetGlyph<3> (impl->fontHandle, width, height, emSize, unicode, generator);
 }
 
 
-Font::GlyphData Font::GetGlyphMTDF (uint32_t width, uint32_t height, uint32_t unicode) const
+GlyphData Font::GetGlyphMTDF (uint32_t width, uint32_t height, uint32_t unicode) const
 {
     auto generator = [] (const msdfgen::BitmapRef<float, 4>& output,
                          const msdfgen::Shape&               shape,
@@ -223,5 +256,5 @@ Font::GlyphData Font::GetGlyphMTDF (uint32_t width, uint32_t height, uint32_t un
         msdfgen::generateMTSDF (output, shape, range, scale, translate);
     };
 
-    return GetGlyph<4> (impl->fontHandle, width, height, unicode, generator);
+    return GetGlyph<4> (impl->fontHandle, width, height, emSize, unicode, generator);
 }
