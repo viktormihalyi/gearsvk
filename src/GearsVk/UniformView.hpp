@@ -68,7 +68,7 @@ public:
         GVK_ASSERT (type == Type::Variable);
         GVK_ASSERT (sizeof (T) == size);
 
-#ifndef NDEBUG
+#if 0
         std::cout << "setting uniform \"" << currentField->name << "\" (type: " << SR::FieldTypeToString (currentField->type)
                   << ", size: " << currentField->size
                   << ", offset: " << offset << ")"

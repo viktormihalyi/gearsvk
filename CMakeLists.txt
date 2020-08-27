@@ -115,6 +115,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/RenderGraph/Operation.cpp
     src/GearsVk/RenderGraph/GraphRenderer.cpp
     src/GearsVk/RenderGraph/ShaderPipeline.cpp
+    src/GearsVk/RenderGraph/RenderGraphUniformReflection.cpp
     
     src/GearsVk/Window/GLFWWindow.cpp
     src/GearsVk/Window/SDLWindow.cpp

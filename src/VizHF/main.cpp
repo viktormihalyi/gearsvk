@@ -25,12 +25,14 @@
 #include "ShaderReflection.hpp"
 
 #include "CameraControl.hpp"
+#include "RenderGraphUniformReflection.hpp"
 
 #include <array>
 #include <cstdint>
 #include <filesystem>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
@@ -83,113 +85,10 @@ int main (int, char**)
     RG::ReadOnlyImageResourceP  matcap    = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
     RG::ReadOnlyImageResourceP  agy3d     = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
 
-    class RenderGraphUniformReflection {
-    private:
-        class UboSelector {
-        private:
-            std::unordered_map<std::string, SR::IUDataP> udatas;
-
-        public:
-            SR::IUData& operator[] (const std::string& uboName)
-            {
-                // TODO uhh
-                return *udatas.at (uboName);
-            }
-
-            void Set (const std::string& uboName, const SR::IUDataP& uboData)
-            {
-                udatas[uboName] = uboData;
-            }
-        };
-
-        struct ShaderKindSelector {
-        private:
-            std::unordered_map<ShaderModule::ShaderKind, UboSelector> uboSelectors;
-
-        public:
-            UboSelector& operator[] (ShaderModule::ShaderKind shaderKind)
-            {
-                return uboSelectors.at (shaderKind);
-            }
-
-            void Set (ShaderModule::ShaderKind shaderKind, UboSelector&& uboSel)
-            {
-                uboSelectors[shaderKind] = std::move (uboSel);
-            }
-        };
-
-        std::unordered_map<GearsVk::UUID, ShaderKindSelector> selectors;
-
-
-        struct CopyOperation {
-            void*    destination;
-            void*    source;
-            uint64_t size;
-
-            void Do () const
-            {
-                memcpy (destination, source, size);
-            }
-        };
-
-        std::vector<std::vector<CopyOperation>> copyOperations;
-
-    public:
-        RenderGraphUniformReflection (RG::RenderGraph& graph, const RG::GraphSettings& settings)
-        {
-            copyOperations.resize (settings.framesInFlight);
-
-            for (const auto& a : graph.operations) {
-                auto asd = a.get ();
-                if (auto renderOp = dynamic_cast<RG::RenderOperation*> (asd)) {
-                    ShaderKindSelector newsel;
-
-                    renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
-                        UboSelector ubosel;
-                        for (SR::UBOP ubo : shaderModule.GetReflection ().ubos) {
-                            auto uboRes = graph.CreateResource<RG::UniformBlockResource> (*ubo);
-                            // TODO connection
-                            SR::UDataInternalP uboData = SR::UDataInternal::Create (ubo);
-                            ubosel.Set (ubo->name, uboData);
-
-                            for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
-                                // TODO mappings are only available after compile
-                                GVK_ASSERT (uboRes->mappings[frameIndex]->GetSize () == uboData->GetSize ());
-                                copyOperations[frameIndex].push_back (CopyOperation {
-                                    uboRes->mappings[frameIndex]->Get (),
-                                    uboData->GetData (),
-                                    uboData->GetSize () });
-                            }
-                        }
-                        newsel.Set (shaderModule.GetShaderKind (), std::move (ubosel));
-                    });
-                    selectors.emplace (a->GetUUID (), std::move (newsel));
-                }
-            }
-        }
-
-        ShaderKindSelector& operator[] (const RG::RenderOperation& renderOp)
-        {
-            return selectors.at (renderOp.GetUUID ());
-        }
-
-        void Flush (uint32_t frameIndex)
-        {
-            for (auto& copy : copyOperations[frameIndex]) {
-                copy.Do ();
-            }
-        }
-    };
-
-
-    RG::UniformReflectionResourceP refl = graph.CreateResource<RG::UniformReflectionResource> (sp, RG::UniformReflectionResource::Strategy::UniformBlocksOnly);
-
+    RG::RenderGraphUniformReflection r (graph, s);
 
     // ========================= GRAPH CONNECTIONS =========================
 
-    for (uint32_t i = 0; i < refl->uboRes.size (); ++i) {
-        graph.CreateInputConnection (*brainRenderOp, *refl->uboRes[i], RG::UniformInputBinding::Create (refl->bindings[i], *refl->uboRes[i]));
-    }
     graph.CreateInputConnection (*brainRenderOp, *agy3d, RG::ImageInputBinding::Create (2, *agy3d));
     graph.CreateInputConnection (*brainRenderOp, *matcap, RG::ImageInputBinding::Create (3, *matcap));
     graph.CreateOutputConnection (*brainRenderOp, 0, *presented);
@@ -199,11 +98,8 @@ int main (int, char**)
 
     graph.Compile (s);
 
-    if (false) {
-        RenderGraphUniformReflection r (graph, s);
-        float                        a                                         = 3.f;
-        r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["asd"] = a;
-    }
+    r.RecordCopyOperations ();
+
     matcap->CopyTransitionTransfer (ImageData (PROJECT_ROOT / "src" / "VizHF" / "matcap.jpg").data);
 
     std::vector<uint8_t> rawBrainData = ImageData (PROJECT_ROOT / "src" / "VizHF" / "brain.jpg", 1).data;
@@ -280,10 +176,8 @@ int main (int, char**)
         }
     };
 
-    // refl->vert["NON"]["EXISTING"] = glm::mat4 (1.f);
-
-    refl->vert["Camera"]["VP"] = glm::mat4 (1.f);
-    refl->frag["Camera"]["VP"] = glm::mat4 (1.f);
+    r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["VP"]   = glm::mat4 (1.f);
+    r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["VP"] = glm::mat4 (1.f);
 
 
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
@@ -294,24 +188,21 @@ int main (int, char**)
         cameraControl.UpdatePosition (dt);
 
         {
-            refl->vert["Camera"]["viewMatrix"] = c.GetViewMatrix ();
-            //refl->vert["Camera"]["VP"]           = c.GetViewProjectionMatrix ();
-            refl->vert["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
-            refl->vert["Camera"]["camPosition"]  = c.GetPosition ();
-            refl->vert["Camera"]["viewDir"]      = c.GetViewDirection ();
-            refl->vert["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
+            r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["viewMatrix"]   = c.GetViewMatrix ();
+            r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
+            r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["camPosition"]  = c.GetPosition ();
+            r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["viewDir"]      = c.GetViewDirection ();
+            r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
 
-            refl->frag["Camera"]["viewMatrix"] = c.GetViewMatrix ();
-            //refl->frag["Camera"]["VP"]           = c.GetViewProjectionMatrix ();
-            refl->frag["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
-            refl->frag["Time"]["time"]           = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
-            refl->frag["Camera"]["position"]     = c.GetPosition ();
-            auto s                               = refl->frag["Camera"]["position"].As<glm::vec3> ();
-            refl->frag["Camera"]["viewDir"]      = c.GetViewDirection ();
-            refl->frag["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
+            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["viewMatrix"]  = c.GetViewMatrix ();
+            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["viewMatrix"]  = c.GetRayDirMatrix ();
+            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Time"]["time"]          = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
+            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["position"]    = c.GetPosition ();
+            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["viewDir"]     = c.GetViewDirection ();
+            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["displayMode"] = static_cast<uint32_t> (currentDisplayMode);
         }
 
-        refl->Update (frameIndex);
+        r.Flush (frameIndex);
     };
 
     window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] { return quit; }));

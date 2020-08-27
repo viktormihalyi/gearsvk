@@ -62,18 +62,23 @@ ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, std::op
 ImageData::ImageData (const std::filesystem::path& path, const uint32_t components)
     : components (components)
 {
-    int            w, h, comp;
-    unsigned char* stbiData = stbi_load (path.u8string ().c_str (), &w, &h, &comp, STBI_rgb_alpha);
+    int            w, h, readComponents;
+    unsigned char* stbiData = stbi_load (path.u8string ().c_str (), &w, &h, &readComponents, components);
 
-    GVK_ASSERT (comp == components);
-    GVK_ASSERT (stbiData != nullptr);
+    if (GVK_ERROR (stbiData == nullptr)) {
+        width  = 0;
+        height = 0;
+        return;
+    }
 
     width  = w;
     height = h;
 
-    data.resize (width * height * components);
+    // GVK_ASSERT (readComponents == components);
 
-    memcpy (data.data (), stbiData, width * height * 4);
+    data.resize (width * height * components);
+    memcpy (data.data (), stbiData, width * height * components);
+
     stbi_image_free (stbiData);
 }
 
