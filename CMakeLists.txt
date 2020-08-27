@@ -123,6 +123,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/VulkanEnvironment.cpp
     src/GearsVk/VulkanMemoryAllocatorImpl.cpp
     src/GearsVk/Font.cpp
+    src/GearsVk/UniformView.cpp
 
     external/msdfgen/ext/import-font.cpp
 )

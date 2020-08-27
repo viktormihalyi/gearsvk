@@ -5,7 +5,10 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "ShaderModule.hpp"
+#include "ShaderPipeline.hpp"
 #include "ShaderReflection.hpp"
+
+#include "GearsVkAPI.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -20,7 +23,7 @@ namespace SR {
 // we can set the variable with operator=(T)
 
 USING_PTR (UView);
-class UView final {
+class GEARSVK_API UView final {
 private:
     enum class Type {
         Variable,
@@ -101,6 +104,7 @@ public:
             }
         }
 
+        GVK_ASSERT (false);
         return invalidUview;
     }
 
@@ -120,12 +124,9 @@ public:
 };
 
 
-const UView UView::invalidUview (UView::Type::Variable, nullptr, 0, 0, nullptr, nullptr);
-
-
 // view to a single UBO + properly sized byte array for it
 USING_PTR (IUData);
-class IUData {
+class GEARSVK_API IUData {
 public:
     virtual ~IUData () = default;
 
@@ -136,7 +137,7 @@ public:
 
 
 USING_PTR (UDataExternal);
-class UDataExternal final : public IUData, public Noncopyable {
+class GEARSVK_API UDataExternal final : public IUData, public Noncopyable {
 private:
     UView    root;
     uint8_t* bytes;
@@ -171,7 +172,7 @@ public:
 
 
 USING_PTR (UDataInternal);
-class UDataInternal final : public IUData, public Noncopyable {
+class GEARSVK_API UDataInternal final : public IUData, public Noncopyable {
 private:
     std::vector<uint8_t> bytes;
     UView                root;
@@ -207,7 +208,7 @@ public:
 // we can select a single UBO with operator[](std::string_view)
 
 USING_PTR (ShaderUData);
-class ShaderUData final : public Noncopyable {
+class GEARSVK_API ShaderUData final : public Noncopyable {
 private:
     std::vector<IUDataU>     udatas;
     std::vector<std::string> uboNames;
@@ -253,7 +254,7 @@ public:
 };
 
 USING_PTR (ShaderPipelineUData);
-struct ShaderPipelineUData {
+struct GEARSVK_API ShaderPipelineUData {
     ShaderUData vert;
     ShaderUData frag;
 

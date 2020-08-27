@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Assert.hpp"
+#include "Event.hpp"
 #include "GearsVkAPI.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
@@ -72,6 +73,19 @@ public:
         MTDF
     };
 
+    struct GlyphMetrics {
+        std::vector<glm::vec2> translation;
+        std::vector<glm::vec2> scale;
+        std::vector<glm::vec2> aspectRatio;
+
+        GlyphMetrics ()
+        {
+            translation.resize (512);
+            scale.resize (512);
+            aspectRatio.resize (512);
+        }
+    };
+
 private:
     Font           font;
     const uint32_t width;
@@ -79,6 +93,9 @@ private:
     const Type     distanceFieldType;
 
     std::map<uint32_t, GlyphData> loadedGlyphs;
+
+public:
+    Event<uint32_t> glyphLoaded;
 
 private:
     GlyphData Retrieve (const uint32_t unicode)
@@ -101,11 +118,15 @@ private:
             std::cout << "generated '" << static_cast<char> (unicode) << "', scale: " << data.scale << ", translation: " << data.translation << std::endl;
 
             loadedGlyphs.insert ({ unicode, data });
+
+            glyphLoaded (unicode);
+
             return data;
         }
 
         return it->second;
     }
+
 
 public:
     FontManager (const std::filesystem::path& fontFile, const uint32_t width, const uint32_t height, const Type distanceFieldType)

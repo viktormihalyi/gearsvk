@@ -59,11 +59,10 @@ public:
 
 
 USING_PTR (UniformInputBinding);
-
 class UniformInputBinding : public InputBinding {
-public:
     USING_CREATE (UniformInputBinding);
 
+public:
     InputBufferBindable&     bufferProvider;
     const uint32_t           binding;
     const uint32_t           size;
@@ -100,17 +99,16 @@ public:
         result.buffer                 = bufferProvider.GetBufferForFrame (frameIndex);
         result.offset                 = offset;
         result.range                  = size;
-        return {result};
+        return { result };
     }
 };
 
 
 USING_PTR (ImageInputBinding);
-
 class ImageInputBinding : public InputBinding {
-public:
     USING_CREATE (ImageInputBinding);
 
+public:
     InputImageBindable&      imageViewProvider;
     const uint32_t           binding;
     const uint32_t           layerCount;
@@ -137,7 +135,7 @@ public:
         result.sampler               = imageViewProvider.GetSampler ();
         result.imageView             = imageViewProvider.GetImageViewForFrame (frameIndex, 0);
         result.imageLayout           = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        return {result};
+        return { result };
     }
 };
 

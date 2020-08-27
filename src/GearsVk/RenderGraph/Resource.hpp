@@ -29,8 +29,12 @@ public:
 };
 
 
-class GEARSVK_API OutputImageBindable {
+USING_PTR (InputBufferBindableResource);
+class GEARSVK_API InputBufferBindableResource : public Resource, public InputBufferBindable {
+public:
+    virtual ~InputBufferBindableResource () = default;
 };
+
 
 USING_PTR (ImageResource);
 class GEARSVK_API ImageResource : public Resource {
@@ -168,8 +172,47 @@ public:
     virtual VkSampler   GetSampler () override { return *sampler; }
 };
 
-USING_PTR (ReadOnlyImageResource);
 
+USING_PTR (GPUBufferResource);
+class GEARSVK_API GPUBufferResource : public InputBufferBindableResource {
+    USING_CREATE (GPUBufferResource);
+
+private:
+    BufferTransferableU buffer;
+    const uint32_t      size;
+
+public:
+    GPUBufferResource (const uint32_t size)
+        : size (size)
+    {
+    }
+
+    virtual ~GPUBufferResource () = default;
+
+    virtual void Compile (const GraphSettings& settings) override
+    {
+        buffer = BufferTransferable::Create (settings.GetDevice (), size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    }
+
+    // overriding InputImageBindable
+    virtual VkBuffer GetBufferForFrame (uint32_t) override
+    {
+        return *buffer->bufferGPU.buffer;
+    }
+
+    virtual uint32_t GetBufferSize () override
+    {
+        return size;
+    }
+
+    void CopyAndTransfer (const void* data, size_t size) const
+    {
+        buffer->CopyAndTransfer (data, size);
+    }
+};
+
+
+USING_PTR (ReadOnlyImageResource);
 class GEARSVK_API ReadOnlyImageResource : public OneTimeCompileResource, public InputImageBindable {
 public:
     ImageTransferableBaseU image;
@@ -234,7 +277,7 @@ public:
 
     virtual std::vector<ImageBase*> GetImages () const override
     {
-        return {image->imageGPU->image.get ()};
+        return { image->imageGPU->image.get () };
     }
 
     // overriding InputImageBindable
@@ -316,7 +359,7 @@ public:
 
 USING_PTR (CPUBufferResource);
 
-class GEARSVK_API CPUBufferResource : public Resource, public InputBufferBindable {
+class GEARSVK_API CPUBufferResource : public InputBufferBindableResource {
 public:
     const uint32_t                size;
     std::vector<AllocatedBufferU> buffers;

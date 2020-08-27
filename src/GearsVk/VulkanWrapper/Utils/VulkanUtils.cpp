@@ -65,7 +65,10 @@ void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuff
     SingleTimeCommand commandBuffer (device);
 
     VkBufferCopy copyRegion = {};
+    copyRegion.srcOffset    = 0;
+    copyRegion.dstOffset    = 0;
     copyRegion.size         = size;
+    
     vkCmdCopyBuffer (commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 }
 

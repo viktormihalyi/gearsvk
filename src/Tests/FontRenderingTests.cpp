@@ -4,6 +4,7 @@
 #include "Font.hpp"
 #include "ImageData.hpp"
 #include "RenderGraph.hpp"
+#include "RenderGraphUniformReflection.hpp"
 #include "VulkanWrapper.hpp"
 
 #include "glmlib.hpp"
@@ -32,7 +33,7 @@ TEST_F (FontRenderingTests, MSDFGEN)
     RG::GraphSettings s (device, 3, 512, 512);
     RG::RenderGraph   graph;
 
-    constexpr uint32_t glyphWidthHeight = 64;
+    constexpr uint32_t glyphWidthHeight = 16;
 
     RG::WritableImageResourceP outputImage = graph.CreateResource<RG::WritableImageResource> ();
     RG::ReadOnlyImageResourceP glyphs      = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, glyphWidthHeight, glyphWidthHeight, 1, 512);
@@ -47,19 +48,26 @@ layout (location = 0) in vec2 position;
 layout (location = 1) in vec2 uv;
 
 layout (location = 2) in vec2 glyphPos;       // instanced
-layout (location = 3) in vec2 glyphTranslate; // instanced
-layout (location = 4) in vec2 glyphScale;     // instanced
-layout (location = 5) in vec2 glyphAsp;       // instanced
-layout (location = 6) in uint glyphIndex;     // instanced
+layout (location = 3) in uint glyphIndex;     // instanced
 
 layout (location = 0) out vec2 textureCoords;
 layout (location = 1) out uint glyphIdx;
 
+struct SingleGlyphData {
+    vec2 translation;
+    vec2 scale;
+    vec2 aspectRatio;
+};
+
+layout (binding = 1) uniform GlyphData {
+    SingleGlyphData glyph[512];
+};
+
 void main ()
 {
-    const vec2 vertexPos = (position * glyphScale + glyphTranslate) * 0.2f;
+    const vec2 vertexPos = (position * glyph[glyphIndex].scale + glyph[glyphIndex].translation) * 0.2f;
     gl_Position = vec4 (vertexPos + glyphPos, 0.0, 1.0);
-    textureCoords = 0.5f + glyphAsp / 2.f * (uv * 2.f - 1.f);
+    textureCoords = 0.5f + glyph[glyphIndex].aspectRatio / 2.f * (uv * 2.f - 1.f);
     glyphIdx = glyphIndex;
 }
     )");
@@ -131,36 +139,46 @@ void main ()
 
     struct InstVert {
         glm::vec2 glyphPos;
-        glm::vec2 glyphTranslate;
-        glm::vec2 glyphScale;
-        glm::vec2 glyphAsp;
         uint32_t  glyphIndex;
     };
 
     FontManager fm ("C:\\Windows\\Fonts\\arialbd.ttf", glyphWidthHeight, glyphWidthHeight, FontManager::Type::SDF);
 
-    auto instanceBuffer = VertexBufferTransferable<InstVert>::CreateShared (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Uint }, VK_VERTEX_INPUT_RATE_INSTANCE);
-    *instanceBuffer     = {
-        { glm::vec2 (-0.3, 0.0), fm.GetGlyph ('g').translation, fm.GetGlyph ('g').scale, fm.GetGlyph ('g').aspectRatio, 'g' },
-        { glm::vec2 (+0.0, 0.0), fm.GetGlyph ('T').translation, fm.GetGlyph ('T').scale, fm.GetGlyph ('T').aspectRatio, 'T' },
-        { glm::vec2 (+0.4, 0.0), fm.GetGlyph ('e').translation, fm.GetGlyph ('e').scale, fm.GetGlyph ('e').aspectRatio, 'e' },
-        { glm::vec2 (+0.8, 0.0), fm.GetGlyph ('h').translation, fm.GetGlyph ('h').scale, fm.GetGlyph ('h').aspectRatio, 'h' },
-        { glm::vec2 (+0.6, 0.0), fm.GetGlyph ('l').translation, fm.GetGlyph ('l').scale, fm.GetGlyph ('l').aspectRatio, 'l' },
-    };
-
-
-    instanceBuffer->Flush ();
+    auto instanceBuffer = VertexBufferTransferable<InstVert>::CreateShared (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Uint }, VK_VERTEX_INPUT_RATE_INSTANCE);
 
     VertexBufferList vbs;
     vbs.Add (vbb);
     vbs.Add (instanceBuffer);
 
-    RG::OperationP renderOp = graph.CreateOperation<RG::RenderOperation> (DrawRecordableInfo::CreateShared (5, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
+    RG::RenderOperationP renderOp = graph.CreateOperation<RG::RenderOperation> (DrawRecordableInfo::CreateShared (5, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
 
     graph.CreateInputConnection (*renderOp, *glyphs, RG::ImageInputBinding::Create (0, *glyphs));
     graph.CreateOutputConnection (*renderOp, 0, *outputImage);
 
+    RG::RenderGraphUniformReflection refl (graph, s);
+
+    fm.glyphLoaded += [&] (uint32_t unicode) {
+        GlyphData gdata                                                                                = fm.GetGlyph (unicode);
+        refl[renderOp][ShaderModule::ShaderKind::Vertex]["GlyphData"]["glyph"][unicode]["translation"] = gdata.translation;
+        refl[renderOp][ShaderModule::ShaderKind::Vertex]["GlyphData"]["glyph"][unicode]["scale"]       = gdata.scale;
+        refl[renderOp][ShaderModule::ShaderKind::Vertex]["GlyphData"]["glyph"][unicode]["aspectRatio"] = gdata.aspectRatio;
+    };
+
     graph.Compile (s);
+
+    *instanceBuffer = {
+        { glm::vec2 (-0.3, 0.0), 'g' },
+        { glm::vec2 (+0.0, 0.0), 'T' },
+        { glm::vec2 (+0.4, 0.0), 'e' },
+        { glm::vec2 (+0.8, 0.0), 'h' },
+        { glm::vec2 (+0.6, 0.0), 'l' },
+    };
+
+
+    instanceBuffer->Flush ();
+
+    refl.RecordCopyOperations ();
+
 
     for (uint32_t unicode = 'A'; unicode < 'Z'; ++unicode) {
         glyphs->CopyLayer (fm.GetGlyph (unicode).data, unicode);
@@ -170,6 +188,7 @@ void main ()
     }
     glyphs->CopyLayer (fm.GetGlyph ('!').data, '!');
 
+    refl.Flush (0);
     graph.Submit (0);
 
     vkQueueWaitIdle (graphicsQueue);

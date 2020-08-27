@@ -79,13 +79,35 @@ private:
     const RG::GraphSettings& settings;
 
     //
-    std::vector<RG::UniformBlockResourceP>                                             uboResources;
-    std::vector<std::tuple<RG::RenderOperationP, uint32_t, RG::UniformBlockResourceP>> uboConnections;
-    std::unordered_map<GearsVk::UUID, SR::IUDataP>                                     udatas;
+    std::vector<RG::InputBufferBindableResourceP>                                             uboResources;
+    std::vector<std::tuple<RG::RenderOperationP, uint32_t, RG::InputBufferBindableResourceP>> uboConnections;
+    std::unordered_map<GearsVk::UUID, SR::IUDataP>                                            udatas;
 
 public:
-    RenderGraphUniformReflection (RG::RenderGraph& graph, const RG::GraphSettings& settings);
+    using Filter          = std::function<bool (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP&)>;
+    using ResourceCreator = std::function<RG::InputBufferBindableResourceP (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP&)>;
 
+public:
+    static bool DefaultFilter (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP&)
+    {
+        return false;
+    }
+
+    static RG::InputBufferBindableResourceP DefaultResourceCreator (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP& ubo)
+    {
+        return RG::UniformBlockResource::CreateShared (*ubo);
+    }
+
+    static RG::InputBufferBindableResourceP GPUBufferResourceCreator (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP& ubo)
+    {
+        return RG::GPUBufferResource::CreateShared (ubo->GetFullSize ());
+    }
+
+public:
+    RenderGraphUniformReflection (RG::RenderGraph&         graph,
+                                  const RG::GraphSettings& settings,
+                                  const Filter&            filter          = &DefaultFilter,
+                                  const ResourceCreator&   resourceCreator = &DefaultResourceCreator);
 
 public:
     // call after RG::RenderGraph::Compile (or RG::RenderGraph::CompileResources)
@@ -98,8 +120,13 @@ public:
         return selectors.at (renderOp.GetUUID ());
     }
 
+    ShaderKindSelector& operator[] (const RG::RenderOperationP& renderOp)
+    {
+        return (*this)[*renderOp];
+    }
+
 private:
-    void CreateGraphResources ();
+    void CreateGraphResources (const Filter& filter, const ResourceCreator& resourceCreator);
 
     void CreateGraphConnections ();
 };
