@@ -42,6 +42,7 @@ protected:
     Queue&          GetGraphicsQueue () { return *env->graphicsQueue; }
     Swapchain&      GetSwapchain () { return *env->swapchain; }
     DeviceExtra&    GetDeviceExtra () { return *env->deviceExtra; }
+    Window&         GetWindow () { return *window; }
 
     virtual ~GoogleTestEnvironment () {}
 

@@ -260,8 +260,8 @@ struct GEARSVK_API ShaderPipelineUData {
 
     USING_CREATE (ShaderPipelineUData);
     ShaderPipelineUData (ShaderPipeline& pipeline)
-        : vert (pipeline.vertexShader.shader)
-        , frag (pipeline.fragmentShader.shader)
+        : vert (pipeline.vertexShader)
+        , frag (pipeline.fragmentShader)
     {
     }
 };

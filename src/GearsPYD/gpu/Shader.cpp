@@ -21,21 +21,21 @@ static bool Contains (const std::string& str, const std::string& substring)
 static void LogVertexShader (std::string source)
 {
     if constexpr (LogShaderCreation) {
-        TryCompile (ShaderModule::ShaderKind::Vertex, source);
+        TryCompile (ShaderKind::Vertex, source);
     }
 }
 
 static void LogGeometryShader (std::string source)
 {
     if constexpr (LogShaderCreation) {
-        TryCompile (ShaderModule::ShaderKind::Geometry, source);
+        TryCompile (ShaderKind::Geometry, source);
     }
 }
 
 static void LogFragmentShader (std::string source)
 {
     if constexpr (LogShaderCreation) {
-        TryCompile (ShaderModule::ShaderKind::Fragment, source);
+        TryCompile (ShaderKind::Fragment, source);
     }
 }
 

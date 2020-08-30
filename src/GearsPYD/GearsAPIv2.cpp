@@ -150,7 +150,7 @@ void StartRendering (const std::function<bool ()>& doRender)
     }
 }
 
-void TryCompile (ShaderModule::ShaderKind shaderKind, const std::string& source)
+void TryCompile (ShaderKind shaderKind, const std::string& source)
 {
     try {
         ShaderModule::CreateFromGLSLString (*env->device, shaderKind, source);

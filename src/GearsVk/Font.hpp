@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <filesystem>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include "Assert.hpp"
@@ -24,8 +24,6 @@ struct GlyphData {
     glm::vec2          translation;
     glm::vec2          scale;
     glm::vec2          aspectRatio;
-
-    glm::mat4 GetTransforMatrix () const;
 };
 
 
@@ -92,13 +90,13 @@ private:
     const uint32_t height;
     const Type     distanceFieldType;
 
-    std::map<uint32_t, GlyphData> loadedGlyphs;
+    std::unordered_map<uint32_t, GlyphDataU> loadedGlyphs;
 
 public:
     Event<uint32_t> glyphLoaded;
 
 private:
-    GlyphData Retrieve (const uint32_t unicode)
+    const GlyphData& Retrieve (const uint32_t unicode)
     {
         const auto it = loadedGlyphs.find (unicode);
 
@@ -117,14 +115,16 @@ private:
 
             std::cout << "generated '" << static_cast<char> (unicode) << "', scale: " << data.scale << ", translation: " << data.translation << std::endl;
 
-            loadedGlyphs.insert ({ unicode, data });
+            const auto insertResult = loadedGlyphs.insert ({ unicode, GlyphData::Create (data) });
+
+            GVK_ASSERT (insertResult.second);
 
             glyphLoaded (unicode);
 
-            return data;
+            return *insertResult.first->second;
         }
 
-        return it->second;
+        return *it->second;
     }
 
 
@@ -137,7 +137,7 @@ public:
     {
     }
 
-    GlyphData GetGlyph (const uint32_t unicode)
+    const GlyphData& GetGlyph (const uint32_t unicode)
     {
         return Retrieve (unicode);
     }

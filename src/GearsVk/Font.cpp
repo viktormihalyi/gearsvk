@@ -11,13 +11,6 @@
 #include <map>
 
 
-glm::mat4 GlyphData::GetTransforMatrix () const
-{
-    static constexpr glm::mat4 identity (1.f);
-    return glm::translate (glm::scale (identity, { scale.x, scale.y, 1.f }), { translation.x, translation.y, 0 });
-}
-
-
 static msdfgen::FontHandle* GetFont (const std::filesystem::path& fontFile)
 {
     static msdfgen::FreetypeHandle*                    ft = nullptr;

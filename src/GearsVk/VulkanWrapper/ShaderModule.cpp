@@ -20,10 +20,10 @@
 
 class ShaderKindInfo final {
 public:
-    const std::string              extension;
-    const VkShaderStageFlagBits    vkflag;
-    const ShaderModule::ShaderKind shaderKind;
-    const EShLanguage              esh;
+    const std::string           extension;
+    const VkShaderStageFlagBits vkflag;
+    const ShaderKind            shaderKind;
+    const EShLanguage           esh;
 
 private:
     ShaderKindInfo () = default;
@@ -31,7 +31,7 @@ private:
 public:
     static const ShaderKindInfo FromExtension (const std::string&);
     static const ShaderKindInfo FromVk (VkShaderStageFlagBits);
-    static const ShaderKindInfo FromShaderKind (ShaderModule::ShaderKind);
+    static const ShaderKindInfo FromShaderKind (ShaderKind);
     static const ShaderKindInfo FromEsh (EShLanguage);
 
 private:
@@ -44,42 +44,42 @@ private:
 const ShaderKindInfo ShaderKindInfo::vert {
     ".vert",
     VK_SHADER_STAGE_VERTEX_BIT,
-    ShaderModule::ShaderKind::Vertex,
+    ShaderKind::Vertex,
     EShLangVertex,
 };
 
 const ShaderKindInfo ShaderKindInfo::tesc {
     ".tesc",
     VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
-    ShaderModule::ShaderKind::TessellationControl,
+    ShaderKind::TessellationControl,
     EShLangTessControl,
 };
 
 const ShaderKindInfo ShaderKindInfo::tese {
     ".tese",
     VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
-    ShaderModule::ShaderKind::TessellationEvaluation,
+    ShaderKind::TessellationEvaluation,
     EShLangTessEvaluation,
 };
 
 const ShaderKindInfo ShaderKindInfo::geom {
     ".geom",
     VK_SHADER_STAGE_GEOMETRY_BIT,
-    ShaderModule::ShaderKind::Geometry,
+    ShaderKind::Geometry,
     EShLangGeometry,
 };
 
 const ShaderKindInfo ShaderKindInfo::frag {
     ".frag",
     VK_SHADER_STAGE_FRAGMENT_BIT,
-    ShaderModule::ShaderKind::Fragment,
+    ShaderKind::Fragment,
     EShLangFragment,
 };
 
 const ShaderKindInfo ShaderKindInfo::comp {
     ".comp",
     VK_SHADER_STAGE_COMPUTE_BIT,
-    ShaderModule::ShaderKind::Compute,
+    ShaderKind::Compute,
     EShLangCompute,
 };
 
@@ -118,7 +118,7 @@ const ShaderKindInfo ShaderKindInfo::FromVk (VkShaderStageFlagBits flag)
     });
 }
 
-const ShaderKindInfo ShaderKindInfo::FromShaderKind (ShaderModule::ShaderKind sk)
+const ShaderKindInfo ShaderKindInfo::FromShaderKind (ShaderKind sk)
 {
     return Find ([&] (auto& s) {
         return s.shaderKind == sk;
@@ -230,7 +230,7 @@ static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<cha
 }
 
 
-ShaderModule::ShaderModule (ShaderModule::ShaderKind shaderKind, ReadMode readMode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary)
+ShaderModule::ShaderModule (ShaderKind shaderKind, ReadMode readMode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary)
     : readMode (readMode)
     , shaderKind (shaderKind)
     , device (device)

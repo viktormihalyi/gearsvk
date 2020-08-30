@@ -31,7 +31,7 @@ using namespace RG;
 
 TEST_F (HiddenWindowGoogleTestEnvironment, Spirvrross2)
 {
-    auto sm = ShaderModule::CreateFromGLSLString (GetDevice (), ShaderModule::ShaderKind::Fragment, R"(#version 450
+    auto sm = ShaderModule::CreateFromGLSLString (GetDevice (), ShaderKind::Fragment, R"(#version 450
 
 struct A {
     vec3 abc;
@@ -93,7 +93,7 @@ TEST_F (HeadlessGoogleTestEnvironment, CompileTest)
 TEST_F (HeadlessGoogleTestEnvironment, ShaderCompileTests)
 {
     try {
-        ShaderModule::CreateFromGLSLString (GetDevice (), ShaderModule::ShaderKind::Vertex, R"(
+        ShaderModule::CreateFromGLSLString (GetDevice (), ShaderKind::Vertex, R"(
         #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -388,17 +388,17 @@ void main () {
         float     asd;
     };
 
-    VertexBufferTransferable<Vert> vbb (device, 4, {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, VK_VERTEX_INPUT_RATE_VERTEX);
+    VertexBufferTransferable<Vert> vbb (device, 4, { ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float }, VK_VERTEX_INPUT_RATE_VERTEX);
     vbb = std::vector<Vert> {
-        {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
-        {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
-        {glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f), 0.3f},
-        {glm::vec2 (+1.f, -1.f), glm::vec2 (1.f, 0.f), 0.6f},
+        { glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f },
+        { glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f },
+        { glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f), 0.3f },
+        { glm::vec2 (+1.f, -1.f), glm::vec2 (1.f, 0.f), 0.6f },
     };
     vbb.Flush ();
 
     IndexBufferTransferable ib (device, 6);
-    ib.data = {0, 1, 2, 0, 3, 2};
+    ib.data = { 0, 1, 2, 0, 3, 2 };
     ib.Flush ();
 
     RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
@@ -483,18 +483,18 @@ void main () {
     };
 
     std::shared_ptr<VertexBufferTransferable<Vert>> vbb = VertexBufferTransferable<Vert>::CreateShared (
-        device, 4, std::vector<VkFormat> {ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float}, VK_VERTEX_INPUT_RATE_VERTEX);
+        device, 4, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float }, VK_VERTEX_INPUT_RATE_VERTEX);
 
     *vbb = std::vector<Vert> {
-        {glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f},
-        {glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f},
-        {glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f), 0.3f},
-        {glm::vec2 (+1.f, -1.f), glm::vec2 (1.f, 0.f), 0.6f},
+        { glm::vec2 (-1.f, -1.f), glm::vec2 (0.f, 0.f), 0.1f },
+        { glm::vec2 (-1.f, +1.f), glm::vec2 (0.f, 1.f), 0.2f },
+        { glm::vec2 (+1.f, +1.f), glm::vec2 (1.f, 1.f), 0.3f },
+        { glm::vec2 (+1.f, -1.f), glm::vec2 (1.f, 0.f), 0.6f },
     };
     vbb->Flush ();
 
     IndexBufferTransferable ib (device, 6);
-    ib.data = {0, 1, 2, 0, 3, 2};
+    ib.data = { 0, 1, 2, 0, 3, 2 };
     ib.Flush ();
 
     OperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, *vbb, ib), std::move (sp));

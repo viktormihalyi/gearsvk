@@ -4,7 +4,7 @@
 #include "Timer.hpp"
 
 
-ShaderPipeline::ShaderObject& ShaderPipeline::GetShaderByIndex (uint32_t index)
+ShaderModuleU& ShaderPipeline::GetShaderByIndex (uint32_t index)
 {
     switch (index) {
         case 0: return vertexShader;
@@ -20,7 +20,7 @@ ShaderPipeline::ShaderObject& ShaderPipeline::GetShaderByIndex (uint32_t index)
 }
 
 
-ShaderPipeline::ShaderObject& ShaderPipeline::GetShaderByExtension (const std::string& extension)
+ShaderModuleU& ShaderPipeline::GetShaderByExtension (const std::string& extension)
 {
     if (extension == ".vert") {
         return vertexShader;
@@ -39,15 +39,15 @@ ShaderPipeline::ShaderObject& ShaderPipeline::GetShaderByExtension (const std::s
 }
 
 
-ShaderPipeline::ShaderObject& ShaderPipeline::GetShaderByKind (ShaderModule::ShaderKind kind)
+ShaderModuleU& ShaderPipeline::GetShaderByKind (ShaderKind kind)
 {
     switch (kind) {
-        case ShaderModule::ShaderKind::Vertex: return vertexShader;
-        case ShaderModule::ShaderKind::Fragment: return fragmentShader;
-        case ShaderModule::ShaderKind::TessellationControl: return tessellationControlShader;
-        case ShaderModule::ShaderKind::TessellationEvaluation: return tessellationEvaluationShader;
-        case ShaderModule::ShaderKind::Geometry: return geometryShader;
-        case ShaderModule::ShaderKind::Compute: return computeShader;
+        case ShaderKind::Vertex: return vertexShader;
+        case ShaderKind::Fragment: return fragmentShader;
+        case ShaderKind::TessellationControl: return tessellationControlShader;
+        case ShaderKind::TessellationEvaluation: return tessellationEvaluationShader;
+        case ShaderKind::Geometry: return geometryShader;
+        case ShaderKind::Compute: return computeShader;
     }
 
     GVK_ERROR (true);
@@ -68,11 +68,11 @@ ShaderPipeline::ShaderPipeline (VkDevice device, const std::vector<std::filesyst
 }
 
 
-ShaderPipeline::ShaderPipeline (VkDevice device, const std::vector<std::pair<ShaderModule::ShaderKind, std::string>>& sources)
+ShaderPipeline::ShaderPipeline (VkDevice device, const std::vector<std::pair<ShaderKind, std::string>>& sources)
     : ShaderPipeline (device)
 {
     for (auto [kind, source] : sources) {
-        GetShaderByKind (kind).Set (ShaderModule::CreateFromGLSLString (device, kind, source));
+        GetShaderByKind (kind) = ShaderModule::CreateFromGLSLString (device, kind, source);
     }
 }
 
@@ -80,48 +80,48 @@ std::vector<VkPipelineShaderStageCreateInfo> ShaderPipeline::GetShaderStages () 
 {
     std::vector<VkPipelineShaderStageCreateInfo> result;
 
-    if (vertexShader.shader != nullptr)
-        result.push_back (vertexShader.shader->GetShaderStageCreateInfo ());
-    if (fragmentShader.shader != nullptr)
-        result.push_back (fragmentShader.shader->GetShaderStageCreateInfo ());
-    if (geometryShader.shader != nullptr)
-        result.push_back (geometryShader.shader->GetShaderStageCreateInfo ());
-    if (tessellationEvaluationShader.shader != nullptr)
-        result.push_back (tessellationEvaluationShader.shader->GetShaderStageCreateInfo ());
-    if (tessellationControlShader.shader != nullptr)
-        result.push_back (tessellationControlShader.shader->GetShaderStageCreateInfo ());
-    if (computeShader.shader != nullptr)
-        result.push_back (computeShader.shader->GetShaderStageCreateInfo ());
+    if (vertexShader != nullptr)
+        result.push_back (vertexShader->GetShaderStageCreateInfo ());
+    if (fragmentShader != nullptr)
+        result.push_back (fragmentShader->GetShaderStageCreateInfo ());
+    if (geometryShader != nullptr)
+        result.push_back (geometryShader->GetShaderStageCreateInfo ());
+    if (tessellationEvaluationShader != nullptr)
+        result.push_back (tessellationEvaluationShader->GetShaderStageCreateInfo ());
+    if (tessellationControlShader != nullptr)
+        result.push_back (tessellationControlShader->GetShaderStageCreateInfo ());
+    if (computeShader != nullptr)
+        result.push_back (computeShader->GetShaderStageCreateInfo ());
 
     return result;
 }
 
 
-void ShaderPipeline::SetShaderFromSourceString (ShaderModule::ShaderKind shaderKind, const std::string& source)
+void ShaderPipeline::SetShaderFromSourceString (ShaderKind shaderKind, const std::string& source)
 {
-    GVK_ASSERT (GetShaderByKind (shaderKind).shader == nullptr);
-    GetShaderByKind (shaderKind).Set (ShaderModule::CreateFromGLSLString (device, shaderKind, source));
+    GVK_ASSERT (GetShaderByKind (shaderKind) == nullptr);
+    GetShaderByKind (shaderKind) = ShaderModule::CreateFromGLSLString (device, shaderKind, source);
 }
 
 
 void ShaderPipeline::SetVertexShaderFromString (const std::string& source)
 {
-    SetShaderFromSourceString (ShaderModule::ShaderKind::Vertex, source);
+    SetShaderFromSourceString (ShaderKind::Vertex, source);
 }
 
 
 void ShaderPipeline::SetFragmentShaderFromString (const std::string& source)
 {
-    SetShaderFromSourceString (ShaderModule::ShaderKind::Fragment, source);
+    SetShaderFromSourceString (ShaderKind::Fragment, source);
 }
 
 
 void ShaderPipeline::SetShaderFromSourceFile (const std::filesystem::path& shaderPath)
 {
     // assert on overwriting shader
-    GVK_ASSERT (GetShaderByExtension (shaderPath.extension ().u8string ()).shader == nullptr);
+    GVK_ASSERT (GetShaderByExtension (shaderPath.extension ().u8string ()) == nullptr);
 
-    GetShaderByExtension (shaderPath.extension ().u8string ()).Set (ShaderModule::CreateFromGLSLFile (device, shaderPath));
+    GetShaderByExtension (shaderPath.extension ().u8string ()) = ShaderModule::CreateFromGLSLFile (device, shaderPath);
 }
 
 
@@ -160,8 +160,8 @@ void ShaderPipeline::Compile (const CompileSettings& settings)
     renderPassInfo.dependencyCount        = 1;
     renderPassInfo.pDependencies          = &dependency;
 
-    compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, {subpass}, {dependency}));
-    compileResult.pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, {settings.layout}));
+    compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, { subpass }, { dependency }));
+    compileResult.pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, { settings.layout }));
     compileResult.pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, settings.width, settings.height, static_cast<uint32_t> (settings.attachmentReferences.size ()), *compileResult.pipelineLayout, *compileResult.renderPass, GetShaderStages (), settings.inputBindings, settings.inputAttributes, settings.topology));
 }
 
@@ -172,21 +172,21 @@ void ShaderPipeline::Reload ()
     Utils::TimerScope       ts (tl);
 
     MultithreadedFunction reloader (5, [&] (uint32_t, uint32_t threadIndex) {
-        ShaderObject& currentShader = GetShaderByIndex (threadIndex);
-        ShaderObject  newShader;
+        ShaderModuleU& currentShader = GetShaderByIndex (threadIndex);
+        ShaderModuleU  newShader;
 
-        if (currentShader.shader != nullptr) {
-            switch (currentShader.shader->GetReadMode ()) {
+        if (currentShader != nullptr) {
+            switch (currentShader->GetReadMode ()) {
                 case ShaderModule::ReadMode::GLSLFilePath:
                     try {
-                        newShader.Set (ShaderModule::CreateFromGLSLFile (device, currentShader.shader->GetLocation ()));
+                        newShader = ShaderModule::CreateFromGLSLFile (device, currentShader->GetLocation ());
                     } catch (ShaderCompileException&) {
                     }
                     break;
 
                 case ShaderModule::ReadMode::SPVFilePath:
                     try {
-                        newShader.Set (ShaderModule::CreateFromSPVFile (device, currentShader.shader->GetShaderKind (), currentShader.shader->GetLocation ()));
+                        newShader = ShaderModule::CreateFromSPVFile (device, currentShader->GetShaderKind (), currentShader->GetLocation ());
                     } catch (ShaderCompileException&) {
                     }
                     break;
@@ -200,7 +200,7 @@ void ShaderPipeline::Reload ()
                     break;
             }
 
-            if (newShader.shader != nullptr) {
+            if (newShader != nullptr) {
                 currentShader = std::move (newShader);
             }
         }
@@ -210,22 +210,22 @@ void ShaderPipeline::Reload ()
 
 void ShaderPipeline::IterateShaders (const std::function<void (ShaderModule&)>& func) const
 {
-    if (vertexShader.shader) {
-        func (*vertexShader.shader);
+    if (vertexShader) {
+        func (*vertexShader);
     }
-    if (fragmentShader.shader) {
-        func (*fragmentShader.shader);
+    if (fragmentShader) {
+        func (*fragmentShader);
     }
-    if (geometryShader.shader) {
-        func (*geometryShader.shader);
+    if (geometryShader) {
+        func (*geometryShader);
     }
-    if (tessellationEvaluationShader.shader) {
-        func (*tessellationEvaluationShader.shader);
+    if (tessellationEvaluationShader) {
+        func (*tessellationEvaluationShader);
     }
-    if (tessellationControlShader.shader) {
-        func (*tessellationControlShader.shader);
+    if (tessellationControlShader) {
+        func (*tessellationControlShader);
     }
-    if (computeShader.shader) {
-        func (*computeShader.shader);
+    if (computeShader) {
+        func (*computeShader);
     }
 }

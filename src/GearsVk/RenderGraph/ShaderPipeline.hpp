@@ -19,35 +19,16 @@ private:
     const VkDevice device;
 
 public:
-    struct ShaderObject {
-        ShaderModuleU shader;
+    ShaderModuleU vertexShader;
+    ShaderModuleU fragmentShader;
+    ShaderModuleU geometryShader;
+    ShaderModuleU tessellationEvaluationShader;
+    ShaderModuleU tessellationControlShader;
+    ShaderModuleU computeShader;
 
-        void Set (ShaderModuleU&& _shader)
-        {
-            shader = std::move (_shader);
-            ubos   = ShaderBlocks::Create ();
-
-            for (const auto& s : shader->GetReflection ().ubos) {
-                ShaderStruct autoStruct (*s);
-                auto         autoBlock = UniformBlock::Create (s->binding, s->name, autoStruct);
-                ubos->AddBlock (std::move (autoBlock));
-            }
-        }
-
-    private:
-        ShaderBlocksU ubos; // TODO remove
-    };
-
-    ShaderObject vertexShader;
-    ShaderObject fragmentShader;
-    ShaderObject geometryShader;
-    ShaderObject tessellationEvaluationShader;
-    ShaderObject tessellationControlShader;
-    ShaderObject computeShader;
-
-    ShaderObject& GetShaderByIndex (uint32_t index);
-    ShaderObject& GetShaderByExtension (const std::string& extension);
-    ShaderObject& GetShaderByKind (ShaderModule::ShaderKind kind);
+    ShaderModuleU& GetShaderByIndex (uint32_t index);
+    ShaderModuleU& GetShaderByExtension (const std::string& extension);
+    ShaderModuleU& GetShaderByKind (ShaderKind kind);
 
 public:
     struct CompileSettings {
@@ -81,10 +62,10 @@ public:
 
     ShaderPipeline (VkDevice device);
     ShaderPipeline (VkDevice device, const std::vector<std::filesystem::path>& pathes);
-    ShaderPipeline (VkDevice device, const std::vector<std::pair<ShaderModule::ShaderKind, std::string>>& sources);
+    ShaderPipeline (VkDevice device, const std::vector<std::pair<ShaderKind, std::string>>& sources);
 
     // settings shaders
-    void SetShaderFromSourceString (ShaderModule::ShaderKind shaderKind, const std::string& source);
+    void SetShaderFromSourceString (ShaderKind shaderKind, const std::string& source);
     void SetVertexShaderFromString (const std::string& source);
     void SetFragmentShaderFromString (const std::string& source);
 

@@ -496,12 +496,12 @@ public:
             }
         };
 
-        GatherFor (pipeline->vertexShader.shader, vert);
-        GatherFor (pipeline->fragmentShader.shader, frag);
-        GatherFor (pipeline->geometryShader.shader, geom);
-        GatherFor (pipeline->tessellationEvaluationShader.shader, tese);
-        GatherFor (pipeline->tessellationControlShader.shader, tesc);
-        GatherFor (pipeline->computeShader.shader, comp);
+        GatherFor (pipeline->vertexShader, vert);
+        GatherFor (pipeline->fragmentShader, frag);
+        GatherFor (pipeline->geometryShader, geom);
+        GatherFor (pipeline->tessellationEvaluationShader, tese);
+        GatherFor (pipeline->tessellationControlShader, tesc);
+        GatherFor (pipeline->computeShader, comp);
     }
 
     virtual ~UniformReflectionResource () = default;

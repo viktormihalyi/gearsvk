@@ -1,9 +1,9 @@
-#include "RenderGraphUniformReflection.hpp"
+#include "UniformReflection.hpp"
 
 
 namespace RG {
 
-RenderGraphUniformReflection::RenderGraphUniformReflection (RG::RenderGraph& graph, const RG::GraphSettings& settings, const Filter& filter, const ResourceCreator& resourceCreator)
+UniformReflection::UniformReflection (RG::RenderGraph& graph, const RG::GraphSettings& settings, const Filter& filter, const ResourceCreator& resourceCreator)
     : graph (graph)
     , settings (settings)
 {
@@ -12,7 +12,7 @@ RenderGraphUniformReflection::RenderGraphUniformReflection (RG::RenderGraph& gra
 }
 
 
-void RenderGraphUniformReflection::RecordCopyOperations ()
+void UniformReflection::RecordCopyOperations ()
 {
     GVK_ASSERT (!uboResources.empty ());
     GVK_ASSERT (!udatas.empty ());
@@ -37,7 +37,7 @@ void RenderGraphUniformReflection::RecordCopyOperations ()
     udatas.clear ();
 }
 
-void RenderGraphUniformReflection::Flush (uint32_t frameIndex)
+void UniformReflection::Flush (uint32_t frameIndex)
 {
     GVK_ASSERT (!copyOperations.empty ());
 
@@ -47,7 +47,7 @@ void RenderGraphUniformReflection::Flush (uint32_t frameIndex)
 }
 
 
-void RenderGraphUniformReflection::CreateGraphResources (const Filter& filter, const ResourceCreator& resourceCreator)
+void UniformReflection::CreateGraphResources (const Filter& filter, const ResourceCreator& resourceCreator)
 {
     copyOperations.resize (settings.framesInFlight);
 
@@ -60,7 +60,6 @@ void RenderGraphUniformReflection::CreateGraphResources (const Filter& filter, c
             renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
                 UboSelector ubosel;
                 for (SR::UBOP ubo : shaderModule.GetReflection ().ubos) {
-
                     if (filter (renderOp, shaderModule, ubo)) {
                         continue;
                     }
@@ -76,7 +75,6 @@ void RenderGraphUniformReflection::CreateGraphResources (const Filter& filter, c
                     uboConnections.push_back (std::make_tuple (renderOp, ubo->binding, uboRes));
                     uboResources.push_back (uboRes);
                     udatas.insert ({ uboRes->GetUUID (), uboData });
-
                 }
                 newsel.Set (shaderModule.GetShaderKind (), std::move (ubosel));
             });
@@ -86,7 +84,7 @@ void RenderGraphUniformReflection::CreateGraphResources (const Filter& filter, c
 }
 
 
-void RenderGraphUniformReflection::CreateGraphConnections ()
+void UniformReflection::CreateGraphConnections ()
 {
     GVK_ASSERT (!uboConnections.empty ());
 

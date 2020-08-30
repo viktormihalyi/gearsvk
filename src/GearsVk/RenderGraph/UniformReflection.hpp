@@ -14,7 +14,9 @@
 
 namespace RG {
 
-class GEARSVK_API RenderGraphUniformReflection {
+// TODO add possibility to store uniforms in gpu memory
+
+class GEARSVK_API UniformReflection {
 private:
     class UboSelector {
     private:
@@ -39,10 +41,10 @@ private:
 
     class ShaderKindSelector {
     private:
-        std::unordered_map<ShaderModule::ShaderKind, UboSelector> uboSelectors;
+        std::unordered_map<ShaderKind, UboSelector> uboSelectors;
 
     public:
-        UboSelector& operator[] (ShaderModule::ShaderKind shaderKind)
+        UboSelector& operator[] (ShaderKind shaderKind)
         {
             auto it = uboSelectors.find (shaderKind);
             if (it != uboSelectors.end ()) {
@@ -52,7 +54,7 @@ private:
             throw std::runtime_error ("no such shaderkind");
         }
 
-        void Set (ShaderModule::ShaderKind shaderKind, UboSelector&& uboSel)
+        void Set (ShaderKind shaderKind, UboSelector&& uboSel)
         {
             uboSelectors[shaderKind] = std::move (uboSel);
         }
@@ -104,10 +106,10 @@ public:
     }
 
 public:
-    RenderGraphUniformReflection (RG::RenderGraph&         graph,
-                                  const RG::GraphSettings& settings,
-                                  const Filter&            filter          = &DefaultFilter,
-                                  const ResourceCreator&   resourceCreator = &DefaultResourceCreator);
+    UniformReflection (RG::RenderGraph&         graph,
+                       const RG::GraphSettings& settings,
+                       const Filter&            filter          = &DefaultFilter,
+                       const ResourceCreator&   resourceCreator = &DefaultResourceCreator);
 
 public:
     // call after RG::RenderGraph::Compile (or RG::RenderGraph::CompileResources)

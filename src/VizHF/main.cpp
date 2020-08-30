@@ -25,7 +25,7 @@
 #include "ShaderReflection.hpp"
 
 #include "CameraControl.hpp"
-#include "RenderGraphUniformReflection.hpp"
+#include "UniformReflection.hpp"
 
 #include <array>
 #include <cstdint>
@@ -85,7 +85,7 @@ int main (int, char**)
     RG::ReadOnlyImageResourceP  matcap    = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
     RG::ReadOnlyImageResourceP  agy3d     = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
 
-    RG::RenderGraphUniformReflection r (graph, s);
+    RG::UniformReflection r (graph, s);
 
     // ========================= GRAPH CONNECTIONS =========================
 
@@ -176,8 +176,8 @@ int main (int, char**)
         }
     };
 
-    r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["VP"]   = glm::mat4 (1.f);
-    r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["VP"] = glm::mat4 (1.f);
+    r[*brainRenderOp][ShaderKind::Vertex]["Camera"]["VP"]   = glm::mat4 (1.f);
+    r[*brainRenderOp][ShaderKind::Fragment]["Camera"]["VP"] = glm::mat4 (1.f);
 
 
     renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
@@ -188,18 +188,18 @@ int main (int, char**)
         cameraControl.UpdatePosition (dt);
 
         {
-            r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["viewMatrix"]   = c.GetViewMatrix ();
-            r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
-            r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["camPosition"]  = c.GetPosition ();
-            r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["viewDir"]      = c.GetViewDirection ();
-            r[*brainRenderOp][ShaderModule::ShaderKind::Vertex]["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
+            r[*brainRenderOp][ShaderKind::Vertex]["Camera"]["viewMatrix"]   = c.GetViewMatrix ();
+            r[*brainRenderOp][ShaderKind::Vertex]["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
+            r[*brainRenderOp][ShaderKind::Vertex]["Camera"]["camPosition"]  = c.GetPosition ();
+            r[*brainRenderOp][ShaderKind::Vertex]["Camera"]["viewDir"]      = c.GetViewDirection ();
+            r[*brainRenderOp][ShaderKind::Vertex]["Camera"]["displayMode"]  = static_cast<uint32_t> (currentDisplayMode);
 
-            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["viewMatrix"]  = c.GetViewMatrix ();
-            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["viewMatrix"]  = c.GetRayDirMatrix ();
-            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Time"]["time"]          = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
-            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["position"]    = c.GetPosition ();
-            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["viewDir"]     = c.GetViewDirection ();
-            r[*brainRenderOp][ShaderModule::ShaderKind::Fragment]["Camera"]["displayMode"] = static_cast<uint32_t> (currentDisplayMode);
+            r[*brainRenderOp][ShaderKind::Fragment]["Camera"]["viewMatrix"]  = c.GetViewMatrix ();
+            r[*brainRenderOp][ShaderKind::Fragment]["Camera"]["viewMatrix"]  = c.GetRayDirMatrix ();
+            r[*brainRenderOp][ShaderKind::Fragment]["Time"]["time"]          = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
+            r[*brainRenderOp][ShaderKind::Fragment]["Camera"]["position"]    = c.GetPosition ();
+            r[*brainRenderOp][ShaderKind::Fragment]["Camera"]["viewDir"]     = c.GetViewDirection ();
+            r[*brainRenderOp][ShaderKind::Fragment]["Camera"]["displayMode"] = static_cast<uint32_t> (currentDisplayMode);
         }
 
         r.Flush (frameIndex);

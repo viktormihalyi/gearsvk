@@ -22,19 +22,20 @@ public:
     }
 };
 
+enum class ShaderKind {
+    Vertex,
+    Fragment,
+    TessellationControl,
+    TessellationEvaluation,
+    Geometry,
+    Compute,
+};
+
 USING_PTR (ShaderModule);
 class GEARSVK_API ShaderModule : public VulkanObject {
 public:
     static constexpr uint32_t ShaderKindCount = 6;
 
-    enum class ShaderKind {
-        Vertex,
-        Fragment,
-        TessellationControl,
-        TessellationEvaluation,
-        Geometry,
-        Compute,
-    };
 
     enum class ReadMode {
         GLSLFilePath,

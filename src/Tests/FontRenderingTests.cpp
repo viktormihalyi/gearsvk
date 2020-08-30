@@ -4,7 +4,7 @@
 #include "Font.hpp"
 #include "ImageData.hpp"
 #include "RenderGraph.hpp"
-#include "RenderGraphUniformReflection.hpp"
+#include "UniformReflection.hpp"
 #include "VulkanWrapper.hpp"
 
 #include "glmlib.hpp"
@@ -61,11 +61,19 @@ struct SingleGlyphData {
 
 layout (binding = 1) uniform GlyphData {
     SingleGlyphData glyph[512];
+    uint            fontSizePx;
 };
+
+layout (binding = 2) uniform Screen {
+    uint screenWidth;
+    uint screenHeight;
+};
+
 
 void main ()
 {
-    const vec2 vertexPos = (position * glyph[glyphIndex].scale + glyph[glyphIndex].translation) * 0.2f;
+    const vec2 scaling = vec2 (fontSizePx, fontSizePx) / (vec2 (screenWidth, screenHeight) / 2.f);
+    const vec2 vertexPos = (position * glyph[glyphIndex].scale + glyph[glyphIndex].translation) * scaling;
     gl_Position = vec4 (vertexPos + glyphPos, 0.0, 1.0);
     textureCoords = 0.5f + glyph[glyphIndex].aspectRatio / 2.f * (uv * 2.f - 1.f);
     glyphIdx = glyphIndex;
@@ -155,13 +163,22 @@ void main ()
     graph.CreateInputConnection (*renderOp, *glyphs, RG::ImageInputBinding::Create (0, *glyphs));
     graph.CreateOutputConnection (*renderOp, 0, *outputImage);
 
-    RG::RenderGraphUniformReflection refl (graph, s);
+    RG::UniformReflection refl (graph, s);
+
+    refl[renderOp][ShaderKind::Vertex]["GlyphData"]["fontSizePx"] = static_cast<uint32_t> (24);
 
     fm.glyphLoaded += [&] (uint32_t unicode) {
-        GlyphData gdata                                                                                = fm.GetGlyph (unicode);
-        refl[renderOp][ShaderModule::ShaderKind::Vertex]["GlyphData"]["glyph"][unicode]["translation"] = gdata.translation;
-        refl[renderOp][ShaderModule::ShaderKind::Vertex]["GlyphData"]["glyph"][unicode]["scale"]       = gdata.scale;
-        refl[renderOp][ShaderModule::ShaderKind::Vertex]["GlyphData"]["glyph"][unicode]["aspectRatio"] = gdata.aspectRatio;
+        GlyphData gdata                                                                  = fm.GetGlyph (unicode);
+        refl[renderOp][ShaderKind::Vertex]["GlyphData"]["glyph"][unicode]["translation"] = gdata.translation;
+        refl[renderOp][ShaderKind::Vertex]["GlyphData"]["glyph"][unicode]["scale"]       = gdata.scale;
+        refl[renderOp][ShaderKind::Vertex]["GlyphData"]["glyph"][unicode]["aspectRatio"] = gdata.aspectRatio;
+    };
+
+    refl[renderOp][ShaderKind::Vertex]["Screen"]["screenWidth"]  = GetWindow ().GetWidth ();
+    refl[renderOp][ShaderKind::Vertex]["Screen"]["screenHeight"] = GetWindow ().GetHeight ();
+    GetWindow ().events.resized += [&] (uint32_t newWidth, uint32_t newHeight) {
+        refl[renderOp][ShaderKind::Vertex]["Screen"]["screenWidth"]  = newWidth;
+        refl[renderOp][ShaderKind::Vertex]["Screen"]["screenHeight"] = newHeight;
     };
 
     graph.Compile (s);
