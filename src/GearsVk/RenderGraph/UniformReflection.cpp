@@ -113,6 +113,26 @@ void UniformReflection::CreateGraphConnections ()
 }
 
 
+void UniformReflection::PrintDebugInfo ()
+{
+    for (auto& [uuid, selector] : selectors) {
+        std::cout << uuid.GetValue () << std::endl;
+        for (auto& [shaderKind, uboSelector] : selector.uboSelectors) {
+            std::cout << "\t" << ShaderKindToString (shaderKind) << std::endl;
+            for (auto& [name, ubo] : uboSelector.udatas) {
+                std::cout << "\t\t" << name << " (" << static_cast<int32_t> (ubo->GetSize ()) << " bytes): ";
+
+                for (size_t i = 0; i < ubo->GetSize (); ++i) {
+                    printf ("%02x ", ubo->GetData ()[i]);
+                }
+
+                std::cout << std::endl;
+            }
+        }
+    }
+}
+
+
 ImageAdder::ImageAdder (RG::RenderGraph& graph, const RG::GraphSettings& settings)
 {
     ForEachRenderOperation (graph, [&] (const RG::RenderOperationP& renderOp) {

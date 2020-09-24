@@ -51,6 +51,8 @@ private:
         {
             udatas[uboName] = uboData;
         }
+
+        friend class UniformReflection;
     };
 
     class ShaderKindSelector {
@@ -72,6 +74,8 @@ private:
         {
             uboSelectors[shaderKind] = std::move (uboSel);
         }
+
+        friend class UniformReflection;
     };
 
     class CopyOperation {
@@ -138,6 +142,9 @@ private:
     void CreateGraphConnections ();
 
     void RecordCopyOperations ();
+
+public:
+    void PrintDebugInfo ();
 };
 
 

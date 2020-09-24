@@ -121,6 +121,21 @@ public:
 
         return UView (Type::Variable, data, index * currentField->arrayStride, size, parentContainer, currentField);
     }
+
+    std::vector<std::string> GetFieldNames () const
+    {
+        if (GVK_ERROR (parentContainer != nullptr)) {
+            return {};
+        }
+
+        std::vector<std::string> result;
+
+        for (auto& f : parentContainer->GetFields ()) {
+            result.push_back (f->name);
+        }
+
+        return result;
+    }
 };
 
 
@@ -130,9 +145,10 @@ class GEARSVK_API IUData {
 public:
     virtual ~IUData () = default;
 
-    virtual UView    operator[] (std::string_view str) = 0;
-    virtual uint8_t* GetData ()                        = 0;
-    virtual uint32_t GetSize () const                  = 0;
+    virtual UView                    operator[] (std::string_view str) = 0;
+    virtual std::vector<std::string> GetNames ()                       = 0;
+    virtual uint8_t*                 GetData ()                        = 0;
+    virtual uint32_t                 GetSize () const                  = 0;
 };
 
 
@@ -154,17 +170,22 @@ public:
         memset (bytes, 0, size);
     }
 
-    UView operator[] (std::string_view str)
+    virtual UView operator[] (std::string_view str) override
     {
         return root[str];
     }
 
-    uint8_t* GetData ()
+    virtual std::vector<std::string> GetNames () override
+    {
+        return root.GetFieldNames ();
+    }
+
+    virtual uint8_t* GetData () override
     {
         return bytes;
     }
 
-    uint32_t GetSize () const
+    virtual uint32_t GetSize () const override
     {
         return size;
     }
@@ -187,17 +208,22 @@ public:
         std::fill (bytes.begin (), bytes.end (), 0);
     }
 
-    UView operator[] (std::string_view str)
+    virtual UView operator[] (std::string_view str) override
     {
         return root[str];
     }
 
-    uint8_t* GetData ()
+    virtual std::vector<std::string> GetNames () override
+    {
+        return root.GetFieldNames ();
+    }
+
+    virtual uint8_t* GetData () override
     {
         return bytes.data ();
     }
 
-    uint32_t GetSize () const
+    virtual uint32_t GetSize () const override
     {
         return bytes.size ();
     }

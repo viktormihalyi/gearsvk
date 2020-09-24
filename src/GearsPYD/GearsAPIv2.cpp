@@ -120,6 +120,9 @@ void StartRendering (const std::function<bool ()>& doRender)
         (*global_refl)[renderOpId][ShaderKind::Vertex]["PatternSizeOnRetina"]["value"] = patternSizeOnRetina;
 
         (*global_refl)[renderOpId][ShaderKind::Fragment]["ubo_time"]["value"] = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
+        (*global_refl)[renderOpId][ShaderKind::Fragment]["ubo_patternSizeOnRetina"]["value"] = patternSizeOnRetina;
+
+        global_refl->PrintDebugInfo ();
 
         global_refl->Flush (frameIndex);
     };

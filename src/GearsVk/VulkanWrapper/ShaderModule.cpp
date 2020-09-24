@@ -344,3 +344,19 @@ void ShaderModule::Reload ()
         GVK_BREAK ("unknown read mode");
     }
 }
+
+
+std::string ShaderKindToString (ShaderKind shaderKind)
+{
+    switch (shaderKind) {
+        case ShaderKind::Fragment: return "Fragment";
+        case ShaderKind::Vertex: return "Vertex";
+        case ShaderKind::TessellationControl: return "TessellationControl";
+        case ShaderKind::TessellationEvaluation: return "TessellationEvaluation";
+        case ShaderKind::Geometry: return "Geometry";
+        case ShaderKind::Compute: return "Compute";
+        default:
+            GVK_BREAK ("unexpected shaderkind type");
+            return "";
+    }
+}

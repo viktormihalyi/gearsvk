@@ -31,6 +31,10 @@ enum class ShaderKind {
     Compute,
 };
 
+
+std::string ShaderKindToString (ShaderKind);
+
+
 USING_PTR (ShaderModule);
 class GEARSVK_API ShaderModule : public VulkanObject {
 public:
