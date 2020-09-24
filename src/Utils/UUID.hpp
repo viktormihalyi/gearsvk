@@ -1,6 +1,7 @@
 #ifndef UUID_HPP
 #define UUID_HPP
 
+#include <cstddef>
 #include <string>
 
 #include "GVKUtilsAPI.hpp"
@@ -13,6 +14,7 @@ private:
 
 public:
     UUID ();
+    UUID (std::nullptr_t);
 
     operator std::string () const { return value; }
 

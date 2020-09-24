@@ -1,6 +1,5 @@
 import Gears as gears
 import math
-from PyQt5.QtWidgets import QApplication
 import AppData
 
 class DefaultSequence(gears.Sequence) : 

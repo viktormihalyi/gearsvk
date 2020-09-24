@@ -16,60 +16,25 @@ namespace RG {
 
 // TODO add possibility to store uniforms in gpu memory
 
-class GEARSVK_API UniformReflection {
+// adds resources to and existing rendergraph based on the renderoperations inside it
+// modifying uniforms takes place in a staging cpu memory, calling Flush will copy these to the actual uniform memory
+// accessing a uniforms is available with operator[] eg.: reflection[RG::RenderOperationP][ShaderKind][std::string][std::string]...
+
+
+class GEARSVK_API ImageAdder {
+public:
+    ImageAdder (RG::RenderGraph& graph, const RG::GraphSettings& settings);
+};
+
+
+USING_PTR (UniformReflection);
+class GEARSVK_API UniformReflection final : public EventObserverClass {
+    USING_CREATE (UniformReflection);
+
 private:
-    class UboSelector {
-    private:
-        std::unordered_map<std::string, SR::IUDataP> udatas;
-
-    public:
-        SR::IUData& operator[] (const std::string& uboName)
-        {
-            auto it = udatas.find (uboName);
-            if (it != udatas.end ()) {
-                return *it->second;
-            }
-
-            throw std::runtime_error ("no ubo named \"" + uboName + "\"");
-        }
-
-        void Set (const std::string& uboName, const SR::IUDataP& uboData)
-        {
-            udatas[uboName] = uboData;
-        }
-    };
-
-    class ShaderKindSelector {
-    private:
-        std::unordered_map<ShaderKind, UboSelector> uboSelectors;
-
-    public:
-        UboSelector& operator[] (ShaderKind shaderKind)
-        {
-            auto it = uboSelectors.find (shaderKind);
-            if (it != uboSelectors.end ()) {
-                return it->second;
-            }
-
-            throw std::runtime_error ("no such shaderkind");
-        }
-
-        void Set (ShaderKind shaderKind, UboSelector&& uboSel)
-        {
-            uboSelectors[shaderKind] = std::move (uboSel);
-        }
-    };
-
-    struct CopyOperation {
-        void*    destination;
-        void*    source;
-        uint64_t size;
-
-        void Do () const
-        {
-            memcpy (destination, source, size);
-        }
-    };
+    class UboSelector;
+    class ShaderKindSelector;
+    class CopyOperation;
 
     // operation uuid
     std::unordered_map<GearsVk::UUID, ShaderKindSelector> selectors;
@@ -111,27 +76,94 @@ public:
                        const Filter&            filter          = &DefaultFilter,
                        const ResourceCreator&   resourceCreator = &DefaultResourceCreator);
 
-public:
-    // call after RG::RenderGraph::Compile (or RG::RenderGraph::CompileResources)
-    void RecordCopyOperations ();
-
     void Flush (uint32_t frameIndex);
 
-    ShaderKindSelector& operator[] (const RG::RenderOperation& renderOp)
-    {
-        return selectors.at (renderOp.GetUUID ());
-    }
-
-    ShaderKindSelector& operator[] (const RG::RenderOperationP& renderOp)
-    {
-        return (*this)[*renderOp];
-    }
+    ShaderKindSelector& operator[] (const RG::RenderOperation& renderOp);
+    ShaderKindSelector& operator[] (const RG::RenderOperationP& renderOp);
+    ShaderKindSelector& operator[] (const GearsVk::UUID& renderOpId);
 
 private:
     void CreateGraphResources (const Filter& filter, const ResourceCreator& resourceCreator);
 
     void CreateGraphConnections ();
+
+    void RecordCopyOperations ();
 };
+
+
+UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const GearsVk::UUID& renderOpId)
+{
+    return selectors.at (renderOpId);
+}
+
+UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const RG::RenderOperation& renderOp)
+{
+    return selectors.at (renderOp.GetUUID ());
+}
+
+
+UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const RG::RenderOperationP& renderOp)
+{
+    return (*this)[*renderOp];
+}
+
+
+class UniformReflection::UboSelector {
+private:
+    std::unordered_map<std::string, SR::IUDataP> udatas;
+
+public:
+    SR::IUData& operator[] (const std::string& uboName)
+    {
+        auto it = udatas.find (uboName);
+        if (it != udatas.end ()) {
+            return *it->second;
+        }
+
+        throw std::runtime_error ("no ubo named \"" + uboName + "\"");
+    }
+
+    void Set (const std::string& uboName, const SR::IUDataP& uboData)
+    {
+        udatas[uboName] = uboData;
+    }
+};
+
+
+class UniformReflection::ShaderKindSelector {
+private:
+    std::unordered_map<ShaderKind, UboSelector> uboSelectors;
+
+public:
+    UboSelector& operator[] (ShaderKind shaderKind)
+    {
+        auto it = uboSelectors.find (shaderKind);
+        if (it != uboSelectors.end ()) {
+            return it->second;
+        }
+
+        throw std::runtime_error ("no such shaderkind");
+    }
+
+    void Set (ShaderKind shaderKind, UboSelector&& uboSel)
+    {
+        uboSelectors[shaderKind] = std::move (uboSel);
+    }
+};
+
+
+class UniformReflection::CopyOperation {
+public:
+    void*    destination;
+    void*    source;
+    uint64_t size;
+
+    void Do () const
+    {
+        memcpy (destination, source, size);
+    }
+};
+
 
 } // namespace RG
 

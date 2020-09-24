@@ -5,6 +5,8 @@
 #include "GraphRenderer.hpp"
 #include "Persistent.hpp"
 #include "RenderGraph.hpp"
+#include "UUID.hpp"
+#include "UniformReflection.hpp"
 #include "VulkanEnvironment.hpp"
 #include "core/Sequence.h"
 
@@ -18,9 +20,12 @@
 
 using namespace RG;
 
-WindowU            window;
-VulkanEnvironmentU env;
-RenderGraphU       renderGraph;
+WindowU                window;
+VulkanEnvironmentU     env;
+RenderGraphU           renderGraph;
+Pass*                  glob_firstPass = nullptr;
+RG::UniformReflectionP global_refl;
+GearsVk::UUID          renderOpId = nullptr;
 
 
 void InitializeEnvironment ()
@@ -32,13 +37,12 @@ void InitializeEnvironment ()
 
 void DestroyEnvironment ()
 {
+    global_refl.reset ();
     renderGraph.reset ();
-    env.reset ();
     window.reset ();
+    env.reset ();
 }
 
-UniformReflectionResourceP global_refl    = nullptr;
-Pass*                      glob_firstPass = nullptr;
 
 void SetRenderGraphFromSequence (Sequence::P seq)
 {
@@ -58,7 +62,9 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 
     auto seqpip = ShaderPipeline::CreateShared (*env->device);
 
+    std::cout << "> compiling vertex shader" << std::endl;
     seqpip->SetVertexShaderFromString (vert);
+    std::cout << "> compiling fragment shader" << std::endl;
     seqpip->SetFragmentShaderFromString (frag);
 
     renderGraph = RenderGraph::Create ();
@@ -66,25 +72,17 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 
     GraphSettings s (*env->deviceExtra, *env->swapchain);
 
-    SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
-    // ImageResource&             writ      = renderGraph->CreateResource<WritableImageResource> ();
-    UniformReflectionResourceP refl = renderGraph->CreateResource<UniformReflectionResource> (seqpip);
-    global_refl                     = refl;
-
-    OperationP redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 4), seqpip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP));
+    SwapchainImageResourceP presented        = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
+    OperationP              redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 4), seqpip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP));
 
     renderGraph->CreateOutputConnection (*redFillOperation, 0, *presented);
-    // renderGraph->CreateOutputConnection (redFillOperation, 1, writ);
 
-    for (uint32_t i = 0; i < refl->uboRes.size (); ++i) {
-        renderGraph->CreateInputConnection (*redFillOperation, *refl->uboRes[i], UniformInputBinding::Create (refl->bindings[i], *refl->uboRes[i]));
-    }
-
-    for (uint32_t i = 0; i < refl->sampledImages.size (); ++i) {
-        renderGraph->CreateInputConnection (*redFillOperation, *refl->sampledImages[i], ImageInputBinding::Create (refl->samplerBindings[i], *refl->sampledImages[i]));
-    }
+    global_refl = RG::UniformReflection::Create (*renderGraph, s);
+    RG::ImageAdder img (*renderGraph, s);
 
     renderGraph->Compile (s);
+
+    renderOpId = redFillOperation->GetUUID ();
 
     Shader::uniformBoundEvent += [&] (const std::string& asd) {
         std::cout << "uniform \"" << asd << "\" bound" << std::endl;
@@ -101,27 +99,29 @@ void StartRendering (const std::function<bool ()>& doRender)
 
     SynchronizedSwapchainGraphRenderer swapchainSync (*renderGraph, *env->swapchain);
 
-    const glm::vec2 patternSizeOnRetina (1920, 1080);
+    const glm::vec2 patternSizeOnRetina (800, 600);
 
     for (auto [name, value] : glob_firstPass->shaderVariables) {
-        global_refl->frag[std::string ("ubo_" + name)]["value"] = static_cast<float> (value);
+        (*global_refl)[renderOpId][ShaderKind::Fragment][std::string ("ubo_" + name)]["value"] = static_cast<float> (value);
     }
 
     for (auto [name, value] : glob_firstPass->shaderVectors) {
-        global_refl->frag[std::string ("ubo_" + name)]["value"] = static_cast<glm::vec2> (value);
+        (*global_refl)[renderOpId][ShaderKind::Fragment][std::string ("ubo_" + name)]["value"] = static_cast<glm::vec2> (value);
     }
 
+
     for (auto [name, value] : glob_firstPass->shaderColors) {
-        global_refl->frag[std::string ("ubo_" + name)]["value"] = static_cast<glm::vec3> (value);
+        (*global_refl)[renderOpId][ShaderKind::Fragment][std::string ("ubo_" + name)]["value"] = static_cast<glm::vec3> (value);
     }
+
 
     uint32_t frameCount = 0;
     swapchainSync.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t timeNs) {
-        global_refl->vert["PatternSizeOnRetina"] = patternSizeOnRetina;
+        (*global_refl)[renderOpId][ShaderKind::Vertex]["PatternSizeOnRetina"]["value"] = patternSizeOnRetina;
 
-        global_refl->frag["ubo_time"] = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
+        (*global_refl)[renderOpId][ShaderKind::Fragment]["ubo_time"]["value"] = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
 
-        global_refl->Update (frameIndex);
+        global_refl->Flush (frameIndex);
     };
 
     window->Show ();

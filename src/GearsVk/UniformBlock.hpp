@@ -149,7 +149,7 @@ public:
             return;
         }
 
-        if (GVK_ASSERT (size == sizeof (T))) {
+        if (GVK_VERIFY (size == sizeof (T))) {
             *reinterpret_cast<T*> (value) = other;
         }
     }
@@ -249,7 +249,7 @@ public:
 
         GVK_ASSERT (data.size () == GetSize ());
 
-        if (GVK_ASSERT (data.size () == sizeof (T) * other.size ())) {
+        if (GVK_VERIFY (data.size () == sizeof (T) * other.size ())) {
             memcpy (data.data (), other.data (), sizeof (T) * other.size ());
         }
     }
@@ -259,7 +259,7 @@ public:
     {
         GVK_ASSERT (data.size () == GetSize ());
 
-        if (GVK_ASSERT (data.size () == sizeof (other))) {
+        if (GVK_VERIFY (data.size () == sizeof (other))) {
             memcpy (data.data (), &other, sizeof (T));
         }
     }

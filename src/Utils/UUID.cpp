@@ -64,3 +64,10 @@ GearsVk::UUID::UUID ()
 {
     GVK_ASSERT (value.size () == 36);
 }
+
+
+GearsVk::UUID::UUID (std::nullptr_t)
+    : value ("00000000-0000-0000-0000-000000000000")
+{
+    GVK_ASSERT (value.size () == 36);
+}

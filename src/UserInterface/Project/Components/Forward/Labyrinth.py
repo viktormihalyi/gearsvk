@@ -1,6 +1,5 @@
 import Gears as gears
 from .. import * 
-from PyQt5.QtCore import Qt
 
 try:
   from OpenGL.GL import *

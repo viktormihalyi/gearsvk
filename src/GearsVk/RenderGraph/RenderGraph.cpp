@@ -179,6 +179,8 @@ void RenderGraph::Compile (const GraphSettings& settings)
         compileResult = std::move (newCR);
         compiled      = true;
 
+        compileEvent ();
+
     } catch (std::exception& ex) {
         GVK_ERROR (true);
         std::cout << ex.what () << std::endl;

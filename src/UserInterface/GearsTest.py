@@ -8,8 +8,6 @@ print("importing...")
 import Gears as gears
 import importlib.machinery
 import AppData
-from MediaWindow import MediaWindow
-import SequenceLoader
 import time
 
 print("press enter to start...")

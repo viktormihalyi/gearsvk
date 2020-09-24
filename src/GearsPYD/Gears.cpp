@@ -211,7 +211,7 @@ void cleanup ()
 
 void setMousePointerLocation (float x, float y)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
 #ifdef _WIN32
     uint screenw = GetSystemMetrics (SM_CXSCREEN);

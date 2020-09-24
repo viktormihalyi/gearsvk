@@ -98,8 +98,6 @@ int main (int, char**)
 
     graph.Compile (s);
 
-    r.RecordCopyOperations ();
-
     matcap->CopyTransitionTransfer (ImageData (PROJECT_ROOT / "src" / "VizHF" / "matcap.jpg").data);
 
     std::vector<uint8_t> rawBrainData = ImageData (PROJECT_ROOT / "src" / "VizHF" / "brain.jpg", 1).data;

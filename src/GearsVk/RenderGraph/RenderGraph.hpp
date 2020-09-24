@@ -4,6 +4,7 @@
 #include "GearsVkAPI.hpp"
 
 #include "CompileResultProvider.hpp"
+#include "Event.hpp"
 #include "Ptr.hpp"
 #include "ShaderPipeline.hpp"
 #include "Timer.hpp"
@@ -33,9 +34,12 @@ private:
     GraphSettings          compileSettings;
     CompileResultProviderU compileResult;
 
-    std::vector<ResourceP>  resources;
+    std::vector<ResourceP> resources;
+
 public:
     std::vector<OperationP> operations;
+
+    Event<> compileEvent;
 
 public:
     RenderGraph ();

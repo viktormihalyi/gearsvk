@@ -1,5 +1,3 @@
-import Gears
-from PyQt5.QtWidgets import QApplication
 import traceback
 import os
 
@@ -23,10 +21,6 @@ def initConfigParams():
     global configParams
     configParams = {}
     
-    #monitorIndex                =  len(QApplication.screens())-1    ,
-    #screen = QApplication.screens()[0]
-    #display_width_px  = screen.size().width()
-    #display_height_px = screen.size().height()
     monitorIndex = 0
     display_width_px = 1920
     display_height_px = 1080

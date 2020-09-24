@@ -194,8 +194,6 @@ void main ()
 
     instanceBuffer->Flush ();
 
-    refl.RecordCopyOperations ();
-
 
     for (uint32_t unicode = 'A'; unicode < 'Z'; ++unicode) {
         glyphs->CopyLayer (fm.GetGlyph (unicode).data, unicode);
