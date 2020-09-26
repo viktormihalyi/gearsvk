@@ -101,6 +101,8 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
         deviceExtensions.push_back (VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
+    deviceExtensions.push_back (VK_GOOGLE_DISPLAY_TIMING_EXTENSION_NAME);
+
     device = DeviceObject::Create (*physicalDevice, std::vector<uint32_t> {*physicalDevice->GetQueueFamilies ().graphics}, deviceExtensions);
 
     graphicsQueue = Queue::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);

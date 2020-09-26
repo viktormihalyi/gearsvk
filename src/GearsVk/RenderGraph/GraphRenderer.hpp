@@ -15,48 +15,46 @@ namespace RG {
 
 class GEARSVK_API Renderer {
 public:
-    Event<uint32_t, uint64_t> preSubmitEvent;
-    Event<>                   recreateEvent;
+    Event<RenderGraph&, uint32_t, uint64_t> preSubmitEvent;
+    Event<>                                 recreateEvent;
 
     virtual ~Renderer () = default;
 
-    virtual void RenderNextFrame () = 0;
+    virtual void RenderNextFrame (RenderGraph& graph) = 0;
 
-    Window::DrawCallback GetInfiniteDrawCallback ();
+    Window::DrawCallback GetInfiniteDrawCallback (const std::function<RenderGraph&()>& graphProvider);
 
-    Window::DrawCallback GetConditionalDrawCallback (const std::function<bool ()>& shouldStop);
+    Window::DrawCallback GetConditionalDrawCallback (const std::function<RenderGraph&()>& graphProvider, const std::function<bool ()>& shouldStop);
 
-    Window::DrawCallback GetCountLimitedDrawCallback (uint64_t limit);
+    Window::DrawCallback GetCountLimitedDrawCallback (const std::function<RenderGraph&()>& graphProvider, uint64_t limit);
 };
 
 
 class GEARSVK_API RecreatableGraphRenderer : public Renderer {
-private:
-    RenderGraph& graph;
-    Swapchain&   swapchain;
+protected:
+    GraphSettings settings;
+    Swapchain&    swapchain;
 
 public:
-    RecreatableGraphRenderer (RenderGraph& graph, Swapchain& swapchain);
+    RecreatableGraphRenderer (GraphSettings& settings, Swapchain& swapchain);
     virtual ~RecreatableGraphRenderer () = default;
 
-    void Recreate ();
+    void Recreate (RenderGraph& graph);
 
-    void         RenderNextFrame () override;
-    virtual void RenderNextRecreatableFrame () = 0;
+    void         RenderNextFrame (RenderGraph& graph) override;
+    virtual void RenderNextRecreatableFrame (RenderGraph& graph) = 0;
 };
 
 
 class GEARSVK_API BlockingGraphRenderer final : public RecreatableGraphRenderer {
 private:
-    RenderGraph& graph;
-    Swapchain&   swapchain;
-    Semaphore    s;
-    TimePoint    lastDrawTime;
+    Semaphore s;
+    TimePoint lastDrawTime;
 
 public:
-    BlockingGraphRenderer (RenderGraph& graph, Swapchain& swapchain);
+    BlockingGraphRenderer (GraphSettings& settings, Swapchain& swapchain);
 
-    void RenderNextRecreatableFrame () override;
+    void RenderNextRecreatableFrame (RenderGraph& graph) override;
 };
 
 
@@ -83,16 +81,16 @@ private:
     // each value is [0, framesInFlight)
     std::vector<uint32_t> imageToFrameMapping;
 
-    RenderGraph& graph;
+    RenderGraph* graph;
     Swapchain&   swapchain;
     TimePoint    lastDrawTime;
 
 public:
-    SynchronizedSwapchainGraphRenderer (RenderGraph& graph, Swapchain& swapchain);
+    SynchronizedSwapchainGraphRenderer (GraphSettings& settings, Swapchain& swapchain);
 
     ~SynchronizedSwapchainGraphRenderer ();
 
-    void RenderNextRecreatableFrame () override;
+    void RenderNextRecreatableFrame (RenderGraph& graph) override;
 };
 
 } // namespace RG

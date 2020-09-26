@@ -36,6 +36,19 @@ private:
 
     std::vector<ResourceP> resources;
 
+    // one for each frame in swapchain
+    std::unordered_map<GearsVk::UUID, std::vector<CommandBufferP>> operationCommandBuffers;
+    std::unordered_map<GearsVk::UUID, std::vector<CommandBufferP>> resourceReadCommandBuffers;
+    std::unordered_map<GearsVk::UUID, std::vector<CommandBufferP>> resourceWriteCommandBuffers;
+
+    struct Pass {
+        std::set<Operation*> operations;
+        std::set<Resource*>  inputs;
+        std::set<Resource*>  outputs;
+    };
+
+    std::vector<Pass> passes;
+
 public:
     std::vector<OperationP> operations;
 
@@ -75,9 +88,9 @@ public:
 
 private:
     // utility functions for compilation
-    std::set<Operation*>              GetNextOperations (const std::set<Operation*>& lastOperations) const;
-    std::set<Operation*>              GetFirstPassOperations () const;
-    std::vector<std::set<Operation*>> GetPasses () const;
+    Pass              GetNextPass (const Pass& lastPass) const;
+    Pass              GetFirstPass () const;
+    std::vector<Pass> GetPasses () const;
 };
 
 

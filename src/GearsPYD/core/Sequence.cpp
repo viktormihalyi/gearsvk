@@ -69,7 +69,7 @@ void Sequence::addStimulus (Stimulus::P stimulus)
 
 pybind11::object Sequence::set (pybind11::object settings)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
 	using namespace boost::python;
 	dict d = extract<dict>(settings);
@@ -297,7 +297,7 @@ Stimulus::CP Sequence::getStimulusAtFrame (uint iFrame)
     if (i == stimuli.end ()) {
         std::stringstream ss;
         ss << "There is no stimulus for frame" << iFrame << ". This erroneous access is likely due to a tone mapping file created for a version of the sequence with different timings. Please recalibrate the sequence.";
-        throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+        throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
         //PyErr_SetString (PyExc_TypeError, ss.str ().c_str ());
         //boost::python::throw_error_already_set ();
     }

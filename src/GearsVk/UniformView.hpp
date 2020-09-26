@@ -145,6 +145,13 @@ class GEARSVK_API IUData {
 public:
     virtual ~IUData () = default;
 
+    template<typename T>
+    void operator= (const T& other)
+    {
+        GVK_ASSERT (sizeof (T) == GetSize ());
+        memcpy (GetData (), &other, GetSize ());
+    }
+
     virtual UView                    operator[] (std::string_view str) = 0;
     virtual std::vector<std::string> GetNames ()                       = 0;
     virtual uint8_t*                 GetData ()                        = 0;

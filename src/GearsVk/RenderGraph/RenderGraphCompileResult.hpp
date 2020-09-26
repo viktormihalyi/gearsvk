@@ -128,8 +128,8 @@ struct CompileResult : public CompileResultProvider {
     CompileResult (const DeviceExtra& device, uint32_t frameCount)
     {
         for (uint32_t i = 0; i < frameCount; ++i) {
-            DefaultOperationToCommandBufferMappingStrategy s (frameCount);
-            //SeperatedOperationToCommandBufferMappingStrategy s (frameCount);
+            //DefaultOperationToCommandBufferMappingStrategy s (frameCount);
+            SeperatedOperationToCommandBufferMappingStrategy s (frameCount);
             c.emplace_back (device, device.GetCommandPool (), s);
         }
     }

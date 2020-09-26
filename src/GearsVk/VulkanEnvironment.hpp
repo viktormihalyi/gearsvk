@@ -10,7 +10,7 @@
 #include "Window.hpp"
 
 
-USING_PTR (VulkanEnvironment);
+USING_PTR (IVulkanEnvironment);
 class GEARSVK_API IVulkanEnvironment {
 public:
     virtual ~IVulkanEnvironment () = default;

@@ -328,8 +328,8 @@ void main () {
 
     graph.Compile (s);
 
-    BlockingGraphRenderer renderer (graph, swapchain);
-    window->DoEventLoop (renderer.GetCountLimitedDrawCallback (10));
+    BlockingGraphRenderer renderer (s, swapchain);
+    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, 10));
 }
 
 
@@ -409,8 +409,8 @@ void main () {
 
     graph.Compile (s);
 
-    BlockingGraphRenderer renderer (graph, swapchain);
-    window->DoEventLoop (renderer.GetCountLimitedDrawCallback (10));
+    BlockingGraphRenderer renderer (s, swapchain);
+    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, 10));
 
     CompareImages ("uv", *presentedCopy->images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
@@ -505,14 +505,14 @@ void main () {
 
     graph.Compile (s);
 
-    BlockingGraphRenderer renderer (graph, swapchain);
+    BlockingGraphRenderer renderer (s, swapchain);
 
-    renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t) {
+    renderer.preSubmitEvent += [&] (RenderGraph&, uint32_t frameIndex, uint64_t) {
         float time = 0.5f;
         unif->GetMapping (frameIndex).Copy (time);
     };
 
-    window->DoEventLoop (renderer.GetCountLimitedDrawCallback (10));
+    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, 10));
 
     CompareImages ("uvoffset", *presentedCopy->images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }

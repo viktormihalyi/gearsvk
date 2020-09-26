@@ -44,6 +44,7 @@ private:
                 return *it->second;
             }
 
+            GVK_ASSERT (false);
             throw std::runtime_error ("no ubo named \"" + uboName + "\"");
         }
 
@@ -67,6 +68,7 @@ private:
                 return it->second;
             }
 
+            GVK_ASSERT (false);
             throw std::runtime_error ("no such shaderkind");
         }
 
@@ -150,18 +152,19 @@ public:
 
 UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const GearsVk::UUID& renderOpId)
 {
+    GVK_ASSERT (selectors.find (renderOpId) != selectors.end ());
     return selectors.at (renderOpId);
 }
 
 UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const RG::RenderOperation& renderOp)
 {
-    return selectors.at (renderOp.GetUUID ());
+    return (*this)[renderOp.GetUUID ()];
 }
 
 
 UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const RG::RenderOperationP& renderOp)
 {
-    return (*this)[*renderOp];
+    return (*this)[renderOp->GetUUID ()];
 }
 
 

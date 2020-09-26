@@ -25,7 +25,7 @@ find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 if (DEFINED CONAN_BUILDINFO_FILE)
     include (${CONAN_BUILDINFO_FILE})
 else ()
-    include (build/conanbuildinfo.cmake)
+    include (${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 endif ()
 
 conan_basic_setup ()

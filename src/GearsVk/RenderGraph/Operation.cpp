@@ -63,13 +63,13 @@ std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) co
 
 
 RenderOperation::RenderOperation (const DrawRecordableP& drawRecordable, const ShaderPipelineP& shaderPipeline, VkPrimitiveTopology topology)
-    : compileSettings ({drawRecordable, drawRecordable, shaderPipeline, topology})
+    : compileSettings ({ drawRecordable, drawRecordable, shaderPipeline, topology })
 {
 }
 
 
 RenderOperation::RenderOperation (const PureDrawRecordableP& drawRecordable, const VertexAttributeProviderP& vap, const ShaderPipelineP& shaderPipeline, VkPrimitiveTopology topology)
-    : compileSettings ({drawRecordable, vap, shaderPipeline, topology})
+    : compileSettings ({ drawRecordable, vap, shaderPipeline, topology })
 {
 }
 
@@ -119,14 +119,14 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
         }
     }
 
-    ShaderPipeline::CompileSettings pipelineSettigns = {graphSettings.width,
-                                                        graphSettings.height,
-                                                        *compileResult.descriptorSetLayout,
-                                                        attachmentReferences,
-                                                        attachmentDescriptions,
-                                                        compileSettings.vertexAttributeProvider->GetBindings (),
-                                                        compileSettings.vertexAttributeProvider->GetAttributes (),
-                                                        compileSettings.topology};
+    ShaderPipeline::CompileSettings pipelineSettigns = { graphSettings.width,
+                                                         graphSettings.height,
+                                                         *compileResult.descriptorSetLayout,
+                                                         attachmentReferences,
+                                                         attachmentDescriptions,
+                                                         compileSettings.vertexAttributeProvider->GetBindings (),
+                                                         compileSettings.vertexAttributeProvider->GetAttributes (),
+                                                         compileSettings.topology };
 
     compileSettings.pipeline->Compile (pipelineSettigns);
 
@@ -141,15 +141,15 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
 
 void RenderOperation::Record (uint32_t frameIndex, VkCommandBuffer commandBuffer)
 {
-    VkClearValue              clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+    VkClearValue              clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
     std::vector<VkClearValue> clearValues (outputBindings.size (), clearColor);
 
     VkRenderPassBeginInfo renderPassBeginInfo = {};
     renderPassBeginInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassBeginInfo.renderPass            = *compileSettings.pipeline->compileResult.renderPass;
     renderPassBeginInfo.framebuffer           = *compileResult.framebuffers[frameIndex];
-    renderPassBeginInfo.renderArea.offset     = {0, 0};
-    renderPassBeginInfo.renderArea.extent     = {compileResult.width, compileResult.height};
+    renderPassBeginInfo.renderArea.offset     = { 0, 0 };
+    renderPassBeginInfo.renderArea.extent     = { compileResult.width, compileResult.height };
     renderPassBeginInfo.clearValueCount       = static_cast<uint32_t> (clearValues.size ());
     renderPassBeginInfo.pClearValues          = clearValues.data ();
 

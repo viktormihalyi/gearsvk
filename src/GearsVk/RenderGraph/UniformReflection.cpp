@@ -90,6 +90,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
                 SR::UDataInternalP uboData = SR::UDataInternal::Create (ubo);
                 ubosel.Set (ubo->name, uboData);
 
+                // TODO shader stage
                 uboConnections.push_back (std::make_tuple (renderOp, ubo->binding, uboRes));
                 uboResources.push_back (uboRes);
                 udatas.insert ({ uboRes->GetUUID (), uboData });
