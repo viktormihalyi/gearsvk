@@ -107,6 +107,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/VulkanWrapper/Sampler.cpp
     src/GearsVk/VulkanWrapper/DeviceMemory.cpp
     src/GearsVk/VulkanWrapper/Queue.cpp
+    src/GearsVk/VulkanWrapper/VulkanObject.cpp
 
     src/GearsVk/Camera/Frustum.cpp
     src/GearsVk/Camera/Camera.cpp

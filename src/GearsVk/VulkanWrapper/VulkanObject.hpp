@@ -12,9 +12,11 @@ private:
     GearsVk::UUID uuid;
 
 protected:
-    VulkanObject () = default;
+    VulkanObject ();
 
 public:
+    virtual ~VulkanObject ();
+
     const GearsVk::UUID& GetUUID () const
     {
         return uuid;

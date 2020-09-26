@@ -87,12 +87,12 @@ public:
         handle = VK_NULL_HANDLE;
     }
 
-    void Begin ()
+    void Begin (VkCommandBufferUsageFlags flags = 0)
     {
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags                    = 0;       // Optional
-        beginInfo.pInheritanceInfo         = nullptr; // Optional
+        beginInfo.flags                    = flags;
+        beginInfo.pInheritanceInfo         = nullptr;
 
         if (GVK_ERROR (vkBeginCommandBuffer (handle, &beginInfo) != VK_SUCCESS)) {
             throw std::runtime_error ("commandbuffer begin failed");
@@ -104,8 +104,6 @@ public:
 
     void End ()
     {
-        GVK_ERROR (recordedCommands.empty ());
-
         if (GVK_ERROR (vkEndCommandBuffer (handle) != VK_SUCCESS)) {
             throw std::runtime_error ("commandbuffer end failed");
         }
@@ -144,8 +142,9 @@ public:
     template<typename... Parameters>                                           \
     void Cmd##commandName (Parameters&&... parameters)                         \
     {                                                                          \
+        GVK_ASSERT (canRecordCommands);                                        \
         vkCmd##commandName (handle, std::forward<Parameters> (parameters)...); \
-        recordedCommands.push_back (CommandType::##commandName);               \
+        recordedCommands.push_back (CommandType::commandName);                 \
     }
 
     GVK_CMDBUFFER_DEFINE_CMD (BindVertexBuffers);
