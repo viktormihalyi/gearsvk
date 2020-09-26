@@ -4,13 +4,14 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "DeviceExtra.hpp"
+#include "VulkanObject.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
 USING_PTR (CommandBuffer);
 
-class GEARSVK_API CommandBuffer : public Noncopyable {
+class GEARSVK_API CommandBuffer : public VulkanObject {
 private:
     const VkDevice      device;
     const VkCommandPool commandPool;
@@ -33,6 +34,11 @@ public:
         if (GVK_ERROR (vkAllocateCommandBuffers (device, &commandBufferAllocInfo, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to allocate command buffer");
         }
+    }
+
+    CommandBuffer (const DeviceExtra& device)
+        : CommandBuffer (device, device.GetCommandPool ())
+    {
     }
 
     ~CommandBuffer ()

@@ -131,7 +131,7 @@ int main (int, char**)
 
     // ========================= RENDERING =========================
 
-    RG::SynchronizedSwapchainGraphRenderer renderer (graph, swapchain);
+    RG::SynchronizedSwapchainGraphRenderer renderer (s, swapchain);
 
     enum class DisplayMode : uint32_t {
         Feladat1 = 1,
@@ -163,7 +163,7 @@ int main (int, char**)
             vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
             vkQueueWaitIdle (graph.GetGraphSettings ().GetDevice ().GetGraphicsQueue ());
             sp->Reload ();
-            renderer.Recreate ();
+            renderer.Recreate (graph);
         }
         switch (key) {
             case '1': currentDisplayMode = DisplayMode::Feladat1; break;
@@ -178,7 +178,7 @@ int main (int, char**)
     r[*brainRenderOp][ShaderKind::Fragment]["Camera"]["VP"] = glm::mat4 (1.f);
 
 
-    renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
+    renderer.preSubmitEvent += [&] (RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
         TimePoint delta (deltaNs);
 
         const float dt = delta.AsSeconds ();
@@ -203,5 +203,5 @@ int main (int, char**)
         r.Flush (frameIndex);
     };
 
-    window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] { return quit; }));
+    window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, [&] { return quit; }));
 }

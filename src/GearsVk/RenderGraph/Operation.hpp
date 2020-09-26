@@ -28,6 +28,7 @@ struct GEARSVK_API Operation : public Node {
 
     virtual void Compile (const GraphSettings&)                              = 0;
     virtual void Record (uint32_t frameIndex, VkCommandBuffer commandBuffer) = 0;
+    virtual bool IsActive ()                                                 = 0;
 
     void AddInput (InputBindingU&& inputBinding);
     void AddOutput (uint32_t binding, const ImageResourceRef& res);
@@ -77,6 +78,28 @@ struct GEARSVK_API RenderOperation : public Operation {
 
     virtual void Compile (const GraphSettings&) override;
     virtual void Record (uint32_t imageIndex, VkCommandBuffer commandBuffer) override;
+    virtual bool IsActive () override { return true; }
+};
+
+
+USING_PTR (ConditionalRenderOperation);
+class GEARSVK_API ConditionalRenderOperation : public RenderOperation {
+    USING_CREATE (ConditionalRenderOperation);
+
+private:
+    std::function<bool ()> doRender;
+
+public:
+    ConditionalRenderOperation (const DrawRecordableP&        drawRecordable,
+                                const ShaderPipelineP&        shaderPipiline,
+                                const std::function<bool ()>& doRender,
+                                VkPrimitiveTopology           topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+        : RenderOperation (drawRecordable, shaderPipiline, topology)
+        , doRender (doRender)
+    {
+    }
+
+    virtual bool IsActive () override { return doRender (); }
 };
 
 } // namespace RG

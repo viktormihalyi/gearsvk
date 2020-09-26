@@ -140,7 +140,7 @@ int main (int, char**)
 
     // ========================= RENDERING =========================
 
-    RG::SynchronizedSwapchainGraphRenderer renderer (graph, swapchain);
+    RG::SynchronizedSwapchainGraphRenderer renderer (s, swapchain);
 
     bool quit = false;
 
@@ -155,7 +155,7 @@ int main (int, char**)
             vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
             vkQueueWaitIdle (graph.GetGraphSettings ().GetDevice ().GetGraphicsQueue ());
             sp->Reload ();
-            renderer.Recreate ();
+            renderer.Recreate (graph);
         }
     };
 
@@ -277,7 +277,7 @@ int main (int, char**)
     refl->frag["Lights"]   = lights;
 
 
-    renderer.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t deltaNs) {
+    renderer.preSubmitEvent += [&] (RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
         TimePoint delta (deltaNs);
 
         const float dt = delta.AsSeconds ();
@@ -299,5 +299,5 @@ int main (int, char**)
         refl->Update (frameIndex);
     };
 
-    window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] { return quit; }));
+    window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, [&] { return quit; }));
 }

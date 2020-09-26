@@ -20,13 +20,14 @@
 
 using namespace RG;
 
-WindowU                window;
-VulkanEnvironmentU     env;
-RenderGraphU           renderGraph;
-Pass*                  glob_firstPass = nullptr;
-RG::UniformReflectionP global_refl;
-GearsVk::UUID          renderOpId = nullptr;
+WindowU            window;
+VulkanEnvironmentU env;
 
+std::map<Stimulus::CP, uint32_t>              stimulusToGraphIndex;
+std::vector<RenderGraphP>                     graphs;
+std::vector<RG::UniformReflectionP>           refls;
+std::vector<std::map<Pass::P, GearsVk::UUID>> mapping;
+Sequence::P                                   cseq;
 
 void InitializeEnvironment ()
 {
@@ -37,8 +38,8 @@ void InitializeEnvironment ()
 
 void DestroyEnvironment ()
 {
-    global_refl.reset ();
-    renderGraph.reset ();
+    refls.clear ();
+    graphs.clear ();
     window.reset ();
     env.reset ();
 }
@@ -48,41 +49,72 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 {
     GVK_ASSERT_THROW (env != nullptr);
 
-    Stimulus::CP stim = seq->getStimulusAtFrame (61);
+    cseq = seq;
+    stimulusToGraphIndex.clear ();
+    graphs.clear ();
+    refls.clear ();
+    mapping.clear ();
 
-    auto passes    = stim->getPasses ();
-    auto firstPass = passes[0];
-    glob_firstPass = firstPass.get ();
-    auto vert      = firstPass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
-    auto frag      = firstPass->getStimulusGeneratorShaderSource ();
+    for (auto [startFrame, stim] : seq->getStimuli ()) {
+        RenderGraphP renderGraph = RenderGraph::CreateShared ();
 
-    std::cout << " ========================= fragment shader BEGIN ========================= " << std::endl;
-    std::cout << frag << std::endl;
-    std::cout << " ========================= fragment shader END =========================== " << std::endl;
+        SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
 
-    auto seqpip = ShaderPipeline::CreateShared (*env->device);
+        std::map<Pass::P, GearsVk::UUID> newMapping;
 
-    std::cout << "> compiling vertex shader" << std::endl;
-    seqpip->SetVertexShaderFromString (vert);
-    std::cout << "> compiling fragment shader" << std::endl;
-    seqpip->SetFragmentShaderFromString (frag);
+        auto passes = stim->getPasses ();
+        for (auto pass : passes) {
+            auto vert = pass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
+            auto frag = pass->getStimulusGeneratorShaderSource ();
 
-    renderGraph = RenderGraph::Create ();
+            std::cout << " ========================= fragment shader BEGIN ========================= " << std::endl;
+            std::cout << frag << std::endl;
+            std::cout << " ========================= fragment shader END =========================== " << std::endl;
 
+            auto seqpip = ShaderPipeline::CreateShared (*env->device);
 
-    GraphSettings s (*env->deviceExtra, *env->swapchain);
+            std::cout << "> compiling vertex shader" << std::endl;
+            seqpip->SetVertexShaderFromString (vert);
+            std::cout << "> compiling fragment shader" << std::endl;
+            seqpip->SetFragmentShaderFromString (frag);
 
-    SwapchainImageResourceP presented        = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
-    OperationP              redFillOperation = renderGraph->AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 4), seqpip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP));
+            const auto isEnabled = [&] () -> bool { return true; };
 
-    renderGraph->CreateOutputConnection (*redFillOperation, 0, *presented);
+            OperationP redFillOperation = renderGraph->CreateOperation<ConditionalRenderOperation> (
+                DrawRecordableInfo::CreateShared (1, 4), seqpip, isEnabled, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
-    global_refl = RG::UniformReflection::Create (*renderGraph, s);
-    RG::ImageAdder img (*renderGraph, s);
+            renderGraph->CreateOutputConnection (*redFillOperation, 0, *presented);
+            newMapping[pass] = redFillOperation->GetUUID ();
+            break;
+        }
+        GraphSettings s (*env->deviceExtra, *env->swapchain);
 
-    renderGraph->Compile (s);
+        auto           refl = RG::UniformReflection::CreateShared (*renderGraph, s);
+        RG::ImageAdder img (*renderGraph, s);
 
-    renderOpId = redFillOperation->GetUUID ();
+        renderGraph->Compile (s);
+
+        for (auto pass : stim->getPasses ()) {
+            for (auto [name, value] : pass->shaderVariables) {
+                (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<float> (value);
+            }
+
+            for (auto [name, value] : pass->shaderVectors) {
+                (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec2> (value);
+            }
+
+            for (auto [name, value] : pass->shaderColors) {
+                (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec3> (value);
+            }
+
+            break;
+        }
+
+        stimulusToGraphIndex[stim] = graphs.size ();
+        graphs.push_back (renderGraph);
+        refls.push_back (refl);
+        mapping.push_back (newMapping);
+    }
 
     Shader::uniformBoundEvent += [&] (const std::string& asd) {
         std::cout << "uniform \"" << asd << "\" bound" << std::endl;
@@ -93,64 +125,49 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 void StartRendering (const std::function<bool ()>& doRender)
 {
     GVK_ASSERT_THROW (env != nullptr);
-    GVK_ASSERT_THROW (renderGraph != nullptr);
 
     env->Wait ();
 
-    SynchronizedSwapchainGraphRenderer swapchainSync (*renderGraph, *env->swapchain);
-
-    const glm::vec2 patternSizeOnRetina (800, 600);
-
-    for (auto [name, value] : glob_firstPass->shaderVariables) {
-        (*global_refl)[renderOpId][ShaderKind::Fragment][std::string ("ubo_" + name)]["value"] = static_cast<float> (value);
-    }
-
-    for (auto [name, value] : glob_firstPass->shaderVectors) {
-        (*global_refl)[renderOpId][ShaderKind::Fragment][std::string ("ubo_" + name)]["value"] = static_cast<glm::vec2> (value);
-    }
-
-
-    for (auto [name, value] : glob_firstPass->shaderColors) {
-        (*global_refl)[renderOpId][ShaderKind::Fragment][std::string ("ubo_" + name)]["value"] = static_cast<glm::vec3> (value);
-    }
-
-
-    uint32_t frameCount = 0;
-    swapchainSync.preSubmitEvent += [&] (uint32_t frameIndex, uint64_t timeNs) {
-        (*global_refl)[renderOpId][ShaderKind::Vertex]["PatternSizeOnRetina"]["value"] = patternSizeOnRetina;
-
-        (*global_refl)[renderOpId][ShaderKind::Fragment]["ubo_time"]["value"] = static_cast<float> (TimePoint::SinceApplicationStart ().AsSeconds ());
-        (*global_refl)[renderOpId][ShaderKind::Fragment]["ubo_patternSizeOnRetina"]["value"] = patternSizeOnRetina;
-
-        global_refl->PrintDebugInfo ();
-
-        global_refl->Flush (frameIndex);
-    };
 
     window->Show ();
 
-    window->DoEventLoop (swapchainSync.GetConditionalDrawCallback (doRender));
+    GraphSettings s (*env->deviceExtra, *env->swapchain);
+
+    SynchronizedSwapchainGraphRenderer swapchainSync (s, *env->swapchain);
+
+    const glm::vec2 patternSizeOnRetina (1920, 1080);
+
+    window->DoEventLoop ([&] (bool&) {
+        const double   timeInSeconds = TimePoint::SinceApplicationStart ().AsSeconds ();
+        const uint32_t frameCount    = static_cast<uint32_t> (timeInSeconds * 60);
+
+        Stimulus::CP currentStim = cseq->getStimulusAtFrame (frameCount);
+
+        const uint32_t idx = stimulusToGraphIndex[currentStim];
+        std::cout << idx << std::endl;
+
+        RG::UniformReflectionP refl = refls[idx];
+
+        swapchainSync.preSubmitEvent = [&] (RenderGraph& graph, uint32_t frameIndex, uint64_t timeNs) {
+            for (auto [pass, renderOpId] : mapping[idx]) {
+                (*refl)[renderOpId][ShaderKind::Vertex]["PatternSizeOnRetina"]       = patternSizeOnRetina;
+                (*refl)[renderOpId][ShaderKind::Fragment]["ubo_time"]                = static_cast<float> (timeInSeconds);
+                (*refl)[renderOpId][ShaderKind::Fragment]["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
+                (*refl)[renderOpId][ShaderKind::Fragment]["ubo_frame"]               = static_cast<int32_t> (frameCount);
+            }
+
+            //refl->PrintDebugInfo ();
+
+            refl->Flush (frameIndex);
+        };
+
+        swapchainSync.RenderNextFrame (*graphs[idx]);
+    });
 
     window->Hide ();
     window.reset ();
 
     env->Wait ();
-
-    {
-        Utils::DebugTimerLogger tl ("switching to new window");
-        Utils::TimerScope       ts (tl);
-
-        window = HiddenGLFWWindow::Create ();
-
-        env->physicalDevice->RecreateForSurface (window->GetSurface (*env->instance));
-
-        env->swapchain->RecreateForSurface (window->GetSurface (*env->instance));
-
-        GraphSettings s (*env->deviceExtra, *env->swapchain);
-
-        renderGraph->CompileResources (s);
-        renderGraph->Compile (s);
-    }
 }
 
 void TryCompile (ShaderKind shaderKind, const std::string& source)
