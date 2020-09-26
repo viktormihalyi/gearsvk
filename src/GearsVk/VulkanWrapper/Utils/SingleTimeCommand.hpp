@@ -15,11 +15,11 @@ class GEARSVK_API SingleTimeCommand final : public Noncopyable {
 private:
     const VkDevice      device;
     const VkCommandPool commandPool;
-    const VkQueue       queue;
-    const CommandBuffer commandBuffer;
+    const Queue&        queue;
+    CommandBuffer       commandBuffer;
 
 public:
-    SingleTimeCommand (VkDevice device, VkCommandPool commandPool, VkQueue queue)
+    SingleTimeCommand (VkDevice device, VkCommandPool commandPool, const Queue& queue)
         : device (device)
         , queue (queue)
         , commandPool (commandPool)
@@ -28,10 +28,8 @@ public:
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-        if (GVK_ERROR (vkBeginCommandBuffer (commandBuffer, &beginInfo) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to begin one time commandbuffer");
-        }
+        // TODO FLAG
+        commandBuffer.Begin ();
     }
 
     SingleTimeCommand (const DeviceExtra& device)
@@ -41,22 +39,13 @@ public:
 
     ~SingleTimeCommand ()
     {
-        if (GVK_ERROR (vkEndCommandBuffer (commandBuffer) != VK_SUCCESS)) {
-            return;
-        }
+        commandBuffer.End ();
 
-        VkCommandBuffer handle = commandBuffer;
-
-        VkSubmitInfo submitInfo       = {};
-        submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers    = &handle;
-
-        vkQueueSubmit (queue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle (queue);
+        queue.Submit ({}, {}, { &commandBuffer }, {}, VK_NULL_HANDLE);
+        queue.Wait ();
     }
 
-    operator VkCommandBuffer () const { return commandBuffer; }
+    CommandBuffer& Record () { return commandBuffer; }
 };
 
 #endif

@@ -34,8 +34,7 @@ ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, uint32_
         imageCopyRegion.extent.height                 = image.GetHeight ();
         imageCopyRegion.extent.depth                  = 1;
 
-        vkCmdCopyImage (
-            single,
+        single.Record ().CmdCopyImage (
             image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
             *dst.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             1,

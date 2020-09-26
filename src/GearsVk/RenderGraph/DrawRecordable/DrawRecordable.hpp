@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "CommandBuffer.hpp"
 #include "Ptr.hpp"
 
 USING_PTR (VertexAttributeProvider);
@@ -24,13 +25,13 @@ class PureDrawRecordable {
 public:
     virtual ~PureDrawRecordable () = default;
 
-    virtual void Record (VkCommandBuffer) const = 0;
+    virtual void Record (CommandBuffer&) const = 0;
 };
 
 USING_PTR (LambdaPureDrawRecordable);
 class LambdaPureDrawRecordable : private PureDrawRecordable {
 public:
-    using Type = std::function<void (VkCommandBuffer)>;
+    using Type = std::function<void (CommandBuffer&)>;
 
 private:
     Type callback;
@@ -44,7 +45,7 @@ public:
     }
 
 private:
-    virtual void Record (VkCommandBuffer c) const override
+    virtual void Record (CommandBuffer& c) const override
     {
         callback (c);
     }

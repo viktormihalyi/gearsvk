@@ -26,9 +26,9 @@ struct GEARSVK_API Operation : public Node {
 
     virtual ~Operation () = default;
 
-    virtual void Compile (const GraphSettings&)                              = 0;
-    virtual void Record (uint32_t frameIndex, VkCommandBuffer commandBuffer) = 0;
-    virtual bool IsActive ()                                                 = 0;
+    virtual void Compile (const GraphSettings&)                             = 0;
+    virtual void Record (uint32_t frameIndex, CommandBuffer& commandBuffer) = 0;
+    virtual bool IsActive ()                                                = 0;
 
     void AddInput (InputBindingU&& inputBinding);
     void AddOutput (uint32_t binding, const ImageResourceRef& res);
@@ -77,7 +77,7 @@ struct GEARSVK_API RenderOperation : public Operation {
     virtual ~RenderOperation () = default;
 
     virtual void Compile (const GraphSettings&) override;
-    virtual void Record (uint32_t imageIndex, VkCommandBuffer commandBuffer) override;
+    virtual void Record (uint32_t imageIndex, CommandBuffer& commandBuffer) override;
     virtual bool IsActive () override { return true; }
 };
 

@@ -14,7 +14,7 @@ public:
     Device&      device;
     CommandPool& commandPool;
     Queue&       graphicsQueue;
-    Queue&       presentationQueue = dummyQueue;
+    Queue&       presentationQueue;
 
     USING_CREATE (DeviceExtra);
 

@@ -59,9 +59,7 @@ protected:
 
         EXPECT_TRUE (imagesMatch);
 
-        if (!imagesMatch) {
-            SaveImageToFileAsync (GetDeviceExtra (), image, ReferenceImagesFolder / (imageName + ".png")).join ();
-        }
+        SaveImageToFileAsync (GetDeviceExtra (), image, ReferenceImagesFolder / (imageName + ".png")).join ();
     }
 };
 

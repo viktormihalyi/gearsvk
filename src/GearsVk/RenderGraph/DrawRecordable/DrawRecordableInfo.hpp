@@ -68,7 +68,7 @@ public:
     std::vector<VkVertexInputAttributeDescription> GetAttributes () const
     {
         uint32_t nextLocation = 0;
-        uint32_t nextBinding = 0;
+        uint32_t nextBinding  = 0;
         return GetFromVector<VkVertexInputAttributeDescription> ([&] (const VertexBufferTransferableUntypedP& vb) {
             auto attribs = vb->info.GetAttributes (nextLocation, nextBinding++);
             nextLocation += attribs.size ();
@@ -102,7 +102,7 @@ public:
                         VkBuffer                                              indexBuffer           = VK_NULL_HANDLE)
         : instanceCount (instanceCount)
         , vertexCount (vertexCount)
-        , vertexBuffer ((vertexBuffer == VK_NULL_HANDLE) ? std::vector<VkBuffer> {} : std::vector<VkBuffer> {vertexBuffer})
+        , vertexBuffer ((vertexBuffer == VK_NULL_HANDLE) ? std::vector<VkBuffer> {} : std::vector<VkBuffer> { vertexBuffer })
         , vertexInputBindings (vertexInputBindings)
         , vertexInputAttributes (vertexInputAttributes)
         , indexCount (indexCount)
@@ -115,7 +115,7 @@ public:
                         const IndexBufferTransferable&         indexBuffer)
         : instanceCount (instanceCount)
         , vertexCount (vertexBuffer.data.size ())
-        , vertexBuffer ({vertexBuffer.buffer.GetBufferToBind ()})
+        , vertexBuffer ({ vertexBuffer.buffer.GetBufferToBind () })
         , vertexInputBindings (vertexBuffer.info.bindings)
         , vertexInputAttributes (vertexBuffer.info.attributes)
         , indexCount (indexBuffer.data.size ())
@@ -127,7 +127,7 @@ public:
                         const VertexBufferTransferableUntyped& vertexBuffer)
         : instanceCount (instanceCount)
         , vertexCount (vertexBuffer.data.size ())
-        , vertexBuffer ({vertexBuffer.buffer.GetBufferToBind ()})
+        , vertexBuffer ({ vertexBuffer.buffer.GetBufferToBind () })
         , vertexInputBindings (vertexBuffer.info.bindings)
         , vertexInputAttributes (vertexBuffer.info.attributes)
         , indexCount (0)
@@ -150,21 +150,21 @@ public:
     {
     }
 
-    void Record (VkCommandBuffer commandBuffer) const override
+    void Record (CommandBuffer& commandBuffer) const override
     {
         if (!vertexBuffer.empty ()) {
             std::vector<VkDeviceSize> offsets (vertexBuffer.size (), 0);
-            vkCmdBindVertexBuffers (commandBuffer, 0, vertexBuffer.size (), vertexBuffer.data (), offsets.data ());
+            commandBuffer.CmdBindVertexBuffers (0, vertexBuffer.size (), vertexBuffer.data (), offsets.data ());
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {
-            vkCmdBindIndexBuffer (commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+            commandBuffer.CmdBindIndexBuffer (indexBuffer, 0, VK_INDEX_TYPE_UINT16);
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {
-            vkCmdDrawIndexed (commandBuffer, indexCount, instanceCount, 0, 0, 0);
+            commandBuffer.CmdDrawIndexed (indexCount, instanceCount, 0, 0, 0);
         } else {
-            vkCmdDraw (commandBuffer, vertexCount, instanceCount, 0, 0);
+            commandBuffer.CmdDraw (vertexCount, instanceCount, 0, 0);
         }
     }
 
@@ -181,7 +181,7 @@ public:
 
 class DrawRecordableInfoProvider : public DrawRecordable {
 public:
-    void                                           Record (VkCommandBuffer commandBuffer) const override { GetDrawRecordableInfo ().Record (commandBuffer); }
+    void                                           Record (CommandBuffer& commandBuffer) const override { GetDrawRecordableInfo ().Record (commandBuffer); }
     std::vector<VkVertexInputAttributeDescription> GetAttributes () const override { return GetDrawRecordableInfo ().GetAttributes (); }
     std::vector<VkVertexInputBindingDescription>   GetBindings () const override { return GetDrawRecordableInfo ().GetBindings (); }
 

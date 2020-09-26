@@ -2,6 +2,7 @@
 #define IMAGE_HPP
 
 #include "Assert.hpp"
+#include "CommandBuffer.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
@@ -89,7 +90,7 @@ public:
     uint32_t GetHeight () const { return height; }
     uint32_t GetDepth () const { return depth; }
 
-    void CmdPipelineBarrier (VkCommandBuffer commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const
+    void CmdPipelineBarrier (CommandBuffer& commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const
     {
         VkImageMemoryBarrier barrier            = {};
         barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -129,14 +130,12 @@ public:
             destinationStage      = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
         }
 
-        vkCmdPipelineBarrier (
-            commandBuffer,
+        commandBuffer.CmdPipelineBarrier (
             sourceStage,
             destinationStage,
-            0,
-            0, nullptr,
-            0, nullptr,
-            1, &barrier);
+            {},
+            {},
+            { barrier });
     }
 
     operator VkImage () const { return handle; }
@@ -151,16 +150,15 @@ public:
         result.imageSubresource.mipLevel       = 0;
         result.imageSubresource.baseArrayLayer = 0;
         result.imageSubresource.layerCount     = arrayLayers;
-        result.imageOffset                     = {0, 0, 0};
-        result.imageExtent                     = {width, height, depth};
+        result.imageOffset                     = { 0, 0, 0 };
+        result.imageExtent                     = { width, height, depth };
         return result;
     }
 
-    void CmdCopyBufferToImage (VkCommandBuffer commandBuffer, VkBuffer buffer) const
+    void CmdCopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer) const
     {
         VkBufferImageCopy region = GetFullBufferImageCopy ();
-        vkCmdCopyBufferToImage (
-            commandBuffer,
+        commandBuffer.CmdCopyBufferToImage (
             buffer,
             handle,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -168,10 +166,9 @@ public:
             &region);
     }
 
-    void CmdCopyBufferPartToImage (VkCommandBuffer commandBuffer, VkBuffer buffer, VkBufferImageCopy region) const
+    void CmdCopyBufferPartToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkBufferImageCopy region) const
     {
-        vkCmdCopyBufferToImage (
-            commandBuffer,
+        commandBuffer.CmdCopyBufferToImage (
             buffer,
             handle,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,

@@ -240,21 +240,21 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
         return;
     }
 
-    std::vector<VkCommandBuffer> submittedCommandBuffers;
+    std::vector<CommandBuffer*> submittedCommandBuffers;
     for (Pass& pass : passes) {
         for (Resource* res : pass.inputs) {
             if (auto imgOutput = dynamic_cast<ImageResource*> (res)) {
-                submittedCommandBuffers.push_back (*resourceReadCommandBuffers.at (res->GetUUID ()).at (frameIndex));
+                submittedCommandBuffers.push_back (resourceReadCommandBuffers.at (res->GetUUID ()).at (frameIndex).get ());
             }
         }
         for (Resource* res : pass.outputs) {
             if (auto imgOutput = dynamic_cast<ImageResource*> (res)) {
-                submittedCommandBuffers.push_back (*resourceWriteCommandBuffers.at (res->GetUUID ()).at (frameIndex));
+                submittedCommandBuffers.push_back (resourceWriteCommandBuffers.at (res->GetUUID ()).at (frameIndex).get ());
             }
         }
         for (Operation* operation : pass.operations) {
             if (operation->IsActive ()) {
-                submittedCommandBuffers.push_back (*operationCommandBuffers.at (operation->GetUUID ()).at (frameIndex));
+                submittedCommandBuffers.push_back (operationCommandBuffers.at (operation->GetUUID ()).at (frameIndex).get ());
             }
         }
     }
@@ -262,17 +262,19 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
     // TODO
     std::vector<VkPipelineStageFlags> waitDstStageMasks (waitSemaphores.size (), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
-    VkSubmitInfo result         = {};
-    result.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    result.waitSemaphoreCount   = static_cast<uint32_t> (waitSemaphores.size ());
-    result.pWaitSemaphores      = waitSemaphores.data ();
-    result.pWaitDstStageMask    = waitDstStageMasks.data ();
-    result.commandBufferCount   = static_cast<uint32_t> (submittedCommandBuffers.size ());
-    result.pCommandBuffers      = submittedCommandBuffers.data ();
-    result.signalSemaphoreCount = static_cast<uint32_t> (signalSemaphores.size ());
-    result.pSignalSemaphores    = signalSemaphores.data ();
+    //VkSubmitInfo result         = {};
+    //result.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    //result.waitSemaphoreCount   = static_cast<uint32_t> (waitSemaphores.size ());
+    //result.pWaitSemaphores      = waitSemaphores.data ();
+    //result.pWaitDstStageMask    = waitDstStageMasks.data ();
+    //result.commandBufferCount   = static_cast<uint32_t> (submittedCommandBuffers.size ());
+    //result.pCommandBuffers      = submittedCommandBuffers.data ();
+    //result.signalSemaphoreCount = static_cast<uint32_t> (signalSemaphores.size ());
+    //result.pSignalSemaphores    = signalSemaphores.data ();
 
-    vkQueueSubmit (compileSettings.GetDevice ().GetGraphicsQueue (), 1, &result, fenceToSignal);
+    //vkQueueSubmit (compileSettings.GetDevice ().GetGraphicsQueue (), 1, &result, fenceToSignal);
+
+    compileSettings.GetDevice ().GetGraphicsQueue ().Submit (waitSemaphores, waitDstStageMasks, submittedCommandBuffers, signalSemaphores, fenceToSignal);
 }
 
 

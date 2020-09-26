@@ -139,7 +139,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
 }
 
 
-void RenderOperation::Record (uint32_t frameIndex, VkCommandBuffer commandBuffer)
+void RenderOperation::Record (uint32_t frameIndex, CommandBuffer& commandBuffer)
 {
     VkClearValue              clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
     std::vector<VkClearValue> clearValues (outputBindings.size (), clearColor);
@@ -153,21 +153,21 @@ void RenderOperation::Record (uint32_t frameIndex, VkCommandBuffer commandBuffer
     renderPassBeginInfo.clearValueCount       = static_cast<uint32_t> (clearValues.size ());
     renderPassBeginInfo.pClearValues          = clearValues.data ();
 
-    vkCmdBeginRenderPass (commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    commandBuffer.CmdBeginRenderPass (&renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipeline);
+    commandBuffer.CmdBindPipeline (VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipeline);
 
     if (!compileResult.descriptorSets.empty ()) {
         VkDescriptorSet dsHandle = *compileResult.descriptorSets[frameIndex];
 
-        vkCmdBindDescriptorSets (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipelineLayout, 0,
-                                 1, &dsHandle,
-                                 0, nullptr);
+        commandBuffer.CmdBindDescriptorSets (VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipelineLayout, 0,
+                                             1, &dsHandle,
+                                             0, nullptr);
     }
 
     compileSettings.drawRecordable->Record (commandBuffer);
 
-    vkCmdEndRenderPass (commandBuffer);
+    commandBuffer.CmdEndRenderPass ();
 }
 
 } // namespace RG

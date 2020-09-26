@@ -3,9 +3,13 @@
 
 #include <vulkan/vulkan.h>
 
+#include "GearsVkAPI.hpp"
+
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
+
+class CommandBuffer;
 
 USING_PTR (Queue);
 class GEARSVK_API Queue : public Noncopyable {
@@ -39,8 +43,14 @@ public:
     {
         vkQueueWaitIdle (handle);
     }
+
+    void Submit (const std::vector<VkSemaphore>&          waitSemaphores,
+                 const std::vector<VkPipelineStageFlags>& waitDstStageMasks,
+                 const std::vector<CommandBuffer*>&       commandBuffers,
+                 const std::vector<VkSemaphore>&          signalSemaphores,
+                 VkFence                                  fenceToSignal) const;
 };
 
-static Queue dummyQueue (static_cast<VkQueue> (VK_NULL_HANDLE));
+extern Queue dummyQueue;
 
 #endif

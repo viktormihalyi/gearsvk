@@ -41,12 +41,12 @@ class GEARSVK_API ImageResource : public Resource {
 public:
     virtual ~ImageResource () = default;
 
-    virtual void                    BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer)  = 0;
-    virtual void                    BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) = 0;
-    virtual VkImageLayout           GetFinalLayout () const                                        = 0;
-    virtual VkFormat                GetFormat () const                                             = 0;
-    virtual uint32_t                GetDescriptorCount () const                                    = 0;
-    virtual std::vector<ImageBase*> GetImages () const                                             = 0;
+    virtual void                    BindRead (uint32_t imageIndex, CommandBuffer& commandBuffer)  = 0;
+    virtual void                    BindWrite (uint32_t imageIndex, CommandBuffer& commandBuffer) = 0;
+    virtual VkImageLayout           GetFinalLayout () const                                       = 0;
+    virtual VkFormat                GetFormat () const                                            = 0;
+    virtual uint32_t                GetDescriptorCount () const                                   = 0;
+    virtual std::vector<ImageBase*> GetImages () const                                            = 0;
 };
 
 
@@ -124,7 +124,7 @@ public:
 
     virtual ~WritableImageResource () {}
 
-    virtual void BindRead (uint32_t imageIndex, VkCommandBuffer commandBuffer) override
+    virtual void BindRead (uint32_t imageIndex, CommandBuffer& commandBuffer) override
     {
         SingleImageResource& im = *images[imageIndex];
 
@@ -133,7 +133,7 @@ public:
         im.image.image->CmdPipelineBarrier (commandBuffer, previousLayout, *im.layoutRead);
     }
 
-    virtual void BindWrite (uint32_t imageIndex, VkCommandBuffer commandBuffer) override
+    virtual void BindWrite (uint32_t imageIndex, CommandBuffer& commandBuffer) override
     {
         SingleImageResource& im = *images[imageIndex];
 
@@ -265,12 +265,12 @@ public:
         }
 
         SingleTimeCommand s (settings.GetDevice ());
-        image->imageGPU->image->CmdPipelineBarrier (s, ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        image->imageGPU->image->CmdPipelineBarrier (s.Record (), ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     // overriding ImageResource
-    virtual void          BindRead (uint32_t, VkCommandBuffer) override {}
-    virtual void          BindWrite (uint32_t, VkCommandBuffer) override {}
+    virtual void          BindRead (uint32_t, CommandBuffer&) override {}
+    virtual void          BindWrite (uint32_t, CommandBuffer&) override {}
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; }
     virtual VkFormat      GetFormat () const override { return format; }
     virtual uint32_t      GetDescriptorCount () const override { return 1; }
@@ -333,8 +333,8 @@ public:
     }
 
     // overriding ImageResource
-    virtual void          BindRead (uint32_t, VkCommandBuffer) override {}
-    virtual void          BindWrite (uint32_t, VkCommandBuffer) override {}
+    virtual void          BindRead (uint32_t, CommandBuffer&) override {}
+    virtual void          BindWrite (uint32_t, CommandBuffer&) override {}
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; }
     virtual VkFormat      GetFormat () const override { return swapchain.GetImageFormat (); }
     virtual uint32_t      GetDescriptorCount () const override { return 1; }

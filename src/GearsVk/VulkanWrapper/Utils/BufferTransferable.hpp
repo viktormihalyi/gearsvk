@@ -90,7 +90,7 @@ public:
 
         SingleTimeCommand commandBuffer (device);
 
-        imageGPU->image->CmdPipelineBarrier (commandBuffer, currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        imageGPU->image->CmdPipelineBarrier (commandBuffer.Record (), currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
         VkBufferImageCopy region               = {};
         region.bufferOffset                    = 0;
@@ -103,9 +103,9 @@ public:
         region.imageOffset                     = { 0, 0, 0 };
         region.imageExtent                     = { imageGPU->image->GetWidth (), imageGPU->image->GetHeight (), imageGPU->image->GetDepth () };
 
-        imageGPU->image->CmdCopyBufferPartToImage (commandBuffer, *bufferCPU.buffer, region);
+        imageGPU->image->CmdCopyBufferPartToImage (commandBuffer.Record (), *bufferCPU.buffer, region);
         if (nextLayout.has_value ()) {
-            imageGPU->image->CmdPipelineBarrier (commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
+            imageGPU->image->CmdPipelineBarrier (commandBuffer.Record (), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
         }
     }
 

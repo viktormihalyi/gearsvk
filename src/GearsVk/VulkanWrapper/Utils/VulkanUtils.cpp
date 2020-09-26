@@ -26,18 +26,18 @@ std::string GetVersionString (uint32_t version)
 void TransitionImageLayout (const DeviceExtra& device, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
     SingleTimeCommand commandBuffer (device);
-    image.CmdPipelineBarrier (commandBuffer, oldLayout, newLayout);
+    image.CmdPipelineBarrier (commandBuffer.Record (), oldLayout, newLayout);
 }
 
 
 void CopyBufferToImage (const DeviceExtra& device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth)
 {
     SingleTimeCommand commandBuffer (device);
-    CopyBufferToImage (commandBuffer, buffer, image, width, height, depth);
+    CopyBufferToImage (commandBuffer.Record (), buffer, image, width, height, depth);
 }
 
 
-void CopyBufferToImage (VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth)
+void CopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth)
 {
     VkBufferImageCopy region               = {};
     region.bufferOffset                    = 0;
@@ -47,11 +47,10 @@ void CopyBufferToImage (VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage 
     region.imageSubresource.mipLevel       = 0;
     region.imageSubresource.baseArrayLayer = 0;
     region.imageSubresource.layerCount     = 1;
-    region.imageOffset                     = {0, 0, 0};
-    region.imageExtent                     = {width, height, depth};
+    region.imageOffset                     = { 0, 0, 0 };
+    region.imageExtent                     = { width, height, depth };
 
-    vkCmdCopyBufferToImage (
-        commandBuffer,
+    commandBuffer.CmdCopyBufferToImage (
         buffer,
         image,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -68,8 +67,8 @@ void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuff
     copyRegion.srcOffset    = 0;
     copyRegion.dstOffset    = 0;
     copyRegion.size         = size;
-    
-    vkCmdCopyBuffer (commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    commandBuffer.Record ().CmdCopyBuffer (srcBuffer, dstBuffer, 1, &copyRegion);
 }
 
 
@@ -85,7 +84,7 @@ AllocatedImage AllocatedImage::CreatePreinitialized (const DeviceExtra& device, 
             std::vector<std::array<uint8_t, 4>> pixels (width * height);
             for (uint32_t y = 0; y < height; ++y) {
                 for (uint32_t x = 0; x < width; ++x) {
-                    pixels[y * width + x] = {1, 1, 127, 127};
+                    pixels[y * width + x] = { 1, 1, 127, 127 };
                 }
             }
 
@@ -121,8 +120,7 @@ static AllocatedImage CreateCopyImageOnCPU (const DeviceExtra& device, const Ima
         imageCopyRegion.extent.height                 = image.GetHeight ();
         imageCopyRegion.extent.depth                  = 1;
 
-        vkCmdCopyImage (
-            single,
+        single.Record ().CmdCopyImage (
             image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
             *dst.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             1,

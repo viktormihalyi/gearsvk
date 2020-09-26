@@ -91,7 +91,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
                 ubosel.Set (ubo->name, uboData);
 
                 // TODO shader stage
-                uboConnections.push_back (std::make_tuple (renderOp, ubo->binding, uboRes));
+                uboConnections.push_back (std::make_tuple (renderOp, ubo->binding, uboRes, shaderModule.GetShaderKind ()));
                 uboResources.push_back (uboRes);
                 udatas.insert ({ uboRes->GetUUID (), uboData });
             }
@@ -106,8 +106,20 @@ void UniformReflection::CreateGraphConnections ()
 {
     GVK_ASSERT (!uboConnections.empty ());
 
-    for (auto& [operation, binding, resource] : uboConnections) {
-        graph.CreateInputConnection (*operation, *resource, RG::UniformInputBinding::Create (binding, *resource));
+    const auto shaderKindToShaderStage = [] (ShaderKind shaderKind) -> VkShaderStageFlags {
+        switch (shaderKind) {
+            case ShaderKind::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
+            case ShaderKind::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
+            case ShaderKind::Geometry: return VK_SHADER_STAGE_GEOMETRY_BIT;
+            case ShaderKind::TessellationControl: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+            case ShaderKind::TessellationEvaluation: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+            case ShaderKind::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
+            default: GVK_BREAK ("unexpected shaderkind type"); return VK_SHADER_STAGE_ALL;
+        }
+    };
+
+    for (auto& [operation, binding, resource, shaderKind] : uboConnections) {
+        graph.CreateInputConnection (*operation, *resource, RG::UniformInputBinding::Create (binding, *resource, shaderKindToShaderStage (shaderKind)));
     }
 
     uboConnections.clear ();

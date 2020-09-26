@@ -5,9 +5,9 @@
 
 #include "Assert.hpp"
 #include "DeviceExtra.hpp"
-#include "VulkanObject.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
+#include "VulkanObject.hpp"
 
 USING_PTR (CommandBuffer);
 
@@ -18,12 +18,52 @@ private:
     VkCommandBuffer     handle;
 
 public:
+    enum class CommandType : uint8_t {
+        BindVertexBuffers = 0,
+        BindIndexBuffer,
+        DrawIndexed,
+        Draw,
+        BeginRenderPass,
+        BindPipeline,
+        BindDescriptorSets,
+        EndRenderPass,
+        PipelineBarrier,
+        CopyBufferToImage,
+        CopyImage,
+        CopyBuffer,
+    };
+
+    static std::string CommandTypeToString (CommandType commandType)
+    {
+        static const std::vector<std::string> commandTypeStrings = {
+            "BindVertexBuffers",
+            "BindIndexBuffer",
+            "DrawIndexed",
+            "Draw",
+            "BeginRenderPass",
+            "BindPipeline",
+            "BindDescriptorSets",
+            "EndRenderPass",
+            "PipelineBarrier",
+            "CopyBufferToImage",
+            "CopyImage",
+            "CopyBuffer",
+        };
+
+        return commandTypeStrings.at (static_cast<uint32_t> (commandType));
+    }
+
+    bool                     canRecordCommands;
+    std::vector<CommandType> recordedCommands;
+
+public:
     USING_CREATE (CommandBuffer);
 
     CommandBuffer (VkDevice device, VkCommandPool commandPool)
         : device (device)
         , commandPool (commandPool)
         , handle (VK_NULL_HANDLE)
+        , canRecordCommands (false)
     {
         VkCommandBufferAllocateInfo commandBufferAllocInfo = {};
         commandBufferAllocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -47,7 +87,7 @@ public:
         handle = VK_NULL_HANDLE;
     }
 
-    void Begin () const
+    void Begin ()
     {
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -57,21 +97,29 @@ public:
         if (GVK_ERROR (vkBeginCommandBuffer (handle, &beginInfo) != VK_SUCCESS)) {
             throw std::runtime_error ("commandbuffer begin failed");
         }
+
+        canRecordCommands = true;
     }
 
 
-    void End () const
+    void End ()
     {
+        GVK_ERROR (recordedCommands.empty ());
+
         if (GVK_ERROR (vkEndCommandBuffer (handle) != VK_SUCCESS)) {
             throw std::runtime_error ("commandbuffer end failed");
         }
+
+        canRecordCommands = false;
     }
 
-    void Reset (bool releaseResources = true) const
+    void Reset (bool releaseResources = true)
     {
         if (GVK_ERROR (vkResetCommandBuffer (handle, (releaseResources) ? VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT : 0) != VK_SUCCESS)) {
             throw std::runtime_error ("commandbuffer reset failed");
         }
+
+        canRecordCommands = false;
     }
 
     void CmdPipelineBarrier (VkPipelineStageFlags               srcStageMask,
@@ -88,9 +136,31 @@ public:
             static_cast<uint32_t> (memoryBarriers.size ()), memoryBarriers.data (),
             static_cast<uint32_t> (bufferMemoryBarriers.size ()), bufferMemoryBarriers.data (),
             static_cast<uint32_t> (imageMemoryBarriers.size ()), imageMemoryBarriers.data ());
+
+        recordedCommands.push_back (CommandType::PipelineBarrier);
     }
 
-    operator VkCommandBuffer () const
+#define GVK_CMDBUFFER_DEFINE_CMD(commandName)                                  \
+    template<typename... Parameters>                                           \
+    void Cmd##commandName (Parameters&&... parameters)                         \
+    {                                                                          \
+        vkCmd##commandName (handle, std::forward<Parameters> (parameters)...); \
+        recordedCommands.push_back (CommandType::##commandName);               \
+    }
+
+    GVK_CMDBUFFER_DEFINE_CMD (BindVertexBuffers);
+    GVK_CMDBUFFER_DEFINE_CMD (BindIndexBuffer);
+    GVK_CMDBUFFER_DEFINE_CMD (DrawIndexed);
+    GVK_CMDBUFFER_DEFINE_CMD (Draw);
+    GVK_CMDBUFFER_DEFINE_CMD (BeginRenderPass);
+    GVK_CMDBUFFER_DEFINE_CMD (BindPipeline);
+    GVK_CMDBUFFER_DEFINE_CMD (BindDescriptorSets);
+    GVK_CMDBUFFER_DEFINE_CMD (EndRenderPass);
+    GVK_CMDBUFFER_DEFINE_CMD (CopyBufferToImage);
+    GVK_CMDBUFFER_DEFINE_CMD (CopyImage);
+    GVK_CMDBUFFER_DEFINE_CMD (CopyBuffer);
+
+    VkCommandBuffer GetHandle () const
     {
         return handle;
     }

@@ -143,13 +143,13 @@ void ShaderPipeline::Compile (const CompileSettings& settings)
     subpass.colorAttachmentCount = static_cast<uint32_t> (settings.attachmentReferences.size ());
     subpass.pColorAttachments    = settings.attachmentReferences.data ();
 
-    VkSubpassDependency dependency = {};
-    dependency.srcSubpass          = 0;
-    dependency.dstSubpass          = 0;
-    dependency.srcStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.srcAccessMask       = 0;
-    dependency.dstStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.dstAccessMask       = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    //VkSubpassDependency dependency = {};
+    //dependency.srcSubpass          = 0;
+    //dependency.dstSubpass          = 0;
+    //dependency.srcStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    //dependency.srcAccessMask       = 0;
+    //dependency.dstStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    //dependency.dstAccessMask       = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
     VkRenderPassCreateInfo renderPassInfo = {};
     renderPassInfo.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -157,10 +157,10 @@ void ShaderPipeline::Compile (const CompileSettings& settings)
     renderPassInfo.pAttachments           = settings.attachmentDescriptions.data ();
     renderPassInfo.subpassCount           = 1;
     renderPassInfo.pSubpasses             = &subpass;
-    renderPassInfo.dependencyCount        = 1;
-    renderPassInfo.pDependencies          = &dependency;
+    renderPassInfo.dependencyCount        = 0; //1;
+    renderPassInfo.pDependencies          = nullptr; //&dependency;
 
-    compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, { subpass }, { dependency }));
+    compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, { subpass }, {  }));
     compileResult.pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, { settings.layout }));
     compileResult.pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, settings.width, settings.height, static_cast<uint32_t> (settings.attachmentReferences.size ()), *compileResult.pipelineLayout, *compileResult.renderPass, GetShaderStages (), settings.inputBindings, settings.inputAttributes, settings.topology));
 }

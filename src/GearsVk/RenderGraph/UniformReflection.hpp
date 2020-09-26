@@ -103,7 +103,7 @@ private:
 
     //
     std::vector<RG::InputBufferBindableResourceP>                                             uboResources;
-    std::vector<std::tuple<RG::RenderOperationP, uint32_t, RG::InputBufferBindableResourceP>> uboConnections;
+    std::vector<std::tuple<RG::RenderOperationP, uint32_t, RG::InputBufferBindableResourceP, ShaderKind>> uboConnections;
     std::unordered_map<GearsVk::UUID, SR::IUDataP>                                            udatas;
 
 public:

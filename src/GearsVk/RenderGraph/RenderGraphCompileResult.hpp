@@ -72,7 +72,7 @@ public:
 
     virtual std::vector<uint32_t> GetOperationIndices (uint32_t commandBufferIndex)
     {
-        return {commandBufferIndex};
+        return { commandBufferIndex };
     }
 
     virtual uint32_t GetRequiredCommandBufferCount () override
@@ -99,7 +99,7 @@ public:
             commandBuffers.push_back (CommandBuffer::Create (device, commandPool));
         }
         for (uint32_t i = 0; i < commandBufferCount; ++i) {
-            commandBufferHandles.push_back (*commandBuffers[i]);
+            commandBufferHandles.push_back (commandBuffers[i]->GetHandle ());
         }
 
         commandBufferToOperationMapping.resize (commandBufferCount);
