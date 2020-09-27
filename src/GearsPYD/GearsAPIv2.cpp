@@ -151,7 +151,7 @@ void StartRendering (const std::function<bool ()>& doRender)
         swapchainSync.preSubmitEvent = [&] (RenderGraph& graph, uint32_t frameIndex, uint64_t timeNs) {
             for (auto [pass, renderOpId] : mapping[idx]) {
                 (*refl)[renderOpId][ShaderKind::Vertex]["PatternSizeOnRetina"]       = patternSizeOnRetina;
-                (*refl)[renderOpId][ShaderKind::Fragment]["ubo_time"]                = static_cast<float> (timeInSeconds);
+                (*refl)[renderOpId][ShaderKind::Fragment]["ubo_time"]                = static_cast<float> (timeInSeconds - currentStim->getStartingFrame () / 60.f);
                 (*refl)[renderOpId][ShaderKind::Fragment]["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
                 (*refl)[renderOpId][ShaderKind::Fragment]["ubo_frame"]               = static_cast<int32_t> (frameCount);
             }
