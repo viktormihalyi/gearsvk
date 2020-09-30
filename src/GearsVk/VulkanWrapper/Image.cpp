@@ -1,0 +1,165 @@
+#include "Image.hpp"
+
+#include "Assert.hpp"
+
+
+ImageBase::ImageBase (VkImage handle, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
+    : handle (handle)
+    , allocator (VK_NULL_HANDLE)
+    , allocationHandle (VK_NULL_HANDLE)
+    , device (device)
+    , format (format)
+    , width (width)
+    , height (height)
+    , depth (depth)
+    , arrayLayers (arrayLayers)
+{
+}
+
+
+ImageBase::ImageBase (VmaAllocator      allocator,
+                      VkImageType       imageType,
+                      uint32_t          width,
+                      uint32_t          height,
+                      uint32_t          depth,
+                      VkFormat          format,
+                      VkImageTiling     tiling,
+                      VkImageUsageFlags usage,
+                      uint32_t          arrayLayers,
+                      MemoryLocation    loc)
+    : device (VK_NULL_HANDLE)
+    , handle (VK_NULL_HANDLE)
+    , allocator (allocator)
+    , allocationHandle (VK_NULL_HANDLE)
+    , format (format)
+    , width (width)
+    , height (height)
+    , depth (depth)
+    , arrayLayers (arrayLayers)
+{
+    VkImageCreateInfo imageInfo = {};
+    imageInfo.sType             = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.flags             = 0;
+    imageInfo.imageType         = imageType;
+    imageInfo.extent.width      = width;
+    imageInfo.extent.height     = height;
+    imageInfo.extent.depth      = depth;
+    imageInfo.mipLevels         = 1;
+    imageInfo.arrayLayers       = arrayLayers;
+    imageInfo.format            = format;
+    imageInfo.tiling            = tiling;
+    imageInfo.initialLayout     = INITIAL_LAYOUT;
+    imageInfo.usage             = usage;
+    imageInfo.samples           = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.sharingMode       = VK_SHARING_MODE_EXCLUSIVE;
+
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.usage                   = (loc == MemoryLocation::GPU) ? VMA_MEMORY_USAGE_GPU_ONLY : VMA_MEMORY_USAGE_CPU_COPY;
+
+    if (GVK_ERROR (vmaCreateImage (allocator, &imageInfo, &allocInfo, &handle, &allocationHandle, nullptr) != VK_SUCCESS)) {
+        throw std::runtime_error ("failed to create image!");
+    }
+}
+
+
+ImageBase::~ImageBase ()
+{
+    if (handle == VK_NULL_HANDLE) {
+        return;
+    }
+
+    if (device != VK_NULL_HANDLE) {
+        vkDestroyImage (device, handle, nullptr);
+    } else if (allocator != VK_NULL_HANDLE) {
+        vmaDestroyImage (allocator, handle, allocationHandle);
+    }
+    handle = VK_NULL_HANDLE;
+}
+
+
+void ImageBase::CmdPipelineBarrier (CommandBuffer& commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const
+{
+    VkImageMemoryBarrier barrier            = {};
+    barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout                       = oldLayout;
+    barrier.newLayout                       = newLayout;
+    barrier.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image                           = handle;
+    barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel   = 0;
+    barrier.subresourceRange.levelCount     = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount     = arrayLayers;
+    barrier.srcAccessMask                   = 0;
+    barrier.dstAccessMask                   = 0;
+
+    VkPipelineStageFlags sourceStage;
+    VkPipelineStageFlags destinationStage;
+
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+        sourceStage      = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        sourceStage      = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    } else {
+        // TODO
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = 0;
+        sourceStage           = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+        destinationStage      = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    }
+
+    commandBuffer.CmdPipelineBarrier (
+        sourceStage,
+        destinationStage,
+        {},
+        {},
+        { barrier });
+}
+
+
+VkBufferImageCopy ImageBase::GetFullBufferImageCopy () const
+{
+    VkBufferImageCopy result               = {};
+    result.bufferOffset                    = 0;
+    result.bufferRowLength                 = 0;
+    result.bufferImageHeight               = 0;
+    result.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    result.imageSubresource.mipLevel       = 0;
+    result.imageSubresource.baseArrayLayer = 0;
+    result.imageSubresource.layerCount     = arrayLayers;
+    result.imageOffset                     = { 0, 0, 0 };
+    result.imageExtent                     = { width, height, depth };
+    return result;
+}
+
+
+void ImageBase::CmdCopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer) const
+{
+    VkBufferImageCopy region = GetFullBufferImageCopy ();
+    commandBuffer.CmdCopyBufferToImage (
+        buffer,
+        handle,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &region);
+}
+
+
+void ImageBase::CmdCopyBufferPartToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkBufferImageCopy region) const
+{
+    commandBuffer.CmdCopyBufferToImage (
+        buffer,
+        handle,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &region);
+}

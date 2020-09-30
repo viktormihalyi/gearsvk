@@ -69,7 +69,7 @@ bool DebugAssertFunc (bool condition, const bool shouldBe, const char* message, 
     if (condition != shouldBe) {
         const std::string assertLocation = location.ToString ();
         bool              ignored        = true;
-        ShowAssertPopup (message, std::string (conditionString) + " is false", assertLocation, ignored);
+        ShowAssertPopup (message, conditionString, assertLocation, ignored);
     }
     return condition;
 }

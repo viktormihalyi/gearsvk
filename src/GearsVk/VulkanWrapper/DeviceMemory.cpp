@@ -57,12 +57,6 @@ DeviceMemory::DeviceMemory (VkDevice device, const size_t allocationSize, const 
 }
 
 
-DeviceMemory::DeviceMemory (VkDevice device, const Device::AllocateInfo allocateInfo)
-    : DeviceMemory (device, allocateInfo.size, allocateInfo.memoryTypeIndex)
-{
-}
-
-
 DeviceMemory::~DeviceMemory ()
 {
     vkFreeMemory (device, handle, nullptr);

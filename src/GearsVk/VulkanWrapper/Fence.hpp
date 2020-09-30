@@ -30,7 +30,7 @@ public:
         }
     }
 
-    ~Fence ()
+    virtual ~Fence () override
     {
         vkDestroyFence (device, handle, nullptr);
         handle = VK_NULL_HANDLE;

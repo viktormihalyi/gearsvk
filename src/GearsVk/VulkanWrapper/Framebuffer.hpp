@@ -49,7 +49,7 @@ public:
         }
     }
 
-    ~Framebuffer ()
+    virtual ~Framebuffer () override
     {
         vkDestroyFramebuffer (device, handle, nullptr);
         handle = VK_NULL_HANDLE;

@@ -36,37 +36,6 @@ GEARSVK_API
 std::thread SaveImageToFileAsync (const DeviceExtra& device, const ImageBase& image, const std::filesystem::path& filePath, uint32_t layerIndex = 0);
 
 
-USING_PTR (AllocatedImage_Deprecated);
-struct GEARSVK_API AllocatedImage_Deprecated final {
-    ImageBaseU    image;
-    DeviceMemoryU memory;
-
-    USING_CREATE (AllocatedImage_Deprecated);
-
-    AllocatedImage_Deprecated (const DeviceExtra& device, ImageBaseU&& image, VkMemoryPropertyFlags memoryPropertyFlags)
-        : image (std::move (image))
-        , memory (DeviceMemory::Create (device, device.GetImageAllocateInfo (*this->image, memoryPropertyFlags)))
-    {
-        vkBindImageMemory (device, *this->image, *memory, 0);
-    }
-};
-
-
-USING_PTR (AllocatedBuffer_Deprecated);
-struct GEARSVK_API AllocatedBuffer_Deprecated final {
-    BufferU       buffer;
-    DeviceMemoryU memory;
-
-    USING_CREATE (AllocatedBuffer_Deprecated);
-
-    AllocatedBuffer_Deprecated (const Device& device, BufferU&& buffer, VkMemoryPropertyFlags memoryPropertyFlags)
-        : buffer (std::move (buffer))
-        , memory (DeviceMemory::Create (device, device.GetBufferAllocateInfo (*this->buffer, memoryPropertyFlags)))
-    {
-        vkBindBufferMemory (device, *this->buffer, *memory, 0);
-    }
-};
-
 namespace ShaderTypes {
 
 static constexpr VkFormat Float = VK_FORMAT_R32_SFLOAT;

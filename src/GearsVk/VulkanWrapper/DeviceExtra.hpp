@@ -42,21 +42,9 @@ public:
     Queue&       GetPresentationQueue () { return presentationQueue; }
 
     // implementing Device
-    virtual              operator VkDevice () const override { return device; }
-    virtual void         Wait () const override { device.Wait (); }
-    virtual AllocateInfo GetImageAllocateInfo (VkImage image, VkMemoryPropertyFlags propertyFlags) const override { return device.GetImageAllocateInfo (image, propertyFlags); }
-    virtual AllocateInfo GetBufferAllocateInfo (VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) const override { return device.GetBufferAllocateInfo (buffer, propertyFlags); }
+    virtual      operator VkDevice () const override { return device; }
+    virtual void Wait () const override { device.Wait (); }
 };
 
-
-class DeviceExtraHolder {
-public:
-    DeviceExtra& device;
-
-    DeviceExtraHolder (DeviceExtra& device)
-        : device (device)
-    {
-    }
-};
 
 #endif

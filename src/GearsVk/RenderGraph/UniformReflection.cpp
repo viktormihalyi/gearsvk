@@ -9,6 +9,8 @@ UniformReflection::UniformReflection (RG::RenderGraph& graph, const RG::GraphSet
     : graph (graph)
     , settings (settings)
 {
+    // TODO properly handle swapchain recreate
+    
     CreateGraphResources (filter, resourceCreator);
     CreateGraphConnections ();
 
@@ -44,8 +46,6 @@ void UniformReflection::RecordCopyOperations ()
         }
     }
 
-    uboResources.clear ();
-    udatas.clear ();
 }
 
 void UniformReflection::Flush (uint32_t frameIndex)

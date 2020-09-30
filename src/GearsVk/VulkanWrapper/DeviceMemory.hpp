@@ -11,7 +11,7 @@
 #include <iostream>
 
 USING_PTR (DeviceMemory);
-class GEARSVK_API DeviceMemory : public Noncopyable {
+class GEARSVK_API DeviceMemory : public VulkanObject {
 public:
     static constexpr VkMemoryPropertyFlags GPU = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     static constexpr VkMemoryPropertyFlags CPU = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
@@ -27,9 +27,7 @@ public:
 
     DeviceMemory (VkDevice device, const size_t allocationSize, const uint32_t memoryTypeIndex);
 
-    DeviceMemory (VkDevice device, const Device::AllocateInfo allocateInfo);
-
-    ~DeviceMemory ();
+    virtual ~DeviceMemory () override;
 
     operator VkDeviceMemory () const { return handle; }
 

@@ -20,7 +20,7 @@ try:
     my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/0_Utility/1_Spots/1_tiny_red.pyx").load_module()
     my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/1_Spots/3_Oscillations/1_sine_increasing_freqs.pyx").load_module()
     """
-    my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/4_MovingShapes/5_Scan/2_scanTinySquaresShuffled.pyx").load_module()
+    my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/9_Miscellaneous/FilteredSpots/1_box_red_spot_test.pyx").load_module()
     print("createStimulusWindow")
     gears.createStimulusWindow()
 

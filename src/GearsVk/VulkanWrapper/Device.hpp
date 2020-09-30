@@ -14,21 +14,15 @@ class GEARSVK_API Device {
 public:
     virtual ~Device () = default;
 
-    struct AllocateInfo {
-        uint32_t size;
-        uint32_t memoryTypeIndex;
-    };
-
-    virtual              operator VkDevice () const                                                         = 0;
-    virtual void         Wait () const                                                                      = 0;
-    virtual AllocateInfo GetImageAllocateInfo (VkImage image, VkMemoryPropertyFlags propertyFlags) const    = 0;
-    virtual AllocateInfo GetBufferAllocateInfo (VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) const = 0;
+    virtual      operator VkDevice () const = 0;
+    virtual void Wait () const              = 0;
 };
 
 
 USING_PTR (DeviceObject);
-
 class GEARSVK_API DeviceObject : public VulkanObject, public Device {
+    USING_CREATE (DeviceObject);
+
 private:
     const VkPhysicalDevice physicalDevice;
     VkDevice               handle;
@@ -49,8 +43,6 @@ private:
 
 
 public:
-    USING_CREATE (DeviceObject);
-
     DeviceObject (VkPhysicalDevice physicalDevice, std::vector<uint32_t> queueFamilyIndices, std::vector<const char*> requestedDeviceExtensions)
         : physicalDevice (physicalDevice)
         , handle (VK_NULL_HANDLE)
@@ -82,7 +74,7 @@ public:
         }
     }
 
-    virtual ~DeviceObject ()
+    virtual ~DeviceObject () override
     {
         vkDeviceWaitIdle (handle);
         vkDestroyDevice (handle, nullptr);
@@ -92,20 +84,6 @@ public:
     virtual operator VkDevice () const override
     {
         return handle;
-    }
-
-    virtual AllocateInfo GetImageAllocateInfo (VkImage image, VkMemoryPropertyFlags propertyFlags) const override
-    {
-        VkMemoryRequirements memRequirements = {};
-        vkGetImageMemoryRequirements (handle, image, &memRequirements);
-        return {static_cast<uint32_t> (memRequirements.size), FindMemoryType (memRequirements.memoryTypeBits, propertyFlags)};
-    }
-
-    virtual AllocateInfo GetBufferAllocateInfo (VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) const override
-    {
-        VkMemoryRequirements memRequirements = {};
-        vkGetBufferMemoryRequirements (handle, buffer, &memRequirements);
-        return {static_cast<uint32_t> (memRequirements.size), FindMemoryType (memRequirements.memoryTypeBits, propertyFlags)};
     }
 
     virtual void Wait () const override

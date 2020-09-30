@@ -29,7 +29,7 @@ StimulusRenderer::StimulusRenderer (SequenceRenderer::P sequenceRenderer, Stimul
 
     // throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     if (stimulus->spatialFilter) {
-        throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+        GVK_BREAK ("spatial filter");
 #if 0
         auto width  = sequenceRenderer->getSequence ()->fftWidth_px;
         auto height = sequenceRenderer->getSequence ()->fftHeight_px;

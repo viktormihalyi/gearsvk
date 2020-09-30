@@ -47,72 +47,76 @@ void DestroyEnvironment ()
 
 void SetRenderGraphFromSequence (Sequence::P seq)
 {
-    GVK_ASSERT_THROW (env != nullptr);
+    try {
+        GVK_ASSERT_THROW (env != nullptr);
 
-    cseq = seq;
-    stimulusToGraphIndex.clear ();
-    graphs.clear ();
-    refls.clear ();
-    mapping.clear ();
+        cseq = seq;
+        stimulusToGraphIndex.clear ();
+        graphs.clear ();
+        refls.clear ();
+        mapping.clear ();
 
-    for (auto [startFrame, stim] : seq->getStimuli ()) {
-        RenderGraphP renderGraph = RenderGraph::CreateShared ();
+        for (auto [startFrame, stim] : seq->getStimuli ()) {
+            RenderGraphP renderGraph = RenderGraph::CreateShared ();
 
-        SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
+            SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
 
-        std::map<Pass::P, GearsVk::UUID> newMapping;
+            std::map<Pass::P, GearsVk::UUID> newMapping;
 
-        auto passes = stim->getPasses ();
-        for (auto pass : passes) {
-            auto vert = pass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
-            auto frag = pass->getStimulusGeneratorShaderSource ();
+            auto passes = stim->getPasses ();
+            for (auto pass : passes) {
+                auto vert = pass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
+                auto frag = pass->getStimulusGeneratorShaderSource ();
 
-            auto seqpip = ShaderPipeline::CreateShared (*env->device);
+                auto seqpip = ShaderPipeline::CreateShared (*env->device);
 
-            seqpip->SetVertexShaderFromString (vert);
-            seqpip->SetFragmentShaderFromString (frag);
+                seqpip->SetVertexShaderFromString (vert);
+                seqpip->SetFragmentShaderFromString (frag);
 
-            const auto isEnabled = [&] () -> bool { return true; };
+                const auto isEnabled = [&] () -> bool { return true; };
 
-            OperationP redFillOperation = renderGraph->CreateOperation<ConditionalRenderOperation> (
-                DrawRecordableInfo::CreateShared (1, 4), seqpip, isEnabled, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+                OperationP redFillOperation = renderGraph->CreateOperation<ConditionalRenderOperation> (
+                    DrawRecordableInfo::CreateShared (1, 4), seqpip, isEnabled, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
-            renderGraph->CreateOutputConnection (*redFillOperation, 0, *presented);
-            newMapping[pass] = redFillOperation->GetUUID ();
-            break;
+                renderGraph->CreateOutputConnection (*redFillOperation, 0, *presented);
+                newMapping[pass] = redFillOperation->GetUUID ();
+                break;
+            }
+            GraphSettings s (*env->deviceExtra, *env->swapchain);
+
+            auto           refl = RG::UniformReflection::CreateShared (*renderGraph, s);
+            RG::ImageAdder img (*renderGraph, s);
+
+            renderGraph->Compile (s);
+
+            for (auto pass : stim->getPasses ()) {
+                for (auto [name, value] : pass->shaderVariables) {
+                    (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<float> (value);
+                }
+
+                for (auto [name, value] : pass->shaderVectors) {
+                    (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec2> (value);
+                }
+
+                for (auto [name, value] : pass->shaderColors) {
+                    (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec3> (value);
+                }
+
+                break;
+            }
+
+            stimulusToGraphIndex[stim] = graphs.size ();
+            graphs.push_back (renderGraph);
+            refls.push_back (refl);
+            mapping.push_back (newMapping);
         }
-        GraphSettings s (*env->deviceExtra, *env->swapchain);
 
-        auto           refl = RG::UniformReflection::CreateShared (*renderGraph, s);
-        RG::ImageAdder img (*renderGraph, s);
-
-        renderGraph->Compile (s);
-
-        for (auto pass : stim->getPasses ()) {
-            for (auto [name, value] : pass->shaderVariables) {
-                (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<float> (value);
-            }
-
-            for (auto [name, value] : pass->shaderVectors) {
-                (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec2> (value);
-            }
-
-            for (auto [name, value] : pass->shaderColors) {
-                (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec3> (value);
-            }
-
-            break;
-        }
-
-        stimulusToGraphIndex[stim] = graphs.size ();
-        graphs.push_back (renderGraph);
-        refls.push_back (refl);
-        mapping.push_back (newMapping);
+        Shader::uniformBoundEvent += [&] (const std::string& asd) {
+            std::cout << "uniform \"" << asd << "\" bound" << std::endl;
+        };
+    } catch (std::exception& e) {
+        GVK_BREAK ("msg");
     }
-
-    Shader::uniformBoundEvent += [&] (const std::string& asd) {
-        std::cout << "uniform \"" << asd << "\" bound" << std::endl;
-    };
 }
 
 

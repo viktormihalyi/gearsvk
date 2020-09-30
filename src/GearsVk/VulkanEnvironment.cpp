@@ -63,7 +63,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
 
     physicalDevice = PhysicalDevice::Create (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
 
-#if LOG_VULKAN_INFO
+#ifdef LOG_VULKAN_INFO
     {
         VkPhysicalDeviceProperties properties = physicalDevice->GetProperties ();
 
@@ -130,23 +130,4 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
 VulkanEnvironment::~VulkanEnvironment ()
 {
     Wait ();
-}
-
-
-VulkanObjectP VulkanEnvironment::FindObject (const GearsVk::UUID& uuid)
-{
-    for (const auto& objW : objects) {
-        if (auto objS = objW.lock ()) {
-            if (objS->GetUUID () == uuid) {
-                return objS;
-            }
-        }
-    }
-    return nullptr;
-}
-
-
-void VulkanEnvironment::RegisterObject (const VulkanObjectP& obj)
-{
-    objects.push_back (obj);
 }
