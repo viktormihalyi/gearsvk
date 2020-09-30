@@ -558,6 +558,10 @@ std::vector<UBOP> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
         ubos.push_back (root);
     }
 
+    std::sort (ubos.begin (), ubos.end (), [] (const SR::UBOP& first, const SR::UBOP& second) {
+        return first->binding < second->binding;
+    });
+
     return ubos;
 }
 
@@ -597,6 +601,10 @@ std::vector<Sampler> GetSamplersFromBinary (const std::vector<uint32_t>& binary)
 
         result.push_back (sampler);
     }
+
+    std::sort (result.begin (), result.end (), [] (const SR::Sampler& first, const SR::Sampler& second) {
+        return first.binding < second.binding;
+    });
 
     return result;
 }

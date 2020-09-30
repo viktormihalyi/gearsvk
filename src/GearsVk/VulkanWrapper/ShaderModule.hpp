@@ -60,15 +60,21 @@ private:
     const ReadMode   readMode;
     const ShaderKind shaderKind;
 
-    const std::string           sourceCode;
+    std::string                 sourceCode;
     const std::filesystem::path fileLocation;
-    const std::vector<uint32_t> binary;
+    std::vector<uint32_t>       binary;
 
     Reflection reflection;
 
 private:
     // private ctor, use factories instead
-    ShaderModule (ShaderKind shaderKind, ReadMode mode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary);
+    ShaderModule (ShaderKind                   shaderKind,
+                  ReadMode                     mode,
+                  VkDevice                     device,
+                  VkShaderModule               handle,
+                  const std::filesystem::path& fileLocation,
+                  const std::vector<uint32_t>& binary,
+                  const std::string&           sourceCode);
 
 public:
     USING_CREATE (ShaderModule);
@@ -78,8 +84,6 @@ public:
     static ShaderModuleU CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource);
 
     virtual ~ShaderModule ();
-
-    operator VkShaderModule () const { return handle; }
 
     void Reload ();
 

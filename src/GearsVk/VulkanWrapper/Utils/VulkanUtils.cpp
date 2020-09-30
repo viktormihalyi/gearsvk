@@ -72,40 +72,14 @@ void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuff
 }
 
 
-AllocatedImage AllocatedImage::CreatePreinitialized (const DeviceExtra& device, uint32_t width, uint32_t height)
-{
-    AllocatedImage result (device, Image2D::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 1), DeviceMemory::GPU);
-
-    TransitionImageLayout (device, *result.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    {
-        AllocatedBuffer stagingMemory (device, Buffer::Create (device, width * height * 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), DeviceMemory::CPU);
-        {
-            MemoryMapping                       bm (device, *stagingMemory.memory, 0, width * height * 4);
-            std::vector<std::array<uint8_t, 4>> pixels (width * height);
-            for (uint32_t y = 0; y < height; ++y) {
-                for (uint32_t x = 0; x < width; ++x) {
-                    pixels[y * width + x] = { 1, 1, 127, 127 };
-                }
-            }
-
-            bm.Copy (pixels);
-        }
-        CopyBufferToImage (device, *stagingMemory.buffer, *result.image, width, height);
-    }
-    TransitionImageLayout (device, *result.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-
-    return std::move (result);
-}
-
-
-static AllocatedImage CreateCopyImageOnCPU (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex = 0)
+static ImageBaseU CreateCopyImageOnCPU (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex = 0)
 {
     const uint32_t width  = image.GetWidth ();
     const uint32_t height = image.GetHeight ();
 
-    AllocatedImage dst (device, Image2D::Create (device, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1), DeviceMemory::CPU);
-    TransitionImageLayout (device, *dst.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    Image2DU dst = Image2D::Create (device.GetAllocator (), ImageBase::MemoryLocation::CPU, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
+
+    TransitionImageLayout (device, *dst, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     {
         SingleTimeCommand single (device);
@@ -122,7 +96,7 @@ static AllocatedImage CreateCopyImageOnCPU (const DeviceExtra& device, const Ima
 
         single.Record ().CmdCopyImage (
             image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            *dst.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            *dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             1,
             &imageCopyRegion);
     }
@@ -157,13 +131,13 @@ bool AreImagesEqual (const DeviceExtra& device, const ImageBase& image, const st
     const uint32_t pixelCount = width * height;
     const uint32_t byteCount  = pixelCount * 4;
 
-    AllocatedImage dst = CreateCopyImageOnCPU (device, image, layerIndex);
+    ImageBaseU dst = CreateCopyImageOnCPU (device, image, layerIndex);
 
 
     std::vector<std::array<uint8_t, 4>> mapped (pixelCount);
 
     {
-        MemoryMapping mapping (device, *dst.memory, 0, byteCount);
+        MemoryMapping mapping (device.GetAllocator (), *dst);
         memcpy (mapped.data (), mapping.Get (), byteCount);
     }
 

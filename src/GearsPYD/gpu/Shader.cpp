@@ -47,7 +47,6 @@ Shader::Shader ()
 
 Shader::Shader (std::string vertexShaderSource, std::string fragmentShaderSource, bool dummy)
 {
-    std::cout << "Shader::Shader (std::string vertexShaderSource, std::string fragmentShaderSource, bool dummy)" << std::endl;
     LogVertexShader (vertexShaderSource);
     LogFragmentShader (vertexShaderSource);
 
@@ -83,7 +82,6 @@ Shader::Shader (std::string vertexShaderSource, std::string fragmentShaderSource
 
 Shader::Shader (std::string vertexShaderSource, std::string geometryShaderSource, std::string fragmentShaderSource, GLint geomShaderOutputType)
 {
-    std::cout << "Shader::Shader (std::string vertexShaderSource, std::string geometryShaderSource, std::string fragmentShaderSource, GLint geomShaderOutputType)" << std::endl;
     LogVertexShader (vertexShaderSource);
     LogGeometryShader (geometryShaderSource);
     LogFragmentShader (vertexShaderSource);
@@ -142,7 +140,6 @@ Shader::Shader (std::string vertexShaderSource, std::string geometryShaderSource
 
 Shader::Shader (const char* vertexShaderPath, const char* fragmentShaderPath, const char* geometryShaderPath, GLint geomShaderOutputType)
 {
-    std::cout << "Shader::Shader (const char* vertexShaderPath, const char* fragmentShaderPath, const char* geometryShaderPath, GLint geomShaderOutputType)" << std::endl;
     if (vertexShaderPath) {
         LogVertexShader (*Utils::ReadTextFile (vertexShaderPath));
     }
@@ -171,7 +168,6 @@ Shader::Shader (const char* vertexShaderPath, const char* fragmentShaderPath, co
 
 Shader::Shader (std::string vertexShaderPath, std::string fragmentShaderSource)
 {
-    std::cout << "Shader::Shader (std::string vertexShaderPath, std::string fragmentShaderSource)" << std::endl;
     LogVertexShader (*Utils::ReadTextFile (vertexShaderPath));
     LogFragmentShader (fragmentShaderSource);
 

@@ -8,6 +8,8 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+#include "vk_mem_alloc.h"
+
 #include <vulkan/vulkan.h>
 
 USING_PTR (ImageBase);
@@ -24,7 +26,10 @@ protected:
     VkImage handle;
 
 private:
-    const VkDevice device;
+    const VkDevice     device;
+    const VmaAllocator allocator;
+    VmaAllocation      allocationHandle;
+
     const VkFormat format;
     uint32_t       width;
     uint32_t       height;
@@ -34,6 +39,8 @@ private:
 protected:
     ImageBase (VkImage handle, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
         : handle (handle)
+        , allocator (VK_NULL_HANDLE)
+        , allocationHandle (VK_NULL_HANDLE)
         , device (device)
         , format (format)
         , width (width)
@@ -49,6 +56,8 @@ public:
 
     ImageBase (VkDevice device, VkImageType imageType, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, uint32_t arrayLayers)
         : device (device)
+        , allocator (VK_NULL_HANDLE)
+        , allocationHandle (VK_NULL_HANDLE)
         , handle (VK_NULL_HANDLE)
         , format (format)
         , width (width)
@@ -77,10 +86,66 @@ public:
         }
     }
 
+    enum class MemoryLocation {
+        GPU,
+        CPU
+    };
+
+    ImageBase (VmaAllocator      allocator,
+               VkImageType       imageType,
+               uint32_t          width,
+               uint32_t          height,
+               uint32_t          depth,
+               VkFormat          format,
+               VkImageTiling     tiling,
+               VkImageUsageFlags usage,
+               uint32_t          arrayLayers,
+               MemoryLocation    loc)
+        : device (VK_NULL_HANDLE)
+        , handle (VK_NULL_HANDLE)
+        , allocator (allocator)
+        , allocationHandle (VK_NULL_HANDLE)
+        , format (format)
+        , width (width)
+        , height (height)
+        , depth (depth)
+        , arrayLayers (arrayLayers)
+    {
+        VkImageCreateInfo imageInfo = {};
+        imageInfo.sType             = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.flags             = 0;
+        imageInfo.imageType         = imageType;
+        imageInfo.extent.width      = width;
+        imageInfo.extent.height     = height;
+        imageInfo.extent.depth      = depth;
+        imageInfo.mipLevels         = 1;
+        imageInfo.arrayLayers       = arrayLayers;
+        imageInfo.format            = format;
+        imageInfo.tiling            = tiling;
+        imageInfo.initialLayout     = INITIAL_LAYOUT;
+        imageInfo.usage             = usage;
+        imageInfo.samples           = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.sharingMode       = VK_SHARING_MODE_EXCLUSIVE;
+
+        VmaAllocationCreateInfo allocInfo = {};
+        allocInfo.usage                   = (loc == MemoryLocation::GPU) ? VMA_MEMORY_USAGE_GPU_ONLY : VMA_MEMORY_USAGE_CPU_COPY;
+
+        if (GVK_ERROR (vmaCreateImage (allocator, &imageInfo, &allocInfo, &handle, &allocationHandle, nullptr) != VK_SUCCESS)) {
+            throw std::runtime_error ("failed to create image!");
+        }
+    }
+
     virtual ~ImageBase ()
     {
-        if (device != VK_NULL_HANDLE)
+        if (handle == VK_NULL_HANDLE) {
+            return;
+        }
+
+        if (device != VK_NULL_HANDLE) {
             vkDestroyImage (device, handle, nullptr);
+        } else if (allocator != VK_NULL_HANDLE) {
+            vmaDestroyImage (allocator, handle, allocationHandle);
+        }
         handle = VK_NULL_HANDLE;
     }
 
@@ -139,6 +204,7 @@ public:
     }
 
     operator VkImage () const { return handle; }
+    operator VmaAllocation () const { return allocationHandle; }
 
     VkBufferImageCopy GetFullBufferImageCopy () const
     {
@@ -186,6 +252,11 @@ public:
         : ImageBase (handle, VK_NULL_HANDLE, width, height, depth, format, arrayLayers)
     {
     }
+
+    virtual ~InheritedImage () override
+    {
+        handle = VK_NULL_HANDLE;
+    }
 };
 
 
@@ -195,6 +266,10 @@ public:
     USING_CREATE (Image1D);
     Image1D (VkDevice device, uint32_t width, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
         : ImageBase (device, VK_IMAGE_TYPE_1D, width, 1, 1, format, tiling, usage, arrayLayers)
+    {
+    }
+    Image1D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
+        : ImageBase (allocator, VK_IMAGE_TYPE_1D, width, 1, 1, format, tiling, usage, arrayLayers, loc)
     {
     }
 };
@@ -208,6 +283,10 @@ public:
         : ImageBase (device, VK_IMAGE_TYPE_2D, width, height, 1, format, tiling, usage, arrayLayers)
     {
     }
+    Image2D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
+        : ImageBase (allocator, VK_IMAGE_TYPE_2D, width, height, 1, format, tiling, usage, arrayLayers, loc)
+    {
+    }
 };
 
 
@@ -217,6 +296,10 @@ public:
     USING_CREATE (Image3D);
     Image3D (VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0)
         : ImageBase (device, VK_IMAGE_TYPE_3D, width, height, depth, format, tiling, usage, 1)
+    {
+    }
+    Image3D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0)
+        : ImageBase (allocator, VK_IMAGE_TYPE_3D, width, height, depth, format, tiling, usage, 1, loc)
     {
     }
 };

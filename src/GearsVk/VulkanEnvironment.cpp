@@ -101,13 +101,15 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
         deviceExtensions.push_back (VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
-    device = DeviceObject::Create (*physicalDevice, std::vector<uint32_t> {*physicalDevice->GetQueueFamilies ().graphics}, deviceExtensions);
+    device = DeviceObject::Create (*physicalDevice, std::vector<uint32_t> { *physicalDevice->GetQueueFamilies ().graphics }, deviceExtensions);
+
+    alloactor = Allocator::Create (*instance, *physicalDevice, *device);
 
     graphicsQueue = Queue::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
     commandPool = CommandPool::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
-    deviceExtra = DeviceExtra::Create (*device, *commandPool, *graphicsQueue);
+    deviceExtra = DeviceExtra::Create (*device, *commandPool, *alloactor, *graphicsQueue);
 
     if (window) {
         swapchain = RealSwapchain::Create (*physicalDevice, *device, *surface);

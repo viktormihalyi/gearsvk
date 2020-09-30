@@ -17,9 +17,9 @@ ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, uint32_
     if (currentLayout)
         TransitionImageLayout (device, image, *currentLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
-    AllocatedImage dst (device, Image2D::Create (device, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1), DeviceMemory::CPU);
+    Image2D dst (device.GetAllocator (), ImageBase::MemoryLocation::CPU, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
 
-    TransitionImageLayout (device, *dst.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    TransitionImageLayout (device, dst, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     {
         SingleTimeCommand single (device);
@@ -36,7 +36,7 @@ ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, uint32_
 
         single.Record ().CmdCopyImage (
             image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            *dst.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             1,
             &imageCopyRegion);
     }
@@ -47,7 +47,7 @@ ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, uint32_
     data.resize (width * height * components);
 
     {
-        MemoryMapping mapping (device, *dst.memory, 0, width * height * components);
+        MemoryMapping mapping (device.GetAllocator (), dst);
         memcpy (data.data (), mapping.Get (), width * height * components);
     }
 }
@@ -153,11 +153,12 @@ void ImageData::UploadTo (const DeviceExtra& device, const ImageBase& image, std
         TransitionImageLayout (device, image, *currentLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     {
-        AllocatedBuffer stagingCPUMemory (device, Buffer::Create (device, width * height * components, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), DeviceMemory::CPU);
-        MemoryMapping   bm (device, *stagingCPUMemory.memory, 0, width * height * components);
+        Buffer stagingCPUMemory (device.GetAllocator (), width * height * components, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, Buffer::MemoryLocation::CPU);
+
+        MemoryMapping bm (device.GetAllocator (), stagingCPUMemory);
         bm.Copy (data);
 
-        CopyBufferToImage (device, *stagingCPUMemory.buffer, image, width, height);
+        CopyBufferToImage (device, stagingCPUMemory, image, width, height);
     }
 
     if (currentLayout)

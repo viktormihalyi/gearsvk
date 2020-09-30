@@ -22,19 +22,18 @@ public:
 
     uint32_t bufferSize;
 
-    AllocatedBuffer bufferGPU;
-
-    AllocatedBuffer bufferCPU;
-    MemoryMapping   bufferCPUMapping;
+    Buffer        bufferGPU;
+    Buffer        bufferCPU;
+    MemoryMapping bufferCPUMapping;
 
     USING_CREATE (BufferTransferable);
 
     BufferTransferable (const DeviceExtra& device, uint32_t bufferSize, VkBufferUsageFlags usageFlags)
         : device (device)
         , bufferSize (bufferSize)
-        , bufferGPU (device, Buffer::Create (device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU)
-        , bufferCPU (device, Buffer::Create (device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), DeviceMemory::CPU)
-        , bufferCPUMapping (device, *bufferCPU.memory, 0, bufferSize)
+        , bufferGPU (device.GetAllocator (), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, Buffer::MemoryLocation::GPU)
+        , bufferCPU (device.GetAllocator (), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, Buffer::MemoryLocation::CPU)
+        , bufferCPUMapping (device.GetAllocator (), bufferCPU)
     {
     }
 
@@ -42,12 +41,12 @@ public:
     {
         GVK_ASSERT (size == bufferSize);
         bufferCPUMapping.Copy (data, size, 0);
-        CopyBuffer (device, *bufferCPU.buffer, *bufferGPU.buffer, bufferSize);
+        CopyBuffer (device, bufferCPU, bufferGPU, bufferSize);
     }
 
     VkBuffer GetBufferToBind () const
     {
-        return *bufferGPU.buffer;
+        return bufferGPU;
     }
 };
 
@@ -59,11 +58,11 @@ private:
 
     uint32_t bufferSize;
 
-    AllocatedBuffer bufferCPU;
-    MemoryMapping   bufferCPUMapping;
+    Buffer        bufferCPU;
+    MemoryMapping bufferCPUMapping;
 
 public:
-    AllocatedImageU imageGPU;
+    ImageBaseU imageGPU;
 
     USING_CREATE (ImageTransferableBase);
 
@@ -71,8 +70,8 @@ protected:
     ImageTransferableBase (const DeviceExtra& device, uint32_t bufferSize)
         : device (device)
         , bufferSize (bufferSize)
-        , bufferCPU (device, Buffer::Create (device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), DeviceMemory::CPU)
-        , bufferCPUMapping (device, *bufferCPU.memory, 0, bufferSize)
+        , bufferCPU (device.GetAllocator (), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, Buffer::MemoryLocation::CPU)
+        , bufferCPUMapping (device.GetAllocator (), bufferCPU)
     {
     }
 
@@ -90,7 +89,7 @@ public:
 
         SingleTimeCommand commandBuffer (device);
 
-        imageGPU->image->CmdPipelineBarrier (commandBuffer.Record (), currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        imageGPU->CmdPipelineBarrier (commandBuffer.Record (), currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
         VkBufferImageCopy region               = {};
         region.bufferOffset                    = 0;
@@ -101,17 +100,17 @@ public:
         region.imageSubresource.baseArrayLayer = layerIndex;
         region.imageSubresource.layerCount     = 1;
         region.imageOffset                     = { 0, 0, 0 };
-        region.imageExtent                     = { imageGPU->image->GetWidth (), imageGPU->image->GetHeight (), imageGPU->image->GetDepth () };
+        region.imageExtent                     = { imageGPU->GetWidth (), imageGPU->GetHeight (), imageGPU->GetDepth () };
 
-        imageGPU->image->CmdCopyBufferPartToImage (commandBuffer.Record (), *bufferCPU.buffer, region);
+        imageGPU->CmdCopyBufferPartToImage (commandBuffer.Record (), bufferCPU, region);
         if (nextLayout.has_value ()) {
-            imageGPU->image->CmdPipelineBarrier (commandBuffer.Record (), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
+            imageGPU->CmdPipelineBarrier (commandBuffer.Record (), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
         }
     }
 
     VkImage GetImageToBind () const
     {
-        return *imageGPU->image;
+        return *imageGPU;
     }
 };
 
@@ -145,7 +144,7 @@ public:
     Image1DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
         : ImageTransferableBase (device, width * GetCompontentCountFromFormat (format))
     {
-        imageGPU = AllocatedImage::Create (device, Image1D::Create (device, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
+        imageGPU = Image1D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
     }
 };
 
@@ -157,7 +156,7 @@ public:
     Image2DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
         : ImageTransferableBase (device, width * height * GetCompontentCountFromFormat (format))
     {
-        imageGPU = AllocatedImage::Create (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers), DeviceMemory::GPU);
+        imageGPU = Image2D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
     }
 };
 
@@ -169,7 +168,7 @@ public:
     Image2DTransferableLinear (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
         : ImageTransferableBase (device, width * height * GetCompontentCountFromFormat (format))
     {
-        imageGPU = AllocatedImage::Create (device, Image2D::Create (device, width, height, format, VK_IMAGE_TILING_LINEAR, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers), DeviceMemory::GPU);
+        imageGPU = Image2D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_LINEAR, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
     }
 };
 
@@ -181,7 +180,7 @@ public:
     Image3DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
         : ImageTransferableBase (device, width * height * depth * GetCompontentCountFromFormat (format))
     {
-        imageGPU = AllocatedImage::Create (device, Image3D::Create (device, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags), DeviceMemory::GPU);
+        imageGPU = Image3D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
     }
 };
 

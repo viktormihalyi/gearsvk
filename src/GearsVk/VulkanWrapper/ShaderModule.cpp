@@ -133,6 +133,83 @@ const ShaderKindInfo ShaderKindInfo::FromEsh (EShLanguage e)
 }
 
 
+class ShaderCache {
+private:
+    const std::filesystem::path tempFolder;
+
+public:
+    ShaderCache ()
+        : tempFolder (std::filesystem::temp_directory_path () / "GearsVk" / "ShaderCache")
+    {
+    }
+
+private:
+    std::string GetShaderSourceHash (const std::string& sourceCode) const
+    {
+        std::hash<std::string> sourceCodeHasher;
+
+        const size_t sourceCodeHash = sourceCodeHasher (sourceCode);
+
+        return std::to_string (sourceCodeHash);
+    };
+
+public:
+    std::optional<std::vector<uint32_t>> Load (const std::string& sourceCode) const
+    {
+        const std::string hashString = GetShaderSourceHash (sourceCode);
+
+        const std::string cachedCodeFileName   = hashString + "_code.txt";
+        const std::string cachedBinaryFileName = hashString + "_binary.txt";
+
+        if (!std::filesystem::exists (tempFolder / cachedCodeFileName)) {
+            return std::nullopt;
+        }
+
+        const std::optional<std::string> actualCode = Utils::ReadTextFile (tempFolder / cachedCodeFileName);
+        if (GVK_ERROR (!actualCode)) {
+            return std::nullopt;
+        }
+
+        if (sourceCode != *actualCode) {
+            return std::nullopt;
+        }
+
+        if (GVK_ERROR (!std::filesystem::exists (tempFolder / cachedBinaryFileName))) {
+            return std::nullopt;
+        }
+
+        std::optional<std::vector<char>> binaryC = Utils::ReadBinaryFile (tempFolder / cachedBinaryFileName);
+        if (GVK_ERROR (!binaryC.has_value ())) {
+            return std::nullopt;
+        }
+
+        std::vector<uint32_t> code;
+        code.resize (binaryC->size () / sizeof (uint32_t));
+        memcpy (code.data (), binaryC->data (), binaryC->size ());
+
+        return code;
+    }
+
+    bool Save (const std::string& sourceCode, const std::vector<uint32_t>& binary) const
+    {
+        const std::string hashString = GetShaderSourceHash (sourceCode);
+
+        const std::string cachedCodeFileName   = hashString + "_code.txt";
+        const std::string cachedBinaryFileName = hashString + "_binary.txt";
+
+        if (std::filesystem::exists (tempFolder / cachedCodeFileName) || std::filesystem::exists (tempFolder / cachedBinaryFileName)) {
+            return false;
+        }
+
+        GVK_VERIFY (Utils::WriteTextFile (tempFolder / cachedCodeFileName, sourceCode));
+        GVK_VERIFY (Utils::WriteBinaryFile (tempFolder / cachedBinaryFileName, binary.data (), binary.size () * sizeof (uint32_t)));
+
+        return true;
+    }
+
+} shaderCache;
+
+
 static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind)
 {
     using namespace glslang;
@@ -178,23 +255,20 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 
 static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindInfo& shaderKind)
 {
+    std::optional<std::vector<uint32_t>> cachedBinary = shaderCache.Load (shaderSource);
+    if (cachedBinary.has_value ()) {
+        return *cachedBinary;
+    }
+
     try {
-        return CompileWithGlslangCppInterface (shaderSource, shaderKind);
+        const std::vector<uint32_t> result = CompileWithGlslangCppInterface (shaderSource, shaderKind);
+        shaderCache.Save (shaderSource, result);
+        return result;
+
     } catch (ShaderCompileException& ex) {
         std::cout << ex.what () << std::endl;
         throw;
     }
-}
-
-
-static std::optional<std::vector<uint32_t>> CompileShaderFromFile (const std::filesystem::path& fileLocation)
-{
-    std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
-    if (GVK_ERROR (!fileContents.has_value ())) {
-        return std::nullopt;
-    }
-
-    return CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()));
 }
 
 
@@ -230,7 +304,7 @@ static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<cha
 }
 
 
-ShaderModule::ShaderModule (ShaderKind shaderKind, ReadMode readMode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary)
+ShaderModule::ShaderModule (ShaderKind shaderKind, ReadMode readMode, VkDevice device, VkShaderModule handle, const std::filesystem::path& fileLocation, const std::vector<uint32_t>& binary, const std::string& sourceCode)
     : readMode (readMode)
     , shaderKind (shaderKind)
     , device (device)
@@ -238,6 +312,7 @@ ShaderModule::ShaderModule (ShaderKind shaderKind, ReadMode readMode, VkDevice d
     , fileLocation (fileLocation)
     , binary (binary)
     , reflection (binary)
+    , sourceCode (sourceCode)
 {
 }
 
@@ -255,20 +330,25 @@ ShaderModuleU ShaderModule::CreateFromSPVFile (VkDevice device, ShaderKind shade
 
     VkShaderModule handle = CreateShaderModule (device, *binaryC);
 
-    return ShaderModule::Create (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code);
+    return ShaderModule::Create (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, "");
 }
 
 
 ShaderModuleU ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation)
 {
-    std::optional<std::vector<uint32_t>> binary = CompileShaderFromFile (fileLocation);
+    std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
+    if (GVK_ERROR (!fileContents.has_value ())) {
+        throw std::runtime_error ("failed to read shader");
+    }
+
+    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()));
     if (GVK_ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }
 
     VkShaderModule handle = CreateShaderModule (device, *binary);
 
-    return ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::GLSLFilePath, device, handle, fileLocation, *binary);
+    return ShaderModule::Create (ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind, ReadMode::GLSLFilePath, device, handle, fileLocation, *binary, *fileContents);
 }
 
 
@@ -278,7 +358,7 @@ ShaderModuleU ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind sh
 
     VkShaderModule handle = CreateShaderModule (device, binary);
 
-    return ShaderModule::Create (shaderKind, ReadMode::GLSLString, device, handle, "", binary);
+    return ShaderModule::Create (shaderKind, ReadMode::GLSLString, device, handle, "", binary, shaderSource);
 }
 
 
@@ -312,14 +392,23 @@ void ShaderModule::Reload ()
     if (readMode == ReadMode::GLSLFilePath) {
         vkDestroyShaderModule (device, handle, nullptr);
 
-        std::optional<std::vector<uint32_t>> newBinary = CompileShaderFromFile (fileLocation);
+        std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
+        if (GVK_ERROR (!fileContents.has_value ())) {
+            throw std::runtime_error ("failed to read shader");
+        }
+
+        std::optional<std::vector<uint32_t>> newBinary = CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()));
         if (GVK_ERROR (!newBinary.has_value ())) {
             throw std::runtime_error ("failed to compile shader");
         }
 
         handle = CreateShaderModule (device, *newBinary);
 
+        binary = *newBinary;
+
         reflection = Reflection (binary);
+
+        sourceCode = *fileContents;
 
     } else if (readMode == ReadMode::SPVFilePath) {
         vkDestroyShaderModule (device, handle, nullptr);
@@ -336,6 +425,8 @@ void ShaderModule::Reload ()
         handle = CreateShaderModule (device, *binaryC);
 
         reflection = Reflection (binary);
+
+        binary = code;
 
     } else if (readMode == ReadMode::GLSLString) {
         GVK_BREAK ("cannot reload shaders from hard coded strings");

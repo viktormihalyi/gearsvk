@@ -36,7 +36,7 @@ VkExtent2D DefaultSwapchainSettings::SelectExtent (const VkSurfaceCapabilitiesKH
         return capabilities.currentExtent;
     } else {
         // TODO
-        VkExtent2D actualExtent = {800, 600};
+        VkExtent2D actualExtent = { 800, 600 };
         actualExtent.width      = std::clamp (capabilities.minImageExtent.width, capabilities.maxImageExtent.width, actualExtent.width);
         actualExtent.height     = std::clamp (capabilities.minImageExtent.height, capabilities.maxImageExtent.height, actualExtent.height);
         return actualExtent;
@@ -46,11 +46,16 @@ VkExtent2D DefaultSwapchainSettings::SelectExtent (const VkSurfaceCapabilitiesKH
 
 uint32_t DefaultSwapchainSettings::SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities)
 {
-    uint32_t imageCount = capabilities.minImageCount + 1;
-    if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
-        imageCount = capabilities.maxImageCount;
+    if (capabilities.minImageCount < 3 && (3 < capabilities.maxImageCount || capabilities.maxImageCount == 0)) {
+        return 3;
     }
-    return imageCount;
+
+    const uint32_t minPlusOne = capabilities.minImageCount;
+    if (capabilities.minImageCount < minPlusOne && (minPlusOne < capabilities.maxImageCount || capabilities.maxImageCount == 0)) {
+        return minPlusOne;
+    }
+
+    return capabilities.minImageCount;
 }
 
 
@@ -88,7 +93,7 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
     createInfo.imageArrayLayers         = 1;
     createInfo.imageUsage               = RealSwapchain::ImageUsage;
 
-    uint32_t queueFamilyIndicesData[] = {*createSettings.queueFamilyIndices.graphics, *createSettings.queueFamilyIndices.presentation};
+    uint32_t queueFamilyIndicesData[] = { *createSettings.queueFamilyIndices.graphics, *createSettings.queueFamilyIndices.presentation };
     if (createSettings.queueFamilyIndices.presentation) {
         GVK_ASSERT (*createSettings.queueFamilyIndices.graphics == *createSettings.queueFamilyIndices.presentation);
     }
@@ -131,7 +136,7 @@ RealSwapchain::RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice dev
 
 
 RealSwapchain::RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, SwapchainSettingsProvider& settings)
-    : createSettings ({physicalDevice, device, surface, queueFamilyIndices, settings})
+    : createSettings ({ physicalDevice, device, surface, queueFamilyIndices, settings })
 {
     Recreate ();
 }
@@ -204,7 +209,7 @@ FakeSwapchain::FakeSwapchain (const DeviceExtra& device, uint32_t width, uint32_
     : device (device)
     , width (width)
     , height (height)
-    , image (device, Image2D::Create (device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1), DeviceMemory::GPU)
+    , image (Image2D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1))
 {
-    TransitionImageLayout (device, *image.image, Image2D::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    TransitionImageLayout (device, *image, Image2D::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 }

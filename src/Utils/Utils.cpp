@@ -70,6 +70,22 @@ bool WriteBinaryFile (const std::filesystem::path& filePath, const void* data, s
 }
 
 
+bool WriteTextFile (const std::filesystem::path& filePath, const std::string& text)
+{
+    EnsureParentFolder (filePath);
+
+    std::ofstream file (filePath, std::ios::out | std::ios::binary);
+
+    if (!file.is_open ()) {
+        return false;
+    }
+
+    file << text;
+
+    return true;
+}
+
+
 template<typename T>
 static std::optional<T> OpenAndReadFile (const std::filesystem::path& filePath)
 {

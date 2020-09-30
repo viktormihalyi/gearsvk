@@ -12,6 +12,7 @@ void Queue::Submit (const std::vector<VkSemaphore>&          waitSemaphores,
                     const std::vector<VkSemaphore>&          signalSemaphores,
                     VkFence                                  fenceToSignal) const
 {
+#if 0
     std::cout << "submitting:" << std::endl;
     for (CommandBuffer* cmd : commandBuffers) {
         std::cout << "    " << cmd->GetUUID ().GetValue () << std::endl;
@@ -19,6 +20,7 @@ void Queue::Submit (const std::vector<VkSemaphore>&          waitSemaphores,
             std::cout << "        " << CommandBuffer::CommandTypeToString (cmdType) << std::endl;
         }
     }
+#endif
 
     std::vector<VkCommandBuffer> submittedCmdBufferHandles;
     for (CommandBuffer* cmd : commandBuffers) {

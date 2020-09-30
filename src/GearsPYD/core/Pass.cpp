@@ -186,14 +186,14 @@ void Pass::onSequenceComplete ()
     if (stimulus->doesToneMappingInStimulusGenerator) {
         setShaderFunction ("toneMap",
                            R"GLSLC0D3(
-			layout (binding = 20) uniform sampler1D gamma;																	
-			layout (binding = 21) uniform ubo_toneRangeMin { float value; } toneRangeMin;																
-			layout (binding = 22) uniform ubo_toneRangeMax { float value; } toneRangeMax;																
-			layout (binding = 23) uniform ubo_toneRangeMean { float value; } toneRangeMean;																
-			layout (binding = 24) uniform ubo_toneRangeVar { float value; } toneRangeVar;																
-			layout (binding = 25) uniform ubo_gammaSampleCount { int value; } gammaSampleCount;																
-			layout (binding = 26) uniform ubo_doTone { bool value; } doTone;
-			layout (binding = 27) uniform ubo_doGamma { bool value; } doGamma;
+			layout (binding = 101) uniform sampler1D gamma;																	
+			layout (binding = 102) uniform ubo_toneRangeMin { float value; } toneRangeMin;																
+			layout (binding = 103) uniform ubo_toneRangeMax { float value; } toneRangeMax;																
+			layout (binding = 104) uniform ubo_toneRangeMean { float value; } toneRangeMean;																
+			layout (binding = 105) uniform ubo_toneRangeVar { float value; } toneRangeVar;																
+			layout (binding = 106) uniform ubo_gammaSampleCount { int value; } gammaSampleCount;																
+			layout (binding = 107) uniform ubo_doTone { bool value; } doTone;
+			layout (binding = 108) uniform ubo_doGamma { bool value; } doGamma;
 
 			vec3 toneMap(vec3 color){																	
 				vec3 outcolor = color;
@@ -507,7 +507,7 @@ std::string Pass::getStimulusGeneratorShaderSource () const
 {
     std::string s ("#version 450\n");
 
-    uint32_t lastUniformBinding = 0;
+    uint32_t lastUniformBinding = 1;
 
     std::vector<std::string> uniforms = {"patternSizeOnRetina", "swizzleForFft", "frame"};
 

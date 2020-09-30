@@ -8,6 +8,8 @@
 #include "Ptr.hpp"
 #include "Utils.hpp"
 
+#include "vk_mem_alloc.h"
+
 #include <cstring>
 
 USING_PTR (MemoryMapping);
@@ -16,8 +18,11 @@ private:
     const VkDevice       device;
     const VkDeviceMemory memory;
 
+    const VmaAllocator  allocator;
+    const VmaAllocation allocationHandle;
+
     const size_t offset;
-    const size_t size;
+    size_t       size;
 
     void* mappedMemory;
 
@@ -26,6 +31,8 @@ public:
 
     MemoryMapping (VkDevice device, VkDeviceMemory memory, size_t offset, size_t size)
         : device (device)
+        , allocator (VK_NULL_HANDLE)
+        , allocationHandle (VK_NULL_HANDLE)
         , memory (memory)
         , offset (offset)
         , size (size)
@@ -41,9 +48,31 @@ public:
     {
     }
 
+    MemoryMapping (VmaAllocator allocator, VmaAllocation allocationHandle)
+        : device (VK_NULL_HANDLE)
+        , memory (VK_NULL_HANDLE)
+        , allocator (allocator)
+        , allocationHandle (allocationHandle)
+        , offset (0)
+        , size (0)
+        , mappedMemory (nullptr)
+    {
+        VmaAllocationInfo allocInfo = {};
+        vmaGetAllocationInfo (allocator, allocationHandle, &allocInfo);
+        size = allocInfo.size;
+
+        if (GVK_ERROR (vmaMapMemory (allocator, allocationHandle, &mappedMemory) != VK_SUCCESS)) {
+            throw std::runtime_error ("failed to map memory");
+        }
+    }
+
     ~MemoryMapping ()
     {
-        vkUnmapMemory (device, memory);
+        if (device != VK_NULL_HANDLE) {
+            vkUnmapMemory (device, memory);
+        } else if (allocator != VK_NULL_HANDLE) {
+            vmaUnmapMemory (allocator, allocationHandle);
+        }
         mappedMemory = nullptr;
     }
 
@@ -59,7 +88,7 @@ public:
     void Copy (const T& obj) const
     {
         const size_t copiedObjSize = sizeof (T);
-        GVK_ASSERT (copiedObjSize == size);
+        GVK_ASSERT (copiedObjSize <= size);
         memcpy (mappedMemory, &obj, size);
     }
 

@@ -67,15 +67,9 @@ void SetRenderGraphFromSequence (Sequence::P seq)
             auto vert = pass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
             auto frag = pass->getStimulusGeneratorShaderSource ();
 
-            std::cout << " ========================= fragment shader BEGIN ========================= " << std::endl;
-            std::cout << frag << std::endl;
-            std::cout << " ========================= fragment shader END =========================== " << std::endl;
-
             auto seqpip = ShaderPipeline::CreateShared (*env->device);
 
-            std::cout << "> compiling vertex shader" << std::endl;
             seqpip->SetVertexShaderFromString (vert);
-            std::cout << "> compiling fragment shader" << std::endl;
             seqpip->SetFragmentShaderFromString (frag);
 
             const auto isEnabled = [&] () -> bool { return true; };
@@ -128,28 +122,36 @@ void StartRendering (const std::function<bool ()>& doRender)
 
     env->Wait ();
 
-
     window->Show ();
 
     GraphSettings s (*env->deviceExtra, *env->swapchain);
 
     SynchronizedSwapchainGraphRenderer swapchainSync (s, *env->swapchain);
 
+    double lastImageTime = 0;
+
+    swapchainSync.swapchainImageAcquiredEvent += [&] () {
+        const double currentTime = TimePoint::SinceApplicationStart ().AsMilliseconds ();
+
+        lastImageTime = currentTime;
+    };
+
     const glm::vec2 patternSizeOnRetina (1920, 1080);
 
-    window->DoEventLoop ([&] (bool&) {
-        const double   timeInSeconds = TimePoint::SinceApplicationStart ().AsSeconds ();
-        const uint32_t frameCount    = static_cast<uint32_t> (timeInSeconds * 60);
+    uint32_t frameCount = 0;
 
-        Stimulus::CP currentStim = cseq->getStimulusAtFrame (frameCount);
+    window->DoEventLoop ([&] (bool&) {
+        //const double timeInSeconds = TimePoint::SinceApplicationStart ().AsSeconds ();
+        const double timeInSeconds = frameCount / 60.0;
+
+        Stimulus::CP currentStim = cseq->getStimulusAtFrame (frameCount++);
 
         const uint32_t idx = stimulusToGraphIndex[currentStim];
-        std::cout << idx << std::endl;
 
         RG::UniformReflectionP refl = refls[idx];
 
         swapchainSync.preSubmitEvent = [&] (RenderGraph& graph, uint32_t frameIndex, uint64_t timeNs) {
-            for (auto [pass, renderOpId] : mapping[idx]) {
+            for (auto& [pass, renderOpId] : mapping[idx]) {
                 (*refl)[renderOpId][ShaderKind::Vertex]["PatternSizeOnRetina"]       = patternSizeOnRetina;
                 (*refl)[renderOpId][ShaderKind::Fragment]["ubo_time"]                = static_cast<float> (timeInSeconds - currentStim->getStartingFrame () / 60.f);
                 (*refl)[renderOpId][ShaderKind::Fragment]["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
@@ -162,6 +164,8 @@ void StartRendering (const std::function<bool ()>& doRender)
         };
 
         swapchainSync.RenderNextFrame (*graphs[idx]);
+
+        frameCount++;
     });
 
     window->Hide ();

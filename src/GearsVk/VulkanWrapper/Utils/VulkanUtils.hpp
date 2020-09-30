@@ -36,32 +36,30 @@ GEARSVK_API
 std::thread SaveImageToFileAsync (const DeviceExtra& device, const ImageBase& image, const std::filesystem::path& filePath, uint32_t layerIndex = 0);
 
 
-USING_PTR (AllocatedImage);
-struct GEARSVK_API AllocatedImage final {
+USING_PTR (AllocatedImage_Deprecated);
+struct GEARSVK_API AllocatedImage_Deprecated final {
     ImageBaseU    image;
     DeviceMemoryU memory;
 
-    USING_CREATE (AllocatedImage);
+    USING_CREATE (AllocatedImage_Deprecated);
 
-    AllocatedImage (const DeviceExtra& device, ImageBaseU&& image, VkMemoryPropertyFlags memoryPropertyFlags)
+    AllocatedImage_Deprecated (const DeviceExtra& device, ImageBaseU&& image, VkMemoryPropertyFlags memoryPropertyFlags)
         : image (std::move (image))
         , memory (DeviceMemory::Create (device, device.GetImageAllocateInfo (*this->image, memoryPropertyFlags)))
     {
         vkBindImageMemory (device, *this->image, *memory, 0);
     }
-
-    static AllocatedImage CreatePreinitialized (const DeviceExtra& device, uint32_t width, uint32_t height);
 };
 
 
-USING_PTR (AllocatedBuffer);
-struct GEARSVK_API AllocatedBuffer final {
+USING_PTR (AllocatedBuffer_Deprecated);
+struct GEARSVK_API AllocatedBuffer_Deprecated final {
     BufferU       buffer;
     DeviceMemoryU memory;
 
-    USING_CREATE (AllocatedBuffer);
+    USING_CREATE (AllocatedBuffer_Deprecated);
 
-    AllocatedBuffer (const Device& device, BufferU&& buffer, VkMemoryPropertyFlags memoryPropertyFlags)
+    AllocatedBuffer_Deprecated (const Device& device, BufferU&& buffer, VkMemoryPropertyFlags memoryPropertyFlags)
         : buffer (std::move (buffer))
         , memory (DeviceMemory::Create (device, device.GetBufferAllocateInfo (*this->buffer, memoryPropertyFlags)))
     {

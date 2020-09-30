@@ -1,12 +1,8 @@
 import os
-print(os.getcwd())
-
-print("importing...")
-
-import Gears as gears
 import importlib.machinery
-import AppData
 import time
+import Gears as gears
+import AppData
 
 print("initializing appdata...")
 AppData.initConfigParams()
@@ -17,9 +13,14 @@ try:
 
     print("loading modules...")
     importlib.machinery.SourceFileLoader("my_module", "C:/Dev/gearsvk/src/UserInterface/Project/Sequences/stock.py").load_module()
+    importlib.machinery.SourceFileLoader("my_module", "C:/Dev/gearsvk/src/UserInterface/Project/Sequences/config.py").load_module()
     importlib.machinery.SourceFileLoader("my_module", "C:/Dev/gearsvk/src/UserInterface/Project/Sequences/DefaultSequence.py").load_module()
+    """
     my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/4_MovingShapes/1_Bars/04_velocity400.pyx").load_module()
-    
+    my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/0_Utility/1_Spots/1_tiny_red.pyx").load_module()
+    my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/1_Spots/3_Oscillations/1_sine_increasing_freqs.pyx").load_module()
+    """
+    my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/4_MovingShapes/5_Scan/2_scanTinySquaresShuffled.pyx").load_module()
     print("createStimulusWindow")
     gears.createStimulusWindow()
 

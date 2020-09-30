@@ -141,7 +141,7 @@ public:
 USING_PTR (FakeSwapchain);
 class GEARSVK_API FakeSwapchain : public Swapchain {
 private:
-    AllocatedImage     image;
+    ImageBaseU         image;
     const DeviceExtra& device;
     const uint32_t     width;
     const uint32_t     height;
@@ -151,11 +151,11 @@ public:
 
     FakeSwapchain (const DeviceExtra& device, uint32_t width, uint32_t height);
 
-    virtual VkFormat             GetImageFormat () const override { return image.image->GetFormat (); }
+    virtual VkFormat             GetImageFormat () const override { return image->GetFormat (); }
     virtual uint32_t             GetImageCount () const override { return 1; }
     virtual uint32_t             GetWidth () const override { return width; }
     virtual uint32_t             GetHeight () const override { return height; }
-    virtual std::vector<VkImage> GetImages () const override { return {*image.image}; }
+    virtual std::vector<VkImage> GetImages () const override { return { *image }; }
     virtual void                 Recreate () override {}
     virtual void                 RecreateForSurface (VkSurfaceKHR) override {}
 

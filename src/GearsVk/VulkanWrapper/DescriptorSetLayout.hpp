@@ -16,7 +16,6 @@ private:
     const VkDevice        device;
     VkDescriptorSetLayout handle;
 
-
 public:
     USING_CREATE (DescriptorSetLayout);
 
@@ -24,6 +23,14 @@ public:
         : device (device)
         , handle (VK_NULL_HANDLE)
     {
+        for (size_t i = 0; i < bindings.size (); ++i) {
+            for (size_t j = 0; j < bindings.size (); ++j) {
+                if (i != j && bindings[i].binding == bindings[j].binding) {
+                    GVK_BREAK ("duplicate binding");
+                }
+            }
+        }
+
         VkDescriptorSetLayoutCreateInfo layoutInfo = {};
         layoutInfo.sType                           = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount                    = static_cast<uint32_t> (bindings.size ());

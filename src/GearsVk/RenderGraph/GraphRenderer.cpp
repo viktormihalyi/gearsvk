@@ -52,6 +52,7 @@ BlockingGraphRenderer::BlockingGraphRenderer (GraphSettings& settings, Swapchain
 void BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph)
 {
     const uint32_t currentImageIndex = swapchain.GetNextImageIndex (s);
+    swapchainImageAcquiredEvent ();
 
     {
         const TimePoint currentTime = TimePoint::SinceApplicationStart ();
@@ -129,6 +130,7 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph
 
     uint32_t currentImageIndex;
     currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentFrameIndex]);
+    swapchainImageAcquiredEvent ();
 
     // the image was last drawn by this frame, wait for its fence
     const uint32_t previousFrameIndex = imageToFrameMapping[currentImageIndex];

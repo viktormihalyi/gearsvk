@@ -49,8 +49,8 @@ public:
         result.dstArrayElement      = 0;
         result.descriptorType       = GetType ();
         result.descriptorCount      = static_cast<uint32_t> (infosSize);
-        result.pBufferInfo          = bufInfos.data ();
-        result.pImageInfo           = imgInfos.data ();
+        result.pBufferInfo          = bufInfos.empty () ? nullptr : bufInfos.data ();
+        result.pImageInfo           = imgInfos.empty () ? nullptr : imgInfos.data ();
         result.pTexelBufferView     = nullptr;
 
         vkUpdateDescriptorSets (device, 1, &result, 0, nullptr);

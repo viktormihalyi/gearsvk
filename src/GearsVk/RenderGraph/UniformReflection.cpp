@@ -33,7 +33,8 @@ void UniformReflection::RecordCopyOperations ()
             for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
                 const SR::IUDataP uboData = udatas.at (uboRes->GetUUID ());
 
-                GVK_ASSERT (uboRes->mappings[frameIndex]->GetSize () == uboData->GetSize ());
+                // TODO
+                //GVK_ASSERT (uboRes->mappings[frameIndex]->GetSize () == uboData->GetSize ());
 
                 copyOperations[frameIndex].push_back (CopyOperation {
                     uboRes->mappings[frameIndex]->Get (),

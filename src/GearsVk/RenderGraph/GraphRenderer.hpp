@@ -17,6 +17,7 @@ class GEARSVK_API Renderer {
 public:
     Event<RenderGraph&, uint32_t, uint64_t> preSubmitEvent;
     Event<>                                 recreateEvent;
+    Event<>                                 swapchainImageAcquiredEvent;
 
     virtual ~Renderer () = default;
 

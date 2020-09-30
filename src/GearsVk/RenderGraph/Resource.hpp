@@ -88,7 +88,7 @@ private:
         static const VkFormat FormatRGBA;
         static const VkFormat FormatRGB;
 
-        const AllocatedImage         image;
+        const ImageBaseU             image;
         std::vector<ImageView2DU>    imageViews;
         std::optional<VkImageLayout> layoutRead;
         std::optional<VkImageLayout> layoutWrite;
@@ -102,10 +102,10 @@ private:
         USING_CREATE (SingleImageResource);
 
         SingleImageResource (const GraphSettings& graphSettings, uint32_t arrayLayers)
-            : image (graphSettings.GetDevice (), Image2D::Create (graphSettings.GetDevice (), graphSettings.width, graphSettings.height, FormatRGBA, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, arrayLayers), DeviceMemory::GPU)
+            : image (Image2D::Create (graphSettings.GetDevice ().GetAllocator (), ImageBase::MemoryLocation::GPU, graphSettings.width, graphSettings.height, FormatRGBA, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, arrayLayers))
         {
             for (uint32_t layerIndex = 0; layerIndex < arrayLayers; ++layerIndex) {
-                imageViews.push_back (ImageView2D::Create (graphSettings.GetDevice (), *image.image, layerIndex));
+                imageViews.push_back (ImageView2D::Create (graphSettings.GetDevice (), *image, layerIndex));
             }
         }
     };
@@ -130,7 +130,7 @@ public:
 
         im.layoutRead                = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         VkImageLayout previousLayout = (im.layoutWrite.has_value ()) ? *im.layoutWrite : ImageBase::INITIAL_LAYOUT;
-        im.image.image->CmdPipelineBarrier (commandBuffer, previousLayout, *im.layoutRead);
+        im.image->CmdPipelineBarrier (commandBuffer, previousLayout, *im.layoutRead);
     }
 
     virtual void BindWrite (uint32_t imageIndex, CommandBuffer& commandBuffer) override
@@ -138,7 +138,7 @@ public:
         SingleImageResource& im = *images[imageIndex];
 
         im.layoutWrite = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        im.image.image->CmdPipelineBarrier (commandBuffer, ImageBase::INITIAL_LAYOUT, *im.layoutWrite);
+        im.image->CmdPipelineBarrier (commandBuffer, ImageBase::INITIAL_LAYOUT, *im.layoutWrite);
     }
 
     virtual void Compile (const GraphSettings& graphSettings)
@@ -161,7 +161,7 @@ public:
         std::vector<ImageBase*> result;
 
         for (auto& img : images) {
-            result.push_back (img->image.image.get ());
+            result.push_back (img->image.get ());
         }
 
         return result;
@@ -197,7 +197,7 @@ public:
     // overriding InputImageBindable
     virtual VkBuffer GetBufferForFrame (uint32_t) override
     {
-        return *buffer->bufferGPU.buffer;
+        return buffer->bufferGPU;
     }
 
     virtual uint32_t GetBufferSize () override
@@ -250,22 +250,22 @@ public:
 
         if (height == 1 && depth == 1) {
             image     = Image1DTransferable::Create (settings.GetDevice (), format, width, VK_IMAGE_USAGE_SAMPLED_BIT);
-            imageView = ImageView1D::Create (settings.GetDevice (), *image->imageGPU->image);
+            imageView = ImageView1D::Create (settings.GetDevice (), *image->imageGPU);
         } else if (depth == 1) {
             if (layerCount == 1) {
                 image     = Image2DTransferable::Create (settings.GetDevice (), format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
-                imageView = ImageView2D::Create (settings.GetDevice (), *image->imageGPU->image, 0);
+                imageView = ImageView2D::Create (settings.GetDevice (), *image->imageGPU, 0);
             } else {
                 image     = Image2DTransferable::Create (settings.GetDevice (), format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT, layerCount);
-                imageView = ImageView2DArray::Create (settings.GetDevice (), *image->imageGPU->image, 0, layerCount);
+                imageView = ImageView2DArray::Create (settings.GetDevice (), *image->imageGPU, 0, layerCount);
             }
         } else {
             image     = Image3DTransferable::Create (settings.GetDevice (), format, width, height, depth, VK_IMAGE_USAGE_SAMPLED_BIT);
-            imageView = ImageView3D::Create (settings.GetDevice (), *image->imageGPU->image);
+            imageView = ImageView3D::Create (settings.GetDevice (), *image->imageGPU);
         }
 
         SingleTimeCommand s (settings.GetDevice ());
-        image->imageGPU->image->CmdPipelineBarrier (s.Record (), ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        image->imageGPU->CmdPipelineBarrier (s.Record (), ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     // overriding ImageResource
@@ -277,7 +277,7 @@ public:
 
     virtual std::vector<ImageBase*> GetImages () const override
     {
-        return { image->imageGPU->image.get () };
+        return { image->imageGPU.get () };
     }
 
     // overriding InputImageBindable
@@ -361,9 +361,9 @@ USING_PTR (CPUBufferResource);
 
 class GEARSVK_API CPUBufferResource : public InputBufferBindableResource {
 public:
-    const uint32_t                size;
-    std::vector<AllocatedBufferU> buffers;
-    std::vector<MemoryMappingU>   mappings;
+    const uint32_t              size;
+    std::vector<BufferU>        buffers;
+    std::vector<MemoryMappingU> mappings;
 
 protected:
     CPUBufferResource (uint32_t size)
@@ -380,13 +380,13 @@ public:
     virtual void Compile (const GraphSettings& graphSettings) override
     {
         for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
-            buffers.push_back (AllocatedBuffer::Create (graphSettings.GetDevice (), UniformBuffer::Create (graphSettings.GetDevice (), size), DeviceMemory::CPU));
-            mappings.push_back (MemoryMapping::Create (graphSettings.GetDevice (), *buffers[buffers.size () - 1]->memory, 0, size));
+            buffers.push_back (UniformBuffer::Create (graphSettings.GetDevice ().GetAllocator (), size, 0, Buffer::MemoryLocation::CPU));
+            mappings.push_back (MemoryMapping::Create (graphSettings.GetDevice ().GetAllocator (), *buffers[buffers.size () - 1]));
         }
     }
 
     // overriding InputBufferBindable
-    virtual VkBuffer GetBufferForFrame (uint32_t frameIndex) override { return *buffers[frameIndex]->buffer; }
+    virtual VkBuffer GetBufferForFrame (uint32_t frameIndex) override { return *buffers[frameIndex]; }
     virtual uint32_t GetBufferSize () override { return size; }
 
     MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }

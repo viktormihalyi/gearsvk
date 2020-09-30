@@ -7,6 +7,8 @@
 #include "Device.hpp"
 #include "Queue.hpp"
 
+#include "vk_mem_alloc.h"
+
 USING_PTR (DeviceExtra);
 
 class GEARSVK_API DeviceExtra : public Device {
@@ -15,14 +17,16 @@ public:
     CommandPool& commandPool;
     Queue&       graphicsQueue;
     Queue&       presentationQueue;
+    VmaAllocator allocator;
 
     USING_CREATE (DeviceExtra);
 
-    DeviceExtra (Device& device, CommandPool& commandPool, Queue& graphicsQueue, Queue& presentationQueue = dummyQueue)
+    DeviceExtra (Device& device, CommandPool& commandPool, VmaAllocator allocator, Queue& graphicsQueue, Queue& presentationQueue = dummyQueue)
         : device (device)
         , commandPool (commandPool)
         , graphicsQueue (graphicsQueue)
         , presentationQueue (presentationQueue)
+        , allocator (allocator)
     {
     }
 
@@ -30,6 +34,7 @@ public:
     const CommandPool& GetCommandPool () const { return commandPool; }
     const Queue&       GetGraphicsQueue () const { return graphicsQueue; }
     const Queue&       GetPresentationQueue () const { return presentationQueue; }
+    VmaAllocator       GetAllocator () const { return allocator; }
 
     Device&      GetDevice () { return device; }
     CommandPool& GetCommandPool () { return commandPool; }

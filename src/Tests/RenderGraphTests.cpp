@@ -412,7 +412,7 @@ void main () {
     BlockingGraphRenderer renderer (s, swapchain);
     window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, 10));
 
-    CompareImages ("uv", *presentedCopy->images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    CompareImages ("uv", *presentedCopy->images[0]->image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
 
 
@@ -514,5 +514,5 @@ void main () {
 
     window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, 10));
 
-    CompareImages ("uvoffset", *presentedCopy->images[0]->image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    CompareImages ("uvoffset", *presentedCopy->images[0]->image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }

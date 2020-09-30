@@ -39,6 +39,9 @@ GVK_UTILS_API
 bool WriteBinaryFile (const std::filesystem::path& filePath, const void* data, size_t size);
 
 GVK_UTILS_API
+bool WriteTextFile (const std::filesystem::path& filePath, const std::string&);
+
+GVK_UTILS_API
 std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem::path& filePath);
 
 GVK_UTILS_API
