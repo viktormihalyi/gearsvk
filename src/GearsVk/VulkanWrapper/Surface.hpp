@@ -22,8 +22,10 @@ public:
 
     ~Surface ()
     {
-        vkDestroySurfaceKHR (instance, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        if (handle != VK_NULL_HANDLE) {
+            vkDestroySurfaceKHR (instance, handle, nullptr);
+            handle = VK_NULL_HANDLE;
+        }
     }
 
     operator VkSurfaceKHR () const

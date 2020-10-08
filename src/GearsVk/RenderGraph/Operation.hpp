@@ -26,9 +26,9 @@ struct GEARSVK_API Operation : public Node {
 
     virtual ~Operation () = default;
 
-    virtual void Compile (const GraphSettings&)                             = 0;
-    virtual void Record (uint32_t frameIndex, CommandBuffer& commandBuffer) = 0;
-    virtual bool IsActive ()                                                = 0;
+    virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) = 0;
+    virtual void Record (uint32_t frameIndex, CommandBuffer& commandBuffer)      = 0;
+    virtual bool IsActive ()                                                     = 0;
 
     void AddInput (InputBindingU&& inputBinding);
     void AddOutput (uint32_t binding, const ImageResourceRef& res);
@@ -39,7 +39,7 @@ struct GEARSVK_API Operation : public Node {
 };
 
 USING_PTR (RenderOperation);
-struct GEARSVK_API RenderOperation : public Operation {
+struct GEARSVK_API RenderOperation : public Operation, public ExtentProvider {
     USING_CREATE (RenderOperation);
 
     struct CompileSettings {
@@ -76,9 +76,11 @@ struct GEARSVK_API RenderOperation : public Operation {
 
     virtual ~RenderOperation () = default;
 
-    virtual void Compile (const GraphSettings&) override;
+    virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) override;
     virtual void Record (uint32_t imageIndex, CommandBuffer& commandBuffer) override;
     virtual bool IsActive () override { return true; }
+
+    virtual std::pair<uint32_t, uint32_t> GetExtent () override { return { compileResult.width, compileResult.height }; }
 };
 
 

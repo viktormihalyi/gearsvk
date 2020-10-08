@@ -4,6 +4,7 @@
 #include "GearsVkAPI.hpp"
 
 #include "Event.hpp"
+#include "Ptr.hpp"
 #include "RenderGraph.hpp"
 #include "Swapchain.hpp"
 #include "Time.hpp"
@@ -17,7 +18,7 @@ class GEARSVK_API Renderer {
 public:
     Event<RenderGraph&, uint32_t, uint64_t> preSubmitEvent;
     Event<>                                 recreateEvent;
-    Event<>                                 swapchainImageAcquiredEvent;
+    Event<uint32_t>                         swapchainImageAcquiredEvent;
 
     virtual ~Renderer () = default;
 
@@ -59,7 +60,10 @@ public:
 };
 
 
+USING_PTR (SynchronizedSwapchainGraphRenderer);
 class GEARSVK_API SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
+    USING_CREATE (SynchronizedSwapchainGraphRenderer);
+
 private:
     // number of render operations able to run simultaneously
     // optimally equal to imageCount, but may be lower.

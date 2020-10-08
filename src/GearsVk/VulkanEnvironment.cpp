@@ -44,10 +44,8 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
 {
     InstanceSettings is = (IsDebugBuild) ? instanceDebugMode : instanceReleaseMode;
 
-    if (window) {
-        auto windowExtenions = window->get ().GetExtensions ();
-        is.extensions.insert (is.extensions.end (), windowExtenions.begin (), windowExtenions.end ());
-    }
+    const std::vector<const char*> windowExtenions = Window::GetExtensions ();
+    is.extensions.insert (is.extensions.end (), windowExtenions.begin (), windowExtenions.end ());
 
     instance = Instance::Create (is);
 
@@ -97,9 +95,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
 
     std::vector<const char*> deviceExtensions;
 
-    if (window) {
-        deviceExtensions.push_back (VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-    }
+    deviceExtensions.push_back (VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
     device = DeviceObject::Create (*physicalDevice, std::vector<uint32_t> { *physicalDevice->GetQueueFamilies ().graphics }, deviceExtensions);
 
@@ -130,4 +126,14 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
 VulkanEnvironment::~VulkanEnvironment ()
 {
     Wait ();
+}
+
+
+void VulkanEnvironment::WindowChanged (Window& window)
+{
+    surface = Surface::Create (*instance, window.GetSurface (*instance));
+
+    physicalDevice->RecreateForSurface (*surface);
+
+    swapchain = RealSwapchain::Create (*physicalDevice, *device, *surface);
 }

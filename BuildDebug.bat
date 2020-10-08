@@ -10,10 +10,11 @@ echo Updating conan packages...
 conan install .. --build=missing -s build_type=Debug 1> NUL || goto :error
 
 echo Running CMake configuration...
-cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE="Debug" -DCONAN_BUILDINFO_FILE="build.debug/conanbuildinfo.cmake" 1> NUL || goto :error
+cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE="Debug" -DCONAN_BUILDINFO_FILE="build.debug/conanbuildinfo.cmake" || goto :error
 
 echo Compiling...
-ninja || goto :error
+set CLICOLOR_FORCE=1
+ninja -k 0 || goto :error
 
 popd
 

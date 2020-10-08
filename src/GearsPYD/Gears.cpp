@@ -311,44 +311,29 @@ std::string greet () { return "hello, world"; }
 int         square (int number) { return number * number; }
 #ifndef EMPTY_DLL
 
-#if 0
 std::string getSpecs ()
 {
-    if (!stimulusWindow)
-        return "N/A";
-    return stimulusWindow->getSpecs ();
+    return "[specs]";
 }
+
 
 void makeCurrent ()
 {
-    if (!stimulusWindow)
-        return;
-    stimulusWindow->makeCurrent ();
+    //    if (!stimulusWindow)
+    //        return;
+    //    stimulusWindow->makeCurrent ();
 }
 
-#ifdef _WIN32
+
 void shareCurrent ()
 {
-    if (!stimulusWindow)
-        return;
-    stimulusWindow->shareCurrent ();
 }
-#elif __linux__
-void shareCurrent (unsigned int winId)
-{
-    if (!stimulusWindow)
-        return;
-    stimulusWindow->shareCurrent (winId);
-}
-#endif
+
 
 void run ()
 {
-    if (!stimulusWindow)
-        return;
-    stimulusWindow->run ();
 }
-#endif
+
 
 int loadTexture (std::string filename)
 {
@@ -685,12 +670,10 @@ PYBIND11_MODULE (Gears, m)
     m.def ("setText", setText);
     m.def ("showText", showText);
     m.def ("createStimulusWindow", createStimulusWindow);
-#if 0
     m.def ("getSpecs", getSpecs);
     m.def ("makeCurrent", makeCurrent);
     m.def ("shareCurrent", shareCurrent);
     m.def ("run", run);
-#endif
     m.def ("onHideStimulusWindow", onHideStimulusWindow);
     m.def ("loadTexture", loadTexture);
     m.def ("bindTexture", bindTexture);
@@ -705,6 +688,7 @@ PYBIND11_MODULE (Gears, m)
     m.def ("InitializeEnvironment", InitializeEnvironment);
     m.def ("DestroyEnvironment", DestroyEnvironment);
     m.def ("StartRendering", StartRendering);
+    m.def ("RenderFrame", RenderFrame);
 
 #if 0
     class_<p2t::Poly2TriWrapper> (m, "CDT",

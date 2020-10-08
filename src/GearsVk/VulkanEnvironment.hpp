@@ -17,8 +17,9 @@ void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
                         const VkDebugUtilsMessengerCallbackDataEXT* callbackData);
 
 USING_PTR (VulkanEnvironment);
-class GEARSVK_API VulkanEnvironment {
+class GEARSVK_API VulkanEnvironment : public SwapchainProvider {
     USING_CREATE (VulkanEnvironment)
+
 public:
     InstanceU            instance;
     DebugUtilsMessengerU messenger;
@@ -39,6 +40,10 @@ public:
     virtual ~VulkanEnvironment ();
 
     void Wait () const;
+
+    void WindowChanged (Window& window);
+
+    virtual Swapchain& GetSwapchain () override { return *swapchain; }
 };
 
 

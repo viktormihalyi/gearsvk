@@ -30,13 +30,10 @@ TEST_F (FontRenderingTests, MSDFGEN)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    RG::GraphSettings s (device, 3, 512, 512);
+    RG::GraphSettings s (device, 3);
     RG::RenderGraph   graph;
 
     constexpr uint32_t glyphWidthHeight = 16;
-
-    RG::WritableImageResourceP outputImage = graph.CreateResource<RG::WritableImageResource> ();
-    RG::ReadOnlyImageResourceP glyphs      = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, glyphWidthHeight, glyphWidthHeight, 1, 512);
 
     auto sp = ShaderPipeline::CreateShared (device);
 
@@ -160,10 +157,13 @@ void main ()
 
     RG::RenderOperationP renderOp = graph.CreateOperation<RG::RenderOperation> (DrawRecordableInfo::CreateShared (5, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
 
+    RG::WritableImageResourceP outputImage = graph.CreateResource<RG::WritableImageResource> (512, 512);
+    RG::ReadOnlyImageResourceP glyphs      = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, glyphWidthHeight, glyphWidthHeight, 1, 512);
+
     graph.CreateInputConnection (*renderOp, *glyphs, RG::ImageInputBinding::Create (0, *glyphs));
     graph.CreateOutputConnection (*renderOp, 0, *outputImage);
 
-    RG::UniformReflection refl (graph, s);
+    RG::UniformReflection refl (graph);
 
     refl[renderOp][ShaderKind::Vertex]["GlyphData"]["fontSizePx"] = static_cast<uint32_t> (24);
 

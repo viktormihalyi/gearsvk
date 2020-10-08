@@ -5,76 +5,31 @@
 namespace RG {
 
 
-UniformReflection::UniformReflection (RG::RenderGraph& graph, const RG::GraphSettings& settings, const Filter& filter, const ResourceCreator& resourceCreator)
+UniformReflection::UniformReflection (RG::RenderGraph& graph, const Filter& filter, const ResourceCreator& resourceCreator)
     : graph (graph)
-    , settings (settings)
 {
     // TODO properly handle swapchain recreate
-    
+
     CreateGraphResources (filter, resourceCreator);
     CreateGraphConnections ();
-
-    // memory allocations and mappings are only created when the graph is compiled
-    Observe<> (graph.compileEvent, [&] (void) {
-        UniformReflection::RecordCopyOperations ();
-    });
 }
 
-
-void UniformReflection::RecordCopyOperations ()
-{
-    GVK_ASSERT (!uboResources.empty ());
-    GVK_ASSERT (!udatas.empty ());
-
-    for (auto& op : copyOperations) {
-        op.clear ();
-    }
-
-    for (const RG::ResourceP& res : uboResources) {
-        if (RG::UniformBlockResourceP uboRes = std::dynamic_pointer_cast<RG::UniformBlockResource> (res)) {
-            for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
-                const SR::IUDataP uboData = udatas.at (uboRes->GetUUID ());
-
-                // TODO
-                //GVK_ASSERT (uboRes->mappings[frameIndex]->GetSize () == uboData->GetSize ());
-
-                copyOperations[frameIndex].push_back (CopyOperation {
-                    uboRes->mappings[frameIndex]->Get (),
-                    uboData->GetData (),
-                    uboData->GetSize () });
-            }
-        }
-    }
-
-}
 
 void UniformReflection::Flush (uint32_t frameIndex)
 {
-    GVK_ASSERT (!copyOperations.empty ());
+    Utils::ForEachP<RG::UniformBlockResource> (uboResources, [&] (const RG::UniformBlockResourceP& uboRes) {
+        const SR::IUDataP uboData = udatas.at (uboRes->GetUUID ());
 
-    for (auto& copy : copyOperations[frameIndex]) {
-        copy.Do ();
-    }
-}
-
-
-static void ForEachRenderOperation (RG::RenderGraph& renderGraph, const std::function<void (const RG::RenderOperationP&)>& processor)
-{
-    for (const RG::OperationP& graphOperation : renderGraph.operations) {
-        if (RG::RenderOperationP renderOp = std::dynamic_pointer_cast<RG::RenderOperation> (graphOperation)) {
-            processor (renderOp);
-        }
-    }
+        uboRes->GetMapping (frameIndex).Copy (uboData->GetData (), uboData->GetSize ());
+    });
 }
 
 
 void UniformReflection::CreateGraphResources (const Filter& filter, const ResourceCreator& resourceCreator)
 {
-    copyOperations.resize (settings.framesInFlight);
-
     GVK_ASSERT (!graph.operations.empty ());
 
-    ForEachRenderOperation (graph, [&] (const RG::RenderOperationP& renderOp) {
+    Utils::ForEachP<RG::RenderOperation> (graph.operations, [&] (const RG::RenderOperationP& renderOp) {
         ShaderKindSelector newsel;
 
         renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
@@ -91,7 +46,6 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
                 SR::UDataInternalP uboData = SR::UDataInternal::Create (ubo);
                 ubosel.Set (ubo->name, uboData);
 
-                // TODO shader stage
                 uboConnections.push_back (std::make_tuple (renderOp, ubo->binding, uboRes, shaderModule.GetShaderKind ()));
                 uboResources.push_back (uboRes);
                 udatas.insert ({ uboRes->GetUUID (), uboData });
@@ -147,9 +101,9 @@ void UniformReflection::PrintDebugInfo ()
 }
 
 
-ImageAdder::ImageAdder (RG::RenderGraph& graph, const RG::GraphSettings& settings)
+void CreateEmptyImageResources (RG::RenderGraph& graph)
 {
-    ForEachRenderOperation (graph, [&] (const RG::RenderOperationP& renderOp) {
+    Utils::ForEachP<RG::RenderOperation> (graph.operations, [&] (const RG::RenderOperationP& renderOp) {
         renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
             for (const SR::Sampler& sampler : shaderModule.GetReflection ().samplers) {
                 ReadOnlyImageResourceP imgRes;

@@ -1,6 +1,8 @@
 #ifndef WINDOWB_HPP
 #define WINDOWB_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Event.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
@@ -51,8 +53,9 @@ public:
     virtual void  DoEventLoop (const DrawCallback&) = 0;
     virtual void* GetHandle () const                = 0;
 
-    virtual std::vector<const char*> GetExtensions () const           = 0;
-    virtual VkSurfaceKHR             GetSurface (VkInstance instance) = 0;
+    virtual VkSurfaceKHR GetSurface (VkInstance instance) = 0;
+
+    virtual void PollEvents () = 0;
 
     virtual uint32_t GetWidth () const       = 0;
     virtual uint32_t GetHeight () const      = 0;
@@ -62,10 +65,12 @@ public:
     virtual void Show ()  = 0;
     virtual void Hide ()  = 0;
     virtual void Focus () = 0;
+    virtual void Close () = 0;
 
-    virtual void ToggleFullscreen () = 0;
-    virtual void SetWindowMode (Mode) {}
-    virtual Mode GetWindowMode () { throw std::runtime_error ("unimplemeted"); }
+    virtual void SetWindowMode (Mode) = 0;
+    virtual Mode GetWindowMode ()     = 0;
+
+    static std::vector<const char*> GetExtensions ();
 };
 
 #endif

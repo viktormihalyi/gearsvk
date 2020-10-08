@@ -138,6 +138,30 @@ public:
 };
 
 
+USING_PTR (ExtentProvider);
+class ExtentProvider {
+public:
+    virtual ~ExtentProvider () = default;
+
+    virtual std::pair<uint32_t, uint32_t> GetExtent () = 0;
+};
+
+
+USING_PTR (SwapchainProvider);
+class SwapchainProvider : public ExtentProvider {
+public:
+    virtual ~SwapchainProvider () = default;
+
+    virtual Swapchain& GetSwapchain () = 0;
+
+private:
+    virtual std::pair<uint32_t, uint32_t> GetExtent () override final
+    {
+        return { GetSwapchain ().GetWidth (), GetSwapchain ().GetHeight () };
+    }
+};
+
+
 USING_PTR (FakeSwapchain);
 class GEARSVK_API FakeSwapchain : public Swapchain {
 private:

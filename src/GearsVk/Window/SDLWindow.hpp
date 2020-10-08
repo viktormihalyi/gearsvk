@@ -30,8 +30,6 @@ public:
     void  DoEventLoop (const DrawCallback&) override;
     void* GetHandle () const override;
 
-    std::vector<const char*> GetExtensions () const override;
-
     VkSurfaceKHR GetSurface (VkInstance instance) override;
 
     virtual uint32_t GetWidth () const override { return width; }

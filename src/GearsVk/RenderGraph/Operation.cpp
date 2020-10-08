@@ -74,7 +74,7 @@ RenderOperation::RenderOperation (const PureDrawRecordableP& drawRecordable, con
 }
 
 
-void RenderOperation::Compile (const GraphSettings& graphSettings)
+void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t width, uint32_t height)
 {
     compileResult.Clear ();
 
@@ -119,8 +119,8 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
         }
     }
 
-    ShaderPipeline::CompileSettings pipelineSettigns = { graphSettings.width,
-                                                         graphSettings.height,
+    ShaderPipeline::CompileSettings pipelineSettigns = { width,
+                                                         height,
                                                          *compileResult.descriptorSetLayout,
                                                          attachmentReferences,
                                                          attachmentDescriptions,
@@ -131,11 +131,11 @@ void RenderOperation::Compile (const GraphSettings& graphSettings)
     compileSettings.pipeline->Compile (pipelineSettigns);
 
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-        compileResult.framebuffers.push_back (Framebuffer::Create (graphSettings.GetDevice (), *compileSettings.pipeline->compileResult.renderPass, GetOutputImageViews (frameIndex), graphSettings.width, graphSettings.height));
+        compileResult.framebuffers.push_back (Framebuffer::Create (graphSettings.GetDevice (), *compileSettings.pipeline->compileResult.renderPass, GetOutputImageViews (frameIndex), width, height));
     }
 
-    compileResult.width  = graphSettings.width;
-    compileResult.height = graphSettings.height;
+    compileResult.width  = width;
+    compileResult.height = height;
 }
 
 

@@ -20,46 +20,189 @@
 
 using namespace RG;
 
-WindowU            window;
-VulkanEnvironmentU env;
 
-std::map<Stimulus::CP, uint32_t>              stimulusToGraphIndex;
-std::vector<RenderGraphP>                     graphs;
-std::vector<RG::UniformReflectionP>           refls;
-std::vector<std::map<Pass::P, GearsVk::UUID>> mapping;
-Sequence::P                                   cseq;
+static VulkanEnvironmentU env = nullptr;
+
+
+static void EnsureEnvInitialized ()
+{
+    if (env == nullptr) {
+        env = VulkanEnvironment::Create ();
+    }
+}
+
+
+USING_PTR (CurrentSequence);
+class CurrentSequence {
+    USING_CREATE (CurrentSequence);
+
+private:
+    Sequence::P sequence;
+
+    USING_PTR (StimulusV2);
+    struct StimulusV2 : public Noncopyable {
+        USING_CREATE (StimulusV2);
+
+        RenderGraphP                  graph;
+        RG::UniformReflectionP        reflection;
+        std::map<Pass::P, OperationP> passToOperation;
+
+        StimulusV2 (RenderGraphP                  graph,
+                    RG::UniformReflectionP        reflection,
+                    std::map<Pass::P, OperationP> passToOperation)
+            : graph (graph)
+            , reflection (reflection)
+            , passToOperation (passToOperation)
+        {
+        }
+    };
+
+    std::vector<U<StimulusV2>>       stimulii;
+    std::map<Stimulus::CP, uint32_t> stimulusToGraphIndex;
+    VulkanEnvironmentU&              env;
+
+
+public:
+    CurrentSequence (VulkanEnvironmentU& env, const Sequence::P& sequence)
+        : sequence (sequence)
+        , env (env)
+    {
+        for (auto& [startFrame, stim] : sequence->getStimuli ()) {
+            RenderGraphP renderGraph = RenderGraph::CreateShared ();
+
+            SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*env);
+
+            std::map<Pass::P, OperationP> newMapping;
+
+            const std::vector<Pass::P> passes = stim->getPasses ();
+            for (const Pass::P& pass : passes) {
+                const std::string vert = pass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
+                const std::string frag = pass->getStimulusGeneratorShaderSource ();
+
+                ShaderPipelineP sequencePip = ShaderPipeline::CreateShared (*env->device);
+
+                sequencePip->SetVertexShaderFromString (vert);
+                sequencePip->SetFragmentShaderFromString (frag);
+
+                OperationP passOperation = renderGraph->CreateOperation<RenderOperation> (
+                    DrawRecordableInfo::CreateShared (1, 4), sequencePip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+
+                renderGraph->CreateOutputConnection (*passOperation, 0, *presented);
+                newMapping[pass] = passOperation;
+                break;
+            }
+
+
+            RG::UniformReflectionP refl = RG::UniformReflection::CreateShared (*renderGraph);
+            RG::CreateEmptyImageResources (*renderGraph);
+
+            stimulusToGraphIndex[stim] = stimulii.size ();
+
+            stimulii.push_back (StimulusV2::Create (renderGraph, refl, newMapping));
+        }
+    }
+
+    void RenderFull ()
+    {
+        WindowU window = HiddenGLFWWindow::Create ();
+        window->Show ();
+
+        env->WindowChanged (*window);
+
+        GraphSettings s (*env->deviceExtra, env->swapchain->GetImageCount ());
+
+        for (auto& st : stimulii) {
+            st->graph->Compile (s);
+        }
+
+        for (auto& st : stimulii) {
+            for (auto& [pass, op] : st->passToOperation) {
+                for (auto& [name, value] : pass->shaderVariables)
+                    (*st->reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<float> (value);
+                for (auto& [name, value] : pass->shaderVectors)
+                    (*st->reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec2> (value);
+                for (auto& [name, value] : pass->shaderColors)
+                    (*st->reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec3> (value);
+            }
+        }
+
+        SynchronizedSwapchainGraphRendererU renderer = SynchronizedSwapchainGraphRenderer::Create (s, *env->swapchain);
+
+        const glm::vec2 patternSizeOnRetina (1920, 1080);
+
+        uint32_t frameCount = 0;
+
+        window->DoEventLoop ([&] (bool& shouldStop) {
+            //const double timeInSeconds = TimePoint::SinceApplicationStart ().AsSeconds ();
+            const double timeInSeconds = frameCount / 60.0;
+
+            Stimulus::CP currentStim = sequence->getStimulusAtFrame (frameCount++);
+            if (currentStim == nullptr) {
+                shouldStop = true;
+                return;
+            }
+
+            const uint32_t idx = stimulusToGraphIndex[currentStim];
+
+            RG::UniformReflectionP refl = stimulii[idx]->reflection;
+
+            renderer->preSubmitEvent = [&] (RenderGraph& graph, uint32_t frameIndex, uint64_t timeNs) {
+                for (auto& [pass, renderOpId] : stimulii[idx]->passToOperation) {
+                    (*refl)[renderOpId->GetUUID ()][ShaderKind::Vertex]["PatternSizeOnRetina"]       = patternSizeOnRetina;
+                    (*refl)[renderOpId->GetUUID ()][ShaderKind::Fragment]["ubo_time"]                = static_cast<float> (timeInSeconds - currentStim->getStartingFrame () / 60.f);
+                    (*refl)[renderOpId->GetUUID ()][ShaderKind::Fragment]["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
+                    (*refl)[renderOpId->GetUUID ()][ShaderKind::Fragment]["ubo_frame"]               = static_cast<int32_t> (frameCount);
+                }
+
+                //refl->PrintDebugInfo ();
+
+                refl->Flush (frameIndex);
+            };
+
+            renderer->RenderNextFrame (*stimulii[idx]->graph);
+
+            frameCount++;
+        });
+
+        window->Close ();
+        window = nullptr;
+    }
+};
+
+static CurrentSequenceU currentSeq = nullptr;
+
 
 void InitializeEnvironment ()
 {
-    window = HiddenGLFWWindow::Create (); // create a hidden window by default
-    env    = VulkanEnvironment::Create (*window);
+    env = VulkanEnvironment::Create ();
 }
 
 
 void DestroyEnvironment ()
 {
-    refls.clear ();
-    graphs.clear ();
-    window.reset ();
+    currentSeq.reset ();
     env.reset ();
 }
 
 
 void SetRenderGraphFromSequence (Sequence::P seq)
 {
+    EnsureEnvInitialized ();
+    currentSeq = CurrentSequence::Create (env, seq);
+#if 0
     try {
         GVK_ASSERT_THROW (env != nullptr);
 
-        cseq = seq;
+        currentSequence = seq;
         stimulusToGraphIndex.clear ();
         graphs.clear ();
-        refls.clear ();
-        mapping.clear ();
+        reflections.clear ();
+        passToOperation.clear ();
 
         for (auto [startFrame, stim] : seq->getStimuli ()) {
             RenderGraphP renderGraph = RenderGraph::CreateShared ();
 
-            SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*env->swapchain);
+            SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*env);
 
             std::map<Pass::P, GearsVk::UUID> newMapping;
 
@@ -75,17 +218,17 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 
                 const auto isEnabled = [&] () -> bool { return true; };
 
-                OperationP redFillOperation = renderGraph->CreateOperation<ConditionalRenderOperation> (
+                OperationP passOperation = renderGraph->CreateOperation<ConditionalRenderOperation> (
                     DrawRecordableInfo::CreateShared (1, 4), seqpip, isEnabled, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
-                renderGraph->CreateOutputConnection (*redFillOperation, 0, *presented);
-                newMapping[pass] = redFillOperation->GetUUID ();
+                renderGraph->CreateOutputConnection (*passOperation, 0, *presented);
+                newMapping[pass] = passOperation->GetUUID ();
                 break;
             }
-            GraphSettings s (*env->deviceExtra, *env->swapchain);
+            GraphSettings s (*env->deviceExtra, env->swapchain->GetImageCount ());
 
-            auto           refl = RG::UniformReflection::CreateShared (*renderGraph, s);
-            RG::ImageAdder img (*renderGraph, s);
+            auto refl = RG::UniformReflection::CreateShared (*renderGraph);
+            RG::CreateEmptyImageResources (*renderGraph);
 
             renderGraph->Compile (s);
 
@@ -107,8 +250,8 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 
             stimulusToGraphIndex[stim] = graphs.size ();
             graphs.push_back (renderGraph);
-            refls.push_back (refl);
-            mapping.push_back (newMapping);
+            reflections.push_back (refl);
+            passToOperation.push_back (newMapping);
         }
 
         Shader::uniformBoundEvent += [&] (const std::string& asd) {
@@ -117,45 +260,92 @@ void SetRenderGraphFromSequence (Sequence::P seq)
     } catch (std::exception& e) {
         GVK_BREAK ("msg");
     }
+#endif
+}
+
+
+static void RenderFrame_ (Window& window, RG::Renderer& renderer, RG::RenderGraph& graph)
+{
+    window.PollEvents ();
+    renderer.RenderNextFrame (graph);
+}
+
+
+void RenderFrame (uint32_t frameIndex)
+{
+}
+
+
+static void EventLoop (Window& window, RG::Renderer& renderer, RG::RenderGraph& graph, const std::function<bool ()>& stopFn)
+{
+    try {
+        while (true) {
+            if (stopFn ()) {
+                return;
+            }
+
+            RenderFrame_ (window, renderer, graph);
+        }
+    } catch (std::runtime_error& er) {
+    }
+}
+
+
+void RenderSequence ()
+{
 }
 
 
 void StartRendering (const std::function<bool ()>& doRender)
 {
+    currentSeq->RenderFull ();
+#if 0
     GVK_ASSERT_THROW (env != nullptr);
 
     env->Wait ();
 
     window->Show ();
 
-    GraphSettings s (*env->deviceExtra, *env->swapchain);
+    GraphSettings s (*env->deviceExtra, env->swapchain->GetImageCount ());
 
-    SynchronizedSwapchainGraphRenderer swapchainSync (s, *env->swapchain);
+    renderer = SynchronizedSwapchainGraphRenderer::Create (s, *env->swapchain);
 
-    double lastImageTime = 0;
+    std::vector<double> lastImageTimes;
+    uint32_t            lastImageIndex = 0;
+    for (uint32_t i = 0; i < env->swapchain->GetImageCount (); ++i) {
+        lastImageTimes.push_back (0);
+    }
 
-    swapchainSync.swapchainImageAcquiredEvent += [&] () {
+    renderer->swapchainImageAcquiredEvent += [&] (uint32_t imageIndex) {
         const double currentTime = TimePoint::SinceApplicationStart ().AsMilliseconds ();
 
-        lastImageTime = currentTime;
+        const double deltaMs       = currentTime - lastImageTimes[imageIndex];
+        const double deltaRenderMs = currentTime - lastImageTimes[lastImageIndex];
+
+        lastImageTimes[imageIndex] = currentTime;
+        lastImageIndex             = imageIndex;
     };
 
     const glm::vec2 patternSizeOnRetina (1920, 1080);
 
     uint32_t frameCount = 0;
 
-    window->DoEventLoop ([&] (bool&) {
+    window->DoEventLoop ([&] (bool& shouldStop) {
         //const double timeInSeconds = TimePoint::SinceApplicationStart ().AsSeconds ();
         const double timeInSeconds = frameCount / 60.0;
 
-        Stimulus::CP currentStim = cseq->getStimulusAtFrame (frameCount++);
+        Stimulus::CP currentStim = currentSequence->getStimulusAtFrame (frameCount++);
+        if (currentStim == nullptr) {
+            shouldStop = true;
+            return;
+        }
 
         const uint32_t idx = stimulusToGraphIndex[currentStim];
 
-        RG::UniformReflectionP refl = refls[idx];
+        RG::UniformReflectionP refl = reflections[idx];
 
-        swapchainSync.preSubmitEvent = [&] (RenderGraph& graph, uint32_t frameIndex, uint64_t timeNs) {
-            for (auto& [pass, renderOpId] : mapping[idx]) {
+        renderer->preSubmitEvent = [&] (RenderGraph& graph, uint32_t frameIndex, uint64_t timeNs) {
+            for (auto& [pass, renderOpId] : passToOperation[idx]) {
                 (*refl)[renderOpId][ShaderKind::Vertex]["PatternSizeOnRetina"]       = patternSizeOnRetina;
                 (*refl)[renderOpId][ShaderKind::Fragment]["ubo_time"]                = static_cast<float> (timeInSeconds - currentStim->getStartingFrame () / 60.f);
                 (*refl)[renderOpId][ShaderKind::Fragment]["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
@@ -167,7 +357,7 @@ void StartRendering (const std::function<bool ()>& doRender)
             refl->Flush (frameIndex);
         };
 
-        swapchainSync.RenderNextFrame (*graphs[idx]);
+        renderer->RenderNextFrame (*graphs[idx]);
 
         frameCount++;
     });
@@ -176,6 +366,7 @@ void StartRendering (const std::function<bool ()>& doRender)
     window.reset ();
 
     env->Wait ();
+#endif
 }
 
 void TryCompile (ShaderKind shaderKind, const std::string& source)

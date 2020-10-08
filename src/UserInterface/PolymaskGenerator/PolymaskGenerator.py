@@ -1,5 +1,4 @@
 from PyQt5.QtGui import (QColor)
-from PyQt5.QtOpenGL import (QGLWidget)
 from PyQt5.QtWidgets import (QErrorMessage)
 import GearsUtils as utils
 import numpy as np
@@ -7,11 +6,6 @@ from math import sqrt
 #from Gears import CDT
 from Gears import loadTexture
 from enum import Enum
-try:
-    from OpenGL.GL import *
-    from OpenGL.GL import shaders
-except:
-    print('ERROR: PyOpenGL not installed properly.')
 
 PASSTHROUGH_VERTEX = '''
     #version 330

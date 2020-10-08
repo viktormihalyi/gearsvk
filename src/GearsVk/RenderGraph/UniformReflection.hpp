@@ -21,10 +21,8 @@ namespace RG {
 // accessing a uniforms is available with operator[] eg.: reflection[RG::RenderOperationP][ShaderKind][std::string][std::string]...
 
 
-class GEARSVK_API ImageAdder {
-public:
-    ImageAdder (RG::RenderGraph& graph, const RG::GraphSettings& settings);
-};
+GEARSVK_API
+void CreateEmptyImageResources (RG::RenderGraph& graph);
 
 
 USING_PTR (UniformReflection);
@@ -80,31 +78,16 @@ private:
         friend class UniformReflection;
     };
 
-    class CopyOperation {
-    public:
-        void*    destination;
-        void*    source;
-        uint64_t size;
-
-        void Do () const
-        {
-            memcpy (destination, source, size);
-        }
-    };
 
     // operation uuid
     std::unordered_map<GearsVk::UUID, ShaderKindSelector> selectors;
 
-    // copy between cpy memory (staging to vulkan cpu mapped)
-    std::vector<std::vector<CopyOperation>> copyOperations;
-
-    RG::RenderGraph&         graph;
-    const RG::GraphSettings& settings;
+    RG::RenderGraph& graph;
 
     //
-    std::vector<RG::InputBufferBindableResourceP>                                             uboResources;
+    std::vector<RG::InputBufferBindableResourceP>                                                         uboResources;
     std::vector<std::tuple<RG::RenderOperationP, uint32_t, RG::InputBufferBindableResourceP, ShaderKind>> uboConnections;
-    std::unordered_map<GearsVk::UUID, SR::IUDataP>                                            udatas;
+    std::unordered_map<GearsVk::UUID, SR::IUDataP>                                                        udatas;
 
 public:
     using Filter          = std::function<bool (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP&)>;
@@ -127,10 +110,9 @@ public:
     }
 
 public:
-    UniformReflection (RG::RenderGraph&         graph,
-                       const RG::GraphSettings& settings,
-                       const Filter&            filter          = &DefaultFilter,
-                       const ResourceCreator&   resourceCreator = &DefaultResourceCreator);
+    UniformReflection (RG::RenderGraph&       graph,
+                       const Filter&          filter          = &DefaultFilter,
+                       const ResourceCreator& resourceCreator = &DefaultResourceCreator);
 
     void Flush (uint32_t frameIndex);
 
@@ -142,8 +124,6 @@ private:
     void CreateGraphResources (const Filter& filter, const ResourceCreator& resourceCreator);
 
     void CreateGraphConnections ();
-
-    void RecordCopyOperations ();
 
 public:
     void PrintDebugInfo ();

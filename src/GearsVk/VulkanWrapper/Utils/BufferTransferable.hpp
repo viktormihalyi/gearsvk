@@ -40,7 +40,7 @@ public:
     void CopyAndTransfer (const void* data, size_t size) const
     {
         GVK_ASSERT (size == bufferSize);
-        bufferCPUMapping.Copy (data, size, 0);
+        bufferCPUMapping.Copy (data, size);
         CopyBuffer (device, bufferCPU, bufferGPU, bufferSize);
     }
 
@@ -85,7 +85,7 @@ public:
 
     void CopyLayer (VkImageLayout currentImageLayout, const void* data, size_t size, uint32_t layerIndex, std::optional<VkImageLayout> nextLayout = std::nullopt) const
     {
-        bufferCPUMapping.Copy (data, size, 0);
+        bufferCPUMapping.Copy (data, size);
 
         SingleTimeCommand commandBuffer (device);
 

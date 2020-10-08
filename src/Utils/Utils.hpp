@@ -117,6 +117,27 @@ std::vector<DestinationType> ConvertToHandles (const std::vector<std::reference_
 }
 
 
+template<typename CastedType, typename Processor, typename ContainedType>
+void ForEach (std::vector<ContainedType>& container, const Processor& processor)
+{
+    for (auto& elem : container) {
+        if (auto castedElem = dynamic_cast<CastedType> (elem)) {
+            processor (castedElem);
+        }
+    }
+}
+
+
+template<typename CastedType, typename Processor, typename Container>
+void ForEachP (Container& container, const Processor& processor)
+{
+    for (auto& elem : container) {
+        if (auto castedElem = std::dynamic_pointer_cast<CastedType> (elem)) {
+            processor (castedElem);
+        }
+    }
+}
+
 } // namespace Utils
 
 #endif

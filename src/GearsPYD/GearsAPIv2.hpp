@@ -14,3 +14,5 @@ void SetRenderGraphFromSequence (Sequence::P);
 void StartRendering (const std::function<bool ()>&);
 
 void TryCompile (ShaderKind shaderKind, const std::string& source);
+
+void RenderFrame (uint32_t frameIndex);

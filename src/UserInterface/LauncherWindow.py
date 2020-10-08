@@ -5,7 +5,6 @@ import os
 from PyQt5.QtCore import (Qt, QCoreApplication, QTimer)
 from PyQt5.QtWidgets import (QWidget, QToolTip, QPushButton, QLineEdit, QFileDialog, QMessageBox, QApplication, QTreeWidget, QTreeWidgetItem, QGridLayout, QGroupBox, QTabWidget, QDoubleSpinBox, QLabel, QRadioButton, QButtonGroup, QScrollBar, QSlider, QTextEdit)
 from PyQt5.QtGui import (QFont, QPalette, QTextCursor )
-#from PyQt5.QtOpenGL import (, QGLFormat)
 
 import datetime as datetime
 import time
@@ -13,19 +12,19 @@ import warnings
 
 import ILog
 
-from SequenceTimeline import SequenceTimeline
-from StimulusTimeline import StimulusTimeline
-from SpatialKernelPlot import SpatialKernelPlot
-from TemporalKernelPlot import TemporalKernelPlot
-from SpatialProfilePlot import SpatialProfilePlot
+#from SequenceTimeline import SequenceTimeline
+#from StimulusTimeline import StimulusTimeline
+#from SpatialKernelPlot import SpatialKernelPlot
+#from TemporalKernelPlot import TemporalKernelPlot
+#from SpatialProfilePlot import SpatialProfilePlot
 from Ide import Ide
 import AppData
 
 class LauncherWindow(QWidget):
     browserWindow = None
 #    stimulusWindow = None
-    sequenceTimeline = None
-    stimulusTimeline = None
+    #sequenceTimeline = None
+    #stimulusTimeline = None
     stimulusLabel = None
     sequenceTimelineBox = None
     sequenceTimelineZoom = 512
@@ -266,24 +265,26 @@ class LauncherWindow(QWidget):
         #font.setPointSizeF(font.pointSizeF() * 2)
         #self.sequenceTimelineBox.setFont(font)
 
-        self.sequenceTimeline = SequenceTimeline(self.sequenceTimelineBox, self, self.winId())
+        #self.sequenceTimeline = SequenceTimeline(self.sequenceTimelineBox,
+        #self, self.winId())
         grid.addWidget(self.sequenceTimelineBox, 1, 1, 2, 8)
         etlbgl = QGridLayout()
-        etlbgl.addWidget(self.sequenceTimeline, 1, 1, 1, 10)
-        self.sequenceLabel = QLabel(
-            'Device refresh rate: {devfps:.2f},   Sequence frame rate: {fps:.2f}'.format( devfps=59.94, fps=59.94)
+        #etlbgl.addWidget(self.sequenceTimeline, 1, 1, 1, 10)
+        self.sequenceLabel = QLabel('Device refresh rate: {devfps:.2f},   Sequence frame rate: {fps:.2f}'.format(devfps=59.94, fps=59.94)
             , self.sequenceTimelineBox)
         etlbgl.addWidget(self.sequenceLabel, 0, 1, 1, 10)
 
         self.sequenceTimelineScrollbar = QScrollBar(Qt.Horizontal, self.sequenceTimelineBox)
         etlbgl.addWidget(self.sequenceTimelineScrollbar, 2, 1, 1, 8)
         self.sequenceTimelineScrollbar.valueChanged.connect(self.onScroll)
-        #self.sequenceTimelineZoomExtents = QPushButton('F', self.sequenceTimelineBox)
+        #self.sequenceTimelineZoomExtents = QPushButton('F',
+        #self.sequenceTimelineBox)
         #etlbgl.addWidget(self.sequenceTimelineZoomExtents, 2, 7, 1, 1)
         self.sequenceTimelineZoomSlider = QSlider(Qt.Horizontal, self.sequenceTimelineBox)
         etlbgl.addWidget(self.sequenceTimelineZoomSlider, 2, 9, 1, 2)
         self.sequenceTimelineZoomSlider.valueChanged.connect(self.onZoomSlider)
-        #self.sequenceTimelineZoomMax = QPushButton('M', self.sequenceTimelineBox)
+        #self.sequenceTimelineZoomMax = QPushButton('M',
+        #self.sequenceTimelineBox)
         #etlbgl.addWidget(self.sequenceTimelineZoomMax, 2, 10, 1, 1)
         etlbgl.setSpacing(0)
         etlbgl.setContentsMargins(0, 0, 0, 0)
@@ -291,11 +292,13 @@ class LauncherWindow(QWidget):
         
         self.optionsTabber = QTabWidget(self)
         self.mainPanel = QWidget()
-        ##self.stimulusTimelineBox = QGroupBox('Click in sequence timeline to select stimulus', self)
-        self.stimulusTimeline = StimulusTimeline(self.mainPanel, self, self.winId())
+        ##self.stimulusTimelineBox = QGroupBox('Click in sequence timeline to
+        ##select stimulus', self)
+        #self.stimulusTimeline = StimulusTimeline(self.mainPanel, self,
+        #self.winId())
         self.stimulusLabel = QLabel('Click in sequence timeline to select stimulus!', self.mainPanel)
         mly = QGridLayout()
-        mly.addWidget(self.stimulusTimeline, 1, 1, 1, 10)
+        #mly.addWidget(self.stimulusTimeline, 1, 1, 1, 10)
         mly.addWidget(self.stimulusLabel, 0, 1, 1, 10)
         self.stimulusTimelineScrollbar = QScrollBar(Qt.Horizontal, self.mainPanel)
         mly.addWidget(self.stimulusTimelineScrollbar, 2, 1, 1, 8)
@@ -308,11 +311,13 @@ class LauncherWindow(QWidget):
         self.optionsTabber.addTab(self.mainPanel, 'Timeline')
 
         self.spatialPanel = QWidget()
-        self.spatialKernelPlot = SpatialKernelPlot(self.spatialPanel, self, self.winId())
-        self.spatialProfilePlot =  SpatialProfilePlot(self.spatialPanel, self, self.winId())
+        #self.spatialKernelPlot = SpatialKernelPlot(self.spatialPanel, self,
+        #self.winId())
+        #self.spatialProfilePlot = SpatialProfilePlot(self.spatialPanel, self,
+        #self.winId())
         spapag = QGridLayout()
-        spapag.addWidget(self.spatialKernelPlot, 1, 1, 3, 4)
-        spapag.addWidget(self.spatialProfilePlot, 1, 7, 3, 4)
+        #spapag.addWidget(self.spatialKernelPlot, 1, 1, 3, 4)
+        #spapag.addWidget(self.spatialProfilePlot, 1, 7, 3, 4)
        
         spapag.addWidget(QLabel("Plot min", self.spatialPanel), 3, 5)
         self.minSpinBox = QDoubleSpinBox(self.spatialPanel)
@@ -363,7 +368,7 @@ class LauncherWindow(QWidget):
         ecrl = QGridLayout()
         self.ecrHashmark = QRadioButton("Use # for comments", exportCommentRadioGroup)
         ecrl.addWidget(self.ecrHashmark, 1, 1)
-        self.ecrNone =   QRadioButton("None", exportCommentRadioGroup)
+        self.ecrNone = QRadioButton("None", exportCommentRadioGroup)
         ecrl.addWidget(self.ecrNone, 1, 2)
         exportCommentRadioGroup.setLayout(ecrl)
         self.ecrHashmark.clicked.connect(self.exportRandomChanged)
@@ -381,25 +386,25 @@ class LauncherWindow(QWidget):
         self.echr4 = QRadioButton("4", exportChannelsRadioGroup)
         echrl.addWidget(self.echr4, 1, 4)
         exportChannelsRadioGroup.setLayout(echrl)
-        self.echr1.clicked.connect( self.exportRandomChanged ) 
-        self.echr2.clicked.connect( self.exportRandomChanged )
-        self.echr3.clicked.connect( self.exportRandomChanged ) 
-        self.echr4.clicked.connect( self.exportRandomChanged ) 
+        self.echr1.clicked.connect(self.exportRandomChanged) 
+        self.echr2.clicked.connect(self.exportRandomChanged)
+        self.echr3.clicked.connect(self.exportRandomChanged) 
+        self.echr4.clicked.connect(self.exportRandomChanged) 
 
 
         exportFormatRadioGroup = QGroupBox('Export randoms as type', self.managePanel)
         mpapag.addWidget(exportFormatRadioGroup, 3, 1)
         efrl = QGridLayout()
-        self.efrBinary =     QRadioButton("Binary", exportFormatRadioGroup)
+        self.efrBinary = QRadioButton("Binary", exportFormatRadioGroup)
         efrl.addWidget(self.efrBinary, 1, 1)
-        self.efrReal =       QRadioButton("Real", exportFormatRadioGroup)
+        self.efrReal = QRadioButton("Real", exportFormatRadioGroup)
         efrl.addWidget(self.efrReal, 1, 2)
-        self.efrInteger =    QRadioButton("Integer", exportFormatRadioGroup)
+        self.efrInteger = QRadioButton("Integer", exportFormatRadioGroup)
         efrl.addWidget(self.efrInteger, 1, 3)
         exportFormatRadioGroup.setLayout(efrl)
-        self.efrBinary.clicked.connect( self.exportRandomChanged ) 
-        self.efrReal.clicked.connect( self.exportRandomChanged ) 
-        self.efrInteger.clicked.connect( self.exportRandomChanged ) 
+        self.efrBinary.clicked.connect(self.exportRandomChanged) 
+        self.efrReal.clicked.connect(self.exportRandomChanged) 
+        self.efrInteger.clicked.connect(self.exportRandomChanged) 
 
         exportButton = QPushButton('Save randoms', self.managePanel)
         exportButton.clicked.connect(self.exportRandoms)
@@ -408,9 +413,10 @@ class LauncherWindow(QWidget):
         self.managePanel.setLayout(mpapag)
 
         self.temporalPanel = QWidget()
-        self.temporalKernelPlot = TemporalKernelPlot(self.temporalPanel, self, self.winId())
+        #self.temporalKernelPlot = TemporalKernelPlot(self.temporalPanel, self,
+        #self.winId())
         tpapag = QGridLayout()
-        tpapag.addWidget(self.temporalKernelPlot, 1, 1)
+        #tpapag.addWidget(self.temporalKernelPlot, 1, 1)
         self.temporalPanel.setLayout(tpapag)
 
         self.calibrationPanel = QWidget()
@@ -491,19 +497,19 @@ class LauncherWindow(QWidget):
         toneMappingRadioGroup = QGroupBox('Tone mapping', self.calibrationPanel)
         cpapag.addWidget(toneMappingRadioGroup, 5, 3, 2, 3)
         tmrl = QGridLayout()
-        self.toneMappingRadioNone =     QRadioButton("None", toneMappingRadioGroup)
+        self.toneMappingRadioNone = QRadioButton("None", toneMappingRadioGroup)
         tmrl.addWidget(self.toneMappingRadioNone, 1, 1)
-        self.toneMappingRadioLinear =       QRadioButton("Linear", toneMappingRadioGroup)
+        self.toneMappingRadioLinear = QRadioButton("Linear", toneMappingRadioGroup)
         tmrl.addWidget(self.toneMappingRadioLinear, 1, 2)
-        self.toneMappingRadioErf =    QRadioButton("Sigmoid (erf)", toneMappingRadioGroup)
+        self.toneMappingRadioErf = QRadioButton("Sigmoid (erf)", toneMappingRadioGroup)
         tmrl.addWidget(self.toneMappingRadioErf, 1, 3)
-        self.toneMappingRadioEq =    QRadioButton("Hist. equalized", toneMappingRadioGroup)
+        self.toneMappingRadioEq = QRadioButton("Hist. equalized", toneMappingRadioGroup)
         tmrl.addWidget(self.toneMappingRadioEq, 1, 4)
         toneMappingRadioGroup.setLayout(tmrl)
-        self.toneMappingRadioNone.clicked.connect( self.toneMappingChanged ) 
-        self.toneMappingRadioLinear.clicked.connect( self.toneMappingChanged ) 
-        self.toneMappingRadioErf.clicked.connect( self.toneMappingChanged ) 
-        self.toneMappingRadioEq.clicked.connect( self.toneMappingChanged ) 
+        self.toneMappingRadioNone.clicked.connect(self.toneMappingChanged) 
+        self.toneMappingRadioLinear.clicked.connect(self.toneMappingChanged) 
+        self.toneMappingRadioErf.clicked.connect(self.toneMappingChanged) 
+        self.toneMappingRadioEq.clicked.connect(self.toneMappingChanged) 
 
         self.saveToneMapSettingsButton = QPushButton('Save tone mapping')
         cpapag.addWidget(self.saveToneMapSettingsButton, 7, 3, 1, 3)
@@ -624,7 +630,7 @@ class LauncherWindow(QWidget):
                 <p><b>&lt;-</b> / <b>-&gt;</b> : back/skip</p>
                 <p><b>P</b> : pause </p>
                 ''')
-        hintLabel.setTextFormat( Qt.RichText )
+        hintLabel.setTextFormat(Qt.RichText)
         grid.addWidget(hintLabel, 5, 8, 1, 1)
 
         lbtn = QPushButton('\n\n&Execute\n\n', self)
@@ -654,12 +660,11 @@ class LauncherWindow(QWidget):
             stim = gears.getSelectedStimulus().getPythonObject()
             print('''
     stim.setMeasuredDynamics( {dmin}, {dmax}, {dmean}, {dvar}, {histogramList})
-                '''.format(
-                        dmin  = stim.measuredToneRangeMin,
+                '''.format(dmin  = stim.measuredToneRangeMin,
                         dmax  = stim.measuredToneRangeMax,
                         dmean = stim.measuredToneRangeMean,
                         dvar  = stim.measuredToneRangeVar,
-                       histogramList = stim.getMeasuredHistogramAsPythonList() )
+                       histogramList = stim.getMeasuredHistogramAsPythonList())
                 , file=self.calibrationSettingsFile)
             self.calibrationSettingsFile.close()
             self.stimulusChanged()
@@ -667,13 +672,13 @@ class LauncherWindow(QWidget):
         
     def start(self, browserWindow, path):
         self.exp = gears.getSequence().getPythonObject()
-        gears.pickStimulus( 0, 10 )
+        gears.pickStimulus(0, 10)
         self.sequencePath = path
         self.initSequence(browserWindow, path)
 
         self.stimulusChanged()
 
-        self.sequenceTimelineBox.setTitle(self.exp.name) # + '   ' + path)
+        self.sequenceTimelineBox.setTitle(self.exp.name) # + ' ' + path)
         if(self.exp.exportRandomsWithHashmarkComments) :
             self.ecrHashmark.setChecked(True)
         else :
@@ -695,11 +700,11 @@ class LauncherWindow(QWidget):
             self.efrInteger.setChecked(True)
 
         if self.exp.usesRandoms() :
-            self.optionsTabber.addTab( self.managePanel, 'Randoms' )
+            self.optionsTabber.addTab(self.managePanel, 'Randoms')
         else :
-            self.optionsTabber.removeTab( self.optionsTabber.indexOf(self.managePanel) )
+            self.optionsTabber.removeTab(self.optionsTabber.indexOf(self.managePanel))
 
-        self.optionsTabber.setCurrentIndex( self.optionsTabber.indexOf(self.outputStream) )
+        self.optionsTabber.setCurrentIndex(self.optionsTabber.indexOf(self.outputStream))
 
         self.videoHeightValue.setValue(self.exp.field_height_px)
         self.videoWidthValue.setValue(self.exp.field_width_px)
@@ -712,8 +717,8 @@ class LauncherWindow(QWidget):
 
         gammaTypes = []
         stimuli = self.exp.getStimuli()
-        for stim in stimuli:
-            stimo = stim.data().getPythonObject()
+        for stimkey, stim in stimuli.items():
+            stimo = stim.getPythonObject()
             if hasattr(stimo, 'gammaLabel') :
                 gname = stimo.gammaLabel
                 if gname not in gammaTypes :
@@ -725,35 +730,32 @@ class LauncherWindow(QWidget):
         #for i in dir(self.exp) :
         #   if not i.startswith('__') :
         #       a += i
-        self.sequenceLabel.setText(
-            'Gamma: {gammaType},   Device refresh rate: {devfps:.2f},    Sequence frame rate: {fps:.2f},    Field res.: {w}x{h}'.format( 
-                    gammaType=str(gammaTypes),
+        self.sequenceLabel.setText('Gamma: {gammaType},   Device refresh rate: {devfps:.2f},    Sequence frame rate: {fps:.2f},    Field res.: {w}x{h}'.format(gammaType=str(gammaTypes),
                     devfps=self.exp.deviceFrameRate,
-                    fps=self.exp.deviceFrameRate/self.exp.frameRateDivisor,
+                    fps=self.exp.deviceFrameRate / self.exp.frameRateDivisor,
                     w=self.exp.field_width_px,
-                    h=self.exp.field_height_px,
-                    ))
+                    h=self.exp.field_height_px,))
 
         totalExpDuration = self.exp.getDuration()
         minStimulusDuration = self.exp.getShortestStimulusDuration()
         self.sequenceTimelineScrollbar.setMinimum(0)
         self.sequenceTimelineScrollbar.setMaximum(0)
         self.sequenceTimelineScrollbar.setValue(0)
-        self.sequenceTimelineScrollbar.setPageStep( totalExpDuration )
+        self.sequenceTimelineScrollbar.setPageStep(totalExpDuration)
 
-        self.sequenceTimelineZoomSlider.setMinimum(  min(totalExpDuration, 60 ) ) # minStimulusDuration * 40) )
-        self.sequenceTimelineZoomSlider.setMaximum( totalExpDuration )
-        self.sequenceTimelineZoomSlider.setValue( totalExpDuration ) #min(totalExpDuration, minStimulusDuration * 600) )
+        self.sequenceTimelineZoomSlider.setMinimum(min(totalExpDuration, 60)) # minStimulusDuration * 40) )
+        self.sequenceTimelineZoomSlider.setMaximum(totalExpDuration)
+        self.sequenceTimelineZoomSlider.setValue(totalExpDuration) #min(totalExpDuration, minStimulusDuration * 600) )
 
         self.stimulusTimelineScrollbar.setMinimum(0)
         self.stimulusTimelineScrollbar.setMaximum(0)
         self.stimulusTimelineScrollbar.setValue(0)
-        self.stimulusTimelineScrollbar.setPageStep( minStimulusDuration )
+        self.stimulusTimelineScrollbar.setPageStep(minStimulusDuration)
 
         self.stimulusTimelineZoom = minStimulusDuration
-        self.stimulusTimelineZoomSlider.setMinimum( 1 )
-        self.stimulusTimelineZoomSlider.setMaximum( minStimulusDuration )
-        self.stimulusTimelineZoomSlider.setValue( minStimulusDuration )
+        self.stimulusTimelineZoomSlider.setMinimum(1)
+        self.stimulusTimelineZoomSlider.setMaximum(minStimulusDuration)
+        self.stimulusTimelineZoomSlider.setValue(minStimulusDuration)
 
         #self.outputStream.clear()
         self.outputStream.cursor().setPos(QTextCursor.End, QTextCursor.MoveAnchor)
@@ -769,12 +771,14 @@ class LauncherWindow(QWidget):
         ILog.log.close()
         #TODO: report skips
         #if(nSkipped > 1 and nSkipped < 9999999999):
-        #    self.warn('WARNING! {n} frames have been skipped!'.format(n=nSkipped))
+        #    self.warn('WARNING!  {n} frames have been
+        #    skipped!'.format(n=nSkipped))
         #    if(nSkipped > 15):
-        #        self.outputStream.insertHtml('Revise performance-critial settings!<BR>')
+        #        self.outputStream.insertHtml('Revise performance-critial
+        #        settings!<BR>')
         ##else :
         ##    self.outputStream.insertHtml('No frames skipped.<BR>')
-        self.outputStream.insertHtml( gears.getSequenceTimingReport() )
+        self.outputStream.insertHtml(gears.getSequenceTimingReport())
         self.initSequence(self.browserWindow, self.path)
         self.showFullScreen()
 
@@ -795,11 +799,12 @@ class LauncherWindow(QWidget):
         self.lower()
 
     def onTimer(self):
-        self.sequenceTimeline.update()
-        self.stimulusTimeline.update()
-        self.temporalKernelPlot.update()
-        self.spatialKernelPlot.update()
-        self.spatialProfilePlot.update()
+        pass
+        #self.sequenceTimeline.update()
+        #self.stimulusTimeline.update()
+        #self.temporalKernelPlot.update()
+        #self.spatialKernelPlot.update()
+        #self.spatialProfilePlot.update()
 
     def launch(self):
         #print("Launch initiated.")
@@ -809,30 +814,30 @@ class LauncherWindow(QWidget):
         pathInLogs = self.path.replace('Sequences', 'Logs', 1)
         logFilePath = pathInLogs.replace('.pyx', '_' + timestr + '.log', 1)
         gears.makePath(logFilePath)
-        log = open( logFilePath, 'w')
+        log = open(logFilePath, 'w')
         ilogFilePath = pathInLogs.replace('.pyx', '_' + timestr + '_interactions.log', 1)
         ILog.log.open(ilogFilePath)
         print('#Sequence launch at ' + timestr, file=log) 
-        print('----------------------EXPERIMENT-----------------------', file=log )
+        print('----------------------EXPERIMENT-----------------------', file=log)
         pex = sequence.getPythonObject()
-        print( type(pex).__name__ , file=log )
-        print( " args = " + str(pex.args), file=log )
+        print(type(pex).__name__ , file=log)
+        print(" args = " + str(pex.args), file=log)
         if pex.verboseLogging :
             for property in dir(pex):
                 member = getattr(pex, property)
                 if not callable(member) and not property.startswith('__') :
-                    print( property + " = " + str(member), file=log )
+                    print(property + " = " + str(member), file=log)
         stimuli = sequence.getStimuli()
-        for stimulus in stimuli :
-            sex = stimulus.data().getPythonObject()
-            print('----------------------STIMULUS-----------------------', file=log )
-            print( type(sex).__name__ , file=log )
-            print( " args = " + str(sex.args), file=log )
+        for stimkey, stimulus in stimuli.items ():
+            sex = stimulus.getPythonObject()
+            print('----------------------STIMULUS-----------------------', file=log)
+            print(type(sex).__name__ , file=log)
+            print(" args = " + str(sex.args), file=log)
             if pex.verboseLogging :
                 for property in dir(sex):
                     member = getattr(sex, property)
                     if not callable(member) and not property.startswith('__') :
-                        print( property + " = " + str(member), file=log )
+                        print(property + " = " + str(member), file=log)
 
         #print("Logs printed.")
         #print(datetime.datetime.now().time())
@@ -843,7 +848,7 @@ class LauncherWindow(QWidget):
         #TODO: format log as .pyx, insert signal info
         self.timer.stop()
 
-        #print("Report printed. Timer stopped.")
+        #print("Report printed.  Timer stopped.")
         #print(datetime.datetime.now().time())
 
         with warnings.catch_warnings(record=True) as w:
@@ -851,7 +856,7 @@ class LauncherWindow(QWidget):
             warnings.simplefilter("always")
             gears.run()
             for e in w:
-                self.warn( e.message )
+                self.warn(e.message)
         #self.mediaWindow.start(self)
         self.sleep()
 
@@ -863,7 +868,7 @@ class LauncherWindow(QWidget):
         pathInCalibs = self.path.replace('Sequences', 'Tonemapping', 1)
         calibFilePath = pathInCalibs.replace('.pyx', '_@frame' + str(stim.getStartingFrame()) + '_measurement.py', 1)
         gears.makePath(calibFilePath)
-        self.calibrationSettingsFile = open( calibFilePath, 'w')
+        self.calibrationSettingsFile = open(calibFilePath, 'w')
         print('#Tone mapping set at ' + timestr, file=self.calibrationSettingsFile) 
         print('def apply(sequence) :', file=self.calibrationSettingsFile) 
         print('    stim = sequence.getStimulusAtFrame({startingFrame})'.format(startingFrame = stim.getStartingFrame()), file=self.calibrationSettingsFile) 
@@ -876,7 +881,7 @@ class LauncherWindow(QWidget):
     def exportVideo(self):
         
         gears.makePath(self.videoFileName.text())
-        gears.enableVideoExport(self.videoFileName.text(), 60, int(self.videoWidthValue.value()), int(self.videoHeightValue.value()) )
+        gears.enableVideoExport(self.videoFileName.text(), 60, int(self.videoWidthValue.value()), int(self.videoHeightValue.value()))
 
         self.timer.stop()
         gears.run()
@@ -941,15 +946,15 @@ class LauncherWindow(QWidget):
             self.calibToneVarLabel.setDisabled(True)
 
 
-        self.calibToneMinValue. setValue( stim.toneRangeMin )
-        self.calibToneMaxValue. setValue( stim.toneRangeMax )
-        self.calibToneMeanValue.setValue( stim.toneRangeMean)
-        self.calibToneVarValue. setValue( stim.toneRangeVar )
+        self.calibToneMinValue. setValue(stim.toneRangeMin)
+        self.calibToneMaxValue. setValue(stim.toneRangeMax)
+        self.calibToneMeanValue.setValue(stim.toneRangeMean)
+        self.calibToneVarValue. setValue(stim.toneRangeVar)
 
-        self.calibMeasuredMinValue.setText(  "{v:.2f}".format(v=stim.measuredToneRangeMin ));
-        self.calibMeasuredMaxValue.setText(  "{v:.2f}".format(v=stim.measuredToneRangeMax ));
-        self.calibMeasuredMeanValue.setText( "{v:.2f}".format(v=stim.measuredToneRangeMean));
-        self.calibMeasuredVarValue.setText(  "{v:.2f}".format(v=stim.measuredToneRangeVar ));
+        self.calibMeasuredMinValue.setText("{v:.2f}".format(v=stim.measuredToneRangeMin))
+        self.calibMeasuredMaxValue.setText("{v:.2f}".format(v=stim.measuredToneRangeMax))
+        self.calibMeasuredMeanValue.setText("{v:.2f}".format(v=stim.measuredToneRangeMean))
+        self.calibMeasuredVarValue.setText("{v:.2f}".format(v=stim.measuredToneRangeVar))
 
         spatialPlotMin = stim.getSpatialPlotMin()
         spatialPlotMax = stim.getSpatialPlotMax()
@@ -957,12 +962,12 @@ class LauncherWindow(QWidget):
         self.aspect = 1
         self.minSpinBox.setMinimum(spatialPlotMin - (spatialPlotMax - spatialPlotMin) * 10)
         self.minSpinBox.setMaximum(spatialPlotMax + (spatialPlotMax - spatialPlotMin) * 10)
-        self.minSpinBox.setSingleStep( (spatialPlotMax - spatialPlotMin) / 10 )
+        self.minSpinBox.setSingleStep((spatialPlotMax - spatialPlotMin) / 10)
         self.minSpinBox.setValue(spatialPlotMin)
         
         self.maxSpinBox.setMinimum(spatialPlotMin - (spatialPlotMax - spatialPlotMin) * 10)
         self.maxSpinBox.setMaximum(spatialPlotMax + (spatialPlotMax - spatialPlotMin) * 10)
-        self.maxSpinBox.setSingleStep( (spatialPlotMax - spatialPlotMin) / 10 )
+        self.maxSpinBox.setSingleStep((spatialPlotMax - spatialPlotMin) / 10)
         self.maxSpinBox.setValue(spatialPlotMax)
         
         self.sizeSpinBox.setMinimum(spatialPlotSize * 0.01)
@@ -975,93 +980,109 @@ class LauncherWindow(QWidget):
         self.spatialPlotSize = spatialPlotSize
 
         if stim.hasSpatialFiltering() :
-            self.optionsTabber.addTab( self.spatialPanel, 'Spatial' )
+            self.optionsTabber.addTab(self.spatialPanel, 'Spatial')
         else :
-            self.optionsTabber.removeTab( self.optionsTabber.indexOf(self.spatialPanel) )
+            self.optionsTabber.removeTab(self.optionsTabber.indexOf(self.spatialPanel))
 
         if stim.hasTemporalFiltering() :
-            self.optionsTabber.addTab( self.temporalPanel, 'Temporal' )
+            self.optionsTabber.addTab(self.temporalPanel, 'Temporal')
         else :
-            self.optionsTabber.removeTab( self.optionsTabber.indexOf(self.temporalPanel) )
+            self.optionsTabber.removeTab(self.optionsTabber.indexOf(self.temporalPanel))
 
-        self.stimulusLabel.setText(
-            stim.name + ' : ' + type(stim).__name__ + str(stim.args) 
-            #+ ' ' 
-            #+ 'Gamma: {gammaType},   Device refresh rate: {devfps:.2f},    Sequence frame rate: {fps:.2f},    Field res.: {w}x{h}'.format(
-            #'{name} duration: {dur} frames, {dursec:.2f} s,  gamma: {gamma}'.format(
-            #        name=stim.name, dur=stim.duration, dursec=stim.getDuration_s(), gamma=stim.gammaLabel) 
+        self.stimulusLabel.setText(stim.name + ' : ' + type(stim).__name__ + str(stim.args) 
+            #+ ' '
+            #+ 'Gamma: {gammaType}, Device refresh rate: {devfps:.2f}, Sequence
+            #frame rate: {fps:.2f}, Field res.: {w}x{h}'.format(
+            #'{name} duration: {dur} frames, {dursec:.2f} s, gamma:
+            #{gamma}'.format(
+            #        name=stim.name, dur=stim.duration,
+            #        dursec=stim.getDuration_s(), gamma=stim.gammaLabel)
             )
         self.stimulusLabel.setWordWrap(True)
-        #self.stimulusLabel.setToolTip( '<div style=\"background-color:black;\">' + self.stimulusLabel.text() + '</div>' )
+        #self.stimulusLabel.setToolTip( '<div
+        #style=\"background-color:black;\">' + self.stimulusLabel.text() +
+        #'</div>' )
 
         self.stimulusTimelineScrollbar.setMinimum(0)
         self.stimulusTimelineScrollbar.setMaximum(0)
         self.stimulusTimelineScrollbar.setValue(0)
-        self.stimulusTimelineScrollbar.setPageStep( stim.duration )
-        self.stimulusTimelineZoomSlider.setMinimum(  1 )
-        self.stimulusTimelineZoomSlider.setMaximum( stim.duration )
-        self.stimulusTimelineZoomSlider.setValue( stim.duration )
+        self.stimulusTimelineScrollbar.setPageStep(stim.duration)
+        self.stimulusTimelineZoomSlider.setMinimum(1)
+        self.stimulusTimelineZoomSlider.setMaximum(stim.duration)
+        self.stimulusTimelineZoomSlider.setValue(stim.duration)
 
         self.update()
 
     def onZoomSlider(self, value) :
         totalExpDuration = self.exp.getDuration()
         if self.midFrame == None :
-            self.midFrame = self.sequenceTimeline.sequenceTimelineStartFrame + self.sequenceTimelineZoom // 2
+            self.midFrame = 0
+            #self.midFrame = self.sequenceTimeline.sequenceTimelineStartFrame +
+            #self.sequenceTimelineZoom // 2
             self.mousePos = 0.5
         self.sequenceTimelineZoom = value
-        self.sequenceTimelineScrollbar.setMaximum(totalExpDuration-self.sequenceTimelineZoom)
-        self.sequenceTimelineScrollbar.setPageStep( self.sequenceTimelineZoom )
-        self.sequenceTimelineScrollbar.setValue( self.midFrame - value * self.mousePos )
+        self.sequenceTimelineScrollbar.setMaximum(totalExpDuration - self.sequenceTimelineZoom)
+        self.sequenceTimelineScrollbar.setPageStep(self.sequenceTimelineZoom)
+        self.sequenceTimelineScrollbar.setValue(self.midFrame - value * self.mousePos)
         self.sequenceTimelineScrollbar.update()
         gears.setSequenceTimelineZoom(value)
-        self.sequenceTimeline.sequenceTimelineZoom = value
+        #self.sequenceTimeline.sequenceTimelineZoom = value
         self.midFrame = None
 
     def onScroll(self, value):
-        #value = self.sequenceTimelineZoomSlider.maximum() - value + self.sequenceTimelineZoomSlider.minimum()
+        #value = self.sequenceTimelineZoomSlider.maximum() - value +
+        #self.sequenceTimelineZoomSlider.minimum()
         gears.setSequenceTimelineStart(value)
-        self.sequenceTimeline.sequenceTimelineStartFrame = value
+        #self.sequenceTimeline.sequenceTimelineStartFrame = value
 
     def onStimZoomSlider(self, value) :
         stim = gears.getSelectedStimulus().getPythonObject()
         if self.midFrame == None :
-            self.midFrame = self.stimulusTimeline.stimulusTimelineStartFrame + self.stimulusTimelineZoom // 2
+            self.midFrame = 0
+            #self.midFrame = self.stimulusTimeline.stimulusTimelineStartFrame +
+            #self.stimulusTimelineZoom // 2
             self.mousePos = 0.5
         self.stimulusTimelineZoom = value
         self.stimulusTimelineScrollbar.setMaximum(stim.duration - self.stimulusTimelineZoom)
-        self.stimulusTimelineScrollbar.setPageStep( self.stimulusTimelineZoom )
-        self.stimulusTimelineScrollbar.setValue( self.midFrame - value * self.mousePos )
+        self.stimulusTimelineScrollbar.setPageStep(self.stimulusTimelineZoom)
+        self.stimulusTimelineScrollbar.setValue(self.midFrame - value * self.mousePos)
         self.stimulusTimelineScrollbar.update()
         gears.setStimulusTimelineZoom(value)
-        self.stimulusTimeline.stimulusTimelineZoom = value
+        #self.stimulusTimeline.stimulusTimelineZoom = value
         self.midFrame = None
 
     def onStimScroll(self, value):
-        #value = self.stimulusTimelineZoomSlider.maximum() - value + self.stimulusTimelineZoomSlider.minimum()
+        #value = self.stimulusTimelineZoomSlider.maximum() - value +
+        #self.stimulusTimelineZoomSlider.minimum()
         #print(value)
         gears.setStimulusTimelineStart(value)
-        self.stimulusTimeline.stimulusTimelineStartFrame = value
+        #self.stimulusTimeline.stimulusTimelineStartFrame = value
 
     def zoom(self, e):
         self.mousePos = e.x() / self.width()
-        self.midFrame = self.mousePos * self.sequenceTimelineZoom + self.sequenceTimeline.sequenceTimelineStartFrame
-        self.sequenceTimelineZoomSlider.setValue( 
-                self.sequenceTimelineZoom 
-                - e.angleDelta().y() * ( self.sequenceTimelineZoomSlider.maximum() - self.sequenceTimelineZoomSlider.minimum() ) // 1920 )
+        #self.midFrame = self.mousePos * self.sequenceTimelineZoom +
+        #self.sequenceTimeline.sequenceTimelineStartFrame
+        #self.sequenceTimelineZoomSlider.setValue(self.sequenceTimelineZoom -
+        #e.angleDelta().y() * (self.sequenceTimelineZoomSlider.maximum() -
+        #self.sequenceTimelineZoomSlider.minimum()) // 1920)
         
     def pan(self, d):
-        self.sequenceTimelineScrollbar.setValue( self.sequenceTimeline.sequenceTimelineStartFrame - d / self.width() * self.sequenceTimelineZoom )
+        pass
+        #self.sequenceTimelineScrollbar.setValue(self.sequenceTimeline.sequenceTimelineStartFrame
+        #- d / self.width() * self.sequenceTimelineZoom)
 
     def stimZoom(self, e):
         self.mousePos = e.x() / self.width()
-        self.midFrame = self.mousePos * self.stimulusTimelineZoom + self.stimulusTimeline.stimulusTimelineStartFrame
-        self.stimulusTimelineZoomSlider.setValue( 
-                self.stimulusTimelineZoom 
-                - e.angleDelta().y() * ( self.stimulusTimelineZoomSlider.maximum() - self.stimulusTimelineZoomSlider.minimum() ) // 1920 )
+        #self.midFrame = self.mousePos * self.stimulusTimelineZoom +
+        #self.stimulusTimeline.stimulusTimelineStartFrame
+        #self.stimulusTimelineZoomSlider.setValue(self.stimulusTimelineZoom -
+        #e.angleDelta().y() * (self.stimulusTimelineZoomSlider.maximum() -
+        #self.stimulusTimelineZoomSlider.minimum()) // 1920)
         
     def stimPan(self, d):
-        self.stimulusTimelineScrollbar.setValue( self.stimulusTimeline.stimulusTimelineStartFrame - d / self.width() * self.stimulusTimelineZoom )
+        pass
+        #self.stimulusTimelineScrollbar.setValue(self.stimulusTimeline.stimulusTimelineStartFrame
+        #- d / self.width() * self.stimulusTimelineZoom)
 
     def applyMeasuredToneMin(self, d):
         stim = gears.getSelectedStimulus().getPythonObject()
@@ -1167,7 +1188,7 @@ class LauncherWindow(QWidget):
         pathInCalibs = self.path.replace('Sequences', 'Tonemapping', 1)
         calibFilePath = pathInCalibs.replace('.pyx', '_@frame' + str(stim.getStartingFrame()) + '_tonemap.py', 1)
         gears.makePath(calibFilePath)
-        toneMapSettingsFile = open( calibFilePath, 'w')
+        toneMapSettingsFile = open(calibFilePath, 'w')
         print('def apply(sequence) :', file=toneMapSettingsFile) 
         print('    stim = sequence.getStimulusAtFrame({startingFrame})'.format(startingFrame = stim.getStartingFrame()), file=toneMapSettingsFile) 
         if self.toneMappingRadioErf.isChecked() :
@@ -1188,9 +1209,7 @@ class LauncherWindow(QWidget):
 
     def warn(self, message):
         self.outputStream.cursor().setPos(QTextCursor.End, QTextCursor.MoveAnchor)
-        self.outputStream.insertHtml('<table bgcolor=#ff0000><td bgcolor=#ff0000><font size=20 color=#000000>{message}</font></td></table>'.format(
-                message = message)
-                                     )
+        self.outputStream.insertHtml('<table bgcolor=#ff0000><td bgcolor=#ff0000><font size=20 color=#000000>{message}</font></td></table>'.format(message = message))
 
     def openIde(self):
         self.ide = Ide(self.sequencePath, self.browserWindow.tree)

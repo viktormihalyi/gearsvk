@@ -92,13 +92,13 @@ public:
         memcpy (mappedMemory, &obj, size);
     }
 
-    void Copy (const void* data, size_t copiedSize, size_t copiedOffset) const
+    void Copy (const void* data, size_t copiedSize) const
     {
-        if (GVK_ERROR (copiedSize + copiedOffset > size)) {
+        if (GVK_ERROR (copiedSize > size)) {
             throw std::runtime_error ("overflow");
         }
 
-        memcpy (mappedMemory, reinterpret_cast<const uint8_t*> (data) + copiedOffset, copiedSize);
+        memcpy (mappedMemory, reinterpret_cast<const uint8_t*> (data), copiedSize);
     }
 
     void*    Get () const { return mappedMemory; }

@@ -77,14 +77,16 @@ public:
 
 
 USING_PTR (WritableImageResource);
-
 class GEARSVK_API WritableImageResource : public ImageResource, public InputImageBindable {
+    USING_CREATE (WritableImageResource);
+
 private:
     SamplerU sampler;
 
     USING_PTR (SingleImageResource);
-
     struct SingleImageResource final {
+        USING_CREATE (SingleImageResource);
+
         static const VkFormat FormatRGBA;
         static const VkFormat FormatRGB;
 
@@ -99,10 +101,9 @@ private:
         // NO  read, YES write: general -> write
         // YES read, YES write: general -> write -> read
 
-        USING_CREATE (SingleImageResource);
 
-        SingleImageResource (const GraphSettings& graphSettings, uint32_t arrayLayers)
-            : image (Image2D::Create (graphSettings.GetDevice ().GetAllocator (), ImageBase::MemoryLocation::GPU, graphSettings.width, graphSettings.height, FormatRGBA, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, arrayLayers))
+        SingleImageResource (const GraphSettings& graphSettings, uint32_t width, uint32_t height, uint32_t arrayLayers)
+            : image (Image2D::Create (graphSettings.GetDevice ().GetAllocator (), ImageBase::MemoryLocation::GPU, width, height, FormatRGBA, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, arrayLayers))
         {
             for (uint32_t layerIndex = 0; layerIndex < arrayLayers; ++layerIndex) {
                 imageViews.push_back (ImageView2D::Create (graphSettings.GetDevice (), *image, layerIndex));
@@ -111,14 +112,16 @@ private:
     };
 
 public:
+    uint32_t                          width;
+    uint32_t                          height;
     uint32_t                          arrayLayers;
     std::vector<SingleImageResourceU> images;
 
 public:
-    USING_CREATE (WritableImageResource);
-
-    WritableImageResource (uint32_t arrayLayers = 1)
-        : arrayLayers (arrayLayers)
+    WritableImageResource (uint32_t width, uint32_t height, uint32_t arrayLayers = 1)
+        : width (width)
+        , height (height)
+        , arrayLayers (arrayLayers)
     {
     }
 
@@ -147,7 +150,7 @@ public:
 
         images.clear ();
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            images.push_back (SingleImageResource::Create (graphSettings, arrayLayers));
+            images.push_back (SingleImageResource::Create (graphSettings, width, height, arrayLayers));
         }
     }
 
@@ -297,18 +300,19 @@ public:
     }
 };
 
-USING_PTR (SwapchainImageResource);
 
+USING_PTR (SwapchainImageResource);
 class GEARSVK_API SwapchainImageResource : public ImageResource, public InputImageBindable {
+    USING_CREATE (SwapchainImageResource);
+
 public:
     std::vector<ImageView2DU>    imageViews;
-    Swapchain&                   swapchain;
+    SwapchainProvider&           swapchainProv;
     std::vector<InheritedImageU> inheritedImages;
 
 public:
-    USING_CREATE (SwapchainImageResource);
-    SwapchainImageResource (Swapchain& swapchain)
-        : swapchain (swapchain)
+    SwapchainImageResource (SwapchainProvider& swapchainProv)
+        : swapchainProv (swapchainProv)
     {
     }
 
@@ -317,17 +321,17 @@ public:
     // overriding Resource
     virtual void Compile (const GraphSettings& graphSettings) override
     {
-        const std::vector<VkImage> swapChainImages = swapchain.GetImages ();
+        const std::vector<VkImage> swapChainImages = swapchainProv.GetSwapchain ().GetImages ();
 
         imageViews.clear ();
         for (size_t i = 0; i < swapChainImages.size (); ++i) {
-            imageViews.push_back (ImageView2D::Create (graphSettings.GetDevice (), swapChainImages[i], swapchain.GetImageFormat ()));
+            imageViews.push_back (ImageView2D::Create (graphSettings.GetDevice (), swapChainImages[i], swapchainProv.GetSwapchain ().GetImageFormat ()));
             inheritedImages.push_back (InheritedImage::Create (
                 swapChainImages[i],
-                swapchain.GetWidth (),
-                swapchain.GetHeight (),
+                swapchainProv.GetSwapchain ().GetWidth (),
+                swapchainProv.GetSwapchain ().GetHeight (),
                 1,
-                swapchain.GetImageFormat (),
+                swapchainProv.GetSwapchain ().GetImageFormat (),
                 1));
         }
     }
@@ -336,7 +340,7 @@ public:
     virtual void          BindRead (uint32_t, CommandBuffer&) override {}
     virtual void          BindWrite (uint32_t, CommandBuffer&) override {}
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; }
-    virtual VkFormat      GetFormat () const override { return swapchain.GetImageFormat (); }
+    virtual VkFormat      GetFormat () const override { return swapchainProv.GetSwapchain ().GetImageFormat (); }
     virtual uint32_t      GetDescriptorCount () const override { return 1; }
 
     virtual std::vector<ImageBase*> GetImages () const override
@@ -379,6 +383,9 @@ public:
     // overriding Resource
     virtual void Compile (const GraphSettings& graphSettings) override
     {
+        buffers.clear ();
+        mappings.clear ();
+
         for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
             buffers.push_back (UniformBuffer::Create (graphSettings.GetDevice ().GetAllocator (), size, 0, Buffer::MemoryLocation::CPU));
             mappings.push_back (MemoryMapping::Create (graphSettings.GetDevice ().GetAllocator (), *buffers[buffers.size () - 1]));
@@ -418,7 +425,7 @@ public:
     void Set (uint32_t frameIndex, UniformBlock& uniformBlock)
     {
         GVK_ASSERT (uniformBlock.GetSize () == size);
-        GetMapping (frameIndex).Copy (uniformBlock.GetData (), uniformBlock.GetSize (), 0);
+        GetMapping (frameIndex).Copy (uniformBlock.GetData (), uniformBlock.GetSize ());
     }
 };
 

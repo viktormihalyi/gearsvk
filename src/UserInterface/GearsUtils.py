@@ -4,7 +4,7 @@ from numpy import matmul
 from numpy import array
 from numpy import linalg
 import Gears as gears
-from PyQt5.QtOpenGL import (QGLWidget, QGLFormat, QGLContext)
+#from PyQt5.QtOpenGL import (QGLWidget, QGLFormat, QGLContext)
 
 ####################################################################
 #                    Color conversion utilities                    #
@@ -118,6 +118,7 @@ def convertFromRGBColor(color, colorConverter):
 ####################################################################
 
 def initQGLWidget(self, base, parent, winId):
+    """
     format = QGLFormat()
     format.setSwapInterval(1)
     if system() == 'Windows':
@@ -131,3 +132,5 @@ def initQGLWidget(self, base, parent, winId):
     else:
         print("Not supported platform: " + system())
         sys.exit(1)
+    """
+    pass

@@ -3,6 +3,8 @@ cmake_minimum_required (VERSION 3.10)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED True)
 
+set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 message ("cmake binary dir is " ${CMAKE_BINARY_DIR})
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -45,7 +47,7 @@ else ()
 endif ()
 
 if (MSVC)
-    set (COMPILER_FLAGS /W4 /wd4251 /wd4100 /wd4189)
+    set (COMPILER_FLAGS)
 else ()
     set (COMPILER_FLAGS -fPIC)
 endif ()

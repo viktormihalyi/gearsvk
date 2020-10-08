@@ -9,24 +9,14 @@ struct GraphSettings {
     const DeviceExtra* device;
     uint32_t           framesInFlight;
 
-    // TODO remove
-    uint32_t width;
-    uint32_t height;
-
-    GraphSettings (const DeviceExtra& device, VkQueue queue, VkCommandPool commandPool, uint32_t framesInFlight, uint32_t width, uint32_t height)
+    GraphSettings (const DeviceExtra& device, VkQueue queue, VkCommandPool commandPool, uint32_t framesInFlight)
         : device (&device)
         , framesInFlight (framesInFlight)
-        , width (width)
-        , height (height)
     {
     }
 
-    GraphSettings (const DeviceExtra& device, uint32_t framesInFlight, uint32_t width, uint32_t height)
-        : GraphSettings (device, device.GetGraphicsQueue (), device.GetCommandPool (), framesInFlight, width, height)
-    {
-    }
-    GraphSettings (const DeviceExtra& device, const Swapchain& swapchain)
-        : GraphSettings (device, device.GetGraphicsQueue (), device.GetCommandPool (), swapchain.GetImageCount (), swapchain.GetWidth (), swapchain.GetHeight ())
+    GraphSettings (const DeviceExtra& device, uint32_t framesInFlight)
+        : GraphSettings (device, device.GetGraphicsQueue (), device.GetCommandPool (), framesInFlight)
     {
     }
 
@@ -34,8 +24,6 @@ struct GraphSettings {
     GraphSettings ()
         : device (nullptr)
         , framesInFlight (0)
-        , width (0)
-        , height (0)
     {
     }
 

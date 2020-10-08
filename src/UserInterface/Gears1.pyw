@@ -15,20 +15,13 @@ from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtMultimedia import (QMediaPlayer, QMediaPlaylist)
 from PyQt5.QtNetwork import QAuthenticator
 
-from StimulusWindow import StimulusWindow
+#from StimulusWindow import StimulusWindow
 #from MediaWindow import MediaWindow
 from LauncherWindow import LauncherWindow
 from BrowserWindow import BrowserWindow
 
 try:
-  from OpenGL.GL import *
-  from OpenGL.GLU import *
-except:
-  print('ERROR: PyOpenGL not installed properly.')
-
-
-try:
-    Qt.AA_ShareOpenGLContexts = True
+    #Qt.AA_ShareOpenGLContexts = True
     app = QApplication(sys.argv)
     app.setKeyboardInputInterval(0)
 

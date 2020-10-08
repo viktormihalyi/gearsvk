@@ -94,6 +94,12 @@ int main (int, char**)
 {
     WindowU window = GLFWWindow::Create ();
 
+    window->SetWindowMode (Window::Mode::Fullscreen);
+    window->SetWindowMode (Window::Mode::Windowed);
+    window->SetWindowMode (Window::Mode::Fullscreen);
+    window->SetWindowMode (Window::Mode::Windowed);
+    window->SetWindowMode (Window::Mode::Fullscreen);
+
     VulkanEnvironmentU testenv = VulkanEnvironment::Create (*window);
 
     Device&      device        = *testenv->device;
@@ -106,7 +112,7 @@ int main (int, char**)
     CameraControl cameraControl (c, window->events);
     c.SetSpeed (3.f);
 
-    RG::GraphSettings s (deviceExtra, swapchain);
+    RG::GraphSettings s (deviceExtra, swapchain.GetImageCount ());
     RG::RenderGraph   graph;
 
 
@@ -122,7 +128,7 @@ int main (int, char**)
 
     // ========================= GRAPH RESOURCES =========================
 
-    RG::SwapchainImageResourceP    presented = graph.CreateResource<RG::SwapchainImageResource> (swapchain);
+    RG::SwapchainImageResourceP    presented = graph.CreateResource<RG::SwapchainImageResource> (*testenv);
     RG::UniformReflectionResourceP refl      = graph.CreateResource<RG::UniformReflectionResource> (sp, RG::UniformReflectionResource::Strategy::UniformBlocksOnly);
 
 

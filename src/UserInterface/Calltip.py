@@ -2,7 +2,7 @@
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QLabel, QDialog, QWidget, QGridLayout, QErrorMessage
 from PyQt5.Qsci import QsciScintilla, QsciScintillaBase, QsciLexerPython, QsciAPIs
-from PolymaskGenerator.PolymaskGeneratorWindow import *
+#from PolymaskGenerator.PolymaskGeneratorWindow import *
 from numpy import array as ar
 
 class Calltip(QLabel):
@@ -17,8 +17,8 @@ class Calltip(QLabel):
         font.setPointSize(10)
         self.setFont(font)
 
-        self.setTextFormat( Qt.RichText )
-        self.setOpenExternalLinks( False )
+        self.setTextFormat(Qt.RichText)
+        self.setOpenExternalLinks(False)
         self.linkActivated.connect(self.onLink)
 
         #self.setFocusPolicy(Qt.NoFocus)
@@ -62,7 +62,7 @@ class Calltip(QLabel):
         pos += 1
         while pos < len(text) and text[pos] != "]":
             if text[pos] == "[":
-                pos, cp = self.get_controls(pos+1, text)
+                pos, cp = self.get_controls(pos + 1, text)
                 cps.append(cp)
             pos += 1
 
@@ -91,7 +91,7 @@ class Calltip(QLabel):
                     valrep = citem[0][len("Project.Components."):] + "()"
             except AttributeError:
                 pass
-            self.editor.addKeyword( '''{keyword} = {defval} ,'''.format( keyword = link, defval = valrep ) , self.lpos )
+            self.editor.addKeyword('''{keyword} = {defval} ,'''.format(keyword = link, defval = valrep) , self.lpos)
             #TODO indent as in code
 
     #def mousePressEvent(self, e):
@@ -105,8 +105,7 @@ class Calltip(QLabel):
                 text += '''
                 <TR>
                 <TD> <A HREF="{varname}" style="color:blue;">{varname}</A></TD>
-                '''.format(
-                            varname = ckw)
+                '''.format(varname = ckw)
                 if ckw == "polygonMask":
                     text+='''<TD align=right><A HREF="generate_polymask" style="color:black;">Generate Polymask</A></TD>'''
                 else:
@@ -116,7 +115,8 @@ class Calltip(QLabel):
                 </TR>
                 '''.format(doc=canno)
 
-            #    text = text.replace('>' + key + '</A>', 'style="color:red;">' + key + '</A>')
+            #    text = text.replace('>' + key + '</A>', 'style="color:red;">'
+            #    + key + '</A>')
             else:
                 valrep = repr(cdefault)
                 try :
@@ -127,8 +127,7 @@ class Calltip(QLabel):
                 text += '''
                 <TR>
                 <TD> <A HREF="{varname}" style="color:red;">{varname}</A></TD> 
-                '''.format(
-                            varname = ckw)
+                '''.format(varname = ckw)
 
                 if ckw == "polygonMask":
                     text+='''<TD align=right><A HREF="generate_polymask" style="color:green;">Generate Polymask</A></TD>'''

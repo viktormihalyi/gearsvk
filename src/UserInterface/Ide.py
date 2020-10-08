@@ -4,17 +4,16 @@ from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QWidget, QGridLayout,
 from PyQt5.Qsci import QsciScintilla, QsciScintillaBase, QsciLexerPython, QsciAPIs
 
 from Editor import Editor
-from Preview import Preview
+#from Preview import Preview
 from SequenceLoader import *
-from PolymaskGenerator.PolymaskGeneratorWindow import *
-
+#from PolymaskGenerator.PolymaskGeneratorWindow import *
 class Ide(QWidget):
 
     def __init__(self, sequencePath, browser, errline=0, parent=None):
         super().__init__(parent)
         self.sequencePath = sequencePath
         self.browser = browser
-        self.polyMaskGenWnd = PolymaskGeneratorWindow()
+        #self.polyMaskGenWnd = PolymaskGeneratorWindow()
 
         self.playSpeed = 1
 
@@ -35,8 +34,8 @@ class Ide(QWidget):
         self.discardButton.clicked.connect(self.discard)
         grid.addWidget(self.discardButton, 5, 2, 1, 8)
 
-        self.preview = Preview(self.rpanel, self.editor, self.winId())
-        grid.addWidget(self.preview, 2, 2, 1, 8)
+        #self.preview = Preview(self.rpanel, self.editor, self.winId())
+        #grid.addWidget(self.preview, 2, 2, 1, 8)
 
         self.seeker = QSlider(Qt.Horizontal, self.rpanel)
         self.seeker.setTickPosition(QSlider.TicksBelow)
@@ -53,7 +52,7 @@ class Ide(QWidget):
         grid.addWidget(self.seeker, 3, 2, 1, 8)
 
         self.pauseButton = QPushButton('\u275a\u275a', self.rpanel)
-        self.pauseButton.clicked.connect( self.pause )
+        self.pauseButton.clicked.connect(self.pause)
         grid.addWidget(self.pauseButton, 4, 2, 1, 1)
 
         self.play1button = QPushButton('\u25b6', self.rpanel)
@@ -77,10 +76,11 @@ class Ide(QWidget):
         self.timer.start()
 
     def onTimer(self):
-        self.seeker.setValue(self.preview.sFrame)
-        if not self.seeking :
-            self.preview.sFrame += self.playSpeed
-        self.preview.update()
+        #self.seeker.setValue(self.preview.sFrame)
+        #if not self.seeking :
+        #    self.preview.sFrame += self.playSpeed
+        #self.preview.update()
+        pass
 
     def reload(self, e):
         self.editor.save()
@@ -100,7 +100,8 @@ class Ide(QWidget):
         self.seeking = False
 
     def seekerChanged(self):
-        self.preview.sFrame = self.seeker.value()
+        #self.preview.sFrame = self.seeker.value()
+        pass
 
     def pause(self, e):
         self.playSpeed = 0
@@ -112,4 +113,5 @@ class Ide(QWidget):
         self.playSpeed = 2
 
     def openPolyGenWindow(self):
-        self.polyMaskGenWnd.show()
+        pass
+        #self.polyMaskGenWnd.show()

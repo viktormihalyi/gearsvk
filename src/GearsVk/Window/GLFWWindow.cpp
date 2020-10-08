@@ -45,12 +45,46 @@ constexpr uint32_t InitialWindowWidth  = 800;
 constexpr uint32_t InitialWindowHeight = 600;
 
 
-GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
+struct GLFWWindowBase::Impl {
+    GLFWwindow*  window;
+    VkSurfaceKHR surface;
+
+    uint32_t width;
+    uint32_t height;
+
+    uint32_t widthWindowed;
+    uint32_t heightWindowed;
+    int32_t  posXWindowed;
+    int32_t  posYWindowed;
+
+    Window::Mode mode;
+
+    GLFWWindowBase::Impl ();
+};
+
+
+GLFWWindowBase::Impl::Impl ()
     : window (nullptr)
     , surface (VK_NULL_HANDLE)
-    , width (InitialWindowWidth)
-    , height (InitialWindowHeight)
+
+    , width (0)
+    , height (0)
+
+    , widthWindowed (0)
+    , heightWindowed (0)
+    , posXWindowed (0)
+    , posYWindowed (0)
+    , mode (Window::Mode::Windowed)
 {
+}
+
+
+GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
+    : impl (std::make_unique<Impl> ())
+{
+    impl->width  = InitialWindowWidth;
+    impl->height = InitialWindowHeight;
+
     globalGLFWInitializer.EnsureInitialized ();
 
     // settings
@@ -92,15 +126,17 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
 
     if (useFullscreen) {
         const GLFWvidmode* mode = glfwGetVideoMode (primaryMonitor);
-        width                   = mode->width;
-        height                  = mode->height;
+        impl->width             = mode->width;
+        impl->height            = mode->height;
         usedMonitor             = primaryMonitor;
     }
 
-    GLFWwindow* glfwWindow = glfwCreateWindow (width, height, "test", usedMonitor, nullptr);
+    GLFWwindow* glfwWindow = glfwCreateWindow (impl->width, impl->height, "test", usedMonitor, nullptr);
     if (GVK_ERROR (glfwWindow == nullptr)) {
         throw std::runtime_error ("failed to create window");
     }
+
+    impl->window = glfwWindow;
 
     // window settings
 
@@ -162,8 +198,8 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     glfwSetWindowSizeCallback (glfwWindow, [] (GLFWwindow* window, int width, int height) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
-        self->width  = width;
-        self->height = height;
+        self->impl->width  = width;
+        self->impl->height = height;
 
         std::cout << "window resized" << std::endl;
         self->events.resized (width, height);
@@ -195,49 +231,63 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
 
         std::cout << "framebuffer resized" << std::endl;
     });
-
-    window = reinterpret_cast<void*> (glfwWindow);
 }
 
 
 GLFWWindowBase::~GLFWWindowBase ()
 {
-    surface = VK_NULL_HANDLE;
-    glfwDestroyWindow (reinterpret_cast<GLFWwindow*> (window));
+    impl->surface = VK_NULL_HANDLE;
+    glfwDestroyWindow (impl->window);
+    impl->window = nullptr;
 }
 
 
 void* GLFWWindowBase::GetHandle () const
 {
-    return window;
+    return impl->window;
 }
 
 
 uint32_t GLFWWindowBase::GetWidth () const
 {
-    return width;
+    return impl->width;
 }
 
 
 uint32_t GLFWWindowBase::GetHeight () const
 {
-    return height;
+    return impl->height;
 }
 
 
 float GLFWWindowBase::GetAspectRatio () const
 {
-    return static_cast<float> (width) / height;
+    return static_cast<float> (impl->width) / impl->height;
+}
+
+
+void GLFWWindowBase::PollEvents ()
+{
+    glfwPollEvents ();
+    if (glfwWindowShouldClose (impl->window)) {
+        throw std::runtime_error ("window closing");
+    }
+}
+
+
+void GLFWWindowBase::Close ()
+{
+    glfwSetWindowShouldClose (impl->window, GLFW_TRUE);
 }
 
 
 void GLFWWindowBase::DoEventLoop (const DrawCallback& drawCallback)
 {
-    if (GVK_ERROR (window == nullptr)) {
+    if (GVK_ERROR (impl->window == nullptr)) {
         return;
     }
 
-    while (!glfwWindowShouldClose (reinterpret_cast<GLFWwindow*> (window))) {
+    while (!glfwWindowShouldClose (impl->window)) {
         glfwPollEvents ();
 
         bool stop = false;
@@ -245,14 +295,16 @@ void GLFWWindowBase::DoEventLoop (const DrawCallback& drawCallback)
         drawCallback (stop);
 
         if (stop) {
-            glfwSetWindowShouldClose (reinterpret_cast<GLFWwindow*> (window), GLFW_TRUE);
+            glfwSetWindowShouldClose (impl->window, GLFW_TRUE);
         }
     }
 }
 
 
-std::vector<const char*> GLFWWindowBase::GetExtensions () const
+std::vector<const char*> Window::GetExtensions ()
 {
+    globalGLFWInitializer.EnsureInitialized ();
+
     uint32_t     glfwExtensionCount = 0;
     const char** glfwExtensions     = glfwGetRequiredInstanceExtensions (&glfwExtensionCount);
     GVK_ASSERT (glfwExtensionCount != 0);
@@ -267,36 +319,62 @@ std::vector<const char*> GLFWWindowBase::GetExtensions () const
 
 VkSurfaceKHR GLFWWindowBase::GetSurface (VkInstance instance)
 {
-    GVK_ASSERT (window != nullptr);
+    GVK_ASSERT (impl->window != nullptr);
 
-    if (surface != VK_NULL_HANDLE) {
-        return surface;
+    if (impl->surface != VK_NULL_HANDLE) {
+        return impl->surface;
     }
 
-    VkResult result = glfwCreateWindowSurface (instance, reinterpret_cast<GLFWwindow*> (window), nullptr, &surface);
-    if (result != VK_SUCCESS) {
+    VkResult result = glfwCreateWindowSurface (instance, impl->window, nullptr, &impl->surface);
+    if (GVK_ERROR (result != VK_SUCCESS)) {
         throw std::runtime_error ("Failed to create glfw surface");
     }
 
-    return surface;
+    return impl->surface;
 }
 
 
 void GLFWWindowBase::Hide ()
 {
-    glfwHideWindow (reinterpret_cast<GLFWwindow*> (window));
+    glfwHideWindow (impl->window);
 }
 
 
 void GLFWWindowBase::Show ()
 {
-    glfwShowWindow (reinterpret_cast<GLFWwindow*> (window));
+    glfwShowWindow (impl->window);
 }
 
 
 void GLFWWindowBase::Focus ()
 {
-    glfwFocusWindow (reinterpret_cast<GLFWwindow*> (window));
+    glfwFocusWindow (impl->window);
+}
+
+
+void GLFWWindowBase::SetWindowMode (Mode mode)
+{
+    GLFWmonitor*       primaryMonitor     = glfwGetPrimaryMonitor ();
+    const GLFWvidmode* primaryMonitorMode = glfwGetVideoMode (primaryMonitor);
+
+    if (mode != Window::Mode::Windowed) {
+        glfwGetWindowPos (impl->window, &impl->posXWindowed, &impl->posYWindowed);
+    }
+
+    if (mode == Window::Mode::Fullscreen) {
+        glfwSetWindowMonitor (impl->window, primaryMonitor, 0, 0, primaryMonitorMode->width, primaryMonitorMode->height, primaryMonitorMode->refreshRate);
+    } else if (mode == Window::Mode::Windowed) {
+        glfwSetWindowMonitor (impl->window, nullptr, 0, 0, 800, 600, primaryMonitorMode->refreshRate);
+        glfwSetWindowPos (impl->window, impl->posXWindowed, impl->posYWindowed);
+    } else {
+        GVK_BREAK ("unexpected window mode type");
+    }
+}
+
+
+Window::Mode GLFWWindowBase::GetWindowMode ()
+{
+    return Window::Mode::Windowed;
 }
 
 
@@ -308,7 +386,7 @@ GLFWWindow::GLFWWindow ()
 
 HiddenGLFWWindow::HiddenGLFWWindow ()
     : GLFWWindowBase ({
-          {GLFW_VISIBLE, GLFW_FALSE},
+          { GLFW_VISIBLE, GLFW_FALSE },
       })
 {
 }

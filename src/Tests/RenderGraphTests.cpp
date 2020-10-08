@@ -136,10 +136,8 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    GraphSettings s (device, 3, 512, 512);
+    GraphSettings s (device, 3);
     RenderGraph   graph;
-
-    ImageResourceP red = graph.CreateResource<WritableImageResource> ();
 
     auto sp = ShaderPipeline::CreateShared (device);
     sp->SetVertexShaderFromString (R"(
@@ -186,6 +184,8 @@ void main () {
 
     RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
 
+    ImageResourceP red = graph.CreateResource<WritableImageResource> (512, 512);
+
     graph.CreateOutputConnection (*redFillOperation, 0, *red);
 
     graph.Compile (s);
@@ -209,25 +209,26 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
-    GraphSettings s (device, 4, 512, 512);
+    GraphSettings s (device, 4);
     RenderGraph   graph;
 
-    WritableImageResourceP presented = graph.CreateResource<WritableImageResource> ();
-    WritableImageResourceP green     = graph.CreateResource<WritableImageResource> ();
-    WritableImageResourceP red       = graph.CreateResource<WritableImageResource> ();
-    WritableImageResourceP finalImg  = graph.CreateResource<WritableImageResource> ();
+    WritableImageResourceP presented = graph.CreateResource<WritableImageResource> (512, 512);
+    WritableImageResourceP green     = graph.CreateResource<WritableImageResource> (512, 512);
+    WritableImageResourceP red       = graph.CreateResource<WritableImageResource> (512, 512);
+    WritableImageResourceP finalImg  = graph.CreateResource<WritableImageResource> (512, 512);
 
-    OperationP dummyPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
-                                                                   ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                                             ShadersFolder / "test.vert",
-                                                                                                             ShadersFolder / "test.frag",
-                                                                                                         }));
 
-    OperationP secondPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
-                                                                    ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                                              ShadersFolder / "fullscreenquad.vert",
-                                                                                                              ShadersFolder / "fullscreenquad.frag",
-                                                                                                          }));
+    RenderOperationP dummyPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
+                                                                         ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
+                                                                                                                   ShadersFolder / "test.vert",
+                                                                                                                   ShadersFolder / "test.frag",
+                                                                                                               }));
+
+    RenderOperationP secondPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
+                                                                          ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
+                                                                                                                    ShadersFolder / "fullscreenquad.vert",
+                                                                                                                    ShadersFolder / "fullscreenquad.frag",
+                                                                                                                }));
 
 
     graph.CreateInputConnection (*dummyPass, *green, ImageInputBinding::Create (0, *green));
@@ -267,7 +268,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, SwapchainTest)
     Swapchain&   swapchain     = GetSwapchain ();
 
 
-    GraphSettings s (device, swapchain);
+    GraphSettings s (device, swapchain.GetImageCount ());
     RenderGraph   graph;
 
     auto sp = ShaderPipeline::CreateShared (device);
@@ -318,10 +319,10 @@ void main () {
 }
     )");
 
-    ImageResourceP presentedCopy = graph.CreateResource<WritableImageResource> ();
-    ImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
+    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
 
-    OperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
+    ImageResourceP presentedCopy = graph.CreateResource<WritableImageResource> (800, 600);
+    ImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*env);
 
     graph.CreateOutputConnection (*redFillOperation, 0, *presented);
     graph.CreateOutputConnection (*redFillOperation, 1, *presentedCopy);
@@ -335,12 +336,14 @@ void main () {
 
 TEST_F (HiddenWindowGoogleTestEnvironment, VertexAndIndexBufferTest)
 {
-    DeviceExtra&  device        = GetDeviceExtra ();
-    CommandPool&  commandPool   = GetCommandPool ();
-    Queue&        graphicsQueue = GetGraphicsQueue ();
-    Swapchain&    swapchain     = GetSwapchain ();
-    GraphSettings s (device, swapchain);
-    RenderGraph   graph;
+    DeviceExtra& device        = GetDeviceExtra ();
+    CommandPool& commandPool   = GetCommandPool ();
+    Queue&       graphicsQueue = GetGraphicsQueue ();
+    Swapchain&   swapchain     = GetSwapchain ();
+
+    GraphSettings s (device, swapchain.GetImageCount ());
+
+    RenderGraph graph;
 
     auto sp = ShaderPipeline::CreateShared (device);
     sp->SetVertexShaderFromString (R"(
@@ -379,9 +382,6 @@ void main () {
 }
     )");
 
-    WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> ();
-    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
-
     struct Vert {
         glm::vec2 position;
         glm::vec2 uv;
@@ -404,6 +404,9 @@ void main () {
     RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
                                                                                 std::move (sp));
 
+    WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> (800, 600);
+    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*env);
+
     graph.CreateOutputConnection (*redFillOperation, 0, *presented);
     graph.CreateOutputConnection (*redFillOperation, 1, *presentedCopy);
 
@@ -423,7 +426,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, BasicUniformBufferTest)
     Queue&       graphicsQueue = GetGraphicsQueue ();
     Swapchain&   swapchain     = GetSwapchain ();
 
-    GraphSettings s (device, swapchain);
+    GraphSettings s (device, swapchain.GetImageCount ());
     RenderGraph   graph;
 
     auto sp = ShaderPipeline::CreateShared (device);
@@ -472,10 +475,6 @@ void main () {
 }
     )");
 
-    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (swapchain);
-    WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> (2);
-    UniformBlockResourceP   unif          = graph.CreateResource<UniformBlockResource> (4);
-
     struct Vert {
         glm::vec2 position;
         glm::vec2 uv;
@@ -497,7 +496,11 @@ void main () {
     ib.data = { 0, 1, 2, 0, 3, 2 };
     ib.Flush ();
 
-    OperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, *vbb, ib), std::move (sp));
+    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, *vbb, ib), std::move (sp));
+
+    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*env);
+    WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> (800, 600, 2);
+    UniformBlockResourceP   unif          = graph.CreateResource<UniformBlockResource> (4);
 
     graph.CreateInputConnection (*redFillOperation, *unif, UniformInputBinding::Create (0, *unif));
     graph.CreateOutputConnection (*redFillOperation, 0, *presentedCopy);

@@ -64,7 +64,7 @@ int main (int, char**)
     Camera        c (glm::vec3 (-1, 0, 0.5f), glm::vec3 (1, 0.0f, 0), window->GetAspectRatio ());
     CameraControl cameraControl (c, window->events);
 
-    RG::GraphSettings s (device, swapchain);
+    RG::GraphSettings s (device, swapchain.GetImageCount ());
     RG::RenderGraph   graph;
 
 
@@ -81,11 +81,11 @@ int main (int, char**)
 
     // ========================= GRAPH RESOURCES =========================
 
-    RG::SwapchainImageResourceP presented = graph.CreateResource<RG::SwapchainImageResource> (swapchain);
+    RG::SwapchainImageResourceP presented = graph.CreateResource<RG::SwapchainImageResource> (*testenv);
     RG::ReadOnlyImageResourceP  matcap    = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
     RG::ReadOnlyImageResourceP  agy3d     = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
 
-    RG::UniformReflection r (graph, s);
+    RG::UniformReflection r (graph);
 
     // ========================= GRAPH CONNECTIONS =========================
 

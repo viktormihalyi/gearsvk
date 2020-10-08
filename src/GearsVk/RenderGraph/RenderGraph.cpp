@@ -146,10 +146,36 @@ void RenderGraph::Compile (const GraphSettings& settings)
 
     CompileResources (settings);
 
-    for (auto& op : operations) {
-        op->Compile (settings);
-    }
 
+    for (Pass& pass : passes) {
+        for (Operation* op : pass.operations) {
+            ImageResource* firstImgRes = nullptr;
+
+            for (Resource* res : pass.outputs) {
+                if (ImageResource* imgres = dynamic_cast<ImageResource*> (res)) {
+                    if (firstImgRes == nullptr) {
+                        firstImgRes = imgres;
+                    } else {
+                        const uint32_t firstWidth  = firstImgRes->GetImages ()[0]->GetWidth ();
+                        const uint32_t firstHeight = firstImgRes->GetImages ()[0]->GetHeight ();
+
+                        const uint32_t currentWidth  = imgres->GetImages ()[0]->GetWidth ();
+                        const uint32_t currentHeight = imgres->GetImages ()[0]->GetHeight ();
+
+                        if (firstWidth != currentWidth || firstHeight != currentHeight) {
+                            throw std::runtime_error ("inconsistent output image extents");
+                        }
+                    }
+                }
+            }
+
+            if (GVK_ERROR (firstImgRes == nullptr)) {
+                op->Compile (settings, 500, 500);
+            } else {
+                op->Compile (settings, firstImgRes->GetImages ()[0]->GetWidth (), firstImgRes->GetImages ()[0]->GetHeight ());
+            }
+        }
+    }
 
     operationCommandBuffers.clear ();
     resourceReadCommandBuffers.clear ();

@@ -5,16 +5,16 @@
 
 #include "Window.hpp"
 
+#include <memory>
 #include <optional>
 #include <vector>
+
 
 USING_PTR (GLFWWindowBase);
 class GEARSVK_API GLFWWindowBase : public Window {
 private:
-    uint32_t     width;
-    uint32_t     height;
-    void*        window;
-    VkSurfaceKHR surface;
+    struct Impl;
+    std::unique_ptr<Impl> impl;
 
 protected:
     GLFWWindowBase (const std::vector<std::pair<int, int>>& hints);
@@ -25,18 +25,20 @@ public:
     void  DoEventLoop (const DrawCallback&) override;
     void* GetHandle () const override;
 
-    std::vector<const char*> GetExtensions () const override;
-
     virtual uint32_t GetWidth () const override;
     virtual uint32_t GetHeight () const override;
     virtual float    GetAspectRatio () const override;
-    virtual void     ToggleFullscreen () override {}
+
+    virtual void SetWindowMode (Mode) override;
+    virtual Mode GetWindowMode () override;
 
     virtual void Show () override;
     virtual void Hide () override;
     virtual void Focus () override;
 
-    VkSurfaceKHR GetSurface (VkInstance instance) override;
+    virtual VkSurfaceKHR GetSurface (VkInstance instance) override;
+    virtual void         PollEvents () override;
+    virtual void         Close () override;
 };
 
 
