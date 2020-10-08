@@ -59,24 +59,21 @@ struct GLFWWindowBase::Impl {
 
     Window::Mode mode;
 
-    GLFWWindowBase::Impl ();
+    Impl ()
+        : window (nullptr)
+        , surface (VK_NULL_HANDLE)
+
+        , width (0)
+        , height (0)
+
+        , widthWindowed (0)
+        , heightWindowed (0)
+        , posXWindowed (0)
+        , posYWindowed (0)
+        , mode (Window::Mode::Windowed)
+    {
+    }
 };
-
-
-GLFWWindowBase::Impl::Impl ()
-    : window (nullptr)
-    , surface (VK_NULL_HANDLE)
-
-    , width (0)
-    , height (0)
-
-    , widthWindowed (0)
-    , heightWindowed (0)
-    , posXWindowed (0)
-    , posYWindowed (0)
-    , mode (Window::Mode::Windowed)
-{
-}
 
 
 GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
