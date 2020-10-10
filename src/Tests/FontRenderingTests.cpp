@@ -27,7 +27,6 @@ void CompareImages2 (const std::string& name, const ImageData& referenceImage, c
 TEST_F (FontRenderingTests, MSDFGEN)
 {
     DeviceExtra& device        = GetDeviceExtra ();
-    CommandPool& commandPool   = GetCommandPool ();
     Queue&       graphicsQueue = GetGraphicsQueue ();
 
     RG::GraphSettings s (device, 3);

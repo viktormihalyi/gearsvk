@@ -14,7 +14,6 @@
 #include "InputBindable.hpp"
 #include "Node.hpp"
 #include "Ptr.hpp"
-#include "UniformBlock.hpp"
 
 
 namespace RG {
@@ -144,7 +143,7 @@ public:
         im.image->CmdPipelineBarrier (commandBuffer, ImageBase::INITIAL_LAYOUT, *im.layoutWrite);
     }
 
-    virtual void Compile (const GraphSettings& graphSettings)
+    virtual void Compile (const GraphSettings& graphSettings) override
     {
         sampler = Sampler::Create (graphSettings.GetDevice ());
 
@@ -399,146 +398,12 @@ public:
     MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
 };
 
-USING_PTR (UniformBlockResource);
-
-class GEARSVK_API UniformBlockResource : public CPUBufferResource {
-public:
-    USING_CREATE (UniformBlockResource);
-
-    UniformBlockResource (uint32_t size)
-        : CPUBufferResource (size)
-    {
-    }
-
-    UniformBlockResource (const ShaderStruct& structType)
-        : CPUBufferResource (structType.GetFullSize ())
-    {
-    }
-
-    UniformBlockResource (const SR::UBO& ubo)
-        : CPUBufferResource (ubo.GetFullSize ())
-    {
-    }
-
-    virtual ~UniformBlockResource () = default;
-
-    void Set (uint32_t frameIndex, UniformBlock& uniformBlock)
-    {
-        GVK_ASSERT (uniformBlock.GetSize () == size);
-        GetMapping (frameIndex).Copy (uniformBlock.GetData (), uniformBlock.GetSize ());
-    }
-};
-
-USING_PTR (UniformReflectionResource);
-
-class GEARSVK_API UniformReflectionResource : public Resource {
-public:
-    USING_CREATE (UniformReflectionResource);
-
-    ShaderPipelineP& pipeline;
-
-    ShaderBlocks vert;
-    ShaderBlocks frag;
-    ShaderBlocks geom;
-    ShaderBlocks tese;
-    ShaderBlocks tesc;
-    ShaderBlocks comp;
-
-    std::vector<UniformBlockResourceU> uboRes;
-    std::vector<uint32_t>              bindings;
-    std::vector<UniformBlockP>         dataBlocks;
-
-    std::vector<ReadOnlyImageResourceU> sampledImages;
-    std::vector<uint32_t>               samplerBindings;
-
-    enum class Strategy {
-        All,
-        UniformBlocksOnly,
-        SamplersOnly,
-    };
-
-
-    UniformReflectionResource (ShaderPipelineP& pipeline, Strategy s = Strategy::All)
-        : pipeline (pipeline)
-    {
-        vert.Clear ();
-        uboRes.clear ();
-        dataBlocks.clear ();
-
-        // TODO move this logic and the input binding connection stuff to a seperate class
-
-        auto GatherFor = [&] (const ShaderModuleU& sm, ShaderBlocks& out) {
-            if (sm != nullptr) {
-                if (s == Strategy::All || s == Strategy::UniformBlocksOnly) {
-                    ShaderBlocks newblocks;
-                    for (const auto& s : sm->GetReflection ().ubos) {
-                        const ShaderStruct autoStruct (*s);
-
-                        auto c = UniformBlockResource::Create (autoStruct);
-
-                        UniformBlockP autoBlock = UniformBlock::CreateShared (s->binding, s->name, autoStruct);
-
-                        dataBlocks.push_back (autoBlock);
-                        bindings.push_back (s->binding);
-                        uboRes.push_back (std::move (c));
-                        out.AddBlock (autoBlock);
-                    }
-                }
-
-                if (s == Strategy::All || s == Strategy::SamplersOnly) {
-                    for (const auto& s : sm->GetReflection ().samplers) {
-                        samplerBindings.push_back (s.binding);
-                        if (s.type == SR::Sampler::Type::Sampler1D) {
-                            sampledImages.push_back (ReadOnlyImageResource::Create (VK_FORMAT_R8G8B8A8_SRGB, 512));
-                        } else if (s.type == SR::Sampler::Type::Sampler2D) {
-                            sampledImages.push_back (ReadOnlyImageResource::Create (VK_FORMAT_R8G8B8A8_SRGB, 512, 512));
-                        } else if (s.type == SR::Sampler::Type::Sampler3D) {
-                            GVK_ASSERT (false);
-                            sampledImages.push_back (ReadOnlyImageResource::Create (VK_FORMAT_R8_SRGB, 512, 512, 512));
-                        } else {
-                            GVK_ASSERT (false);
-                        }
-                    }
-                }
-            }
-        };
-
-        GatherFor (pipeline->vertexShader, vert);
-        GatherFor (pipeline->fragmentShader, frag);
-        GatherFor (pipeline->geometryShader, geom);
-        GatherFor (pipeline->tessellationEvaluationShader, tese);
-        GatherFor (pipeline->tessellationControlShader, tesc);
-        GatherFor (pipeline->computeShader, comp);
-    }
-
-    virtual ~UniformReflectionResource () = default;
-
-    virtual void Compile (const GraphSettings& settings)
-    {
-        for (auto& res : uboRes) {
-            res->Compile (settings);
-        }
-        for (auto& res : sampledImages) {
-            res->Compile (settings);
-        }
-    }
-
-    void Update (uint32_t frameIndex)
-    {
-        for (uint32_t i = 0; i < uboRes.size (); ++i) {
-            uboRes[i]->Set (frameIndex, *dataBlocks[i]);
-        }
-    }
-};
-
-
 class GEARSVK_API ResourceVisitor final {
 public:
     Event<WritableImageResource&>     onWritableImage;
     Event<ReadOnlyImageResource&>     onReadOnlyImage;
     Event<SwapchainImageResource&>    onSwapchainImage;
-    Event<UniformBlockResource&>      onUniformBlock;
-    Event<UniformReflectionResource&> onUniformReflection;
+    Event<CPUBufferResource&>         onCPUBuffer;
 
     void Visit (Resource& res);
 

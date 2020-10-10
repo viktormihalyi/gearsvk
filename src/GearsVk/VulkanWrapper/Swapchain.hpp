@@ -132,7 +132,7 @@ public:
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override;
 
-    virtual bool SupportsPresenting () const { return true; }
+    virtual bool SupportsPresenting () const override { return true; }
 
     virtual void Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const override;
 };
@@ -189,9 +189,9 @@ public:
         return 0;
     }
 
-    virtual const std::vector<ImageView2DU>& GetImageViews () const { throw std::runtime_error ("no imageview for fake swapchain"); }
+    virtual const std::vector<ImageView2DU>& GetImageViews () const override { throw std::runtime_error ("no imageview for fake swapchain"); }
 
-    virtual bool SupportsPresenting () const { return false; }
+    virtual bool SupportsPresenting () const override { return false; }
 
     virtual void Present (VkQueue, uint32_t, const std::vector<VkSemaphore>&) const override
     {

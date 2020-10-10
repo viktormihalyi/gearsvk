@@ -152,6 +152,13 @@ public:
         memcpy (GetData (), &other, GetSize ());
     }
 
+    template<typename T>
+    void operator= (const std::vector<T>& other)
+    {
+        GVK_ASSERT (sizeof (T) * other.size () == GetSize ());
+        memcpy (GetData (), other.data (), GetSize ());
+    }
+
     virtual UView                    operator[] (std::string_view str) = 0;
     virtual std::vector<std::string> GetNames ()                       = 0;
     virtual uint8_t*                 GetData ()                        = 0;

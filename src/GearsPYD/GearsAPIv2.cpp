@@ -40,9 +40,10 @@ private:
     Sequence::P sequence;
 
     USING_PTR (StimulusV2);
-    struct StimulusV2 : public Noncopyable {
+    class StimulusV2 : public Noncopyable {
         USING_CREATE (StimulusV2);
 
+    public:
         RenderGraphP                  graph;
         RG::UniformReflectionP        reflection;
         std::map<Pass::P, OperationP> passToOperation;

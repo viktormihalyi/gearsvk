@@ -6,7 +6,6 @@
 #include "RenderGraph.hpp"
 #include "ShaderPipeline.hpp"
 #include "Timer.hpp"
-#include "UniformBlock.hpp"
 #include "Utils.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
@@ -500,7 +499,7 @@ void main () {
 
     SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*env);
     WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> (800, 600, 2);
-    UniformBlockResourceP   unif          = graph.CreateResource<UniformBlockResource> (4);
+    CPUBufferResourceP      unif          = graph.CreateResource<CPUBufferResource> (4);
 
     graph.CreateInputConnection (*redFillOperation, *unif, UniformInputBinding::Create (0, *unif));
     graph.CreateOutputConnection (*redFillOperation, 0, *presentedCopy);

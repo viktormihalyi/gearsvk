@@ -14,7 +14,6 @@
 #include "SDLWindow.hpp"
 #include "Time.hpp"
 #include "Timer.hpp"
-#include "UniformBlock.hpp"
 #include "Utils.hpp"
 #include "VulkanEnvironment.hpp"
 

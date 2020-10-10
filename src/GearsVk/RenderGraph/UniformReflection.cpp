@@ -17,7 +17,7 @@ UniformReflection::UniformReflection (RG::RenderGraph& graph, const Filter& filt
 
 void UniformReflection::Flush (uint32_t frameIndex)
 {
-    Utils::ForEachP<RG::UniformBlockResource> (uboResources, [&] (const RG::UniformBlockResourceP& uboRes) {
+    Utils::ForEachP<RG::CPUBufferResource> (uboResources, [&] (const RG::CPUBufferResourceP& uboRes) {
         const SR::IUDataP uboData = udatas.at (uboRes->GetUUID ());
 
         uboRes->GetMapping (frameIndex).Copy (uboData->GetData (), uboData->GetSize ());

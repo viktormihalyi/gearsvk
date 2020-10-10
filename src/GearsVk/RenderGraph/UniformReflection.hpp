@@ -101,7 +101,7 @@ public:
 
     static RG::InputBufferBindableResourceP DefaultResourceCreator (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP& ubo)
     {
-        return RG::UniformBlockResource::CreateShared (*ubo);
+        return RG::CPUBufferResource::CreateShared (ubo->GetFullSize ());
     }
 
     static RG::InputBufferBindableResourceP GPUBufferResourceCreator (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP& ubo)

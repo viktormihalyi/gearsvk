@@ -13,7 +13,6 @@
 #include "SDLWindow.hpp"
 #include "Time.hpp"
 #include "Timer.hpp"
-#include "UniformBlock.hpp"
 #include "Utils.hpp"
 #include "VulkanEnvironment.hpp"
 
@@ -22,6 +21,7 @@
 
 #include "DeviceExtra.hpp"
 #include "ShaderReflection.hpp"
+#include "UniformReflection.hpp"
 
 #include "CameraControl.hpp"
 
@@ -94,12 +94,6 @@ int main (int, char**)
 {
     WindowU window = GLFWWindow::Create ();
 
-    window->SetWindowMode (Window::Mode::Fullscreen);
-    window->SetWindowMode (Window::Mode::Windowed);
-    window->SetWindowMode (Window::Mode::Fullscreen);
-    window->SetWindowMode (Window::Mode::Windowed);
-    window->SetWindowMode (Window::Mode::Fullscreen);
-
     VulkanEnvironmentU testenv = VulkanEnvironment::Create (*window);
 
     Device&      device        = *testenv->device;
@@ -129,14 +123,11 @@ int main (int, char**)
     // ========================= GRAPH RESOURCES =========================
 
     RG::SwapchainImageResourceP    presented = graph.CreateResource<RG::SwapchainImageResource> (*testenv);
-    RG::UniformReflectionResourceP refl      = graph.CreateResource<RG::UniformReflectionResource> (sp, RG::UniformReflectionResource::Strategy::UniformBlocksOnly);
-
+    
+    RG::UniformReflection refl (graph);
 
     // ========================= GRAPH CONNECTIONS =========================
 
-    for (uint32_t i = 0; i < refl->uboRes.size (); ++i) {
-        graph.CreateInputConnection (*brainRenderOp, *refl->uboRes[i], RG::UniformInputBinding::Create (refl->bindings[i], *refl->uboRes[i]));
-    }
     graph.CreateOutputConnection (*brainRenderOp, 0, *presented);
 
 
@@ -165,8 +156,8 @@ int main (int, char**)
         }
     };
 
-    refl->vert["Camera"]["VP"] = glm::mat4 (1.f);
-    refl->frag["Camera"]["VP"] = glm::mat4 (1.f);
+    refl[brainRenderOp][ShaderKind::Vertex]["Camera"]["VP"] = glm::mat4 (1.f);
+    refl[brainRenderOp][ShaderKind::Fragment]["Camera"]["VP"] = glm::mat4 (1.f);
 
     enum class QuadricSurfaceType : uint32_t {
         Diffuse = 0,
@@ -279,8 +270,8 @@ int main (int, char**)
         lights[3].powerDensity = glm::vec4 (187 / 255.f, 143 / 255.f, 206 / 255.f, 0) * 100.f;
     }
 
-    refl->frag["Quadrics"] = quadrics;
-    refl->frag["Lights"]   = lights;
+    refl[brainRenderOp][ShaderKind::Fragment]["Quadrics"] = quadrics;
+    refl[brainRenderOp][ShaderKind::Fragment]["Lights"]   = lights;
 
 
     renderer.preSubmitEvent += [&] (RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
@@ -291,18 +282,18 @@ int main (int, char**)
         cameraControl.UpdatePosition (dt);
 
         {
-            refl->vert["Camera"]["viewMatrix"]   = c.GetViewMatrix ();
-            refl->vert["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
-            refl->vert["Camera"]["camPosition"]  = c.GetPosition ();
-            refl->vert["Camera"]["viewDir"]      = c.GetViewDirection ();
+            refl[brainRenderOp][ShaderKind::Vertex]["Camera"]["viewMatrix"]   = c.GetViewMatrix ();
+            refl[brainRenderOp][ShaderKind::Vertex]["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
+            refl[brainRenderOp][ShaderKind::Vertex]["Camera"]["camPosition"]  = c.GetPosition ();
+            refl[brainRenderOp][ShaderKind::Vertex]["Camera"]["viewDir"]      = c.GetViewDirection ();
 
-            refl->frag["Camera"]["viewMatrix"]   = c.GetViewMatrix ();
-            refl->frag["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
-            refl->frag["Camera"]["position"]     = c.GetPosition ();
-            refl->frag["Camera"]["viewDir"]      = c.GetViewDirection ();
+            refl[brainRenderOp][ShaderKind::Fragment]["Camera"]["viewMatrix"]   = c.GetViewMatrix ();
+            refl[brainRenderOp][ShaderKind::Fragment]["Camera"]["rayDirMatrix"] = c.GetRayDirMatrix ();
+            refl[brainRenderOp][ShaderKind::Fragment]["Camera"]["position"]     = c.GetPosition ();
+            refl[brainRenderOp][ShaderKind::Fragment]["Camera"]["viewDir"]      = c.GetViewDirection ();
         }
 
-        refl->Update (frameIndex);
+        refl.Flush (frameIndex);
     };
 
     window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, [&] { return quit; }));

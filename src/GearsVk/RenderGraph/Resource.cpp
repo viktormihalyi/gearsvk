@@ -20,8 +20,7 @@ void ResourceVisitor::Visit (Resource& res)
     ADDVISITOR (WritableImageResource, onWritableImage)
     ADDVISITOR (ReadOnlyImageResource, onReadOnlyImage)
     ADDVISITOR (SwapchainImageResource, onSwapchainImage)
-    ADDVISITOR (UniformBlockResource, onUniformBlock)
-    ADDVISITOR (UniformReflectionResource, onUniformReflection)
+    ADDVISITOR (CPUBufferResource, onCPUBuffer)
     {
         GVK_BREAK ("unexpected resource type");
         throw std::runtime_error ("unexpected resource type");

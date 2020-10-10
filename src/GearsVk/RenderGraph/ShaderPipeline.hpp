@@ -2,7 +2,6 @@
 #define SHADERPIPELINE2_HPP
 
 #include "GearsVkAPI.hpp"
-#include "UniformBlock.hpp"
 #include "VulkanWrapper.hpp"
 
 #include <thread>
