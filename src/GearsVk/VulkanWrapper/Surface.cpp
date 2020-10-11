@@ -11,7 +11,7 @@
 
 #include <vulkan/vulkan_win32.h>
 
-Surface::Surface (PlatformSelector, VkInstance instance, void* hwnd)
+Surface::Surface (PlatformSpecificSelector, VkInstance instance, void* hwnd)
     : instance (instance)
     , handle (VK_NULL_HANDLE)
 {

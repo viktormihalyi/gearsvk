@@ -29,7 +29,7 @@ class SequenceAdapter {
     USING_CREATE (SequenceAdapter);
 
 private:
-    Sequence::P sequence;
+    const Sequence::P sequence;
 
     USING_PTR (StimulusV2);
     class StimulusV2 : public Noncopyable {
@@ -52,7 +52,7 @@ private:
 
     std::vector<U<StimulusV2>>       stimulii;
     std::map<Stimulus::CP, uint32_t> stimulusToGraphIndex;
-    VulkanEnvironment&               environment;
+    const VulkanEnvironment&         environment;
     const PresentableP               presentable;
 
 public:
@@ -158,19 +158,22 @@ public:
         });
 
         window->Close ();
-        window = nullptr;
+        window.reset ();
+        presentable->Clear ();
     }
 };
 
 static SequenceAdapterU currentSeq = nullptr;
 
 
+/* exported to .pyd */
 void InitializeEnvironment ()
 {
     GetVkEnvironment ();
 }
 
 
+/* exported to .pyd */
 void DestroyEnvironment ()
 {
     currentSeq.reset ();
@@ -181,78 +184,6 @@ void DestroyEnvironment ()
 void SetRenderGraphFromSequence (Sequence::P seq)
 {
     currentSeq = SequenceAdapter::Create (GetVkEnvironment (), seq);
-#if 0
-    try {
-        GVK_ASSERT_THROW (env != nullptr);
-
-        currentSequence = seq;
-        stimulusToGraphIndex.clear ();
-        graphs.clear ();
-        reflections.clear ();
-        passToOperation.clear ();
-
-        for (auto [startFrame, stim] : seq->getStimuli ()) {
-            RenderGraphP renderGraph = RenderGraph::CreateShared ();
-
-            SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*env);
-
-            std::map<Pass::P, GearsVk::UUID> newMapping;
-
-            auto passes = stim->getPasses ();
-            for (auto pass : passes) {
-                auto vert = pass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
-                auto frag = pass->getStimulusGeneratorShaderSource ();
-
-                auto seqpip = ShaderPipeline::CreateShared (*env->device);
-
-                seqpip->SetVertexShaderFromString (vert);
-                seqpip->SetFragmentShaderFromString (frag);
-
-                const auto isEnabled = [&] () -> bool { return true; };
-
-                OperationP passOperation = renderGraph->CreateOperation<ConditionalRenderOperation> (
-                    DrawRecordableInfo::CreateShared (1, 4), seqpip, isEnabled, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
-
-                renderGraph->CreateOutputConnection (*passOperation, 0, *presented);
-                newMapping[pass] = passOperation->GetUUID ();
-                break;
-            }
-            GraphSettings s (*env->deviceExtra, env->swapchain->GetImageCount ());
-
-            auto refl = RG::UniformReflection::CreateShared (*renderGraph);
-            RG::CreateEmptyImageResources (*renderGraph);
-
-            renderGraph->Compile (s);
-
-            for (auto pass : stim->getPasses ()) {
-                for (auto [name, value] : pass->shaderVariables) {
-                    (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<float> (value);
-                }
-
-                for (auto [name, value] : pass->shaderVectors) {
-                    (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec2> (value);
-                }
-
-                for (auto [name, value] : pass->shaderColors) {
-                    (*refl)[newMapping.at (pass)][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec3> (value);
-                }
-
-                break;
-            }
-
-            stimulusToGraphIndex[stim] = graphs.size ();
-            graphs.push_back (renderGraph);
-            reflections.push_back (refl);
-            passToOperation.push_back (newMapping);
-        }
-
-        Shader::uniformBoundEvent += [&] (const std::string& asd) {
-            std::cout << "uniform \"" << asd << "\" bound" << std::endl;
-        };
-    } catch (std::exception& e) {
-        GVK_BREAK ("msg");
-    }
-#endif
 }
 
 
@@ -263,6 +194,7 @@ static void RenderFrame_ (Window& window, RG::Renderer& renderer, RG::RenderGrap
 }
 
 
+/* exported to .pyd */
 void RenderFrame (uint32_t frameIndex)
 {
 }
@@ -283,17 +215,14 @@ static void EventLoop (Window& window, RG::Renderer& renderer, RG::RenderGraph& 
 }
 
 
-void RenderSequence ()
-{
-}
-
-
+/* exported to .pyd */
 void StartRendering (const std::function<bool ()>& doRender)
 {
     currentSeq->RenderFull ();
 }
 
 
+/* exported to .pyd */
 void TryCompile (ShaderKind shaderKind, const std::string& source)
 {
     try {
@@ -306,11 +235,12 @@ void TryCompile (ShaderKind shaderKind, const std::string& source)
 }
 
 
+/* exported to .pyd */
 void CreateSurface (intptr_t hwnd)
 {
-    SurfaceU   s  = Surface::Create (Surface::ForWin32, *GetVkEnvironment ().instance, reinterpret_cast<void*> (hwnd));
-    SwapchainU sw = RealSwapchain::Create (*GetVkEnvironment ().physicalDevice, *GetVkEnvironment ().device, *s);
-    (void)sw;
+#ifdef WIN32
+    PresentableP presentable = GetVkEnvironment ().CreatePresentable (Surface::Create (Surface::PlatformSpecific, *GetVkEnvironment ().instance, reinterpret_cast<void*> (hwnd)));
+#endif
 }
 
 

@@ -23,13 +23,13 @@ public:
     {
     }
 
-    enum PlatformSelector {
-        ForWin32
+    enum PlatformSpecificSelector {
+        PlatformSpecific
     };
 
 
-#ifdef _WIN32
-    Surface (PlatformSelector, VkInstance instance, void* handle);
+#ifdef WIN32
+    Surface (PlatformSpecificSelector, VkInstance instance, void* handle);
 #endif
 
     virtual ~Surface ()

@@ -29,6 +29,13 @@ void Presentable::operator= (Presentable&& other) noexcept
 }
 
 
+void Presentable::Clear ()
+{
+    surface.reset ();
+    swapchain.reset ();
+}
+
+
 constexpr uint32_t LogColumnWidth = 36;
 
 
@@ -140,13 +147,13 @@ VulkanEnvironment::~VulkanEnvironment ()
 }
 
 
-PresentableP VulkanEnvironment::CreatePresentable (SurfaceU&& surface)
+PresentableP VulkanEnvironment::CreatePresentable (SurfaceU&& surface) const
 {
     return Presentable::CreateShared (*physicalDevice, *device, std::move (surface));
 }
 
 
-PresentableP VulkanEnvironment::CreatePresentable (Window& window)
+PresentableP VulkanEnvironment::CreatePresentable (Window& window) const
 {
     return CreatePresentable (Surface::Create (*instance, window.GetSurface (*instance)));
 }

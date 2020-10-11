@@ -25,6 +25,8 @@ public:
 
     void operator= (Presentable&&) noexcept;
 
+    void Clear ();
+
     virtual Swapchain& GetSwapchain () override { return *swapchain; }
 };
 
@@ -55,8 +57,8 @@ public:
 
     void Wait () const;
 
-    PresentableP CreatePresentable (SurfaceU&& surface);
-    PresentableP CreatePresentable (Window& window);
+    PresentableP CreatePresentable (SurfaceU&& surface) const;
+    PresentableP CreatePresentable (Window& window) const;
 };
 
 
