@@ -144,31 +144,39 @@ struct UniformReflectionBinding : public InputBinding {
 };
 
 
-struct OutputBinding {
-    const uint32_t          binding;
+class OutputBinding {
+private:
     VkAttachmentDescription attachmentDescription;
+
+public:
+    const uint32_t          binding;
     VkAttachmentReference   attachmentReference;
-    const VkFormat          format;
+    std::function<VkFormat ()> formatProvider;
     const VkImageLayout     finalLayout;
 
-    OutputBinding (uint32_t binding, VkFormat format, VkImageLayout finalLayout)
+    OutputBinding (uint32_t binding, std::function<VkFormat ()> formatProvider, VkImageLayout finalLayout)
         : binding (binding)
         , attachmentDescription ({})
         , attachmentReference ({})
-        , format (format)
+        , formatProvider (formatProvider)
         , finalLayout (finalLayout)
     {
-        attachmentDescription.format         = format;
-        attachmentDescription.samples        = VK_SAMPLE_COUNT_1_BIT;
-        attachmentDescription.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        attachmentDescription.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-        attachmentDescription.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachmentDescription.initialLayout  = ImageBase::INITIAL_LAYOUT;
-        attachmentDescription.finalLayout    = finalLayout;
-
         attachmentReference.attachment = binding;
         attachmentReference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    }
+
+    VkAttachmentDescription GetAttachmentDescription () const
+    {
+        VkAttachmentDescription attachmentDescription = {};
+        attachmentDescription.format                  = formatProvider ();
+        attachmentDescription.samples                 = VK_SAMPLE_COUNT_1_BIT;
+        attachmentDescription.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachmentDescription.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
+        attachmentDescription.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachmentDescription.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachmentDescription.initialLayout           = ImageBase::INITIAL_LAYOUT;
+        attachmentDescription.finalLayout             = finalLayout;
+        return attachmentDescription;
     }
 
     bool operator== (uint32_t otherBinding) const { return binding == otherBinding; }

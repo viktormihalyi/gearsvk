@@ -33,18 +33,19 @@ protected:
 
 class GoogleTestEnvironment : public ::testing::Test {
 protected:
-    WindowU            window;
     VulkanEnvironmentU env;
+    WindowU            window;
+    PresentableP       presentable;
 
     PhysicalDevice& GetPhysicalDevice () { return *env->physicalDevice; }
     Device&         GetDevice () { return *env->device; }
     CommandPool&    GetCommandPool () { return *env->commandPool; }
     Queue&          GetGraphicsQueue () { return *env->graphicsQueue; }
-    Swapchain&      GetSwapchain () { return *env->swapchain; }
     DeviceExtra&    GetDeviceExtra () { return *env->deviceExtra; }
     Window&         GetWindow () { return *window; }
+    Swapchain&      GetSwapchain () { return presentable->GetSwapchain (); }
 
-    virtual ~GoogleTestEnvironment () {}
+    virtual ~GoogleTestEnvironment () = default;
 
     virtual void SetUp ()    = 0;
     virtual void TearDown () = 0;
@@ -69,7 +70,7 @@ class HeadlessGoogleTestEnvironment : public GoogleTestEnvironment {
 protected:
     virtual void SetUp () override
     {
-        env = VulkanEnvironment::Create (std::nullopt, gtestDebugCallback);
+        env = VulkanEnvironment::Create (gtestDebugCallback);
     }
 
     virtual void TearDown () override
@@ -83,12 +84,14 @@ class ShownWindowGoogleTestEnvironment : public GoogleTestEnvironment {
 protected:
     virtual void SetUp () override
     {
-        window = GLFWWindow::Create ();
-        env    = VulkanEnvironment::Create (*window, gtestDebugCallback);
+        window      = GLFWWindow::Create ();
+        env         = VulkanEnvironment::Create (gtestDebugCallback);
+        presentable = env->CreatePresentable (*window);
     }
 
     virtual void TearDown () override
     {
+        presentable.reset ();
         env.reset ();
         window.reset ();
     }
@@ -99,12 +102,14 @@ class HiddenWindowGoogleTestEnvironment : public GoogleTestEnvironment {
 protected:
     virtual void SetUp () override
     {
-        window = HiddenGLFWWindow::Create ();
-        env    = VulkanEnvironment::Create (*window, gtestDebugCallback);
+        window      = HiddenGLFWWindow::Create ();
+        env         = VulkanEnvironment::Create (gtestDebugCallback);
+        presentable = env->CreatePresentable (*window);
     }
 
     virtual void TearDown () override
     {
+        presentable.reset ();
         env.reset ();
         window.reset ();
     }

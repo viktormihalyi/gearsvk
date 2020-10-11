@@ -11,13 +11,31 @@
 #include "Window.hpp"
 
 
+USING_PTR (Presentable);
+class GEARSVK_API Presentable : public SwapchainProvider {
+    USING_CREATE (Presentable);
+
+private:
+    SurfaceU   surface;
+    SwapchainU swapchain;
+
+public:
+    Presentable ();
+    Presentable (const PhysicalDevice& physicalDevice, VkDevice device, SurfaceU&& surface);
+
+    void operator= (Presentable&&) noexcept;
+
+    virtual Swapchain& GetSwapchain () override { return *swapchain; }
+};
+
+
 GEARSVK_API
 void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
                         VkDebugUtilsMessageTypeFlagsEXT,
                         const VkDebugUtilsMessengerCallbackDataEXT* callbackData);
 
 USING_PTR (VulkanEnvironment);
-class GEARSVK_API VulkanEnvironment : public SwapchainProvider {
+class GEARSVK_API VulkanEnvironment {
     USING_CREATE (VulkanEnvironment)
 
 public:
@@ -31,19 +49,14 @@ public:
     DeviceExtraU         deviceExtra;
     AllocatorU           alloactor;
 
-    // surface and swapchain are created if a window is provided in the ctor
-    SurfaceU   surface;
-    SwapchainU swapchain;
-
-    VulkanEnvironment (std::optional<WindowRef> window = std::nullopt, std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback);
+    VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback);
 
     virtual ~VulkanEnvironment ();
 
     void Wait () const;
 
-    void WindowChanged (Window& window);
-
-    virtual Swapchain& GetSwapchain () override { return *swapchain; }
+    PresentableP CreatePresentable (SurfaceU&& surface);
+    PresentableP CreatePresentable (Window& window);
 };
 
 

@@ -53,12 +53,14 @@ int main (int, char**)
 
     WindowU window = GLFWWindow::Create ();
 
-    VulkanEnvironmentU testenv = VulkanEnvironment::Create (*window);
+    VulkanEnvironmentU testenv = VulkanEnvironment::Create ();
 
     DeviceExtra& device        = *testenv->deviceExtra;
     CommandPool& commandPool   = *testenv->commandPool;
     Queue&       graphicsQueue = *testenv->graphicsQueue;
-    Swapchain&   swapchain     = *testenv->swapchain;
+
+    PresentableP presentable = testenv->CreatePresentable (*window);
+    Swapchain&   swapchain   = presentable->GetSwapchain ();
 
     Camera        c (glm::vec3 (-1, 0, 0.5f), glm::vec3 (1, 0.0f, 0), window->GetAspectRatio ());
     CameraControl cameraControl (c, window->events);
@@ -80,7 +82,7 @@ int main (int, char**)
 
     // ========================= GRAPH RESOURCES =========================
 
-    RG::SwapchainImageResourceP presented = graph.CreateResource<RG::SwapchainImageResource> (*testenv);
+    RG::SwapchainImageResourceP presented = graph.CreateResource<RG::SwapchainImageResource> (*presentable);
     RG::ReadOnlyImageResourceP  matcap    = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
     RG::ReadOnlyImageResourceP  agy3d     = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
 

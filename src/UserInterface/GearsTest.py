@@ -4,6 +4,7 @@ import time
 import Gears as gears
 import AppData
 
+
 print("initializing appdata...")
 AppData.initConfigParams()
 

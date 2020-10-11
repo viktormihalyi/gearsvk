@@ -321,7 +321,7 @@ void main () {
     RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
 
     ImageResourceP presentedCopy = graph.CreateResource<WritableImageResource> (800, 600);
-    ImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*env);
+    ImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*presentable);
 
     graph.CreateOutputConnection (*redFillOperation, 0, *presented);
     graph.CreateOutputConnection (*redFillOperation, 1, *presentedCopy);
@@ -404,7 +404,7 @@ void main () {
                                                                                 std::move (sp));
 
     WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> (800, 600);
-    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*env);
+    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*presentable);
 
     graph.CreateOutputConnection (*redFillOperation, 0, *presented);
     graph.CreateOutputConnection (*redFillOperation, 1, *presentedCopy);
@@ -497,7 +497,7 @@ void main () {
 
     RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, *vbb, ib), std::move (sp));
 
-    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*env);
+    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*presentable);
     WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> (800, 600, 2);
     CPUBufferResourceP      unif          = graph.CreateResource<CPUBufferResource> (4);
 

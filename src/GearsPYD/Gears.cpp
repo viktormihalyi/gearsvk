@@ -689,6 +689,7 @@ PYBIND11_MODULE (Gears, m)
     m.def ("DestroyEnvironment", DestroyEnvironment);
     m.def ("StartRendering", StartRendering);
     m.def ("RenderFrame", RenderFrame);
+    m.def ("CreateSurface", CreateSurface);
 
 #if 0
     class_<p2t::Poly2TriWrapper> (m, "CDT",

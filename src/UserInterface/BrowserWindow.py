@@ -42,6 +42,7 @@ def find_empty_dirs(root_dir='.', recursive=True):
     return list(empty_dirs(root_dir, recursive))
 
 
+
 class BrowserWindow(QWidget):
     launcherWindow = None
     logoPixmap = None

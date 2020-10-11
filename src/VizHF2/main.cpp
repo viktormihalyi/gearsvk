@@ -94,13 +94,15 @@ int main (int, char**)
 {
     WindowU window = GLFWWindow::Create ();
 
-    VulkanEnvironmentU testenv = VulkanEnvironment::Create (*window);
+    VulkanEnvironmentU testenv = VulkanEnvironment::Create ();
 
     Device&      device        = *testenv->device;
     CommandPool& commandPool   = *testenv->commandPool;
     Queue&       graphicsQueue = *testenv->graphicsQueue;
-    Swapchain&   swapchain     = *testenv->swapchain;
     DeviceExtra& deviceExtra   = *testenv->deviceExtra;
+
+    PresentableP presentable = testenv->CreatePresentable (*window);
+    Swapchain&   swapchain   = presentable->GetSwapchain ();
 
     Camera        c (glm::vec3 (-0.553508, -4.64034, 8.00851), glm::vec3 (0.621111, 0.629845, -0.466387), window->GetAspectRatio ());
     CameraControl cameraControl (c, window->events);
@@ -122,8 +124,8 @@ int main (int, char**)
 
     // ========================= GRAPH RESOURCES =========================
 
-    RG::SwapchainImageResourceP    presented = graph.CreateResource<RG::SwapchainImageResource> (*testenv);
-    
+    RG::SwapchainImageResourceP presented = graph.CreateResource<RG::SwapchainImageResource> (*presentable);
+
     RG::UniformReflection refl (graph);
 
     // ========================= GRAPH CONNECTIONS =========================
@@ -156,7 +158,7 @@ int main (int, char**)
         }
     };
 
-    refl[brainRenderOp][ShaderKind::Vertex]["Camera"]["VP"] = glm::mat4 (1.f);
+    refl[brainRenderOp][ShaderKind::Vertex]["Camera"]["VP"]   = glm::mat4 (1.f);
     refl[brainRenderOp][ShaderKind::Fragment]["Camera"]["VP"] = glm::mat4 (1.f);
 
     enum class QuadricSurfaceType : uint32_t {

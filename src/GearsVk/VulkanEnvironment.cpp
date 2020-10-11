@@ -8,6 +8,27 @@
 #include <iomanip>
 
 
+Presentable::Presentable ()
+    : surface (nullptr)
+    , swapchain (nullptr)
+{
+}
+
+
+Presentable::Presentable (const PhysicalDevice& physicalDevice, VkDevice device, SurfaceU&& surface)
+    : surface (std::move (surface))
+    , swapchain (RealSwapchain::Create (physicalDevice, device, *this->surface))
+{
+}
+
+
+void Presentable::operator= (Presentable&& other) noexcept
+{
+    surface   = std::move (other.surface);
+    swapchain = std::move (other.swapchain);
+}
+
+
 constexpr uint32_t LogColumnWidth = 36;
 
 
@@ -40,7 +61,7 @@ DebugOnlyStaticInit apiVersionLogger ([] () {
 });
 
 
-VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::optional<DebugUtilsMessenger::Callback> callback)
+VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback)
 {
     InstanceSettings is = (IsDebugBuild) ? instanceDebugMode : instanceReleaseMode;
 
@@ -49,15 +70,11 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
 
     instance = Instance::Create (is);
 
-    if (window) {
-        surface = Surface::Create (*instance, window->get ().GetSurface (*instance));
-    }
-
     if (IsDebugBuild && callback.has_value ()) {
         messenger = DebugUtilsMessenger::Create (*instance, *callback, DebugUtilsMessenger::noPerformance);
     }
 
-    VkSurfaceKHR physicalDeviceSurfaceHandle = ((surface != nullptr) ? surface->operator VkSurfaceKHR () : VK_NULL_HANDLE);
+    VkSurfaceKHR physicalDeviceSurfaceHandle = VK_NULL_HANDLE;
 
     physicalDevice = PhysicalDevice::Create (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
 
@@ -107,12 +124,6 @@ VulkanEnvironment::VulkanEnvironment (std::optional<WindowRef> window, std::opti
 
     deviceExtra = DeviceExtra::Create (*device, *commandPool, *alloactor, *graphicsQueue);
 
-    if (window) {
-        swapchain = RealSwapchain::Create (*physicalDevice, *device, *surface);
-    } else {
-        swapchain = FakeSwapchain::Create (*deviceExtra, 512, 512);
-    }
-
 #ifdef LOG_VULKAN_INFO
     VkPhysicalDeviceProperties deviceProperties;
     vkGetPhysicalDeviceProperties (*physicalDevice, &deviceProperties);
@@ -129,11 +140,13 @@ VulkanEnvironment::~VulkanEnvironment ()
 }
 
 
-void VulkanEnvironment::WindowChanged (Window& window)
+PresentableP VulkanEnvironment::CreatePresentable (SurfaceU&& surface)
 {
-    surface = Surface::Create (*instance, window.GetSurface (*instance));
+    return Presentable::CreateShared (*physicalDevice, *device, std::move (surface));
+}
 
-    physicalDevice->RecreateForSurface (*surface);
 
-    swapchain = RealSwapchain::Create (*physicalDevice, *device, *surface);
+PresentableP VulkanEnvironment::CreatePresentable (Window& window)
+{
+    return CreatePresentable (Surface::Create (*instance, window.GetSurface (*instance)));
 }

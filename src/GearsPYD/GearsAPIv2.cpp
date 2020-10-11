@@ -20,21 +20,13 @@
 
 using namespace RG;
 
-
-static VulkanEnvironmentU env = nullptr;
-
-
-static void EnsureEnvInitialized ()
-{
-    if (env == nullptr) {
-        env = VulkanEnvironment::Create ();
-    }
-}
+static VulkanEnvironment& GetVkEnvironment ();
+static void               DestroyVkEnvironment ();
 
 
-USING_PTR (CurrentSequence);
-class CurrentSequence {
-    USING_CREATE (CurrentSequence);
+USING_PTR (SequenceAdapter);
+class SequenceAdapter {
+    USING_CREATE (SequenceAdapter);
 
 private:
     Sequence::P sequence;
@@ -60,18 +52,19 @@ private:
 
     std::vector<U<StimulusV2>>       stimulii;
     std::map<Stimulus::CP, uint32_t> stimulusToGraphIndex;
-    VulkanEnvironmentU&              env;
-
+    VulkanEnvironment&               environment;
+    const PresentableP               presentable;
 
 public:
-    CurrentSequence (VulkanEnvironmentU& env, const Sequence::P& sequence)
+    SequenceAdapter (VulkanEnvironment& environment, const Sequence::P& sequence)
         : sequence (sequence)
-        , env (env)
+        , environment (environment)
+        , presentable (Presentable::CreateShared ())
     {
         for (auto& [startFrame, stim] : sequence->getStimuli ()) {
             RenderGraphP renderGraph = RenderGraph::CreateShared ();
 
-            SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*env);
+            SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*presentable);
 
             std::map<Pass::P, OperationP> newMapping;
 
@@ -80,7 +73,7 @@ public:
                 const std::string vert = pass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
                 const std::string frag = pass->getStimulusGeneratorShaderSource ();
 
-                ShaderPipelineP sequencePip = ShaderPipeline::CreateShared (*env->device);
+                ShaderPipelineP sequencePip = ShaderPipeline::CreateShared (*environment.device);
 
                 sequencePip->SetVertexShaderFromString (vert);
                 sequencePip->SetFragmentShaderFromString (frag);
@@ -106,11 +99,10 @@ public:
     void RenderFull ()
     {
         WindowU window = HiddenGLFWWindow::Create ();
+        *presentable   = std::move (*environment.CreatePresentable (*window));
         window->Show ();
 
-        env->WindowChanged (*window);
-
-        GraphSettings s (*env->deviceExtra, env->swapchain->GetImageCount ());
+        GraphSettings s (*environment.deviceExtra, presentable->GetSwapchain ().GetImageCount ());
 
         for (auto& st : stimulii) {
             st->graph->Compile (s);
@@ -127,7 +119,7 @@ public:
             }
         }
 
-        SynchronizedSwapchainGraphRendererU renderer = SynchronizedSwapchainGraphRenderer::Create (s, *env->swapchain);
+        SynchronizedSwapchainGraphRendererU renderer = SynchronizedSwapchainGraphRenderer::Create (s, presentable->GetSwapchain ());
 
         const glm::vec2 patternSizeOnRetina (1920, 1080);
 
@@ -170,26 +162,25 @@ public:
     }
 };
 
-static CurrentSequenceU currentSeq = nullptr;
+static SequenceAdapterU currentSeq = nullptr;
 
 
 void InitializeEnvironment ()
 {
-    env = VulkanEnvironment::Create ();
+    GetVkEnvironment ();
 }
 
 
 void DestroyEnvironment ()
 {
     currentSeq.reset ();
-    env.reset ();
+    DestroyVkEnvironment ();
 }
 
 
 void SetRenderGraphFromSequence (Sequence::P seq)
 {
-    EnsureEnvInitialized ();
-    currentSeq = CurrentSequence::Create (env, seq);
+    currentSeq = SequenceAdapter::Create (GetVkEnvironment (), seq);
 #if 0
     try {
         GVK_ASSERT_THROW (env != nullptr);
@@ -300,83 +291,44 @@ void RenderSequence ()
 void StartRendering (const std::function<bool ()>& doRender)
 {
     currentSeq->RenderFull ();
-#if 0
-    GVK_ASSERT_THROW (env != nullptr);
-
-    env->Wait ();
-
-    window->Show ();
-
-    GraphSettings s (*env->deviceExtra, env->swapchain->GetImageCount ());
-
-    renderer = SynchronizedSwapchainGraphRenderer::Create (s, *env->swapchain);
-
-    std::vector<double> lastImageTimes;
-    uint32_t            lastImageIndex = 0;
-    for (uint32_t i = 0; i < env->swapchain->GetImageCount (); ++i) {
-        lastImageTimes.push_back (0);
-    }
-
-    renderer->swapchainImageAcquiredEvent += [&] (uint32_t imageIndex) {
-        const double currentTime = TimePoint::SinceApplicationStart ().AsMilliseconds ();
-
-        const double deltaMs       = currentTime - lastImageTimes[imageIndex];
-        const double deltaRenderMs = currentTime - lastImageTimes[lastImageIndex];
-
-        lastImageTimes[imageIndex] = currentTime;
-        lastImageIndex             = imageIndex;
-    };
-
-    const glm::vec2 patternSizeOnRetina (1920, 1080);
-
-    uint32_t frameCount = 0;
-
-    window->DoEventLoop ([&] (bool& shouldStop) {
-        //const double timeInSeconds = TimePoint::SinceApplicationStart ().AsSeconds ();
-        const double timeInSeconds = frameCount / 60.0;
-
-        Stimulus::CP currentStim = currentSequence->getStimulusAtFrame (frameCount++);
-        if (currentStim == nullptr) {
-            shouldStop = true;
-            return;
-        }
-
-        const uint32_t idx = stimulusToGraphIndex[currentStim];
-
-        RG::UniformReflectionP refl = reflections[idx];
-
-        renderer->preSubmitEvent = [&] (RenderGraph& graph, uint32_t frameIndex, uint64_t timeNs) {
-            for (auto& [pass, renderOpId] : passToOperation[idx]) {
-                (*refl)[renderOpId][ShaderKind::Vertex]["PatternSizeOnRetina"]       = patternSizeOnRetina;
-                (*refl)[renderOpId][ShaderKind::Fragment]["ubo_time"]                = static_cast<float> (timeInSeconds - currentStim->getStartingFrame () / 60.f);
-                (*refl)[renderOpId][ShaderKind::Fragment]["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
-                (*refl)[renderOpId][ShaderKind::Fragment]["ubo_frame"]               = static_cast<int32_t> (frameCount);
-            }
-
-            //refl->PrintDebugInfo ();
-
-            refl->Flush (frameIndex);
-        };
-
-        renderer->RenderNextFrame (*graphs[idx]);
-
-        frameCount++;
-    });
-
-    window->Hide ();
-    window.reset ();
-
-    env->Wait ();
-#endif
 }
+
 
 void TryCompile (ShaderKind shaderKind, const std::string& source)
 {
     try {
-        ShaderModule::CreateFromGLSLString (*env->device, shaderKind, source);
+        ShaderModule::CreateFromGLSLString (*GetVkEnvironment ().device, shaderKind, source);
         std::cout << "compile succeeded" << std::endl;
     } catch (const ShaderCompileException&) {
         std::cout << "compile failed, source code: " << std::endl;
         std::cout << source << std::endl;
+    }
+}
+
+
+void CreateSurface (intptr_t hwnd)
+{
+    SurfaceU   s  = Surface::Create (Surface::ForWin32, *GetVkEnvironment ().instance, reinterpret_cast<void*> (hwnd));
+    SwapchainU sw = RealSwapchain::Create (*GetVkEnvironment ().physicalDevice, *GetVkEnvironment ().device, *s);
+    (void)sw;
+}
+
+
+static VulkanEnvironmentU env_ = nullptr;
+
+
+static VulkanEnvironment& GetVkEnvironment ()
+{
+    if (env_ == nullptr) {
+        env_ = VulkanEnvironment::Create ();
+    }
+    return *env_;
+}
+
+
+static void DestroyVkEnvironment ()
+{
+    if (env_ == nullptr) {
+        env_.reset ();
     }
 }

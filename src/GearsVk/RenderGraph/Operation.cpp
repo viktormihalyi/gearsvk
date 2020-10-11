@@ -15,7 +15,12 @@ void Operation::AddOutput (const uint32_t binding, const ImageResourceRef& res)
     GVK_ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
 
     for (uint32_t bindingIndex = binding; bindingIndex < binding + res.get ().GetDescriptorCount (); ++bindingIndex) {
-        outputBindings.push_back (OutputBinding (bindingIndex, res.get ().GetFormat (), res.get ().GetFinalLayout ()));
+        outputBindings.push_back (OutputBinding (
+            bindingIndex,
+            [=] () -> VkFormat {
+                return res.get ().GetFormat ();
+            },
+            res.get ().GetFinalLayout ()));
     }
 }
 
@@ -24,7 +29,7 @@ std::vector<VkAttachmentDescription> Operation::GetAttachmentDescriptions () con
 {
     std::vector<VkAttachmentDescription> result;
     for (const auto& t : outputBindings) {
-        result.push_back (t.attachmentDescription);
+        result.push_back (t.GetAttachmentDescription ());
     }
     return result;
 }

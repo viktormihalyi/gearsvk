@@ -18,6 +18,8 @@
 
 namespace RG {
 
+class GraphSettings;
+
 
 USING_PTR (Resource);
 class GEARSVK_API Resource : public Node {
