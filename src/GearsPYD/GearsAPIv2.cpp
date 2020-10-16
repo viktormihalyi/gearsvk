@@ -184,9 +184,9 @@ public:
                             fragmentShaderUniforms["ubo_toneRangeVar"]  = -1.f;
                         }
 
-                        fragmentShaderUniforms["ubo_doTone"]           = !currentStim->doesDynamicToneMapping;
-                        fragmentShaderUniforms["ubo_doGamma"]          = !currentStim->doesDynamicToneMapping;
-                        fragmentShaderUniforms["ubo_gammaSampleCount"] = currentStim->gammaSamplesCount;
+                        fragmentShaderUniforms["ubo_doTone"]           = static_cast<int32_t> (!currentStim->doesDynamicToneMapping);
+                        fragmentShaderUniforms["ubo_doGamma"]          = static_cast<int32_t> (!currentStim->doesDynamicToneMapping);
+                        fragmentShaderUniforms["ubo_gammaSampleCount"] = static_cast<int32_t> (currentStim->gammaSamplesCount);
                     }
                 }
 

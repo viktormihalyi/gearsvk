@@ -148,21 +148,17 @@ public:
     template<typename T>
     void operator= (const T& other)
     {
+        static_assert (sizeof (T) >= 4, "there are no data types in glsl with less than 4 bytes");
+
         GVK_ASSERT (GetSize () == sizeof (T));
         memcpy (GetData (), &other, GetSize ());
-    }
-
-    template<>
-    void operator= (const bool& boolValue)
-    {
-        const int32_t asInt = boolValue ? 1 : 0;
-        GVK_ASSERT (GetSize () == 4);
-        memcpy (GetData (), &asInt, GetSize ());
     }
 
     template<typename T>
     void operator= (const std::vector<T>& other)
     {
+        static_assert (sizeof (T) >= 4, "there are no data types in glsl with less than 4 bytes");
+
         GVK_ASSERT (sizeof (T) * other.size () == GetSize ());
         memcpy (GetData (), other.data (), GetSize ());
     }
