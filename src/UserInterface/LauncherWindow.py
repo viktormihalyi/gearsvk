@@ -828,7 +828,7 @@ class LauncherWindow(QWidget):
                 if not callable(member) and not property.startswith('__') :
                     print(property + " = " + str(member), file=log)
         stimuli = sequence.getStimuli()
-        for stimkey, stimulus in stimuli.items ():
+        for stimkey, stimulus in stimuli.items():
             sex = stimulus.getPythonObject()
             print('----------------------STIMULUS-----------------------', file=log)
             print(type(sex).__name__ , file=log)
@@ -854,7 +854,8 @@ class LauncherWindow(QWidget):
         with warnings.catch_warnings(record=True) as w:
             # Cause all warnings to always be triggered.
             warnings.simplefilter("always")
-            gears.run()
+            #gears.run()
+            gears.StartRendering(lambda: False)
             for e in w:
                 self.warn(e.message)
         #self.mediaWindow.start(self)

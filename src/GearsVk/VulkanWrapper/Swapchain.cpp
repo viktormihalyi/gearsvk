@@ -63,6 +63,14 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
 {
     CreateResult createResult;
 
+    {
+        VkBool32 yes;
+        VkResult yesyes = vkGetPhysicalDeviceSurfaceSupportKHR (createSettings.physicalDevice, *createSettings.queueFamilyIndices.presentation, createSettings.surface, &yes);
+        if (GVK_ERROR (yesyes != VK_SUCCESS || yes != VK_TRUE)) {
+            throw std::runtime_error ("cannot create swapchain on this physicald device queue");
+        }
+    }
+
     VkSurfaceCapabilitiesKHR capabilities;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR (createSettings.physicalDevice, createSettings.surface, &capabilities);
 

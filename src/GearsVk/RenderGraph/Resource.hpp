@@ -407,6 +407,8 @@ public:
     Event<SwapchainImageResource&>    onSwapchainImage;
     Event<CPUBufferResource&>         onCPUBuffer;
 
+    ResourceVisitor () = default;
+
     void Visit (Resource& res);
 
     void Visit (Resource* res)

@@ -18,4 +18,8 @@ void TryCompile (ShaderKind shaderKind, const std::string& source);
 
 void RenderFrame (uint32_t frameIndex);
 
-void CreateSurface (intptr_t hwnd);
+intptr_t CreateSurface (intptr_t hwnd);
+
+void DestroySurface (intptr_t handle);
+
+void RequestPaint (intptr_t handle);

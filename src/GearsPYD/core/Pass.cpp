@@ -14,8 +14,6 @@
 #include "Utils.hpp"
 
 
-const std::filesystem::path UIShadersDirectory (PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Shaders");
-
 
 Pass::Pass ()
     : name ("N/A")

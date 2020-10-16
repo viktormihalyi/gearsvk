@@ -76,11 +76,10 @@ void main ()
 
 TEST_F (HeadlessGoogleTestEnvironment, CompileTest)
 {
-    Device&      device      = GetDevice ();
-    Queue&       queue       = GetGraphicsQueue ();
-    CommandPool& commandPool = GetCommandPool ();
+    Device& device = GetDevice ();
 
     RenderGraph graph;
+
     graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
                                                  ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
                                                                                            ShadersFolder / "test.vert",

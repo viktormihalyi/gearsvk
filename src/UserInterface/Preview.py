@@ -14,6 +14,16 @@ except:
   print ('ERROR: PyOpenGL not installed properly.')
 
 
+class VulkanSurfaceWidget (QWidget):
+    def __init__ (self):
+        super ().__init__ ()
+        gears.InitializeVkSurfaceInQWidget (self.winId ().__int__ ());
+        self.setUpdatesEnabled (False)
+
+    def paintEvent (self):
+        print ("xd")
+
+
 class Preview(QGLWidget):
 
     def __init__(self, parent, editor, winId):

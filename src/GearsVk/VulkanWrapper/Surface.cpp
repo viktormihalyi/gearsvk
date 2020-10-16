@@ -5,11 +5,20 @@
 #include <stdexcept>
 
 #ifdef WIN32
-
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
 #include <vulkan/vulkan_win32.h>
+#endif
+
+
+Surface::Surface (VkInstance instance, VkSurfaceKHR&& handle)
+    : instance (instance)
+    , handle (handle)
+{
+}
+
+
+#if WIN32
 
 Surface::Surface (PlatformSpecificSelector, VkInstance instance, void* hwnd)
     : instance (instance)
@@ -21,8 +30,26 @@ Surface::Surface (PlatformSpecificSelector, VkInstance instance, void* hwnd)
     info.hwnd                        = static_cast<HWND> (hwnd);
 
     if (GVK_ERROR (vkCreateWin32SurfaceKHR (instance, &info, nullptr, &handle) != VK_SUCCESS)) {
-        throw std::runtime_error ("failed to create win32 surface");
+        throw std::runtime_error ("failed to create win32 VkSurface");
     }
 }
 
+#else
+
+Surface::Surface (PlatformSpecificSelector, VkInstance instance, void* handle)
+    : instance (instance)
+    , handle (VK_NULL_HANDLE)
+{
+    throw std::runtime_error ("unsupported platform for creating VkSurface");
+}
+
 #endif
+
+
+Surface::~Surface ()
+{
+    if (handle != VK_NULL_HANDLE) {
+        vkDestroySurfaceKHR (instance, handle, nullptr);
+        handle = VK_NULL_HANDLE;
+    }
+}

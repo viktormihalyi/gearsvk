@@ -148,8 +148,16 @@ public:
     template<typename T>
     void operator= (const T& other)
     {
-        GVK_ASSERT (sizeof (T) == GetSize ());
+        GVK_ASSERT (GetSize () == sizeof (T));
         memcpy (GetData (), &other, GetSize ());
+    }
+
+    template<>
+    void operator= (const bool& boolValue)
+    {
+        const int32_t asInt = boolValue ? 1 : 0;
+        GVK_ASSERT (GetSize () == 4);
+        memcpy (GetData (), &asInt, GetSize ());
     }
 
     template<typename T>

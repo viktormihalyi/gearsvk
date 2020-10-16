@@ -56,7 +56,13 @@ class BrowserWindow(QWidget):
         self.fontSizeSmall = 10
         self.setCursor(AppData.cursors['arrow'])
         self.initUI()
-        
+        self.surfaceHandle = gears.CreateSurface(self.winId().__int__())
+        self.setUpdatesEnabled (False)
+        gears.RequestPaint(self.surfaceHandle)
+
+    def closeEvent(self, event):
+        gears.DestroySurface(self.surfaceHandle)
+
     def multiple_replace(self, string, rep_dict):
         pattern = re.compile("|".join([re.escape(k) for k in rep_dict.keys()]), re.M)
         return pattern.sub(lambda x: rep_dict[x.group(0)], string)

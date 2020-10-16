@@ -28,18 +28,18 @@ using W = std::weak_ptr<T>;
     using classname##W   = std::weak_ptr<classname>;         \
     using classname##Ref = std::reference_wrapper<classname>;
 
-#define USING_CREATE(T)                                                     \
-public:                                                                     \
-    template<class... Types>                                                \
-    static std::unique_ptr<T> Create (Types&&... _Args)                     \
-    {                                                                       \
-        return std::unique_ptr<T> (new T (std::forward<Types> (_Args)...)); \
-    }                                                                       \
-                                                                            \
-    template<class... Types>                                                \
-    static std::shared_ptr<T> CreateShared (Types&&... _Args)               \
-    {                                                                       \
-        return std::shared_ptr<T> (new T (std::forward<Types> (_Args)...)); \
+#define USING_CREATE(classname)                                                                       \
+public:                                                                                               \
+    template<class... Parameters>                                                                     \
+    static std::unique_ptr<classname> Create (Parameters&&... parameters)                             \
+    {                                                                                                 \
+        return std::unique_ptr<classname> (new classname (std::forward<Parameters> (parameters)...)); \
+    }                                                                                                 \
+                                                                                                      \
+    template<class... Parameters>                                                                     \
+    static std::shared_ptr<classname> CreateShared (Parameters&&... parameters)                       \
+    {                                                                                                 \
+        return std::shared_ptr<classname> (new classname (std::forward<Parameters> (parameters)...)); \
     }
 
 

@@ -8,6 +8,7 @@
 #include "Assert.hpp"
 #include "GearsVkAPI.hpp"
 #include "UniformView.hpp"
+#include "glmlib.hpp"
 
 #include <unordered_map>
 #include <vector>
@@ -20,9 +21,25 @@ namespace RG {
 // modifying uniforms takes place in a staging cpu memory, calling Flush will copy these to the actual uniform memory
 // accessing a uniforms is available with operator[] eg.: reflection[RG::RenderOperationP][ShaderKind][std::string][std::string]...
 
+class GEARSVK_API ImageMap {
+private:
+    std::vector<std::pair<SR::Sampler, ReadOnlyImageResourceP>> images;
+
+public:
+    ImageMap ();
+
+    ReadOnlyImageResourceP FindByName (const std::string& name) const;
+
+    void Put (const SR::Sampler& sampler, const ReadOnlyImageResourceP& res);
+};
+
+using ExtentProviderForImageCreate = std::function<std::optional<glm::uvec3> (const SR::Sampler& sampler)>;
 
 GEARSVK_API
-void CreateEmptyImageResources (RG::RenderGraph& graph);
+ImageMap CreateEmptyImageResources (RG::RenderGraph& graph);
+
+GEARSVK_API
+ImageMap CreateEmptyImageResources (RG::RenderGraph& graph, const ExtentProviderForImageCreate& extentProvider);
 
 
 USING_PTR (UniformReflection);

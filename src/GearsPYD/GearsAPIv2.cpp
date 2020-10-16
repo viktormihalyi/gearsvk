@@ -12,6 +12,7 @@
 
 #include "gpu/Shader.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <memory>
 #include <set>
@@ -88,7 +89,26 @@ public:
 
 
             RG::UniformReflectionP refl = RG::UniformReflection::CreateShared (*renderGraph);
-            RG::CreateEmptyImageResources (*renderGraph);
+
+            RG::ImageMap imgMap = RG::CreateEmptyImageResources (*renderGraph, [&] (const SR::Sampler& sampler) -> std::optional<glm::uvec3> {
+                if (sampler.name == "gamma") {
+                    return glm::uvec3 { 256, 0, 0 };
+                }
+                return std::nullopt;
+            });
+
+            RG::ReadOnlyImageResourceP gammaTexture = imgMap.FindByName ("gamma");
+            GVK_ASSERT (gammaTexture != nullptr);
+
+            // this is a one time compile resource, which doesnt use framesinflight attrib
+            gammaTexture->Compile (GraphSettings (*GetVkEnvironment ().deviceExtra, 0));
+
+            std::vector<float> gammaAndTemporalWeights (256, 0.f);
+            for (int i = 0; i < 101; i++)
+                gammaAndTemporalWeights[i] = stim->gamma[i];
+            for (int i = 0; i < 64; i++)
+                gammaAndTemporalWeights[128 + i] = stim->temporalWeights[i];
+            gammaTexture->CopyTransitionTransfer (gammaAndTemporalWeights);
 
             stimulusToGraphIndex[stim] = stimulii.size ();
 
@@ -101,6 +121,7 @@ public:
         WindowU window = HiddenGLFWWindow::Create ();
         *presentable   = std::move (*environment.CreatePresentable (*window));
         window->Show ();
+        //window->SetWindowMode (Window::Mode::Fullscreen);
 
         GraphSettings s (*environment.deviceExtra, presentable->GetSwapchain ().GetImageCount ());
 
@@ -141,13 +162,36 @@ public:
 
             renderer->preSubmitEvent = [&] (RenderGraph& graph, uint32_t frameIndex, uint64_t timeNs) {
                 for (auto& [pass, renderOpId] : stimulii[idx]->passToOperation) {
-                    (*refl)[renderOpId->GetUUID ()][ShaderKind::Vertex]["PatternSizeOnRetina"]       = patternSizeOnRetina;
-                    (*refl)[renderOpId->GetUUID ()][ShaderKind::Fragment]["ubo_time"]                = static_cast<float> (timeInSeconds - currentStim->getStartingFrame () / 60.f);
-                    (*refl)[renderOpId->GetUUID ()][ShaderKind::Fragment]["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
-                    (*refl)[renderOpId->GetUUID ()][ShaderKind::Fragment]["ubo_frame"]               = static_cast<int32_t> (frameCount);
+                    auto& fragmentShaderUniforms = (*refl)[renderOpId->GetUUID ()][ShaderKind::Fragment];
+
+                    (*refl)[renderOpId->GetUUID ()][ShaderKind::Vertex]["PatternSizeOnRetina"] = patternSizeOnRetina;
+
+                    fragmentShaderUniforms["ubo_time"]                = static_cast<float> (timeInSeconds - currentStim->getStartingFrame () / 60.f);
+                    fragmentShaderUniforms["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
+                    fragmentShaderUniforms["ubo_frame"]               = static_cast<int32_t> (frameCount);
+
+                    fragmentShaderUniforms["ubo_swizzleForFft"] = 0xffffffff;
+
+                    if (currentStim->doesToneMappingInStimulusGenerator) {
+                        fragmentShaderUniforms["ubo_toneRangeMin"] = currentStim->toneRangeMin;
+                        fragmentShaderUniforms["ubo_toneRangeMax"] = currentStim->toneRangeMax;
+
+                        if (currentStim->toneMappingMode == Stimulus::ToneMappingMode::ERF) {
+                            fragmentShaderUniforms["ubo_toneRangeMean"] = currentStim->toneRangeMean;
+                            fragmentShaderUniforms["ubo_toneRangeVar"]  = currentStim->toneRangeVar;
+                        } else {
+                            fragmentShaderUniforms["ubo_toneRangeMean"] = 0.f;
+                            fragmentShaderUniforms["ubo_toneRangeVar"]  = -1.f;
+                        }
+
+                        fragmentShaderUniforms["ubo_doTone"]           = !currentStim->doesDynamicToneMapping;
+                        fragmentShaderUniforms["ubo_doGamma"]          = !currentStim->doesDynamicToneMapping;
+                        fragmentShaderUniforms["ubo_gammaSampleCount"] = currentStim->gammaSamplesCount;
+                    }
                 }
 
-                //refl->PrintDebugInfo ();
+
+                refl->PrintDebugInfo ();
 
                 refl->Flush (frameIndex);
             };
@@ -163,7 +207,8 @@ public:
     }
 };
 
-static SequenceAdapterU currentSeq = nullptr;
+static SequenceAdapterU          currentSeq = nullptr;
+static std::vector<PresentableP> createdSurfaces;
 
 
 /* exported to .pyd */
@@ -176,6 +221,7 @@ void InitializeEnvironment ()
 /* exported to .pyd */
 void DestroyEnvironment ()
 {
+    createdSurfaces.clear ();
     currentSeq.reset ();
     DestroyVkEnvironment ();
 }
@@ -236,11 +282,100 @@ void TryCompile (ShaderKind shaderKind, const std::string& source)
 
 
 /* exported to .pyd */
-void CreateSurface (intptr_t hwnd)
+intptr_t CreateSurface (intptr_t hwnd)
 {
 #ifdef WIN32
     PresentableP presentable = GetVkEnvironment ().CreatePresentable (Surface::Create (Surface::PlatformSpecific, *GetVkEnvironment ().instance, reinterpret_cast<void*> (hwnd)));
+    createdSurfaces.push_back (presentable);
+    return reinterpret_cast<intptr_t> (presentable.get ());
 #endif
+}
+
+
+/* exported to .pyd */
+void DestroySurface (intptr_t surfaceHandle)
+{
+    createdSurfaces.erase (std::remove_if (createdSurfaces.begin (), createdSurfaces.end (), [&] (const PresentableP& p) {
+                               return reinterpret_cast<intptr_t> (p.get ()) == surfaceHandle;
+                           }),
+                           createdSurfaces.end ());
+}
+
+
+/* exported to .pyd */
+void RequestPaint (intptr_t surfaceHandle)
+{
+    // TODO;
+    PresentableP presentable;
+    for (PresentableP& p : createdSurfaces) {
+        if (reinterpret_cast<intptr_t> (p.get ()) == surfaceHandle) {
+            presentable = p;
+            break;
+        }
+    }
+
+    if (GVK_ERROR (presentable == nullptr)) {
+        return;
+    }
+
+    GraphSettings s (*GetVkEnvironment ().deviceExtra, 3);
+    RenderGraph   graph;
+
+    auto sp = ShaderPipeline::CreateShared (*GetVkEnvironment ().deviceExtra);
+    sp->SetVertexShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec2 textureCoords;
+
+vec2 uvs[6] = vec2[] (
+    vec2 (0.f, 0.f),
+    vec2 (0.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (0.f, 0.f),
+    vec2 (1.f, 0.f)
+);
+
+vec2 positions[6] = vec2[] (
+    vec2 (-1.f, -1.f),
+    vec2 (-1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (-1.f, -1.f),
+    vec2 (+1.f, -1.f)
+);
+
+
+void main() {
+    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
+    textureCoords = uvs[gl_VertexIndex];
+}
+    )");
+
+    sp->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (1, 0, 0, 1);
+}
+    )");
+
+    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
+
+    ImageResourceP red = graph.CreateResource<SwapchainImageResource> (*presentable);
+
+    graph.CreateOutputConnection (*redFillOperation, 0, *red);
+
+    graph.Compile (s);
+
+
+    BlockingGraphRenderer renderer (s, presentable->GetSwapchain ());
+
+    renderer.RenderNextFrame (graph);
 }
 
 

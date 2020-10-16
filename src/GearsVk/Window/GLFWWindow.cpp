@@ -128,23 +128,21 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
         usedMonitor             = primaryMonitor;
     }
 
-    GLFWwindow* glfwWindow = glfwCreateWindow (impl->width, impl->height, "test", usedMonitor, nullptr);
-    if (GVK_ERROR (glfwWindow == nullptr)) {
+    impl->window = glfwCreateWindow (impl->width, impl->height, "test", usedMonitor, nullptr);
+    if (GVK_ERROR (impl->window == nullptr)) {
         throw std::runtime_error ("failed to create window");
     }
 
-    impl->window = glfwWindow;
-
     // window settings
 
-    glfwSetWindowUserPointer (glfwWindow, this);
+    glfwSetWindowUserPointer (impl->window, this);
     if (hideMouse) {
-        glfwSetInputMode (glfwWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // GLFW_CURSOR_DISABLED
+        glfwSetInputMode (impl->window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // GLFW_CURSOR_DISABLED
     }
 
     // callbacks
 
-    glfwSetKeyCallback (glfwWindow, [] (GLFWwindow* window, int key, int scancode, int action, int mods) {
+    glfwSetKeyCallback (impl->window, [] (GLFWwindow* window, int key, int scancode, int action, int mods) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         const char* keyName = glfwGetKeyName (key, 0);
@@ -161,14 +159,14 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     });
 
 
-    glfwSetCursorPosCallback (glfwWindow, [] (GLFWwindow* window, double xpos, double ypos) {
+    glfwSetCursorPosCallback (impl->window, [] (GLFWwindow* window, double xpos, double ypos) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         self->events.mouseMove (xpos, ypos);
     });
 
 
-    glfwSetMouseButtonCallback (glfwWindow, [] (GLFWwindow* window, int button, int action, int mods) {
+    glfwSetMouseButtonCallback (impl->window, [] (GLFWwindow* window, int button, int action, int mods) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         double x, y;
@@ -186,13 +184,13 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     });
 
 
-    glfwSetScrollCallback (glfwWindow, [] (GLFWwindow* window, double /* xoffset */, double yoffset) {
+    glfwSetScrollCallback (impl->window, [] (GLFWwindow* window, double /* xoffset */, double yoffset) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         self->events.scroll (yoffset);
     });
 
-    glfwSetWindowSizeCallback (glfwWindow, [] (GLFWwindow* window, int width, int height) {
+    glfwSetWindowSizeCallback (impl->window, [] (GLFWwindow* window, int width, int height) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         self->impl->width  = width;
@@ -202,13 +200,13 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
         self->events.resized (width, height);
     });
 
-    glfwSetWindowPosCallback (glfwWindow, [] (GLFWwindow* window, int xpos, int ypos) {
+    glfwSetWindowPosCallback (impl->window, [] (GLFWwindow* window, int xpos, int ypos) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         self->events.moved (xpos, ypos);
     });
 
-    glfwSetWindowFocusCallback (glfwWindow, [] (GLFWwindow* window, int focused) {
+    glfwSetWindowFocusCallback (impl->window, [] (GLFWwindow* window, int focused) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         if (focused) {
@@ -218,12 +216,12 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
         }
     });
 
-    glfwSetWindowRefreshCallback (glfwWindow, [] (GLFWwindow* window) {
+    glfwSetWindowRefreshCallback (impl->window, [] (GLFWwindow* window) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
         self->events.refresh ();
     });
 
-    glfwSetFramebufferSizeCallback (glfwWindow, [] (GLFWwindow* window, int width, int height) {
+    glfwSetFramebufferSizeCallback (impl->window, [] (GLFWwindow* window, int width, int height) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         std::cout << "framebuffer resized" << std::endl;

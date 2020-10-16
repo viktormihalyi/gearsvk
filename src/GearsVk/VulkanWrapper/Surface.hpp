@@ -2,48 +2,32 @@
 #define SURFACE_HPP
 
 #include "GearsVkAPI.hpp"
-#include "Noncopyable.hpp"
+#include "VulkanObject.hpp"
 #include "Ptr.hpp"
 
 #include <vulkan/vulkan.h>
 
 
 USING_PTR (Surface);
-class GEARSVK_API Surface : public Noncopyable {
+class GEARSVK_API Surface : public VulkanObject {
+    USING_CREATE (Surface);
+
 private:
     VkInstance   instance;
     VkSurfaceKHR handle;
 
 public:
-    USING_CREATE (Surface);
-
-    Surface (VkInstance instance, VkSurfaceKHR&& handle)
-        : instance (instance)
-        , handle (handle)
-    {
-    }
+    Surface (VkInstance instance, VkSurfaceKHR&& handle);
 
     enum PlatformSpecificSelector {
         PlatformSpecific
     };
 
-
-#ifdef WIN32
     Surface (PlatformSpecificSelector, VkInstance instance, void* handle);
-#endif
 
-    virtual ~Surface ()
-    {
-        if (handle != VK_NULL_HANDLE) {
-            vkDestroySurfaceKHR (instance, handle, nullptr);
-            handle = VK_NULL_HANDLE;
-        }
-    }
+    virtual ~Surface () override;
 
-    operator VkSurfaceKHR () const
-    {
-        return handle;
-    }
+    operator VkSurfaceKHR () const { return handle; }
 };
 
 #endif

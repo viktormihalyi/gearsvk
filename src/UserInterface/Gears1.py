@@ -44,11 +44,6 @@ try:
     
     launcherWindow = LauncherWindow()
     browserWindow = BrowserWindow(launcherWindow, app)
-    
-    hwnd = browserWindow.winId()
-    print (hwnd.__int__ ())
-
-    gears.CreateSurface (hwnd.__int__ ())
 
     atexit.register(gears.cleanup)
     sys.exit(app.exec_())

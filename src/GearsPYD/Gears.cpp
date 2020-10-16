@@ -690,6 +690,8 @@ PYBIND11_MODULE (Gears, m)
     m.def ("StartRendering", StartRendering);
     m.def ("RenderFrame", RenderFrame);
     m.def ("CreateSurface", CreateSurface);
+    m.def ("DestroySurface", DestroySurface);
+    m.def ("RequestPaint", RequestPaint);
 
 #if 0
     class_<p2t::Poly2TriWrapper> (m, "CDT",

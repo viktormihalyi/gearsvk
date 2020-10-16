@@ -2,6 +2,7 @@
 
 #include "Event.hpp"
 
+
 namespace RG {
 
 
@@ -90,7 +91,7 @@ void UniformReflection::PrintDebugInfo ()
             for (auto& [name, ubo] : uboSelector.udatas) {
                 std::cout << "\t\t" << name << " (" << static_cast<int32_t> (ubo->GetSize ()) << " bytes): ";
 
-                for (size_t i = 0; i < ubo->GetSize (); ++i) {
+                for (int32_t i = ubo->GetSize () - 1; i >= 0; --i) {
                     printf ("%02x ", ubo->GetData ()[i]);
                 }
 
@@ -101,22 +102,57 @@ void UniformReflection::PrintDebugInfo ()
 }
 
 
-void CreateEmptyImageResources (RG::RenderGraph& graph)
+ImageMap::ImageMap () = default;
+
+
+ReadOnlyImageResourceP ImageMap::FindByName (const std::string & name) const
 {
+    for (auto& im : images) {
+        if (im.first.name == name) {
+            return im.second;
+        }
+    }
+    return nullptr;
+}
+
+
+void ImageMap::Put (const SR::Sampler & sampler, const ReadOnlyImageResourceP & res)
+{
+    images.emplace_back (sampler, res);
+}
+
+
+ImageMap CreateEmptyImageResources (RG::RenderGraph& graph)
+{
+    return CreateEmptyImageResources (graph, [&] (const SR::Sampler&) { return std::nullopt; });
+}
+
+
+ImageMap CreateEmptyImageResources (RG::RenderGraph& graph, const ExtentProviderForImageCreate& extentProvider)
+{
+    ImageMap result;
+
     Utils::ForEachP<RG::RenderOperation> (graph.operations, [&] (const RG::RenderOperationP& renderOp) {
         renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
             for (const SR::Sampler& sampler : shaderModule.GetReflection ().samplers) {
                 ReadOnlyImageResourceP imgRes;
 
+                const std::optional<glm::uvec3> providedExtent = extentProvider (sampler);
+
+                const glm::uvec3 extent = providedExtent.has_value () ? *providedExtent : glm::uvec3 { 512, 512, 512 };
+
                 switch (sampler.type) {
                     case SR::Sampler::Type::Sampler1D:
-                        imgRes = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512);
+                        GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y == 0 && extent.z == 0));
+                        imgRes = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, extent.x);
                         break;
                     case SR::Sampler::Type::Sampler2D:
-                        imgRes = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
+                        GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y != 0 && extent.z == 0));
+                        imgRes = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, extent.x, extent.y);
                         break;
                     case SR::Sampler::Type::Sampler3D:
-                        imgRes = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 512, 512, 512);
+                        GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y != 0 && extent.z != 0));
+                        imgRes = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, extent.x, extent.y, extent.z);
                         break;
                     default:
                         GVK_BREAK ("unexpected sampler type");
@@ -127,10 +163,14 @@ void CreateEmptyImageResources (RG::RenderGraph& graph)
                     continue;
                 }
 
+                result.Put (sampler, imgRes);
+
                 graph.CreateInputConnection (*renderOp, *imgRes, ImageInputBinding::Create (sampler.binding, *imgRes));
             }
         });
     });
+
+    return result;
 }
 
 } // namespace RG
