@@ -1,8 +1,8 @@
 #version 450
 
 layout (binding = 0) uniform PatternSizeOnRetina {
-	vec2 value;
-} patternSizeOnRetina;
+	vec2 patternSizeOnRetina;
+};
 
 layout (location = 0) out vec2 pos;
 layout (location = 1) out vec2 fTexCoord;
@@ -13,5 +13,5 @@ void main(void) {
    fTexCoord = texCoord;
    fTexCoord.y = -fTexCoord.y;
    fTexCoord.y += 1;
-   pos = (texCoord - vec2(0.5, 0.5)) * patternSizeOnRetina.value;
+   pos = (texCoord - vec2(0.5, 0.5)) * patternSizeOnRetina;
 }

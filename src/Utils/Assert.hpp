@@ -7,7 +7,7 @@
 
 #include "SourceLocation.hpp"
 
-#ifndef NDEBUG
+#if !defined (NDEBUG) || defined (FORCEASSERTS)
 #define GVK_ASSERT(condition) (::Utils::detail::DebugAssertFunc (condition, true, "ASSERTION", #condition, {__FILE__, __LINE__, __func__}))
 #define GVK_VERIFY(condition) (::Utils::detail::DebugAssertFunc (condition, true, "ASSERTION", #condition, {__FILE__, __LINE__, __func__}))
 #define GVK_ERROR(condition) (::Utils::detail::DebugAssertFunc (condition, false, "GVK_ERROR", #condition, {__FILE__, __LINE__, __func__}))

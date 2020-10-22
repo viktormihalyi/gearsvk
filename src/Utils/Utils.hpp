@@ -50,6 +50,12 @@ std::vector<std::string> SplitString (const std::string& str, const char delim, 
 GVK_UTILS_API
 std::vector<std::string> SplitString (const std::string& str, const std::string& delim, const bool keepEmpty = false);
 
+GVK_UTILS_API
+std::string ReplaceAll (const std::string& str, const std::string& substringToReplace, const std::function<std::string()>& replacementSubstring);
+
+GVK_UTILS_API
+bool StringContains (const std::string& str, const std::string& substr);
+
 template<typename SourceType, typename DestType>
 std::set<DestType> ToSet (const std::vector<SourceType>& vec)
 {

@@ -60,7 +60,7 @@ void WritableImageResource::BindWrite (uint32_t imageIndex, CommandBuffer& comma
 
 void WritableImageResource::Compile (const GraphSettings& graphSettings)
 {
-    sampler = Sampler::Create (graphSettings.GetDevice ());
+    sampler = Sampler::Create (graphSettings.GetDevice (), VK_FILTER_LINEAR);
 
     images.clear ();
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {

@@ -64,6 +64,8 @@ public:
     template<typename T>
     void operator= (const T& other)
     {
+        static_assert (sizeof (T) >= 4, "there are no data types in glsl with less than 4 bytes");
+
         if (GVK_ERROR (data == nullptr)) {
             return;
         }

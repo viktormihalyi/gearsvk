@@ -105,7 +105,7 @@ void UniformReflection::PrintDebugInfo ()
 ImageMap::ImageMap () = default;
 
 
-ReadOnlyImageResourceP ImageMap::FindByName (const std::string & name) const
+ReadOnlyImageResourceP ImageMap::FindByName (const std::string& name) const
 {
     for (auto& im : images) {
         if (im.first.name == name) {
@@ -116,7 +116,7 @@ ReadOnlyImageResourceP ImageMap::FindByName (const std::string & name) const
 }
 
 
-void ImageMap::Put (const SR::Sampler & sampler, const ReadOnlyImageResourceP & res)
+void ImageMap::Put (const SR::Sampler& sampler, const ReadOnlyImageResourceP& res)
 {
     images.emplace_back (sampler, res);
 }
@@ -137,22 +137,24 @@ ImageMap CreateEmptyImageResources (RG::RenderGraph& graph, const ExtentProvider
             for (const SR::Sampler& sampler : shaderModule.GetReflection ().samplers) {
                 ReadOnlyImageResourceP imgRes;
 
-                const std::optional<glm::uvec3> providedExtent = extentProvider (sampler);
+                const std::optional<CreateParams> providedExtent = extentProvider (sampler);
 
-                const glm::uvec3 extent = providedExtent.has_value () ? *providedExtent : glm::uvec3 { 512, 512, 512 };
+                const glm::uvec3 extent = providedExtent.has_value () ? std::get<0> (*providedExtent) : glm::uvec3 { 512, 512, 512 };
+                const VkFormat   format = providedExtent.has_value () ? std::get<1> (*providedExtent) : VK_FORMAT_R8_SRGB;
+                const VkFilter   filter = providedExtent.has_value () ? std::get<2> (*providedExtent) : VK_FILTER_LINEAR;
 
                 switch (sampler.type) {
                     case SR::Sampler::Type::Sampler1D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y == 0 && extent.z == 0));
-                        imgRes = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, extent.x);
+                        imgRes = graph.CreateResource<ReadOnlyImageResource> (format, filter, extent.x);
                         break;
                     case SR::Sampler::Type::Sampler2D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y != 0 && extent.z == 0));
-                        imgRes = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, extent.x, extent.y);
+                        imgRes = graph.CreateResource<ReadOnlyImageResource> (format, filter, extent.x, extent.y);
                         break;
                     case SR::Sampler::Type::Sampler3D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y != 0 && extent.z != 0));
-                        imgRes = graph.CreateResource<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, extent.x, extent.y, extent.z);
+                        imgRes = graph.CreateResource<ReadOnlyImageResource> (format, filter, extent.x, extent.y, extent.z);
                         break;
                     default:
                         GVK_BREAK ("unexpected sampler type");

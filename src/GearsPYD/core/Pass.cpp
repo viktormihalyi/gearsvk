@@ -185,47 +185,47 @@ void Pass::onSequenceComplete ()
         setShaderFunction ("toneMap",
                            R"GLSLC0D3(
 			layout (binding = 101) uniform sampler1D gamma;																	
-			layout (binding = 102) uniform ubo_toneRangeMin { float value; } toneRangeMin;																
-			layout (binding = 103) uniform ubo_toneRangeMax { float value; } toneRangeMax;																
-			layout (binding = 104) uniform ubo_toneRangeMean { float value; } toneRangeMean;																
-			layout (binding = 105) uniform ubo_toneRangeVar { float value; } toneRangeVar;																
-			layout (binding = 106) uniform ubo_gammaSampleCount { int value; } gammaSampleCount;																
-			layout (binding = 107) uniform ubo_doTone { bool value; } doTone;
-			layout (binding = 108) uniform ubo_doGamma { bool value; } doGamma;
+			layout (binding = 102) uniform ubo_toneRangeMin { float toneRangeMin; };																
+			layout (binding = 103) uniform ubo_toneRangeMax { float toneRangeMax; };																
+			layout (binding = 104) uniform ubo_toneRangeMean { float toneRangeMean; };																
+			layout (binding = 105) uniform ubo_toneRangeVar { float toneRangeVar; };																
+			layout (binding = 106) uniform ubo_gammaSampleCount { int gammaSampleCount; };																
+			layout (binding = 107) uniform ubo_doTone { bool doTone; };
+			layout (binding = 108) uniform ubo_doGamma { bool doGamma; };
 
 			vec3 toneMap(vec3 color){																	
 				vec3 outcolor = color;
-				if(doTone.value)																		
+				if(doTone)																		
 				{
-					if(toneRangeVar.value >= 0)																
+					if(toneRangeVar >= 0)																
 					{																						
-						outcolor.r = 1 - 1 / (1 + exp((outcolor.r - toneRangeMean.value)/toneRangeVar.value));	
-						outcolor.g = 1 - 1 / (1 + exp((outcolor.g - toneRangeMean.value)/toneRangeVar.value));	
-						outcolor.b = 1 - 1 / (1 + exp((outcolor.b - toneRangeMean.value)/toneRangeVar.value));	
+						outcolor.r = 1 - 1 / (1 + exp((outcolor.r - toneRangeMean)/toneRangeVar));	
+						outcolor.g = 1 - 1 / (1 + exp((outcolor.g - toneRangeMean)/toneRangeVar));	
+						outcolor.b = 1 - 1 / (1 + exp((outcolor.b - toneRangeMean)/toneRangeVar));	
 					}																						
 					else																					
 					{																						
-						outcolor.r = (outcolor.r - toneRangeMin.value) / (toneRangeMax.value - toneRangeMin.value);	
-						outcolor.g = (outcolor.g - toneRangeMin.value) / (toneRangeMax.value - toneRangeMin.value);	
-						outcolor.b = (outcolor.b - toneRangeMin.value) / (toneRangeMax.value - toneRangeMin.value);	
+						outcolor.r = (outcolor.r - toneRangeMin) / (toneRangeMax - toneRangeMin);	
+						outcolor.g = (outcolor.g - toneRangeMin) / (toneRangeMax - toneRangeMin);	
+						outcolor.b = (outcolor.b - toneRangeMin) / (toneRangeMax - toneRangeMin);	
 					}
 				}
 																										
-				if(doGamma.value)
+				if(doGamma)
 				{																						
 					{																					
 					outcolor.r = clamp(outcolor.r, 0, 1);												
-					float gammaIndex = outcolor.r * (gammaSampleCount.value-1) + 0.5;							
+					float gammaIndex = outcolor.r * (gammaSampleCount-1) + 0.5;							
 					outcolor.r = texture(gamma, gammaIndex/256.0).x;									
 					}																					
 					{																					
 					outcolor.g = clamp(outcolor.g, 0, 1);												
-					float gammaIndex = outcolor.g * (gammaSampleCount.value-1) + 0.5;							
+					float gammaIndex = outcolor.g * (gammaSampleCount-1) + 0.5;							
 					outcolor.g = texture(gamma, gammaIndex/256.0).x;									
 					}																					
 					{																					
 					outcolor.b = clamp(outcolor.b, 0, 1);												
-					float gammaIndex = outcolor.b * (gammaSampleCount.value-1) + 0.5;							
+					float gammaIndex = outcolor.b * (gammaSampleCount-1) + 0.5;							
 					outcolor.b = texture(gamma, gammaIndex/256.0).x;									
 					}																					
 				}																						
@@ -327,8 +327,8 @@ std::string Pass::getStimulusGeneratorVertexShaderSource (Pass::RasterizationMod
 #version 450
 
 layout (binding = 0) uniform PatternSizeOnRetina {
-	vec2 value;
-} patternSizeOnRetina;
+	vec2 patternSizeOnRetina;
+};
 
 layout (location = 0) out vec2 pos;
 layout (location = 1) out vec2 fTexCoord;
@@ -339,7 +339,7 @@ void main(void) {
    fTexCoord = texCoord;
    fTexCoord.y = -fTexCoord.y;
    fTexCoord.y += 1;
-   pos = (texCoord - vec2(0.5, 0.5)) * patternSizeOnRetina.value;
+   pos = (texCoord - vec2(0.5, 0.5)) * patternSizeOnRetina;
 }
 			)GLSLCODE");
         return s;
@@ -481,7 +481,7 @@ std::string Pass::getStimulusGeneratorGeometryShaderSource (Pass::RasterizationM
 static std::string GenerateUniformBlock (uint32_t& binding, const std::string& type, const std::string& name)
 {
     std::stringstream ss;
-    ss << "layout (binding = " << binding << ") uniform ubo_" << name << " { " << type << " value; } " << name << ";" << std::endl;
+    ss << "layout (binding = " << binding << ") uniform ubo_" << name << " { " << type << " " << name << "; };" << std::endl;
     binding++;
     return ss.str ();
 }
@@ -530,7 +530,7 @@ std::string Pass::getStimulusGeneratorShaderSource () const
     for (std::string sfunc : shaderFunctionOrder) {
         std::string funcSource = shaderFunctions.find (sfunc)->second;
         for (auto& u : uniforms) {
-            ReplaceAll (funcSource, u, u + ".value");
+            ReplaceAll (funcSource, u, u + "");
         }
         s += funcSource;
         s += "\n";

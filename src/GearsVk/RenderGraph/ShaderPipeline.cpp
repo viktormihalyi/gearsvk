@@ -97,22 +97,22 @@ std::vector<VkPipelineShaderStageCreateInfo> ShaderPipeline::GetShaderStages () 
 }
 
 
-void ShaderPipeline::SetShaderFromSourceString (ShaderKind shaderKind, const std::string& source)
+void ShaderPipeline::SetShaderFromSourceString (ShaderKind shaderKind, const std::string& source, ShaderPreprocessor& preprocessor)
 {
     GVK_ASSERT (GetShaderByKind (shaderKind) == nullptr);
-    GetShaderByKind (shaderKind) = ShaderModule::CreateFromGLSLString (device, shaderKind, source);
+    GetShaderByKind (shaderKind) = ShaderModule::CreateFromGLSLString (device, shaderKind, source, preprocessor);
 }
 
 
-void ShaderPipeline::SetVertexShaderFromString (const std::string& source)
+void ShaderPipeline::SetVertexShaderFromString (const std::string& source, ShaderPreprocessor& preprocessor)
 {
-    SetShaderFromSourceString (ShaderKind::Vertex, source);
+    SetShaderFromSourceString (ShaderKind::Vertex, source, preprocessor);
 }
 
 
-void ShaderPipeline::SetFragmentShaderFromString (const std::string& source)
+void ShaderPipeline::SetFragmentShaderFromString (const std::string& source, ShaderPreprocessor& preprocessor)
 {
-    SetShaderFromSourceString (ShaderKind::Fragment, source);
+    SetShaderFromSourceString (ShaderKind::Fragment, source, preprocessor);
 }
 
 

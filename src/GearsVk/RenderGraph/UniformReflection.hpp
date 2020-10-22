@@ -10,6 +10,7 @@
 #include "UniformView.hpp"
 #include "glmlib.hpp"
 
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -33,7 +34,8 @@ public:
     void Put (const SR::Sampler& sampler, const ReadOnlyImageResourceP& res);
 };
 
-using ExtentProviderForImageCreate = std::function<std::optional<glm::uvec3> (const SR::Sampler& sampler)>;
+using CreateParams                 = std::tuple<glm::uvec3, VkFormat, VkFilter>;
+using ExtentProviderForImageCreate = std::function<std::optional<CreateParams> (const SR::Sampler& sampler)>;
 
 GEARSVK_API
 ImageMap CreateEmptyImageResources (RG::RenderGraph& graph);

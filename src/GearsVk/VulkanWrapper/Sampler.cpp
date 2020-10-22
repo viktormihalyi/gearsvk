@@ -1,28 +1,28 @@
 #include "Sampler.hpp"
 
 
-Sampler::Sampler (VkDevice device, VkSamplerAddressMode addressMode)
+Sampler::Sampler (VkDevice device, VkFilter filter, VkSamplerAddressMode addressMode)
     : device (device)
+    , createInfo ({})
 {
-    VkSamplerCreateInfo samplerInfo     = {};
-    samplerInfo.sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter               = VK_FILTER_LINEAR; // TODO MAKE IT A CHOICE
-    samplerInfo.minFilter               = VK_FILTER_LINEAR; // TODO MAKE IT A CHOICE
-    samplerInfo.addressModeU            = addressMode;
-    samplerInfo.addressModeV            = addressMode;
-    samplerInfo.addressModeW            = addressMode;
-    samplerInfo.anisotropyEnable        = VK_FALSE;
-    samplerInfo.maxAnisotropy           = 16;
-    samplerInfo.borderColor             = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    samplerInfo.compareEnable           = VK_FALSE;
-    samplerInfo.compareOp               = VK_COMPARE_OP_NEVER;
-    samplerInfo.mipmapMode              = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.mipLodBias              = 0.0f;
-    samplerInfo.minLod                  = 0.0f;
-    samplerInfo.maxLod                  = 0.0f;
+    createInfo.sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    createInfo.magFilter               = filter;
+    createInfo.minFilter               = filter;
+    createInfo.addressModeU            = addressMode;
+    createInfo.addressModeV            = addressMode;
+    createInfo.addressModeW            = addressMode;
+    createInfo.anisotropyEnable        = VK_FALSE;
+    createInfo.maxAnisotropy           = 16;
+    createInfo.borderColor             = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+    createInfo.unnormalizedCoordinates = VK_FALSE;
+    createInfo.compareEnable           = VK_FALSE;
+    createInfo.compareOp               = VK_COMPARE_OP_NEVER;
+    createInfo.mipmapMode              = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    createInfo.mipLodBias              = 0.0f;
+    createInfo.minLod                  = 0.0f;
+    createInfo.maxLod                  = 0.0f;
 
-    if (vkCreateSampler (device, &samplerInfo, nullptr, &handle) != VK_SUCCESS) {
+    if (vkCreateSampler (device, &createInfo, nullptr, &handle) != VK_SUCCESS) {
         throw std::runtime_error ("failed to create texture sampler!");
     }
 }

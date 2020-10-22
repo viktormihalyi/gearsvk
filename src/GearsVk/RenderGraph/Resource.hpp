@@ -82,8 +82,6 @@ class GEARSVK_API WritableImageResource : public ImageResource, public InputImag
     USING_CREATE (WritableImageResource);
 
 private:
-    SamplerU sampler;
-
     USING_PTR (SingleImageResource);
     struct SingleImageResource final {
         USING_CREATE (SingleImageResource);
@@ -113,16 +111,25 @@ private:
     };
 
 public:
-    uint32_t                          width;
-    uint32_t                          height;
-    uint32_t                          arrayLayers;
+    const VkFilter filter;
+    const uint32_t width;
+    const uint32_t height;
+    const uint32_t arrayLayers;
+
     std::vector<SingleImageResourceU> images;
+    SamplerU                          sampler;
 
 public:
-    WritableImageResource (uint32_t width, uint32_t height, uint32_t arrayLayers = 1)
-        : width (width)
+    WritableImageResource (VkFilter filer, uint32_t width, uint32_t height, uint32_t arrayLayers = 1)
+        : filter (filter)
+        , width (width)
         , height (height)
         , arrayLayers (arrayLayers)
+    {
+    }
+
+    WritableImageResource (uint32_t width, uint32_t height, uint32_t arrayLayers = 1)
+        : WritableImageResource (VK_FILTER_LINEAR, width, height, arrayLayers)
     {
     }
 
@@ -147,7 +154,7 @@ public:
 
     virtual void Compile (const GraphSettings& graphSettings) override
     {
-        sampler = Sampler::Create (graphSettings.GetDevice ());
+        sampler = Sampler::Create (graphSettings.GetDevice (), filter);
 
         images.clear ();
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
@@ -224,6 +231,7 @@ public:
     SamplerU               sampler;
 
     const VkFormat format;
+    const VkFilter filter;
     const uint32_t width;
     const uint32_t height;
     const uint32_t depth;
@@ -232,8 +240,9 @@ public:
 public:
     USING_CREATE (ReadOnlyImageResource);
 
-    ReadOnlyImageResource (VkFormat format, uint32_t width, uint32_t height = 1, uint32_t depth = 1, uint32_t layerCount = 1)
+    ReadOnlyImageResource (VkFormat format, VkFilter filter, uint32_t width, uint32_t height = 1, uint32_t depth = 1, uint32_t layerCount = 1)
         : format (format)
+        , filter (filter)
         , width (width)
         , height (height)
         , depth (depth)
@@ -245,12 +254,17 @@ public:
         GVK_ASSERT_THROW (layerCount > 0);
     }
 
+    ReadOnlyImageResource (VkFormat format, uint32_t width, uint32_t height = 1, uint32_t depth = 1, uint32_t layerCount = 1)
+        : ReadOnlyImageResource (format, VK_FILTER_LINEAR, width, height, depth, layerCount)
+    {
+    }
+
     virtual ~ReadOnlyImageResource () {}
 
     // overriding OneTimeCompileResource
     virtual void CompileOnce (const GraphSettings& settings) override
     {
-        sampler = Sampler::Create (settings.GetDevice ());
+        sampler = Sampler::Create (settings.GetDevice (), filter);
 
         if (height == 1 && depth == 1) {
             image     = Image1DTransferable::Create (settings.GetDevice (), format, width, VK_IMAGE_USAGE_SAMPLED_BIT);
@@ -402,10 +416,10 @@ public:
 
 class GEARSVK_API ResourceVisitor final {
 public:
-    Event<WritableImageResource&>     onWritableImage;
-    Event<ReadOnlyImageResource&>     onReadOnlyImage;
-    Event<SwapchainImageResource&>    onSwapchainImage;
-    Event<CPUBufferResource&>         onCPUBuffer;
+    Event<WritableImageResource&>  onWritableImage;
+    Event<ReadOnlyImageResource&>  onReadOnlyImage;
+    Event<SwapchainImageResource&> onSwapchainImage;
+    Event<CPUBufferResource&>      onCPUBuffer;
 
     ResourceVisitor () = default;
 

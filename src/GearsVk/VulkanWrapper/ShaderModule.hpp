@@ -35,8 +35,30 @@ enum class ShaderKind {
 std::string ShaderKindToString (ShaderKind);
 
 
+USING_PTR (ShaderPreprocessor);
+class GEARSVK_API ShaderPreprocessor {
+public:
+    virtual ~ShaderPreprocessor () = default;
+
+    virtual std::string Preprocess (const std::string& source) = 0;
+};
+
+
+class GEARSVK_API EmptyPreprocessor : public ShaderPreprocessor {
+public:
+    virtual std::string Preprocess (const std::string& source) override
+    {
+        return source;
+    }
+};
+
+extern GEARSVK_API EmptyPreprocessor emptyPreprocessor;
+
+
 USING_PTR (ShaderModule);
 class GEARSVK_API ShaderModule : public VulkanObject {
+    USING_CREATE (ShaderModule);
+
 public:
     static constexpr uint32_t ShaderKindCount = 6;
 
@@ -66,6 +88,8 @@ private:
 
     Reflection reflection;
 
+    ShaderPreprocessor& preprocessor;
+
 private:
     // private ctor, use factories instead
     ShaderModule (ShaderKind                   shaderKind,
@@ -74,14 +98,13 @@ private:
                   VkShaderModule               handle,
                   const std::filesystem::path& fileLocation,
                   const std::vector<uint32_t>& binary,
-                  const std::string&           sourceCode);
+                  const std::string&           sourceCode,
+                  ShaderPreprocessor&          preprocessor);
 
 public:
-    USING_CREATE (ShaderModule);
-
-    static ShaderModuleU CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation);
+    static ShaderModuleU CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, ShaderPreprocessor& preprocessor = emptyPreprocessor);
+    static ShaderModuleU CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation, ShaderPreprocessor& preprocessor = emptyPreprocessor);
     static ShaderModuleU CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation);
-    static ShaderModuleU CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource);
 
     virtual ~ShaderModule ();
 

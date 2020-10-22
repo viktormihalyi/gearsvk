@@ -12,13 +12,14 @@
 USING_PTR (Sampler);
 class GEARSVK_API Sampler : public VulkanObject {
 private:
-    const VkDevice device;
-    VkSampler      handle;
+    const VkDevice      device;
+    VkSampler           handle;
+    VkSamplerCreateInfo createInfo;
 
 public:
     USING_CREATE (Sampler);
 
-    Sampler (VkDevice device, VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER);
+    Sampler (VkDevice device, VkFilter filter, VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER);
 
     ~Sampler ();
 

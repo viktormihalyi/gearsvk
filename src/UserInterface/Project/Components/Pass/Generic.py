@@ -46,20 +46,20 @@ class Generic(Base) :
 		    void main ()
             {
                 
-                vec4 outcolor = vec4 (fig (pos, time.value), alphaMask (pos, time.value).x); 
+                vec4 outcolor = vec4 (fig (pos, time), alphaMask (pos, time).x); 
                 
                 outcolor.rgb = temporalProcess(outcolor.rgb, fTexCoord);
                 outcolor.rgb = toneMap(outcolor.rgb);
                 
-                if (swizzleForFft.value == 0x00020000) {
+                if (swizzleForFft == 0x00020000) {
                     outcolor = vec4(outcolor.r, 0, outcolor.g, 0);
-                } else if (swizzleForFft.value == 0x00000406) {
+                } else if (swizzleForFft == 0x00000406) {
                     outcolor = vec4(outcolor.b, 0, outcolor.a, 0);
                 }
 
                 presented = outcolor;
-                // presented = vec4 (fig_modulated_shape (pos, time.value), 1);
-                // presented = vec4 (fig_modulated_shape_moved_warped (pos, time.value), 1);
+                // presented = vec4 (fig_modulated_shape (pos, time), 1);
+                // presented = vec4 (fig_modulated_shape_moved_warped (pos, time), 1);
             }
 		"""
 

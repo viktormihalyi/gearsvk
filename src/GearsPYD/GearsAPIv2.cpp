@@ -25,6 +25,22 @@ static VulkanEnvironment& GetVkEnvironment ();
 static void               DestroyVkEnvironment ();
 
 
+
+class CounterPreprocessor : public ShaderPreprocessor {
+public:
+    virtual std::string Preprocess (const std::string& source) override
+    {
+        if (Utils::StringContains (source, "__COUNTER__")) {
+            uint32_t counter = 0;
+            return Utils::ReplaceAll (source, "__COUNTER__", [&] () -> std::string {
+                return std::to_string (counter++);
+            });
+        }
+        
+    }
+};
+
+
 USING_PTR (SequenceAdapter);
 class SequenceAdapter {
     USING_CREATE (SequenceAdapter);
@@ -90,9 +106,9 @@ public:
 
             RG::UniformReflectionP refl = RG::UniformReflection::CreateShared (*renderGraph);
 
-            RG::ImageMap imgMap = RG::CreateEmptyImageResources (*renderGraph, [&] (const SR::Sampler& sampler) -> std::optional<glm::uvec3> {
+            RG::ImageMap imgMap = RG::CreateEmptyImageResources (*renderGraph, [&] (const SR::Sampler& sampler) -> std::optional<CreateParams> {
                 if (sampler.name == "gamma") {
-                    return glm::uvec3 { 256, 0, 0 };
+                    return std::make_tuple (glm::uvec3 { 256, 0, 0 }, VK_FORMAT_R32_SFLOAT, VK_FILTER_NEAREST);
                 }
                 return std::nullopt;
             });
