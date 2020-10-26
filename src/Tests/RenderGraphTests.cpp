@@ -6,6 +6,7 @@
 #include "RenderGraph.hpp"
 #include "ShaderPipeline.hpp"
 #include "Timer.hpp"
+#include "UniformReflection.hpp"
 #include "Utils.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
@@ -127,6 +128,111 @@ layout (location = 0) out vec2 textureCoords;
     }
 }
 
+
+TEST_F (HeadlessGoogleTestEnvironment, ImageMap_TextureArray)
+{
+    DeviceExtra& device        = GetDeviceExtra ();
+    CommandPool& commandPool   = GetCommandPool ();
+    Queue&       graphicsQueue = GetGraphicsQueue ();
+
+    GraphSettings s (device, 3);
+    RenderGraph   graph;
+
+    auto sp = ShaderPipeline::CreateShared (device);
+    sp->SetVertexShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec2 textureCoords;
+
+vec2 uvs[6] = vec2[] (
+    vec2 (0.f, 0.f),
+    vec2 (0.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (0.f, 0.f),
+    vec2 (1.f, 0.f)
+);
+
+vec2 positions[6] = vec2[] (
+    vec2 (-1.f, -1.f),
+    vec2 (-1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (-1.f, -1.f),
+    vec2 (+1.f, -1.f)
+);
+
+
+void main() {
+    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
+    textureCoords = uvs[gl_VertexIndex];
+}
+    )");
+
+    sp->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (binding = 7) uniform sampler2D textureArray_RGBA_32x32[2];
+layout (binding = 8) uniform sampler2D textureArray_R_32x32[2];
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (
+        texture (textureArray_RGBA_32x32[0], vec2 ( 0.0/32.0,  0.0/32.0)).r,
+        texture (textureArray_RGBA_32x32[0], vec2 (15.0/32.0, 28.0/32.0)).g,
+        texture (textureArray_R_32x32[1],    vec2 ( 7.0/32.0, 31.0/32.0)).r,
+        1
+    );
+}
+    )");
+
+    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
+
+    ImageMap imgMap = CreateEmptyImageResources (graph, [&] (const SR::Sampler& sampler) -> std::optional<CreateParams> {
+        if (sampler.name == "textureArray_RGBA_32x32") {
+            return std::make_tuple (glm::uvec3 { 32, 32, 0 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_FILTER_NEAREST);
+        }
+        if (sampler.name == "textureArray_R_32x32") {
+            return std::make_tuple (glm::uvec3 { 32, 32, 0 }, VK_FORMAT_R32_SFLOAT, VK_FILTER_NEAREST);
+        }
+        return std::nullopt;
+    });
+
+    ImageResourceP presented = graph.CreateResource<WritableImageResource> (512, 512);
+
+    graph.CreateOutputConnection (*redFillOperation, 0, *presented);
+
+    graph.Compile (s);
+
+    {
+        RG::ReadOnlyImageResourceP textureArray = imgMap.FindByName ("textureArray_R_32x32");
+        GVK_ASSERT (textureArray != nullptr);
+        std::vector<float> pixelData (32 * 32);
+        std::generate_n (pixelData.begin (), 32 * 32, [] () {
+            return 0.3;
+        });
+        textureArray->CopyTransitionTransfer (pixelData);
+    }
+    {
+        RG::ReadOnlyImageResourceP textureArray = imgMap.FindByName ("textureArray_RGBA_32x32");
+        GVK_ASSERT (textureArray != nullptr);
+        std::vector<glm::vec4> pixelData (32 * 32);
+        std::generate_n (pixelData.begin (), 32 * 32, [] () {
+            return glm::vec4 (0.7, 0.6, 0.8, 1.0);
+        });
+        textureArray->CopyTransitionTransfer (pixelData);
+    }
+
+    graph.Submit (0);
+
+    vkQueueWaitIdle (graphicsQueue);
+    vkDeviceWaitIdle (device);
+
+    CompareImages ("textureArray", *presented->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+}
 
 TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
 {
@@ -497,7 +603,7 @@ void main () {
     RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, *vbb, ib), std::move (sp));
 
     SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*presentable);
-    WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> (800, 600, 2);
+    WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> (VK_FILTER_LINEAR, 800, 600, 2);
     CPUBufferResourceP      unif          = graph.CreateResource<CPUBufferResource> (4);
 
     graph.CreateInputConnection (*redFillOperation, *unif, UniformInputBinding::Create (0, *unif));

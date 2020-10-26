@@ -49,7 +49,7 @@ class GEARSVK_API UniformReflection final : public EventObserverClass {
     USING_CREATE (UniformReflection);
 
 private:
-    class UboSelector {
+    class GEARSVK_API UboSelector {
     private:
         std::unordered_map<std::string, SR::IUDataP> udatas;
 
@@ -73,7 +73,7 @@ private:
         friend class UniformReflection;
     };
 
-    class ShaderKindSelector {
+    class GEARSVK_API ShaderKindSelector {
     private:
         std::unordered_map<ShaderKind, UboSelector> uboSelectors;
 
@@ -149,19 +149,20 @@ public:
 };
 
 
-UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const GearsVk::UUID& renderOpId)
+inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const GearsVk::UUID& renderOpId)
 {
     GVK_ASSERT (selectors.find (renderOpId) != selectors.end ());
     return selectors.at (renderOpId);
 }
 
-UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const RG::RenderOperation& renderOp)
+
+inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const RG::RenderOperation& renderOp)
 {
     return (*this)[renderOp.GetUUID ()];
 }
 
 
-UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const RG::RenderOperationP& renderOp)
+inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const RG::RenderOperationP& renderOp)
 {
     return (*this)[renderOp->GetUUID ()];
 }

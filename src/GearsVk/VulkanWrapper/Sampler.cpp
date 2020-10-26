@@ -1,10 +1,12 @@
 #include "Sampler.hpp"
 
+#include "Assert.hpp"
 
 Sampler::Sampler (VkDevice device, VkFilter filter, VkSamplerAddressMode addressMode)
     : device (device)
-    , createInfo ({})
+    , filter (filter)
 {
+    VkSamplerCreateInfo createInfo     = {};
     createInfo.sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     createInfo.magFilter               = filter;
     createInfo.minFilter               = filter;
@@ -22,7 +24,7 @@ Sampler::Sampler (VkDevice device, VkFilter filter, VkSamplerAddressMode address
     createInfo.minLod                  = 0.0f;
     createInfo.maxLod                  = 0.0f;
 
-    if (vkCreateSampler (device, &createInfo, nullptr, &handle) != VK_SUCCESS) {
+    if (GVK_ERROR (vkCreateSampler (device, &createInfo, nullptr, &handle) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create texture sampler!");
     }
 }

@@ -75,7 +75,7 @@ class SequenceRenderer {
     //! Index of current slice in texture queue. Changes continuously during sequence.
     unsigned int currentSlice;
 
-    RandomSequenceBuffer* randomSequenceBuffers[5];
+    std::unique_ptr<RandomSequenceBuffer> randomSequenceBuffers[5];
     std::ofstream         randomExportStream;
     RandomSequenceBuffer* particleBuffers[2];
     TextureQueue*         textureQueue;

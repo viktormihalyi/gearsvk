@@ -131,16 +131,16 @@ public:
 
     virtual std::vector<VkDescriptorImageInfo> GetImageInfos (uint32_t frameIndex) override
     {
-        VkDescriptorImageInfo result = {};
-        result.sampler               = imageViewProvider.GetSampler ();
-        result.imageView             = imageViewProvider.GetImageViewForFrame (frameIndex, 0);
-        result.imageLayout           = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        return { result };
+        std::vector<VkDescriptorImageInfo> result;
+        for (uint32_t imageIndex = 0; imageIndex < layerCount; ++imageIndex) {
+            VkDescriptorImageInfo imageInfo = {};
+            imageInfo.sampler               = imageViewProvider.GetSampler ();
+            imageInfo.imageView             = imageViewProvider.GetImageViewForFrame (frameIndex, imageIndex);
+            imageInfo.imageLayout           = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            result.push_back (imageInfo);
+        }
+        return result;
     }
-};
-
-
-struct UniformReflectionBinding : public InputBinding {
 };
 
 
@@ -149,10 +149,10 @@ private:
     VkAttachmentDescription attachmentDescription;
 
 public:
-    const uint32_t          binding;
-    VkAttachmentReference   attachmentReference;
+    const uint32_t             binding;
+    VkAttachmentReference      attachmentReference;
     std::function<VkFormat ()> formatProvider;
-    const VkImageLayout     finalLayout;
+    const VkImageLayout        finalLayout;
 
     OutputBinding (uint32_t binding, std::function<VkFormat ()> formatProvider, VkImageLayout finalLayout)
         : binding (binding)

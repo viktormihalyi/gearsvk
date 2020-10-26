@@ -522,6 +522,8 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
         f->size        = (Mtype.width * Mtype.vecsize * Mtype.columns) / 8;
         f->type        = BaseTypeNMToSRFieldType (Mtype.basetype, Mtype.vecsize, Mtype.columns);
 
+        GVK_ASSERT (Mtype.array.empty () || Mtype.array.size () == 1);
+
         parentFields.push_back (f);
 
         IterateTypeTree (compiler, type.member_types[i], f->structFields, depth + 1);
@@ -598,6 +600,9 @@ std::vector<Sampler> GetSamplersFromBinary (const std::vector<uint32_t>& binary)
         sampler.binding       = *decorations.Binding;
         sampler.descriptorSet = *decorations.DescriptorSet;
         sampler.type          = SpvDimToSamplerType (type.image.dim);
+        sampler.arraySize     = !type.array.empty () ? type.array[0] : 0;
+
+        GVK_ASSERT (type.array.empty () || type.array.size () == 1);
 
         result.push_back (sampler);
     }

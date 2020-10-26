@@ -161,11 +161,11 @@ void SequenceRenderer::apply (Sequence::P sequence, ShaderManager::P shaderManag
     }
 
     if (sequence->maxRandomGridWidth > 0) {
-        randomSequenceBuffers[0] = new RandomSequenceBuffer (sequence->maxRandomGridWidth, sequence->maxRandomGridHeight);
-        randomSequenceBuffers[1] = new RandomSequenceBuffer (sequence->maxRandomGridWidth, sequence->maxRandomGridHeight);
-        randomSequenceBuffers[2] = new RandomSequenceBuffer (sequence->maxRandomGridWidth, sequence->maxRandomGridHeight);
-        randomSequenceBuffers[3] = new RandomSequenceBuffer (sequence->maxRandomGridWidth, sequence->maxRandomGridHeight);
-        randomSequenceBuffers[4] = new RandomSequenceBuffer (sequence->maxRandomGridWidth, sequence->maxRandomGridHeight);
+        randomSequenceBuffers[0] = std::make_unique<RandomSequenceBuffer> (sequence->maxRandomGridWidth, sequence->maxRandomGridHeight);
+        randomSequenceBuffers[1] = std::make_unique<RandomSequenceBuffer> (sequence->maxRandomGridWidth, sequence->maxRandomGridHeight);
+        randomSequenceBuffers[2] = std::make_unique<RandomSequenceBuffer> (sequence->maxRandomGridWidth, sequence->maxRandomGridHeight);
+        randomSequenceBuffers[3] = std::make_unique<RandomSequenceBuffer> (sequence->maxRandomGridWidth, sequence->maxRandomGridHeight);
+        randomSequenceBuffers[4] = std::make_unique<RandomSequenceBuffer> (sequence->maxRandomGridWidth, sequence->maxRandomGridHeight);
     }
 
     if (sequence->maxParticleGridWidth > 0) {
@@ -907,25 +907,8 @@ void SequenceRenderer::reset ()
 
 void SequenceRenderer::cleanup ()
 {
-    if (randomSequenceBuffers[0]) {
-        delete randomSequenceBuffers[0];
-        randomSequenceBuffers[0] = nullptr;
-    }
-    if (randomSequenceBuffers[1]) {
-        delete randomSequenceBuffers[1];
-        randomSequenceBuffers[1] = nullptr;
-    }
-    if (randomSequenceBuffers[2]) {
-        delete randomSequenceBuffers[2];
-        randomSequenceBuffers[2] = nullptr;
-    }
-    if (randomSequenceBuffers[3]) {
-        delete randomSequenceBuffers[3];
-        randomSequenceBuffers[3] = nullptr;
-    }
-    if (randomSequenceBuffers[4]) {
-        delete randomSequenceBuffers[4];
-        randomSequenceBuffers[4] = nullptr;
+    for (auto& randomSequenceBuffer : randomSequenceBuffers) {
+        randomSequenceBuffer.reset ();
     }
 
     if (particleBuffers[0]) {
@@ -990,6 +973,12 @@ void SequenceRenderer::renderRandoms (Shader* randomGeneratorShader, uint iStimu
     getNothing ()->renderQuad ();
     randomGeneratorShader->disable ();
     randomSequenceBuffers[4]->disableRenderTarget ();
+
+    // 01234
+    // 01243
+    // 01423
+    // 04123
+    // 40123
 
     std::swap (randomSequenceBuffers[3], randomSequenceBuffers[4]);
     std::swap (randomSequenceBuffers[2], randomSequenceBuffers[3]);

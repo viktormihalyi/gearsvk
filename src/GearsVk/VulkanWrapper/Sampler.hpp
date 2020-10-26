@@ -1,7 +1,6 @@
 #ifndef SAMPLER_HPP
 #define SAMPLER_HPP
 
-#include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
@@ -12,9 +11,9 @@
 USING_PTR (Sampler);
 class GEARSVK_API Sampler : public VulkanObject {
 private:
-    const VkDevice      device;
-    VkSampler           handle;
-    VkSamplerCreateInfo createInfo;
+    const VkDevice device;
+    VkSampler      handle;
+    const VkFilter filter;
 
 public:
     USING_CREATE (Sampler);

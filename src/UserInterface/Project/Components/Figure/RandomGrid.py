@@ -13,9 +13,9 @@ class RandomGrid(Base) :
         spass.setShaderFunction( name = functionName, src = self.glslEsc( '''
             #ifndef GEARS_RANDOMS_RESOURCES
             #define GEARS_RANDOMS_RESOURCES
-            uniform usampler2D randoms;
-            uniform vec2 cellSize;
-            uniform ivec2 randomGridSize;
+            layout (binding = 201) uniform usampler2D randoms;
+            layout (binding = 202) uniform ubo_cellSize { vec2 cellSize; };
+            layout (binding = 203) uniform ubo_randomGridSize { ivec2 randomGridSize; };
             #endif
             vec3 @<X>@ (vec2 x, float time){ 
                 if(texelFetch(randoms, ivec2( (x + randomGridSize * cellSize*0.5 ) / cellSize ) , 0).x >> 31u == 0u)

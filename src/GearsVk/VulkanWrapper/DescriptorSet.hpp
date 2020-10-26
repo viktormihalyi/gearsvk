@@ -78,23 +78,6 @@ public:
     }
 
 
-    void WriteOneImageInfo (uint32_t binding, VkDescriptorType descriptorType, const VkDescriptorImageInfo& imageInfo) const
-    {
-        VkWriteDescriptorSet descriptorWrite = {};
-        descriptorWrite.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.dstSet               = handle;
-        descriptorWrite.dstBinding           = binding;
-        descriptorWrite.dstArrayElement      = 0;
-        descriptorWrite.descriptorType       = descriptorType;
-        descriptorWrite.descriptorCount      = 1;
-        descriptorWrite.pBufferInfo          = nullptr;
-        descriptorWrite.pImageInfo           = &imageInfo;
-        descriptorWrite.pTexelBufferView     = nullptr;
-        vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
-
-        writtenInfos.emplace_back (binding, descriptorType, descriptorWrite);
-    }
-
     operator VkDescriptorSet () const
     {
         return handle;

@@ -175,6 +175,7 @@ struct GEARSVK_API Sampler final {
     uint32_t    binding;
     uint32_t    descriptorSet;
     Type        type;
+    uint32_t    arraySize; // 0 for non-arrays
 
     bool operator== (const Sampler& other) const
     {

@@ -21,10 +21,6 @@
 
 using namespace RG;
 
-static VulkanEnvironment& GetVkEnvironment ();
-static void               DestroyVkEnvironment ();
-
-
 
 class CounterPreprocessor : public ShaderPreprocessor {
 public:
@@ -36,7 +32,6 @@ public:
                 return std::to_string (counter++);
             });
         }
-        
     }
 };
 
@@ -110,6 +105,12 @@ public:
                 if (sampler.name == "gamma") {
                     return std::make_tuple (glm::uvec3 { 256, 0, 0 }, VK_FORMAT_R32_SFLOAT, VK_FILTER_NEAREST);
                 }
+
+                if (sampler.name == "randoms") {
+                    GVK_ASSERT (sequence->maxRandomGridWidth > 0 && sequence->maxRandomGridHeight > 0);
+                    return std::make_tuple (glm::uvec3 { sequence->maxRandomGridWidth, sequence->maxRandomGridHeight, 0 }, VK_FORMAT_R32G32B32A32_UINT, VK_FILTER_NEAREST);
+                }
+
                 return std::nullopt;
             });
 
@@ -117,7 +118,7 @@ public:
             GVK_ASSERT (gammaTexture != nullptr);
 
             // this is a one time compile resource, which doesnt use framesinflight attrib
-            gammaTexture->Compile (GraphSettings (*GetVkEnvironment ().deviceExtra, 0));
+            gammaTexture->Compile (GraphSettings (*environment.deviceExtra, 0));
 
             std::vector<float> gammaAndTemporalWeights (256, 0.f);
             for (int i = 0; i < 101; i++)
@@ -225,6 +226,9 @@ public:
 
 static SequenceAdapterU          currentSeq = nullptr;
 static std::vector<PresentableP> createdSurfaces;
+
+static VulkanEnvironment& GetVkEnvironment ();
+static void               DestroyVkEnvironment ();
 
 
 /* exported to .pyd */
@@ -409,7 +413,22 @@ static VulkanEnvironment& GetVkEnvironment ()
 
 static void DestroyVkEnvironment ()
 {
-    if (env_ == nullptr) {
+    if (env_ != nullptr) {
         env_.reset ();
     }
+}
+
+
+std::string GetGLSLResourcesForRandoms ()
+{
+    return R"(
+#ifndef GEARS_RANDOMS_RESOURCES
+#define GEARS_RANDOMS_RESOURCES
+#define RANDOMS_ARRAY_SIZE 5
+    layout (binding = 201) uniform usampler2D randoms[RANDOMS_ARRAY_SIZE];
+    layout (binding = 202) uniform ubo_cellSize { vec2 cellSize; };
+    layout (binding = 203) uniform ubo_randomGridSize { ivec2 randomGridSize; };
+    layout (binding = 204) uniform ubo_randomsIndex { uint randomsIndex; };
+#endif
+    )";
 }

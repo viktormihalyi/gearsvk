@@ -692,6 +692,7 @@ PYBIND11_MODULE (Gears, m)
     m.def ("CreateSurface", CreateSurface);
     m.def ("DestroySurface", DestroySurface);
     m.def ("RequestPaint", RequestPaint);
+    m.def ("GetGLSLResourcesForRandoms", GetGLSLResourcesForRandoms);
 
 #if 0
     class_<p2t::Poly2TriWrapper> (m, "CDT",

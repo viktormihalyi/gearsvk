@@ -120,7 +120,7 @@ public:
     SamplerU                          sampler;
 
 public:
-    WritableImageResource (VkFilter filer, uint32_t width, uint32_t height, uint32_t arrayLayers = 1)
+    WritableImageResource (VkFilter filter, uint32_t width, uint32_t height, uint32_t arrayLayers)
         : filter (filter)
         , width (width)
         , height (height)
@@ -128,8 +128,8 @@ public:
     {
     }
 
-    WritableImageResource (uint32_t width, uint32_t height, uint32_t arrayLayers = 1)
-        : WritableImageResource (VK_FILTER_LINEAR, width, height, arrayLayers)
+    WritableImageResource (uint32_t width, uint32_t height)
+        : WritableImageResource (VK_FILTER_LINEAR, width, height, 1)
     {
     }
 

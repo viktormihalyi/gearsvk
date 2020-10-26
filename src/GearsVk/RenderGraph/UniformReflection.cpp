@@ -167,7 +167,7 @@ ImageMap CreateEmptyImageResources (RG::RenderGraph& graph, const ExtentProvider
 
                 result.Put (sampler, imgRes);
 
-                graph.CreateInputConnection (*renderOp, *imgRes, ImageInputBinding::Create (sampler.binding, *imgRes));
+                graph.CreateInputConnection (*renderOp, *imgRes, ImageInputBinding::Create (sampler.binding, *imgRes, (sampler.arraySize > 0) ? sampler.arraySize : 1));
             }
         });
     });

@@ -23,3 +23,5 @@ intptr_t CreateSurface (intptr_t hwnd);
 void DestroySurface (intptr_t handle);
 
 void RequestPaint (intptr_t handle);
+
+std::string GetGLSLResourcesForRandoms ();
