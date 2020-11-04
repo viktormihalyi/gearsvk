@@ -113,6 +113,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/VulkanWrapper/Buffer.cpp
     src/GearsVk/VulkanWrapper/Surface.cpp
     src/GearsVk/VulkanWrapper/Image.cpp
+    src/GearsVk/VulkanWrapper/CommandBuffer.cpp
 
     src/GearsVk/Camera/Frustum.cpp
     src/GearsVk/Camera/Camera.cpp

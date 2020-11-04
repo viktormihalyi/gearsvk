@@ -34,10 +34,14 @@ Stimulus::Stimulus ()
     temporalWeightMax            = 1.0f;
     temporalWeightMin            = 0.0f;
 
-    randomGeneratorShaderSource =
-        "	#version 450\n"
-        "	out uvec4 nextElement;																					\n"
-        "	void main() { nextElement = uvec4(0u, 0u, 0u, 0u); }													\n";
+    randomGeneratorShaderSource = R"(
+layout (location = 0) out uvec4 nextElement;
+
+void main ()
+{
+    nextElement = uvec4 (0u, 0u, 0u, 0u);
+}
+)";
 
     temporalFilterFuncSource =
         "float temporalWeight(int i) { if(i==0) return 1.0; else return 0.0; } \n";

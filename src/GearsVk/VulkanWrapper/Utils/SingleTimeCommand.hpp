@@ -11,21 +11,16 @@
 
 USING_PTR (SingleTimeCommand);
 
-class GEARSVK_API SingleTimeCommand final : public Noncopyable {
+class GEARSVK_API SingleTimeCommand final : public CommandBuffer {
 private:
-    const VkDevice      device;
-    const VkCommandPool commandPool;
     const Queue&        queue;
-    CommandBuffer       commandBuffer;
 
 public:
     SingleTimeCommand (VkDevice device, VkCommandPool commandPool, const Queue& queue)
-        : device (device)
+        : CommandBuffer (device, commandPool)
         , queue (queue)
-        , commandPool (commandPool)
-        , commandBuffer (device, commandPool)
     {
-        commandBuffer.Begin (VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+        Begin (VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     }
 
     SingleTimeCommand (const DeviceExtra& device)
@@ -33,15 +28,13 @@ public:
     {
     }
 
-    ~SingleTimeCommand ()
+    virtual ~SingleTimeCommand () override
     {
-        commandBuffer.End ();
+        End ();
 
-        queue.Submit ({}, {}, { &commandBuffer }, {}, VK_NULL_HANDLE);
+        queue.Submit ({}, {}, { this }, {}, VK_NULL_HANDLE);
         queue.Wait ();
     }
-
-    CommandBuffer& Record () { return commandBuffer; }
 };
 
 #endif

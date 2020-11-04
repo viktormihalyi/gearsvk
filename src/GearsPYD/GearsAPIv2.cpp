@@ -82,15 +82,30 @@ public:
 
             const std::vector<Pass::P> passes = stim->getPasses ();
             for (const Pass::P& pass : passes) {
+                GVK_ASSERT (pass->rasterizationMode == Pass::RasterizationMode::fullscreen);
                 const std::string vert = pass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
+                const std::string geom = pass->getStimulusGeneratorGeometryShaderSource (Pass::RasterizationMode::fullscreen);
                 const std::string frag = pass->getStimulusGeneratorShaderSource ();
+
+                ShaderPipelineP randomPip = ShaderPipeline::CreateShared (*environment.device);
+                randomPip->SetVertexShaderFromString (*Utils::ReadTextFile (PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Shaders" / "quad.vert"));
+                randomPip->SetFragmentShaderFromString (stim->getRandomGeneratorShaderSource ());
+
+                RG::RenderGraph randomGenerator;
+                auto            randomRender   = randomGenerator.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 4), randomPip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+                auto            randomResource = randomGenerator.CreateResource<SingleWritableImageResource> (VK_FILTER_LINEAR, 256, 256, 1, VK_FORMAT_R8G8B8A8_UINT);
+                randomGenerator.CreateOutputConnection (*randomRender, 0, *randomResource);
+                randomGenerator.Compile (GraphSettings (*environment.deviceExtra, 1));
 
                 ShaderPipelineP sequencePip = ShaderPipeline::CreateShared (*environment.device);
 
                 sequencePip->SetVertexShaderFromString (vert);
+                if (!geom.empty ()) {
+                    sequencePip->SetShaderFromSourceString (ShaderKind::Geometry, geom);
+                }
                 sequencePip->SetFragmentShaderFromString (frag);
 
-                OperationP passOperation = renderGraph->CreateOperation<RenderOperation> (
+                RenderOperationP passOperation = renderGraph->CreateOperation<RenderOperation> (
                     DrawRecordableInfo::CreateShared (1, 4), sequencePip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
                 renderGraph->CreateOutputConnection (*passOperation, 0, *presented);

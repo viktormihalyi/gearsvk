@@ -26,14 +26,14 @@ std::string GetVersionString (uint32_t version)
 void TransitionImageLayout (const DeviceExtra& device, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
     SingleTimeCommand commandBuffer (device);
-    image.CmdPipelineBarrier (commandBuffer.Record (), oldLayout, newLayout);
+    image.CmdPipelineBarrier (commandBuffer, oldLayout, newLayout);
 }
 
 
 void CopyBufferToImage (const DeviceExtra& device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth)
 {
     SingleTimeCommand commandBuffer (device);
-    CopyBufferToImage (commandBuffer.Record (), buffer, image, width, height, depth);
+    CopyBufferToImage (commandBuffer, buffer, image, width, height, depth);
 }
 
 
@@ -50,12 +50,15 @@ void CopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkImage i
     region.imageOffset                     = { 0, 0, 0 };
     region.imageExtent                     = { width, height, depth };
 
-    commandBuffer.CmdCopyBufferToImage (
-        buffer,
-        image,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1,
-        &region);
+    commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+        vkCmdCopyBufferToImage (
+            commandBuffer,
+            buffer,
+            image,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &region);
+    });
 }
 
 
@@ -68,7 +71,9 @@ void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuff
     copyRegion.dstOffset    = 0;
     copyRegion.size         = size;
 
-    commandBuffer.Record ().CmdCopyBuffer (srcBuffer, dstBuffer, 1, &copyRegion);
+    commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+        vkCmdCopyBuffer (commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+    });
 }
 
 
@@ -94,11 +99,14 @@ static ImageBaseU CreateCopyImageOnCPU (const DeviceExtra& device, const ImageBa
         imageCopyRegion.extent.height                 = image.GetHeight ();
         imageCopyRegion.extent.depth                  = 1;
 
-        single.Record ().CmdCopyImage (
-            image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            *dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1,
-            &imageCopyRegion);
+        single.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+            vkCmdCopyImage (
+                commandBuffer,
+                image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                *dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                1,
+                &imageCopyRegion);
+        });
     }
 
     return dst;

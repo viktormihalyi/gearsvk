@@ -33,17 +33,25 @@ struct GEARSVK_API Operation : public Node {
     void AddInput (InputBindingU&& inputBinding);
     void AddOutput (uint32_t binding, const ImageResourceRef& res);
 
+    // when record called, input images will be in GetImageLayoutAtStartForInputs (),Resource&
+    // output images will be in GetImageLayoutAtStartForOutputs () Resource&layouts.
+    // recorded commands will put the input images in GetImageLayoutAtEndForInputs (),Resource&
+    // output images in GetImageLayoutAtEndForOutputs () Resource&layouts.
+    virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&)  = 0;
+    virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&)    = 0;
+    virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) = 0;
+    virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&)   = 0;
+
     std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const;
     std::vector<VkAttachmentReference>   GetAttachmentReferences () const;
     std::vector<VkImageView>             GetOutputImageViews (uint32_t frameIndex) const;
 };
 
 USING_PTR (RenderOperation);
-struct GEARSVK_API RenderOperation : public Operation, public ExtentProvider {
+struct GEARSVK_API RenderOperation : public Operation {
     USING_CREATE (RenderOperation);
 
     struct CompileSettings {
-        // TODO add width and height here, remove them from GraphSettings, add them to WritableImageResouce as well
         PureDrawRecordableP      drawRecordable;
         VertexAttributeProviderP vertexAttributeProvider;
         ShaderPipelineP          pipeline;
@@ -76,33 +84,35 @@ struct GEARSVK_API RenderOperation : public Operation, public ExtentProvider {
 
     virtual ~RenderOperation () = default;
 
+    virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&) override;
+    virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&) override;
+    virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) override;
+    virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&) override;
+
+    virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) override;
+    virtual void Record (uint32_t imageIndex, CommandBuffer& commandBuffer) override;
+    virtual bool IsActive () override { return true; }
+};
+
+
+USING_PTR (TransferOperation);
+class GEARSVK_API TransferOperation : public Operation {
+    USING_CREATE (TransferOperation);
+
+public:
+    TransferOperation ();
+
+    // overriding Operation
     virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) override;
     virtual void Record (uint32_t imageIndex, CommandBuffer& commandBuffer) override;
     virtual bool IsActive () override { return true; }
 
-    virtual std::pair<uint32_t, uint32_t> GetExtent () override { return { compileResult.width, compileResult.height }; }
+    virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL; }
+    virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL; }
+    virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; }
+    virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; }
 };
 
-
-USING_PTR (ConditionalRenderOperation);
-class GEARSVK_API ConditionalRenderOperation : public RenderOperation {
-    USING_CREATE (ConditionalRenderOperation);
-
-private:
-    std::function<bool ()> doRender;
-
-public:
-    ConditionalRenderOperation (const DrawRecordableP&        drawRecordable,
-                                const ShaderPipelineP&        shaderPipiline,
-                                const std::function<bool ()>& doRender,
-                                VkPrimitiveTopology           topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-        : RenderOperation (drawRecordable, shaderPipiline, topology)
-        , doRender (doRender)
-    {
-    }
-
-    virtual bool IsActive () override { return doRender (); }
-};
 
 } // namespace RG
 

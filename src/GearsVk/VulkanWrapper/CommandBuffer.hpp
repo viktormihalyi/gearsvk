@@ -3,58 +3,40 @@
 
 #include <vulkan/vulkan.h>
 
+#include <unordered_map>
+
 #include "Assert.hpp"
 #include "DeviceExtra.hpp"
+#include "ImageLayoutObserver.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
-USING_PTR (CommandBuffer);
+class ImageBase;
 
-class GEARSVK_API CommandBuffer : public VulkanObject {
+class CommandBuffer;
+
+USING_PTR (Command);
+class GEARSVK_API Command {
+public:
+    virtual ~Command () = default;
+
+    virtual void        Record (CommandBuffer&) = 0;
+    virtual std::string ToString () const { return ""; }
+};
+
+USING_PTR (CommandBuffer);
+class GEARSVK_API CommandBuffer : public VulkanObject, public ImageLayoutObserver {
 private:
     const VkDevice      device;
     const VkCommandPool commandPool;
     VkCommandBuffer     handle;
 
+    std::unordered_map<const ImageBase*, std::vector<std::pair<VkImageLayout, VkImageLayout>>> layouts;
+
 public:
-    enum class CommandType : uint8_t {
-        BindVertexBuffers = 0,
-        BindIndexBuffer,
-        DrawIndexed,
-        Draw,
-        BeginRenderPass,
-        BindPipeline,
-        BindDescriptorSets,
-        EndRenderPass,
-        PipelineBarrier,
-        CopyBufferToImage,
-        CopyImage,
-        CopyBuffer,
-    };
-
-    static std::string CommandTypeToString (CommandType commandType)
-    {
-        static const std::vector<std::string> commandTypeStrings = {
-            "BindVertexBuffers",
-            "BindIndexBuffer",
-            "DrawIndexed",
-            "Draw",
-            "BeginRenderPass",
-            "BindPipeline",
-            "BindDescriptorSets",
-            "EndRenderPass",
-            "PipelineBarrier",
-            "CopyBufferToImage",
-            "CopyImage",
-            "CopyBuffer",
-        };
-
-        return commandTypeStrings.at (static_cast<uint32_t> (commandType));
-    }
-
-    bool                     canRecordCommands;
-    std::vector<CommandType> recordedCommands;
+    bool                  canRecordCommands;
+    std::vector<CommandU> recordedAbstractCommands;
 
 public:
     USING_CREATE (CommandBuffer);
@@ -81,7 +63,7 @@ public:
     {
     }
 
-    ~CommandBuffer ()
+    virtual ~CommandBuffer () override
     {
         vkFreeCommandBuffers (device, commandPool, 1, &handle);
         handle = VK_NULL_HANDLE;
@@ -101,7 +83,6 @@ public:
         canRecordCommands = true;
     }
 
-
     void End ()
     {
         if (GVK_ERROR (vkEndCommandBuffer (handle) != VK_SUCCESS)) {
@@ -120,49 +101,103 @@ public:
         canRecordCommands = false;
     }
 
-    void CmdPipelineBarrier (VkPipelineStageFlags               srcStageMask,
-                             VkPipelineStageFlags               dstStageMask,
-                             std::vector<VkMemoryBarrier>       memoryBarriers       = {},
-                             std::vector<VkBufferMemoryBarrier> bufferMemoryBarriers = {},
-                             std::vector<VkImageMemoryBarrier>  imageMemoryBarriers  = {})
+    void Record (CommandU&& command)
     {
-        vkCmdPipelineBarrier (
-            handle,
-            srcStageMask,
-            dstStageMask,
-            0, // TODO
-            static_cast<uint32_t> (memoryBarriers.size ()), memoryBarriers.data (),
-            static_cast<uint32_t> (bufferMemoryBarriers.size ()), bufferMemoryBarriers.data (),
-            static_cast<uint32_t> (imageMemoryBarriers.size ()), imageMemoryBarriers.data ());
-
-        recordedCommands.push_back (CommandType::PipelineBarrier);
+        command->Record (*this);
+        recordedAbstractCommands.push_back (std::move (command));
     }
 
-#define GVK_CMDBUFFER_DEFINE_CMD(commandName)                                  \
-    template<typename... Parameters>                                           \
-    void Cmd##commandName (Parameters&&... parameters)                         \
-    {                                                                          \
-        GVK_ASSERT (canRecordCommands);                                        \
-        vkCmd##commandName (handle, std::forward<Parameters> (parameters)...); \
-        recordedCommands.push_back (CommandType::commandName);                 \
+    template<typename CommandType, typename... Parameters>
+    void RecordT (Parameters&&... parameters)
+    {
+        CommandU command = std::make_unique<CommandType> (std::forward<Parameters> (parameters)...);
+        command->Record (*this);
+        recordedAbstractCommands.push_back (std::move (command));
     }
-
-    GVK_CMDBUFFER_DEFINE_CMD (BindVertexBuffers);
-    GVK_CMDBUFFER_DEFINE_CMD (BindIndexBuffer);
-    GVK_CMDBUFFER_DEFINE_CMD (DrawIndexed);
-    GVK_CMDBUFFER_DEFINE_CMD (Draw);
-    GVK_CMDBUFFER_DEFINE_CMD (BeginRenderPass);
-    GVK_CMDBUFFER_DEFINE_CMD (BindPipeline);
-    GVK_CMDBUFFER_DEFINE_CMD (BindDescriptorSets);
-    GVK_CMDBUFFER_DEFINE_CMD (EndRenderPass);
-    GVK_CMDBUFFER_DEFINE_CMD (CopyBufferToImage);
-    GVK_CMDBUFFER_DEFINE_CMD (CopyImage);
-    GVK_CMDBUFFER_DEFINE_CMD (CopyBuffer);
 
     VkCommandBuffer GetHandle () const
     {
         return handle;
     }
+
+    virtual void ImageLayoutChanged (const ImageBase& image, VkImageLayout from, VkImageLayout to) override;
 };
+
+
+USING_PTR (CommandBindVertexBuffers);
+class GEARSVK_API CommandBindVertexBuffers : public Command {
+    USING_CREATE (CommandBindVertexBuffers);
+
+private:
+    const uint32_t                  firstBinding;
+    const uint32_t                  bindingCount;
+    const std::vector<VkBuffer>     pBuffers;
+    const std::vector<VkDeviceSize> pOffsets;
+
+public:
+    CommandBindVertexBuffers (const uint32_t                  firstBinding,
+                              const uint32_t                  bindingCount,
+                              const std::vector<VkBuffer>     pBuffers,
+                              const std::vector<VkDeviceSize> pOffsets)
+        : firstBinding (firstBinding)
+        , bindingCount (bindingCount)
+        , pBuffers (pBuffers)
+        , pOffsets (pOffsets)
+    {
+    }
+
+    virtual void        Record (CommandBuffer&) override;
+    virtual std::string ToString () const override;
+};
+
+
+USING_PTR (CommandPipelineBarrier);
+class GEARSVK_API CommandPipelineBarrier : public Command {
+    USING_CREATE (CommandPipelineBarrier);
+
+private:
+    const VkPipelineStageFlags               srcStageMask;
+    const VkPipelineStageFlags               dstStageMask;
+    const std::vector<VkMemoryBarrier>       memoryBarriers;
+    const std::vector<VkBufferMemoryBarrier> bufferMemoryBarriers;
+    const std::vector<VkImageMemoryBarrier>  imageMemoryBarriers;
+
+public:
+    CommandPipelineBarrier (const VkPipelineStageFlags               srcStageMask,
+                            const VkPipelineStageFlags               dstStageMask,
+                            const std::vector<VkMemoryBarrier>       memoryBarriers       = {},
+                            const std::vector<VkBufferMemoryBarrier> bufferMemoryBarriers = {},
+                            const std::vector<VkImageMemoryBarrier>  imageMemoryBarriers  = {})
+        : srcStageMask (srcStageMask)
+        , dstStageMask (dstStageMask)
+        , memoryBarriers (memoryBarriers)
+        , bufferMemoryBarriers (bufferMemoryBarriers)
+        , imageMemoryBarriers (imageMemoryBarriers)
+    {
+    }
+
+    virtual void Record (CommandBuffer&) override;
+};
+
+
+USING_PTR (CommandGeneric);
+class GEARSVK_API CommandGeneric : public Command {
+    USING_CREATE (CommandGeneric);
+
+private:
+    std::function<void (VkCommandBuffer)> recordCallback;
+
+public:
+    CommandGeneric (const std::function<void (VkCommandBuffer)>& recordCallback)
+        : recordCallback (recordCallback)
+    {
+    }
+
+    virtual void Record (CommandBuffer& commandBuffer) override
+    {
+        recordCallback (commandBuffer.GetHandle ());
+    }
+};
+
 
 #endif

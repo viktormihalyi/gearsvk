@@ -3,7 +3,6 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "CompileResultProvider.hpp"
 #include "Event.hpp"
 #include "Ptr.hpp"
 #include "ShaderPipeline.hpp"
@@ -32,14 +31,8 @@ class GEARSVK_API RenderGraph final : public Noncopyable {
 private:
     bool                   compiled;
     GraphSettings          compileSettings;
-    CompileResultProviderU compileResult;
 
     std::vector<ResourceP> resources;
-
-    // one for each frame in swapchain
-    std::unordered_map<GearsVk::UUID, std::vector<CommandBufferP>> operationCommandBuffers;
-    std::unordered_map<GearsVk::UUID, std::vector<CommandBufferP>> resourceReadCommandBuffers;
-    std::unordered_map<GearsVk::UUID, std::vector<CommandBufferP>> resourceWriteCommandBuffers;
 
     struct Pass {
         std::set<Operation*> operations;
@@ -47,10 +40,11 @@ private:
         std::set<Resource*>  outputs;
     };
 
-    std::vector<Pass> passes;
+    std::vector<Pass>           passes;
+    std::vector<CommandBufferU> c;
 
 public:
-    std::vector<OperationP> operations;
+    std::vector<OperationP> operations; // TODO
 
     Event<> compileEvent;
 
@@ -70,8 +64,11 @@ public:
     template<typename OperationType, typename... ARGS>
     P<OperationType> CreateOperation (ARGS&&... args);
 
-    void CreateInputConnection (Operation& op, Resource& res, InputBindingU&& conn);
-    void CreateOutputConnection (Operation& operation, uint32_t binding, ImageResource& resource);
+    void CreateInputConnection (RenderOperation& op, Resource& res, InputBindingU&& conn);
+    void CreateInputConnection (TransferOperation& op, ImageResource& res);
+
+    void CreateOutputConnection (RenderOperation& operation, uint32_t binding, ImageResource& resource);
+    void CreateOutputConnection (TransferOperation& operation, Resource& resource);
 
 
     // ------------------------- compile / execute -------------------------

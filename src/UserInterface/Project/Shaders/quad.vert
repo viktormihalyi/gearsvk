@@ -1,6 +1,6 @@
 #version 450
 
-layout (binding = 0) uniform PatternSizeOnRetina {
+layout (binding = 0) uniform ubo_patternSizeOnRetina {
 	vec2 patternSizeOnRetina;
 };
 

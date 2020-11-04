@@ -162,7 +162,10 @@ public:
         , finalLayout (finalLayout)
     {
         attachmentReference.attachment = binding;
-        attachmentReference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        // layout is a VkImageLayout value specifying the layout the attachment uses during the subpass.
+        // automatic!!!
+        attachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     }
 
     VkAttachmentDescription GetAttachmentDescription () const
@@ -174,8 +177,14 @@ public:
         attachmentDescription.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
         attachmentDescription.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         attachmentDescription.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachmentDescription.initialLayout           = ImageBase::INITIAL_LAYOUT;
-        attachmentDescription.finalLayout             = finalLayout;
+
+        // initialLayout is the layout the attachment image subresource will be in when a render pass instance begins.
+        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // TODO why not color attachment ???
+
+        // finalLayout is the layout the attachment image subresource will be transitioned to when a render pass instance ends.
+        // automatic!!!
+        attachmentDescription.finalLayout = finalLayout;
+
         return attachmentDescription;
     }
 

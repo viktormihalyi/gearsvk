@@ -20,6 +20,7 @@ namespace RG {
 
 class GraphSettings;
 
+class Operation;
 
 USING_PTR (Resource);
 class GEARSVK_API Resource : public Node {
@@ -42,12 +43,12 @@ class GEARSVK_API ImageResource : public Resource {
 public:
     virtual ~ImageResource () = default;
 
-    virtual void                    BindRead (uint32_t imageIndex, CommandBuffer& commandBuffer)  = 0;
-    virtual void                    BindWrite (uint32_t imageIndex, CommandBuffer& commandBuffer) = 0;
+    virtual VkImageLayout           GetInitialLayout () const                                     = 0;
     virtual VkImageLayout           GetFinalLayout () const                                       = 0;
     virtual VkFormat                GetFormat () const                                            = 0;
-    virtual uint32_t                GetDescriptorCount () const                                   = 0;
+    virtual uint32_t                GetLayerCount () const                                        = 0;
     virtual std::vector<ImageBase*> GetImages () const                                            = 0;
+    virtual std::vector<ImageBase*> GetImages (uint32_t frameIndex) const                         = 0;
 };
 
 
@@ -81,9 +82,9 @@ USING_PTR (WritableImageResource);
 class GEARSVK_API WritableImageResource : public ImageResource, public InputImageBindable {
     USING_CREATE (WritableImageResource);
 
-private:
+protected:
     USING_PTR (SingleImageResource);
-    struct SingleImageResource final {
+    struct GEARSVK_API SingleImageResource final {
         USING_CREATE (SingleImageResource);
 
         static const VkFormat FormatRGBA;
@@ -100,18 +101,27 @@ private:
         // NO  read, YES write: general -> write
         // YES read, YES write: general -> write -> read
 
-
-        SingleImageResource (const GraphSettings& graphSettings, uint32_t width, uint32_t height, uint32_t arrayLayers)
-            : image (Image2D::Create (graphSettings.GetDevice ().GetAllocator (), ImageBase::MemoryLocation::GPU, width, height, FormatRGBA, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, arrayLayers))
+        SingleImageResource (const DeviceExtra& device, uint32_t width, uint32_t height, uint32_t arrayLayers, VkFormat format = FormatRGBA, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL)
+            : image (Image2D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU,
+                                      width, height,
+                                      format, tiling,
+                                      VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                                      arrayLayers))
         {
             for (uint32_t layerIndex = 0; layerIndex < arrayLayers; ++layerIndex) {
-                imageViews.push_back (ImageView2D::Create (graphSettings.GetDevice (), *image, layerIndex));
+                imageViews.push_back (ImageView2D::Create (device, *image, layerIndex));
+            }
+
+            {
+                SingleTimeCommand s (device);
+                image->CmdPipelineBarrier (s, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
             }
         }
     };
 
 public:
     const VkFilter filter;
+    const VkFormat format;
     const uint32_t width;
     const uint32_t height;
     const uint32_t arrayLayers;
@@ -120,8 +130,9 @@ public:
     SamplerU                          sampler;
 
 public:
-    WritableImageResource (VkFilter filter, uint32_t width, uint32_t height, uint32_t arrayLayers)
+    WritableImageResource (VkFilter filter, uint32_t width, uint32_t height, uint32_t arrayLayers, VkFormat format = SingleImageResource::FormatRGBA)
         : filter (filter)
+        , format (format)
         , width (width)
         , height (height)
         , arrayLayers (arrayLayers)
@@ -133,24 +144,7 @@ public:
     {
     }
 
-    virtual ~WritableImageResource () {}
-
-    virtual void BindRead (uint32_t imageIndex, CommandBuffer& commandBuffer) override
-    {
-        SingleImageResource& im = *images[imageIndex];
-
-        im.layoutRead                = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        VkImageLayout previousLayout = (im.layoutWrite.has_value ()) ? *im.layoutWrite : ImageBase::INITIAL_LAYOUT;
-        im.image->CmdPipelineBarrier (commandBuffer, previousLayout, *im.layoutRead);
-    }
-
-    virtual void BindWrite (uint32_t imageIndex, CommandBuffer& commandBuffer) override
-    {
-        SingleImageResource& im = *images[imageIndex];
-
-        im.layoutWrite = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        im.image->CmdPipelineBarrier (commandBuffer, ImageBase::INITIAL_LAYOUT, *im.layoutWrite);
-    }
+    virtual ~WritableImageResource () = default;
 
     virtual void Compile (const GraphSettings& graphSettings) override
     {
@@ -158,14 +152,23 @@ public:
 
         images.clear ();
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            images.push_back (SingleImageResource::Create (graphSettings, width, height, arrayLayers));
+            images.push_back (SingleImageResource::Create (graphSettings.GetDevice (), width, height, arrayLayers, format));
         }
     }
 
     // overriding ImageResource
-    virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; }
-    virtual VkFormat      GetFormat () const override { return SingleImageResource::FormatRGBA; }
-    virtual uint32_t      GetDescriptorCount () const override { return arrayLayers; }
+    virtual VkImageLayout GetInitialLayout () const override
+    {
+        return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    }
+
+    virtual VkImageLayout GetFinalLayout () const override
+    {
+        return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    }
+
+    virtual VkFormat GetFormat () const override { return format; }
+    virtual uint32_t GetLayerCount () const override { return arrayLayers; }
 
     virtual std::vector<ImageBase*> GetImages () const override
     {
@@ -178,9 +181,29 @@ public:
         return result;
     }
 
+    virtual std::vector<ImageBase*> GetImages (uint32_t frameIndex) const override
+    {
+        return { images[frameIndex]->image.get () };
+    }
     // overriding InputImageBindable
     virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t layerIndex) override { return *images[frameIndex]->imageViews[layerIndex]; }
     virtual VkSampler   GetSampler () override { return *sampler; }
+};
+
+
+USING_PTR (SingleWritableImageResource);
+class GEARSVK_API SingleWritableImageResource : public WritableImageResource {
+    USING_CREATE (SingleWritableImageResource);
+
+public:
+    using WritableImageResource::WritableImageResource;
+
+    virtual void Compile (const GraphSettings& graphSettings) override
+    {
+        sampler = Sampler::Create (graphSettings.GetDevice (), filter);
+        images.clear ();
+        images.push_back (SingleImageResource::Create (graphSettings.GetDevice (), width, height, arrayLayers, GetFormat ()));
+    }
 };
 
 
@@ -283,19 +306,23 @@ public:
         }
 
         SingleTimeCommand s (settings.GetDevice ());
-        image->imageGPU->CmdPipelineBarrier (s.Record (), ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        image->imageGPU->CmdPipelineBarrier (s, ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     // overriding ImageResource
-    virtual void          BindRead (uint32_t, CommandBuffer&) override {}
-    virtual void          BindWrite (uint32_t, CommandBuffer&) override {}
+    virtual VkImageLayout GetInitialLayout () const override { return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; }
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; }
     virtual VkFormat      GetFormat () const override { return format; }
-    virtual uint32_t      GetDescriptorCount () const override { return 1; }
+    virtual uint32_t      GetLayerCount () const override { return 1; }
 
     virtual std::vector<ImageBase*> GetImages () const override
     {
         return { image->imageGPU.get () };
+    }
+
+    virtual std::vector<ImageBase*> GetImages (uint32_t) const override
+    {
+        return GetImages ();
     }
 
     // overriding InputImageBindable
@@ -352,11 +379,10 @@ public:
     }
 
     // overriding ImageResource
-    virtual void          BindRead (uint32_t, CommandBuffer&) override {}
-    virtual void          BindWrite (uint32_t, CommandBuffer&) override {}
+    virtual VkImageLayout GetInitialLayout () const override { return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; }
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; }
     virtual VkFormat      GetFormat () const override { return swapchainProv.GetSwapchain ().GetImageFormat (); }
-    virtual uint32_t      GetDescriptorCount () const override { return 1; }
+    virtual uint32_t      GetLayerCount () const override { return 1; }
 
     virtual std::vector<ImageBase*> GetImages () const override
     {
@@ -367,6 +393,11 @@ public:
         }
 
         return result;
+    }
+
+    virtual std::vector<ImageBase*> GetImages (uint32_t frameIndex) const override
+    {
+        return { inheritedImages[frameIndex].get () };
     }
 
 

@@ -151,10 +151,10 @@ public:
     std::string getRandomGeneratorShaderSource () const
     {
         std::string s ("#version 450\n");
-        s += "uniform vec2 patternSizeOnRetina;\n";
-        s += "uniform bool swizzleForFft;\n";
-        s += "uniform int frame;\n";
-        s += "uniform float time;\n";
+        s += "layout (binding = 0) uniform ubo_patternSizeOnRetina { vec2 patternSizeOnRetina; };\n";
+        s += "layout (binding = 1) uniform ubo_swizzleForFft { bool swizzleForFft; };\n";
+        s += "layout (binding = 2) uniform ubo_frame { int frame; };\n";
+        s += "layout (binding = 3) uniform ubo_time { float time; };\n";
 
         //for(auto& svar : shaderColors)
         //{

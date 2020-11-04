@@ -9,8 +9,8 @@
 #include "CommandBuffer.hpp"
 #include "Ptr.hpp"
 
-USING_PTR (VertexAttributeProvider);
 
+USING_PTR (VertexAttributeProvider);
 class VertexAttributeProvider {
 public:
     virtual ~VertexAttributeProvider () = default;
@@ -27,6 +27,7 @@ public:
 
     virtual void Record (CommandBuffer&) const = 0;
 };
+
 
 USING_PTR (LambdaPureDrawRecordable);
 class LambdaPureDrawRecordable : private PureDrawRecordable {

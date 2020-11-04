@@ -34,11 +34,13 @@ ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, uint32_
         imageCopyRegion.extent.height                 = image.GetHeight ();
         imageCopyRegion.extent.depth                  = 1;
 
-        single.Record ().CmdCopyImage (
-            image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1,
-            &imageCopyRegion);
+        single.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+            vkCmdCopyImage (commandBuffer,
+                            image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                            dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                            1,
+                            &imageCopyRegion);
+        });
     }
 
     if (currentLayout)

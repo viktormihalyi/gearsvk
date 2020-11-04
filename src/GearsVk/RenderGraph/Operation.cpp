@@ -14,7 +14,7 @@ void Operation::AddOutput (const uint32_t binding, const ImageResourceRef& res)
 {
     GVK_ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
 
-    for (uint32_t bindingIndex = binding; bindingIndex < binding + res.get ().GetDescriptorCount (); ++bindingIndex) {
+    for (uint32_t bindingIndex = binding; bindingIndex < binding + res.get ().GetLayerCount (); ++bindingIndex) {
         outputBindings.push_back (OutputBinding (
             bindingIndex,
             [=] () -> VkFormat {
@@ -158,21 +158,136 @@ void RenderOperation::Record (uint32_t frameIndex, CommandBuffer& commandBuffer)
     renderPassBeginInfo.clearValueCount       = static_cast<uint32_t> (clearValues.size ());
     renderPassBeginInfo.pClearValues          = clearValues.data ();
 
-    commandBuffer.CmdBeginRenderPass (&renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    // TODO transition image layouts here
 
-    commandBuffer.CmdBindPipeline (VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipeline);
+    //for (auto& i : inputBindings) {
+    //    i.RecordTransition (commandBuffer);
+    //}
+
+    //for (auto& o : outputBindings) {
+    //    o.RecordTransition (commandBuffer);
+    //}
+
+    // inputs:  undef/color_attachment_optimal ?? -> shader_read_only_optimal
+    // outputs: undef ?? -> color_attachment_optimal
+
+    commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdBeginRenderPass (commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE); });
+
+    commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdBindPipeline (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipeline); });
 
     if (!compileResult.descriptorSets.empty ()) {
         VkDescriptorSet dsHandle = *compileResult.descriptorSets[frameIndex];
 
-        commandBuffer.CmdBindDescriptorSets (VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipelineLayout, 0,
-                                             1, &dsHandle,
-                                             0, nullptr);
+        commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+            vkCmdBindDescriptorSets (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipelineLayout, 0,
+                                     1, &dsHandle,
+                                     0, nullptr);
+        });
     }
 
     compileSettings.drawRecordable->Record (commandBuffer);
 
-    commandBuffer.CmdEndRenderPass ();
+    commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdEndRenderPass (commandBuffer); });
 }
+
+
+VkImageLayout RenderOperation::GetImageLayoutAtStartForInputs (Resource&)
+{
+    return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+}
+
+
+VkImageLayout RenderOperation::GetImageLayoutAtEndForInputs (Resource&)
+{
+    return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+}
+
+
+VkImageLayout RenderOperation::GetImageLayoutAtStartForOutputs (Resource& res)
+{
+    if (auto sw = dynamic_cast<SwapchainImageResource*> (&res)) {
+        return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    } else {
+        return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    }
+}
+
+
+VkImageLayout RenderOperation::GetImageLayoutAtEndForOutputs (Resource& res)
+{
+    if (auto sw = dynamic_cast<SwapchainImageResource*> (&res)) {
+        return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    } else {
+        return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    }
+}
+
+
+TransferOperation::TransferOperation ()
+{
+}
+
+
+void TransferOperation::Compile (const GraphSettings&, uint32_t, uint32_t)
+{
+    // nothing to compile
+}
+
+
+void TransferOperation::Record (uint32_t imageIndex, CommandBuffer& commandBuffer)
+{
+    auto inputs = GetPointingHere<ImageResource> ();
+    if (GVK_ERROR (inputs.size () != 1)) {
+        throw std::runtime_error ("no");
+    }
+
+    auto outputs = GetPointingTo<ImageResource> ();
+    if (GVK_ERROR (outputs.size () != 1)) {
+        throw std::runtime_error ("no");
+    }
+
+    ImageResource* from = inputs[0];
+    ImageResource* to   = outputs[0];
+
+    if (GVK_ERROR (from == to)) {
+        throw std::runtime_error ("no");
+    }
+
+    if (auto fromImg = dynamic_cast<ImageResource*> (from)) {
+        if (auto toImg = dynamic_cast<ImageResource*> (to)) {
+            ImageBase* fromVkImage = fromImg->GetImages ()[0];
+            ImageBase* toVkImage   = toImg->GetImages ()[0];
+
+            GVK_ASSERT (fromVkImage->GetWidth () == toVkImage->GetWidth ());
+            GVK_ASSERT (fromVkImage->GetHeight () == toVkImage->GetHeight ());
+            GVK_ASSERT (fromVkImage->GetDepth () == toVkImage->GetDepth ());
+
+            const uint32_t layerIndex = 0;
+
+            VkImageCopy imageCopyRegion                   = {};
+            imageCopyRegion.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+            imageCopyRegion.srcSubresource.layerCount     = 1;
+            imageCopyRegion.srcSubresource.baseArrayLayer = layerIndex;
+            imageCopyRegion.dstSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+            imageCopyRegion.dstSubresource.layerCount     = 1;
+            imageCopyRegion.extent.width                  = fromVkImage->GetWidth ();
+            imageCopyRegion.extent.height                 = fromVkImage->GetHeight ();
+            imageCopyRegion.extent.depth                  = fromVkImage->GetDepth ();
+
+            commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+                vkCmdCopyImage (
+                    commandBuffer,
+                    *fromVkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                    *toVkImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                    1, &imageCopyRegion);
+            });
+            return;
+        }
+    }
+
+    GVK_ASSERT ("bad resources");
+    throw std::runtime_error ("unknown resources to transfer");
+}
+
 
 } // namespace RG

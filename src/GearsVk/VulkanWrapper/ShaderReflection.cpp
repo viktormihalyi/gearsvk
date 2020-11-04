@@ -568,6 +568,36 @@ std::vector<UBOP> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
 }
 
 
+std::vector<Output> GetOutputsFromBinary (const std::vector<uint32_t>& binary)
+{
+    spirv_cross::Compiler compiler (binary);
+
+    const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
+
+    std::vector<SR::Output> result;
+
+    for (auto& resource : resources.stage_outputs) {
+        AllDecorations decorations (compiler, resource.id);
+        auto           type = compiler.get_type (resource.type_id);
+
+        Output output;
+
+        output.name      = resource.name;
+        output.location  = *decorations.Location;
+        output.type      = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
+        output.arraySize = !type.array.empty () ? type.array[0] : 0;
+
+        result.push_back (output);
+    }
+
+    std::sort (result.begin (), result.end (), [] (const SR::Output& first, const SR::Output& second) {
+        return first.location < second.location;
+    });
+
+    return result;
+}
+
+
 static SR::Sampler::Type SpvDimToSamplerType (spv::Dim dim)
 {
     switch (dim) {

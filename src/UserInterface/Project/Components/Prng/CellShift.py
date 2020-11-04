@@ -34,13 +34,10 @@ class CellShift(Component) :
         stimulus.randomGridHeight = randomGridSize[1]
         stimulus.randomSeed = randomSeed
         stimulus.randomGeneratorShaderSource = self.glslEsc("""
-            uniform usampler2D previousSequenceElements0;
-            uniform usampler2D previousSequenceElements1;
-            uniform usampler2D previousSequenceElements2;
-            uniform usampler2D previousSequenceElements3;
-            uniform uint seed;
+            layout (binding = 0) uniform usampler2D previousSequenceElements[4];
+            layout (binding = 1) uniform ubo_seed { uint seed; };
 
-            out uvec4 nextElement;
+            layout (location = 0) out uvec4 nextElement;
 
             void main() 
             {
@@ -52,7 +49,7 @@ class CellShift(Component) :
                 ivec2 cell = ivec2(gl_FragCoord.xy) + ivec2(@<shiftStepX>@, @<shiftStepY>@);
                 if(!randomizeAll && cell.x > -1 && cell.y > -1 && cell.x < @<gridSizeX>@ && cell.y < @<gridSizeY>@ )
                 {
-                    nextElement = texelFetch(previousSequenceElements0, cell, 0);
+                    nextElement = texelFetch(previousSequenceElements[0], cell, 0);
                     return;
                 }
                 uvec2 p = uvec2(gl_FragCoord.xy);
@@ -77,10 +74,10 @@ class CellShift(Component) :
                     nextElement.b = p.x * 3155894689u ^ p.y * 1883169037u ^ seed * 2870559073u;
                     nextElement.a = p.x * 1883169037u ^ p.y * 2278336279u ^ seed * 2278336133u;
                 } else {
-	                uvec4 x = texelFetch(previousSequenceElements3, ivec2(gl_FragCoord.xy), 0);
-	                uvec4 y = texelFetch(previousSequenceElements2, ivec2(gl_FragCoord.xy), 0);
-	                uvec4 z = texelFetch(previousSequenceElements1, ivec2(gl_FragCoord.xy), 0);
-	                uvec4 w = texelFetch(previousSequenceElements0, ivec2(gl_FragCoord.xy), 0);
+	                uvec4 x = texelFetch(previousSequenceElements[3], ivec2(gl_FragCoord.xy), 0);
+	                uvec4 y = texelFetch(previousSequenceElements[2], ivec2(gl_FragCoord.xy), 0);
+	                uvec4 z = texelFetch(previousSequenceElements[1], ivec2(gl_FragCoord.xy), 0);
+	                uvec4 w = texelFetch(previousSequenceElements[0], ivec2(gl_FragCoord.xy), 0);
                     // 128-bit xorshift algorithm
                     uvec4 t = x ^ (x << 11u);
                     nextElement = w ^ (w >> 19u) ^ t ^ (t >> 8u);

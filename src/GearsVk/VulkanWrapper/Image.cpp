@@ -77,6 +77,50 @@ ImageBase::~ImageBase ()
 }
 
 
+static VkAccessFlags GetSrcAccessMask (VkImageLayout oldLayout)
+{
+    switch (oldLayout) {
+        case VK_IMAGE_LAYOUT_UNDEFINED: return 0;
+        case VK_IMAGE_LAYOUT_GENERAL: return VK_ACCESS_MEMORY_WRITE_BIT;
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: return VK_ACCESS_TRANSFER_READ_BIT;
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: return VK_ACCESS_TRANSFER_WRITE_BIT;
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: return VK_ACCESS_SHADER_READ_BIT;
+        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: return VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        default:
+            GVK_ERROR ("unhandled img layout transition");
+            return VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    }
+}
+
+
+static VkAccessFlags GetDstAccessMask (VkImageLayout newLayout)
+{
+    GVK_ASSERT (newLayout != VK_IMAGE_LAYOUT_UNDEFINED);
+    return GetSrcAccessMask (newLayout);
+}
+
+
+VkImageMemoryBarrier ImageBase::GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout) const
+{
+    VkImageMemoryBarrier barrier            = {};
+    barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout                       = oldLayout;
+    barrier.newLayout                       = newLayout;
+    barrier.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image                           = handle;
+    barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel   = 0;
+    barrier.subresourceRange.levelCount     = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount     = arrayLayers;
+    barrier.srcAccessMask                   = GetSrcAccessMask (oldLayout);
+    barrier.dstAccessMask                   = GetDstAccessMask (newLayout);
+
+    return barrier;
+}
+
+
 void ImageBase::CmdPipelineBarrier (CommandBuffer& commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const
 {
     VkImageMemoryBarrier barrier            = {};
@@ -117,12 +161,14 @@ void ImageBase::CmdPipelineBarrier (CommandBuffer& commandBuffer, VkImageLayout 
         destinationStage      = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
     }
 
-    commandBuffer.CmdPipelineBarrier (
+    commandBuffer.RecordT<CommandPipelineBarrier> (
         sourceStage,
         destinationStage,
-        {},
-        {},
-        { barrier });
+        std::vector<VkMemoryBarrier> {},
+        std::vector<VkBufferMemoryBarrier> {},
+        std::vector<VkImageMemoryBarrier> { barrier });
+
+    commandBuffer.ImageLayoutChanged (*this, oldLayout, newLayout);
 }
 
 
@@ -145,21 +191,27 @@ VkBufferImageCopy ImageBase::GetFullBufferImageCopy () const
 void ImageBase::CmdCopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer) const
 {
     VkBufferImageCopy region = GetFullBufferImageCopy ();
-    commandBuffer.CmdCopyBufferToImage (
-        buffer,
-        handle,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1,
-        &region);
+    commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+        vkCmdCopyBufferToImage (
+            commandBuffer,
+            buffer,
+            handle,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &region);
+    });
 }
 
 
 void ImageBase::CmdCopyBufferPartToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkBufferImageCopy region) const
 {
-    commandBuffer.CmdCopyBufferToImage (
-        buffer,
-        handle,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1,
-        &region);
+    commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+        vkCmdCopyBufferToImage (
+            commandBuffer,
+            buffer,
+            handle,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &region);
+    });
 }

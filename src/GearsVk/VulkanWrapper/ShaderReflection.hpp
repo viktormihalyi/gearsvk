@@ -184,11 +184,22 @@ struct GEARSVK_API Sampler final {
 };
 
 
+struct GEARSVK_API Output {
+    std::string   name;
+    uint32_t      location;
+    SR::FieldType type;
+    uint32_t      arraySize; // 0 for non-arrays
+};
+
+
 GEARSVK_API
 std::vector<UBOP> GetUBOsFromBinary (const std::vector<uint32_t>& binary);
 
 GEARSVK_API
 std::vector<Sampler> GetSamplersFromBinary (const std::vector<uint32_t>& binary);
+
+GEARSVK_API
+std::vector<Output> GetOutputsFromBinary (const std::vector<uint32_t>& binary);
 
 } // namespace SR
 

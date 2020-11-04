@@ -1,6 +1,5 @@
 #include "RenderGraph.hpp"
 
-#include "RenderGraphCompileResult.hpp"
 
 namespace RG {
 
@@ -55,16 +54,7 @@ void RenderGraph::CompileResources (const GraphSettings& settings)
 
 void RenderGraph::Recompile (uint32_t commandBufferIndex)
 {
-    GVK_ASSERT (compiled);
-
-    for (uint32_t frameIndex = 0; frameIndex < compileSettings.framesInFlight; ++frameIndex) {
-        std::vector<uint32_t> operationsToRecompile = compileResult->GetOperationsToRecord (frameIndex, commandBufferIndex);
-
-        // commandBufferIndex.ResetAll ();
-        // commandBufferIndex.BeginAll ();
-        // record operationsToRecompile
-        // commandBufferIndex.EndAll ();
-    }
+    GVK_ASSERT (false);
 }
 
 
@@ -177,57 +167,112 @@ void RenderGraph::Compile (const GraphSettings& settings)
         }
     }
 
-    operationCommandBuffers.clear ();
-    resourceReadCommandBuffers.clear ();
-    resourceWriteCommandBuffers.clear ();
+    std::unordered_map<ImageBase*, VkImageLayout> layoutMap;
 
     for (Pass& p : passes) {
-        for (Operation* op : p.operations) {
-            std::vector<CommandBufferP> commandBuffers;
-
-            for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
-                auto opCmdBuf = CommandBuffer::CreateShared (settings.GetDevice ());
-                opCmdBuf->Begin ();
-                op->Record (frameIndex, *opCmdBuf);
-                opCmdBuf->CmdPipelineBarrier (VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-                opCmdBuf->End ();
-                commandBuffers.push_back (opCmdBuf);
+        Utils::ForEach<ImageResource*> (p.inputs, [&] (ImageResource* img) {
+            for (auto i : img->GetImages ()) {
+                layoutMap[i] = img->GetInitialLayout ();
             }
+        });
+        Utils::ForEach<ImageResource*> (p.outputs, [&] (ImageResource* img) {
+            for (auto i : img->GetImages ()) {
+                layoutMap[i] = img->GetInitialLayout ();
+            }
+        });
+    }
 
-            operationCommandBuffers.insert ({ op->GetUUID (), std::move (commandBuffers) });
-        }
+    c.clear ();
+    const std::unordered_map<ImageBase*, VkImageLayout> layoutMapStart;
+    for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
+        c.push_back (CommandBuffer::Create (settings.GetDevice ()));
 
-        for (Resource* input : p.inputs) {
-            if (auto imgInput = dynamic_cast<ImageResource*> (input)) {
-                std::vector<CommandBufferP> commandBuffers;
+        c[frameIndex]->Begin ();
 
-                for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
-                    auto opCmdBuf = CommandBuffer::CreateShared (settings.GetDevice ());
-                    opCmdBuf->Begin ();
-                    imgInput->BindRead (frameIndex, *opCmdBuf);
-                    opCmdBuf->End ();
-                    commandBuffers.push_back (opCmdBuf);
+        for (Pass& p : passes) {
+            for (auto op : p.operations) {
+                auto inputs  = op->GetPointingHere<Resource> ();
+                auto outputs = op->GetPointingTo<Resource> ();
+
+                std::vector<VkImageMemoryBarrier> imgBarriers;
+
+                Utils::ForEach<ImageResource*> (inputs, [&] (ImageResource* img) {
+                    for (auto imgbase : img->GetImages (frameIndex)) {
+                        const VkImageLayout currentLayout = layoutMap[imgbase];
+                        const VkImageLayout newLayout     = op->GetImageLayoutAtStartForInputs (*img);
+                        if (newLayout != currentLayout) {
+                            imgBarriers.push_back (imgbase->GetBarrier (currentLayout, newLayout));
+                            layoutMap[imgbase] = newLayout;
+                        }
+                    }
+                });
+
+                Utils::ForEach<ImageResource*> (outputs, [&] (ImageResource* img) {
+                    for (auto imgbase : img->GetImages (frameIndex)) {
+                        const VkImageLayout currentLayout = layoutMap[imgbase];
+                        const VkImageLayout newLayout     = op->GetImageLayoutAtStartForOutputs (*img);
+                        if (newLayout != currentLayout) {
+                            imgBarriers.push_back (imgbase->GetBarrier (currentLayout, newLayout));
+                            layoutMap[imgbase] = newLayout;
+                        }
+                    }
+                });
+
+                for (auto& img : imgBarriers) {
+                    img.srcAccessMask = 0;
+                    img.dstAccessMask = 0;
                 }
 
-                resourceReadCommandBuffers.insert ({ imgInput->GetUUID (), std::move (commandBuffers) });
+                c[frameIndex]->RecordT<CommandPipelineBarrier> (
+                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                    std::vector<VkMemoryBarrier> {},
+                    std::vector<VkBufferMemoryBarrier> {},
+                    imgBarriers);
+
+                Utils::ForEach<ImageResource*> (inputs, [&] (ImageResource* img) {
+                    for (auto imgbase : img->GetImages (frameIndex)) {
+                        layoutMap[imgbase] = op->GetImageLayoutAtEndForInputs (*img);
+                    }
+                });
+
+                Utils::ForEach<ImageResource*> (outputs, [&] (ImageResource* img) {
+                    for (auto imgbase : img->GetImages (frameIndex)) {
+                        layoutMap[imgbase] = op->GetImageLayoutAtEndForOutputs (*img);
+                    }
+                });
+            }
+
+            for (auto op : p.operations) {
+                op->Record (frameIndex, *c[frameIndex]);
             }
         }
 
-        for (Resource* output : p.outputs) {
-            if (auto imgOutput = dynamic_cast<ImageResource*> (output)) {
-                std::vector<CommandBufferP> commandBuffers;
-
-                for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
-                    auto opCmdBuf = CommandBuffer::CreateShared (settings.GetDevice ());
-                    opCmdBuf->Begin ();
-                    imgOutput->BindWrite (frameIndex, *opCmdBuf);
-                    opCmdBuf->End ();
-                    commandBuffers.push_back (opCmdBuf);
+        std::vector<VkImageMemoryBarrier> transitionToInitial;
+        for (Pass& p : passes) {
+            Utils::ForEach<ImageResource*> (p.inputs, [&] (ImageResource* img) {
+                for (auto imgbase : img->GetImages (frameIndex)) {
+                    const VkImageLayout currentLayout = layoutMap[imgbase];
+                    if (currentLayout != img->GetInitialLayout ()) {
+                        transitionToInitial.push_back (imgbase->GetBarrier (currentLayout, img->GetInitialLayout ()));
+                    }
                 }
-
-                resourceWriteCommandBuffers.insert ({ imgOutput->GetUUID (), std::move (commandBuffers) });
-            }
+            });
         }
+
+        for (auto& img : transitionToInitial) {
+            img.srcAccessMask = 0;
+            img.dstAccessMask = 0;
+        }
+
+        c[frameIndex]->RecordT<CommandPipelineBarrier> (
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            std::vector<VkMemoryBarrier> {},
+            std::vector<VkBufferMemoryBarrier> {},
+            transitionToInitial);
+
+        c[frameIndex]->End ();
     }
 
     compiled = true;
@@ -236,7 +281,7 @@ void RenderGraph::Compile (const GraphSettings& settings)
 }
 
 
-void RenderGraph::CreateInputConnection (Operation& op, Resource& res, InputBindingU&& conn)
+void RenderGraph::CreateInputConnection (RenderOperation& op, Resource& res, InputBindingU&& conn)
 {
     compiled = false;
 
@@ -246,13 +291,29 @@ void RenderGraph::CreateInputConnection (Operation& op, Resource& res, InputBind
 }
 
 
-void RenderGraph::CreateOutputConnection (Operation& operation, uint32_t binding, ImageResource& resource)
+void RenderGraph::CreateInputConnection (TransferOperation& op, ImageResource& res)
+{
+    compiled = false;
+
+    res.AddConnectionTo (op);
+}
+
+
+void RenderGraph::CreateOutputConnection (RenderOperation& operation, uint32_t binding, ImageResource& resource)
 {
     compiled = false;
 
     operation.AddConnectionTo (resource);
 
     operation.AddOutput (binding, resource);
+}
+
+
+void RenderGraph::CreateOutputConnection (TransferOperation& operation, Resource& resource)
+{
+    compiled = false;
+
+    operation.AddConnectionTo (resource);
 }
 
 
@@ -266,41 +327,13 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
         return;
     }
 
-    std::vector<CommandBuffer*> submittedCommandBuffers;
-    for (Pass& pass : passes) {
-        for (Resource* res : pass.inputs) {
-            if (auto imgOutput = dynamic_cast<ImageResource*> (res)) {
-                submittedCommandBuffers.push_back (resourceReadCommandBuffers.at (res->GetUUID ()).at (frameIndex).get ());
-            }
-        }
-        for (Resource* res : pass.outputs) {
-            if (auto imgOutput = dynamic_cast<ImageResource*> (res)) {
-                submittedCommandBuffers.push_back (resourceWriteCommandBuffers.at (res->GetUUID ()).at (frameIndex).get ());
-            }
-        }
-        for (Operation* operation : pass.operations) {
-            if (operation->IsActive ()) {
-                submittedCommandBuffers.push_back (operationCommandBuffers.at (operation->GetUUID ()).at (frameIndex).get ());
-            }
-        }
-    }
 
     // TODO
     std::vector<VkPipelineStageFlags> waitDstStageMasks (waitSemaphores.size (), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
-    //VkSubmitInfo result         = {};
-    //result.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    //result.waitSemaphoreCount   = static_cast<uint32_t> (waitSemaphores.size ());
-    //result.pWaitSemaphores      = waitSemaphores.data ();
-    //result.pWaitDstStageMask    = waitDstStageMasks.data ();
-    //result.commandBufferCount   = static_cast<uint32_t> (submittedCommandBuffers.size ());
-    //result.pCommandBuffers      = submittedCommandBuffers.data ();
-    //result.signalSemaphoreCount = static_cast<uint32_t> (signalSemaphores.size ());
-    //result.pSignalSemaphores    = signalSemaphores.data ();
+    CommandBufferU& cmd = c[frameIndex];
 
-    //vkQueueSubmit (compileSettings.GetDevice ().GetGraphicsQueue (), 1, &result, fenceToSignal);
-
-    compileSettings.GetDevice ().GetGraphicsQueue ().Submit (waitSemaphores, waitDstStageMasks, submittedCommandBuffers, signalSemaphores, fenceToSignal);
+    compileSettings.GetDevice ().GetGraphicsQueue ().Submit (waitSemaphores, waitDstStageMasks, { cmd.get () }, signalSemaphores, fenceToSignal);
 }
 
 

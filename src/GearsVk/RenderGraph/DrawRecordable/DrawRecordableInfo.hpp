@@ -154,17 +154,17 @@ public:
     {
         if (!vertexBuffer.empty ()) {
             std::vector<VkDeviceSize> offsets (vertexBuffer.size (), 0);
-            commandBuffer.CmdBindVertexBuffers (0, vertexBuffer.size (), vertexBuffer.data (), offsets.data ());
+            commandBuffer.RecordT<CommandBindVertexBuffers> (0, vertexBuffer.size (), vertexBuffer, offsets);
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {
-            commandBuffer.CmdBindIndexBuffer (indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+            commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdBindIndexBuffer (commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16); });
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {
-            commandBuffer.CmdDrawIndexed (indexCount, instanceCount, 0, 0, 0);
+            commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdDrawIndexed (commandBuffer, indexCount, instanceCount, 0, 0, 0); });
         } else {
-            commandBuffer.CmdDraw (vertexCount, instanceCount, 0, 0);
+            commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdDraw (commandBuffer, vertexCount, instanceCount, 0, 0); });
         }
     }
 
