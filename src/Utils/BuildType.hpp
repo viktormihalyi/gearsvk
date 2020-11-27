@@ -1,7 +1,7 @@
 #ifndef BUILDTYPE_HPP
 #define BUILDTYPE_HPP
 
-#ifdef NDEBUG
+#if defined (NDEBUG) && !defined (FORCEDEBUGMODE)
 constexpr bool IsReleaseBuild = true;
 constexpr bool IsDebugBuild   = false;
 #else

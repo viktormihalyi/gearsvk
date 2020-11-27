@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <map>
 #include <memory>
 #include <utility>
 
@@ -29,8 +30,8 @@ class GEARSVK_API RenderGraph final : public Noncopyable {
     USING_CREATE (RenderGraph);
 
 private:
-    bool                   compiled;
-    GraphSettings          compileSettings;
+    bool          compiled;
+    GraphSettings compileSettings;
 
     std::vector<ResourceP> resources;
 
@@ -40,7 +41,8 @@ private:
         std::set<Resource*>  outputs;
     };
 
-    std::vector<Pass>           passes;
+    std::vector<Pass> passes;
+
     std::vector<CommandBufferU> c;
 
 public:

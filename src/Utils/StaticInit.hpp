@@ -8,22 +8,10 @@
 
 
 class StaticInit : public Noncopyable {
-private:
-    const bool             hasDtor;
-    std::function<void ()> dtorCallback;
-
 public:
     StaticInit (const std::function<void ()>& callback)
-        : hasDtor (false)
     {
         callback ();
-    }
-
-    ~StaticInit ()
-    {
-        if (hasDtor) {
-            dtorCallback ();
-        }
     }
 };
 

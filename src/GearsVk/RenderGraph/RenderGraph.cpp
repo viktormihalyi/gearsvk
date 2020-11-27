@@ -190,9 +190,26 @@ void RenderGraph::Compile (const GraphSettings& settings)
         c[frameIndex]->Begin ();
 
         for (Pass& p : passes) {
+            for (auto res : p.inputs) {
+                res->OnGraphExecutionStarted (frameIndex, *c[frameIndex]);
+            }
+            for (auto res : p.outputs) {
+                res->OnGraphExecutionStarted (frameIndex, *c[frameIndex]);
+            }
+        }
+
+        for (Pass& p : passes) {
             for (auto op : p.operations) {
                 auto inputs  = op->GetPointingHere<Resource> ();
                 auto outputs = op->GetPointingTo<Resource> ();
+
+                for (auto res : inputs) {
+                    res->OnPreRead (frameIndex, *c[frameIndex]);
+                }
+
+                for (auto res : outputs) {
+                    res->OnPreWrite (frameIndex, *c[frameIndex]);
+                }
 
                 std::vector<VkImageMemoryBarrier> imgBarriers;
 
@@ -246,6 +263,14 @@ void RenderGraph::Compile (const GraphSettings& settings)
             for (auto op : p.operations) {
                 op->Record (frameIndex, *c[frameIndex]);
             }
+
+            for (auto op : p.operations) {
+                auto inputs  = op->GetPointingHere<Resource> ();
+                auto outputs = op->GetPointingTo<Resource> ();
+                for (auto res : p.outputs) {
+                    res->OnPostWrite (frameIndex, *c[frameIndex]);
+                }
+            }
         }
 
         std::vector<VkImageMemoryBarrier> transitionToInitial;
@@ -271,6 +296,15 @@ void RenderGraph::Compile (const GraphSettings& settings)
             std::vector<VkMemoryBarrier> {},
             std::vector<VkBufferMemoryBarrier> {},
             transitionToInitial);
+
+        for (Pass& p : passes) {
+            for (auto res : p.inputs) {
+                res->OnGraphExecutionEnded (frameIndex, *c[frameIndex]);
+            }
+            for (auto res : p.outputs) {
+                res->OnGraphExecutionEnded (frameIndex, *c[frameIndex]);
+            }
+        }
 
         c[frameIndex]->End ();
     }

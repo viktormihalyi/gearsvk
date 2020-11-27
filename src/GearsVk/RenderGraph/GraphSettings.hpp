@@ -2,6 +2,7 @@
 #define GRAPHSETTINGS_HPP
 
 #include <vulkan/vulkan.h>
+#include "DeviceExtra.hpp"
 
 namespace RG {
 

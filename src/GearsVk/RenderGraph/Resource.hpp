@@ -28,6 +28,12 @@ public:
     virtual ~Resource () = default;
 
     virtual void Compile (const GraphSettings&) = 0;
+
+    virtual void OnPreRead (uint32_t frameIndex, CommandBuffer&) {};
+    virtual void OnPreWrite (uint32_t frameIndex, CommandBuffer&) {};
+    virtual void OnPostWrite (uint32_t frameIndex, CommandBuffer&) {};
+    virtual void OnGraphExecutionStarted (uint32_t frameIndex, CommandBuffer&) {};
+    virtual void OnGraphExecutionEnded (uint32_t frameIndex, CommandBuffer&) {};
 };
 
 
@@ -43,12 +49,13 @@ class GEARSVK_API ImageResource : public Resource {
 public:
     virtual ~ImageResource () = default;
 
-    virtual VkImageLayout           GetInitialLayout () const                                     = 0;
-    virtual VkImageLayout           GetFinalLayout () const                                       = 0;
-    virtual VkFormat                GetFormat () const                                            = 0;
-    virtual uint32_t                GetLayerCount () const                                        = 0;
-    virtual std::vector<ImageBase*> GetImages () const                                            = 0;
-    virtual std::vector<ImageBase*> GetImages (uint32_t frameIndex) const                         = 0;
+public:
+    virtual VkImageLayout           GetInitialLayout () const             = 0;
+    virtual VkImageLayout           GetFinalLayout () const               = 0;
+    virtual VkFormat                GetFormat () const                    = 0;
+    virtual uint32_t                GetLayerCount () const                = 0;
+    virtual std::vector<ImageBase*> GetImages () const                    = 0;
+    virtual std::vector<ImageBase*> GetImages (uint32_t frameIndex) const = 0;
 };
 
 
@@ -190,19 +197,88 @@ public:
     virtual VkSampler   GetSampler () override { return *sampler; }
 };
 
+namespace GVK {
+
+USING_PTR (Event);
+class Event : public VulkanObject {
+    USING_CREATE (Event);
+
+private:
+    VkDevice device;
+    VkEvent  handle;
+
+public:
+    Event (VkDevice device)
+        : device (device)
+    {
+        VkEventCreateInfo createInfo = {};
+        createInfo.sType             = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO;
+        createInfo.pNext             = nullptr;
+        createInfo.flags             = 0;
+
+        if (GVK_ERROR (vkCreateEvent (device, &createInfo, nullptr, &handle) != VK_SUCCESS)) {
+            throw std::runtime_error ("failed to create vkevent");
+        }
+    }
+
+    virtual ~Event () override
+    {
+        vkDestroyEvent (device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
+    }
+
+    operator VkEvent () const { return handle; }
+};
+
+} // namespace GVK
+
 
 USING_PTR (SingleWritableImageResource);
 class GEARSVK_API SingleWritableImageResource : public WritableImageResource {
     USING_CREATE (SingleWritableImageResource);
+
+private:
+    GVK::EventU readWriteSync;
 
 public:
     using WritableImageResource::WritableImageResource;
 
     virtual void Compile (const GraphSettings& graphSettings) override
     {
+        readWriteSync = GVK::Event::Create (graphSettings.GetDevice ());
+
         sampler = Sampler::Create (graphSettings.GetDevice (), filter);
         images.clear ();
         images.push_back (SingleImageResource::Create (graphSettings.GetDevice (), width, height, arrayLayers, GetFormat ()));
+    }
+
+    virtual void OnPreRead (uint32_t frameIndex, CommandBuffer& commandBuffer) override
+    {
+        commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+            VkEvent handle = *readWriteSync;
+            vkCmdWaitEvents (commandBuffer,
+                             1,
+                             &handle,
+                             VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                             VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                             0, nullptr,
+                             0, nullptr,
+                             0, nullptr);
+        });
+    }
+
+    virtual void OnPreWrite (uint32_t frameIndex, CommandBuffer& commandBuffer) override
+    {
+        commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+            vkCmdResetEvent (commandBuffer, *readWriteSync, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
+        });
+    }
+
+    virtual void OnPostWrite (uint32_t frameIndex, CommandBuffer& commandBuffer) override
+    {
+        commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+            vkCmdSetEvent (commandBuffer, *readWriteSync, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
+        });
     }
 };
 
@@ -248,6 +324,8 @@ public:
 
 USING_PTR (ReadOnlyImageResource);
 class GEARSVK_API ReadOnlyImageResource : public OneTimeCompileResource, public InputImageBindable {
+    USING_CREATE (ReadOnlyImageResource);
+
 public:
     ImageTransferableBaseU image;
     ImageViewBaseU         imageView;
@@ -261,8 +339,6 @@ public:
     const uint32_t layerCount;
 
 public:
-    USING_CREATE (ReadOnlyImageResource);
-
     ReadOnlyImageResource (VkFormat format, VkFilter filter, uint32_t width, uint32_t height = 1, uint32_t depth = 1, uint32_t layerCount = 1)
         : format (format)
         , filter (filter)
@@ -408,8 +484,9 @@ public:
 
 
 USING_PTR (CPUBufferResource);
-
 class GEARSVK_API CPUBufferResource : public InputBufferBindableResource {
+    USING_CREATE (CPUBufferResource);
+
 public:
     const uint32_t              size;
     std::vector<BufferU>        buffers;
@@ -422,8 +499,6 @@ protected:
     }
 
 public:
-    USING_CREATE (CPUBufferResource);
-
     virtual ~CPUBufferResource () = default;
 
     // overriding Resource

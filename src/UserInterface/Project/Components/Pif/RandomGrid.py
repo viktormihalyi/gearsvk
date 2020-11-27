@@ -13,7 +13,7 @@ class RandomGrid(Base) :
         spass.setShaderFunction( name = functionName, src = self.glslEsc(
             gears.GetGLSLResourcesForRandoms () + '''
             vec3 @<X>@ (vec2 x, float time){ 
-                if(texelFetch(randoms[randomIndex], ivec2( (x + randomGridSize * cellSize*0.5 ) / cellSize ) , 0).x >> 31u == 0u)
+                if(texelFetch(randoms[randomsIndex], ivec2( (x + randomGridSize * cellSize*0.5 ) / cellSize ) , 0).x >> 31u == 0u)
         		    return vec3(0, 0, 0);
 	            else
 		            return vec3(1, 1, 1);

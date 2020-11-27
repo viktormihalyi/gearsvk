@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <atomic>
 #include <memory>
+#include <random>
 #include <set>
 #include <thread>
 #include <type_traits>
@@ -43,59 +44,63 @@ class SequenceAdapter {
 private:
     const Sequence::P sequence;
 
-    USING_PTR (StimulusV2);
-    class StimulusV2 : public Noncopyable {
-        USING_CREATE (StimulusV2);
+    USING_PTR (StimulusAdapterForPresentable);
+    class StimulusAdapterForPresentable : public Noncopyable {
+        USING_CREATE (StimulusAdapterForPresentable);
+
+    private:
+        const Stimulus::CP stimulus;
+        const PresentableP presentable;
+
+        RenderGraphP                        renderGraph;
+        RG::UniformReflectionP              reflection;
+        std::map<Pass::P, OperationP>       passToOperation;
+        SynchronizedSwapchainGraphRendererU renderer;
 
     public:
-        RenderGraphP                  graph;
-        RG::UniformReflectionP        reflection;
-        std::map<Pass::P, OperationP> passToOperation;
-
-        StimulusV2 (RenderGraphP                  graph,
-                    RG::UniformReflectionP        reflection,
-                    std::map<Pass::P, OperationP> passToOperation)
-            : graph (graph)
-            , reflection (reflection)
-            , passToOperation (passToOperation)
+        StimulusAdapterForPresentable (const VulkanEnvironment& environment, PresentableP& presentable, const Stimulus::CP& stimulus)
+            : stimulus (stimulus)
+            , presentable (presentable)
         {
-        }
-    };
-
-    std::vector<U<StimulusV2>>       stimulii;
-    std::map<Stimulus::CP, uint32_t> stimulusToGraphIndex;
-    const VulkanEnvironment&         environment;
-    const PresentableP               presentable;
-
-public:
-    SequenceAdapter (VulkanEnvironment& environment, const Sequence::P& sequence)
-        : sequence (sequence)
-        , environment (environment)
-        , presentable (Presentable::CreateShared ())
-    {
-        for (auto& [startFrame, stim] : sequence->getStimuli ()) {
-            RenderGraphP renderGraph = RenderGraph::CreateShared ();
+            renderGraph = RenderGraph::CreateShared ();
 
             SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*presentable);
 
-            std::map<Pass::P, OperationP> newMapping;
+            GraphSettings s (*environment.deviceExtra, presentable->GetSwapchain ().GetImageCount ());
 
-            const std::vector<Pass::P> passes = stim->getPasses ();
+            renderer = SynchronizedSwapchainGraphRenderer::Create (s, presentable->GetSwapchain ());
+
+            const std::vector<Pass::P> passes = stimulus->getPasses ();
+
+            GVK_ASSERT (passes.size () == 1);
+
             for (const Pass::P& pass : passes) {
                 GVK_ASSERT (pass->rasterizationMode == Pass::RasterizationMode::fullscreen);
                 const std::string vert = pass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
                 const std::string geom = pass->getStimulusGeneratorGeometryShaderSource (Pass::RasterizationMode::fullscreen);
                 const std::string frag = pass->getStimulusGeneratorShaderSource ();
 
+                /*
                 ShaderPipelineP randomPip = ShaderPipeline::CreateShared (*environment.device);
                 randomPip->SetVertexShaderFromString (*Utils::ReadTextFile (PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Shaders" / "quad.vert"));
                 randomPip->SetFragmentShaderFromString (stim->getRandomGeneratorShaderSource ());
 
-                RG::RenderGraph randomGenerator;
-                auto            randomRender   = randomGenerator.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 4), randomPip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
-                auto            randomResource = randomGenerator.CreateResource<SingleWritableImageResource> (VK_FILTER_LINEAR, 256, 256, 1, VK_FORMAT_R8G8B8A8_UINT);
-                randomGenerator.CreateOutputConnection (*randomRender, 0, *randomResource);
-                randomGenerator.Compile (GraphSettings (*environment.deviceExtra, 1));
+                {
+                    RG::RenderGraph randomGenerator;
+
+                    auto randomResourceHistory = randomGenerator.CreateResource<SingleWritableImageResource> (VK_FILTER_LINEAR, 256, 256, 5, VK_FORMAT_R8G8B8A8_UINT);
+                    auto randomResourceOUT     = randomGenerator.CreateResource<SingleWritableImageResource> (VK_FILTER_LINEAR, 256, 256, 1, VK_FORMAT_R8G8B8A8_UINT);
+                    auto randomRender          = randomGenerator.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 4), randomPip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+                    auto backTransfer1         = randomGenerator.CreateOperation<TransferOperation> ();
+                    auto backTransfer2         = randomGenerator.CreateOperation<TransferOperation> ();
+                    auto backTransfer3         = randomGenerator.CreateOperation<TransferOperation> ();
+                    auto backTransfer4         = randomGenerator.CreateOperation<TransferOperation> ();
+
+                    randomGenerator.CreateInputConnection (*randomRender, *randomResourceHistory, ImageInputBinding::Create (0, *randomResourceHistory));
+                    randomGenerator.CreateInputConnection (*randomRender, *randomResourceHistory, ImageInputBinding::Create (0, *randomResourceHistory));
+                    randomGenerator.CreateOutputConnection (*randomRender, 0, *randomResourceOUT);
+                }
+                */
 
                 ShaderPipelineP sequencePip = ShaderPipeline::CreateShared (*environment.device);
 
@@ -109,12 +114,11 @@ public:
                     DrawRecordableInfo::CreateShared (1, 4), sequencePip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
                 renderGraph->CreateOutputConnection (*passOperation, 0, *presented);
-                newMapping[pass] = passOperation;
+                passToOperation[pass] = passOperation;
                 break;
             }
 
-
-            RG::UniformReflectionP refl = RG::UniformReflection::CreateShared (*renderGraph);
+            reflection = RG::UniformReflection::CreateShared (*renderGraph);
 
             RG::ImageMap imgMap = RG::CreateEmptyImageResources (*renderGraph, [&] (const SR::Sampler& sampler) -> std::optional<CreateParams> {
                 if (sampler.name == "gamma") {
@@ -122,12 +126,29 @@ public:
                 }
 
                 if (sampler.name == "randoms") {
-                    GVK_ASSERT (sequence->maxRandomGridWidth > 0 && sequence->maxRandomGridHeight > 0);
-                    return std::make_tuple (glm::uvec3 { sequence->maxRandomGridWidth, sequence->maxRandomGridHeight, 0 }, VK_FORMAT_R32G32B32A32_UINT, VK_FILTER_NEAREST);
+                    GVK_ASSERT (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0);
+                    return std::make_tuple (glm::uvec3 { stimulus->sequence->maxRandomGridWidth, stimulus->sequence->maxRandomGridHeight, 0 }, VK_FORMAT_R32G32B32A32_UINT, VK_FILTER_NEAREST);
                 }
 
                 return std::nullopt;
             });
+
+            RG::ReadOnlyImageResourceP randomTexture = imgMap.FindByName ("randoms");
+            if (randomTexture != nullptr) {
+                randomTexture->Compile (GraphSettings (*environment.deviceExtra, 0));
+
+                std::random_device rd;
+                std::mt19937_64    gen (rd ());
+
+                std::uniform_int_distribution<uint32_t> dis;
+
+                const size_t          randomsSize = randomTexture->GetImages ()[0]->GetWidth () * randomTexture->GetImages ()[0]->GetHeight () * 4;
+                std::vector<uint32_t> randomValues (randomsSize);
+                for (uint32_t i = 0; i < randomsSize; i++)
+                    randomValues[i] = dis (gen);
+                for (uint32_t i = 0; i < randomTexture->GetImages ()[0]->GetArrayLayers (); i++)
+                    randomTexture->CopyLayer (randomValues, i);
+            }
 
             RG::ReadOnlyImageResourceP gammaTexture = imgMap.FindByName ("gamma");
             GVK_ASSERT (gammaTexture != nullptr);
@@ -137,105 +158,193 @@ public:
 
             std::vector<float> gammaAndTemporalWeights (256, 0.f);
             for (int i = 0; i < 101; i++)
-                gammaAndTemporalWeights[i] = stim->gamma[i];
+                gammaAndTemporalWeights[i] = stimulus->gamma[i];
             for (int i = 0; i < 64; i++)
-                gammaAndTemporalWeights[128 + i] = stim->temporalWeights[i];
+                gammaAndTemporalWeights[128 + i] = stimulus->temporalWeights[i];
             gammaTexture->CopyTransitionTransfer (gammaAndTemporalWeights);
 
-            stimulusToGraphIndex[stim] = stimulii.size ();
 
-            stimulii.push_back (StimulusV2::Create (renderGraph, refl, newMapping));
-        }
-    }
+            renderGraph->Compile (s);
 
-    void RenderFull ()
-    {
-        WindowU window = HiddenGLFWWindow::Create ();
-        *presentable   = std::move (*environment.CreatePresentable (*window));
-        window->Show ();
-        //window->SetWindowMode (Window::Mode::Fullscreen);
-
-        GraphSettings s (*environment.deviceExtra, presentable->GetSwapchain ().GetImageCount ());
-
-        for (auto& st : stimulii) {
-            st->graph->Compile (s);
+            SetConstantUniforms ();
         }
 
-        for (auto& st : stimulii) {
-            for (auto& [pass, op] : st->passToOperation) {
+    private:
+        void SetConstantUniforms ()
+        {
+            for (auto& [pass, op] : passToOperation) {
                 for (auto& [name, value] : pass->shaderVariables)
-                    (*st->reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<float> (value);
+                    (*reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<float> (value);
                 for (auto& [name, value] : pass->shaderVectors)
-                    (*st->reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec2> (value);
+                    (*reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec2> (value);
                 for (auto& [name, value] : pass->shaderColors)
-                    (*st->reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec3> (value);
+                    (*reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec3> (value);
             }
         }
 
-        SynchronizedSwapchainGraphRendererU renderer = SynchronizedSwapchainGraphRenderer::Create (s, presentable->GetSwapchain ());
+        void SetUniforms (const GearsVk::UUID& renderOpearionId, const uint32_t frameIndex)
+        {
+            UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOpearionId][ShaderKind::Vertex];
+            UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOpearionId][ShaderKind::Fragment];
 
-        const glm::vec2 patternSizeOnRetina (1920, 1080);
+            const double timeInSeconds = frameIndex / 60.0;
 
-        uint32_t frameCount = 0;
+            const glm::vec2 patternSizeOnRetina (1920, 1080);
 
-        window->DoEventLoop ([&] (bool& shouldStop) {
-            //const double timeInSeconds = TimePoint::SinceApplicationStart ().AsSeconds ();
-            const double timeInSeconds = frameCount / 60.0;
+            vertexShaderUniforms["PatternSizeOnRetina"] = patternSizeOnRetina;
 
-            Stimulus::CP currentStim = sequence->getStimulusAtFrame (frameCount++);
-            if (currentStim == nullptr) {
-                shouldStop = true;
+            fragmentShaderUniforms["ubo_time"]                = static_cast<float> (timeInSeconds - stimulus->getStartingFrame () / 60.f);
+            fragmentShaderUniforms["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
+            fragmentShaderUniforms["ubo_frame"]               = static_cast<int32_t> (frameIndex);
+
+            fragmentShaderUniforms["ubo_swizzleForFft"] = 0xffffffff;
+
+            if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0) {
+                fragmentShaderUniforms["ubo_cellSize"] = static_cast<glm::vec2> (
+                    stimulus->sequence->fieldWidth_um / stimulus->randomGridWidth,
+                    stimulus->sequence->fieldHeight_um / stimulus->randomGridHeight);
+                fragmentShaderUniforms["ubo_randomGridSize"] = static_cast<glm::ivec2> (
+                    stimulus->sequence->maxRandomGridWidth,
+                    stimulus->sequence->maxRandomGridHeight);
+            }
+
+            if (stimulus->doesToneMappingInStimulusGenerator) {
+                fragmentShaderUniforms["ubo_toneRangeMin"] = stimulus->toneRangeMin;
+                fragmentShaderUniforms["ubo_toneRangeMax"] = stimulus->toneRangeMax;
+
+                if (stimulus->toneMappingMode == Stimulus::ToneMappingMode::ERF) {
+                    fragmentShaderUniforms["ubo_toneRangeMean"] = stimulus->toneRangeMean;
+                    fragmentShaderUniforms["ubo_toneRangeVar"]  = stimulus->toneRangeVar;
+                } else {
+                    fragmentShaderUniforms["ubo_toneRangeMean"] = 0.f;
+                    fragmentShaderUniforms["ubo_toneRangeVar"]  = -1.f;
+                }
+
+                fragmentShaderUniforms["ubo_doTone"]           = static_cast<int32_t> (!stimulus->doesDynamicToneMapping);
+                fragmentShaderUniforms["ubo_doGamma"]          = static_cast<int32_t> (!stimulus->doesDynamicToneMapping);
+                fragmentShaderUniforms["ubo_gammaSampleCount"] = static_cast<int32_t> (stimulus->gammaSamplesCount);
+            }
+        }
+
+    public:
+        void RenderFrameIndex (const uint32_t frameIndex)
+        {
+            const uint32_t stimulusStartingFrame = stimulus->getStartingFrame ();
+            const uint32_t stimulusEndingFrame   = stimulus->getStartingFrame () + stimulus->getDuration ();
+
+            if (GVK_ERROR (frameIndex < stimulusStartingFrame || frameIndex >= stimulusEndingFrame)) {
                 return;
             }
 
-            const uint32_t idx = stimulusToGraphIndex[currentStim];
-
-            RG::UniformReflectionP refl = stimulii[idx]->reflection;
-
             renderer->preSubmitEvent = [&] (RenderGraph& graph, uint32_t frameIndex, uint64_t timeNs) {
-                for (auto& [pass, renderOpId] : stimulii[idx]->passToOperation) {
-                    auto& fragmentShaderUniforms = (*refl)[renderOpId->GetUUID ()][ShaderKind::Fragment];
-
-                    (*refl)[renderOpId->GetUUID ()][ShaderKind::Vertex]["PatternSizeOnRetina"] = patternSizeOnRetina;
-
-                    fragmentShaderUniforms["ubo_time"]                = static_cast<float> (timeInSeconds - currentStim->getStartingFrame () / 60.f);
-                    fragmentShaderUniforms["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
-                    fragmentShaderUniforms["ubo_frame"]               = static_cast<int32_t> (frameCount);
-
-                    fragmentShaderUniforms["ubo_swizzleForFft"] = 0xffffffff;
-
-                    if (currentStim->doesToneMappingInStimulusGenerator) {
-                        fragmentShaderUniforms["ubo_toneRangeMin"] = currentStim->toneRangeMin;
-                        fragmentShaderUniforms["ubo_toneRangeMax"] = currentStim->toneRangeMax;
-
-                        if (currentStim->toneMappingMode == Stimulus::ToneMappingMode::ERF) {
-                            fragmentShaderUniforms["ubo_toneRangeMean"] = currentStim->toneRangeMean;
-                            fragmentShaderUniforms["ubo_toneRangeVar"]  = currentStim->toneRangeVar;
-                        } else {
-                            fragmentShaderUniforms["ubo_toneRangeMean"] = 0.f;
-                            fragmentShaderUniforms["ubo_toneRangeVar"]  = -1.f;
-                        }
-
-                        fragmentShaderUniforms["ubo_doTone"]           = static_cast<int32_t> (!currentStim->doesDynamicToneMapping);
-                        fragmentShaderUniforms["ubo_doGamma"]          = static_cast<int32_t> (!currentStim->doesDynamicToneMapping);
-                        fragmentShaderUniforms["ubo_gammaSampleCount"] = static_cast<int32_t> (currentStim->gammaSamplesCount);
-                    }
+                for (auto& [pass, renderOp] : passToOperation) {
+                    SetUniforms (renderOp->GetUUID (), frameIndex);
                 }
 
+                reflection->PrintDebugInfo ();
 
-                refl->PrintDebugInfo ();
-
-                refl->Flush (frameIndex);
+                reflection->Flush (frameIndex);
             };
 
-            renderer->RenderNextFrame (*stimulii[idx]->graph);
+            renderer->RenderNextFrame (*renderGraph);
+        }
+    };
 
-            frameCount++;
+    USING_PTR (StimulusAdapterView);
+    class StimulusAdapterView : public Noncopyable {
+        USING_CREATE (StimulusAdapterView);
+
+    private:
+        VulkanEnvironment& environment;
+        const Stimulus::CP stimulus;
+
+        std::map<PresentableP, StimulusAdapterForPresentableP> compiledAdapters;
+
+    public:
+        StimulusAdapterView (VulkanEnvironment& environment, const Stimulus::CP& stimulus)
+            : environment (environment)
+            , stimulus (stimulus)
+        {
+        }
+
+        void CreateForPresentable (PresentableP& presentable)
+        {
+            compiledAdapters[presentable] = StimulusAdapterForPresentable::Create (environment, presentable, stimulus);
+        }
+
+        void RenderFrameIndex (PresentableP& presentable, const uint32_t frameIndex)
+        {
+            if (GVK_ERROR (compiledAdapters.find (presentable) == compiledAdapters.end ())) {
+                return;
+            }
+
+            compiledAdapters[presentable]->RenderFrameIndex (frameIndex);
+        }
+
+        uint32_t GetStartingFrame () const
+        {
+            return stimulus->getStartingFrame ();
+        }
+
+        uint32_t GetEndingFrame () const
+        {
+            return stimulus->getStartingFrame () + stimulus->getDuration ();
+        }
+    };
+
+    VulkanEnvironment& environment;
+    PresentableP       currentPresentable;
+
+    std::map<Stimulus::CP, StimulusAdapterViewP> views;
+
+public:
+    SequenceAdapter (VulkanEnvironment& environment, const Sequence::P& sequence)
+        : sequence (sequence)
+        , environment (environment)
+    {
+        for (auto& [startFrame, stim] : sequence->getStimuli ()) {
+            views[stim] = StimulusAdapterView::Create (environment, stim);
+        }
+    }
+
+    void RenderFrameIndex (const uint32_t frameIndex)
+    {
+        auto stim = sequence->getStimulusAtFrame (frameIndex);
+        if (stim) {
+            views[stim]->RenderFrameIndex (currentPresentable, frameIndex);
+        }
+    }
+
+    void SetCurrentPresentable (PresentableP presentable)
+    {
+        currentPresentable = presentable;
+
+        for (auto& [stim, view] : views) {
+            view->CreateForPresentable (currentPresentable);
+        }
+    }
+
+    void RenderFullOnExternalWindow ()
+    {
+        WindowU window = HiddenGLFWWindow::Create ();
+
+        SetCurrentPresentable (environment.CreatePresentable (*window));
+
+        window->Show ();
+
+        uint32_t frameIndex = 0;
+
+        window->DoEventLoop ([&] (bool& shouldStop) {
+            RenderFrameIndex (frameIndex);
+
+            frameIndex++;
+
+            if (frameIndex == sequence->getDuration ()) {
+                shouldStop = true;
+            }
         });
 
         window->Close ();
-        window.reset ();
-        presentable->Clear ();
     }
 };
 
@@ -299,7 +408,7 @@ static void EventLoop (Window& window, RG::Renderer& renderer, RG::RenderGraph& 
 /* exported to .pyd */
 void StartRendering (const std::function<bool ()>& doRender)
 {
-    currentSeq->RenderFull ();
+    currentSeq->RenderFullOnExternalWindow ();
 }
 
 

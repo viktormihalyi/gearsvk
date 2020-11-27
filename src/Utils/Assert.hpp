@@ -7,11 +7,11 @@
 
 #include "SourceLocation.hpp"
 
-#if !defined (NDEBUG) || defined (FORCEASSERTS)
-#define GVK_ASSERT(condition) (::Utils::detail::DebugAssertFunc (condition, true, "ASSERTION", #condition, {__FILE__, __LINE__, __func__}))
-#define GVK_VERIFY(condition) (::Utils::detail::DebugAssertFunc (condition, true, "ASSERTION", #condition, {__FILE__, __LINE__, __func__}))
-#define GVK_ERROR(condition) (::Utils::detail::DebugAssertFunc (condition, false, "GVK_ERROR", #condition, {__FILE__, __LINE__, __func__}))
-#define GVK_BREAK(message) (::Utils::detail::DebugAssertFunc (true, false, "BREAK", message, {__FILE__, __LINE__, __func__}))
+#if !defined(NDEBUG) || defined(FORCEDEBUGMODE)
+#define GVK_ASSERT(condition) (::Utils::detail::DebugAssertFunc (condition, true, "ASSERTION", #condition, { __FILE__, __LINE__, __func__ }))
+#define GVK_VERIFY(condition) (::Utils::detail::DebugAssertFunc (condition, true, "ASSERTION", #condition, { __FILE__, __LINE__, __func__ }))
+#define GVK_ERROR(condition) (::Utils::detail::DebugAssertFunc (condition, false, "GVK_ERROR", #condition, { __FILE__, __LINE__, __func__ }))
+#define GVK_BREAK(message) (::Utils::detail::DebugAssertFunc (true, false, "BREAK", message, { __FILE__, __LINE__, __func__ }))
 #else
 #define GVK_ASSERT(condition)
 #define GVK_VERIFY(condition) ((bool)(condition))

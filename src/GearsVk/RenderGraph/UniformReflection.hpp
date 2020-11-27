@@ -62,7 +62,7 @@ private:
             }
 
             GVK_ASSERT (false);
-            throw std::runtime_error ("no ubo named \"" + uboName + "\"");
+            return SR::dummyUData;
         }
 
         void Set (const std::string& uboName, const SR::IUDataP& uboData)
@@ -97,7 +97,11 @@ private:
         friend class UniformReflection;
     };
 
+public:
+    using ShaderUniforms   = UboSelector;
+    using PipelineUniforms = ShaderKindSelector;
 
+public:
     // operation uuid
     std::unordered_map<GearsVk::UUID, ShaderKindSelector> selectors;
 

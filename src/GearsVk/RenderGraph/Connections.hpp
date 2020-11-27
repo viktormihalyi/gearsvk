@@ -153,13 +153,21 @@ public:
     VkAttachmentReference      attachmentReference;
     std::function<VkFormat ()> formatProvider;
     const VkImageLayout        finalLayout;
+    const VkAttachmentLoadOp   loadOp;
+    const VkAttachmentStoreOp  storeOp;
 
-    OutputBinding (uint32_t binding, std::function<VkFormat ()> formatProvider, VkImageLayout finalLayout)
+    OutputBinding (uint32_t                   binding,
+                   std::function<VkFormat ()> formatProvider,
+                   VkImageLayout              finalLayout,
+                   VkAttachmentLoadOp         loadOp,
+                   VkAttachmentStoreOp        storeOp)
         : binding (binding)
         , attachmentDescription ({})
         , attachmentReference ({})
         , formatProvider (formatProvider)
         , finalLayout (finalLayout)
+        , loadOp (loadOp)
+        , storeOp (storeOp)
     {
         attachmentReference.attachment = binding;
 
@@ -173,8 +181,8 @@ public:
         VkAttachmentDescription attachmentDescription = {};
         attachmentDescription.format                  = formatProvider ();
         attachmentDescription.samples                 = VK_SAMPLE_COUNT_1_BIT;
-        attachmentDescription.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        attachmentDescription.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
+        attachmentDescription.loadOp                  = loadOp;
+        attachmentDescription.storeOp                 = storeOp;
         attachmentDescription.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         attachmentDescription.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 

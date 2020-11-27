@@ -37,6 +37,7 @@ private:
     const SR::FieldProviderP parentContainer;
     const SR::FieldP         currentField;
 
+public:
     static const UView invalidUview;
 
 public:
@@ -152,6 +153,11 @@ public:
     {
         static_assert (sizeof (T) >= 4, "there are no data types in glsl with less than 4 bytes");
 
+        if (GetData () == nullptr) {
+            GVK_ASSERT (false);
+            return;
+        }
+
         GVK_ASSERT (GetSize () == sizeof (T));
         memcpy (GetData (), &other, GetSize ());
     }
@@ -161,8 +167,32 @@ public:
     {
         static_assert (sizeof (T) >= 4, "there are no data types in glsl with less than 4 bytes");
 
+        if (GetData () == nullptr) {
+            GVK_ASSERT (false);
+            return;
+        }
+
         GVK_ASSERT (sizeof (T) * other.size () == GetSize ());
         memcpy (GetData (), other.data (), GetSize ());
+    }
+
+    bool IsAllZero ()
+    {
+        if (GetData () == nullptr) {
+            GVK_ASSERT (false);
+            return true;
+        }
+
+        const uint8_t* dataPtr = GetData ();
+        const uint32_t size = GetSize ();
+
+        for (uint32_t byteIndex = 0; byteIndex < size; ++byteIndex) {
+            if (dataPtr[byteIndex] != 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     virtual UView                    operator[] (std::string_view str) = 0;
@@ -170,6 +200,34 @@ public:
     virtual uint8_t*                 GetData ()                        = 0;
     virtual uint32_t                 GetSize () const                  = 0;
 };
+
+
+// view to a single UBO + properly sized byte array for it
+class GEARSVK_API DummyUData final : public IUData {
+public:
+    virtual UView operator[] (std::string_view str) override
+    {
+        return UView::invalidUview;
+    }
+
+    virtual std::vector<std::string> GetNames () override
+    {
+        return {};
+    }
+
+    virtual uint8_t* GetData () override
+    {
+        return nullptr;
+    }
+
+    virtual uint32_t GetSize () const override
+    {
+        return 0;
+    }
+};
+
+
+extern DummyUData dummyUData;
 
 
 USING_PTR (UDataExternal);

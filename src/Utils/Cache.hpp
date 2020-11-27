@@ -3,6 +3,8 @@
 
 #include <functional>
 
+#include "BuildType.hpp"
+
 template<typename T>
 struct Cache {
 private:
@@ -26,9 +28,10 @@ public:
 
     inline void Invalidate ()
     {
-#ifdef NDEBUG
-        value = T ();
-#endif
+        if constexpr (IsDebugBuild) {
+            value = T ();
+        }
+
         isValid = false;
     }
 

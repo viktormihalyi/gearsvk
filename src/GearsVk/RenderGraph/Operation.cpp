@@ -20,7 +20,9 @@ void Operation::AddOutput (const uint32_t binding, const ImageResourceRef& res)
             [=] () -> VkFormat {
                 return res.get ().GetFormat ();
             },
-            res.get ().GetFinalLayout ()));
+            res.get ().GetFinalLayout (),
+            VK_ATTACHMENT_LOAD_OP_CLEAR,
+            VK_ATTACHMENT_STORE_OP_STORE));
     }
 }
 
