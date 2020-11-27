@@ -688,10 +688,11 @@ PYBIND11_MODULE (Gears, m)
     m.def ("InitializeEnvironment", InitializeEnvironment);
     m.def ("DestroyEnvironment", DestroyEnvironment);
     m.def ("StartRendering", StartRendering);
-    m.def ("RenderFrame", RenderFrame);
     m.def ("CreateSurface", CreateSurface);
     m.def ("DestroySurface", DestroySurface);
     m.def ("RequestPaint", RequestPaint);
+    m.def ("SetCurrentSurface", SetCurrentSurface);
+    m.def ("RenderFrame", RenderFrame);
     m.def ("GetGLSLResourcesForRandoms", GetGLSLResourcesForRandoms);
 
 #if 0

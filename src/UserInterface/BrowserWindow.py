@@ -56,9 +56,7 @@ class BrowserWindow(QWidget):
         self.fontSizeSmall = 10
         self.setCursor(AppData.cursors['arrow'])
         self.initUI()
-        self.surfaceHandle = gears.CreateSurface(self.winId().__int__())
         #self.setUpdatesEnabled (False)
-        gears.RequestPaint(self.surfaceHandle)
 
     def closeEvent(self, event):
         gears.DestroySurface(self.surfaceHandle)

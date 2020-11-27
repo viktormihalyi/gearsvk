@@ -12,7 +12,7 @@ conan install .. --build=missing -s build_type=Release 1> NUL || goto :error
 echo Running CMake configuration...
 set CC=cl
 set CXX=cl
-set CXXFLAGS="/DFORCEDEBUGMODE"
+set CXXFLAGS="/DFORCEDEBUGMODE /Od"
 cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCONAN_BUILDINFO_FILE="build.release/conanbuildinfo.cmake" 1> NUL || goto :error
 
 echo Compiling...

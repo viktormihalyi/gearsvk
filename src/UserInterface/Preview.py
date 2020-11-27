@@ -11,17 +11,7 @@ try:
   from OpenGL.GL import *
   from OpenGL.GLU import *
 except:
-  print ('ERROR: PyOpenGL not installed properly.')
-
-
-class VulkanSurfaceWidget (QWidget):
-    def __init__ (self):
-        super ().__init__ ()
-        gears.InitializeVkSurfaceInQWidget (self.winId ().__int__ ());
-        self.setUpdatesEnabled (False)
-
-    def paintEvent (self):
-        print ("xd")
+  print('ERROR: PyOpenGL not installed properly.')
 
 
 class Preview(QGLWidget):
@@ -53,7 +43,7 @@ class Preview(QGLWidget):
     def sizeHint(self):
         s = self.size()
         self.lastWidth = s.width()
-        s.setHeight(s.width() / 16 * 9 )
+        s.setHeight(s.width() / 16 * 9)
         return s
 
     def resizeEvent(self, event):

@@ -36,6 +36,18 @@ public:
     }
 };
 
+#include "CompilerDefinitions.hpp"
+
+#if defined(COMPILER_MSVC)
+#define NOINLINE __declspec(noinline)
+#elif defined(COMPILER_GCC)
+#define NOINLINE __attribute__ ((noinline))
+#elif defined(COMPILER_CLANG)
+#define NOINLINE __attribute__ ((noinline))
+#else
+#define NOINLINE
+#endif
+
 
 USING_PTR (SequenceAdapter);
 class SequenceAdapter {
@@ -58,7 +70,7 @@ private:
         SynchronizedSwapchainGraphRendererU renderer;
 
     public:
-        StimulusAdapterForPresentable (const VulkanEnvironment& environment, PresentableP& presentable, const Stimulus::CP& stimulus)
+        NOINLINE StimulusAdapterForPresentable (const VulkanEnvironment& environment, PresentableP& presentable, const Stimulus::CP& stimulus)
             : stimulus (stimulus)
             , presentable (presentable)
         {
@@ -170,7 +182,7 @@ private:
         }
 
     private:
-        void SetConstantUniforms ()
+        NOINLINE void SetConstantUniforms ()
         {
             for (auto& [pass, op] : passToOperation) {
                 for (auto& [name, value] : pass->shaderVariables)
@@ -182,7 +194,7 @@ private:
             }
         }
 
-        void SetUniforms (const GearsVk::UUID& renderOpearionId, const uint32_t frameIndex)
+        NOINLINE void SetUniforms (const GearsVk::UUID& renderOpearionId, const uint32_t frameIndex)
         {
             UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOpearionId][ShaderKind::Vertex];
             UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOpearionId][ShaderKind::Fragment];
@@ -227,7 +239,7 @@ private:
         }
 
     public:
-        void RenderFrameIndex (const uint32_t frameIndex)
+        NOINLINE void RenderFrameIndex (const uint32_t frameIndex)
         {
             const uint32_t stimulusStartingFrame = stimulus->getStartingFrame ();
             const uint32_t stimulusEndingFrame   = stimulus->getStartingFrame () + stimulus->getDuration ();
@@ -236,14 +248,14 @@ private:
                 return;
             }
 
-            renderer->preSubmitEvent = [&] (RenderGraph& graph, uint32_t frameIndex, uint64_t timeNs) {
+            renderer->preSubmitEvent = [&] (RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
                 for (auto& [pass, renderOp] : passToOperation) {
                     SetUniforms (renderOp->GetUUID (), frameIndex);
                 }
 
                 reflection->PrintDebugInfo ();
 
-                reflection->Flush (frameIndex);
+                reflection->Flush (swapchainImageIndex);
             };
 
             renderer->RenderNextFrame (*renderGraph);
@@ -261,18 +273,18 @@ private:
         std::map<PresentableP, StimulusAdapterForPresentableP> compiledAdapters;
 
     public:
-        StimulusAdapterView (VulkanEnvironment& environment, const Stimulus::CP& stimulus)
+        NOINLINE StimulusAdapterView (VulkanEnvironment& environment, const Stimulus::CP& stimulus)
             : environment (environment)
             , stimulus (stimulus)
         {
         }
 
-        void CreateForPresentable (PresentableP& presentable)
+        NOINLINE void CreateForPresentable (PresentableP& presentable)
         {
             compiledAdapters[presentable] = StimulusAdapterForPresentable::Create (environment, presentable, stimulus);
         }
 
-        void RenderFrameIndex (PresentableP& presentable, const uint32_t frameIndex)
+        NOINLINE void RenderFrameIndex (PresentableP& presentable, const uint32_t frameIndex)
         {
             if (GVK_ERROR (compiledAdapters.find (presentable) == compiledAdapters.end ())) {
                 return;
@@ -298,7 +310,7 @@ private:
     std::map<Stimulus::CP, StimulusAdapterViewP> views;
 
 public:
-    SequenceAdapter (VulkanEnvironment& environment, const Sequence::P& sequence)
+    NOINLINE SequenceAdapter (VulkanEnvironment& environment, const Sequence::P& sequence)
         : sequence (sequence)
         , environment (environment)
     {
@@ -307,7 +319,7 @@ public:
         }
     }
 
-    void RenderFrameIndex (const uint32_t frameIndex)
+    NOINLINE void RenderFrameIndex (const uint32_t frameIndex)
     {
         auto stim = sequence->getStimulusAtFrame (frameIndex);
         if (stim) {
@@ -315,7 +327,7 @@ public:
         }
     }
 
-    void SetCurrentPresentable (PresentableP presentable)
+    NOINLINE void SetCurrentPresentable (PresentableP presentable)
     {
         currentPresentable = presentable;
 
@@ -324,7 +336,7 @@ public:
         }
     }
 
-    void RenderFullOnExternalWindow ()
+    NOINLINE void RenderFullOnExternalWindow ()
     {
         WindowU window = HiddenGLFWWindow::Create ();
 
@@ -384,12 +396,6 @@ static void RenderFrame_ (Window& window, RG::Renderer& renderer, RG::RenderGrap
 }
 
 
-/* exported to .pyd */
-void RenderFrame (uint32_t frameIndex)
-{
-}
-
-
 static void EventLoop (Window& window, RG::Renderer& renderer, RG::RenderGraph& graph, const std::function<bool ()>& stopFn)
 {
     try {
@@ -433,6 +439,40 @@ intptr_t CreateSurface (intptr_t hwnd)
     createdSurfaces.push_back (presentable);
     return reinterpret_cast<intptr_t> (presentable.get ());
 #endif
+}
+
+
+static PresentableP GetSurfaceFromHandle (intptr_t surfaceHandle)
+{
+    for (const PresentableP& createdSurface : createdSurfaces) {
+        if (reinterpret_cast<intptr_t> (createdSurface.get ()) == surfaceHandle) {
+            return createdSurface;
+        }
+    }
+    return nullptr;
+}
+
+
+/* exported to .pyd */
+void SetCurrentSurface (intptr_t surfaceHandle)
+{
+    PresentableP presentable = GetSurfaceFromHandle (surfaceHandle);
+    if (GVK_ERROR (presentable == nullptr)) {
+        return;
+    }
+
+    if (GVK_ERROR (currentSeq == nullptr)) {
+        return;
+    }
+
+    currentSeq->SetCurrentPresentable (presentable);
+}
+
+
+/* exported to .pyd */
+void RenderFrame (uint32_t frameIndex)
+{
+    currentSeq->RenderFrameIndex (frameIndex);
 }
 
 

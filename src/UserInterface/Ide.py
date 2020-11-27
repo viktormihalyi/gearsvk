@@ -34,6 +34,17 @@ class Ide(QWidget):
         self.discardButton.clicked.connect(self.discard)
         grid.addWidget(self.discardButton, 5, 2, 1, 8)
 
+        self.prevview = QWidget()
+        self.prevview.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.prevview.setAttribute(Qt.WA_NoSystemBackground, True)
+        self.prevview.setAutoFillBackground(False)
+        self.prevview.setFixedSize(400, 400)
+        grid.addWidget(self.prevview, 2, 2, 1, 8)
+        self.surfaceHandle = gears.CreateSurface(self.prevview.winId().__int__())
+        gears.SetCurrentSurface(self.surfaceHandle)
+        
+        gears.RenderFrame(600)
+
         #self.preview = Preview(self.rpanel, self.editor, self.winId())
         #grid.addWidget(self.preview, 2, 2, 1, 8)
 
@@ -100,7 +111,9 @@ class Ide(QWidget):
         self.seeking = False
 
     def seekerChanged(self):
-        #self.preview.sFrame = self.seeker.value()
+        frameIndex = self.seeker.value()
+        print(frameIndex)
+        gears.RenderFrame(frameIndex)
         pass
 
     def pause(self, e):

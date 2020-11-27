@@ -13,10 +13,10 @@ from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, QTreeWidget, QT
 from PyQt5.QtGui import (QFont, QPalette )
 from SequenceError import SequenceError
 
-def loadParents( fullpath, rootPath ) :
+def loadParents(fullpath, rootPath) :
     if os.path.realpath(fullpath) != os.path.realpath(rootPath) :
-        loadParents( fullpath + "/..", rootPath )
-    for module in os.listdir( fullpath ):
+        loadParents(fullpath + "/..", rootPath)
+    for module in os.listdir(fullpath):
         if module == '__init__.py' or module[-3:] != '.py':
             continue
         loader = importlib.machinery.SourceFileLoader('my_module', fullpath + "/" + module)
@@ -44,22 +44,22 @@ def loadSequence(fullpath, browser, openIde):
 
             my_module = loader.load_module()
             gears.makeCurrent()
-            gears.setSequence( my_module.create(None) )
+            gears.setSequence(my_module.create(None))
+            #gears.SetCurrentSurface(browser.surfaceHandle)
+            #gears.RenderFrame(600)
 
             for e in w:
-                browser.launcherWindow.warn( e.message )
+                browser.launcherWindow.warn(e.message)
 
     except SequenceError as e:
         if not openIde:
             box = QMessageBox(browser)
             horizontalSpacer = QSpacerItem(1000, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
-            box.setText('Error in sequence file!\n' 
-                        + e.tb[-1][0] + '(' + str(e.tb[-1][1]) + '):\n in function "' + e.tb[-1][2] + '":\n ' + e.tb[-1][3] + '\n\n' + str(e)
-                        )
+            box.setText('Error in sequence file!\n' + e.tb[-1][0] + '(' + str(e.tb[-1][1]) + '):\n in function "' + e.tb[-1][2] + '":\n ' + e.tb[-1][3] + '\n\n' + str(e))
             if e.deepertb :
                 box.setDetailedText(''.join(traceback.format_list(e.deepertb)))
             box.setWindowTitle('Error in sequence file ' + fullpath + '!')
-            box.setWindowFlags(Qt.Dialog);
+            box.setWindowFlags(Qt.Dialog)
             box.addButton("Abort sequence", QMessageBox.RejectRole)
             box.addButton("Open script editor", QMessageBox.AcceptRole)
             box.setDefaultButton(QMessageBox.Abort)
@@ -80,9 +80,9 @@ def loadSequence(fullpath, browser, openIde):
             message = ''
             for l in formatted_lines :
                 message += l + '\n'
-            box.setText( message )
+            box.setText(message)
             box.setWindowTitle('Sequence error!')
-            box.setWindowFlags(Qt.Dialog);
+            box.setWindowFlags(Qt.Dialog)
             box.addButton("Abort sequence", QMessageBox.RejectRole)
             box.addButton("Open script editor", QMessageBox.AcceptRole)
             box.setDefaultButton(QMessageBox.Abort)

@@ -7,6 +7,7 @@
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+// windows.h has to come before vulkan
 #include <vulkan/vulkan_win32.h>
 #endif
 
@@ -40,6 +41,7 @@ Surface::Surface (PlatformSpecificSelector, VkInstance instance, void* handle)
     : instance (instance)
     , handle (VK_NULL_HANDLE)
 {
+    GVK_BREAK ("no implementation for this platform");
     throw std::runtime_error ("unsupported platform for creating VkSurface");
 }
 

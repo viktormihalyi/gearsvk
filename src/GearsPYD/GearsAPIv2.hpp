@@ -1,7 +1,7 @@
 #include "core/Sequence.h"
 
-#include <functional>
 #include <cstdint>
+#include <functional>
 
 #include "ShaderModule.hpp"
 
@@ -16,11 +16,13 @@ void StartRendering (const std::function<bool ()>&);
 
 void TryCompile (ShaderKind shaderKind, const std::string& source);
 
-void RenderFrame (uint32_t frameIndex);
-
 intptr_t CreateSurface (intptr_t hwnd);
 
 void DestroySurface (intptr_t handle);
+
+void SetCurrentSurface (intptr_t handle);
+
+void RenderFrame (uint32_t frameIndex);
 
 void RequestPaint (intptr_t handle);
 
