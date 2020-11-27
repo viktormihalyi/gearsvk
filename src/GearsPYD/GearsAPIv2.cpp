@@ -1,5 +1,7 @@
 #include "GearsAPIv2.hpp"
 
+#include "NoInline.hpp"
+
 #include "FullscreenQuad.hpp"
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
@@ -35,18 +37,6 @@ public:
         }
     }
 };
-
-#include "CompilerDefinitions.hpp"
-
-#if defined(COMPILER_MSVC)
-#define NOINLINE __declspec(noinline)
-#elif defined(COMPILER_GCC)
-#define NOINLINE __attribute__ ((noinline))
-#elif defined(COMPILER_CLANG)
-#define NOINLINE __attribute__ ((noinline))
-#else
-#define NOINLINE
-#endif
 
 
 USING_PTR (SequenceAdapter);
