@@ -5,6 +5,7 @@
 #include "FullscreenQuad.hpp"
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
+#include "Noncopyable.hpp"
 #include "Persistent.hpp"
 #include "RenderGraph.hpp"
 #include "UUID.hpp"
@@ -184,10 +185,10 @@ private:
             }
         }
 
-        NOINLINE void SetUniforms (const GearsVk::UUID& renderOpearionId, const uint32_t frameIndex)
+        void SetUniforms (const GearsVk::UUID& renderOperationId, const uint32_t frameIndex)
         {
-            UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOpearionId][ShaderKind::Vertex];
-            UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOpearionId][ShaderKind::Fragment];
+            UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOperationId][ShaderKind::Vertex];
+            UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOperationId][ShaderKind::Fragment];
 
             const double timeInSeconds = frameIndex / 60.0;
 
@@ -585,4 +586,32 @@ std::string GetGLSLResourcesForRandoms ()
     layout (binding = 204) uniform ubo_randomsIndex { uint randomsIndex; };
 #endif
     )";
+}
+
+#include <pybind11/embed.h>
+
+
+void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
+{
+    pybind11::scoped_interpreter guard;
+
+    pybind11::exec (R"(
+    import os
+    import importlib.machinery
+    import time
+    import Gears as gears
+    import AppData
+
+    AppData.initConfigParams()
+
+    importlib.machinery.SourceFileLoader("my_module", "C:/Dev/gearsvk/src/UserInterface/Project/Sequences/stock.py").load_module()
+    importlib.machinery.SourceFileLoader("my_module", "C:/Dev/gearsvk/src/UserInterface/Project/Sequences/config.py").load_module()
+    importlib.machinery.SourceFileLoader("my_module", "C:/Dev/gearsvk/src/UserInterface/Project/Sequences/DefaultSequence.py").load_module()
+
+    my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/4_MovingShapes/1_Bars/04_velocity400.pyx").load_module()
+
+    movingbar = my_module.create(None)
+
+    gears.setSequence(movingbar)
+    )");
 }
