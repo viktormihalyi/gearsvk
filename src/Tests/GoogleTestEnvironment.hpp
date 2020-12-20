@@ -15,12 +15,14 @@ static void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      mess
                                 const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
     using namespace TerminalColors;
-    std::cout << RED << "validation layer: "
-              << YELLOW << callbackData->pMessageIdName << ": "
-              << RESET << callbackData->pMessage
-              << std::endl
-              << std::endl;
-    FAIL ();
+    if (messageSeverity > 1) {
+        std::cout << RED << "validation layer: "
+            << YELLOW << callbackData->pMessageIdName << ": "
+            << RESET << callbackData->pMessage
+            << std::endl
+            << std::endl;
+        FAIL ();
+    }
 }
 
 

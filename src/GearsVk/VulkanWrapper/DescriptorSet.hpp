@@ -54,30 +54,6 @@ public:
     mutable std::vector<std::tuple<uint32_t, VkDescriptorType, VkWriteDescriptorSet>> writtenInfos;
 
 
-    void Write (const std::vector<VkWriteDescriptorSet>& writes) const
-    {
-        vkUpdateDescriptorSets (device, writes.size (), writes.data (), 0, nullptr);
-    }
-
-
-    void WriteOneBufferInfo (uint32_t binding, VkDescriptorType descriptorType, const VkDescriptorBufferInfo& bufferInfo) const
-    {
-        VkWriteDescriptorSet descriptorWrite = {};
-        descriptorWrite.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.dstSet               = handle;
-        descriptorWrite.dstBinding           = binding;
-        descriptorWrite.dstArrayElement      = 0;
-        descriptorWrite.descriptorType       = descriptorType;
-        descriptorWrite.descriptorCount      = 1;
-        descriptorWrite.pBufferInfo          = &bufferInfo;
-        descriptorWrite.pImageInfo           = nullptr;
-        descriptorWrite.pTexelBufferView     = nullptr;
-        vkUpdateDescriptorSets (device, 1, &descriptorWrite, 0, nullptr);
-
-        writtenInfos.emplace_back (binding, descriptorType, descriptorWrite);
-    }
-
-
     operator VkDescriptorSet () const
     {
         return handle;

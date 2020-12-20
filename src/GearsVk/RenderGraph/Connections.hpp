@@ -7,23 +7,69 @@
 
 namespace RG {
 
+class IConnectionBindingVisitor;
+
+USING_PTR (IConnectionBinding);
+class IConnectionBinding : public Noncopyable {
+public:
+    ~IConnectionBinding ()                          = default;
+    virtual void Visit (IConnectionBindingVisitor&) = 0;
+};
+
+class UniformInputBinding;
+class ImageInputBinding;
+class OutputBinding;
+
+
+USING_PTR (IConnectionBindingVisitor);
+class IConnectionBindingVisitor : public Noncopyable {
+public:
+    virtual void Visit (UniformInputBinding& binding) = 0;
+    virtual void Visit (ImageInputBinding& binding)   = 0;
+    virtual void Visit (OutputBinding& binding)       = 0;
+};
+
+USING_PTR (IConnectionBindingVisitorFn);
+class IConnectionBindingVisitorFn : public IConnectionBindingVisitor {
+private:
+    template<typename T>
+    using VisitorFn = std::function<void (T&)>;
+
+    VisitorFn<UniformInputBinding> b1;
+    VisitorFn<ImageInputBinding>   b2;
+    VisitorFn<OutputBinding>       b3;
+
+public:
+    IConnectionBindingVisitorFn (const VisitorFn<UniformInputBinding>& b1,
+                                 const VisitorFn<ImageInputBinding>&   b2,
+                                 const VisitorFn<OutputBinding>&       b3)
+        : b1 (b1)
+        , b2 (b2)
+        , b3 (b3)
+    {
+    }
+
+    virtual void Visit (UniformInputBinding& binding) override { b1 (binding); }
+    virtual void Visit (ImageInputBinding& binding) override { b2 (binding); }
+    virtual void Visit (OutputBinding& binding) override { b3 (binding); }
+};
 
 USING_PTR (InputBinding);
-class InputBinding {
+class InputBinding : public IConnectionBinding {
 public:
     virtual ~InputBinding () = default;
 
-    virtual uint32_t           GetBinding () = 0;
-    virtual VkDescriptorType   GetType ()    = 0;
-    virtual uint32_t           GetOffset ()  = 0;
-    virtual uint32_t           GetSize ()    = 0;
-    virtual VkShaderStageFlags GetStages ()  = 0;
-    virtual uint32_t           GetLayerCount () { return 1; }
+    virtual uint32_t           GetBinding () const = 0;
+    virtual VkDescriptorType   GetType () const    = 0;
+    virtual uint32_t           GetOffset () const  = 0;
+    virtual uint32_t           GetSize () const    = 0;
+    virtual VkShaderStageFlags GetStages () const  = 0;
+    virtual uint32_t           GetLayerCount () const { return 1; }
 
-    virtual std::vector<VkDescriptorImageInfo>  GetImageInfos (uint32_t) { return {}; }
-    virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t) { return {}; }
+    virtual std::vector<VkDescriptorImageInfo>  GetImageInfos (uint32_t) const { return {}; }
+    virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t) const { return {}; }
 
-    VkDescriptorSetLayoutBinding ToDescriptorSetLayoutBinding ()
+    VkDescriptorSetLayoutBinding ToDescriptorSetLayoutBinding () const
     {
         VkDescriptorSetLayoutBinding result = {};
         result.binding                      = GetBinding ();
@@ -34,7 +80,7 @@ public:
         return result;
     }
 
-    void WriteToDescriptorSet (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex)
+    void WriteToDescriptorSet (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex) const
     {
         const std::vector<VkDescriptorImageInfo>  imgInfos = GetImageInfos (frameIndex);
         const std::vector<VkDescriptorBufferInfo> bufInfos = GetBufferInfos (frameIndex);
@@ -87,19 +133,24 @@ public:
     {
     }
 
-    virtual uint32_t           GetBinding () override { return binding; }
-    virtual VkDescriptorType   GetType () override { return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; }
-    virtual uint32_t           GetOffset () override { return size; }
-    virtual uint32_t           GetSize () override { return offset; }
-    virtual VkShaderStageFlags GetStages () override { return stages; }
+    virtual uint32_t           GetBinding () const override { return binding; }
+    virtual VkDescriptorType   GetType () const override { return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; }
+    virtual uint32_t           GetOffset () const override { return size; }
+    virtual uint32_t           GetSize () const override { return offset; }
+    virtual VkShaderStageFlags GetStages () const override { return stages; }
 
-    virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t frameIndex) override
+    virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t frameIndex) const override
     {
         VkDescriptorBufferInfo result = {};
         result.buffer                 = bufferProvider.GetBufferForFrame (frameIndex);
         result.offset                 = offset;
         result.range                  = size;
         return { result };
+    }
+
+    virtual void Visit (IConnectionBindingVisitor& visitor) override
+    {
+        visitor.Visit (*this);
     }
 };
 
@@ -122,14 +173,14 @@ public:
     {
     }
 
-    virtual uint32_t           GetBinding () override { return binding; }
-    virtual VkDescriptorType   GetType () override { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; }
-    virtual uint32_t           GetOffset () override { return 0; }
-    virtual uint32_t           GetSize () override { return 0; }
-    virtual VkShaderStageFlags GetStages () override { return stages; }
-    virtual uint32_t           GetLayerCount () override { return layerCount; }
+    virtual uint32_t           GetBinding () const override { return binding; }
+    virtual VkDescriptorType   GetType () const override { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; }
+    virtual uint32_t           GetOffset () const override { return 0; }
+    virtual uint32_t           GetSize () const override { return 0; }
+    virtual VkShaderStageFlags GetStages () const override { return stages; }
+    virtual uint32_t           GetLayerCount () const override { return layerCount; }
 
-    virtual std::vector<VkDescriptorImageInfo> GetImageInfos (uint32_t frameIndex) override
+    virtual std::vector<VkDescriptorImageInfo> GetImageInfos (uint32_t frameIndex) const override
     {
         std::vector<VkDescriptorImageInfo> result;
         for (uint32_t imageIndex = 0; imageIndex < layerCount; ++imageIndex) {
@@ -141,18 +192,32 @@ public:
         }
         return result;
     }
+
+    std::vector<VkImageView> GetImageViewsForFrame (uint32_t frameIndex) const
+    {
+        std::vector<VkImageView> result;
+        for (uint32_t imageIndex = 0; imageIndex < layerCount; ++imageIndex) {
+            result.push_back (imageViewProvider.GetImageViewForFrame (frameIndex, imageIndex));
+        }
+        return result;
+    }
+
+    virtual void Visit (IConnectionBindingVisitor& visitor) override
+    {
+        visitor.Visit (*this);
+    }
 };
 
 
-class OutputBinding {
-private:
-    VkAttachmentDescription attachmentDescription;
+USING_PTR (OutputBinding);
+class OutputBinding : public IConnectionBinding {
+    USING_CREATE (OutputBinding);
 
 public:
     const uint32_t             binding;
-    VkAttachmentReference      attachmentReference;
     std::function<VkFormat ()> formatProvider;
     const VkImageLayout        finalLayout;
+    const uint32_t             layerCount;
     const VkAttachmentLoadOp   loadOp;
     const VkAttachmentStoreOp  storeOp;
 
@@ -161,22 +226,40 @@ public:
                    VkImageLayout              finalLayout,
                    VkAttachmentLoadOp         loadOp,
                    VkAttachmentStoreOp        storeOp)
+        : OutputBinding (binding, formatProvider, finalLayout, 1, loadOp, storeOp)
+    {
+    }
+
+    OutputBinding (uint32_t                   binding,
+                   std::function<VkFormat ()> formatProvider,
+                   VkImageLayout              finalLayout,
+                   uint32_t                   layerCount,
+                   VkAttachmentLoadOp         loadOp,
+                   VkAttachmentStoreOp        storeOp)
         : binding (binding)
-        , attachmentDescription ({})
-        , attachmentReference ({})
         , formatProvider (formatProvider)
         , finalLayout (finalLayout)
+        , layerCount (layerCount)
         , loadOp (loadOp)
         , storeOp (storeOp)
     {
-        attachmentReference.attachment = binding;
-
-        // layout is a VkImageLayout value specifying the layout the attachment uses during the subpass.
-        // automatic!!!
-        attachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     }
 
-    VkAttachmentDescription GetAttachmentDescription () const
+    std::vector<VkAttachmentReference> GetAttachmentReferences () const
+    {
+        std::vector<VkAttachmentReference> result;
+        for (uint32_t bindingIndex = binding; bindingIndex < binding + layerCount; ++bindingIndex) {
+            // layout is a VkImageLayout value specifying the layout the attachment uses during the subpass.
+            // automatic!!!
+            VkAttachmentReference ref = {};
+            ref.attachment            = bindingIndex;
+            ref.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            result.push_back (ref);
+        }
+        return result;
+    }
+
+    std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const
     {
         VkAttachmentDescription attachmentDescription = {};
         attachmentDescription.format                  = formatProvider ();
@@ -193,10 +276,15 @@ public:
         // automatic!!!
         attachmentDescription.finalLayout = finalLayout;
 
-        return attachmentDescription;
+        return std::vector<VkAttachmentDescription> (layerCount, attachmentDescription);
     }
 
     bool operator== (uint32_t otherBinding) const { return binding == otherBinding; }
+
+    virtual void Visit (IConnectionBindingVisitor& visitor) override
+    {
+        visitor.Visit (*this);
+    }
 };
 
 } // namespace RG

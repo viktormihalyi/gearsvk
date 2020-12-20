@@ -14,6 +14,8 @@ private:
     const VkDevice   device;
     VkPipelineLayout handle;
 
+    const std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+
     static VkPipelineLayout CreatePipelineLayout (VkDevice device, const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts)
     {
         VkPipelineLayout handle;
@@ -38,6 +40,7 @@ public:
     PipelineLayout (VkDevice device, const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts)
         : device (device)
         , handle (CreatePipelineLayout (device, descriptorSetLayouts))
+        , descriptorSetLayouts (descriptorSetLayouts)
     {
     }
 

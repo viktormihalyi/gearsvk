@@ -103,7 +103,7 @@ public:
     USING_CREATE (ImageView2DArray);
 
     ImageView2DArray (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0, uint32_t layerCount = 1)
-        : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_2D_ARRAY, layerIndex, layerCount)
+        : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_2D, layerIndex, layerCount)
     {
     }
 

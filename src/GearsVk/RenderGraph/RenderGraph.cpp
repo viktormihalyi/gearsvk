@@ -1,32 +1,12 @@
 #include "RenderGraph.hpp"
 
-
 namespace RG {
 
 RenderGraph::RenderGraph ()
     : compiled (false)
-    , compileSettings ()
+    , device (nullptr)
+    , framesInFlight (0)
 {
-}
-
-
-ResourceP RenderGraph::AddResource (ResourceP resource)
-{
-    compiled = false;
-
-    resources.push_back (resource);
-
-    return resource;
-}
-
-
-OperationP RenderGraph::AddOperation (OperationP operation)
-{
-    compiled = false;
-
-    operations.push_back (operation);
-
-    return operation;
 }
 
 
@@ -46,9 +26,9 @@ bool Contains (const std::set<T>& vec, const T& value)
 
 void RenderGraph::CompileResources (const GraphSettings& settings)
 {
-    for (auto& res : resources) {
+    Utils::ForEachP<Resource> (settings.connectionSet.nodes, [&] (ResourceP& res) {
         res->Compile (settings);
-    }
+    });
 }
 
 
@@ -58,67 +38,75 @@ void RenderGraph::Recompile (uint32_t commandBufferIndex)
 }
 
 
-RenderGraph::Pass RenderGraph::GetNextPass (const Pass& lastPass) const
+RenderGraph::Pass RenderGraph::GetNextPass (const ConnectionSet& connectionSet, const Pass& lastPass) const
 {
     RenderGraph::Pass result;
 
-    for (auto& op : lastPass.operations) {
-        for (auto& res : op->GetPointingTo<Resource> ()) {
-            for (auto& nextOp : res->GetPointingTo<Operation> ()) {
-                result.operations.insert (nextOp);
+    for (Operation* op : lastPass.operations) {
+        for (const ResourceP& res : connectionSet.GetPointingTo<Resource> (op)) {
+            for (const OperationP& nextOp : connectionSet.GetPointingTo<Operation> (res.get ())) {
+                result.operations.insert (nextOp.get ());
             }
         }
     }
 
     for (auto& op : result.operations) {
-        auto inputs  = op->GetPointingHere<Resource> ();
-        auto outputs = op->GetPointingTo<Resource> ();
-        result.inputs.insert (inputs.begin (), inputs.end ());
-        result.outputs.insert (outputs.begin (), outputs.end ());
+        std::vector<ResourceP> inputs  = connectionSet.GetPointingHere<Resource> (op);
+        std::vector<ResourceP> outputs = connectionSet.GetPointingTo<Resource> (op);
+        for (ResourceP input : inputs) {
+            result.inputs.insert (input.get ());
+        }
+        for (ResourceP output : outputs) {
+            result.outputs.insert (output.get ());
+        }
     }
 
     return result;
 }
 
 
-RenderGraph::Pass RenderGraph::GetFirstPass () const
+RenderGraph::Pass RenderGraph::GetFirstPass (const ConnectionSet& connectionSet) const
 {
     std::set<Operation*> result;
 
-    for (auto& op : operations) {
-        const std::vector<Resource*> opInputs = op->GetPointingHere<Resource> ();
+    Utils::ForEachP<Operation> (connectionSet.nodes, [&] (const OperationP& op) {
+        const std::vector<ResourceP> opInputs = connectionSet.GetPointingHere<Resource> (op.get ());
 
-        const bool allInputsAreFirstWrittenByThisOp = std::all_of (opInputs.begin (), opInputs.end (), [] (Resource* res) {
-            return !res->HasPointingHere ();
+        const bool allInputsAreFirstWrittenByThisOp = std::all_of (opInputs.begin (), opInputs.end (), [&] (const ResourceP& res) {
+            return connectionSet.GetPointingHere<Node> (res.get ()).empty ();
         });
 
         if (allInputsAreFirstWrittenByThisOp || opInputs.empty ()) {
             result.insert (op.get ());
         }
-    }
+    });
 
     RenderGraph::Pass actualResult;
     actualResult.operations = result;
 
     for (auto& op : actualResult.operations) {
-        auto inputs  = op->GetPointingHere<Resource> ();
-        auto outputs = op->GetPointingTo<Resource> ();
-        actualResult.inputs.insert (inputs.begin (), inputs.end ());
-        actualResult.outputs.insert (outputs.begin (), outputs.end ());
+        std::vector<ResourceP> inputs  = connectionSet.GetPointingHere<Resource> (op);
+        std::vector<ResourceP> outputs = connectionSet.GetPointingTo<Resource> (op);
+        for (ResourceP input : inputs) {
+            actualResult.inputs.insert (input.get ());
+        }
+        for (ResourceP output : outputs) {
+            actualResult.outputs.insert (output.get ());
+        }
     }
 
     return actualResult;
 }
 
 
-std::vector<RenderGraph::Pass> RenderGraph::GetPasses () const
+std::vector<RenderGraph::Pass> RenderGraph::GetPasses (const ConnectionSet& connectionSet) const
 {
     std::vector<Pass> result;
 
-    Pass nextPass = GetFirstPass ();
+    Pass nextPass = GetFirstPass (connectionSet);
     do {
         result.push_back (nextPass);
-        nextPass = GetNextPass (nextPass);
+        nextPass = GetNextPass (connectionSet, nextPass);
     } while (!nextPass.operations.empty ());
 
     return result;
@@ -127,12 +115,13 @@ std::vector<RenderGraph::Pass> RenderGraph::GetPasses () const
 
 void RenderGraph::Compile (const GraphSettings& settings)
 {
-    compileSettings = settings;
+    device         = settings.device;
+    framesInFlight = settings.framesInFlight;
 
     settings.GetDevice ().Wait ();
     vkQueueWaitIdle (settings.GetDevice ().GetGraphicsQueue ());
 
-    passes = GetPasses ();
+    passes = GetPasses (settings.connectionSet);
 
     CompileResources (settings);
 
@@ -200,8 +189,8 @@ void RenderGraph::Compile (const GraphSettings& settings)
 
         for (Pass& p : passes) {
             for (auto op : p.operations) {
-                auto inputs  = op->GetPointingHere<Resource> ();
-                auto outputs = op->GetPointingTo<Resource> ();
+                auto inputs  = settings.connectionSet.GetPointingHere<Resource> (op);
+                auto outputs = settings.connectionSet.GetPointingTo<Resource> (op);
 
                 for (auto res : inputs) {
                     res->OnPreRead (frameIndex, *c[frameIndex]);
@@ -213,7 +202,7 @@ void RenderGraph::Compile (const GraphSettings& settings)
 
                 std::vector<VkImageMemoryBarrier> imgBarriers;
 
-                Utils::ForEach<ImageResource*> (inputs, [&] (ImageResource* img) {
+                Utils::ForEachP<ImageResource> (inputs, [&] (const ImageResourceP& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = layoutMap[imgbase];
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForInputs (*img);
@@ -224,7 +213,7 @@ void RenderGraph::Compile (const GraphSettings& settings)
                     }
                 });
 
-                Utils::ForEach<ImageResource*> (outputs, [&] (ImageResource* img) {
+                Utils::ForEachP<ImageResource> (outputs, [&] (const ImageResourceP& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = layoutMap[imgbase];
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForOutputs (*img);
@@ -247,13 +236,13 @@ void RenderGraph::Compile (const GraphSettings& settings)
                     std::vector<VkBufferMemoryBarrier> {},
                     imgBarriers);
 
-                Utils::ForEach<ImageResource*> (inputs, [&] (ImageResource* img) {
+                Utils::ForEachP<ImageResource> (inputs, [&] (const ImageResourceP& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         layoutMap[imgbase] = op->GetImageLayoutAtEndForInputs (*img);
                     }
                 });
 
-                Utils::ForEach<ImageResource*> (outputs, [&] (ImageResource* img) {
+                Utils::ForEachP<ImageResource> (outputs, [&] (const ImageResourceP& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         layoutMap[imgbase] = op->GetImageLayoutAtEndForOutputs (*img);
                     }
@@ -261,12 +250,12 @@ void RenderGraph::Compile (const GraphSettings& settings)
             }
 
             for (auto op : p.operations) {
-                op->Record (frameIndex, *c[frameIndex]);
+                op->Record (settings.connectionSet, frameIndex, *c[frameIndex]);
             }
 
             for (auto op : p.operations) {
-                auto inputs  = op->GetPointingHere<Resource> ();
-                auto outputs = op->GetPointingTo<Resource> ();
+                auto inputs  = settings.connectionSet.GetPointingHere<Resource> (op);
+                auto outputs = settings.connectionSet.GetPointingTo<Resource> (op);
                 for (auto res : p.outputs) {
                     res->OnPostWrite (frameIndex, *c[frameIndex]);
                 }
@@ -315,49 +304,13 @@ void RenderGraph::Compile (const GraphSettings& settings)
 }
 
 
-void RenderGraph::CreateInputConnection (RenderOperation& op, Resource& res, InputBindingU&& conn)
-{
-    compiled = false;
-
-    res.AddConnectionTo (op);
-
-    op.AddInput (std::move (conn));
-}
-
-
-void RenderGraph::CreateInputConnection (TransferOperation& op, ImageResource& res)
-{
-    compiled = false;
-
-    res.AddConnectionTo (op);
-}
-
-
-void RenderGraph::CreateOutputConnection (RenderOperation& operation, uint32_t binding, ImageResource& resource)
-{
-    compiled = false;
-
-    operation.AddConnectionTo (resource);
-
-    operation.AddOutput (binding, resource);
-}
-
-
-void RenderGraph::CreateOutputConnection (TransferOperation& operation, Resource& resource)
-{
-    compiled = false;
-
-    operation.AddConnectionTo (resource);
-}
-
-
 void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores, const std::vector<VkSemaphore>& signalSemaphores, VkFence fenceToSignal)
 {
     if (GVK_ERROR (!compiled)) {
         return;
     }
 
-    if (GVK_ERROR (frameIndex >= compileSettings.framesInFlight)) {
+    if (GVK_ERROR (frameIndex >= framesInFlight)) {
         return;
     }
 
@@ -367,7 +320,7 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
 
     CommandBufferU& cmd = c[frameIndex];
 
-    compileSettings.GetDevice ().GetGraphicsQueue ().Submit (waitSemaphores, waitDstStageMasks, { cmd.get () }, signalSemaphores, fenceToSignal);
+    device->GetGraphicsQueue ().Submit (waitSemaphores, waitDstStageMasks, { cmd.get () }, signalSemaphores, fenceToSignal);
 }
 
 
@@ -376,7 +329,7 @@ void RenderGraph::Present (uint32_t imageIndex, Swapchain& swapchain, const std:
     GVK_ASSERT (swapchain.SupportsPresenting ());
 
     // TODO itt present queue kene
-    swapchain.Present (compileSettings.GetDevice ().GetGraphicsQueue (), imageIndex, waitSemaphores);
+    swapchain.Present (device->GetGraphicsQueue (), imageIndex, waitSemaphores);
 }
 
 } // namespace RG

@@ -6,8 +6,8 @@
 namespace RG {
 
 
-UniformReflection::UniformReflection (RG::RenderGraph& graph, const Filter& filter, const ResourceCreator& resourceCreator)
-    : graph (graph)
+UniformReflection::UniformReflection (RG::ConnectionSet& connectionSet, const Filter& filter, const ResourceCreator& resourceCreator)
+    : connectionSet (connectionSet)
 {
     // TODO properly handle swapchain recreate
 
@@ -28,9 +28,9 @@ void UniformReflection::Flush (uint32_t frameIndex)
 
 void UniformReflection::CreateGraphResources (const Filter& filter, const ResourceCreator& resourceCreator)
 {
-    GVK_ASSERT (!graph.operations.empty ());
+    // GVK_ASSERT (!graph.operations.empty ());
 
-    Utils::ForEachP<RG::RenderOperation> (graph.operations, [&] (const RG::RenderOperationP& renderOp) {
+    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const RG::RenderOperationP& renderOp) {
         ShaderKindSelector newsel;
 
         renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
@@ -41,7 +41,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
                 }
 
                 RG::InputBufferBindableResourceP uboRes = resourceCreator (renderOp, shaderModule, ubo);
-                graph.AddResource (uboRes);
+                // graph.AddResource (uboRes);
                 GVK_ASSERT (uboRes != nullptr);
 
                 SR::UDataInternalP uboData = SR::UDataInternal::Create (ubo);
@@ -75,7 +75,7 @@ void UniformReflection::CreateGraphConnections ()
     };
 
     for (auto& [operation, binding, resource, shaderKind] : uboConnections) {
-        graph.CreateInputConnection (*operation, *resource, RG::UniformInputBinding::Create (binding, *resource, shaderKindToShaderStage (shaderKind)));
+        connectionSet.Add (resource, operation, RG::UniformInputBinding::Create (binding, *resource, shaderKindToShaderStage (shaderKind)));
     }
 
     uboConnections.clear ();
@@ -122,17 +122,17 @@ void ImageMap::Put (const SR::Sampler& sampler, const ReadOnlyImageResourceP& re
 }
 
 
-ImageMap CreateEmptyImageResources (RG::RenderGraph& graph)
+ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet)
 {
-    return CreateEmptyImageResources (graph, [&] (const SR::Sampler&) { return std::nullopt; });
+    return CreateEmptyImageResources (connectionSet, [&] (const SR::Sampler&) { return std::nullopt; });
 }
 
 
-ImageMap CreateEmptyImageResources (RG::RenderGraph& graph, const ExtentProviderForImageCreate& extentProvider)
+ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const ExtentProviderForImageCreate& extentProvider)
 {
     ImageMap result;
 
-    Utils::ForEachP<RG::RenderOperation> (graph.operations, [&] (const RG::RenderOperationP& renderOp) {
+    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const RG::RenderOperationP& renderOp) {
         renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
             for (const SR::Sampler& sampler : shaderModule.GetReflection ().samplers) {
                 ReadOnlyImageResourceP imgRes;
@@ -148,15 +148,15 @@ ImageMap CreateEmptyImageResources (RG::RenderGraph& graph, const ExtentProvider
                 switch (sampler.type) {
                     case SR::Sampler::Type::Sampler1D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y == 0 && extent.z == 0));
-                        imgRes = graph.CreateResource<ReadOnlyImageResource> (format, filter, extent.x, 1, 1, layerCount);
+                        imgRes = ReadOnlyImageResource::Create (format, filter, extent.x, 1, 1, layerCount);
                         break;
                     case SR::Sampler::Type::Sampler2D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y != 0 && extent.z == 0));
-                        imgRes = graph.CreateResource<ReadOnlyImageResource> (format, filter, extent.x, extent.y, 1, layerCount);
+                        imgRes = ReadOnlyImageResource::Create (format, filter, extent.x, extent.y, 1, layerCount);
                         break;
                     case SR::Sampler::Type::Sampler3D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y != 0 && extent.z != 0));
-                        imgRes = graph.CreateResource<ReadOnlyImageResource> (format, filter, extent.x, extent.y, extent.z, layerCount);
+                        imgRes = ReadOnlyImageResource::Create (format, filter, extent.x, extent.y, extent.z, layerCount);
                         break;
                     default:
                         GVK_BREAK ("unexpected sampler type");
@@ -169,7 +169,7 @@ ImageMap CreateEmptyImageResources (RG::RenderGraph& graph, const ExtentProvider
 
                 result.Put (sampler, imgRes);
 
-                graph.CreateInputConnection (*renderOp, *imgRes, ImageInputBinding::Create (sampler.binding, *imgRes, (sampler.arraySize > 0) ? sampler.arraySize : 1));
+                connectionSet.Add (imgRes, renderOp, ImageInputBinding::Create (sampler.binding, *imgRes, (sampler.arraySize > 0) ? sampler.arraySize : 1));
             }
         });
     });

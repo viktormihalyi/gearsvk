@@ -61,13 +61,13 @@ void BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph)
     }
 
     graph.Submit (currentImageIndex);
-    vkQueueWaitIdle (graph.GetGraphSettings ().GetDevice ().GetGraphicsQueue ());
-    vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
+    vkQueueWaitIdle (graph.device->GetGraphicsQueue ());
+    vkDeviceWaitIdle (graph.device->GetDevice ());
 
     if (swapchain.SupportsPresenting ()) {
         graph.Present (currentImageIndex, swapchain, { s });
-        vkQueueWaitIdle (graph.GetGraphSettings ().GetDevice ().GetGraphicsQueue ());
-        vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
+        vkQueueWaitIdle (graph.device->GetGraphicsQueue ());
+        vkDeviceWaitIdle (*graph.device);
     }
 }
 

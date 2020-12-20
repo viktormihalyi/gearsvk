@@ -112,7 +112,7 @@ int main (int, char**)
     RG::RenderGraph   graph;
 
 
-    // ========================= GRAPH OPERATIONS =========================
+    // ========================= GRAPH OPERATIONS & RESOURCES =========================
 
     ShaderPipelineP sp = ShaderPipeline::CreateShared (device);
     sp->SetShadersFromSourceFiles ({
@@ -120,18 +120,22 @@ int main (int, char**)
         ShadersFolder / "quadric.frag",
     });
 
-    RG::RenderOperationP brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (deviceExtra), sp);
+    RG::RenderOperationP brainRenderOp = RG::RenderOperation::Create (FullscreenQuad::Create (deviceExtra), sp);
 
-    // ========================= GRAPH RESOURCES =========================
-
-    RG::SwapchainImageResourceP presented = graph.CreateResource<RG::SwapchainImageResource> (*presentable);
-
-    RG::UniformReflection refl (graph);
+    RG::SwapchainImageResourceP presented = RG::SwapchainImageResource::Create (*presentable);
 
     // ========================= GRAPH CONNECTIONS =========================
 
-    graph.CreateOutputConnection (*brainRenderOp, 0, *presented);
+    s.connectionSet.Add (brainRenderOp, presented,
+                         RG::OutputBinding::Create (0,
+                                                    presented->GetFormatProvider (),
+                                                    presented->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
 
+    // ========================= UNIFORM REFLECTION =========================
+
+    RG::UniformReflection refl (s.connectionSet);
 
     // ========================= GRAPH COMPILE =========================
 
@@ -151,8 +155,8 @@ int main (int, char**)
         }
         if (key == 'R') {
             std::cout << "waiting for device... " << std::endl;
-            vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
-            vkQueueWaitIdle (graph.GetGraphSettings ().GetDevice ().GetGraphicsQueue ());
+            vkDeviceWaitIdle (*graph.device);
+            vkQueueWaitIdle (graph.device->GetGraphicsQueue ());
             sp->Reload ();
             renderer.Recreate (graph);
         }

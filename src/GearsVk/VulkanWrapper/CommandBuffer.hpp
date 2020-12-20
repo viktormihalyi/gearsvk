@@ -107,12 +107,10 @@ public:
         recordedAbstractCommands.push_back (std::move (command));
     }
 
-    template<typename CommandType, typename... Parameters>
-    void RecordT (Parameters&&... parameters)
+    template<typename CommandType, typename... CommandParameters>
+    void RecordT (CommandParameters&&... parameters)
     {
-        CommandU command = std::make_unique<CommandType> (std::forward<Parameters> (parameters)...);
-        command->Record (*this);
-        recordedAbstractCommands.push_back (std::move (command));
+        Record (std::make_unique<CommandType> (std::forward<CommandParameters> (parameters)...));
     }
 
     VkCommandBuffer GetHandle () const

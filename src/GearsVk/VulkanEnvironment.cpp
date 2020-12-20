@@ -149,6 +149,7 @@ VulkanEnvironment::~VulkanEnvironment ()
 
 PresentableP VulkanEnvironment::CreatePresentable (SurfaceU&& surface) const
 {
+    physicalDevice->RecreateForSurface (*surface);
     return Presentable::CreateShared (*physicalDevice, *device, std::move (surface));
 }
 

@@ -22,6 +22,8 @@ class GraphSettings;
 
 class Operation;
 
+class IResourceVisitor;
+
 USING_PTR (Resource);
 class GEARSVK_API Resource : public Node {
 public:
@@ -34,6 +36,61 @@ public:
     virtual void OnPostWrite (uint32_t frameIndex, CommandBuffer&) {};
     virtual void OnGraphExecutionStarted (uint32_t frameIndex, CommandBuffer&) {};
     virtual void OnGraphExecutionEnded (uint32_t frameIndex, CommandBuffer&) {};
+
+    virtual void Visit (IResourceVisitor&) = 0;
+};
+
+class ReadOnlyImageResource;
+class WritableImageResource;
+class SwapchainImageResource;
+class GPUBufferResource;
+class CPUBufferResource;
+
+
+USING_PTR (IResourceVisitor);
+class GEARSVK_API IResourceVisitor {
+public:
+    virtual ~IResourceVisitor () = default;
+
+    virtual void Visit (ReadOnlyImageResource&)  = 0;
+    virtual void Visit (WritableImageResource&)  = 0;
+    virtual void Visit (SwapchainImageResource&) = 0;
+    virtual void Visit (GPUBufferResource&)      = 0;
+    virtual void Visit (CPUBufferResource&)      = 0;
+};
+
+
+USING_PTR (IResourceVisitorFn);
+class IResourceVisitorFn : public IResourceVisitor {
+private:
+    template<typename T>
+    using VisitorFn = std::function<void (T&)>;
+
+    VisitorFn<ReadOnlyImageResource>  r1;
+    VisitorFn<WritableImageResource>  r2;
+    VisitorFn<SwapchainImageResource> r3;
+    VisitorFn<GPUBufferResource>      r4;
+    VisitorFn<CPUBufferResource>      r5;
+
+public:
+    IResourceVisitorFn (const VisitorFn<ReadOnlyImageResource>&  r1,
+                        const VisitorFn<WritableImageResource>&  r2,
+                        const VisitorFn<SwapchainImageResource>& r3,
+                        const VisitorFn<GPUBufferResource>&      r4,
+                        const VisitorFn<CPUBufferResource>&      r5)
+        : r1 (r1)
+        , r2 (r2)
+        , r3 (r3)
+        , r4 (r4)
+        , r5 (r5)
+    {
+    }
+
+    virtual void Visit (ReadOnlyImageResource& resource) override { r1 (resource); }
+    virtual void Visit (WritableImageResource& resource) override { r2 (resource); }
+    virtual void Visit (SwapchainImageResource& resource) override { r3 (resource); }
+    virtual void Visit (GPUBufferResource& resource) override { r4 (resource); }
+    virtual void Visit (CPUBufferResource& resource) override { r5 (resource); }
 };
 
 
@@ -56,6 +113,11 @@ public:
     virtual uint32_t                GetLayerCount () const                = 0;
     virtual std::vector<ImageBase*> GetImages () const                    = 0;
     virtual std::vector<ImageBase*> GetImages (uint32_t frameIndex) const = 0;
+
+    std::function<VkFormat ()> GetFormatProvider () const
+    {
+        return [&] () { return GetFormat (); };
+    }
 };
 
 
@@ -195,6 +257,8 @@ public:
     // overriding InputImageBindable
     virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t layerIndex) override { return *images[frameIndex]->imageViews[layerIndex]; }
     virtual VkSampler   GetSampler () override { return *sampler; }
+
+    virtual void Visit (IResourceVisitor& visitor) override { visitor.Visit (*this); }
 };
 
 namespace GVK {
@@ -280,6 +344,8 @@ public:
             vkCmdSetEvent (commandBuffer, *readWriteSync, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
         });
     }
+
+    virtual void Visit (IResourceVisitor& visitor) override { visitor.Visit (*this); }
 };
 
 
@@ -319,6 +385,8 @@ public:
     {
         buffer->CopyAndTransfer (data, size);
     }
+
+    virtual void Visit (IResourceVisitor& visitor) override { visitor.Visit (*this); }
 };
 
 
@@ -416,6 +484,8 @@ public:
     {
         image->CopyLayer (VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, pixelData.data (), pixelData.size () * sizeof (T), layerIndex, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
+
+    virtual void Visit (IResourceVisitor& visitor) override { visitor.Visit (*this); }
 };
 
 
@@ -480,6 +550,8 @@ public:
     // overriding InputImageBindable
     virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t) override { return *imageViews[frameIndex]; }
     virtual VkSampler   GetSampler () override { return VK_NULL_HANDLE; }
+
+    virtual void Visit (IResourceVisitor& visitor) override { visitor.Visit (*this); }
 };
 
 
@@ -518,32 +590,10 @@ public:
     virtual uint32_t GetBufferSize () override { return size; }
 
     MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
+
+    virtual void Visit (IResourceVisitor& visitor) override { visitor.Visit (*this); }
 };
 
-class GEARSVK_API ResourceVisitor final {
-public:
-    Event<WritableImageResource&>  onWritableImage;
-    Event<ReadOnlyImageResource&>  onReadOnlyImage;
-    Event<SwapchainImageResource&> onSwapchainImage;
-    Event<CPUBufferResource&>      onCPUBuffer;
-
-    ResourceVisitor () = default;
-
-    void Visit (Resource& res);
-
-    void Visit (Resource* res)
-    {
-        Visit (*res);
-    }
-
-    template<typename Resources>
-    void VisitAll (const Resources& resources)
-    {
-        for (auto& r : resources) {
-            Visit (r);
-        }
-    }
-};
 
 } // namespace RG
 

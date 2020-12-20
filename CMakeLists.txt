@@ -119,6 +119,7 @@ add_library (${TARGET_LIB} SHARED
     src/GearsVk/Camera/Camera.cpp
     
     src/GearsVk/RenderGraph/RenderGraph.cpp
+    src/GearsVk/RenderGraph/GraphSettings.cpp
     src/GearsVk/RenderGraph/Resource.cpp
     src/GearsVk/RenderGraph/Operation.cpp
     src/GearsVk/RenderGraph/GraphRenderer.cpp
@@ -148,6 +149,7 @@ add_executable (${TARGET_TESTS}
     src/Tests/FontRenderingTests.cpp
     src/Tests/RenderGraphTests.cpp
     src/Tests/TestMain.cpp
+    src/Tests/GearsTests.cpp
 )
 
 add_library (${TARGET_DLL} SHARED

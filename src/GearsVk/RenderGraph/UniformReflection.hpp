@@ -38,10 +38,10 @@ using CreateParams                 = std::tuple<glm::uvec3, VkFormat, VkFilter>;
 using ExtentProviderForImageCreate = std::function<std::optional<CreateParams> (const SR::Sampler& sampler)>;
 
 GEARSVK_API
-ImageMap CreateEmptyImageResources (RG::RenderGraph& graph);
+ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet);
 
 GEARSVK_API
-ImageMap CreateEmptyImageResources (RG::RenderGraph& graph, const ExtentProviderForImageCreate& extentProvider);
+ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const ExtentProviderForImageCreate& extentProvider);
 
 
 USING_PTR (UniformReflection);
@@ -105,7 +105,7 @@ public:
     // operation uuid
     std::unordered_map<GearsVk::UUID, ShaderKindSelector> selectors;
 
-    RG::RenderGraph& graph;
+    RG::ConnectionSet& connectionSet;
 
     //
     std::vector<RG::InputBufferBindableResourceP>                                                         uboResources;
@@ -133,7 +133,7 @@ public:
     }
 
 public:
-    UniformReflection (RG::RenderGraph&       graph,
+    UniformReflection (RG::ConnectionSet&     connectionSet,
                        const Filter&          filter          = &DefaultFilter,
                        const ResourceCreator& resourceCreator = &DefaultResourceCreator);
 

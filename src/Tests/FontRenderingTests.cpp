@@ -22,7 +22,7 @@ void CompareImages2 (const std::string& name, const ImageData& referenceImage, c
         actualImage.SaveTo (PROJECT_ROOT / "temp" / name);
     }
 }
-
+#if 0
 
 TEST_F (FontRenderingTests, MSDFGEN)
 {
@@ -210,3 +210,5 @@ void main ()
 
     CompareImages2 ("G.png", ImageData (ReferenceImagesFolder / "G.png"), ImageData (GetDeviceExtra (), *outputImage->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
 }
+
+#endif

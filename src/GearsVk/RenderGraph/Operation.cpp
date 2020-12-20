@@ -4,66 +4,61 @@
 namespace RG {
 
 
-void Operation::AddInput (InputBindingU&& inputBinding)
-{
-    inputBindings.push_back (std::move (inputBinding));
-}
-
-
-void Operation::AddOutput (const uint32_t binding, const ImageResourceRef& res)
-{
-    GVK_ASSERT (std::find (outputBindings.begin (), outputBindings.end (), binding) == outputBindings.end ());
-
-    for (uint32_t bindingIndex = binding; bindingIndex < binding + res.get ().GetLayerCount (); ++bindingIndex) {
-        outputBindings.push_back (OutputBinding (
-            bindingIndex,
-            [=] () -> VkFormat {
-                return res.get ().GetFormat ();
-            },
-            res.get ().GetFinalLayout (),
-            VK_ATTACHMENT_LOAD_OP_CLEAR,
-            VK_ATTACHMENT_STORE_OP_STORE));
-    }
-}
-
-
-std::vector<VkAttachmentDescription> Operation::GetAttachmentDescriptions () const
+std::vector<VkAttachmentDescription> RenderOperation::GetAttachmentDescriptions (const ConnectionSet& conncetionSet) const
 {
     std::vector<VkAttachmentDescription> result;
-    for (const auto& t : outputBindings) {
-        result.push_back (t.GetAttachmentDescription ());
-    }
+
+    IConnectionBindingVisitorFn visitor (
+        [] (UniformInputBinding&) {},
+        [] (ImageInputBinding&) {},
+        [&] (OutputBinding& binding) {
+            for (auto& a : binding.GetAttachmentDescriptions ()) {
+                result.push_back (a);
+            }
+        });
+
+    conncetionSet.VisitOutputsOf (this, visitor);
+
     return result;
 }
 
-
-std::vector<VkAttachmentReference> Operation::GetAttachmentReferences () const
+std::vector<VkAttachmentReference> RenderOperation::GetAttachmentReferences (const ConnectionSet& conncetionSet) const
 {
     std::vector<VkAttachmentReference> result;
-    for (const auto& t : outputBindings) {
-        result.push_back (t.attachmentReference);
-    }
+
+    IConnectionBindingVisitorFn visitor (
+        [] (UniformInputBinding&) {},
+        [] (ImageInputBinding&) {},
+        [&] (OutputBinding& binding) {
+            for (auto& a : binding.GetAttachmentReferences ()) {
+                result.push_back (a);
+            }
+        });
+
+    conncetionSet.VisitOutputsOf (this, visitor);
+
     return result;
 }
 
 
-std::vector<VkImageView> Operation::GetOutputImageViews (uint32_t frameIndex) const
+std::vector<VkImageView> RenderOperation::GetOutputImageViews (const ConnectionSet& conncetionSet, uint32_t frameIndex) const
 {
     std::vector<VkImageView> result;
 
-    ResourceVisitor v;
-
-    v.onWritableImage = [&] (WritableImageResource& res) {
+    IResourceVisitorFn outputGatherer ([] (ReadOnlyImageResource&) {},
+                                       [&] (WritableImageResource& res) {
         for (auto& imgView : res.images[frameIndex]->imageViews) {
             result.push_back (*imgView);
-        }
-    };
+        } },
+                                       [&] (SwapchainImageResource& res) {
+                                           result.push_back (*res.imageViews[frameIndex]);
+                                       },
+                                       [] (GPUBufferResource&) {},
+                                       [] (CPUBufferResource&) {});
 
-    v.onSwapchainImage = [&] (SwapchainImageResource& res) {
-        result.push_back (*res.imageViews[frameIndex]);
-    };
 
-    v.VisitAll (GetPointingTo<Resource> ());
+    conncetionSet.VisitOutputsOf (this, outputGatherer);
+
 
     return result;
 }
@@ -85,21 +80,34 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 {
     compileResult.Clear ();
 
-    std::sort (inputBindings.begin (), inputBindings.end (), [&] (auto& a, auto& b) {
-        return a->GetBinding () < b->GetBinding ();
-    });
-
     std::vector<VkDescriptorSetLayoutBinding> layout;
-    for (auto& ii : inputBindings) {
-        layout.push_back (ii->ToDescriptorSetLayoutBinding ());
-    }
+
+    IConnectionBindingVisitorFn layoutBindingGatherer (
+        [&] (const UniformInputBinding& binding) {
+            layout.push_back (binding.ToDescriptorSetLayoutBinding ());
+        },
+        [&] (const ImageInputBinding& binding) {
+            layout.push_back (binding.ToDescriptorSetLayoutBinding ());
+        },
+        [] (const OutputBinding& binding) {});
+
+    graphSettings.connectionSet.VisitInputsOf (this, layoutBindingGatherer);
 
     compileResult.descriptorSetLayout = DescriptorSetLayout::Create (graphSettings.GetDevice (), layout);
 
     uint32_t s = 0;
-    for (auto& a : inputBindings) {
-        s += a->GetLayerCount ();
-    }
+
+    IConnectionBindingVisitorFn layerCountAdder (
+        [&] (const UniformInputBinding& binding) {
+            s += binding.GetLayerCount ();
+        },
+        [&] (const ImageInputBinding& binding) {
+            s += binding.GetLayerCount ();
+        },
+        [] (const OutputBinding& binding) {});
+
+    graphSettings.connectionSet.VisitInputsOf (this, layerCountAdder);
+
     s *= graphSettings.framesInFlight;
 
     if (s > 0) {
@@ -108,21 +116,30 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
             DescriptorSetU descriptorSet = DescriptorSet::Create (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
-            for (auto& ii : inputBindings) {
-                ii->WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);
-            }
+            IConnectionBindingVisitorFn layerCountAdder (
+                [&] (const UniformInputBinding& binding) {
+                    binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);
+                },
+                [&] (const ImageInputBinding& binding) {
+                    binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);
+                },
+                [] (const OutputBinding& binding) {});
+
+            graphSettings.connectionSet.VisitInputsOf (this, layerCountAdder);
+
 
             compileResult.descriptorSets.push_back (std::move (descriptorSet));
         }
     }
 
-    const auto attachmentReferences   = GetAttachmentReferences ();
-    const auto attachmentDescriptions = GetAttachmentDescriptions ();
+    const auto attachmentReferences   = GetAttachmentReferences (graphSettings.connectionSet);
+    const auto attachmentDescriptions = GetAttachmentDescriptions (graphSettings.connectionSet);
 
     if constexpr (IsDebugBuild) {
         GVK_ASSERT (attachmentReferences.size () == attachmentDescriptions.size ());
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            GVK_ASSERT (attachmentReferences.size () == GetOutputImageViews (frameIndex).size ());
+            const auto outputImageView = GetOutputImageViews (graphSettings.connectionSet, frameIndex);
+            GVK_ASSERT (attachmentReferences.size () == outputImageView.size ());
         }
     }
 
@@ -138,7 +155,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     compileSettings.pipeline->Compile (pipelineSettigns);
 
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-        compileResult.framebuffers.push_back (Framebuffer::Create (graphSettings.GetDevice (), *compileSettings.pipeline->compileResult.renderPass, GetOutputImageViews (frameIndex), width, height));
+        compileResult.framebuffers.push_back (Framebuffer::Create (graphSettings.GetDevice (), *compileSettings.pipeline->compileResult.renderPass, GetOutputImageViews (graphSettings.connectionSet, frameIndex), width, height));
     }
 
     compileResult.width  = width;
@@ -146,10 +163,24 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 }
 
 
-void RenderOperation::Record (uint32_t frameIndex, CommandBuffer& commandBuffer)
+void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t frameIndex, CommandBuffer& commandBuffer)
 {
+    uint32_t outputCount = 0;
+
+    IConnectionBindingVisitorFn outputCounter (
+        [] (const UniformInputBinding&) {
+        },
+        [] (const ImageInputBinding&) {
+        },
+        [&] (const OutputBinding& binding) {
+            outputCount += binding.layerCount;
+        });
+
+    connectionSet.VisitOutputsOf (this, outputCounter);
+
+
     VkClearValue              clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-    std::vector<VkClearValue> clearValues (outputBindings.size (), clearColor);
+    std::vector<VkClearValue> clearValues (outputCount, clearColor);
 
     VkRenderPassBeginInfo renderPassBeginInfo = {};
     renderPassBeginInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -236,14 +267,30 @@ void TransferOperation::Compile (const GraphSettings&, uint32_t, uint32_t)
 }
 
 
-void TransferOperation::Record (uint32_t imageIndex, CommandBuffer& commandBuffer)
+void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t imageIndex, CommandBuffer& commandBuffer)
 {
-    auto inputs = GetPointingHere<ImageResource> ();
+    std::vector<ImageResource*> inputs;
+    std::vector<ImageResource*> outputs;
+
+    IResourceVisitorFn inputGatherer ([&] (ReadOnlyImageResource& resource) { inputs.push_back (&resource); },
+                                      [&] (WritableImageResource& resource) { inputs.push_back (&resource); },
+                                      [&] (SwapchainImageResource& resource) { inputs.push_back (&resource); },
+                                      [&] (GPUBufferResource&) {},
+                                      [&] (CPUBufferResource&) {});
+
+    IResourceVisitorFn outputGatherer ([&] (ReadOnlyImageResource& resource) { outputs.push_back (&resource); },
+                                       [&] (WritableImageResource& resource) { outputs.push_back (&resource); },
+                                       [&] (SwapchainImageResource& resource) { outputs.push_back (&resource); },
+                                       [&] (GPUBufferResource&) {},
+                                       [&] (CPUBufferResource&) {});
+
+    connectionSet.VisitInputsOf (this, inputGatherer);
+    connectionSet.VisitOutputsOf (this, outputGatherer);
+
     if (GVK_ERROR (inputs.size () != 1)) {
         throw std::runtime_error ("no");
     }
 
-    auto outputs = GetPointingTo<ImageResource> ();
     if (GVK_ERROR (outputs.size () != 1)) {
         throw std::runtime_error ("no");
     }

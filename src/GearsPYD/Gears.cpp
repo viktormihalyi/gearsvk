@@ -690,7 +690,6 @@ PYBIND11_MODULE (Gears, m)
     m.def ("StartRendering", StartRendering);
     m.def ("CreateSurface", CreateSurface);
     m.def ("DestroySurface", DestroySurface);
-    m.def ("RequestPaint", RequestPaint);
     m.def ("SetCurrentSurface", SetCurrentSurface);
     m.def ("RenderFrame", RenderFrame);
     m.def ("GetGLSLResourcesForRandoms", GetGLSLResourcesForRandoms);

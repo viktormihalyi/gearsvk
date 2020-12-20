@@ -67,9 +67,9 @@ private:
         {
             renderGraph = RenderGraph::CreateShared ();
 
-            SwapchainImageResourceP presented = renderGraph->CreateResource<SwapchainImageResource> (*presentable);
-
             GraphSettings s (*environment.deviceExtra, presentable->GetSwapchain ().GetImageCount ());
+
+            SwapchainImageResourceP presented = SwapchainImageResource::Create (*presentable);
 
             renderer = SynchronizedSwapchainGraphRenderer::Create (s, presentable->GetSwapchain ());
 
@@ -113,17 +113,24 @@ private:
                 }
                 sequencePip->SetFragmentShaderFromString (frag);
 
-                RenderOperationP passOperation = renderGraph->CreateOperation<RenderOperation> (
+                RenderOperationP passOperation = RenderOperation::Create (
                     DrawRecordableInfo::CreateShared (1, 4), sequencePip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
-                renderGraph->CreateOutputConnection (*passOperation, 0, *presented);
+
+                s.connectionSet.Add (passOperation, presented,
+                                     RG::OutputBinding::Create (0,
+                                                                presented->GetFormatProvider (),
+                                                                presented->GetFinalLayout (),
+                                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                                VK_ATTACHMENT_STORE_OP_STORE));
+
                 passToOperation[pass] = passOperation;
                 break;
             }
 
-            reflection = RG::UniformReflection::CreateShared (*renderGraph);
+            reflection = RG::UniformReflection::Create (s.connectionSet);
 
-            RG::ImageMap imgMap = RG::CreateEmptyImageResources (*renderGraph, [&] (const SR::Sampler& sampler) -> std::optional<CreateParams> {
+            RG::ImageMap imgMap = RG::CreateEmptyImageResources (s.connectionSet, [&] (const SR::Sampler& sampler) -> std::optional<CreateParams> {
                 if (sampler.name == "gamma") {
                     return std::make_tuple (glm::uvec3 { 256, 0, 0 }, VK_FORMAT_R32_SFLOAT, VK_FILTER_NEAREST);
                 }
@@ -477,83 +484,6 @@ void DestroySurface (intptr_t surfaceHandle)
 }
 
 
-/* exported to .pyd */
-void RequestPaint (intptr_t surfaceHandle)
-{
-    // TODO;
-    PresentableP presentable;
-    for (PresentableP& p : createdSurfaces) {
-        if (reinterpret_cast<intptr_t> (p.get ()) == surfaceHandle) {
-            presentable = p;
-            break;
-        }
-    }
-
-    if (GVK_ERROR (presentable == nullptr)) {
-        return;
-    }
-
-    GraphSettings s (*GetVkEnvironment ().deviceExtra, 3);
-    RenderGraph   graph;
-
-    auto sp = ShaderPipeline::CreateShared (*GetVkEnvironment ().deviceExtra);
-    sp->SetVertexShaderFromString (R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout (location = 0) out vec2 textureCoords;
-
-vec2 uvs[6] = vec2[] (
-    vec2 (0.f, 0.f),
-    vec2 (0.f, 1.f),
-    vec2 (1.f, 1.f),
-    vec2 (1.f, 1.f),
-    vec2 (0.f, 0.f),
-    vec2 (1.f, 0.f)
-);
-
-vec2 positions[6] = vec2[] (
-    vec2 (-1.f, -1.f),
-    vec2 (-1.f, +1.f),
-    vec2 (+1.f, +1.f),
-    vec2 (+1.f, +1.f),
-    vec2 (-1.f, -1.f),
-    vec2 (+1.f, -1.f)
-);
-
-
-void main() {
-    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
-    textureCoords = uvs[gl_VertexIndex];
-}
-    )");
-
-    sp->SetFragmentShaderFromString (R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout (location = 0) out vec4 outColor;
-
-void main () {
-    outColor = vec4 (1, 0, 0, 1);
-}
-    )");
-
-    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
-
-    ImageResourceP red = graph.CreateResource<SwapchainImageResource> (*presentable);
-
-    graph.CreateOutputConnection (*redFillOperation, 0, *red);
-
-    graph.Compile (s);
-
-
-    BlockingGraphRenderer renderer (s, presentable->GetSwapchain ());
-
-    renderer.RenderNextFrame (graph);
-}
-
-
 static VulkanEnvironmentU env_ = nullptr;
 
 
@@ -588,8 +518,8 @@ std::string GetGLSLResourcesForRandoms ()
     )";
 }
 
-#include <pybind11/embed.h>
 
+#include <pybind11/embed.h>
 
 void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
 {

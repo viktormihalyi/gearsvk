@@ -34,8 +34,8 @@ public:
 
 class GEARSVK_API RecreatableGraphRenderer : public Renderer {
 protected:
-    GraphSettings settings;
-    Swapchain&    swapchain;
+    GraphSettings& settings;
+    Swapchain&     swapchain;
 
 public:
     RecreatableGraphRenderer (GraphSettings& settings, Swapchain& swapchain);

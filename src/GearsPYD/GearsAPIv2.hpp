@@ -1,6 +1,7 @@
 #include "core/Sequence.h"
 
 #include <cstdint>
+#include <filesystem>
 #include <functional>
 
 #include "ShaderModule.hpp"
@@ -11,6 +12,7 @@ void DestroyEnvironment ();
 
 // not exported, only called from old api
 void SetRenderGraphFromSequence (Sequence::P);
+void SetRenderGraphFromPyxFileSequence (const std::filesystem::path&);
 
 void StartRendering (const std::function<bool ()>&);
 
@@ -23,7 +25,5 @@ void DestroySurface (intptr_t handle);
 void SetCurrentSurface (intptr_t handle);
 
 void RenderFrame (uint32_t frameIndex);
-
-void RequestPaint (intptr_t handle);
 
 std::string GetGLSLResourcesForRandoms ();

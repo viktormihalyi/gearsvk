@@ -29,10 +29,6 @@ using namespace RG;
 
 #include "UniformView.hpp"
 
-TEST_F (HeadlessGoogleTestEnvironment, LayoutTransitionTest)
-{
-}
-
 
 TEST_F (HiddenWindowGoogleTestEnvironment, Spirvrross2)
 {
@@ -81,15 +77,13 @@ void main ()
 
 TEST_F (HeadlessGoogleTestEnvironment, CompileTest)
 {
-    Device& device = GetDevice ();
+    DeviceExtra& device = GetDeviceExtra ();
 
-    RenderGraph graph;
-
-    graph.AddOperation (RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
-                                                 ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                           ShadersFolder / "test.vert",
-                                                                                           ShadersFolder / "test.frag",
-                                                                                       })));
+    RenderOperation op (DrawRecordableInfo::Create (1, 3),
+                        ShaderPipeline::Create (device, std::vector<std::filesystem::path> {
+                                                            ShadersFolder / "test.vert",
+                                                            ShadersFolder / "test.frag",
+                                                        }));
 }
 
 
@@ -193,9 +187,11 @@ void main () {
 }
     )");
 
-    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
+    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), sp);
 
-    ImageMap imgMap = CreateEmptyImageResources (graph, [&] (const SR::Sampler& sampler) -> std::optional<CreateParams> {
+    s.connectionSet.Add (redFillOperation);
+
+    ImageMap imgMap = CreateEmptyImageResources (s.connectionSet, [&] (const SR::Sampler& sampler) -> std::optional<CreateParams> {
         if (sampler.name == "textureArray_RGBA_32x32") {
             return std::make_tuple (glm::uvec3 { 32, 32, 0 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_FILTER_NEAREST);
         }
@@ -205,9 +201,14 @@ void main () {
         return std::nullopt;
     });
 
-    ImageResourceP presented = graph.CreateResource<WritableImageResource> (512, 512);
+    WritableImageResourceP presented = WritableImageResource::Create (512, 512);
 
-    graph.CreateOutputConnection (*redFillOperation, 0, *presented);
+    s.connectionSet.Add (redFillOperation, presented,
+                         RG::OutputBinding::Create (0,
+                                                    presented->GetFormatProvider (),
+                                                    presented->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
 
     graph.Compile (s);
 
@@ -290,11 +291,16 @@ void main () {
 }
     )");
 
-    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
+    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), sp);
 
-    ImageResourceP red = graph.CreateResource<WritableImageResource> (512, 512);
+    ImageResourceP red = WritableImageResource::Create (512, 512);
 
-    graph.CreateOutputConnection (*redFillOperation, 0, *red);
+    s.connectionSet.Add (redFillOperation, red,
+                         RG::OutputBinding::Create (0,
+                                                    red->GetFormatProvider (),
+                                                    red->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
 
     graph.Compile (s);
 
@@ -363,16 +369,32 @@ void main () {
 }
     )");
 
-    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
+    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), sp);
 
-    TransferOperationP transfer = graph.CreateOperation<TransferOperation> ();
+    TransferOperationP transfer = TransferOperation::Create ();
 
-    ImageResourceP red       = graph.CreateResource<WritableImageResource> (512, 512);
-    ImageResourceP duplicate = graph.CreateResource<WritableImageResource> (512, 512);
+    WritableImageResourceP red       = WritableImageResource::Create (512, 512);
+    WritableImageResourceP duplicate = WritableImageResource::Create (512, 512);
 
-    graph.CreateOutputConnection (*redFillOperation, 0, *red);
-    graph.CreateInputConnection (*transfer, *red);
-    graph.CreateOutputConnection (*transfer, *duplicate);
+
+    s.connectionSet.Add (redFillOperation, red,
+                         RG::OutputBinding::Create (0,
+                                                    red->GetFormatProvider (),
+                                                    red->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
+
+
+    s.connectionSet.Add (red, transfer,
+                         RG::ImageInputBinding::Create (0, *red));
+
+    s.connectionSet.Add (transfer, duplicate,
+                         RG::OutputBinding::Create (0,
+                                                    duplicate->GetFormatProvider (),
+                                                    duplicate->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
+
 
     graph.Compile (s);
 
@@ -394,31 +416,49 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     GraphSettings s (device, 4);
     RenderGraph   graph;
 
-    WritableImageResourceP presented = graph.CreateResource<WritableImageResource> (512, 512);
-    WritableImageResourceP green     = graph.CreateResource<WritableImageResource> (512, 512);
-    WritableImageResourceP red       = graph.CreateResource<WritableImageResource> (512, 512);
-    WritableImageResourceP finalImg  = graph.CreateResource<WritableImageResource> (512, 512);
+    WritableImageResourceP presented = WritableImageResource::Create (512, 512);
+    WritableImageResourceP green     = WritableImageResource::Create (512, 512);
+    WritableImageResourceP red       = WritableImageResource::Create (512, 512);
+    WritableImageResourceP finalImg  = WritableImageResource::Create (512, 512);
 
 
-    RenderOperationP dummyPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
-                                                                         ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                                                   ShadersFolder / "test.vert",
-                                                                                                                   ShadersFolder / "test.frag",
-                                                                                                               }));
+    RenderOperationP dummyPass = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
+                                                          ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
+                                                                                                    ShadersFolder / "test.vert",
+                                                                                                    ShadersFolder / "test.frag",
+                                                                                                }));
 
-    RenderOperationP secondPass = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 3),
-                                                                          ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                                                    ShadersFolder / "fullscreenquad.vert",
-                                                                                                                    ShadersFolder / "fullscreenquad.frag",
-                                                                                                                }));
+    RenderOperationP secondPass = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
+                                                           ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
+                                                                                                     ShadersFolder / "fullscreenquad.vert",
+                                                                                                     ShadersFolder / "fullscreenquad.frag",
+                                                                                                 }));
 
 
-    graph.CreateInputConnection (*dummyPass, *green, ImageInputBinding::Create (0, *green));
-    graph.CreateOutputConnection (*dummyPass, 0, *presented);
-    graph.CreateOutputConnection (*dummyPass, 1, *red);
+    s.connectionSet.Add (green, dummyPass, ImageInputBinding::Create (0, *green));
+    s.connectionSet.Add (red, secondPass, ImageInputBinding::Create (0, *red));
 
-    graph.CreateInputConnection (*secondPass, *red, ImageInputBinding::Create (0, *red));
-    graph.CreateOutputConnection (*secondPass, 0, *finalImg);
+    s.connectionSet.Add (dummyPass, presented,
+                         RG::OutputBinding::Create (0,
+                                                    presented->GetFormatProvider (),
+                                                    presented->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
+
+    s.connectionSet.Add (dummyPass, red,
+                         RG::OutputBinding::Create (1,
+                                                    red->GetFormatProvider (),
+                                                    red->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
+
+
+    s.connectionSet.Add (secondPass, finalImg,
+                         RG::OutputBinding::Create (0,
+                                                    finalImg->GetFormatProvider (),
+                                                    finalImg->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
 
     graph.Compile (s);
 
@@ -501,14 +541,24 @@ void main () {
 }
     )");
 
-    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, 6), sp);
+    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), sp);
 
-    ImageResourceP presentedCopy = graph.CreateResource<WritableImageResource> (800, 600);
-    ImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*presentable);
+    ImageResourceP presentedCopy = WritableImageResource::Create (800, 600);
+    ImageResourceP presented     = SwapchainImageResource::Create (*presentable);
 
-    graph.CreateOutputConnection (*redFillOperation, 0, *presented);
-    graph.CreateOutputConnection (*redFillOperation, 1, *presentedCopy);
+    s.connectionSet.Add (redFillOperation, presented,
+                         RG::OutputBinding::Create (0,
+                                                    presented->GetFormatProvider (),
+                                                    presented->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
 
+    s.connectionSet.Add (redFillOperation, presentedCopy,
+                         RG::OutputBinding::Create (1,
+                                                    presentedCopy->GetFormatProvider (),
+                                                    presentedCopy->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
     graph.Compile (s);
 
     BlockingGraphRenderer renderer (s, swapchain);
@@ -583,14 +633,26 @@ void main () {
     ib.data = { 0, 1, 2, 0, 3, 2 };
     ib.Flush ();
 
-    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
-                                                                                std::move (sp));
+    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
+                                                                 std::move (sp));
 
-    WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> (800, 600);
-    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*presentable);
+    WritableImageResourceP  presentedCopy = WritableImageResource::Create (800, 600);
+    SwapchainImageResourceP presented     = SwapchainImageResource::Create (*presentable);
 
-    graph.CreateOutputConnection (*redFillOperation, 0, *presented);
-    graph.CreateOutputConnection (*redFillOperation, 1, *presentedCopy);
+
+    s.connectionSet.Add (redFillOperation, presented,
+                         RG::OutputBinding::Create (0,
+                                                    presented->GetFormatProvider (),
+                                                    presented->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
+
+    s.connectionSet.Add (redFillOperation, presentedCopy,
+                         RG::OutputBinding::Create (1,
+                                                    presentedCopy->GetFormatProvider (),
+                                                    presentedCopy->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
 
     graph.Compile (s);
 
@@ -678,15 +740,31 @@ void main () {
     ib.data = { 0, 1, 2, 0, 3, 2 };
     ib.Flush ();
 
-    RenderOperationP redFillOperation = graph.CreateOperation<RenderOperation> (DrawRecordableInfo::CreateShared (1, *vbb, ib), std::move (sp));
+    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, *vbb, ib), std::move (sp));
 
-    SwapchainImageResourceP presented     = graph.CreateResource<SwapchainImageResource> (*presentable);
-    WritableImageResourceP  presentedCopy = graph.CreateResource<WritableImageResource> (VK_FILTER_LINEAR, 800, 600, 2);
-    CPUBufferResourceP      unif          = graph.CreateResource<CPUBufferResource> (4);
+    SwapchainImageResourceP presented     = SwapchainImageResource::Create (*presentable);
+    WritableImageResourceP  presentedCopy = WritableImageResource::Create (VK_FILTER_LINEAR, 800, 600, 2);
+    CPUBufferResourceP      unif          = CPUBufferResource::Create (4);
 
-    graph.CreateInputConnection (*redFillOperation, *unif, UniformInputBinding::Create (0, *unif));
-    graph.CreateOutputConnection (*redFillOperation, 0, *presentedCopy);
-    graph.CreateOutputConnection (*redFillOperation, 2, *presented);
+
+    s.connectionSet.Add (unif, redFillOperation,
+                         UniformInputBinding::Create (0, *unif));
+
+    s.connectionSet.Add (redFillOperation, presented,
+                         RG::OutputBinding::Create (2,
+                                                    presented->GetFormatProvider (),
+                                                    presented->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
+
+
+    s.connectionSet.Add (redFillOperation, presentedCopy,
+                         RG::OutputBinding::Create (0,
+                             presentedCopy->GetFormatProvider (),
+                             presentedCopy->GetFinalLayout (),
+                             presentedCopy->GetLayerCount (),
+                             VK_ATTACHMENT_LOAD_OP_CLEAR,
+                             VK_ATTACHMENT_STORE_OP_STORE));
 
     graph.Compile (s);
 

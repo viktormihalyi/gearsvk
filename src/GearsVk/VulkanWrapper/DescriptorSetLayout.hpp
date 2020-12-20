@@ -25,7 +25,7 @@ public:
     {
         for (size_t i = 0; i < bindings.size (); ++i) {
             for (size_t j = 0; j < bindings.size (); ++j) {
-                if (i != j && bindings[i].binding == bindings[j].binding) {
+                if (i != j && bindings[i].binding == bindings[j].binding && (bindings[i].stageFlags ^ bindings[j].stageFlags) == 0) {
                     GVK_BREAK ("duplicate binding");
                 }
             }

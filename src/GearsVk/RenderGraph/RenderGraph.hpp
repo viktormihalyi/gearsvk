@@ -10,7 +10,6 @@
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 
-#include "Connections.hpp"
 #include "GraphSettings.hpp"
 #include "Operation.hpp"
 #include "Resource.hpp"
@@ -30,11 +29,13 @@ class GEARSVK_API RenderGraph final : public Noncopyable {
     USING_CREATE (RenderGraph);
 
 private:
-    bool          compiled;
-    GraphSettings compileSettings;
+    bool compiled;
 
-    std::vector<ResourceP> resources;
+public:
+    const DeviceExtra* device;
+    uint32_t           framesInFlight;
 
+private:
     struct Pass {
         std::set<Operation*> operations;
         std::set<Resource*>  inputs;
@@ -46,34 +47,10 @@ private:
     std::vector<CommandBufferU> c;
 
 public:
-    std::vector<OperationP> operations; // TODO
-
     Event<> compileEvent;
 
 public:
     RenderGraph ();
-
-
-    // ------------------------- graph building functions -------------------------
-
-    ResourceP AddResource (ResourceP resource);
-
-    OperationP AddOperation (OperationP operation);
-
-    template<typename ResourceType, typename... ARGS>
-    P<ResourceType> CreateResource (ARGS&&... args);
-
-    template<typename OperationType, typename... ARGS>
-    P<OperationType> CreateOperation (ARGS&&... args);
-
-    void CreateInputConnection (RenderOperation& op, Resource& res, InputBindingU&& conn);
-    void CreateInputConnection (TransferOperation& op, ImageResource& res);
-
-    void CreateOutputConnection (RenderOperation& operation, uint32_t binding, ImageResource& resource);
-    void CreateOutputConnection (TransferOperation& operation, Resource& resource);
-
-
-    // ------------------------- compile / execute -------------------------
 
     void CompileResources (const GraphSettings& settings);
     void Compile (const GraphSettings& settings);
@@ -82,33 +59,12 @@ public:
     void Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores = {}, const std::vector<VkSemaphore>& signalSemaphores = {}, VkFence fence = VK_NULL_HANDLE);
     void Present (uint32_t imageIndex, Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores = {});
 
-    GraphSettings&       GetGraphSettings () { return compileSettings; }
-    const GraphSettings& GetGraphSettings () const { return compileSettings; }
-
 private:
     // utility functions for compilation
-    Pass              GetNextPass (const Pass& lastPass) const;
-    Pass              GetFirstPass () const;
-    std::vector<Pass> GetPasses () const;
+    Pass              GetNextPass (const ConnectionSet& connectionSet, const Pass& lastPass) const;
+    Pass              GetFirstPass (const ConnectionSet& connectionSet) const;
+    std::vector<Pass> GetPasses (const ConnectionSet& connectionSet) const;
 };
-
-
-template<typename ResourceType, typename... ARGS>
-P<ResourceType> RenderGraph::CreateResource (ARGS&&... args)
-{
-    auto newRes = ResourceType::CreateShared (std::forward<ARGS> (args)...);
-    AddResource (newRes);
-    return newRes;
-}
-
-
-template<typename OperationType, typename... ARGS>
-P<OperationType> RenderGraph::CreateOperation (ARGS&&... args)
-{
-    auto newOp = OperationType::CreateShared (std::forward<ARGS> (args)...);
-    AddOperation (newOp);
-    return newOp;
-}
 
 
 } // namespace RG

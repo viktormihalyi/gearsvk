@@ -202,7 +202,7 @@ void RealSwapchain::Present (VkQueue queue, uint32_t imageIndex, const std::vect
     presentInfo.pImageIndices      = &imageIndex;
     presentInfo.pResults           = nullptr;
 
-    VkResult err = vkQueuePresentKHR (queue, &presentInfo);
+    const VkResult err = vkQueuePresentKHR (queue, &presentInfo);
     if (GVK_ERROR (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR)) {
         throw std::runtime_error ("failed to present");
     }

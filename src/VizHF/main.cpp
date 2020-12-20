@@ -77,23 +77,26 @@ int main (int, char**)
         ShadersFolder / "brain.frag",
     });
 
-    RG::RenderOperationP brainRenderOp = graph.CreateOperation<RG::RenderOperation> (FullscreenQuad::CreateShared (device), sp);
+    RG::RenderOperationP brainRenderOp = RG::RenderOperation::Create (FullscreenQuad::CreateShared (device), sp);
 
 
     // ========================= GRAPH RESOURCES =========================
 
-    RG::SwapchainImageResourceP presented = graph.CreateResource<RG::SwapchainImageResource> (*presentable);
-    RG::ReadOnlyImageResourceP  matcap    = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
-    RG::ReadOnlyImageResourceP  agy3d     = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
+    RG::SwapchainImageResourceP presented = RG::SwapchainImageResource::Create (*presentable);
+    RG::ReadOnlyImageResourceP  matcap    = RG::ReadOnlyImageResource::Create (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
+    RG::ReadOnlyImageResourceP  agy3d     = RG::ReadOnlyImageResource::Create (VK_FORMAT_R8_SRGB, 256, 256, 256);
 
-    RG::UniformReflection r (graph);
+    s.connectionSet.Add (brainRenderOp, presented,
+                         RG::OutputBinding::Create (0,
+                                                    presented->GetFormatProvider (),
+                                                    presented->GetFinalLayout (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
 
-    // ========================= GRAPH CONNECTIONS =========================
+    s.connectionSet.Add (agy3d, brainRenderOp, RG::ImageInputBinding::Create (2, *agy3d));
+    s.connectionSet.Add (matcap, brainRenderOp, RG::ImageInputBinding::Create (3, *matcap));
 
-    graph.CreateInputConnection (*brainRenderOp, *agy3d, RG::ImageInputBinding::Create (2, *agy3d));
-    graph.CreateInputConnection (*brainRenderOp, *matcap, RG::ImageInputBinding::Create (3, *matcap));
-    graph.CreateOutputConnection (*brainRenderOp, 0, *presented);
-
+    RG::UniformReflection r (s.connectionSet);
 
     // ========================= GRAPH RESOURCE SETUP =========================
 
@@ -161,8 +164,8 @@ int main (int, char**)
         }
         if (key == 'R') {
             std::cout << "waiting for device... " << std::endl;
-            vkDeviceWaitIdle (graph.GetGraphSettings ().GetDevice ());
-            vkQueueWaitIdle (graph.GetGraphSettings ().GetDevice ().GetGraphicsQueue ());
+            vkDeviceWaitIdle (s.GetDevice ());
+            vkQueueWaitIdle (s.GetDevice ().GetGraphicsQueue ());
             sp->Reload ();
             renderer.Recreate (graph);
         }
