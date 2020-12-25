@@ -9,7 +9,6 @@
 #include <functional>
 #include <memory>
 #include <set>
-#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -36,14 +35,14 @@ class Event;
 
 
 // for EventObserver
-class IEventObserver {
+class IEventObserverScope {
 public:
-    virtual ~IEventObserver () = default;
+    virtual ~IEventObserverScope () = default;
 };
 
 
 template<typename... ARGS>
-class EventObserverScopeTyped : public Noncopyable, public IEventObserver {
+class EventObserverScopeTyped : public Noncopyable, public IEventObserverScope {
 public:
     using Func     = std::function<void (ARGS...)>;
     using Callback = std::shared_ptr<Func>;
@@ -161,42 +160,94 @@ void EventObserverScopeTyped<ARGS...>::Disconnect ()
 }
 
 
-class EventObserver {
+class EventObserver : public Noncopyable {
 private:
-    std::vector<std::shared_ptr<IEventObserver>> observers;
-    std::set<IEvent*>                            observedEvents;
+    std::vector<std::unique_ptr<IEventObserverScope>> observers;
+    std::vector<IEvent*>                              observedEvents;
 
 public:
+    EventObserver () = default;
+
+    EventObserver (EventObserver&& other)
+        : observers (std::move (other.observers))
+        , observedEvents (std::move (other.observedEvents))
+    {
+    }
+
     virtual ~EventObserver () = default;
 
     template<typename... ARGS, typename Observer>
     void Observe (Event<ARGS...>& ev, Observer observer)
     {
-        if (GVK_ERROR (observedEvents.find (&ev) != observedEvents.end ())) {
+        // TODO check if observer is already disconnected because event is destructed
+
+        auto it = std::find (observedEvents.begin (), observedEvents.end (), &ev);
+        if (GVK_ERROR (it != observedEvents.end ())) {
             // event already observed
             return;
         }
 
-        std::shared_ptr<EventObserverScopeTyped<ARGS...>> obs = std::make_shared<EventObserverScopeTyped<ARGS...>> (observer);
+        std::unique_ptr<EventObserverScopeTyped<ARGS...>> obs = std::make_unique<EventObserverScopeTyped<ARGS...>> (observer);
         obs->Connect (ev);
         observers.push_back (std::move (obs));
-        observedEvents.insert (&ev);
+        observedEvents.push_back (&ev);
+    }
+
+    void Disconnect (IEvent& ev)
+    {
+        // TODO check if observer is already disconnected because event is destructed
+
+        auto it = std::find (observedEvents.begin (), observedEvents.end (), &ev);
+        if (GVK_ERROR (it == observedEvents.end ())) {
+            // event not observed
+            return;
+        }
+
+        const size_t obsIndex = std::distance (observedEvents.begin (), it);
+
+        observers.erase (observers.begin (), observers.begin () + obsIndex);
+        observedEvents.erase (observedEvents.begin (), observedEvents.begin () + obsIndex);
     }
 };
 
 class SingleEventObserver {
 private:
-    std::shared_ptr<IEventObserver> observer;
+    std::unique_ptr<IEventObserverScope> observer;
+    IEvent*                              observedEvent;
 
 public:
+    SingleEventObserver ()
+        : observedEvent (nullptr)
+    {
+    }
+
     virtual ~SingleEventObserver () = default;
 
     template<typename... ARGS, typename Observer>
     void Observe (Event<ARGS...>& ev, Observer observerCallback)
     {
-        std::shared_ptr<EventObserverScopeTyped<ARGS...>> obs = std::make_shared<EventObserverScopeTyped<ARGS...>> (observerCallback);
+        // TODO check if observer is already disconnected because event is destructed
+
+        if (GVK_ERROR (observedEvent != nullptr)) {
+            return;
+        }
+
+        std::unique_ptr<EventObserverScopeTyped<ARGS...>> obs = std::make_unique<EventObserverScopeTyped<ARGS...>> (observerCallback);
         obs->Connect (ev);
-        observer = obs;
+        observer      = std::move (obs);
+        observedEvent = &ev;
+    }
+
+    void Disconnect ()
+    {
+        // TODO check if observer is already disconnected because event is destructed
+
+        if (GVK_ERROR (observedEvent == nullptr)) {
+            return;
+        }
+
+        observer.reset ();
+        observedEvent = nullptr;
     }
 };
 
