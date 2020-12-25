@@ -5,6 +5,7 @@
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/embed.h>
 
 #ifndef EMPTY_DLL
 #include "stdafx.h"
@@ -353,7 +354,7 @@ void bindTexture (std::string filename)
 
 #endif
 
-PYBIND11_MODULE (Gears, m)
+PYBIND11_EMBEDDED_MODULE (GearsModule, m)
 {
     m.def ("greet", &greet);
 

@@ -173,6 +173,24 @@ RealSwapchain::~RealSwapchain ()
 }
 
 
+std::vector<InheritedImageU> RealSwapchain::GetImageObjects () const
+{
+    std::vector<InheritedImageU> result;
+
+    for (uint32_t swapchainImageIndex = 0; swapchainImageIndex < GetImageCount (); ++swapchainImageIndex) {
+        result.push_back (InheritedImage::Create (
+            createResult.images[swapchainImageIndex],
+            GetWidth (),
+            GetHeight (),
+            1,
+            GetImageFormat (),
+            1));
+    }
+
+    return result;
+}
+
+
 uint32_t RealSwapchain::GetNextImageIndex (VkSemaphore signalSemaphore) const
 {
     uint32_t result;
@@ -219,5 +237,6 @@ FakeSwapchain::FakeSwapchain (const DeviceExtra& device, uint32_t width, uint32_
     , height (height)
     , image (Image2D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1))
 {
+    imageViews.push_back (ImageView2D::Create (device, *image));
     TransitionImageLayout (device, *image, Image2D::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 }

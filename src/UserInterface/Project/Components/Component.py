@@ -3,7 +3,7 @@ import warnings
 import re
 from SequenceError import SequenceError
 import ILog
-import Gears as gears
+import GearsModule as gears
 import math
 
 class Component() : 

@@ -1,5 +1,5 @@
 ﻿import sys
-import Gears as gears
+import GearsModule as gears
 import importlib.machinery
 import os
 from PyQt5.QtCore import (Qt, QCoreApplication, QTimer)

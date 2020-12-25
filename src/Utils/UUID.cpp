@@ -2,19 +2,23 @@
 
 #include "Assert.hpp"
 #include "Platform.hpp"
+#include "CompilerDefinitions.hpp"
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS) && defined(COMPILER_MSVC)
 #pragma comment(lib, "rpcrt4.lib")
 #include <windows.h>
+#include <cstring>
 
 static std::string GenerateUUID ()
 {
+    constexpr size_t uuidSize = 16;
+    static_assert (sizeof (UUID) == uuidSize);
+
     UUID uuid;
     UuidCreate (&uuid);
-    char* str;
-    UuidToStringA (&uuid, (RPC_CSTR*)&str);
-    const std::string result (str);
-    RpcStringFreeA ((RPC_CSTR*)&str);
+    std::string result;
+    result.resize (uuidSize);
+    memcpy (result.data (), &uuid, uuidSize);
     return result;
 }
 
@@ -62,12 +66,12 @@ static std::string GenerateUUID ()
 GearsVk::UUID::UUID ()
     : value (GenerateUUID ())
 {
-    GVK_ASSERT (value.size () == 36);
+    GVK_ASSERT (value.size () == 16);
 }
 
 
 GearsVk::UUID::UUID (std::nullptr_t)
-    : value ("00000000-0000-0000-0000-000000000000")
+    : value ("0000-00-00-00-0000")
 {
-    GVK_ASSERT (value.size () == 36);
+    GVK_ASSERT (value.size () == 16);
 }

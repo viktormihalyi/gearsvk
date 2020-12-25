@@ -62,7 +62,8 @@ std::string FieldTypeToString (FieldType fieldType);
 // clang-format on
 
 
-struct Field final : public FieldProvider, public Noncopyable {
+class Field final : public FieldProvider, public Noncopyable {
+public:
     USING_CREATE (Field);
 
     std::string name;
@@ -127,13 +128,14 @@ struct Field final : public FieldProvider, public Noncopyable {
 
 
 USING_PTR (UBO);
-struct GEARSVK_API UBO final : public FieldProvider /*, public Noncopyable */ {
+class GEARSVK_API UBO final : public FieldProvider /*, public Noncopyable */ {
+    USING_CREATE (UBO);
+
+public:
     uint32_t            binding;
     uint32_t            descriptorSet;
     std::string         name;
     std::vector<FieldP> fields;
-
-    USING_CREATE (UBO);
 
     UBO ()
         : binding ()

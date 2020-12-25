@@ -1,4 +1,4 @@
-import Gears as gears
+import GearsModule as gears
 from .. import * 
 import math
 from PyQt5.QtCore import Qt

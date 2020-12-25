@@ -1,5 +1,5 @@
 import os
-import Gears as gears
+import GearsModule as gears
 
 
 class Log:

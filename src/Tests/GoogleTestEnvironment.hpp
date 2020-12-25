@@ -2,10 +2,14 @@
 
 #include "GLFWWindow.hpp"
 #include "TerminalColors.hpp"
+#include "VulkanEnvironment.hpp"
 
 #include "gtest/gtest.h"
 
 #include <filesystem>
+
+#include <vulkan/vulkan.h>
+
 
 const std::filesystem::path ReferenceImagesFolder = PROJECT_ROOT / "src" / "Tests" / "ReferenceImages";
 

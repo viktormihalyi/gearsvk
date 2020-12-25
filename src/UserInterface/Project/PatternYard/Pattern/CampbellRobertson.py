@@ -1,4 +1,4 @@
-import Gears as gears
+import GearsModule as gears
 from .. import * 
 
 class CampbellRobertson(Component) : 

@@ -1,5 +1,5 @@
 import sys
-import Gears as gears
+import GearsModule as gears
 import importlib.machinery
 import os
 import GearsUtils as utils

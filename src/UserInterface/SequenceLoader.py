@@ -1,6 +1,6 @@
 ﻿import sys
 import traceback
-import Gears as gears
+import GearsModule as gears
 import importlib.machinery
 import warnings
 import os

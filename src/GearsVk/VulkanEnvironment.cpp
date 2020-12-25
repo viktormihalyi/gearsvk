@@ -22,6 +22,13 @@ Presentable::Presentable (const PhysicalDevice& physicalDevice, VkDevice device,
 }
 
 
+Presentable::Presentable (SwapchainU&& swapchain)
+    : surface (nullptr)
+    , swapchain (std::move (swapchain))
+{
+}
+
+
 void Presentable::operator= (Presentable&& other) noexcept
 {
     surface   = std::move (other.surface);

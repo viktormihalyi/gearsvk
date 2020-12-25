@@ -1,7 +1,7 @@
 import os
 import importlib.machinery
 import time
-import Gears as gears
+import GearsModule as gears
 import AppData
 
 

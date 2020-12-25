@@ -1,6 +1,6 @@
 import sys
 import os
-import Gears as gears
+import GearsModule as gears
 import subprocess
 from platform import system
 

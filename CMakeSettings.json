@@ -9,14 +9,7 @@
       "installRoot": "${projectDir}\\build.debug\\install",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
-      "ctestCommandArgs": "",
-      "variables": [
-        {
-          "name": "CONAN_BUILDINFO_FILE",
-          "value": "${projectDir}\\build.debug\\conanbuildinfo.cmake",
-          "type": "FILEPATH"
-        }
-      ]
+      "ctestCommandArgs": ""
     },
     {
       "name": "x64-Release",
@@ -27,14 +20,7 @@
       "installRoot": "${projectDir}\\build.release\\install",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
-      "ctestCommandArgs": "",
-      "variables": [
-        {
-          "name": "CONAN_BUILDINFO_FILE",
-          "value": "${projectDir}\\build.release\\conanbuildinfo.cmake",
-          "type": "FILEPATH"
-        }
-      ]
+      "ctestCommandArgs": ""
     }
   ]
 }

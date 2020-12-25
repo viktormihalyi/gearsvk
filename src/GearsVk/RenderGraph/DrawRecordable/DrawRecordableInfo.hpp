@@ -67,8 +67,8 @@ public:
 
     std::vector<VkVertexInputAttributeDescription> GetAttributes () const
     {
-        uint32_t nextLocation = 0;
-        uint32_t nextBinding  = 0;
+        size_t nextLocation = 0;
+        size_t nextBinding  = 0;
         return GetFromVector<VkVertexInputAttributeDescription> ([&] (const VertexBufferTransferableUntypedP& vb) {
             auto attribs = vb->info.GetAttributes (nextLocation, nextBinding++);
             nextLocation += attribs.size ();

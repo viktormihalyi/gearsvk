@@ -44,6 +44,7 @@ public:
     virtual uint32_t                         GetWidth () const       = 0;
     virtual uint32_t                         GetHeight () const      = 0;
     virtual std::vector<VkImage>             GetImages () const      = 0;
+    virtual std::vector<InheritedImageU>     GetImageObjects () const = 0;
     virtual const std::vector<ImageView2DU>& GetImageViews () const  = 0;
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const                                              = 0;
@@ -128,7 +129,7 @@ public:
     virtual uint32_t                         GetHeight () const override { return createResult.extent.height; }
     virtual std::vector<VkImage>             GetImages () const override { return createResult.images; }
     virtual const std::vector<ImageView2DU>& GetImageViews () const override { return createResult.imageViews; }
-
+    virtual std::vector<InheritedImageU>     GetImageObjects () const override;
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override;
 
@@ -165,10 +166,11 @@ private:
 USING_PTR (FakeSwapchain);
 class GEARSVK_API FakeSwapchain : public Swapchain {
 private:
-    ImageBaseU         image;
-    const DeviceExtra& device;
-    const uint32_t     width;
-    const uint32_t     height;
+    ImageBaseU                image;
+    std::vector<ImageView2DU> imageViews;
+    const DeviceExtra&        device;
+    const uint32_t            width;
+    const uint32_t            height;
 
 public:
     USING_CREATE (FakeSwapchain);
@@ -189,7 +191,7 @@ public:
         return 0;
     }
 
-    virtual const std::vector<ImageView2DU>& GetImageViews () const override { throw std::runtime_error ("no imageview for fake swapchain"); }
+    virtual const std::vector<ImageView2DU>& GetImageViews () const override { return imageViews; }
 
     virtual bool SupportsPresenting () const override { return false; }
 

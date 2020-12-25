@@ -1,4 +1,4 @@
-import Gears as gears
+import GearsModule as gears
 from PyQt5.QtCore import (Qt, QTimer, QUrl, QSizeF, QEvent)
 from PyQt5.QtMultimedia import (QMediaContent, QMediaPlayer, QVideoProbe)
 from PyQt5.QtMultimediaWidgets import (QGraphicsVideoItem)

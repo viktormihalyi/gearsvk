@@ -22,6 +22,7 @@ private:
 public:
     Presentable ();
     Presentable (const PhysicalDevice& physicalDevice, VkDevice device, SurfaceU&& surface);
+    Presentable (SwapchainU&& swapchain);
 
     void operator= (Presentable&&) noexcept;
 

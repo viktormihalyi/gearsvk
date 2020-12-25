@@ -5,6 +5,7 @@
 #include "FullscreenQuad.hpp"
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
+#include "ImageData.hpp"
 #include "Noncopyable.hpp"
 #include "Persistent.hpp"
 #include "RenderGraph.hpp"
@@ -524,24 +525,51 @@ std::string GetGLSLResourcesForRandoms ()
 void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
 {
     pybind11::scoped_interpreter guard;
+    try {
+        pybind11::module sys = pybind11::module::import ("sys");
+        pybind11::print (sys.attr ("path"));
+        sys.attr ("path").attr ("insert") (0, "C:\\Dev\\gearsvk\\src\\UserInterface");
 
-    pybind11::exec (R"(
-    import os
-    import importlib.machinery
-    import time
-    import Gears as gears
-    import AppData
+        pybind11::module::import ("AppData").attr ("initConfigParams") ();
 
-    AppData.initConfigParams()
+        pybind11::module gearsModule = pybind11::module::import ("GearsModule");
 
-    importlib.machinery.SourceFileLoader("my_module", "C:/Dev/gearsvk/src/UserInterface/Project/Sequences/stock.py").load_module()
-    importlib.machinery.SourceFileLoader("my_module", "C:/Dev/gearsvk/src/UserInterface/Project/Sequences/config.py").load_module()
-    importlib.machinery.SourceFileLoader("my_module", "C:/Dev/gearsvk/src/UserInterface/Project/Sequences/DefaultSequence.py").load_module()
+        pybind11::module machinery        = pybind11::module::import ("importlib.machinery");
+        pybind11::object sourceFileLoader = machinery.attr ("SourceFileLoader");
 
-    my_module = importlib.machinery.SourceFileLoader("my_module", "./Project/Sequences/4_MovingShapes/1_Bars/04_velocity400.pyx").load_module()
+        pybind11::object stock    = sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\stock.py");
+        pybind11::object config   = sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\config.py");
+        pybind11::object defaults = sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\DefaultSequence.py");
 
-    movingbar = my_module.create(None)
+        stock.attr ("load_module") ();
+        config.attr ("load_module") ();
+        defaults.attr ("load_module") ();
 
-    gears.setSequence(movingbar)
-    )");
+
+        pybind11::object sequenceCreator = sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\4_MovingShapes\\1_Bars\\04_velocity400.pyx").attr ("load_module") ();
+
+        pybind11::object sequence = sequenceCreator.attr ("create") (pybind11::none ());
+
+        Sequence::P& sequenceCpp = sequence.cast<Sequence::P> ();
+
+        auto window = HiddenGLFWWindow::Create ();
+        auto pres   = GetVkEnvironment ().CreatePresentable (*window);
+
+        SetRenderGraphFromSequence (sequenceCpp);
+
+        currentSeq->SetCurrentPresentable (pres);
+
+        RenderFrame (240);
+        RenderFrame (241);
+        RenderFrame (242);
+        RenderFrame (243);
+
+        auto imgs = pres->GetSwapchain ().GetImageObjects ();
+
+        ImageData img (*GetVkEnvironment ().deviceExtra, *imgs[0]);
+        img.SaveTo (PROJECT_ROOT / "asd.png");
+
+    } catch (std::exception& e) {
+        std::cout << e.what () << std::endl;
+    }
 }

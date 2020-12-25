@@ -3,7 +3,7 @@ from platform import system
 from numpy import matmul
 from numpy import array
 from numpy import linalg
-import Gears as gears
+import GearsModule as gears
 #from PyQt5.QtOpenGL import (QGLWidget, QGLFormat, QGLContext)
 
 ####################################################################

@@ -5,7 +5,7 @@ import AppData
 
 AppData.appDataDir = os.getcwd()
 
-import Gears as gears
+import GearsModule as gears
 import atexit
 import traceback
 from PyQt5.QtCore import (Qt, QCoreApplication, QUrl)

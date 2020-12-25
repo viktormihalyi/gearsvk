@@ -21,16 +21,21 @@ set (TARGET_DLL Gears)
 
 project (${PROJECT_NAME})
 
-find_package (Vulkan REQUIRED)
-find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
+execute_process (COMMAND
+    git submodule update --init --recursive)
 
-if (DEFINED CONAN_BUILDINFO_FILE)
-    include (${CONAN_BUILDINFO_FILE})
-else ()
-    include (${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-endif ()
+execute_process (COMMAND
+    conan install ${CMAKE_CURRENT_SOURCE_DIR}/conanfile.txt
+        --install-folder=${CMAKE_BINARY_DIR}
+        --build=missing
+        --settings build_type=${CMAKE_BUILD_TYPE})
+
+include (${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 
 conan_basic_setup ()
+
+find_package (Vulkan REQUIRED)
+find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 
 if (${Vulkan_FOUND})
     message ("Vulkan lib found at " ${Vulkan_LIBRARIES})
@@ -47,7 +52,7 @@ else ()
 endif ()
 
 if (MSVC)
-    set (COMPILER_FLAGS)
+    set (COMPILER_FLAGS /wd4251 /wd4244 /wd4267 /wd4275 /wd4099)
 else ()
     set (COMPILER_FLAGS -fPIC)
 endif ()
@@ -62,10 +67,6 @@ set (MSDFGEN_BUILD_MSDFGEN_STANDALONE OFF CACHE BOOL "" FORCE)
 add_subdirectory (external/msdfgen)
 # ============================================================
 
-set (GVK_UTILS_PUBLIC_HEADERS
-    Assert.hpp
-)
-
 set (GEARSVK_INCLUDE_FOLDERS
     src/GearsVk
     src/GearsVk/RenderGraph
@@ -75,6 +76,8 @@ set (GEARSVK_INCLUDE_FOLDERS
     src/GearsVk/VulkanWrapper
     src/GearsVk/VulkanWrapper/Utils
     src/Utils
+    src/Tests
+    src/GearsPYD
     
     # external libs
     ${Vulkan_INCLUDE_DIRS}
@@ -190,7 +193,9 @@ target_compile_definitions (${TARGET_LIB} PRIVATE
 target_compile_definitions (${TARGET_VIZHF} PRIVATE)
 target_compile_definitions (${TARGET_VIZHF2} PRIVATE)
 target_compile_definitions (${TARGET_TESTS} PRIVATE)
-target_compile_definitions (${TARGET_DLL} PRIVATE)
+target_compile_definitions (${TARGET_DLL} PRIVATE
+    GEARS_EXPORTS
+)
 
 target_include_directories (${TARGET_UTILS} PRIVATE src/Utils)
 target_include_directories (${TARGET_LIB} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
@@ -207,7 +212,7 @@ target_link_libraries (${TARGET_UTILS})
 target_link_libraries (${TARGET_LIB} ${TARGET_UTILS} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
 target_link_libraries (${TARGET_VIZHF} ${TARGET_LIB})
 target_link_libraries (${TARGET_VIZHF2} ${TARGET_LIB})
-target_link_libraries (${TARGET_TESTS} ${TARGET_LIB})
+target_link_libraries (${TARGET_TESTS} ${TARGET_LIB} ${TARGET_DLL})
 target_link_libraries (${TARGET_DLL} ${TARGET_LIB} ${Python3_LIBRARIES})
 
 target_compile_options (${TARGET_UTILS} PRIVATE ${COMPILER_FLAGS})
