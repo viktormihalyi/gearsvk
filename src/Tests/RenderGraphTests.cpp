@@ -760,20 +760,21 @@ void main () {
 
     s.connectionSet.Add (redFillOperation, presentedCopy,
                          RG::OutputBinding::Create (0,
-                             presentedCopy->GetFormatProvider (),
-                             presentedCopy->GetFinalLayout (),
-                             presentedCopy->GetLayerCount (),
-                             VK_ATTACHMENT_LOAD_OP_CLEAR,
-                             VK_ATTACHMENT_STORE_OP_STORE));
+                                                    presentedCopy->GetFormatProvider (),
+                                                    presentedCopy->GetFinalLayout (),
+                                                    presentedCopy->GetLayerCount (),
+                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                    VK_ATTACHMENT_STORE_OP_STORE));
 
     graph.Compile (s);
 
     BlockingGraphRenderer renderer (s, swapchain);
 
-    renderer.preSubmitEvent += [&] (RenderGraph&, uint32_t frameIndex, uint64_t) {
+    EventObserver obs;
+    obs.Observe (renderer.preSubmitEvent, [&] (RenderGraph&, uint32_t frameIndex, uint64_t) {
         float time = 0.5f;
         unif->GetMapping (frameIndex).Copy (time);
-    };
+    });
 
     window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, 10));
 

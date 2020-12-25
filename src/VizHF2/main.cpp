@@ -4,7 +4,6 @@
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
 #include "GraphSettings.hpp"
-#include "Logger.hpp"
 #include "MultithreadedFunction.hpp"
 #include "Noncopyable.hpp"
 #include "Operation.hpp"
@@ -147,7 +146,8 @@ int main (int, char**)
 
     bool quit = false;
 
-    window->events.keyPressed += [&] (uint32_t key) {
+    EventObserver obs;
+    obs.Observe (window->events.keyPressed, [&] (uint32_t key) {
         constexpr uint8_t ESC_CODE = 27;
         if (key == ESC_CODE) {
             // window->ToggleFullscreen ();
@@ -160,7 +160,7 @@ int main (int, char**)
             sp->Reload ();
             renderer.Recreate (graph);
         }
-    };
+    });
 
     refl[brainRenderOp][ShaderKind::Vertex]["Camera"]["VP"]   = glm::mat4 (1.f);
     refl[brainRenderOp][ShaderKind::Fragment]["Camera"]["VP"] = glm::mat4 (1.f);
@@ -279,8 +279,7 @@ int main (int, char**)
     refl[brainRenderOp][ShaderKind::Fragment]["Quadrics"] = quadrics;
     refl[brainRenderOp][ShaderKind::Fragment]["Lights"]   = lights;
 
-
-    renderer.preSubmitEvent += [&] (RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
+    obs.Observe (renderer.preSubmitEvent, [&] (RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
         TimePoint delta (deltaNs);
 
         const float dt = delta.AsSeconds ();
@@ -300,7 +299,7 @@ int main (int, char**)
         }
 
         refl.Flush (frameIndex);
-    };
+    });
 
     window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, [&] { return quit; }));
 }

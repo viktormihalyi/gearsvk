@@ -2,8 +2,10 @@
 
 #include "DeviceExtra.hpp"
 
+#pragma warning(push, 0)
 #include "stb_image.h"
 #include "stb_image_write.h"
+#pragma warning(pop)
 
 #include "VulkanUtils.hpp"
 
@@ -17,7 +19,11 @@ ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, uint32_
     if (currentLayout)
         TransitionImageLayout (device, image, *currentLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
-    Image2D dst (device.GetAllocator (), ImageBase::MemoryLocation::CPU, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
+    Image2D dst (device.GetAllocator (), ImageBase::MemoryLocation::CPU,
+                 image.GetWidth (), image.GetHeight (),
+                 // image.GetFormat (),
+                 VK_FORMAT_R8G8B8A8_SRGB,
+                 VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
 
     TransitionImageLayout (device, dst, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
@@ -165,4 +171,12 @@ void ImageData::UploadTo (const DeviceExtra& device, const ImageBase& image, std
 
     if (currentLayout)
         TransitionImageLayout (device, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *currentLayout);
+}
+
+
+void ImageData::ConvertBGRToRGB ()
+{
+    for (size_t i = 0; i < width * height; i += components) {
+        std::swap (data[i + 0], data[i + 2]);
+    }
 }

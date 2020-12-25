@@ -12,12 +12,12 @@ set (CONAN_DISABLE_CHECK_COMPILER ON CACHE BOOL "" FORCE)
 
 set (PROJECT_NAME GearsVk)
 
-set (TARGET_UTILS GVkUtils)
-set (TARGET_LIB GearsVk)
+set (TARGET_GVKUTILS GVkUtils)
+set (TARGET_GVKRG GVkRenderGraph)
 set (TARGET_VIZHF VizHF)
 set (TARGET_VIZHF2 VizHF2)
-set (TARGET_TESTS GearsVkTest)
-set (TARGET_DLL Gears)
+set (TARGET_TESTS GVkTest)
+set (TARGET_DLL GearsModule)
 
 project (${PROJECT_NAME})
 
@@ -87,9 +87,9 @@ set (GEARSVK_INCLUDE_FOLDERS
     external/msdfgen
 )
 
-add_library (${TARGET_UTILS} SHARED
+add_library (${TARGET_GVKUTILS} SHARED
     src/Utils/Assert.cpp
-    src/Utils/Logger.cpp
+    
     src/Utils/MessageBox.cpp
     src/Utils/SourceLocation.cpp
     src/Utils/Utils.cpp
@@ -98,7 +98,7 @@ add_library (${TARGET_UTILS} SHARED
     src/Utils/UUID.cpp
 )
 
-add_library (${TARGET_LIB} SHARED
+add_library (${TARGET_GVKRG} SHARED
     src/GearsVk/VulkanWrapper/Utils/VulkanUtils.cpp
     src/GearsVk/VulkanWrapper/Utils/BufferTransferable.cpp
     src/GearsVk/VulkanWrapper/Utils/ImageData.cpp
@@ -153,6 +153,7 @@ add_executable (${TARGET_TESTS}
     src/Tests/RenderGraphTests.cpp
     src/Tests/TestMain.cpp
     src/Tests/GearsTests.cpp
+    src/Tests/VizHFTests.cpp
 )
 
 add_library (${TARGET_DLL} SHARED
@@ -182,12 +183,11 @@ add_library (${TARGET_DLL} SHARED
     src/GearsPYD/gpu/TextureQueue.cpp
     src/GearsPYD/GearsAPIv2.cpp)
     
-target_compile_definitions (${TARGET_UTILS} PRIVATE
+target_compile_definitions (${TARGET_GVKUTILS} PRIVATE
     PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
     GVK_UTILS_EXPORTS
 )   
-target_compile_definitions (${TARGET_LIB} PRIVATE
-    PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+target_compile_definitions (${TARGET_GVKRG} PRIVATE
     GEARSVK_EXPORTS
 )
 target_compile_definitions (${TARGET_VIZHF} PRIVATE)
@@ -197,8 +197,8 @@ target_compile_definitions (${TARGET_DLL} PRIVATE
     GEARS_EXPORTS
 )
 
-target_include_directories (${TARGET_UTILS} PRIVATE src/Utils)
-target_include_directories (${TARGET_LIB} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
+target_include_directories (${TARGET_GVKUTILS} PRIVATE src/Utils)
+target_include_directories (${TARGET_GVKRG} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_VIZHF} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_VIZHF2} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_TESTS} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
@@ -208,15 +208,15 @@ target_include_directories (${TARGET_DLL} PRIVATE
 )
 
 
-target_link_libraries (${TARGET_UTILS})
-target_link_libraries (${TARGET_LIB} ${TARGET_UTILS} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
-target_link_libraries (${TARGET_VIZHF} ${TARGET_LIB})
-target_link_libraries (${TARGET_VIZHF2} ${TARGET_LIB})
-target_link_libraries (${TARGET_TESTS} ${TARGET_LIB} ${TARGET_DLL})
-target_link_libraries (${TARGET_DLL} ${TARGET_LIB} ${Python3_LIBRARIES})
+target_link_libraries (${TARGET_GVKUTILS})
+target_link_libraries (${TARGET_GVKRG} ${TARGET_GVKUTILS} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
+target_link_libraries (${TARGET_VIZHF} ${TARGET_GVKRG})
+target_link_libraries (${TARGET_VIZHF2} ${TARGET_GVKRG})
+target_link_libraries (${TARGET_TESTS} ${TARGET_GVKRG} ${TARGET_DLL})
+target_link_libraries (${TARGET_DLL} ${TARGET_GVKRG} ${Python3_LIBRARIES})
 
-target_compile_options (${TARGET_UTILS} PRIVATE ${COMPILER_FLAGS})
-target_compile_options (${TARGET_LIB} PRIVATE ${COMPILER_FLAGS})
+target_compile_options (${TARGET_GVKUTILS} PRIVATE ${COMPILER_FLAGS})
+target_compile_options (${TARGET_GVKRG} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_VIZHF} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_VIZHF2} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_TESTS} PRIVATE ${COMPILER_FLAGS})

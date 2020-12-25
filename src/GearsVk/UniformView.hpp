@@ -184,7 +184,7 @@ public:
         }
 
         const uint8_t* dataPtr = GetData ();
-        const uint32_t size = GetSize ();
+        const uint32_t size    = GetSize ();
 
         for (uint32_t byteIndex = 0; byteIndex < size; ++byteIndex) {
             if (dataPtr[byteIndex] != 0) {
@@ -313,13 +313,14 @@ public:
 
 USING_PTR (ShaderUData);
 class GEARSVK_API ShaderUData final : public Noncopyable {
+    USING_CREATE (ShaderUData);
+
 private:
     std::vector<IUDataU>     udatas;
     std::vector<std::string> uboNames;
     std::vector<SR::UBOP>    ubos;
 
 public:
-    USING_CREATE (ShaderUData);
     ShaderUData (const std::vector<SR::UBOP>& ubos)
         : ubos (ubos)
     {
@@ -357,18 +358,6 @@ public:
     }
 };
 
-USING_PTR (ShaderPipelineUData);
-struct GEARSVK_API ShaderPipelineUData {
-    ShaderUData vert;
-    ShaderUData frag;
-
-    USING_CREATE (ShaderPipelineUData);
-    ShaderPipelineUData (ShaderPipeline& pipeline)
-        : vert (pipeline.vertexShader)
-        , frag (pipeline.fragmentShader)
-    {
-    }
-};
 
 } // namespace SR
 

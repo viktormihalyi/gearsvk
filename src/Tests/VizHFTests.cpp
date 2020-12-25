@@ -36,6 +36,7 @@
 #include <set>
 #include <vector>
 
+#include "GoogleTestEnvironment.hpp"
 #include "UUID.hpp"
 #include "UniformView.hpp"
 
@@ -44,22 +45,17 @@
 #include <unordered_map>
 
 
+using VizHFTests = HiddenWindowGoogleTestEnvironment;
+
 const std::filesystem::path ShadersFolder = PROJECT_ROOT / "src" / "VizHF" / "shaders";
 
-int main (int, char**)
+TEST_F (VizHFTests, HF1)
 {
-    GearsVk::UUID id;
+    DeviceExtra& device        = *env->deviceExtra;
+    CommandPool& commandPool   = *env->commandPool;
+    Queue&       graphicsQueue = *env->graphicsQueue;
 
-    WindowU window = GLFWWindow::Create ();
-
-    VulkanEnvironmentU testenv = VulkanEnvironment::Create ();
-
-    DeviceExtra& device        = *testenv->deviceExtra;
-    CommandPool& commandPool   = *testenv->commandPool;
-    Queue&       graphicsQueue = *testenv->graphicsQueue;
-
-    PresentableP presentable = testenv->CreatePresentable (*window);
-    Swapchain&   swapchain   = presentable->GetSwapchain ();
+    Swapchain& swapchain = presentable->GetSwapchain ();
 
     Camera        c (glm::vec3 (-1, 0, 0.5f), glm::vec3 (1, 0.0f, 0), window->GetAspectRatio ());
     CameraControl cameraControl (c, window->events);
@@ -181,7 +177,6 @@ int main (int, char**)
     r[*brainRenderOp][ShaderKind::Vertex]["Camera"]["VP"]   = glm::mat4 (1.f);
     r[*brainRenderOp][ShaderKind::Fragment]["Camera"]["VP"] = glm::mat4 (1.f);
 
-
     obs.Observe (renderer.preSubmitEvent, [&] (RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
         TimePoint delta (deltaNs);
 
@@ -207,5 +202,14 @@ int main (int, char**)
         r.Flush (frameIndex);
     });
 
-    window->DoEventLoop (renderer.GetConditionalDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, [&] { return quit; }));
+    renderer.RenderNextRecreatableFrame (graph);
+    renderer.RenderNextRecreatableFrame (graph);
+    renderer.RenderNextRecreatableFrame (graph);
+    renderer.RenderNextRecreatableFrame (graph);
+    renderer.RenderNextRecreatableFrame (graph);
+    renderer.RenderNextRecreatableFrame (graph);
+
+    ImageData sw (GetDeviceExtra (), *swapchain.GetImageObjects ()[0], 0, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    sw.ConvertBGRToRGB ();
+    sw.SaveTo (PROJECT_ROOT / "asd.png");
 }

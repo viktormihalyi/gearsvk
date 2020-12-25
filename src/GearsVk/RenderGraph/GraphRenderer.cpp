@@ -52,11 +52,11 @@ BlockingGraphRenderer::BlockingGraphRenderer (GraphSettings& settings, Swapchain
 void BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph)
 {
     const uint32_t currentImageIndex = swapchain.GetNextImageIndex (s);
-    swapchainImageAcquiredEvent (currentImageIndex);
+    swapchainImageAcquiredEvent.Notify (currentImageIndex);
 
     {
         const TimePoint currentTime = TimePoint::SinceApplicationStart ();
-        preSubmitEvent (graph, currentImageIndex, currentTime - lastDrawTime);
+        preSubmitEvent.Notify (graph, currentImageIndex, currentTime - lastDrawTime);
         lastDrawTime = currentTime;
     }
 
@@ -108,7 +108,7 @@ void RecreatableGraphRenderer::Recreate (RenderGraph& graph)
     graph.CompileResources (settings);
     graph.Compile (settings);
 
-    recreateEvent ();
+    recreateEvent.Notify ();
 }
 
 
@@ -155,7 +155,7 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph
     std::cout << "waited for fence " << currentFrameIndex << " " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
     const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentFrameIndex]);
-    swapchainImageAcquiredEvent (currentImageIndex);
+    swapchainImageAcquiredEvent.Notify (currentImageIndex);
 
     std::cout << "acquired " << currentImageIndex << " " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
     // the image was last drawn by this frame, wait for its fence
@@ -177,7 +177,7 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph
 
     {
         const TimePoint currentTime = TimePoint::SinceApplicationStart ();
-        preSubmitEvent (graph, currentFrameIndex, currentTime - lastDrawTime);
+        preSubmitEvent.Notify (graph, currentFrameIndex, currentTime - lastDrawTime);
         lastDrawTime = currentTime;
         std::cout << "preSubmitEvent " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
     }

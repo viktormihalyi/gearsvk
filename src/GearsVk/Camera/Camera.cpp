@@ -1,5 +1,7 @@
 #include "Camera.hpp"
 
+#include "Assert.hpp"
+
 #include <algorithm>
 #include <iostream>
 #include <sstream>

@@ -6,7 +6,7 @@
 #include "InputState.hpp"
 #include "Window.hpp"
 
-class CameraControl {
+class CameraControl : public EventObserver {
 private:
     Camera&        camera;
     MouseState     mouse;
@@ -19,16 +19,16 @@ public:
     {
         using namespace std::placeholders;
 
-        windowEvents.mouseMove += std::bind (&CameraControl::ProcessMouseInput, this, _1, _2);
-        windowEvents.keyPressed += std::bind (&KeyboardState::SetPressed, keyboard.get (), _1);
-        windowEvents.keyReleased += std::bind (&KeyboardState::SetReleased, keyboard.get (), _1);
-        windowEvents.leftMouseButtonPressed += [&] (auto...) { mouse.leftButton = true; };
-        windowEvents.leftMouseButtonReleased += [&] (auto...) { mouse.leftButton = false; };
+        Observe (windowEvents.mouseMove, std::bind (&CameraControl::ProcessMouseInput, this, _1, _2));
+        Observe (windowEvents.keyPressed, std::bind (&KeyboardState::SetPressed, keyboard.get (), _1));
+        Observe (windowEvents.keyReleased, std::bind (&KeyboardState::SetReleased, keyboard.get (), _1));
+        Observe (windowEvents.leftMouseButtonPressed, [&] (auto...) { mouse.leftButton = true; });
+        Observe (windowEvents.leftMouseButtonReleased, [&] (auto...) { mouse.leftButton = false; });
 
-        windowEvents.resized += [&] (uint32_t width, uint32_t height) {
+        Observe (windowEvents.resized, [&] (uint32_t width, uint32_t height) {
             const float aspect = static_cast<float> (width) / height;
             camera.SetAspectRatio (aspect);
-        };
+        });
     }
 
     void UpdatePosition (float dt)

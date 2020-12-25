@@ -30,6 +30,8 @@ public:
 
     uint32_t GetByteCount () const;
 
+    void ConvertBGRToRGB ();
+
     void SaveTo (const std::filesystem::path& path) const;
     void UploadTo (const DeviceExtra& device, const ImageBase& image, std::optional<VkImageLayout> currentLayout = std::nullopt) const;
 };

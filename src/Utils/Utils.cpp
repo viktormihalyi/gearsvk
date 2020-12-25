@@ -1,7 +1,6 @@
 #include "Utils.hpp"
 #include "Assert.hpp"
 #include "BuildType.hpp"
-#include "Dummy.hpp"
 
 #include <cstring>
 #include <fstream>

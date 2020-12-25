@@ -45,7 +45,7 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 
 
 USING_PTR (UniformReflection);
-class GEARSVK_API UniformReflection final : public EventObserverClass {
+class GEARSVK_API UniformReflection final : public EventObserver {
     USING_CREATE (UniformReflection);
 
 private:

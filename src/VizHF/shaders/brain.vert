@@ -1,9 +1,5 @@
 #version 450
 
-layout (std140, binding = 0) uniform Time {
-    float time;
-} time;
-
 layout (std140, binding = 4) uniform Camera {
     mat4 viewMatrix;
     mat4 VP;

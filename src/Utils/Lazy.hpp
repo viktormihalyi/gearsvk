@@ -3,17 +3,15 @@
 
 #include <functional>
 
-#include "BuildType.hpp"
-
 template<typename T>
-struct Cache {
+struct Lazy {
 private:
     T                   value;
     bool                isValid;
     std::function<T ()> calculator;
 
 public:
-    Cache (const std::function<T ()>& calculator)
+    Lazy (const std::function<T ()>& calculator)
         : value ()
         , isValid (false)
         , calculator (calculator)
@@ -28,10 +26,6 @@ public:
 
     inline void Invalidate ()
     {
-        if constexpr (IsDebugBuild) {
-            value = T ();
-        }
-
         isValid = false;
     }
 

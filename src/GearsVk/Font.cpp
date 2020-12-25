@@ -1,7 +1,9 @@
 #include "Font.hpp"
 
+#pragma warning(push, 0)
 #include "msdfgen-ext.h"
 #include "msdfgen.h"
+#pragma warning(pop)
 
 #include "Assert.hpp"
 #include "ImageData.hpp"

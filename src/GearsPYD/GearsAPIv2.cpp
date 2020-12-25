@@ -247,7 +247,8 @@ private:
                 return;
             }
 
-            renderer->preSubmitEvent = [&] (RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
+            SingleEventObserver obs;
+            obs.Observe (renderer->preSubmitEvent, [&] (RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
                 for (auto& [pass, renderOp] : passToOperation) {
                     SetUniforms (renderOp->GetUUID (), frameIndex);
                 }
@@ -255,7 +256,7 @@ private:
                 reflection->PrintDebugInfo ();
 
                 reflection->Flush (swapchainImageIndex);
-            };
+            });
 
             renderer->RenderNextFrame (*renderGraph);
         }

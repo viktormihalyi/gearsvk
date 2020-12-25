@@ -3,11 +3,9 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "Assert.hpp"
-#include "Cache.hpp"
 #include "Event.hpp"
 #include "Frustum.hpp"
-#include "Persistent.hpp"
+#include "Lazy.hpp"
 
 #include "glmlib.hpp"
 
@@ -27,12 +25,10 @@ public:
     float pitch;
     float sensitivity;
 
-    // TODO test if the cached stuff is significantly slower or not
-
-    Cache<glm::mat4> viewMatrix;
-    Cache<glm::mat4> projectionMatrix;
-    Cache<glm::mat4> viewProjectionMatrix;
-    Cache<glm::mat4> rayDirMatrix;
+    Lazy<glm::mat4> viewMatrix;
+    Lazy<glm::mat4> projectionMatrix;
+    Lazy<glm::mat4> viewProjectionMatrix;
+    Lazy<glm::mat4> rayDirMatrix;
 
     void InvalidateMatrices ();
 
