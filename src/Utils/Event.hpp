@@ -179,8 +179,6 @@ public:
     template<typename... ARGS, typename Observer>
     void Observe (Event<ARGS...>& ev, Observer observer)
     {
-        // TODO check if observer is already disconnected because event is destructed
-
         auto it = std::find (observedEvents.begin (), observedEvents.end (), &ev);
         if (GVK_ERROR (it != observedEvents.end ())) {
             // event already observed
@@ -195,8 +193,6 @@ public:
 
     void Disconnect (IEvent& ev)
     {
-        // TODO check if observer is already disconnected because event is destructed
-
         auto it = std::find (observedEvents.begin (), observedEvents.end (), &ev);
         if (GVK_ERROR (it == observedEvents.end ())) {
             // event not observed
@@ -226,8 +222,6 @@ public:
     template<typename... ARGS, typename Observer>
     void Observe (Event<ARGS...>& ev, Observer observerCallback)
     {
-        // TODO check if observer is already disconnected because event is destructed
-
         if (GVK_ERROR (observedEvent != nullptr)) {
             return;
         }
@@ -240,8 +234,6 @@ public:
 
     void Disconnect ()
     {
-        // TODO check if observer is already disconnected because event is destructed
-
         if (GVK_ERROR (observedEvent == nullptr)) {
             return;
         }
