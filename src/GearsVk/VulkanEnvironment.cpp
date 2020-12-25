@@ -46,18 +46,21 @@ void Presentable::Clear ()
 constexpr uint32_t LogColumnWidth = 36;
 
 
-void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
-                        VkDebugUtilsMessageTypeFlagsEXT,
+void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      severity,
+                        VkDebugUtilsMessageTypeFlagsEXT             messageType,
                         const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
     using namespace TerminalColors;
-    std::cout << callbackData->pMessage << std::endl
-              << std::endl;
-    //std::cout << RED << "validation layer: "
-    //          << YELLOW << callbackData->pMessageIdName << ": "
-    //          << RESET << callbackData->pMessage
-    //          << std::endl
-    //          << std::endl;
+
+    if (severity > VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
+        std::cout << callbackData->pMessage << std::endl
+                  << std::endl;
+        //std::cout << RED << "validation layer: "
+        //          << YELLOW << callbackData->pMessageIdName << ": "
+        //          << RESET << callbackData->pMessage
+        //          << std::endl
+        //          << std::endl;
+    }
 }
 
 

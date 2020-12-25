@@ -550,7 +550,7 @@ void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
 
         pybind11::object sequence = sequenceCreator.attr ("create") (pybind11::none ());
 
-        Sequence::P& sequenceCpp = sequence.cast<Sequence::P> ();
+        Sequence::P sequenceCpp = sequence.cast<Sequence::P> ();
 
         auto window = HiddenGLFWWindow::Create ();
         auto pres   = GetVkEnvironment ().CreatePresentable (*window);
