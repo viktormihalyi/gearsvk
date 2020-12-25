@@ -31,5 +31,5 @@ script:
   - export CXX=/usr/bin/g++-9
   - mkdir build
   - cd build
-  - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.6
+  - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DCMAKE_BUILD_TYPE=Debug
   - make VERBOSE=1
