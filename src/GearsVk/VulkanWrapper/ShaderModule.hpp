@@ -72,6 +72,7 @@ public:
     struct Reflection {
         std::vector<SR::UBOP>    ubos;
         std::vector<SR::Sampler> samplers;
+        std::vector<SR::Input>   inputs;
         std::vector<SR::Output>  outputs;
 
         Reflection (const std::vector<uint32_t>& binary);

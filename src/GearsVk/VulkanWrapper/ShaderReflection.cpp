@@ -598,6 +598,85 @@ std::vector<Output> GetOutputsFromBinary (const std::vector<uint32_t>& binary)
 }
 
 
+static VkFormat FieldTypeToVkFormat (FieldType fieldType)
+{
+    switch (fieldType) {
+        case FieldType::Bool:
+        case FieldType::Uint: return VK_FORMAT_R32_UINT;
+        case FieldType::Int: return VK_FORMAT_R32_SINT;
+        case FieldType::Float: return VK_FORMAT_R32_SFLOAT;
+        case FieldType::Double: return VK_FORMAT_R64_SFLOAT;
+
+        case FieldType::Uvec2:
+        case FieldType::Bvec2: return VK_FORMAT_R32G32_UINT;
+        case FieldType::Mat2x2:
+        case FieldType::Mat3x2:
+        case FieldType::Mat4x2:
+        case FieldType::Vec2: return VK_FORMAT_R32G32_SFLOAT;
+        case FieldType::Dmat2x2:
+        case FieldType::Dmat3x2:
+        case FieldType::Dmat4x2:
+        case FieldType::Dvec2: return VK_FORMAT_R64G64_SFLOAT;
+
+        case FieldType::Uvec3:
+        case FieldType::Bvec3: return VK_FORMAT_R32G32B32_UINT;
+        case FieldType::Mat2x3:
+        case FieldType::Mat3x3:
+        case FieldType::Mat4x3:
+        case FieldType::Vec3: return VK_FORMAT_R32G32B32_SFLOAT;
+        case FieldType::Dmat2x3:
+        case FieldType::Dmat3x3:
+        case FieldType::Dmat4x3:
+        case FieldType::Dvec3: return VK_FORMAT_R64G64B64_SFLOAT;
+
+        case FieldType::Uvec4:
+        case FieldType::Bvec4: return VK_FORMAT_R32G32B32A32_UINT;
+        case FieldType::Mat2x4:
+        case FieldType::Mat3x4:
+        case FieldType::Mat4x4:
+        case FieldType::Vec4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case FieldType::Dmat2x4:
+        case FieldType::Dmat3x4:
+        case FieldType::Dmat4x4:
+        case FieldType::Dvec4: return VK_FORMAT_R64G64B64A64_SFLOAT;
+
+        default:
+            GVK_BREAK ("no");
+            throw std::runtime_error ("unable to convert FieldType to VkFormat");
+    }
+}
+
+
+std::vector<Input> GetInputsFromBinary (const std::vector<uint32_t>& binary)
+{
+    spirv_cross::Compiler compiler (binary);
+
+    const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
+
+    std::vector<SR::Input> result;
+
+    for (auto& resource : resources.stage_inputs) {
+        AllDecorations decorations (compiler, resource.id);
+        auto           type = compiler.get_type (resource.type_id);
+
+        Input inp;
+
+        inp.name      = resource.name;
+        inp.location  = *decorations.Location;
+        inp.type      = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
+        inp.arraySize = !type.array.empty () ? type.array[0] : 0;
+
+        result.push_back (inp);
+    }
+
+    std::sort (result.begin (), result.end (), [] (const SR::Input& first, const SR::Input& second) {
+        return first.location < second.location;
+    });
+
+    return result;
+}
+
+
 static SR::Sampler::Type SpvDimToSamplerType (spv::Dim dim)
 {
     switch (dim) {

@@ -255,6 +255,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
     return spirvBinary;
 }
 
+
 static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource_, const ShaderKindInfo& shaderKind, ShaderPreprocessor& preprocessor)
 {
     const std::string shaderSource = preprocessor.Preprocess (shaderSource_);
@@ -411,6 +412,7 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 ShaderModule::Reflection::Reflection (const std::vector<uint32_t>& binary)
     : ubos (SR::GetUBOsFromBinary (binary))
     , samplers (SR::GetSamplersFromBinary (binary))
+    , inputs (SR::GetInputsFromBinary (binary))
     , outputs (SR::GetOutputsFromBinary (binary))
 {
 }
