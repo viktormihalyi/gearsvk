@@ -32,8 +32,3 @@ or
 ```
 ./BuildRelease.sh
 ```
-
-**Note:** You may need to specify the Python location for CMake:
-```
-cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.7
-```
