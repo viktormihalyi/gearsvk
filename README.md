@@ -6,40 +6,32 @@ git submodule update --init
 ```
 Also:
 * Vulkan SDK: https://vulkan.lunarg.com/sdk/home
-* Python 3
+* Python 3 (64 bit)
 * conan (`pip install conan`)
 
 ## Building on Windows with MSVC
-You will need [CMake](https://cmake.org/download/) and the Developer Command Prompt for Visual Studio:
+You will need [CMake](https://cmake.org/download/) and the Developer Command Prompt (x64) for Visual Studio:
 
 ```
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-mkdir build
-conan install ..
-cd build
-cmake ..
-msbuild ALL_BUILD.vcxproj -property:Configuration=Release
+./BuildDebug.bat
 ```
-
-**Note:** For building only specific components replace `ALL_BUILD` with the components name.
+or
+```
+./BuildRelease.bat
+```
 
 **Note:** You can also just open the project folder with Visual Studio and build from there.
-
-**Note:** For building a debug version, use `conan install .. -s build_type=Debug`.
 
 ## Building on Linux
 For installing the Vulkan SDK on Ubuntu see: https://vulkan.lunarg.com/doc/sdk/latest/linux/getting_started_ubuntu.html
 
 ```
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-mkdir build
-cd build
-conan install ..
-cmake ..
-make
+./BuildDebug.sh
 ```
-
-**Note:** For building only specific components type name of the component after `make`.
+or
+```
+./BuildRelease.sh
+```
 
 **Note:** You may need to specify the Python location for CMake:
 ```
