@@ -4,38 +4,29 @@
 namespace RG {
 
 
-std::vector<VkAttachmentDescription> RenderOperation::GetAttachmentDescriptions (const ConnectionSet& conncetionSet) const
+std::vector<VkAttachmentDescription> RenderOperation::GetAttachmentDescriptions (const ConnectionSet& connectionSet) const
 {
     std::vector<VkAttachmentDescription> result;
 
-    IConnectionBindingVisitorFn visitor (
-        [] (UniformInputBinding&) {},
-        [] (ImageInputBinding&) {},
-        [&] (OutputBinding& binding) {
-            for (auto& a : binding.GetAttachmentDescriptions ()) {
-                result.push_back (a);
-            }
-        });
-
-    conncetionSet.VisitOutputsOf (this, visitor);
+    connectionSet.ProcessOutputBindingsOf (this, [&] (const IConnectionBinding& binding) {
+        for (auto& a : binding.GetAttachmentDescriptions ()) {
+            result.push_back (a);
+        }
+    });
 
     return result;
 }
 
-std::vector<VkAttachmentReference> RenderOperation::GetAttachmentReferences (const ConnectionSet& conncetionSet) const
+
+std::vector<VkAttachmentReference> RenderOperation::GetAttachmentReferences (const ConnectionSet& connectionSet) const
 {
     std::vector<VkAttachmentReference> result;
 
-    IConnectionBindingVisitorFn visitor (
-        [] (UniformInputBinding&) {},
-        [] (ImageInputBinding&) {},
-        [&] (OutputBinding& binding) {
-            for (auto& a : binding.GetAttachmentReferences ()) {
-                result.push_back (a);
-            }
-        });
-
-    conncetionSet.VisitOutputsOf (this, visitor);
+    connectionSet.ProcessOutputBindingsOf (this, [&] (const IConnectionBinding& binding) {
+        for (auto& a : binding.GetAttachmentReferences ()) {
+            result.push_back (a);
+        }
+    });
 
     return result;
 }
@@ -80,33 +71,13 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 {
     compileResult.Clear ();
 
-    std::vector<VkDescriptorSetLayoutBinding> layout;
-
-    IConnectionBindingVisitorFn layoutBindingGatherer (
-        [&] (const UniformInputBinding& binding) {
-            layout.push_back (binding.ToDescriptorSetLayoutBinding ());
-        },
-        [&] (const ImageInputBinding& binding) {
-            layout.push_back (binding.ToDescriptorSetLayoutBinding ());
-        },
-        [] (const OutputBinding& binding) {});
-
-    graphSettings.connectionSet.VisitInputsOf (this, layoutBindingGatherer);
-
-    compileResult.descriptorSetLayout = DescriptorSetLayout::Create (graphSettings.GetDevice (), layout);
+    compileResult.descriptorSetLayout = compileSettings.pipeline->CreateDescriptorSetLayout (graphSettings.GetDevice ());
 
     uint32_t s = 0;
 
-    IConnectionBindingVisitorFn layerCountAdder (
-        [&] (const UniformInputBinding& binding) {
-            s += binding.GetLayerCount ();
-        },
-        [&] (const ImageInputBinding& binding) {
-            s += binding.GetLayerCount ();
-        },
-        [] (const OutputBinding& binding) {});
-
-    graphSettings.connectionSet.VisitInputsOf (this, layerCountAdder);
+    graphSettings.connectionSet.ProcessInputBindingsOf (this, [&] (const IConnectionBinding& binding) {
+        s += binding.GetLayerCount ();
+    });
 
     s *= graphSettings.framesInFlight;
 
@@ -116,17 +87,9 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
             DescriptorSetU descriptorSet = DescriptorSet::Create (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
-            IConnectionBindingVisitorFn layerCountAdder (
-                [&] (const UniformInputBinding& binding) {
-                    binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);
-                },
-                [&] (const ImageInputBinding& binding) {
-                    binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);
-                },
-                [] (const OutputBinding& binding) {});
-
-            graphSettings.connectionSet.VisitInputsOf (this, layerCountAdder);
-
+            graphSettings.connectionSet.ProcessInputBindingsOf (this, [&] (const IConnectionBinding& binding) {
+                binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);
+            });
 
             compileResult.descriptorSets.push_back (std::move (descriptorSet));
         }
@@ -148,8 +111,6 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
                                                          *compileResult.descriptorSetLayout,
                                                          attachmentReferences,
                                                          attachmentDescriptions,
-                                                         compileSettings.vertexAttributeProvider->GetBindings (),
-                                                         compileSettings.vertexAttributeProvider->GetAttributes (),
                                                          compileSettings.topology };
 
     compileSettings.pipeline->Compile (pipelineSettigns);
@@ -167,16 +128,9 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t frame
 {
     uint32_t outputCount = 0;
 
-    IConnectionBindingVisitorFn outputCounter (
-        [] (const UniformInputBinding&) {
-        },
-        [] (const ImageInputBinding&) {
-        },
-        [&] (const OutputBinding& binding) {
-            outputCount += binding.layerCount;
-        });
-
-    connectionSet.VisitOutputsOf (this, outputCounter);
+    connectionSet.ProcessOutputBindingsOf (this, [&] (const IConnectionBinding& binding) {
+        outputCount += binding.GetLayerCount ();
+    });
 
 
     VkClearValue              clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };

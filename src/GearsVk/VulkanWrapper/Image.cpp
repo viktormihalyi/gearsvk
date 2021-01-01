@@ -62,6 +62,21 @@ ImageBase::ImageBase (VmaAllocator      allocator,
 }
 
 
+ImageBase::ImageBase (ImageBuilder& imageBuilder)
+    : ImageBase (imageBuilder.allocator,
+                 *imageBuilder.imageType,
+                 *imageBuilder.width,
+                 *imageBuilder.height,
+                 *imageBuilder.depth,
+                 *imageBuilder.format,
+                 *imageBuilder.tiling,
+                 imageBuilder.usage,
+                 *imageBuilder.arrayLayers,
+                 *imageBuilder.loc)
+{
+}
+
+
 ImageBase::~ImageBase ()
 {
     if (handle == VK_NULL_HANDLE) {

@@ -201,6 +201,7 @@ struct GEARSVK_API Input {
     uint32_t      location;
     SR::FieldType type;
     uint32_t      arraySize; // 0 for non-arrays
+    uint32_t      sizeInBytes;
 };
 
 
@@ -215,6 +216,13 @@ std::vector<Input> GetInputsFromBinary (const std::vector<uint32_t>& binary);
 
 GEARSVK_API
 std::vector<Output> GetOutputsFromBinary (const std::vector<uint32_t>& binary);
+
+GEARSVK_API
+VkFormat FieldTypeToVkFormat (FieldType fieldType);
+
+GEARSVK_API
+VkFormat FieldTypeToVkFormat (FieldType fieldType);
+
 
 } // namespace SR
 

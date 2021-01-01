@@ -87,6 +87,25 @@ public:
         }
     }
 
+    template<typename Processor>
+    void ProcessInputBindingsOf (const Node* node, const Processor& processor) const
+    {
+        for (const ConnectionU& c : connections) {
+            if (c->to.get () == node) {
+                processor (*c->binding);
+            }
+        }
+    }
+    template<typename Processor>
+    void ProcessOutputBindingsOf (const Node* node, const Processor& processor) const
+    {
+        for (const ConnectionU& c : connections) {
+            if (c->from.get () == node) {
+                processor (*c->binding);
+            }
+        }
+    }
+
     void VisitInputsOf (const Node* node, IConnectionBindingVisitor& visitor) const
     {
         for (const ConnectionU& c : connections) {
@@ -95,6 +114,7 @@ public:
             }
         }
     }
+
 
     void Add (const NodeP& from, const NodeP& to, IConnectionBindingU&& binding)
     {

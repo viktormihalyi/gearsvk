@@ -10,15 +10,14 @@
 #include "VulkanObject.hpp"
 
 USING_PTR (DescriptorSetLayout);
-
 class GEARSVK_API DescriptorSetLayout : public VulkanObject {
+    USING_CREATE (DescriptorSetLayout);
+
 private:
     const VkDevice        device;
     VkDescriptorSetLayout handle;
 
 public:
-    USING_CREATE (DescriptorSetLayout);
-
     DescriptorSetLayout (VkDevice device, const std::vector<VkDescriptorSetLayoutBinding>& bindings)
         : device (device)
         , handle (VK_NULL_HANDLE)
@@ -39,6 +38,13 @@ public:
         if (GVK_ERROR (vkCreateDescriptorSetLayout (device, &layoutInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create descriptor set layout!");
         }
+    }
+
+    DescriptorSetLayout (DescriptorSetLayout&& other)
+        : device (other.device)
+        , handle (other.handle)
+    {
+        other.handle = VK_NULL_HANDLE;
     }
 
     virtual ~DescriptorSetLayout () override

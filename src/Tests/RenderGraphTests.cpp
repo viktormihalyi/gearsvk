@@ -701,10 +701,6 @@ void main() {
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout (binding = 0) uniform Time {
-    float time;
-} time;
-
 layout (location = 1) in float asdout;
 layout (location = 0) in vec2 uv;
 

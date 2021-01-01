@@ -138,6 +138,11 @@ void ShaderPipeline::Compile (const CompileSettings& settings)
     compileSettings = settings;
     compileResult.Clear ();
 
+    const auto instancedVertexProvider = [] (const std::string&) { return false; };
+
+    const std::vector<VkVertexInputAttributeDescription> attribs  = vertexShader->GetReflection ().GetVertexAttributes (instancedVertexProvider);
+    const std::vector<VkVertexInputBindingDescription>   bindings = vertexShader->GetReflection ().GetVertexBindings (instancedVertexProvider);
+
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount = static_cast<uint32_t> (settings.attachmentReferences.size ());
@@ -151,18 +156,9 @@ void ShaderPipeline::Compile (const CompileSettings& settings)
     //dependency.dstStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     //dependency.dstAccessMask       = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-    VkRenderPassCreateInfo renderPassInfo = {};
-    renderPassInfo.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount        = static_cast<uint32_t> (settings.attachmentDescriptions.size ());
-    renderPassInfo.pAttachments           = settings.attachmentDescriptions.data ();
-    renderPassInfo.subpassCount           = 1;
-    renderPassInfo.pSubpasses             = &subpass;
-    renderPassInfo.dependencyCount        = 0; //1;
-    renderPassInfo.pDependencies          = nullptr; //&dependency;
-
-    compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, { subpass }, {  }));
+    compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, { subpass }, { /* dependency */ }));
     compileResult.pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, { settings.layout }));
-    compileResult.pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, settings.width, settings.height, static_cast<uint32_t> (settings.attachmentReferences.size ()), *compileResult.pipelineLayout, *compileResult.renderPass, GetShaderStages (), settings.inputBindings, settings.inputAttributes, settings.topology));
+    compileResult.pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, settings.width, settings.height, static_cast<uint32_t> (settings.attachmentReferences.size ()), *compileResult.pipelineLayout, *compileResult.renderPass, GetShaderStages (), bindings, attribs, settings.topology));
 }
 
 
@@ -228,4 +224,17 @@ void ShaderPipeline::IterateShaders (const std::function<void (ShaderModule&)>& 
     if (computeShader) {
         func (*computeShader);
     }
+}
+
+
+DescriptorSetLayoutU ShaderPipeline::CreateDescriptorSetLayout (VkDevice device) const
+{
+    std::vector<VkDescriptorSetLayoutBinding> layout;
+
+    IterateShaders ([&] (ShaderModule& shaderModule) {
+        auto layoutPart = shaderModule.GetReflection ().GetLayout ();
+        layout.insert (layout.end (), layoutPart.begin (), layoutPart.end ());
+    });
+
+    return DescriptorSetLayout::Create (device, layout);
 }

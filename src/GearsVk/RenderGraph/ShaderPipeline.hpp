@@ -25,20 +25,19 @@ public:
     ShaderModuleU tessellationControlShader;
     ShaderModuleU computeShader;
 
+
     ShaderModuleU& GetShaderByIndex (uint32_t index);
     ShaderModuleU& GetShaderByExtension (const std::string& extension);
     ShaderModuleU& GetShaderByKind (ShaderKind kind);
 
 public:
     struct CompileSettings {
-        uint32_t                                       width;
-        uint32_t                                       height;
-        VkDescriptorSetLayout                          layout;
-        std::vector<VkAttachmentReference>             attachmentReferences;
-        std::vector<VkAttachmentDescription>           attachmentDescriptions;
-        std::vector<VkVertexInputBindingDescription>   inputBindings;
-        std::vector<VkVertexInputAttributeDescription> inputAttributes;
-        VkPrimitiveTopology                            topology;
+        uint32_t                             width;
+        uint32_t                             height;
+        VkDescriptorSetLayout                layout;
+        std::vector<VkAttachmentReference>   attachmentReferences;
+        std::vector<VkAttachmentDescription> attachmentDescriptions;
+        VkPrimitiveTopology                  topology;
     };
 
 
@@ -78,6 +77,8 @@ public:
     void IterateShaders (const std::function<void (ShaderModule&)>& func) const;
 
     std::vector<VkPipelineShaderStageCreateInfo> GetShaderStages () const;
+
+    DescriptorSetLayoutU CreateDescriptorSetLayout (VkDevice device) const;
 };
 
 #endif

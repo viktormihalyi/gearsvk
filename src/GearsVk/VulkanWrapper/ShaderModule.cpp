@@ -323,7 +323,7 @@ ShaderModule::ShaderModule (ShaderKind                   shaderKind,
     , handle (handle)
     , fileLocation (fileLocation)
     , binary (binary)
-    , reflection (binary)
+    , reflection (shaderKind, binary)
     , sourceCode (sourceCode)
     , preprocessor (preprocessor)
 {
@@ -409,12 +409,178 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 }
 
 
-ShaderModule::Reflection::Reflection (const std::vector<uint32_t>& binary)
-    : ubos (SR::GetUBOsFromBinary (binary))
+ShaderModule::Reflection::Reflection (ShaderKind shaderKind, const std::vector<uint32_t>& binary)
+    : shaderKind (shaderKind)
+    , ubos (SR::GetUBOsFromBinary (binary))
     , samplers (SR::GetSamplersFromBinary (binary))
     , inputs (SR::GetInputsFromBinary (binary))
     , outputs (SR::GetOutputsFromBinary (binary))
 {
+}
+
+
+std::vector<VkDescriptorSetLayoutBinding>
+ShaderModule::Reflection::GetLayout () const
+{
+    std::vector<VkDescriptorSetLayoutBinding> result;
+
+    const auto shaderKindToShaderStage = [] (ShaderKind shaderKind) -> VkShaderStageFlags {
+        switch (shaderKind) {
+            case ShaderKind::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
+            case ShaderKind::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
+            case ShaderKind::Geometry: return VK_SHADER_STAGE_GEOMETRY_BIT;
+            case ShaderKind::TessellationControl: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+            case ShaderKind::TessellationEvaluation: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+            case ShaderKind::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
+            default: GVK_BREAK ("unexpected shaderkind type"); return VK_SHADER_STAGE_ALL;
+        }
+    };
+
+    for (const SR::Sampler& sampler : samplers) {
+        VkDescriptorSetLayoutBinding bin = {};
+        bin.binding                      = sampler.binding;
+        bin.descriptorType               = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        bin.descriptorCount              = sampler.arraySize == 0 ? 1 : sampler.arraySize;
+        bin.stageFlags                   = shaderKindToShaderStage (shaderKind);
+        bin.pImmutableSamplers           = nullptr;
+        result.push_back (bin);
+    }
+
+    for (const SR::UBOP& ubo : ubos) {
+        VkDescriptorSetLayoutBinding bin = {};
+        bin.binding                      = ubo->binding;
+        bin.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        bin.descriptorCount              = 1;
+        bin.stageFlags                   = shaderKindToShaderStage (shaderKind);
+        bin.pImmutableSamplers           = nullptr;
+        result.push_back (bin);
+    }
+
+    return result;
+}
+
+
+std::vector<VkWriteDescriptorSet>
+ShaderModule::Reflection::GetDescriptorWrites (
+    VkDescriptorSet                                                            dstSet,
+    const std::function<VkDescriptorImageInfo (const SR::Sampler&, uint32_t)>& imageInfoProvider,
+    const std::function<VkDescriptorBufferInfo (const SR::UBO&)>&              bufferInfoProvider) const
+{
+    std::vector<VkWriteDescriptorSet> result;
+
+    for (const SR::Sampler& sampler : samplers) {
+        std::vector<VkDescriptorImageInfo> imgInfos;
+
+        const uint32_t layerCount = sampler.arraySize == 0 ? 1 : sampler.arraySize;
+        for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
+            imgInfos.push_back (imageInfoProvider (sampler, layerIndex));
+        }
+
+        VkWriteDescriptorSet write = {};
+        write.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write.dstSet               = dstSet;
+        write.dstBinding           = sampler.binding;
+        write.dstArrayElement      = 0;
+        write.descriptorType       = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        write.descriptorCount      = static_cast<uint32_t> (imgInfos.size ());
+        write.pBufferInfo          = nullptr;
+        write.pImageInfo           = imgInfos.empty () ? nullptr : imgInfos.data ();
+        write.pTexelBufferView     = nullptr;
+
+        result.push_back (write);
+    }
+
+    for (const SR::UBOP& ubo : ubos) {
+        const VkDescriptorBufferInfo bufferInfo = bufferInfoProvider (*ubo);
+
+        VkWriteDescriptorSet write = {};
+        write.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write.dstSet               = dstSet;
+        write.dstBinding           = ubo->binding;
+        write.dstArrayElement      = 0;
+        write.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        write.descriptorCount      = 1;
+        write.pBufferInfo          = &bufferInfo;
+        write.pImageInfo           = nullptr;
+        write.pTexelBufferView     = nullptr;
+
+        result.push_back (write);
+    }
+
+    return result;
+}
+
+
+std::vector<VkVertexInputAttributeDescription> ShaderModule::Reflection::GetVertexAttributes (const std::function<bool (const std::string&)>& IsInputInstanced) const
+{
+    GVK_ASSERT (shaderKind == ShaderKind::Vertex);
+
+    std::vector<VkVertexInputAttributeDescription> result;
+
+    uint32_t currentOffsetVertex   = 0;
+    uint32_t currentOffsetInstance = 0;
+
+    for (const SR::Input& input : inputs) {
+        VkVertexInputAttributeDescription attrib = {};
+        attrib.binding                           = 0;
+        attrib.location                          = input.location;
+        attrib.format                            = FieldTypeToVkFormat (input.type);
+
+        if (IsInputInstanced (input.name)) {
+            attrib.offset = currentOffsetInstance;
+            currentOffsetInstance += input.sizeInBytes;
+        } else {
+            attrib.offset = currentOffsetVertex;
+            currentOffsetVertex += input.sizeInBytes;
+        }
+
+        result.push_back (attrib);
+    }
+
+    return result;
+}
+
+
+std::vector<VkVertexInputBindingDescription> ShaderModule::Reflection::GetVertexBindings (const std::function<bool (const std::string&)>& IsInputInstanced) const
+{
+    GVK_ASSERT (shaderKind == ShaderKind::Vertex);
+
+    if (inputs.empty ()) {
+        return {};
+    }
+
+    std::vector<VkVertexInputBindingDescription> result;
+
+    uint32_t fullSizeVertex   = 0;
+    uint32_t fullSizeInstance = 0;
+
+    for (const SR::Input& input : inputs) {
+        if (IsInputInstanced (input.name)) {
+            fullSizeInstance += input.sizeInBytes;
+        } else {
+            fullSizeVertex += input.sizeInBytes;
+        }
+    }
+
+    {
+        VkVertexInputBindingDescription bindingDescription = {};
+        bindingDescription                                 = {};
+        bindingDescription.binding                         = 0;
+        bindingDescription.stride                          = fullSizeVertex;
+        bindingDescription.inputRate                       = VK_VERTEX_INPUT_RATE_VERTEX;
+        result.push_back (bindingDescription);
+    }
+
+    if (fullSizeInstance > 0) {
+        VkVertexInputBindingDescription bindingDescription = {};
+        bindingDescription                                 = {};
+        bindingDescription.binding                         = 0;
+        bindingDescription.stride                          = fullSizeInstance;
+        bindingDescription.inputRate                       = VK_VERTEX_INPUT_RATE_INSTANCE;
+        result.push_back (bindingDescription);
+    }
+
+    return result;
 }
 
 
@@ -437,7 +603,7 @@ void ShaderModule::Reload ()
 
         binary = *newBinary;
 
-        reflection = Reflection (binary);
+        reflection = Reflection (shaderKind, binary);
 
         sourceCode = *fileContents;
 
@@ -455,7 +621,7 @@ void ShaderModule::Reload ()
 
         handle = CreateShaderModule (device, *binaryC);
 
-        reflection = Reflection (binary);
+        reflection = Reflection (shaderKind, binary);
 
         binary = code;
 

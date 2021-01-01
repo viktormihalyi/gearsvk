@@ -70,12 +70,24 @@ public:
     };
 
     struct Reflection {
+        ShaderKind shaderKind;
+
         std::vector<SR::UBOP>    ubos;
         std::vector<SR::Sampler> samplers;
         std::vector<SR::Input>   inputs;
         std::vector<SR::Output>  outputs;
 
-        Reflection (const std::vector<uint32_t>& binary);
+        Reflection (ShaderKind shaderKind, const std::vector<uint32_t>& binary);
+
+        std::vector<VkWriteDescriptorSet> GetDescriptorWrites (
+            VkDescriptorSet                                                            dstSet,
+            const std::function<VkDescriptorImageInfo (const SR::Sampler&, uint32_t)>& imageInfoProvider,
+            const std::function<VkDescriptorBufferInfo (const SR::UBO&)>&              bufferInfoProvider) const;
+
+        std::vector<VkDescriptorSetLayoutBinding> GetLayout () const;
+
+        std::vector<VkVertexInputAttributeDescription> GetVertexAttributes (const std::function<bool (const std::string&)>& instanceNameProvider) const;
+        std::vector<VkVertexInputBindingDescription>   GetVertexBindings (const std::function<bool (const std::string&)>& instanceNameProvider) const;
     };
 
 private:

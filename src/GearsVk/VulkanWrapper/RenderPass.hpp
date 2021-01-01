@@ -37,7 +37,7 @@ public:
         }
     }
 
-    ~RenderPass ()
+    virtual ~RenderPass () override
     {
         vkDestroyRenderPass (device, handle, nullptr);
         handle = VK_NULL_HANDLE;

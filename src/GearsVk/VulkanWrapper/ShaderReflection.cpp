@@ -395,6 +395,31 @@ static std::string BaseTypeToString (spirv_cross::SPIRType::BaseType b)
     }
 };
 
+
+static uint32_t BaseTypeToByteSize (spirv_cross::SPIRType::BaseType b)
+{
+    using BaseType = spirv_cross::SPIRType::BaseType;
+
+    uint32_t baseTypeSize = 0;
+    switch (b) {
+        case BaseType::Boolean:
+        case BaseType::Float:
+        case BaseType::Int:
+        case BaseType::UInt:
+            return 4;
+
+        case BaseType::Double:
+            return 8;
+    }
+}
+
+
+static uint32_t BaseTypeNMToByteSize (spirv_cross::SPIRType::BaseType b, uint32_t vecSize, uint32_t columns)
+{
+    return BaseTypeToByteSize (b) * vecSize * columns;
+}
+
+
 static SR::FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uint32_t vecSize, uint32_t columns)
 {
     using BaseType = spirv_cross::SPIRType::BaseType;
@@ -598,7 +623,7 @@ std::vector<Output> GetOutputsFromBinary (const std::vector<uint32_t>& binary)
 }
 
 
-static VkFormat FieldTypeToVkFormat (FieldType fieldType)
+VkFormat FieldTypeToVkFormat (FieldType fieldType)
 {
     switch (fieldType) {
         case FieldType::Bool:
@@ -661,10 +686,11 @@ std::vector<Input> GetInputsFromBinary (const std::vector<uint32_t>& binary)
 
         Input inp;
 
-        inp.name      = resource.name;
-        inp.location  = *decorations.Location;
-        inp.type      = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
-        inp.arraySize = !type.array.empty () ? type.array[0] : 0;
+        inp.name        = resource.name;
+        inp.location    = *decorations.Location;
+        inp.type        = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
+        inp.arraySize   = !type.array.empty () ? type.array[0] : 0;
+        inp.sizeInBytes = BaseTypeNMToByteSize (type.basetype, type.vecsize, type.columns);
 
         result.push_back (inp);
     }

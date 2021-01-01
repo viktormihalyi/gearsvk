@@ -14,6 +14,13 @@ class IConnectionBinding : public Noncopyable {
 public:
     ~IConnectionBinding ()                          = default;
     virtual void Visit (IConnectionBindingVisitor&) = 0;
+
+    virtual uint32_t GetLayerCount () const = 0;
+
+    virtual void WriteToDescriptorSet (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex) const {}
+
+    virtual std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const { return {}; }
+    virtual std::vector<VkAttachmentReference>   GetAttachmentReferences () const { return {}; }
 };
 
 class UniformInputBinding;
@@ -64,7 +71,7 @@ public:
     virtual uint32_t           GetOffset () const  = 0;
     virtual uint32_t           GetSize () const    = 0;
     virtual VkShaderStageFlags GetStages () const  = 0;
-    virtual uint32_t           GetLayerCount () const { return 1; }
+    virtual uint32_t           GetLayerCount () const override { return 1; }
 
     virtual std::vector<VkDescriptorImageInfo>  GetImageInfos (uint32_t) const { return {}; }
     virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t) const { return {}; }
@@ -80,7 +87,7 @@ public:
         return result;
     }
 
-    void WriteToDescriptorSet (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex) const
+    virtual void WriteToDescriptorSet (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex) const override
     {
         const std::vector<VkDescriptorImageInfo>  imgInfos = GetImageInfos (frameIndex);
         const std::vector<VkDescriptorBufferInfo> bufInfos = GetBufferInfos (frameIndex);
@@ -245,7 +252,9 @@ public:
     {
     }
 
-    std::vector<VkAttachmentReference> GetAttachmentReferences () const
+    virtual uint32_t GetLayerCount () const override { return layerCount; }
+
+    virtual std::vector<VkAttachmentReference> GetAttachmentReferences () const override
     {
         std::vector<VkAttachmentReference> result;
         for (uint32_t bindingIndex = binding; bindingIndex < binding + layerCount; ++bindingIndex) {
@@ -259,7 +268,7 @@ public:
         return result;
     }
 
-    std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const
+    virtual std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const override
     {
         VkAttachmentDescription attachmentDescription = {};
         attachmentDescription.format                  = formatProvider ();

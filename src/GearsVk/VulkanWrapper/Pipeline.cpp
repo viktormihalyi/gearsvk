@@ -104,7 +104,6 @@ Pipeline::Pipeline (VkDevice                                              device
     depthStencil.front                                 = VkStencilOpState (); // Optional
     depthStencil.back                                  = VkStencilOpState (); // Optional
 
-
     VkGraphicsPipelineCreateInfo pipelineInfo = {};
     pipelineInfo.sType                        = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.stageCount                   = static_cast<uint32_t> (shaderStages.size ());
