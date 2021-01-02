@@ -8,6 +8,7 @@ freetype/2.10.2
 spirv-cross/20200519
 spirv-tools/v2020.3
 glslang/8.13.3559
+vulkan-memory-allocator/2.3.0
 
 [generators]
 cmake
