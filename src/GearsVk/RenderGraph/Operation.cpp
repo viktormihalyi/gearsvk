@@ -1,5 +1,9 @@
 #include "Operation.hpp"
 
+#include "GraphSettings.hpp"
+#include "Resource.hpp"
+#include "ShaderPipeline.hpp"
+
 
 namespace RG {
 

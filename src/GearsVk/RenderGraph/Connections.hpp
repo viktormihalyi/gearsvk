@@ -1,9 +1,16 @@
 #ifndef RENDERGRAPH_CONNECTIONS_HPP
 #define RENDERGRAPH_CONNECTIONS_HPP
 
-#include "Image.hpp"
+#include "Assert.hpp"
+#include "Noncopyable.hpp"
+
 #include "InputBindable.hpp"
+
 #include <vulkan/vulkan.h>
+
+#include <cstdint>
+#include <functional>
+#include <vector>
 
 namespace RG {
 

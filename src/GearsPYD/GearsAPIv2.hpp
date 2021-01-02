@@ -6,14 +6,15 @@
 
 #include "GearsAPI.hpp"
 
-#include "ShaderModule.hpp"
+
+enum class ShaderKind : uint8_t;
 
 void InitializeEnvironment ();
 
 void DestroyEnvironment ();
 
 // not exported, only called from old api
-void SetRenderGraphFromSequence (Sequence::P);
+void           SetRenderGraphFromSequence (Sequence::P);
 void GEARS_API SetRenderGraphFromPyxFileSequence (const std::filesystem::path&);
 
 void StartRendering (const std::function<bool ()>&);

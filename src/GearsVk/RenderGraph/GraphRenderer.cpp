@@ -1,5 +1,15 @@
 #include "GraphRenderer.hpp"
 
+#include "Fence.hpp"
+#include "Swapchain.hpp"
+#include "Semaphore.hpp"
+
+#include "GraphSettings.hpp"
+#include "RenderGraph.hpp"
+#include "Resource.hpp"
+#include "Operation.hpp"
+
+
 
 namespace RG {
 
@@ -44,14 +54,14 @@ RecreatableGraphRenderer::RecreatableGraphRenderer (GraphSettings& settings, Swa
 
 BlockingGraphRenderer::BlockingGraphRenderer (GraphSettings& settings, Swapchain& swapchain)
     : RecreatableGraphRenderer (settings, swapchain)
-    , s (settings.GetDevice ())
+    , s (Semaphore::Create (settings.GetDevice ()))
 {
 }
 
 
 void BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph)
 {
-    const uint32_t currentImageIndex = swapchain.GetNextImageIndex (s);
+    const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*s);
     swapchainImageAcquiredEvent.Notify (currentImageIndex);
 
     {
@@ -65,12 +75,11 @@ void BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph)
     vkDeviceWaitIdle (graph.device->GetDevice ());
 
     if (swapchain.SupportsPresenting ()) {
-        graph.Present (currentImageIndex, swapchain, { s });
+        graph.Present (currentImageIndex, swapchain, { *s });
         vkQueueWaitIdle (graph.device->GetGraphicsQueue ());
         vkDeviceWaitIdle (*graph.device);
     }
 }
-
 
 SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (GraphSettings& settings, Swapchain& swapchain)
     : RecreatableGraphRenderer (settings, swapchain)

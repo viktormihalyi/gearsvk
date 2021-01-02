@@ -22,7 +22,7 @@ public:
     }
 };
 
-enum class ShaderKind {
+enum class ShaderKind : uint8_t {
     Vertex,
     Fragment,
     TessellationControl,

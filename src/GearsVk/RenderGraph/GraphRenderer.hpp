@@ -5,13 +5,18 @@
 
 #include "Event.hpp"
 #include "Ptr.hpp"
-#include "RenderGraph.hpp"
-#include "Swapchain.hpp"
 #include "Time.hpp"
 #include "Window.hpp"
 
 
+USING_PTR (Swapchain);
+USING_PTR (Fence);
+USING_PTR (Semaphore);
+
 namespace RG {
+
+class RenderGraph;
+class GraphSettings;
 
 
 class GEARSVK_API Renderer {
@@ -50,8 +55,8 @@ public:
 
 class GEARSVK_API BlockingGraphRenderer final : public RecreatableGraphRenderer {
 private:
-    Semaphore s;
-    TimePoint lastDrawTime;
+    SemaphoreU s;
+    TimePoint  lastDrawTime;
 
 public:
     BlockingGraphRenderer (GraphSettings& settings, Swapchain& swapchain);

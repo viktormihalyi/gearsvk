@@ -1,10 +1,11 @@
 #ifndef RG_NODE_HPP
 #define RG_NODE_HPP
 
-#include "Assert.hpp"
+#include "GearsVkAPI.hpp"
+
 #include "Noncopyable.hpp"
+#include "Ptr.hpp"
 #include "UUID.hpp"
-#include <vector>
 
 namespace RG {
 

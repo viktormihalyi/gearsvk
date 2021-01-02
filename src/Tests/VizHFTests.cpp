@@ -15,6 +15,9 @@
 #include "Timer.hpp"
 #include "Utils.hpp"
 #include "VulkanEnvironment.hpp"
+#include "GraphSettings.hpp"
+#include "Operation.hpp"
+#include "Resource.hpp"
 
 // from VulkanWrapper
 #include "VulkanWrapper.hpp"

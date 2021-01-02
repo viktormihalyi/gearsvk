@@ -10,6 +10,10 @@
 
 #include <vulkan/vulkan.h>
 
+#include <functional>
+#include <optional>
+#include <vector>
+
 
 class GEARSVK_API QueueFamilySelector {
 public:

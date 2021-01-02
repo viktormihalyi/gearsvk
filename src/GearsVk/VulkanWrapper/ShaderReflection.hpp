@@ -1,13 +1,11 @@
 #ifndef SHADERREFLECTION_HPP
 #define SHADERREFLECTION_HPP
 
-#include "Assert.hpp"
 #include "GearsVkAPI.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 
 #include <cstdint>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -18,14 +16,6 @@
 
 
 namespace SR {
-
-USING_PTR (Field);
-
-USING_PTR (FieldProvider);
-class FieldProvider {
-public:
-    virtual std::vector<SR::FieldP> GetFields () const = 0;
-};
 
 
 // clang-format off
@@ -58,12 +48,22 @@ enum class FieldType {
     Unknown
 };
 
+// clang-format on
+
 GEARSVK_API
 std::string FieldTypeToString (FieldType fieldType);
 
-// clang-format on
+
+USING_PTR (Field);
+
+USING_PTR (FieldProvider);
+class FieldProvider {
+public:
+    virtual std::vector<SR::FieldP> GetFields () const = 0;
+};
 
 
+USING_PTR (Field);
 class Field final : public FieldProvider, public Noncopyable {
 public:
     USING_CREATE (Field);
@@ -84,53 +84,20 @@ public:
 
     std::vector<FieldP> structFields; // when type == FieldType::Struct
 
-    Field ()
-        : name ("")
-        , type (FieldType::Unknown)
-        , offset (0)
-        , size (0)
-        , arraySize (0)
-        , arrayStride (0)
-    {
-    }
+    Field ();
 
-    bool IsArray () const
-    {
-        return arraySize > 0;
-    }
+    bool IsArray () const;
 
-    bool IsStruct () const
-    {
-        return type == FieldType::Struct;
-    }
+    bool IsStruct () const;
 
-    uint32_t GetSize () const
-    {
-        if (IsArray ()) {
-            return arrayStride * arraySize;
-        }
+    uint32_t GetSize () const;
 
-        if (IsStruct ()) {
-            if (GVK_ERROR (structFields.empty ())) {
-                return 0;
-            }
-
-            const Field& lastField = *structFields[structFields.size () - 1];
-            return lastField.offset + lastField.GetSize ();
-        }
-
-        return size;
-    }
-
-    std::vector<SR::FieldP> GetFields () const override
-    {
-        return structFields;
-    }
+    virtual std::vector<SR::FieldP> GetFields () const override;
 };
 
 
 USING_PTR (UBO);
-class GEARSVK_API UBO final : public FieldProvider /*, public Noncopyable */ {
+class GEARSVK_API UBO final : public FieldProvider, public Noncopyable {
     USING_CREATE (UBO);
 
 public:
@@ -139,35 +106,14 @@ public:
     std::string         name;
     std::vector<FieldP> fields;
 
-    UBO ()
-        : binding ()
-        , name ("")
-    {
-    }
+    uint32_t GetFullSize () const;
 
-    uint32_t GetFullSize () const
-    {
-        if (GVK_ERROR (fields.empty ())) {
-            return 0;
-        }
-
-        const Field& lastField = *fields[fields.size () - 1];
-        return lastField.offset + lastField.GetSize ();
-    }
-
-    bool operator== (const UBO& other) const
-    {
-        return binding == other.binding && descriptorSet == other.descriptorSet;
-    }
-
-    std::vector<SR::FieldP> GetFields () const override
-    {
-        return fields;
-    }
+    virtual std::vector<SR::FieldP> GetFields () const override;
 };
 
 
-struct GEARSVK_API Sampler final {
+class GEARSVK_API Sampler final {
+public:
     enum class Type {
         Sampler1D,
         Sampler2D,
@@ -180,15 +126,11 @@ struct GEARSVK_API Sampler final {
     uint32_t    descriptorSet;
     Type        type;
     uint32_t    arraySize; // 0 for non-arrays
-
-    bool operator== (const Sampler& other) const
-    {
-        return binding == other.binding && descriptorSet == other.descriptorSet;
-    }
 };
 
 
-struct GEARSVK_API Output {
+class GEARSVK_API Output {
+public:
     std::string   name;
     uint32_t      location;
     SR::FieldType type;
@@ -196,7 +138,8 @@ struct GEARSVK_API Output {
 };
 
 
-struct GEARSVK_API Input {
+class GEARSVK_API Input {
+public:
     std::string   name;
     uint32_t      location;
     SR::FieldType type;
@@ -216,9 +159,6 @@ std::vector<Input> GetInputsFromBinary (const std::vector<uint32_t>& binary);
 
 GEARSVK_API
 std::vector<Output> GetOutputsFromBinary (const std::vector<uint32_t>& binary);
-
-GEARSVK_API
-VkFormat FieldTypeToVkFormat (FieldType fieldType);
 
 GEARSVK_API
 VkFormat FieldTypeToVkFormat (FieldType fieldType);

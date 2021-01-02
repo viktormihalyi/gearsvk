@@ -3,6 +3,7 @@
 #include "FullscreenQuad.hpp"
 #include "GraphRenderer.hpp"
 #include "Ptr.hpp"
+#include "GraphSettings.hpp"
 #include "RenderGraph.hpp"
 #include "ShaderPipeline.hpp"
 #include "Timer.hpp"
@@ -10,6 +11,8 @@
 #include "Utils.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
+#include "Operation.hpp"
+#include "Resource.hpp"
 
 #include "glmlib.hpp"
 

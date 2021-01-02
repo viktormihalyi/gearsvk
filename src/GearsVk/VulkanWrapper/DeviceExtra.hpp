@@ -10,8 +10,9 @@
 #include "vk_mem_alloc.h"
 
 USING_PTR (DeviceExtra);
-
 class GEARSVK_API DeviceExtra : public Device {
+    USING_CREATE (DeviceExtra);
+
 public:
     Device&      device;
     CommandPool& commandPool;
@@ -19,7 +20,6 @@ public:
     Queue&       presentationQueue;
     VmaAllocator allocator;
 
-    USING_CREATE (DeviceExtra);
 
     DeviceExtra (Device& device, CommandPool& commandPool, VmaAllocator allocator, Queue& graphicsQueue, Queue& presentationQueue = dummyQueue)
         : device (device)

@@ -5,23 +5,18 @@
 
 #include "Event.hpp"
 #include "Ptr.hpp"
-#include "ShaderPipeline.hpp"
-#include "Timer.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 
-#include "GraphSettings.hpp"
-#include "Operation.hpp"
-#include "Resource.hpp"
-
-#include <algorithm>
-#include <functional>
-#include <map>
-#include <memory>
-#include <utility>
+#include <set>
 
 
 namespace RG {
+
+class Operation;
+class Resource;
+class GraphSettings;
+class ConnectionSet;
 
 
 USING_PTR (RenderGraph);
@@ -54,7 +49,6 @@ public:
 
     void CompileResources (const GraphSettings& settings);
     void Compile (const GraphSettings& settings);
-    void Recompile (uint32_t commandBufferIndex);
 
     void Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores = {}, const std::vector<VkSemaphore>& signalSemaphores = {}, VkFence fence = VK_NULL_HANDLE);
     void Present (uint32_t imageIndex, Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores = {});

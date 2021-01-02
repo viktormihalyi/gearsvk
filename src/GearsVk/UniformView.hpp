@@ -4,18 +4,21 @@
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
-#include "ShaderModule.hpp"
-#include "ShaderPipeline.hpp"
-#include "ShaderReflection.hpp"
 
 #include "GearsVkAPI.hpp"
 
-#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <vector>
 
+
+USING_PTR (ShaderModule);
+
 namespace SR {
+
+USING_PTR (FieldProvider);
+USING_PTR (Field);
+USING_PTR (UBO);
 
 // view (size and offset) to a single variable (could be primitive, struct, array) in a uniform block
 // we can walk down the struct hierarchy with operator[](std::string_view)
@@ -24,6 +27,11 @@ namespace SR {
 
 USING_PTR (UView);
 class GEARSVK_API UView final {
+    USING_CREATE (UView);
+
+public:
+    static const UView invalidUview;
+
 private:
     enum class Type {
         Variable,
@@ -38,29 +46,14 @@ private:
     const SR::FieldP         currentField;
 
 public:
-    static const UView invalidUview;
-
-public:
-    USING_CREATE (UView);
     UView (Type                      type,
            uint8_t*                  data,
            uint32_t                  offset,
            uint32_t                  size,
            const SR::FieldProviderP& parentContainer,
-           const SR::FieldP&         currentField = nullptr)
-        : type (type)
-        , data (data)
-        , offset (offset)
-        , size (size)
-        , parentContainer (parentContainer)
-        , currentField (currentField)
-    {
-    }
+           const SR::FieldP&         currentField = nullptr);
 
-    UView (const SR::UBOP& root, uint8_t* data)
-        : UView (Type::Variable, data, 0, root->GetFullSize (), root, nullptr)
-    {
-    }
+    UView (const SR::UBOP& root, uint8_t* data);
 
     template<typename T>
     void operator= (const T& other)
@@ -83,62 +76,13 @@ public:
         memcpy (data + offset, &other, size);
     }
 
-    uint32_t GetOffset () const
-    {
-        return offset;
-    }
+    uint32_t GetOffset () const;
 
-    UView operator[] (std::string_view str)
-    {
-        if (GVK_ERROR (data == nullptr)) {
-            return invalidUview;
-        }
+    UView operator[] (std::string_view str);
 
-        GVK_ASSERT (type != Type::Array);
-        GVK_ASSERT (parentContainer != nullptr);
+    UView operator[] (uint32_t index);
 
-        for (auto& f : parentContainer->GetFields ()) {
-            if (str == f->name) {
-                if (f->IsArray ()) {
-                    return UView (Type::Array, data, offset + f->offset, f->size, f, f);
-                } else {
-                    return UView (Type::Variable, data, offset + f->offset, f->size, f, f);
-                }
-            }
-        }
-
-        GVK_ASSERT (false);
-        return invalidUview;
-    }
-
-    UView operator[] (uint32_t index)
-    {
-        if (GVK_ERROR (data == nullptr)) {
-            return invalidUview;
-        }
-
-        GVK_ASSERT (type == Type::Array);
-        GVK_ASSERT (currentField != nullptr);
-        GVK_ASSERT (currentField->IsArray ());
-        GVK_ASSERT (index < currentField->arraySize);
-
-        return UView (Type::Variable, data, index * currentField->arrayStride, size, parentContainer, currentField);
-    }
-
-    std::vector<std::string> GetFieldNames () const
-    {
-        if (GVK_ERROR (parentContainer != nullptr)) {
-            return {};
-        }
-
-        std::vector<std::string> result;
-
-        for (auto& f : parentContainer->GetFields ()) {
-            result.push_back (f->name);
-        }
-
-        return result;
-    }
+    std::vector<std::string> GetFieldNames () const;
 };
 
 
@@ -239,72 +183,36 @@ private:
 
 public:
     USING_CREATE (UDataExternal);
-    UDataExternal (const SR::UBOP& ubo, uint8_t* bytes, uint32_t size)
-        : root (ubo, bytes)
-        , bytes (bytes)
-        , size (size)
-    {
-        GVK_ASSERT (ubo->GetFullSize () == size);
-        memset (bytes, 0, size);
-    }
+    UDataExternal (const SR::UBOP& ubo, uint8_t* bytes, uint32_t size);
 
-    virtual UView operator[] (std::string_view str) override
-    {
-        return root[str];
-    }
+    virtual UView operator[] (std::string_view str) override;
 
-    virtual std::vector<std::string> GetNames () override
-    {
-        return root.GetFieldNames ();
-    }
+    virtual std::vector<std::string> GetNames () override;
 
-    virtual uint8_t* GetData () override
-    {
-        return bytes;
-    }
+    virtual uint8_t* GetData () override;
 
-    virtual uint32_t GetSize () const override
-    {
-        return size;
-    }
+    virtual uint32_t GetSize () const override;
 };
 
 
 USING_PTR (UDataInternal);
 class GEARSVK_API UDataInternal final : public IUData, public Noncopyable {
+    USING_CREATE (UDataInternal);
+
 private:
     std::vector<uint8_t> bytes;
     UView                root;
 
 public:
-    USING_CREATE (UDataInternal);
-    UDataInternal (const SR::UBOP& ubo)
-        : bytes (ubo->GetFullSize (), 0)
-        , root (ubo, bytes.data ())
-    {
-        bytes.resize (ubo->GetFullSize ());
-        std::fill (bytes.begin (), bytes.end (), 0);
-    }
+    UDataInternal (const SR::UBOP& ubo);
 
-    virtual UView operator[] (std::string_view str) override
-    {
-        return root[str];
-    }
+    virtual UView operator[] (std::string_view str) override;
 
-    virtual std::vector<std::string> GetNames () override
-    {
-        return root.GetFieldNames ();
-    }
+    virtual std::vector<std::string> GetNames () override;
 
-    virtual uint8_t* GetData () override
-    {
-        return bytes.data ();
-    }
+    virtual uint8_t* GetData () override;
 
-    virtual uint32_t GetSize () const override
-    {
-        return bytes.size ();
-    }
+    virtual uint32_t GetSize () const override;
 };
 
 
@@ -321,41 +229,14 @@ private:
     std::vector<SR::UBOP>    ubos;
 
 public:
-    ShaderUData (const std::vector<SR::UBOP>& ubos)
-        : ubos (ubos)
-    {
-        for (auto& a : ubos) {
-            udatas.push_back (UDataInternal::Create (a));
-            uboNames.push_back (a->name);
-        }
-    }
+    ShaderUData (const std::vector<SR::UBOP>& ubos);
+    ShaderUData (const std::vector<uint32_t>& shaderBinary);
+    ShaderUData (const ShaderModuleU& shaderModule);
+    ShaderUData (const ShaderModule& shaderModule);
 
-    ShaderUData (const std::vector<uint32_t>& shaderBinary)
-        : ShaderUData (SR::GetUBOsFromBinary (shaderBinary))
-    {
-    }
+    IUData& operator[] (std::string_view str);
 
-    ShaderUData (const ShaderModuleU& shaderModule)
-        : ShaderUData (shaderModule->GetBinary ())
-    {
-    }
-
-    ShaderUData (const ShaderModule& shaderModule)
-        : ShaderUData (shaderModule.GetBinary ())
-    {
-    }
-
-    IUData& operator[] (std::string_view str)
-    {
-        const uint32_t index = std::distance (uboNames.begin (), std::find (uboNames.begin (), uboNames.end (), str));
-        return *udatas[index];
-    }
-
-    SR::UBOP GetUbo (std::string_view str)
-    {
-        const uint32_t index = std::distance (uboNames.begin (), std::find (uboNames.begin (), uboNames.end (), str));
-        return ubos[index];
-    }
+    SR::UBOP GetUbo (std::string_view str);
 };
 
 

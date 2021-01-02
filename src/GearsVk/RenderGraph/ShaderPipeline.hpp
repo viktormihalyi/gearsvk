@@ -9,9 +9,7 @@
 #include <vulkan/vulkan.h>
 
 USING_PTR (ShaderPipeline);
-
 class GEARSVK_API ShaderPipeline {
-public:
     USING_CREATE (ShaderPipeline);
 
 private:

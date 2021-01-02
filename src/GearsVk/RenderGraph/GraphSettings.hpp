@@ -1,9 +1,12 @@
 #ifndef GRAPHSETTINGS_HPP
 #define GRAPHSETTINGS_HPP
 
+#include "GearsVkAPI.hpp"
+
 #include "Connections.hpp"
 #include "DeviceExtra.hpp"
 #include "Node.hpp"
+#include "Ptr.hpp"
 #include <vulkan/vulkan.h>
 
 
@@ -130,53 +133,27 @@ public:
 };
 
 
-USING_PTR (CompiledObjectUntyped);
-class GEARSVK_API CompiledObjectUntyped : public Noncopyable {
-public:
-    virtual ~CompiledObjectUntyped () = default;
-};
-
-template<typename T>
-class GEARSVK_API CompiledObject : public CompiledObjectUntyped {
-public:
-    T data;
+USING_PTR (GraphSettings);
+class GEARSVK_API GraphSettings {
+    USING_CREATE (GraphSettings);
 
 public:
-    CompiledObject (T&& data)
-        : data (std::move (data))
-    {
-    }
-
-    virtual ~CompiledObject () = default;
-};
-
-
-struct GraphSettings {
     ConnectionSet      connectionSet;
     const DeviceExtra* device;
     uint32_t           framesInFlight;
 
-    GraphSettings (const DeviceExtra& device, VkQueue queue, VkCommandPool commandPool, uint32_t framesInFlight)
-        : device (&device)
-        , framesInFlight (framesInFlight)
-    {
-    }
+    GraphSettings (const DeviceExtra& device, VkQueue queue, VkCommandPool commandPool, uint32_t framesInFlight);
 
-    GraphSettings (const DeviceExtra& device, uint32_t framesInFlight)
-        : GraphSettings (device, device.GetGraphicsQueue (), device.GetCommandPool (), framesInFlight)
-    {
-    }
+    GraphSettings (const DeviceExtra& device, uint32_t framesInFlight);
 
 
-    GraphSettings ()
-        : device (nullptr)
-        , framesInFlight (0)
-    {
-    }
+    GraphSettings ();
 
-    const DeviceExtra& GetDevice () const { return *device; }
-    const Queue&       GetGrahpicsQueue () const { return device->GetGraphicsQueue (); }
-    const CommandPool& GetCommandPool () const { return device->GetCommandPool (); }
+    const DeviceExtra& GetDevice () const;
+
+    const Queue& GetGrahpicsQueue () const;
+
+    const CommandPool& GetCommandPool () const;
 };
 
 } // namespace RG

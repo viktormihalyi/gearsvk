@@ -2,17 +2,23 @@
 
 #include "NoInline.hpp"
 
-#include "FullscreenQuad.hpp"
-#include "GLFWWindow.hpp"
-#include "GraphRenderer.hpp"
-#include "ImageData.hpp"
 #include "Noncopyable.hpp"
 #include "Persistent.hpp"
-#include "RenderGraph.hpp"
+
+#include "FullscreenQuad.hpp"
+#include "GLFWWindow.hpp"
+#include "ImageData.hpp"
+#include "ShaderModule.hpp"
 #include "UUID.hpp"
 #include "UniformReflection.hpp"
 #include "VulkanEnvironment.hpp"
 #include "core/Sequence.h"
+
+#include "GraphRenderer.hpp"
+#include "GraphSettings.hpp"
+#include "RenderGraph.hpp"
+#include "Operation.hpp"
+#include "Resource.hpp"
 
 #include "gpu/Shader.hpp"
 

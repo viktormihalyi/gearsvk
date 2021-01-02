@@ -1,5 +1,10 @@
 #include "RenderGraph.hpp"
 
+#include "GraphSettings.hpp"
+#include "Operation.hpp"
+#include "Resource.hpp"
+
+
 namespace RG {
 
 RenderGraph::RenderGraph ()
@@ -29,12 +34,6 @@ void RenderGraph::CompileResources (const GraphSettings& settings)
     Utils::ForEachP<Resource> (settings.connectionSet.nodes, [&] (ResourceP& res) {
         res->Compile (settings);
     });
-}
-
-
-void RenderGraph::Recompile (uint32_t commandBufferIndex)
-{
-    GVK_ASSERT (false);
 }
 
 

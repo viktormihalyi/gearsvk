@@ -3,7 +3,6 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "ShaderPipeline.hpp"
 #include "Timer.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
@@ -11,11 +10,17 @@
 #include "Connections.hpp"
 #include "DrawRecordable.hpp"
 #include "Node.hpp"
-#include "Resource.hpp"
 
 #include <vector>
 
+USING_PTR (ShaderPipeline);
+
+
 namespace RG {
+
+class Resource;
+class GraphSettings;
+class ConnectionSet;
 
 USING_PTR (Operation);
 struct GEARSVK_API Operation : public Node {

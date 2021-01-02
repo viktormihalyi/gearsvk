@@ -9,7 +9,6 @@
 #include "Event.hpp"
 #include "VulkanWrapper.hpp"
 
-#include "ShaderPipeline.hpp"
 
 class UniformBinder {
 public:
@@ -49,8 +48,6 @@ private:
         Type geometry;
         Type fragment;
     } info;
-
-    ShaderPipelineU ppl;
 
     GLuint shaderProgram;
     GLuint vertexProgram;

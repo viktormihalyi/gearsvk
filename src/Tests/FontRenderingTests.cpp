@@ -6,6 +6,9 @@
 #include "RenderGraph.hpp"
 #include "UniformReflection.hpp"
 #include "VulkanWrapper.hpp"
+#include "GraphSettings.hpp"
+#include "Operation.hpp"
+#include "Resource.hpp"
 
 #include "glmlib.hpp"
 

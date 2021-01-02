@@ -4,12 +4,14 @@
 #include "GearsVkAPI.hpp"
 
 #include "Allocator.hpp"
+#include "DebugUtilsMessenger.hpp"
 #include "DeviceExtra.hpp"
 #include "Ptr.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 #include "Window.hpp"
 
+#include <optional>
 
 USING_PTR (Presentable);
 class GEARSVK_API Presentable : public SwapchainProvider {
