@@ -1,12 +1,12 @@
 [requires]
 glfw/3.3.2
-pybind11/2.5.0
+pybind11/2.6.1
 gtest/1.10.0
 glm/0.9.9.8
 stb/20200203
 freetype/2.10.2
-spirv-cross/20200519
-spirv-tools/v2020.3
+spirv-cross/20200917
+spirv-tools/v2020.5
 glslang/8.13.3559
 vulkan-memory-allocator/2.3.0
 

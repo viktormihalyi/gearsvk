@@ -534,8 +534,12 @@ void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
     pybind11::scoped_interpreter guard;
     try {
         pybind11::module sys = pybind11::module::import ("sys");
+        pybind11::module os = pybind11::module::import ("os");
+
+        sys.attr ("path").attr ("insert") (0, "src\\UserInterface");
+        
         pybind11::print (sys.attr ("path"));
-        sys.attr ("path").attr ("insert") (0, "C:\\Dev\\gearsvk\\src\\UserInterface");
+        pybind11::print (os.attr ("getcwd") ());
 
         pybind11::module::import ("AppData").attr ("initConfigParams") ();
 
@@ -544,16 +548,11 @@ void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
         pybind11::module machinery        = pybind11::module::import ("importlib.machinery");
         pybind11::object sourceFileLoader = machinery.attr ("SourceFileLoader");
 
-        pybind11::object stock    = sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\stock.py");
-        pybind11::object config   = sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\config.py");
-        pybind11::object defaults = sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\DefaultSequence.py");
+        sourceFileLoader ("my_module", "src\\UserInterface\\Project\\Sequences\\stock.py").attr ("load_module") ();
+        sourceFileLoader ("my_module", "src\\UserInterface\\Project\\Sequences\\config.py").attr ("load_module") ();
+        sourceFileLoader ("my_module", "src\\UserInterface\\Project\\Sequences\\DefaultSequence.py").attr ("load_module") ();
 
-        stock.attr ("load_module") ();
-        config.attr ("load_module") ();
-        defaults.attr ("load_module") ();
-
-
-        pybind11::object sequenceCreator = sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\4_MovingShapes\\1_Bars\\04_velocity400.pyx").attr ("load_module") ();
+        pybind11::object sequenceCreator = sourceFileLoader ("my_module", filePath.u8string ()).attr ("load_module") ();
 
         pybind11::object sequence = sequenceCreator.attr ("create") (pybind11::none ());
 
@@ -574,7 +573,7 @@ void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
         auto imgs = pres->GetSwapchain ().GetImageObjects ();
 
         ImageData img (*GetVkEnvironment ().deviceExtra, *imgs[0]);
-        img.SaveTo (PROJECT_ROOT / "asd.png");
+        img.SaveTo (PROJECT_ROOT / "temp" / "asd.png");
 
     } catch (std::exception& e) {
         std::cout << e.what () << std::endl;
