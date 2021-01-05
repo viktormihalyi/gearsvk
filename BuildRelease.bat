@@ -15,9 +15,6 @@ ninja || goto :error
 
 popd
 
-echo Copying DLLs to python sources...
-scripts\CopyGearsDLLRelease.bat 1> NUL || goto :error
-
 :error
 echo Failed with error #%errorlevel%.
 popd

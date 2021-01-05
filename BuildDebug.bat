@@ -14,9 +14,6 @@ ninja -k 0 || goto :error
 
 popd
 
-echo Copying DLLs to python sources...
-scripts\CopyGearsDLLDebug.bat 1> NUL || goto :error
-
 copy /y build.debug\compile_commands.json compile_commands.json
 
 :error

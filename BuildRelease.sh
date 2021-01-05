@@ -1,4 +1,3 @@
-git submodule update --init --recursive
 mkdir build.release
 cd build.release
 conan install .. --build=missing -s build_type=Release
