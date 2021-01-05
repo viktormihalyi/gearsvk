@@ -21,8 +21,8 @@ ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, uint32_
 
     Image2D dst (device.GetAllocator (), ImageBase::MemoryLocation::CPU,
                  image.GetWidth (), image.GetHeight (),
-                 // image.GetFormat (),
-                 VK_FORMAT_R8G8B8A8_SRGB,
+                 image.GetFormat (),
+                 //VK_FORMAT_R8G8B8A8_SRGB,
                  VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
 
     TransitionImageLayout (device, dst, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -176,7 +176,7 @@ void ImageData::UploadTo (const DeviceExtra& device, const ImageBase& image, std
 
 void ImageData::ConvertBGRToRGB ()
 {
-    for (size_t i = 0; i < width * height; i += components) {
+    for (size_t i = 0; i < width * height * components; i += components) {
         std::swap (data[i + 0], data[i + 2]);
     }
 }

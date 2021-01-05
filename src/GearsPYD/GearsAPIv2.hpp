@@ -14,7 +14,8 @@ void InitializeEnvironment ();
 void DestroyEnvironment ();
 
 // not exported, only called from old api
-void           SetRenderGraphFromSequence (Sequence::P);
+void SetRenderGraphFromSequence (Sequence::P);
+// exported for tests
 void GEARS_API SetRenderGraphFromPyxFileSequence (const std::filesystem::path&);
 
 void StartRendering (const std::function<bool ()>&);

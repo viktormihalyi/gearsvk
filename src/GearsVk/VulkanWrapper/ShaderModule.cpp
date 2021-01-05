@@ -2,6 +2,7 @@
 
 // from Utils
 #include "Assert.hpp"
+#include "BuildType.hpp"
 #include "Utils.hpp"
 
 // from VulkanWrapper
@@ -141,8 +142,8 @@ private:
     const std::filesystem::path tempFolder;
 
 public:
-    ShaderCache ()
-        : tempFolder (std::filesystem::temp_directory_path () / "GearsVk" / "ShaderCache")
+    ShaderCache (const std::string& typeName)
+        : tempFolder (std::filesystem::temp_directory_path () / "GearsVk" / "ShaderCache" / typeName)
     {
     }
 
@@ -209,8 +210,10 @@ public:
 
         return true;
     }
+};
 
-} shaderCache;
+ShaderCache debugShaderCache ("Debug");
+ShaderCache releaseShaderCache ("Release");
 
 
 static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind)
@@ -259,6 +262,8 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource_, const ShaderKindInfo& shaderKind, ShaderPreprocessor& preprocessor)
 {
     const std::string shaderSource = preprocessor.Preprocess (shaderSource_);
+
+    ShaderCache& shaderCache = IsDebugBuild ? debugShaderCache : releaseShaderCache;
 
     std::optional<std::vector<uint32_t>> cachedBinary = shaderCache.Load (shaderSource);
     if (cachedBinary.has_value ()) {

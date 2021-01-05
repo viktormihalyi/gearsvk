@@ -2,12 +2,11 @@
 //
 
 
+#include <pybind11/embed.h>
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <pybind11/embed.h>
 
-#ifndef EMPTY_DLL
 #include "stdafx.h"
 
 #include "core/PythonDict.h"
@@ -48,6 +47,7 @@ TextureManager::P   textureManager   = nullptr;
 KernelManager::P    kernelManager    = nullptr;
 //StimulusWindow::P   stimulusWindow   = nullptr;
 
+
 std::string createStimulusWindow ()
 {
     sequenceRenderer = SequenceRenderer::create ();
@@ -66,6 +66,7 @@ std::string createStimulusWindow ()
     //return stimulusWindow->getSpecs ();
 }
 
+
 void onHideStimulusWindow (pybind11::object onHideCallback)
 {
 #if 0
@@ -75,6 +76,7 @@ void onHideStimulusWindow (pybind11::object onHideCallback)
 #endif
 }
 
+
 void showText ()
 {
     if (::sequence == nullptr)
@@ -82,12 +84,14 @@ void showText ()
     sequenceRenderer->showText ();
 }
 
+
 void setText (std::string tag, std::string text)
 {
     if (::sequence == nullptr)
         return;
     sequenceRenderer->setText (tag, text);
 }
+
 
 void drawSequenceTimeline (int x, int y, int w, int h)
 {
@@ -97,6 +101,7 @@ void drawSequenceTimeline (int x, int y, int w, int h)
     sequenceRenderer->renderTimeline ();
 }
 
+
 void drawStimulusTimeline (int x, int y, int w, int h)
 {
     if (::sequence == nullptr)
@@ -105,6 +110,7 @@ void drawStimulusTimeline (int x, int y, int w, int h)
     sequenceRenderer->renderSelectedStimulusTimeline ();
 }
 
+
 void drawSpatialKernel (float min, float max, float width, float height)
 {
     if (::sequence == nullptr)
@@ -112,12 +118,14 @@ void drawSpatialKernel (float min, float max, float width, float height)
     sequenceRenderer->renderSelectedStimulusSpatialKernel (min, max, width, height);
 }
 
+
 void drawTemporalKernel ()
 {
     if (::sequence == nullptr)
         return;
     sequenceRenderer->renderSelectedStimulusTemporalKernel ();
 }
+
 
 void toggleChannelsOrPreview ()
 {
@@ -134,6 +142,7 @@ void drawSpatialProfile (float min, float max, float width, float height)
     sequenceRenderer->renderSelectedStimulusSpatialProfile (min, max, width, height);
 }
 
+
 void updateSpatialKernel ()
 {
     if (::sequence == nullptr)
@@ -141,12 +150,14 @@ void updateSpatialKernel ()
     sequenceRenderer->updateSpatialKernel (kernelManager);
 }
 
+
 double getTime ()
 {
     if (::sequence == nullptr)
         return 0.0;
     return sequenceRenderer->getTime ();
 }
+
 
 Sequence::P createSequence (std::string name)
 {
@@ -169,10 +180,12 @@ Sequence::P setSequence (Sequence::P sequence)
     return sequence;
 }
 
+
 Sequence::P getSequence ()
 {
     return ::sequence;
 }
+
 
 void pickStimulus (double x, double y)
 {
@@ -181,25 +194,30 @@ void pickStimulus (double x, double y)
     sequenceRenderer->pickStimulus (x, y);
 }
 
+
 Stimulus::CP getSelectedStimulus ()
 {
     return sequenceRenderer->getSelectedStimulus ();
 }
+
 
 void reset ()
 {
     sequenceRenderer->reset ();
 }
 
+
 void skip (int skipCount)
 {
     sequenceRenderer->skip (skipCount);
 }
 
+
 Stimulus::CP getCurrentStimulus ()
 {
     return sequenceRenderer->getCurrentStimulus ();
 }
+
 
 void cleanup ()
 {
@@ -209,6 +227,7 @@ void cleanup ()
     //	shaderManager->clear();
     //	kernelManager->clear();
 }
+
 
 void setMousePointerLocation (float x, float y)
 {
@@ -225,69 +244,84 @@ void setMousePointerLocation (float x, float y)
 #endif
 }
 
+
 void instantlyRaiseSignal (std::string c)
 {
     sequenceRenderer->raiseSignal (c);
 }
+
 
 void instantlyClearSignal (std::string c)
 {
     sequenceRenderer->clearSignal (c);
 }
 
+
 int getSkippedFrameCount ()
 {
     return sequenceRenderer->getSkippedFrameCount ();
 }
+
 
 std::string getSequenceTimingReport ()
 {
     return sequenceRenderer->getSequenceTimingReport ();
 }
 
+
 Ticker::P startTicker ()
 {
     return sequenceRenderer->startTicker ();
 }
 
+
 void enableExport (std::string path)
 {
     sequenceRenderer->enableExport (path);
 }
+
+
 void enableVideoExport (const char* path, int fr, int w, int h)
 {
     sequenceRenderer->enableVideoExport (path, fr, w, h);
 }
+
 
 void enableCalibration (uint startingFrame, uint duration, float histogramMin, float histogramMax)
 {
     sequenceRenderer->enableCalibration (startingFrame, duration, histogramMin, histogramMax);
 }
 
+
 void setSequenceTimelineZoom (uint nFrames)
 {
     sequenceRenderer->setSequenceTimelineZoom (nFrames);
 }
+
 
 void setSequenceTimelineStart (uint iStartFrame)
 {
     sequenceRenderer->setSequenceTimelineStart (iStartFrame);
 }
 
+
 void setStimulusTimelineZoom (uint nFrames)
 {
     sequenceRenderer->setStimulusTimelineZoom (nFrames);
 }
+
 
 void setStimulusTimelineStart (uint iStartFrame)
 {
     sequenceRenderer->setStimulusTimelineStart (iStartFrame);
 }
 
+
 void pauseRender ()
 {
     sequenceRenderer->pause ();
 }
+
 
 void setResponded ()
 {
@@ -300,17 +334,14 @@ pybind11::object renderSample (uint iFrame, uint x, uint y, uint w, uint h)
     return sequenceRenderer->renderSample (iFrame, x, y, w, h);
 }
 
+
 void makePath (std::string path)
 {
     std::filesystem::path bpath (path);
     if (!std::filesystem::exists (bpath.parent_path ()))
         std::filesystem::create_directories (bpath.parent_path ());
 }
-#endif
-// A couple of simple C++ functions that we want to expose to Python.
-std::string greet () { return "hello, world"; }
-int         square (int number) { return number * number; }
-#ifndef EMPTY_DLL
+
 
 std::string getSpecs ()
 {
@@ -352,14 +383,33 @@ void bindTexture (std::string filename)
     }
 }
 
+
+static void FillModule (pybind11::module_&);
+
+
+// TODO tests require the embedded module, application requires a not embedded module
+
+#if 1
+
+PYBIND11_EMBEDDED_MODULE (GearsModuleEmbedded, m)
+{
+    FillModule (m);
+}
+
+#else
+
+PYBIND11_MODULE (GearsModule, m)
+{
+    FillModule (m);
+}
+
 #endif
 
-PYBIND11_EMBEDDED_MODULE (GearsModule, m)
-{
-    m.def ("greet", &greet);
 
-#ifndef EMPTY_DLL
+void FillModule (pybind11::module_& m)
+{
     using namespace pybind11;
+
     //class_<Gears::Event::Base>("BaseEvent", no_init)
     //	.def_readonly(	"message"	, &Gears::Event::Base::message	, "Windows message.")
     //	.def_readonly(	"wParam"	, &Gears::Event::Base::wParam	, "Windows message wParam.")
@@ -691,6 +741,8 @@ PYBIND11_EMBEDDED_MODULE (GearsModule, m)
     m.def ("StartRendering", StartRendering);
     m.def ("CreateSurface", CreateSurface);
     m.def ("DestroySurface", DestroySurface);
+    m.def ("DestroySurface", SetRenderGraphFromSequence);
+
     m.def ("SetCurrentSurface", SetCurrentSurface);
     m.def ("RenderFrame", RenderFrame);
     m.def ("GetGLSLResourcesForRandoms", GetGLSLResourcesForRandoms);
@@ -703,6 +755,5 @@ PYBIND11_EMBEDDED_MODULE (GearsModule, m)
         .def (init<list> (), arg ("polyline"))
         .def ("triangulate", &p2t::Poly2TriWrapper::Triangulate)
         .def ("get_triangles", &p2t::Poly2TriWrapper::GetTriangles);
-#endif
 #endif
 }

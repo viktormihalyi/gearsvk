@@ -5,8 +5,19 @@
       "generator": "Ninja",
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildRoot": "${projectDir}\\build.debug",
-      "installRoot": "${projectDir}\\build.debug\\install",
+      "buildRoot": "${projectDir}\\build\\vs\\Debug",
+      "installRoot": "${projectDir}\\build\\vs\\Debug\\install",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-v",
+      "ctestCommandArgs": ""
+    },
+    {
+      "name": "x64-RelWithDebInfo",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\build\\vs\\RelWithDebInfo",
+      "installRoot": "${projectDir}\\build\\vs\\RelWithDebInfo\\install",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": ""
@@ -14,10 +25,10 @@
     {
       "name": "x64-Release",
       "generator": "Ninja",
-      "configurationType": "RelWithDebInfo",
+      "configurationType": "Release",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildRoot": "${projectDir}\\build.release",
-      "installRoot": "${projectDir}\\build.release\\install",
+      "buildRoot": "${projectDir}\\build\\vs\\Release",
+      "installRoot": "${projectDir}\\build\\vs\\Release\\install",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": ""

@@ -14,9 +14,9 @@ private:
     ImageData () = default;
 
 public:
-    uint32_t             components;
-    uint32_t             width;
-    uint32_t             height;
+    size_t               components;
+    size_t               width;
+    size_t               height;
     std::vector<uint8_t> data;
 
     ImageData (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout = std::nullopt);

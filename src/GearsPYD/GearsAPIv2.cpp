@@ -531,26 +531,26 @@ std::string GetGLSLResourcesForRandoms ()
 
 void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
 {
+    // working directory will be the same as PROJECT_ROOT
+
     pybind11::scoped_interpreter guard;
     try {
         pybind11::module sys = pybind11::module::import ("sys");
-        pybind11::module os = pybind11::module::import ("os");
 
-        sys.attr ("path").attr ("insert") (0, "src\\UserInterface");
+        sys.attr ("path").attr ("insert") (0, "C:\\Dev\\gearsvk\\src\\UserInterface");
         
         pybind11::print (sys.attr ("path"));
-        pybind11::print (os.attr ("getcwd") ());
 
         pybind11::module::import ("AppData").attr ("initConfigParams") ();
 
-        pybind11::module gearsModule = pybind11::module::import ("GearsModule");
+        pybind11::module gearsModule = pybind11::module::import ("GearsModuleEmbedded");
 
         pybind11::module machinery        = pybind11::module::import ("importlib.machinery");
         pybind11::object sourceFileLoader = machinery.attr ("SourceFileLoader");
 
-        sourceFileLoader ("my_module", "src\\UserInterface\\Project\\Sequences\\stock.py").attr ("load_module") ();
-        sourceFileLoader ("my_module", "src\\UserInterface\\Project\\Sequences\\config.py").attr ("load_module") ();
-        sourceFileLoader ("my_module", "src\\UserInterface\\Project\\Sequences\\DefaultSequence.py").attr ("load_module") ();
+        sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\stock.py").attr ("load_module") ();
+        sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\config.py").attr ("load_module") ();
+        sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\DefaultSequence.py").attr ("load_module") ();
 
         pybind11::object sequenceCreator = sourceFileLoader ("my_module", filePath.u8string ()).attr ("load_module") ();
 

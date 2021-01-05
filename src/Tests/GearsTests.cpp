@@ -16,5 +16,5 @@ using GearsTests = HeadlessGoogleTestEnvironment;
 
 TEST_F (GearsTests, SimpleSequence)
 {
-    SetRenderGraphFromPyxFileSequence (std::filesystem::path ("src") / "UserInterface" / "Project" / "Sequences" / "4_MovingShapes" / "1_Bars" / "04_velocity400.pyx");
+    SetRenderGraphFromPyxFileSequence (PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Sequences" / "4_MovingShapes" / "1_Bars" / "04_velocity400.pyx");
 }

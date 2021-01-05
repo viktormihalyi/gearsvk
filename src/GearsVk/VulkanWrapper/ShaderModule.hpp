@@ -86,6 +86,11 @@ public:
 
         std::vector<VkDescriptorSetLayoutBinding> GetLayout () const;
 
+        struct Buff {
+            std::set<std::string> attributes;
+            bool                  instanced;
+        };
+
         std::vector<VkVertexInputAttributeDescription> GetVertexAttributes (const std::function<bool (const std::string&)>& instanceNameProvider) const;
         std::vector<VkVertexInputBindingDescription>   GetVertexBindings (const std::function<bool (const std::string&)>& instanceNameProvider) const;
     };

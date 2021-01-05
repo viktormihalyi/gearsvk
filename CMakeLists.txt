@@ -1,11 +1,15 @@
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.14)
 
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED True)
 
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-message ("cmake binary dir is " ${CMAKE_BINARY_DIR})
+message ("CMAKE_CXX_STANDARD = " ${CMAKE_CXX_STANDARD})
+message ("CMAKE_SOURCE_DIR   = " ${CMAKE_SOURCE_DIR})
+message ("CMAKE_BINARY_DIR   = " ${CMAKE_BINARY_DIR})
+message ("CMAKE_BUILD_TYPE   = " ${CMAKE_BUILD_TYPE})
+
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CONAN_DISABLE_CHECK_COMPILER ON CACHE BOOL "" FORCE)
@@ -14,8 +18,6 @@ set (PROJECT_NAME GearsVk)
 
 set (TARGET_GVKUTILS GVkUtils)
 set (TARGET_GVKRG GVkRenderGraph)
-set (TARGET_VIZHF VizHF)
-set (TARGET_VIZHF2 VizHF2)
 set (TARGET_TESTS GVkTest)
 set (TARGET_DLL GearsModule)
 
@@ -25,7 +27,7 @@ execute_process (COMMAND
     git submodule update --init --recursive)
 
 execute_process (COMMAND
-    conan install ${CMAKE_CURRENT_SOURCE_DIR}/conanfile.txt
+    conan install ${CMAKE_SOURCE_DIR}/conanfile.txt
         --install-folder=${CMAKE_BINARY_DIR}
         --build=missing
         --settings build_type=${CMAKE_BUILD_TYPE})
@@ -38,15 +40,15 @@ find_package (Vulkan REQUIRED)
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 
 if (${Vulkan_FOUND})
-    message ("Vulkan lib found at " ${Vulkan_LIBRARIES})
-    message ("Vulkan headers found at " ${Vulkan_INCLUDE_DIRS})
+    message ("Vulkan_LIBRARIES     = " ${Vulkan_LIBRARIES})
+    message ("Vulkan_INCLUDE_DIRS  = " ${Vulkan_INCLUDE_DIRS})
 else ()
     error ()
 endif ()
 
 if (${Python3_FOUND})
-    message ("Python3 lib found at " ${Python3_LIBRARIES})
-    message ("Python3 headers found at " ${Python3_INCLUDE_DIRS})
+    message ("Python3_LIBRARIES    = " ${Python3_LIBRARIES})
+    message ("Python3_INCLUDE_DIRS = " ${Python3_INCLUDE_DIRS})
 else ()
     error ()
 endif ()
@@ -82,8 +84,6 @@ set (GEARSVK_INCLUDE_FOLDERS
     # external libs
     ${Vulkan_INCLUDE_DIRS}
     ${Python3_INCLUDE_DIRS}
-    
-    external/VulkanMemoryAllocator/src
     external/msdfgen
 )
 
@@ -140,14 +140,6 @@ add_library (${TARGET_GVKRG} SHARED
     external/msdfgen/ext/import-font.cpp
 )
 
-add_executable (${TARGET_VIZHF}
-    src/VizHF/main.cpp
-)
-
-add_executable (${TARGET_VIZHF2}
-    src/VizHF2/main.cpp
-)
-
 add_executable (${TARGET_TESTS}
     src/Tests/FontRenderingTests.cpp
     src/Tests/RenderGraphTests.cpp
@@ -184,14 +176,12 @@ add_library (${TARGET_DLL} SHARED
     src/GearsPYD/GearsAPIv2.cpp)
     
 target_compile_definitions (${TARGET_GVKUTILS} PRIVATE
-    PROJECT_ROOT_FULL_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+    PROJECT_ROOT_FULL_PATH=\"${CMAKE_SOURCE_DIR}\"
     GVK_UTILS_EXPORTS
 )   
 target_compile_definitions (${TARGET_GVKRG} PRIVATE
     GEARSVK_EXPORTS
 )
-target_compile_definitions (${TARGET_VIZHF} PRIVATE)
-target_compile_definitions (${TARGET_VIZHF2} PRIVATE)
 target_compile_definitions (${TARGET_TESTS} PRIVATE)
 target_compile_definitions (${TARGET_DLL} PRIVATE
     GEARS_EXPORTS
@@ -199,8 +189,6 @@ target_compile_definitions (${TARGET_DLL} PRIVATE
 
 target_include_directories (${TARGET_GVKUTILS} PRIVATE src/Utils)
 target_include_directories (${TARGET_GVKRG} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
-target_include_directories (${TARGET_VIZHF} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
-target_include_directories (${TARGET_VIZHF2} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_TESTS} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_DLL} PRIVATE
     ${GEARSVK_INCLUDE_FOLDERS}
@@ -210,14 +198,55 @@ target_include_directories (${TARGET_DLL} PRIVATE
 
 target_link_libraries (${TARGET_GVKUTILS})
 target_link_libraries (${TARGET_GVKRG} ${TARGET_GVKUTILS} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
-target_link_libraries (${TARGET_VIZHF} ${TARGET_GVKRG})
-target_link_libraries (${TARGET_VIZHF2} ${TARGET_GVKRG})
 target_link_libraries (${TARGET_DLL} ${TARGET_GVKRG} ${Python3_LIBRARIES})
 target_link_libraries (${TARGET_TESTS} ${TARGET_GVKRG} ${TARGET_DLL})
 
 target_compile_options (${TARGET_GVKUTILS} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_GVKRG} PRIVATE ${COMPILER_FLAGS})
-target_compile_options (${TARGET_VIZHF} PRIVATE ${COMPILER_FLAGS})
-target_compile_options (${TARGET_VIZHF2} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_TESTS} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL} PRIVATE ${COMPILER_FLAGS})
+
+
+set (UI_PATH ${CMAKE_SOURCE_DIR}/src/UserInterface)
+
+add_custom_command (
+    TARGET ${TARGET_DLL}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:${TARGET_DLL}>
+        ${UI_PATH}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Copying ${TARGET_DLL}..."
+)
+
+if (WIN32)
+add_custom_command (
+    TARGET ${TARGET_DLL}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename
+        ${UI_PATH}/GearsModule.dll
+        ${UI_PATH}/GearsModule.pyd
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Rename .dll to .pyd..."
+)
+endif ()
+
+add_custom_command (
+    TARGET ${TARGET_GVKRG}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:${TARGET_GVKRG}>
+        ${UI_PATH}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Copying ${TARGET_GVKRG}..."
+)
+
+add_custom_command (
+    TARGET ${TARGET_GVKUTILS}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:${TARGET_GVKUTILS}>
+        ${UI_PATH}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Copying ${TARGET_GVKUTILS}..."
+)

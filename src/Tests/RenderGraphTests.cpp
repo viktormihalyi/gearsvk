@@ -2,17 +2,17 @@
 
 #include "FullscreenQuad.hpp"
 #include "GraphRenderer.hpp"
-#include "Ptr.hpp"
 #include "GraphSettings.hpp"
+#include "Operation.hpp"
+#include "Ptr.hpp"
 #include "RenderGraph.hpp"
+#include "Resource.hpp"
 #include "ShaderPipeline.hpp"
 #include "Timer.hpp"
 #include "UniformReflection.hpp"
 #include "Utils.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
-#include "Operation.hpp"
-#include "Resource.hpp"
 
 #include "glmlib.hpp"
 
@@ -35,7 +35,7 @@ using namespace RG;
 
 TEST_F (HiddenWindowGoogleTestEnvironment, Spirvrross2)
 {
-    auto            sm = ShaderModule::CreateFromGLSLString (GetDevice (), ShaderKind::Fragment, R"(#version 450
+    ShaderModuleU sm = ShaderModule::CreateFromGLSLString (GetDevice (), ShaderKind::Fragment, R"(#version 450
 
 struct A {
     vec3 abc;
@@ -69,6 +69,7 @@ void main ()
 }
 
 )");
+
     SR::ShaderUData refl (sm);
 
     refl["Quadrics"]["quadrics"][0]["WTF"] = glm::mat3x4 ();

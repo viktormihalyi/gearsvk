@@ -1,6 +1,7 @@
 #include "VulkanEnvironment.hpp"
 
 #include "GLFWWindow.hpp"
+#include "ImageData.hpp"
 #include "TerminalColors.hpp"
 #include "VulkanEnvironment.hpp"
 
@@ -12,6 +13,7 @@
 
 
 const std::filesystem::path ReferenceImagesFolder = PROJECT_ROOT / "src" / "Tests" / "ReferenceImages";
+const std::filesystem::path TempFolder            = PROJECT_ROOT / "temp";
 
 
 static void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
@@ -21,10 +23,10 @@ static void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      mess
     using namespace TerminalColors;
     if (messageSeverity > 1) {
         std::cout << RED << "validation layer: "
-            << YELLOW << callbackData->pMessageIdName << ": "
-            << RESET << callbackData->pMessage
-            << std::endl
-            << std::endl;
+                  << YELLOW << callbackData->pMessageIdName << ": "
+                  << RESET << callbackData->pMessage
+                  << std::endl
+                  << std::endl;
         FAIL ();
     }
 }
@@ -66,7 +68,22 @@ protected:
 
         EXPECT_TRUE (imagesMatch);
 
-        SaveImageToFileAsync (GetDeviceExtra (), image, ReferenceImagesFolder / (imageName + ".png")).join ();
+        if (!imagesMatch) {
+            SaveImageToFileAsync (GetDeviceExtra (), image, TempFolder / (imageName + "_actual.png")).join ();
+        }
+    }
+
+    void CompareImages (const std::string& name, const ImageData& actualImage)
+    {
+        const ImageData referenceImage (ReferenceImagesFolder / (name + "_Reference.png"));
+
+        const bool imagesMatch = referenceImage == actualImage;
+
+        EXPECT_TRUE (imagesMatch);
+
+        if (!imagesMatch) {
+            actualImage.SaveTo (TempFolder / (name + "_Actual.png"));
+        }
     }
 };
 
