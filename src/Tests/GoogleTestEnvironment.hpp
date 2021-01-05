@@ -1,4 +1,5 @@
-#include "VulkanEnvironment.hpp"
+#ifndef GOOGLETESTENVIRONMENT_HPP
+#define GOOGLETESTENVIRONMENT_HPP
 
 #include "GLFWWindow.hpp"
 #include "ImageData.hpp"
@@ -137,3 +138,6 @@ protected:
         window.reset ();
     }
 };
+
+
+#endif

@@ -5,6 +5,7 @@
 #include "ImageData.hpp"
 #include "RenderGraph.hpp"
 #include "UniformReflection.hpp"
+#include "VulkanEnvironment.hpp"
 #include "VulkanWrapper.hpp"
 
 #include "glmlib.hpp"
@@ -16,5 +17,24 @@ using GearsTests = HeadlessGoogleTestEnvironment;
 
 TEST_F (GearsTests, SimpleSequence)
 {
+    SetOverriddenEnvironment (*env);
+
     SetRenderGraphFromPyxFileSequence (PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Sequences" / "4_MovingShapes" / "1_Bars" / "04_velocity400.pyx");
+
+    WindowU window = HiddenGLFWWindow::Create ();
+
+    PresentableP pres = env->CreatePresentable (*window);
+
+    SetCurrentPresentable (pres);
+
+    RenderFrame (240);
+    RenderFrame (241);
+    RenderFrame (242);
+    RenderFrame (243);
+
+    std::vector<InheritedImageU> imgs = pres->GetSwapchain ().GetImageObjects ();
+
+    ImageData img (GetDeviceExtra (), *imgs[0]);
+
+    CompareImages ("Sequence01", img);
 }

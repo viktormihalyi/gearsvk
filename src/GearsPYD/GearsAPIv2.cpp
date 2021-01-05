@@ -16,8 +16,8 @@
 
 #include "GraphRenderer.hpp"
 #include "GraphSettings.hpp"
-#include "RenderGraph.hpp"
 #include "Operation.hpp"
+#include "RenderGraph.hpp"
 #include "Resource.hpp"
 
 #include "gpu/Shader.hpp"
@@ -342,6 +342,11 @@ public:
         }
     }
 
+    NOINLINE PresentableP GetCurrentPresentable ()
+    {
+        return currentPresentable;
+    }
+
     NOINLINE void RenderFullOnExternalWindow ()
     {
         WindowU window = HiddenGLFWWindow::Create ();
@@ -492,15 +497,28 @@ void DestroySurface (intptr_t surfaceHandle)
 }
 
 
-static VulkanEnvironmentU env_ = nullptr;
+static VulkanEnvironmentU env_           = nullptr;
+static VulkanEnvironment* overriddenEnv_ = nullptr;
 
 
 static VulkanEnvironment& GetVkEnvironment ()
 {
+    if (overriddenEnv_ != nullptr) {
+        return *overriddenEnv_;
+    }
+
     if (env_ == nullptr) {
         env_ = VulkanEnvironment::Create ();
     }
     return *env_;
+}
+
+
+void SetOverriddenEnvironment (VulkanEnvironment& env)
+{
+    GVK_ASSERT (env_ == nullptr);
+
+    overriddenEnv_ = &env;
 }
 
 
@@ -538,19 +556,17 @@ void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
         pybind11::module sys = pybind11::module::import ("sys");
 
         sys.attr ("path").attr ("insert") (0, "C:\\Dev\\gearsvk\\src\\UserInterface");
-        
+
         pybind11::print (sys.attr ("path"));
 
         pybind11::module::import ("AppData").attr ("initConfigParams") ();
 
-        pybind11::module gearsModule = pybind11::module::import ("GearsModuleEmbedded");
+        pybind11::module sequenceLoader = pybind11::module::import ("SequenceLoaderCore");
+
+        sequenceLoader.attr ("loadParents") (filePath.parent_path ().u8string (), (PROJECT_ROOT / "src" / "UserInterface" / "Project").u8string ());
 
         pybind11::module machinery        = pybind11::module::import ("importlib.machinery");
         pybind11::object sourceFileLoader = machinery.attr ("SourceFileLoader");
-
-        sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\stock.py").attr ("load_module") ();
-        sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\config.py").attr ("load_module") ();
-        sourceFileLoader ("my_module", "C:\\Dev\\gearsvk\\src\\UserInterface\\Project\\Sequences\\DefaultSequence.py").attr ("load_module") ();
 
         pybind11::object sequenceCreator = sourceFileLoader ("my_module", filePath.u8string ()).attr ("load_module") ();
 
@@ -558,24 +574,16 @@ void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
 
         Sequence::P sequenceCpp = sequence.cast<Sequence::P> ();
 
-        auto window = HiddenGLFWWindow::Create ();
-        auto pres   = GetVkEnvironment ().CreatePresentable (*window);
-
         SetRenderGraphFromSequence (sequenceCpp);
 
-        currentSeq->SetCurrentPresentable (pres);
-
-        RenderFrame (240);
-        RenderFrame (241);
-        RenderFrame (242);
-        RenderFrame (243);
-
-        auto imgs = pres->GetSwapchain ().GetImageObjects ();
-
-        ImageData img (*GetVkEnvironment ().deviceExtra, *imgs[0]);
-        img.SaveTo (PROJECT_ROOT / "temp" / "asd.png");
-
     } catch (std::exception& e) {
+        GVK_BREAK ("pls ne");
         std::cout << e.what () << std::endl;
     }
+}
+
+
+void SetCurrentPresentable (PresentableP& p)
+{
+    currentSeq->SetCurrentPresentable (p);
 }

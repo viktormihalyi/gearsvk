@@ -391,7 +391,7 @@ static void FillModule (pybind11::module_&);
 
 #if 1
 
-PYBIND11_EMBEDDED_MODULE (GearsModuleEmbedded, m)
+PYBIND11_EMBEDDED_MODULE (GearsModule, m)
 {
     FillModule (m);
 }
