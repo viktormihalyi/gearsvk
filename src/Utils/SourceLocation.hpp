@@ -15,11 +15,6 @@ struct GVK_UTILS_API SourceLocation {
     const char* function;
 
     std::string ToString () const;
-
-    constexpr static SourceLocation Current (const char* file = __FILE__, int line = __LINE__)
-    {
-        return SourceLocation {file, line, "???"};
-    }
 };
 
 } // namespace Utils

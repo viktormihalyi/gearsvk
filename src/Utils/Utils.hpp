@@ -15,7 +15,166 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <vector>
+
+
+class NoValueT {
+};
+
+extern NoValueT NoValue;
+
+template<typename T>
+class Opt {
+private:
+    bool hasValue;
+    T    value;
+
+public:
+    Opt ()
+        : hasValue (false)
+        , value ()
+    {
+    }
+
+    Opt (NoValueT)
+        : hasValue (false)
+        , value ()
+    {
+    }
+
+    Opt (T&& value)
+        : hasValue (true)
+        , value (std::move (value))
+    {
+    }
+
+    Opt (Opt&& other)
+        : hasValue (other.hasValue)
+        , value (std::move (other.value))
+    {
+        other.hasValue = false;
+    }
+
+    Opt (const Opt& other)
+        : hasValue (other.hasValue)
+        , value (other.value)
+    {
+    }
+
+    Opt& operator= (const Opt& other)
+    {
+        if (this != &other) {
+            Clear ();
+            hasValue = other.hasValue;
+            value    = other.value;
+        }
+        return *this;
+    }
+
+    Opt& operator= (Opt&& other)
+    {
+        if (this != &other) {
+            Clear ();
+            hasValue = other.hasValue;
+            value    = std::move (other.value);
+
+            other.hasValue = false;
+        }
+        return *this;
+    }
+
+    Opt& operator= (T&& otherValue)
+    {
+        if (this != &other) {
+            Clear ();
+            hasValue = true;
+            value    = std::move (otherValue);
+        }
+        return *this;
+    }
+
+    [[nodiscard]] bool operator== (const Opt& other) const
+    {
+        if (!hasValue && hasValue == other.hasValue) {
+            return true;
+        }
+
+        return value == other.value;
+    }
+
+    [[nodiscard]] bool operator!= (const Opt& other) const { return !(*this == other); }
+
+    [[nodiscard]] T&       operator* () { return Get (); }
+    [[nodiscard]] const T& operator* () const { return Get (); }
+
+    [[nodiscard]] T&       operator() () { return Get (); }
+    [[nodiscard]] const T& operator() () const { return Get (); }
+
+    [[nodiscard]] T&& Pass () const
+    {
+        if (!hasValue)
+            hasValue = false;
+        return std::move (Get ());
+    }
+
+    [[nodiscard]] T& Get ()
+    {
+        if (!hasValue) {
+            throw std::runtime_error ("empty optional");
+        }
+        return value;
+    }
+
+    [[nodiscard]] const T& Get () const
+    {
+        if (!hasValue) {
+            throw std::runtime_error ("empty optional");
+        }
+        return value;
+    }
+
+    template<typename U>
+    [[nodiscard]] T& GetOr (U&& defaultValue)
+    {
+        if (!hasValue) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+
+    [[nodiscard]] bool HasValue () const { return hasValue; }
+    [[nodiscard]] bool IsEmpty () const { return !hasValue; }
+
+    void Clear ()
+    {
+        if (hasValue) {
+            hasValue = false;
+            value.~T ();
+        }
+    }
+
+    template<class... Parameters>
+    void Create (Parameters&&... parameters)
+    {
+        Clear ();
+        value = T (std::forward<Parameters> (parameters)...);
+    }
+
+    [[nodiscard]] std::optional<T> MoveToStd ()
+    {
+        if (!hasValue) {
+            return std::nullopt;
+        }
+        return std::optional<T> (std::move (value));
+    }
+
+    [[nodiscard]] operator std::optional<T> ()
+    {
+        return MoveToStd ();
+    }
+};
 
 
 #define PROJECT_ROOT ::Utils::GetProjectRoot ()
@@ -51,7 +210,7 @@ GVK_UTILS_API
 std::vector<std::string> SplitString (const std::string& str, const std::string& delim, const bool keepEmpty = false);
 
 GVK_UTILS_API
-std::string ReplaceAll (const std::string& str, const std::string& substringToReplace, const std::function<std::string()>& replacementSubstring);
+std::string ReplaceAll (const std::string& str, const std::string& substringToReplace, const std::function<std::string ()>& replacementSubstring);
 
 GVK_UTILS_API
 bool StringContains (const std::string& str, const std::string& substr);

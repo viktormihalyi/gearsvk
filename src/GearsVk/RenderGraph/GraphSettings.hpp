@@ -19,18 +19,18 @@ class GEARSVK_API ConnectionSet final : public Noncopyable {
     USING_CREATE (ConnectionSet);
 
 public:
-    std::set<NodeP> nodes;
+    std::set<Ptr<Node>> nodes;
 
     USING_PTR (Connection);
     struct Connection {
         USING_CREATE (Connection);
 
-        NodeP               from;
-        NodeP               to;
+        Ptr<Node>             from;
+        Ptr<Node>             to;
         IConnectionBindingU binding;
 
-        Connection (const NodeP&          from,
-                    const NodeP&          to,
+        Connection (const Ptr<Node>&        from,
+                    const Ptr<Node>&        to,
                     IConnectionBindingU&& binding)
             : from (from)
             , to (to)
@@ -50,9 +50,9 @@ public:
     void VisitInputsOf (const Node* node, IResourceVisitor& visitor) const;
 
     template<typename T>
-    std::vector<P<T>> GetPointingTo (const Node* node) const
+    std::vector<Ptr<T>> GetPointingTo (const Node* node) const
     {
-        std::vector<P<T>> result;
+        std::vector<Ptr<T>> result;
 
         for (const ConnectionU& c : connections) {
             if (c->from.get () == node) {
@@ -66,9 +66,9 @@ public:
     }
 
     template<typename T>
-    std::vector<P<T>> GetPointingHere (const Node* node) const
+    std::vector<Ptr<T>> GetPointingHere (const Node* node) const
     {
-        std::vector<P<T>> result;
+        std::vector<Ptr<T>> result;
 
         for (const ConnectionU& c : connections) {
             if (c->to.get () == node) {
@@ -119,14 +119,14 @@ public:
     }
 
 
-    void Add (const NodeP& from, const NodeP& to, IConnectionBindingU&& binding)
+    void Add (const Ptr<Node>& from, const Ptr<Node>& to, IConnectionBindingU&& binding)
     {
         nodes.insert (from);
         nodes.insert (to);
         connections.push_back (Connection::Create (from, to, std::move (binding)));
     }
 
-    void Add (const NodeP& node)
+    void Add (const Ptr<Node>& node)
     {
         nodes.insert (node);
     }

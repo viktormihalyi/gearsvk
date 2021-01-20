@@ -18,8 +18,8 @@ UniformReflection::UniformReflection (RG::ConnectionSet& connectionSet, const Fi
 
 void UniformReflection::Flush (uint32_t frameIndex)
 {
-    Utils::ForEachP<RG::CPUBufferResource> (uboResources, [&] (const RG::CPUBufferResourceP& uboRes) {
-        const SR::IUDataP uboData = udatas.at (uboRes->GetUUID ());
+    Utils::ForEachP<RG::CPUBufferResource> (uboResources, [&] (const Ptr<RG::CPUBufferResource>& uboRes) {
+        const Ptr<SR::IUData> uboData = udatas.at (uboRes->GetUUID ());
 
         uboRes->GetMapping (frameIndex).Copy (uboData->GetData (), uboData->GetSize ());
     });
@@ -30,21 +30,21 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
 {
     // GVK_ASSERT (!graph.operations.empty ());
 
-    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const RG::RenderOperationP& renderOp) {
+    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const Ptr<RG::RenderOperation>& renderOp) {
         ShaderKindSelector newsel;
 
         renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
             UboSelector ubosel;
-            for (SR::UBOP ubo : shaderModule.GetReflection ().ubos) {
+            for (Ptr<SR::UBO> ubo : shaderModule.GetReflection ().ubos) {
                 if (filter (renderOp, shaderModule, ubo)) {
                     continue;
                 }
 
-                RG::InputBufferBindableResourceP uboRes = resourceCreator (renderOp, shaderModule, ubo);
+                Ptr<RG::InputBufferBindableResource> uboRes = resourceCreator (renderOp, shaderModule, ubo);
                 // graph.AddResource (uboRes);
                 GVK_ASSERT (uboRes != nullptr);
 
-                SR::UDataInternalP uboData = SR::UDataInternal::Create (ubo);
+                Ptr<SR::UDataInternal> uboData = SR::UDataInternal::Create (ubo);
                 ubosel.Set (ubo->name, uboData);
 
                 uboConnections.push_back (std::make_tuple (renderOp, ubo->binding, uboRes, shaderModule.GetShaderKind ()));
@@ -105,7 +105,7 @@ void UniformReflection::PrintDebugInfo ()
 ImageMap::ImageMap () = default;
 
 
-ReadOnlyImageResourceP ImageMap::FindByName (const std::string& name) const
+Ptr<ReadOnlyImageResource> ImageMap::FindByName (const std::string& name) const
 {
     for (auto& im : images) {
         if (im.first.name == name) {
@@ -116,7 +116,7 @@ ReadOnlyImageResourceP ImageMap::FindByName (const std::string& name) const
 }
 
 
-void ImageMap::Put (const SR::Sampler& sampler, const ReadOnlyImageResourceP& res)
+void ImageMap::Put (const SR::Sampler& sampler, const Ptr<ReadOnlyImageResource>& res)
 {
     images.emplace_back (sampler, res);
 }
@@ -132,10 +132,10 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 {
     ImageMap result;
 
-    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const RG::RenderOperationP& renderOp) {
+    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const Ptr<RG::RenderOperation>& renderOp) {
         renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
             for (const SR::Sampler& sampler : shaderModule.GetReflection ().samplers) {
-                ReadOnlyImageResourceP imgRes;
+                Ptr<ReadOnlyImageResource> imgRes;
 
                 const std::optional<CreateParams> providedExtent = extentProvider (sampler);
 

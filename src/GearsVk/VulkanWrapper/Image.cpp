@@ -3,7 +3,7 @@
 #include "Assert.hpp"
 
 
-ImageBase::ImageBase (VkImage handle, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
+Image::Image (VkImage handle, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
     : handle (handle)
     , allocator (VK_NULL_HANDLE)
     , allocationHandle (VK_NULL_HANDLE)
@@ -17,16 +17,16 @@ ImageBase::ImageBase (VkImage handle, VkDevice device, uint32_t width, uint32_t 
 }
 
 
-ImageBase::ImageBase (VmaAllocator      allocator,
-                      VkImageType       imageType,
-                      uint32_t          width,
-                      uint32_t          height,
-                      uint32_t          depth,
-                      VkFormat          format,
-                      VkImageTiling     tiling,
-                      VkImageUsageFlags usage,
-                      uint32_t          arrayLayers,
-                      MemoryLocation    loc)
+Image::Image (VmaAllocator      allocator,
+              VkImageType       imageType,
+              uint32_t          width,
+              uint32_t          height,
+              uint32_t          depth,
+              VkFormat          format,
+              VkImageTiling     tiling,
+              VkImageUsageFlags usage,
+              uint32_t          arrayLayers,
+              MemoryLocation    loc)
     : device (VK_NULL_HANDLE)
     , handle (VK_NULL_HANDLE)
     , allocator (allocator)
@@ -62,22 +62,22 @@ ImageBase::ImageBase (VmaAllocator      allocator,
 }
 
 
-ImageBase::ImageBase (ImageBuilder& imageBuilder)
-    : ImageBase (imageBuilder.allocator,
-                 *imageBuilder.imageType,
-                 *imageBuilder.width,
-                 *imageBuilder.height,
-                 *imageBuilder.depth,
-                 *imageBuilder.format,
-                 *imageBuilder.tiling,
-                 imageBuilder.usage,
-                 *imageBuilder.arrayLayers,
-                 *imageBuilder.loc)
+Image::Image (ImageBuilder& imageBuilder)
+    : Image (imageBuilder.allocator,
+             *imageBuilder.imageType,
+             *imageBuilder.width,
+             *imageBuilder.height,
+             *imageBuilder.depth,
+             *imageBuilder.format,
+             *imageBuilder.tiling,
+             imageBuilder.usage,
+             *imageBuilder.arrayLayers,
+             *imageBuilder.loc)
 {
 }
 
 
-ImageBase::~ImageBase ()
+Image::~Image ()
 {
     if (handle == VK_NULL_HANDLE) {
         return;
@@ -115,7 +115,7 @@ static VkAccessFlags GetDstAccessMask (VkImageLayout newLayout)
 }
 
 
-VkImageMemoryBarrier ImageBase::GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout) const
+VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout) const
 {
     VkImageMemoryBarrier barrier            = {};
     barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -136,7 +136,7 @@ VkImageMemoryBarrier ImageBase::GetBarrier (VkImageLayout oldLayout, VkImageLayo
 }
 
 
-void ImageBase::CmdPipelineBarrier (CommandBuffer& commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const
+void Image::CmdPipelineBarrier (CommandBuffer& commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const
 {
     VkImageMemoryBarrier barrier            = {};
     barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -187,7 +187,7 @@ void ImageBase::CmdPipelineBarrier (CommandBuffer& commandBuffer, VkImageLayout 
 }
 
 
-VkBufferImageCopy ImageBase::GetFullBufferImageCopy () const
+VkBufferImageCopy Image::GetFullBufferImageCopy () const
 {
     VkBufferImageCopy result               = {};
     result.bufferOffset                    = 0;
@@ -203,7 +203,7 @@ VkBufferImageCopy ImageBase::GetFullBufferImageCopy () const
 }
 
 
-void ImageBase::CmdCopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer) const
+void Image::CmdCopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer) const
 {
     VkBufferImageCopy region = GetFullBufferImageCopy ();
     commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
@@ -218,7 +218,7 @@ void ImageBase::CmdCopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buf
 }
 
 
-void ImageBase::CmdCopyBufferPartToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkBufferImageCopy region) const
+void Image::CmdCopyBufferPartToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkBufferImageCopy region) const
 {
     commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
         vkCmdCopyBufferToImage (

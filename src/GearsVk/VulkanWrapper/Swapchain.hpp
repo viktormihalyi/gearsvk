@@ -22,12 +22,17 @@ public:
 };
 
 
-class GEARSVK_API DefaultSwapchainSettings final : public SwapchainSettingsProvider {
+class GEARSVK_API DefaultSwapchainSettings : public SwapchainSettingsProvider {
 public:
     virtual VkSurfaceFormatKHR SelectSurfaceFormat (const std::vector<VkSurfaceFormatKHR>& formats) override;
     virtual VkPresentModeKHR   SelectPresentMode (const std::vector<VkPresentModeKHR>& modes) override;
     virtual VkExtent2D         SelectExtent (const VkSurfaceCapabilitiesKHR& capabilities) override;
     virtual uint32_t           SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities) override;
+};
+
+class GEARSVK_API DefaultSwapchainSettingsSingleImage : public DefaultSwapchainSettings {
+public:
+    virtual uint32_t SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities) override;
 };
 
 GEARSVK_API
@@ -39,13 +44,13 @@ class GEARSVK_API Swapchain {
 public:
     virtual ~Swapchain () = default;
 
-    virtual VkFormat                         GetImageFormat () const = 0;
-    virtual uint32_t                         GetImageCount () const  = 0;
-    virtual uint32_t                         GetWidth () const       = 0;
-    virtual uint32_t                         GetHeight () const      = 0;
-    virtual std::vector<VkImage>             GetImages () const      = 0;
+    virtual VkFormat                         GetImageFormat () const  = 0;
+    virtual uint32_t                         GetImageCount () const   = 0;
+    virtual uint32_t                         GetWidth () const        = 0;
+    virtual uint32_t                         GetHeight () const       = 0;
+    virtual std::vector<VkImage>             GetImages () const       = 0;
     virtual std::vector<InheritedImageU>     GetImageObjects () const = 0;
-    virtual const std::vector<ImageView2DU>& GetImageViews () const  = 0;
+    virtual const std::vector<ImageView2DU>& GetImageViews () const   = 0;
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const                                              = 0;
     virtual void     Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const = 0;
@@ -112,7 +117,7 @@ private:
 public:
     USING_CREATE (RealSwapchain);
 
-    RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface);
+    RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface, SwapchainSettingsProvider& settings = defaultSwapchainSettings);
     RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, SwapchainSettingsProvider& settings = defaultSwapchainSettings);
 
     virtual void Recreate () override;
@@ -166,7 +171,7 @@ private:
 USING_PTR (FakeSwapchain);
 class GEARSVK_API FakeSwapchain : public Swapchain {
 private:
-    ImageBaseU                image;
+    ImageU                    image;
     std::vector<ImageView2DU> imageViews;
     const DeviceExtra&        device;
     const uint32_t            width;

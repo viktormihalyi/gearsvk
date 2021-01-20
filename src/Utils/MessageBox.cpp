@@ -21,9 +21,9 @@ Result Show (const std::string& title, const std::string& message)
     };
 
     static const std::vector<SDL_MessageBoxButtonData> buttons = {
-        {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "No"},
-        {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Yes"},
-        {0, 2, "Ignore"},
+        { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "No" },
+        { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Yes" },
+        { 0, 2, "Ignore" },
     };
 
     const SDL_MessageBoxData messageBoxData = {
@@ -63,7 +63,7 @@ Result Show (const std::string& title, const std::string& message)
         case IDYES: return Result::Yes;
         case IDNO: return Result::No;
         case IDCANCEL: return Result::Third;
-        default: GVK_ASSERT (false); return Result::Error;
+        default: return Result::Error;
     }
 }
 

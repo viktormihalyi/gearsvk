@@ -10,7 +10,7 @@ class Cross (Stimulus.CrossingRect) :
 
 def create(mediaWindow):
     return DefaultSequence('Moving shapes').setAgenda( [
-            Stimulus.Blank( duration_s = 100  ),
+            Stimulus.Blank( duration_s = 1  ),
             StartMeasurement()             ,
             Cross( direction = 'east' ),
             Stimulus.Blank( duration_s = 1  ),

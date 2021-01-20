@@ -451,7 +451,7 @@ ShaderModule::Reflection::GetLayout () const
         result.push_back (bin);
     }
 
-    for (const SR::UBOP& ubo : ubos) {
+    for (const Ptr<SR::UBO>& ubo : ubos) {
         VkDescriptorSetLayoutBinding bin = {};
         bin.binding                      = ubo->binding;
         bin.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -495,7 +495,7 @@ ShaderModule::Reflection::GetDescriptorWrites (
         result.push_back (write);
     }
 
-    for (const SR::UBOP& ubo : ubos) {
+    for (const Ptr<SR::UBO>& ubo : ubos) {
         const VkDescriptorBufferInfo bufferInfo = bufferInfoProvider (*ubo);
 
         VkWriteDescriptorSet write = {};

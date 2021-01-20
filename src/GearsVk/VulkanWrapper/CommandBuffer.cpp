@@ -4,9 +4,9 @@
 #include <iostream>
 
 
-void CommandBuffer::ImageLayoutChanged (const ImageBase& image, VkImageLayout from, VkImageLayout to)
+void CommandBuffer::ImageLayoutChanged (const Image& image, VkImageLayout from, VkImageLayout to)
 {
-    const ImageBase* img = &image;
+    const Image* img = &image;
     layouts[img].emplace_back (from, to);
 }
 

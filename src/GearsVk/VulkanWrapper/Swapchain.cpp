@@ -59,11 +59,18 @@ uint32_t DefaultSwapchainSettings::SelectImageCount (const VkSurfaceCapabilities
 }
 
 
+uint32_t DefaultSwapchainSettingsSingleImage::SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities)
+{
+    GVK_ASSERT (capabilities.minImageCount >= 1 && 1 <= capabilities.maxImageCount);
+    return 1;
+}
+
+
 RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings& createSettings)
 {
     CreateResult createResult;
 
-    {
+    if (createSettings.queueFamilyIndices.presentation.has_value ()) {
         VkBool32 yes;
         VkResult yesyes = vkGetPhysicalDeviceSurfaceSupportKHR (createSettings.physicalDevice, *createSettings.queueFamilyIndices.presentation, createSettings.surface, &yes);
         if (GVK_ERROR (yesyes != VK_SUCCESS || yes != VK_TRUE)) {
@@ -137,8 +144,8 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
 }
 
 
-RealSwapchain::RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface)
-    : RealSwapchain (physicalDevice, device, surface, physicalDevice.GetQueueFamilies ())
+RealSwapchain::RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface, SwapchainSettingsProvider& settings)
+    : RealSwapchain (physicalDevice, device, surface, physicalDevice.GetQueueFamilies (), settings)
 {
 }
 
@@ -235,7 +242,7 @@ FakeSwapchain::FakeSwapchain (const DeviceExtra& device, uint32_t width, uint32_
     : device (device)
     , width (width)
     , height (height)
-    , image (Image2D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1))
+    , image (Image2D::Create (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1))
 {
     imageViews.push_back (ImageView2D::Create (device, *image));
     TransitionImageLayout (device, *image, Image2D::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);

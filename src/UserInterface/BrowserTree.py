@@ -11,6 +11,7 @@ from SequenceLoader import *
 from Ide import Ide
 from ConfigWindow import ConfigWindow
 import AppData
+from SequenceLoaderCore import loadParents
 
 class BrowserTree(QTreeWidget):
     launcherWindow = None

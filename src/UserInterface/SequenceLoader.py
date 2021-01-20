@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, QTreeWidget, QT
 from PyQt5.QtGui import (QFont, QPalette )
 from SequenceError import SequenceError
 
-import SequenceLoaderCore
+from SequenceLoaderCore import loadParents
 
 
 def loadSequence(fullpath, browser, openIde):

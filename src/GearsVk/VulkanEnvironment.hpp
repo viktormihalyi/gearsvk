@@ -13,6 +13,8 @@
 
 #include <optional>
 
+class VulkanEnvironment;
+
 USING_PTR (Presentable);
 class GEARSVK_API Presentable : public SwapchainProvider {
     USING_CREATE (Presentable);
@@ -22,15 +24,12 @@ private:
     SwapchainU swapchain;
 
 public:
-    Presentable ();
-    Presentable (const PhysicalDevice& physicalDevice, VkDevice device, SurfaceU&& surface);
-    Presentable (SwapchainU&& swapchain);
-
-    void operator= (Presentable&&) noexcept;
-
-    void Clear ();
+    Presentable (VulkanEnvironment& env, SurfaceU&& surface, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
+    Presentable (VulkanEnvironment& env, Window& window, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
 
     virtual Swapchain& GetSwapchain () override { return *swapchain; }
+
+    const Surface& GetSurface () const { return *surface; }
 };
 
 
@@ -60,8 +59,7 @@ public:
 
     void Wait () const;
 
-    PresentableP CreatePresentable (SurfaceU&& surface) const;
-    PresentableP CreatePresentable (Window& window) const;
+    void RecreateForPresentable (const Presentable&);
 };
 
 

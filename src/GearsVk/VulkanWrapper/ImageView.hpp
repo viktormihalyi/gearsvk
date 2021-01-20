@@ -74,7 +74,7 @@ public:
     {
     }
 
-    ImageView1D (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0)
+    ImageView1D (VkDevice device, const Image& image, uint32_t layerIndex = 0)
         : ImageView1D (device, image, image.GetFormat (), layerIndex)
     {
     }
@@ -91,7 +91,7 @@ public:
     {
     }
 
-    ImageView2D (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0, uint32_t layerCount = 1)
+    ImageView2D (VkDevice device, const Image& image, uint32_t layerIndex = 0, uint32_t layerCount = 1)
         : ImageView2D (device, image, image.GetFormat (), layerIndex, layerCount)
     {
     }
@@ -107,7 +107,7 @@ public:
     {
     }
 
-    ImageView2DArray (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0, uint32_t layerCount = 1)
+    ImageView2DArray (VkDevice device, const Image& image, uint32_t layerIndex = 0, uint32_t layerCount = 1)
         : ImageView2DArray (device, image, image.GetFormat (), layerIndex, layerCount)
     {
     }
@@ -124,7 +124,7 @@ public:
     {
     }
 
-    ImageView3D (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0)
+    ImageView3D (VkDevice device, const Image& image, uint32_t layerIndex = 0)
         : ImageView3D (device, image, image.GetFormat (), layerIndex)
     {
     }
@@ -141,7 +141,7 @@ public:
     {
     }
 
-    ImageViewCube (VkDevice device, const ImageBase& image, uint32_t layerIndex = 0)
+    ImageViewCube (VkDevice device, const Image& image, uint32_t layerIndex = 0)
         : ImageViewCube (device, image, image.GetFormat (), layerIndex)
     {
     }

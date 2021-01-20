@@ -9,7 +9,7 @@ void ConnectionSet::VisitOutputsOf (const Node* node, IResourceVisitor& visitor)
 {
     for (const ConnectionU& c : connections) {
         if (c->from.get () == node) {
-            if (ResourceP asResource = std::dynamic_pointer_cast<Resource> (c->to)) {
+            if (Ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c->to)) {
                 asResource->Visit (visitor);
             } else {
                 GVK_BREAK ("???");
@@ -23,7 +23,7 @@ void ConnectionSet::VisitInputsOf (const Node* node, IResourceVisitor& visitor) 
 {
     for (const ConnectionU& c : connections) {
         if (c->to.get () == node) {
-            if (ResourceP asResource = std::dynamic_pointer_cast<Resource> (c->from)) {
+            if (Ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c->from)) {
                 asResource->Visit (visitor);
             } else {
                 GVK_BREAK ("???");

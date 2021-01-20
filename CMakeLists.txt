@@ -20,6 +20,7 @@ set (TARGET_GVKUTILS GVkUtils)
 set (TARGET_GVKRG GVkRenderGraph)
 set (TARGET_TESTS GVkTest)
 set (TARGET_DLL GearsModule)
+set (TARGET_DLL_EMBEDDED GearsModuleEmbedded)
 
 project (${PROJECT_NAME})
 
@@ -94,9 +95,8 @@ add_library (${TARGET_GVKUTILS} SHARED
     src/Utils/SourceLocation.cpp
     src/Utils/Utils.cpp
     src/Utils/Time.cpp
-    src/Utils/Persistent.cpp
-    src/Utils/UUID.cpp
-)
+    
+    src/Utils/UUID.cpp)
 
 add_library (${TARGET_GVKRG} SHARED
     src/GearsVk/VulkanWrapper/Utils/VulkanUtils.cpp
@@ -137,19 +137,16 @@ add_library (${TARGET_GVKRG} SHARED
     src/GearsVk/Font.cpp
     src/GearsVk/UniformView.cpp
 
-    external/msdfgen/ext/import-font.cpp
-)
+    external/msdfgen/ext/import-font.cpp)
 
 add_executable (${TARGET_TESTS}
     src/Tests/FontRenderingTests.cpp
     src/Tests/RenderGraphTests.cpp
     src/Tests/TestMain.cpp
     src/Tests/GearsTests.cpp
-    src/Tests/VizHFTests.cpp
-)
+    src/Tests/VizHFTests.cpp)
 
-add_library (${TARGET_DLL} SHARED
-    src/GearsPYD/Gears.cpp
+set (GEARSMODULE_COMMON_SOURCES
     src/GearsPYD/event/events.cpp
     src/GearsPYD/core/Pass.cpp
     src/GearsPYD/core/PassRenderer.cpp
@@ -173,7 +170,21 @@ add_library (${TARGET_DLL} SHARED
     src/GearsPYD/gpu/StimulusGrid.cpp
     src/GearsPYD/gpu/Texture.cpp
     src/GearsPYD/gpu/TextureQueue.cpp
-    src/GearsPYD/GearsAPIv2.cpp)
+    src/GearsPYD/GearsAPIv2.cpp
+    src/GearsPYD/StimulusAdapterForPresentable.cpp
+    src/GearsPYD/StimulusAdapterView.cpp
+    src/GearsPYD/SequenceAdapter.cpp
+)
+
+add_library (${TARGET_DLL} SHARED
+    ${GEARSMODULE_COMMON_SOURCES}
+    src/GearsPYD/GearsModule.cpp
+)
+
+add_library (${TARGET_DLL_EMBEDDED} SHARED
+    ${GEARSMODULE_COMMON_SOURCES}
+    src/GearsPYD/GearsModuleEmbedded.cpp
+)
     
 target_compile_definitions (${TARGET_GVKUTILS} PRIVATE
     PROJECT_ROOT_FULL_PATH=\"${CMAKE_SOURCE_DIR}\"
@@ -183,9 +194,8 @@ target_compile_definitions (${TARGET_GVKRG} PRIVATE
     GEARSVK_EXPORTS
 )
 target_compile_definitions (${TARGET_TESTS} PRIVATE)
-target_compile_definitions (${TARGET_DLL} PRIVATE
-    GEARS_EXPORTS
-)
+target_compile_definitions (${TARGET_DLL} PRIVATE GEARS_EXPORTS)
+target_compile_definitions (${TARGET_DLL_EMBEDDED} PRIVATE GEARS_EXPORTS)
 
 target_include_directories (${TARGET_GVKUTILS} PRIVATE src/Utils)
 target_include_directories (${TARGET_GVKRG} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
@@ -194,17 +204,23 @@ target_include_directories (${TARGET_DLL} PRIVATE
     ${GEARSVK_INCLUDE_FOLDERS}
     src/GearsPYD
 )
+target_include_directories (${TARGET_DLL_EMBEDDED} PRIVATE
+    ${GEARSVK_INCLUDE_FOLDERS}
+    src/GearsPYD
+)
 
 
 target_link_libraries (${TARGET_GVKUTILS})
 target_link_libraries (${TARGET_GVKRG} ${TARGET_GVKUTILS} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
 target_link_libraries (${TARGET_DLL} ${TARGET_GVKRG} ${Python3_LIBRARIES})
-target_link_libraries (${TARGET_TESTS} ${TARGET_GVKRG} ${TARGET_DLL})
+target_link_libraries (${TARGET_DLL_EMBEDDED} ${TARGET_GVKRG} ${Python3_LIBRARIES})
+target_link_libraries (${TARGET_TESTS} ${TARGET_GVKRG} ${TARGET_DLL_EMBEDDED})
 
 target_compile_options (${TARGET_GVKUTILS} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_GVKRG} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_TESTS} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL} PRIVATE ${COMPILER_FLAGS})
+target_compile_options (${TARGET_DLL_EMBEDDED} PRIVATE ${COMPILER_FLAGS})
 
 
 set (UI_PATH ${CMAKE_SOURCE_DIR}/src/UserInterface)

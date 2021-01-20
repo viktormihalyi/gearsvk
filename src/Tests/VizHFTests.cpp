@@ -65,7 +65,7 @@ TEST_F (VizHFTests, HF1)
 
     // ========================= GRAPH OPERATIONS =========================
 
-    ShaderPipelineP sp = ShaderPipeline::CreateShared (device);
+    ShaderPipelineU sp = ShaderPipeline::Create (device);
 
     sp->SetVertexShaderFromString (R"(#version 450
 
@@ -348,14 +348,14 @@ void main ()
 }
 )");
 
-    RG::RenderOperationP brainRenderOp = RG::RenderOperation::Create (FullscreenQuad::CreateShared (device), sp);
+    Ptr<RG::RenderOperation> brainRenderOp = RG::RenderOperation::Create (FullscreenQuad::Create (device), std::move (sp));
 
 
     // ========================= GRAPH RESOURCES =========================
 
-    RG::SwapchainImageResourceP presented = RG::SwapchainImageResource::Create (*presentable);
-    RG::ReadOnlyImageResourceP  matcap    = RG::ReadOnlyImageResource::Create (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
-    RG::ReadOnlyImageResourceP  agy3d     = RG::ReadOnlyImageResource::Create (VK_FORMAT_R8_SRGB, 256, 256, 256);
+    Ptr<RG::SwapchainImageResource> presented = RG::SwapchainImageResource::Create (*presentable);
+    Ptr<RG::ReadOnlyImageResource>  matcap    = RG::ReadOnlyImageResource::Create (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
+    Ptr<RG::ReadOnlyImageResource>  agy3d     = RG::ReadOnlyImageResource::Create (VK_FORMAT_R8_SRGB, 256, 256, 256);
 
     s.connectionSet.Add (brainRenderOp, presented,
                          RG::OutputBinding::Create (0,
@@ -561,7 +561,7 @@ TEST_F (VizHFTests, HF2)
 
     // ========================= GRAPH OPERATIONS & RESOURCES =========================
 
-    ShaderPipelineP sp = ShaderPipeline::CreateShared (device);
+    ShaderPipelineU sp = ShaderPipeline::Create (device);
 
     sp->SetVertexShaderFromString (R"(#version 450
 
@@ -820,9 +820,9 @@ void main ()
 }
 )");
 
-    RG::RenderOperationP brainRenderOp = RG::RenderOperation::Create (FullscreenQuad::Create (deviceExtra), sp);
+    Ptr<RG::RenderOperation> brainRenderOp = RG::RenderOperation::Create (FullscreenQuad::Create (deviceExtra), std::move (sp));
 
-    RG::SwapchainImageResourceP presented = RG::SwapchainImageResource::Create (*presentable);
+    Ptr<RG::SwapchainImageResource> presented = RG::SwapchainImageResource::Create (*presentable);
 
     // ========================= GRAPH CONNECTIONS =========================
 

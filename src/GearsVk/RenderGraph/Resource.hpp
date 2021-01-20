@@ -107,12 +107,12 @@ public:
     virtual ~ImageResource () = default;
 
 public:
-    virtual VkImageLayout           GetInitialLayout () const             = 0;
-    virtual VkImageLayout           GetFinalLayout () const               = 0;
-    virtual VkFormat                GetFormat () const                    = 0;
-    virtual uint32_t                GetLayerCount () const                = 0;
-    virtual std::vector<ImageBase*> GetImages () const                    = 0;
-    virtual std::vector<ImageBase*> GetImages (uint32_t frameIndex) const = 0;
+    virtual VkImageLayout       GetInitialLayout () const             = 0;
+    virtual VkImageLayout       GetFinalLayout () const               = 0;
+    virtual VkFormat            GetFormat () const                    = 0;
+    virtual uint32_t            GetLayerCount () const                = 0;
+    virtual std::vector<Image*> GetImages () const                    = 0;
+    virtual std::vector<Image*> GetImages (uint32_t frameIndex) const = 0;
 
     std::function<VkFormat ()> GetFormatProvider () const
     {
@@ -159,7 +159,7 @@ protected:
         static const VkFormat FormatRGBA;
         static const VkFormat FormatRGB;
 
-        const ImageBaseU             image;
+        const ImageU                 image;
         std::vector<ImageView2DU>    imageViews;
         std::optional<VkImageLayout> layoutRead;
         std::optional<VkImageLayout> layoutWrite;
@@ -171,7 +171,7 @@ protected:
         // YES read, YES write: general -> write -> read
 
         SingleImageResource (const DeviceExtra& device, uint32_t width, uint32_t height, uint32_t arrayLayers, VkFormat format = FormatRGBA, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL)
-            : image (Image2D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU,
+            : image (Image2D::Create (device.GetAllocator (), Image::MemoryLocation::GPU,
                                       width, height,
                                       format, tiling,
                                       VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
@@ -239,9 +239,9 @@ public:
     virtual VkFormat GetFormat () const override { return format; }
     virtual uint32_t GetLayerCount () const override { return arrayLayers; }
 
-    virtual std::vector<ImageBase*> GetImages () const override
+    virtual std::vector<Image*> GetImages () const override
     {
-        std::vector<ImageBase*> result;
+        std::vector<Image*> result;
 
         for (auto& img : images) {
             result.push_back (img->image.get ());
@@ -250,7 +250,7 @@ public:
         return result;
     }
 
-    virtual std::vector<ImageBase*> GetImages (uint32_t frameIndex) const override
+    virtual std::vector<Image*> GetImages (uint32_t frameIndex) const override
     {
         return { images[frameIndex]->image.get () };
     }
@@ -395,9 +395,9 @@ class GEARSVK_API ReadOnlyImageResource : public OneTimeCompileResource, public 
     USING_CREATE (ReadOnlyImageResource);
 
 public:
-    ImageTransferableBaseU image;
-    ImageViewBaseU         imageView;
-    SamplerU               sampler;
+    ImageTransferableU image;
+    ImageViewBaseU     imageView;
+    SamplerU           sampler;
 
     const VkFormat format;
     const VkFilter filter;
@@ -450,7 +450,7 @@ public:
         }
 
         SingleTimeCommand s (settings.GetDevice ());
-        image->imageGPU->CmdPipelineBarrier (s, ImageBase::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        image->imageGPU->CmdPipelineBarrier (s, Image::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     // overriding ImageResource
@@ -459,12 +459,12 @@ public:
     virtual VkFormat      GetFormat () const override { return format; }
     virtual uint32_t      GetLayerCount () const override { return 1; }
 
-    virtual std::vector<ImageBase*> GetImages () const override
+    virtual std::vector<Image*> GetImages () const override
     {
         return { image->imageGPU.get () };
     }
 
-    virtual std::vector<ImageBase*> GetImages (uint32_t) const override
+    virtual std::vector<Image*> GetImages (uint32_t) const override
     {
         return GetImages ();
     }
@@ -530,9 +530,9 @@ public:
     virtual VkFormat      GetFormat () const override { return swapchainProv.GetSwapchain ().GetImageFormat (); }
     virtual uint32_t      GetLayerCount () const override { return 1; }
 
-    virtual std::vector<ImageBase*> GetImages () const override
+    virtual std::vector<Image*> GetImages () const override
     {
-        std::vector<ImageBase*> result;
+        std::vector<Image*> result;
 
         for (auto& img : inheritedImages) {
             result.push_back (img.get ());
@@ -541,7 +541,7 @@ public:
         return result;
     }
 
-    virtual std::vector<ImageBase*> GetImages (uint32_t frameIndex) const override
+    virtual std::vector<Image*> GetImages (uint32_t frameIndex) const override
     {
         return { inheritedImages[frameIndex].get () };
     }

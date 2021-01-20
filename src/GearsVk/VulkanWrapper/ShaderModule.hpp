@@ -72,7 +72,7 @@ public:
     struct Reflection {
         ShaderKind shaderKind;
 
-        std::vector<SR::UBOP>    ubos;
+        std::vector<Ptr<SR::UBO>>  ubos;
         std::vector<SR::Sampler> samplers;
         std::vector<SR::Input>   inputs;
         std::vector<SR::Output>  outputs;

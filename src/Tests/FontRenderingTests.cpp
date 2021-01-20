@@ -2,13 +2,13 @@
 
 #include "DrawRecordableInfo.hpp"
 #include "Font.hpp"
+#include "GraphSettings.hpp"
 #include "ImageData.hpp"
+#include "Operation.hpp"
 #include "RenderGraph.hpp"
+#include "Resource.hpp"
 #include "UniformReflection.hpp"
 #include "VulkanWrapper.hpp"
-#include "GraphSettings.hpp"
-#include "Operation.hpp"
-#include "Resource.hpp"
 
 #include "glmlib.hpp"
 
@@ -37,7 +37,7 @@ TEST_F (FontRenderingTests, MSDFGEN)
 
     constexpr uint32_t glyphWidthHeight = 16;
 
-    auto sp = ShaderPipeline::CreateShared (device);
+    auto sp = ShaderPipeline::Create (device);
 
     sp->SetVertexShaderFromString (R"(
 #version 450
@@ -130,7 +130,7 @@ void main ()
         glm::vec2 uv;
     };
 
-    auto vbb = VertexBufferTransferable<Vert>::CreateShared (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Vec2f }, VK_VERTEX_INPUT_RATE_VERTEX);
+    auto vbb = VertexBufferTransferable<Vert>::Create (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Vec2f }, VK_VERTEX_INPUT_RATE_VERTEX);
 
     *vbb = std::vector<Vert> {
         { glm::vec2 (0.0f, 0.0f), glm::vec2 (0.f, 0.f) },
@@ -151,13 +151,13 @@ void main ()
 
     FontManager fm ("C:\\Windows\\Fonts\\arialbd.ttf", glyphWidthHeight, glyphWidthHeight, FontManager::Type::SDF);
 
-    auto instanceBuffer = VertexBufferTransferable<InstVert>::CreateShared (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Uint }, VK_VERTEX_INPUT_RATE_INSTANCE);
+    auto instanceBuffer = VertexBufferTransferable<InstVert>::Create (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Uint }, VK_VERTEX_INPUT_RATE_INSTANCE);
 
     VertexBufferList vbs;
     vbs.Add (vbb);
     vbs.Add (instanceBuffer);
 
-    RG::RenderOperationP renderOp = graph.CreateOperation<RG::RenderOperation> (DrawRecordableInfo::CreateShared (5, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
+    Ptr<RG::RenderOperation> renderOp = graph.CreateOperation<RG::RenderOperation> (DrawRecordableInfo::Create (5, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
 
     RG::WritableImageResourceP outputImage = graph.CreateResource<RG::WritableImageResource> (512, 512);
     RG::ReadOnlyImageResourceP glyphs      = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, glyphWidthHeight, glyphWidthHeight, 1, 512);

@@ -20,18 +20,18 @@ namespace RG {
 
 // adds resources to and existing rendergraph based on the renderoperations inside it
 // modifying uniforms takes place in a staging cpu memory, calling Flush will copy these to the actual uniform memory
-// accessing a uniforms is available with operator[] eg.: reflection[RG::RenderOperationP][ShaderKind][std::string][std::string]...
+// accessing a uniforms is available with operator[] eg.: reflection[Ptr<RG::RenderOperation>][ShaderKind][std::string][std::string]...
 
 class GEARSVK_API ImageMap {
 private:
-    std::vector<std::pair<SR::Sampler, ReadOnlyImageResourceP>> images;
+    std::vector<std::pair<SR::Sampler, Ptr<ReadOnlyImageResource>>> images;
 
 public:
     ImageMap ();
 
-    ReadOnlyImageResourceP FindByName (const std::string& name) const;
+    Ptr<ReadOnlyImageResource> FindByName (const std::string& name) const;
 
-    void Put (const SR::Sampler& sampler, const ReadOnlyImageResourceP& res);
+    void Put (const SR::Sampler& sampler, const Ptr<ReadOnlyImageResource>& res);
 };
 
 using CreateParams                 = std::tuple<glm::uvec3, VkFormat, VkFilter>;
@@ -51,7 +51,7 @@ class GEARSVK_API UniformReflection final : public EventObserver {
 private:
     class GEARSVK_API UboSelector {
     private:
-        std::unordered_map<std::string, SR::IUDataP> udatas;
+        std::unordered_map<std::string, Ptr<SR::IUData>> udatas;
 
     public:
         SR::IUData& operator[] (const std::string& uboName)
@@ -65,7 +65,7 @@ private:
             return SR::dummyUData;
         }
 
-        void Set (const std::string& uboName, const SR::IUDataP& uboData)
+        void Set (const std::string& uboName, const Ptr<SR::IUData>& uboData)
         {
             udatas[uboName] = uboData;
         }
@@ -108,28 +108,28 @@ public:
     RG::ConnectionSet& connectionSet;
 
     //
-    std::vector<RG::InputBufferBindableResourceP>                                                         uboResources;
-    std::vector<std::tuple<RG::RenderOperationP, uint32_t, RG::InputBufferBindableResourceP, ShaderKind>> uboConnections;
-    std::unordered_map<GearsVk::UUID, SR::IUDataP>                                                        udatas;
+    std::vector<Ptr<RG::InputBufferBindableResource>>                                                           uboResources;
+    std::vector<std::tuple<Ptr<RG::RenderOperation>, uint32_t, Ptr<RG::InputBufferBindableResource>, ShaderKind>> uboConnections;
+    std::unordered_map<GearsVk::UUID, Ptr<SR::IUData>>                                                          udatas;
 
 public:
-    using Filter          = std::function<bool (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP&)>;
-    using ResourceCreator = std::function<RG::InputBufferBindableResourceP (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP&)>;
+    using Filter          = std::function<bool (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<SR::UBO>&)>;
+    using ResourceCreator = std::function<Ptr<RG::InputBufferBindableResource> (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<SR::UBO>&)>;
 
 public:
-    static bool DefaultFilter (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP&)
+    static bool DefaultFilter (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<SR::UBO>&)
     {
         return false;
     }
 
-    static RG::InputBufferBindableResourceP DefaultResourceCreator (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP& ubo)
+    static Ptr<RG::InputBufferBindableResource> DefaultResourceCreator (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<SR::UBO>& ubo)
     {
-        return RG::CPUBufferResource::CreateShared (ubo->GetFullSize ());
+        return RG::CPUBufferResource::Create (ubo->GetFullSize ());
     }
 
-    static RG::InputBufferBindableResourceP GPUBufferResourceCreator (const RG::RenderOperationP&, const ShaderModule&, const SR::UBOP& ubo)
+    static Ptr<RG::InputBufferBindableResource> GPUBufferResourceCreator (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<SR::UBO>& ubo)
     {
-        return RG::GPUBufferResource::CreateShared (ubo->GetFullSize ());
+        return RG::GPUBufferResource::Create (ubo->GetFullSize ());
     }
 
 public:
@@ -140,7 +140,7 @@ public:
     void Flush (uint32_t frameIndex);
 
     ShaderKindSelector& operator[] (const RG::RenderOperation& renderOp);
-    ShaderKindSelector& operator[] (const RG::RenderOperationP& renderOp);
+    ShaderKindSelector& operator[] (const Ptr<RG::RenderOperation>& renderOp);
     ShaderKindSelector& operator[] (const GearsVk::UUID& renderOpId);
 
 private:
@@ -166,7 +166,7 @@ inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (con
 }
 
 
-inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const RG::RenderOperationP& renderOp)
+inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const Ptr<RG::RenderOperation>& renderOp)
 {
     return (*this)[renderOp->GetUUID ()];
 }

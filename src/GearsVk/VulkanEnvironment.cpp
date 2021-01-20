@@ -8,38 +8,23 @@
 #include <iomanip>
 
 
-Presentable::Presentable ()
-    : surface (nullptr)
-    , swapchain (nullptr)
-{
-}
-
-
-Presentable::Presentable (const PhysicalDevice& physicalDevice, VkDevice device, SurfaceU&& surface)
+Presentable::Presentable (VulkanEnvironment& env, SurfaceU&& surface, SwapchainSettingsProvider& settingsProvider)
     : surface (std::move (surface))
-    , swapchain (RealSwapchain::Create (physicalDevice, device, *this->surface))
 {
+    // TODO this is kind of a hack
+    // when creating a swapchain, we must query if presentation is supported for the surface
+    // but we create a physicaldevice first, then connect the swapchains later, so we completely recreate the physical device
+    // and _hope_ we get the same
+
+    env.RecreateForPresentable (*this);
+
+    swapchain = RealSwapchain::Create (*env.physicalDevice, *env.device, *this->surface, settingsProvider);
 }
 
 
-Presentable::Presentable (SwapchainU&& swapchain)
-    : surface (nullptr)
-    , swapchain (std::move (swapchain))
+Presentable::Presentable (VulkanEnvironment& env, Window& window, SwapchainSettingsProvider& settingsProvider)
+    : Presentable (env, Surface::Create (*env.instance, window.GetSurface (*env.instance)), settingsProvider)
 {
-}
-
-
-void Presentable::operator= (Presentable&& other) noexcept
-{
-    surface   = std::move (other.surface);
-    swapchain = std::move (other.swapchain);
-}
-
-
-void Presentable::Clear ()
-{
-    surface.reset ();
-    swapchain.reset ();
 }
 
 
@@ -157,14 +142,8 @@ VulkanEnvironment::~VulkanEnvironment ()
 }
 
 
-PresentableP VulkanEnvironment::CreatePresentable (SurfaceU&& surface) const
+void VulkanEnvironment::RecreateForPresentable (const Presentable& presentable)
 {
-    physicalDevice->RecreateForSurface (*surface);
-    return Presentable::CreateShared (*physicalDevice, *device, std::move (surface));
-}
-
-
-PresentableP VulkanEnvironment::CreatePresentable (Window& window) const
-{
-    return CreatePresentable (Surface::Create (*instance, window.GetSurface (*instance)));
+    const Surface& surface = presentable.GetSurface ();
+    physicalDevice->RecreateForSurface (surface);
 }

@@ -7,9 +7,11 @@
 #include "GearsAPI.hpp"
 #include "Ptr.hpp"
 
-USING_PTR (Presentable);
+
+class Presentable;
 class VulkanEnvironment;
 enum class ShaderKind : uint8_t;
+
 
 void InitializeEnvironment ();
 
@@ -40,7 +42,7 @@ GEARS_API
 void SetOverriddenEnvironment (VulkanEnvironment&);
 
 GEARS_API
-void SetCurrentPresentable (PresentableP&);
+void SetCurrentPresentable (Ptr<Presentable>&);
 
 GEARS_API
 void SetRenderGraphFromPyxFileSequence (const std::filesystem::path&);

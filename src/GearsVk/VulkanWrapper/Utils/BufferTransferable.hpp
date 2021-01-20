@@ -9,6 +9,7 @@
 #include "DeviceMemory.hpp"
 #include "Image.hpp"
 #include "MemoryMapping.hpp"
+#include "Ptr.hpp"
 #include "SingleTimeCommand.hpp"
 #include "VulkanUtils.hpp"
 
@@ -51,32 +52,29 @@ public:
 };
 
 
-USING_PTR (ImageTransferableBase);
-class GEARSVK_API ImageTransferableBase {
+USING_PTR (ImageTransferable);
+class GEARSVK_API ImageTransferable {
+    USING_CREATE (ImageTransferable);
+
 private:
     const DeviceExtra& device;
-
-    uint32_t bufferSize;
 
     Buffer        bufferCPU;
     MemoryMapping bufferCPUMapping;
 
 public:
-    ImageBaseU imageGPU;
-
-    USING_CREATE (ImageTransferableBase);
+    ImageU imageGPU;
 
 protected:
-    ImageTransferableBase (const DeviceExtra& device, uint32_t bufferSize)
+    ImageTransferable (const DeviceExtra& device, uint32_t bufferSize)
         : device (device)
-        , bufferSize (bufferSize)
         , bufferCPU (device.GetAllocator (), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, Buffer::MemoryLocation::CPU)
         , bufferCPUMapping (device.GetAllocator (), bufferCPU)
     {
     }
 
 public:
-    virtual ~ImageTransferableBase () = default;
+    virtual ~ImageTransferable () = default;
 
     void CopyTransitionTransfer (VkImageLayout currentImageLayout, const void* data, size_t size, std::optional<VkImageLayout> nextLayout = std::nullopt) const
     {
@@ -142,49 +140,49 @@ static uint32_t GetCompontentCountFromFormat (VkFormat format)
 
 
 USING_PTR (Image1DTransferable);
-class GEARSVK_API Image1DTransferable final : public ImageTransferableBase {
+class GEARSVK_API Image1DTransferable final : public ImageTransferable {
 public:
     USING_CREATE (Image1DTransferable);
     Image1DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
-        : ImageTransferableBase (device, width * GetCompontentCountFromFormat (format))
+        : ImageTransferable (device, width * GetCompontentCountFromFormat (format))
     {
-        imageGPU = Image1D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
+        imageGPU = Image1D::Create (device.GetAllocator (), Image::MemoryLocation::GPU, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
     }
 };
 
 
 USING_PTR (Image2DTransferable);
-class GEARSVK_API Image2DTransferable final : public ImageTransferableBase {
+class GEARSVK_API Image2DTransferable final : public ImageTransferable {
 public:
     USING_CREATE (Image2DTransferable);
     Image2DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
-        : ImageTransferableBase (device, width * height * GetCompontentCountFromFormat (format))
+        : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format))
     {
-        imageGPU = Image2D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
+        imageGPU = Image2D::Create (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
     }
 };
 
 
 USING_PTR (Image2DTransferableLinear);
-class GEARSVK_API Image2DTransferableLinear final : public ImageTransferableBase {
+class GEARSVK_API Image2DTransferableLinear final : public ImageTransferable {
 public:
     USING_CREATE (Image2DTransferableLinear);
     Image2DTransferableLinear (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
-        : ImageTransferableBase (device, width * height * GetCompontentCountFromFormat (format))
+        : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format))
     {
-        imageGPU = Image2D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_LINEAR, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
+        imageGPU = Image2D::Create (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_LINEAR, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
     }
 };
 
 
 USING_PTR (Image3DTransferable);
-class GEARSVK_API Image3DTransferable final : public ImageTransferableBase {
+class GEARSVK_API Image3DTransferable final : public ImageTransferable {
 public:
     USING_CREATE (Image3DTransferable);
     Image3DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
-        : ImageTransferableBase (device, width * height * depth * GetCompontentCountFromFormat (format))
+        : ImageTransferable (device, width * height * depth * GetCompontentCountFromFormat (format))
     {
-        imageGPU = Image3D::Create (device.GetAllocator (), ImageBase::MemoryLocation::GPU, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
+        imageGPU = Image3D::Create (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
     }
 };
 
@@ -234,13 +232,11 @@ public:
 };
 
 
-USING_PTR (VertexBufferTransferableUntyped);
-
 template<typename VertexType>
 class VertexBufferTransferable : public VertexBufferTransferableUntyped {
-public:
     USING_CREATE (VertexBufferTransferable);
 
+public:
     VertexBufferTransferable (const DeviceExtra&           device,
                               uint32_t                     maxVertexCount,
                               const std::vector<VkFormat>& vertexInputFormats,
@@ -258,17 +254,15 @@ public:
 };
 
 
-USING_PTR (IndexBufferTransferable);
-class GEARSVK_API IndexBufferTransferable {
-public:
-    using IndexType = uint16_t;
+template<typename IndexType, VkIndexType VulkanIndexType>
+class IndexBufferTransferableBase {
+    USING_CREATE (IndexBufferTransferableBase);
 
+public:
     std::vector<IndexType>   data;
     const BufferTransferable buffer;
 
-    USING_CREATE (IndexBufferTransferable);
-
-    IndexBufferTransferable (const DeviceExtra& device, uint32_t maxIndexCount)
+    IndexBufferTransferableBase (const DeviceExtra& device, uint32_t maxIndexCount)
         : buffer (device, sizeof (IndexType) * maxIndexCount, VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
     {
         data.resize (maxIndexCount);
@@ -279,7 +273,7 @@ public:
         buffer.CopyAndTransfer (data.data (), sizeof (IndexType) * data.size ());
     }
 
-    void operator= (const std::vector<uint16_t>& copiedData)
+    void operator= (const std::vector<IndexType>& copiedData)
     {
         GVK_ASSERT (copiedData.size () == data.size ());
         memcpy (data.data (), copiedData.data (), copiedData.size () * sizeof (IndexType));
@@ -287,9 +281,14 @@ public:
 
     void Bind (VkCommandBuffer commandBuffer) const
     {
-        vkCmdBindIndexBuffer (commandBuffer, buffer.GetBufferToBind (), 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer (commandBuffer, buffer.GetBufferToBind (), 0, VulkanIndexType);
     }
 };
+
+using IndexBufferTransferable    = IndexBufferTransferableBase<uint16_t, VK_INDEX_TYPE_UINT16>;
+using IndexBufferTransferableU   = U<IndexBufferTransferableBase<uint16_t, VK_INDEX_TYPE_UINT16>>;
+using IndexBufferTransferable32  = IndexBufferTransferableBase<uint32_t, VK_INDEX_TYPE_UINT32>;
+using IndexBufferTransferable32U = U<IndexBufferTransferableBase<uint32_t, VK_INDEX_TYPE_UINT32>>;
 
 
 #endif

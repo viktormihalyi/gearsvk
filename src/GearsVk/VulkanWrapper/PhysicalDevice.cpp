@@ -10,6 +10,7 @@ static std::optional<uint32_t> AcceptFirstGraphicsAndPresentSupport (VkPhysicalD
         return std::nullopt;
     }
 
+
     uint32_t i = 0;
     for (const VkQueueFamilyProperties& queueFamily : queueFamilies) {
         VkBool32 presentSupport = false;

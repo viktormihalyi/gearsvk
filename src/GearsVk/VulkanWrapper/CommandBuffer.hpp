@@ -12,7 +12,7 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
-class ImageBase;
+class Image;
 
 class CommandBuffer;
 
@@ -32,7 +32,7 @@ private:
     const VkCommandPool commandPool;
     VkCommandBuffer     handle;
 
-    std::unordered_map<const ImageBase*, std::vector<std::pair<VkImageLayout, VkImageLayout>>> layouts;
+    std::unordered_map<const Image*, std::vector<std::pair<VkImageLayout, VkImageLayout>>> layouts;
 
 public:
     bool                  canRecordCommands;
@@ -118,7 +118,7 @@ public:
         return handle;
     }
 
-    virtual void ImageLayoutChanged (const ImageBase& image, VkImageLayout from, VkImageLayout to) override;
+    virtual void ImageLayoutChanged (const Image& image, VkImageLayout from, VkImageLayout to) override;
 };
 
 

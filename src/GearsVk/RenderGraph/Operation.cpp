@@ -59,14 +59,14 @@ std::vector<VkImageView> RenderOperation::GetOutputImageViews (const ConnectionS
 }
 
 
-RenderOperation::RenderOperation (const DrawRecordableP& drawRecordable, const ShaderPipelineP& shaderPipeline, VkPrimitiveTopology topology)
-    : compileSettings ({ drawRecordable, drawRecordable, shaderPipeline, topology })
+RenderOperation::RenderOperation (DrawRecordableU&& drawRecordable, ShaderPipelineU&& shaderPipeline, VkPrimitiveTopology topology)
+    : compileSettings ({ std::move (drawRecordable), std::move (drawRecordable), std::move (shaderPipeline), topology })
 {
 }
 
 
-RenderOperation::RenderOperation (const PureDrawRecordableP& drawRecordable, const VertexAttributeProviderP& vap, const ShaderPipelineP& shaderPipeline, VkPrimitiveTopology topology)
-    : compileSettings ({ drawRecordable, vap, shaderPipeline, topology })
+RenderOperation::RenderOperation (PureDrawRecordableU&& drawRecordable, VertexAttributeProviderU&& vap, ShaderPipelineU&& shaderPipeline, VkPrimitiveTopology topology)
+    : compileSettings ({ std::move (drawRecordable), std::move (vap), std::move (shaderPipeline), topology })
 {
 }
 
@@ -262,8 +262,8 @@ void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t ima
 
     if (auto fromImg = dynamic_cast<ImageResource*> (from)) {
         if (auto toImg = dynamic_cast<ImageResource*> (to)) {
-            ImageBase* fromVkImage = fromImg->GetImages ()[0];
-            ImageBase* toVkImage   = toImg->GetImages ()[0];
+            Image* fromVkImage = fromImg->GetImages ()[0];
+            Image* toVkImage   = toImg->GetImages ()[0];
 
             GVK_ASSERT (fromVkImage->GetWidth () == toVkImage->GetWidth ());
             GVK_ASSERT (fromVkImage->GetHeight () == toVkImage->GetHeight ());

@@ -21,7 +21,7 @@
 std::string GetVersionString (uint32_t version);
 
 GEARSVK_API
-void TransitionImageLayout (const DeviceExtra& device, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout);
+void TransitionImageLayout (const DeviceExtra& device, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout);
 
 void CopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth = 1);
 void CopyBufferToImage (const DeviceExtra& device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth = 1);
@@ -30,10 +30,10 @@ GEARSVK_API
 void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
 GEARSVK_API
-bool AreImagesEqual (const DeviceExtra& device, const ImageBase& image, const std::filesystem::path& expectedImage, uint32_t layerIndex = 0);
+bool AreImagesEqual (const DeviceExtra& device, const Image& image, const std::filesystem::path& expectedImage, uint32_t layerIndex = 0);
 
 GEARSVK_API
-std::thread SaveImageToFileAsync (const DeviceExtra& device, const ImageBase& image, const std::filesystem::path& filePath, uint32_t layerIndex = 0);
+std::thread SaveImageToFileAsync (const DeviceExtra& device, const Image& image, const std::filesystem::path& filePath, uint32_t layerIndex = 0);
 
 
 namespace ShaderTypes {

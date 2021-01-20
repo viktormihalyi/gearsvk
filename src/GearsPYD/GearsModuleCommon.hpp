@@ -1,27 +1,7 @@
-// Gears.cpp : Defines the exported functions for the DLL application.
-//
 
-
-#include <pybind11/embed.h>
-#include <pybind11/functional.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
-#include "stdafx.h"
-
+// from Gears
+#include "GearsAPIv2.hpp"
 #include "core/PythonDict.h"
-//#include <boost/python.hpp>
-//#include <boost/python/suite/indexing/map_indexing_suite.hpp>
-
-#include <pybind11/stl_bind.h>
-
-#include <string>
-
-#include <filesystem>
-#include <iostream>
-#include <sstream>
-#include <string>
-
 #include "core/Response.h"
 #include "core/Sequence.h"
 #include "core/SequenceRenderer.h"
@@ -30,11 +10,23 @@
 #include "core/Ticker.h"
 #include "core/filter/KernelManager.h"
 #include "core/filter/fft/openCLFFT.h"
-#include "event/events.h"
-
-#include "GearsAPIv2.hpp"
-
 #include "curve/Poly2TriWrapper.h"
+#include "event/events.h"
+#include "stdafx.h"
+
+// from std
+#include <filesystem>
+#include <iostream>
+#include <sstream>
+#include <string>
+
+// from pybind11
+#include <pybind11/embed.h>
+#include <pybind11/functional.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
+
 
 // Python requires an exported function called init<module-name> in every
 // extension module. This is where we build the module contents.
@@ -382,28 +374,6 @@ void bindTexture (std::string filename)
         //glBindTexture (GL_TEXTURE_2D, tex->getTextureHandle ());
     }
 }
-
-
-static void FillModule (pybind11::module_&);
-
-
-// TODO tests require the embedded module, application requires a not embedded module
-
-#if 1
-
-PYBIND11_EMBEDDED_MODULE (GearsModule, m)
-{
-    FillModule (m);
-}
-
-#else
-
-PYBIND11_MODULE (GearsModule, m)
-{
-    FillModule (m);
-}
-
-#endif
 
 
 void FillModule (pybind11::module_& m)

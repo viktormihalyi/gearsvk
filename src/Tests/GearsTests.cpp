@@ -23,7 +23,7 @@ TEST_F (GearsTests, SimpleSequence)
 
     WindowU window = HiddenGLFWWindow::Create ();
 
-    PresentableP pres = env->CreatePresentable (*window);
+    Ptr<Presentable> pres = Presentable::Create (*env, *window, DefaultSwapchainSettingsSingleImage ());
 
     SetCurrentPresentable (pres);
 

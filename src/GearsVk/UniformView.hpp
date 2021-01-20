@@ -11,12 +11,11 @@
 #include <cstring>
 #include <vector>
 
-
 USING_PTR (ShaderModule);
 
 namespace SR {
 
-USING_PTR (FieldProvider);
+USING_PTR (FieldContainer);
 USING_PTR (Field);
 USING_PTR (UBO);
 
@@ -38,22 +37,24 @@ private:
         Array,
     };
 
-    const Type               type;
-    uint8_t*                 data;
-    const uint32_t           offset;
-    const uint32_t           size;
-    const SR::FieldProviderP parentContainer;
-    const SR::FieldP         currentField;
+    const Type                type;
+    uint8_t*                  data;
+    const uint32_t            offset;
+    const uint32_t            size;
+    const SR::FieldContainer& parentContainer;
+    const SR::FieldU&         currentField;
 
 public:
     UView (Type                      type,
            uint8_t*                  data,
            uint32_t                  offset,
            uint32_t                  size,
-           const SR::FieldProviderP& parentContainer,
-           const SR::FieldP&         currentField = nullptr);
+           const SR::FieldContainer& parentContainer,
+           const SR::FieldU&         currentField = nullptr);
 
-    UView (const SR::UBOP& root, uint8_t* data);
+    UView (const Ptr<SR::UBO>& root, uint8_t* data);
+
+    UView (const UView&);
 
     template<typename T>
     void operator= (const T& other)
@@ -183,7 +184,7 @@ private:
 
 public:
     USING_CREATE (UDataExternal);
-    UDataExternal (const SR::UBOP& ubo, uint8_t* bytes, uint32_t size);
+    UDataExternal (const Ptr<SR::UBO>& ubo, uint8_t* bytes, uint32_t size);
 
     virtual UView operator[] (std::string_view str) override;
 
@@ -204,7 +205,7 @@ private:
     UView                root;
 
 public:
-    UDataInternal (const SR::UBOP& ubo);
+    UDataInternal (const Ptr<SR::UBO>& ubo);
 
     virtual UView operator[] (std::string_view str) override;
 
@@ -226,17 +227,17 @@ class GEARSVK_API ShaderUData final : public Noncopyable {
 private:
     std::vector<IUDataU>     udatas;
     std::vector<std::string> uboNames;
-    std::vector<SR::UBOP>    ubos;
+    std::vector<Ptr<SR::UBO>>    ubos;
 
 public:
-    ShaderUData (const std::vector<SR::UBOP>& ubos);
+    ShaderUData (const std::vector<Ptr<SR::UBO>>& ubos);
     ShaderUData (const std::vector<uint32_t>& shaderBinary);
     ShaderUData (const ShaderModuleU& shaderModule);
     ShaderUData (const ShaderModule& shaderModule);
 
     IUData& operator[] (std::string_view str);
 
-    SR::UBOP GetUbo (std::string_view str);
+    Ptr<SR::UBO> GetUbo (std::string_view str);
 };
 
 

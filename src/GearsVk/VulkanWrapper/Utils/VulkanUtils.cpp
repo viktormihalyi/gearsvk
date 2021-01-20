@@ -23,7 +23,7 @@ std::string GetVersionString (uint32_t version)
 }
 
 
-void TransitionImageLayout (const DeviceExtra& device, const ImageBase& image, VkImageLayout oldLayout, VkImageLayout newLayout)
+void TransitionImageLayout (const DeviceExtra& device, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
     SingleTimeCommand commandBuffer (device);
     image.CmdPipelineBarrier (commandBuffer, oldLayout, newLayout);
@@ -77,12 +77,12 @@ void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuff
 }
 
 
-static ImageBaseU CreateCopyImageOnCPU (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex = 0)
+static ImageU CreateCopyImageOnCPU (const DeviceExtra& device, const Image& image, uint32_t layerIndex = 0)
 {
     const uint32_t width  = image.GetWidth ();
     const uint32_t height = image.GetHeight ();
 
-    Image2DU dst = Image2D::Create (device.GetAllocator (), ImageBase::MemoryLocation::CPU, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
+    Image2DU dst = Image2D::Create (device.GetAllocator (), Image::MemoryLocation::CPU, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
 
     TransitionImageLayout (device, *dst, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
@@ -132,14 +132,14 @@ std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t 
 }
 
 // copy image to cpu and compare with a reference
-bool AreImagesEqual (const DeviceExtra& device, const ImageBase& image, const std::filesystem::path& expectedImage, uint32_t layerIndex)
+bool AreImagesEqual (const DeviceExtra& device, const Image& image, const std::filesystem::path& expectedImage, uint32_t layerIndex)
 {
     const uint32_t width      = image.GetWidth ();
     const uint32_t height     = image.GetHeight ();
     const uint32_t pixelCount = width * height;
     const uint32_t byteCount  = pixelCount * 4;
 
-    ImageBaseU dst = CreateCopyImageOnCPU (device, image, layerIndex);
+    ImageU dst = CreateCopyImageOnCPU (device, image, layerIndex);
 
 
     std::vector<std::array<uint8_t, 4>> mapped (pixelCount);
@@ -164,7 +164,7 @@ bool AreImagesEqual (const DeviceExtra& device, const ImageBase& image, const st
 }
 
 
-std::thread SaveImageToFileAsync (const DeviceExtra& device, const ImageBase& image, const std::filesystem::path& filePath, uint32_t layerIndex)
+std::thread SaveImageToFileAsync (const DeviceExtra& device, const Image& image, const std::filesystem::path& filePath, uint32_t layerIndex)
 {
     return std::thread ([=, &image] () {
         ImageData (device, image, layerIndex).SaveTo (filePath);

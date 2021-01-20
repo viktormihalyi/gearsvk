@@ -10,7 +10,7 @@
 #include "VulkanUtils.hpp"
 
 
-ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout)
+ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout)
     : components (4)
 {
     width  = image.GetWidth ();
@@ -19,7 +19,7 @@ ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, uint32_
     if (currentLayout)
         TransitionImageLayout (device, image, *currentLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
-    Image2D dst (device.GetAllocator (), ImageBase::MemoryLocation::CPU,
+    Image2D dst (device.GetAllocator (), Image::MemoryLocation::CPU,
                  image.GetWidth (), image.GetHeight (),
                  image.GetFormat (),
                  //VK_FORMAT_R8G8B8A8_SRGB,
@@ -60,7 +60,7 @@ ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, uint32_
     }
 }
 
-ImageData::ImageData (const DeviceExtra& device, const ImageBase& image, std::optional<VkImageLayout> currentLayout)
+ImageData::ImageData (const DeviceExtra& device, const Image& image, std::optional<VkImageLayout> currentLayout)
     : ImageData (device, image, 0, currentLayout)
 {
 }
@@ -157,7 +157,7 @@ void ImageData::SaveTo (const std::filesystem::path& path) const
 }
 
 
-void ImageData::UploadTo (const DeviceExtra& device, const ImageBase& image, std::optional<VkImageLayout> currentLayout) const
+void ImageData::UploadTo (const DeviceExtra& device, const Image& image, std::optional<VkImageLayout> currentLayout) const
 {
     if (currentLayout)
         TransitionImageLayout (device, image, *currentLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);

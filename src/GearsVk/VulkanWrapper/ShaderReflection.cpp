@@ -53,7 +53,7 @@ uint32_t Field::GetSize () const
 }
 
 
-std::vector<SR::FieldP> Field::GetFields () const
+const std::vector<SR::FieldU>& Field::GetFields () const
 {
     return structFields;
 }
@@ -70,7 +70,7 @@ uint32_t UBO::GetFullSize () const
 }
 
 
-std::vector<SR::FieldP> UBO::GetFields () const
+const std::vector<SR::FieldU>& UBO::GetFields () const
 {
     return fields;
 }
@@ -285,7 +285,7 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
 }
 
 
-static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeID typeId, std::vector<FieldP>& parentFields, const uint32_t depth = 0)
+static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeID typeId, std::vector<FieldU>& parentFields, const uint32_t depth = 0)
 {
     const spirv_cross::SPIRType& type = compiler.get_type (typeId);
 
@@ -296,7 +296,7 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
         AllDecorations               typeMemDecor (compiler, type.self, i);
         const spirv_cross::SPIRType& Mtype = compiler.get_type (type.member_types[i]);
 
-        FieldP f       = Field::Create ();
+        FieldU f       = Field::Create ();
         f->name        = typeMemDecor.name;
         f->offset      = *typeMemDecor.Offset;
         f->arrayStride = typeMemDecorA.ArrayStride ? *typeMemDecorA.ArrayStride : 0;
@@ -306,20 +306,22 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
 
         GVK_ASSERT (Mtype.array.empty () || Mtype.array.size () == 1);
 
-        parentFields.push_back (f);
+        auto& structFields = f->structFields;
 
-        IterateTypeTree (compiler, type.member_types[i], f->structFields, depth + 1);
+        parentFields.push_back (std::move (f));
+
+        IterateTypeTree (compiler, type.member_types[i], structFields, depth + 1);
     }
 }
 
 
-std::vector<UBOP> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
+std::vector<Ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
 {
     spirv_cross::Compiler compiler (binary);
 
     const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
 
-    std::vector<UBOP> ubos;
+    std::vector<Ptr<UBO>> ubos;
 
     for (auto& resource : resources.uniform_buffers) {
         AllDecorations decorations (compiler, resource.id);
@@ -330,7 +332,7 @@ std::vector<UBOP> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
         // eg. array of 4 on binding 2 will create 4 different bindings: 2, 3, 4, 5
         GVK_ASSERT (arraySize == 0);
 
-        UBOP root           = UBO::Create ();
+        Ptr<UBO> root           = UBO::Create ();
         root->name          = resource.name;
         root->binding       = *decorations.Binding;
         root->descriptorSet = *decorations.DescriptorSet;
@@ -342,7 +344,7 @@ std::vector<UBOP> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
         ubos.push_back (root);
     }
 
-    std::sort (ubos.begin (), ubos.end (), [] (const UBOP& first, const UBOP& second) {
+    std::sort (ubos.begin (), ubos.end (), [] (const Ptr<UBO>& first, const Ptr<UBO>& second) {
         return first->binding < second->binding;
     });
 

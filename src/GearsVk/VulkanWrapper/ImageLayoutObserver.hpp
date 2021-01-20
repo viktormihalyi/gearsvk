@@ -6,14 +6,14 @@
 
 #include <vulkan/vulkan.h>
 
-class ImageBase;
+class Image;
 
 USING_PTR (ImageLayoutObserver);
 class GEARSVK_API ImageLayoutObserver {
 public:
     ~ImageLayoutObserver () = default;
 
-    virtual void ImageLayoutChanged (const ImageBase& image, VkImageLayout from, VkImageLayout to) = 0;
+    virtual void ImageLayoutChanged (const Image& image, VkImageLayout from, VkImageLayout to) = 0;
 };
 
 

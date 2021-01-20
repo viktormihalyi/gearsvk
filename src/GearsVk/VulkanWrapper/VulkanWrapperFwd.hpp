@@ -22,7 +22,7 @@ USING_PTR (DeviceExtra);
 USING_PTR (DeviceMemory);
 USING_PTR (Fence);
 USING_PTR (Framebuffer);
-USING_PTR (ImageBase);
+USING_PTR (Image);
 USING_PTR (ImageViewBase);
 USING_PTR (Instance);
 USING_PTR (PhysicalDevice);

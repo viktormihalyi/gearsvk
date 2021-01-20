@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 
+NoValueT NoValue;
 
 namespace Utils {
 
@@ -118,7 +119,8 @@ std::optional<std::vector<char>> ReadBinaryFile (const std::filesystem::path& fi
 
 std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem::path& filePath)
 {
-    std::optional<std::vector<char>> readResult = OpenAndReadFile<std::vector<char>> (filePath);
+    const std::optional<std::vector<char>>
+        readResult = OpenAndReadFile<std::vector<char>> (filePath);
     if (!readResult.has_value ()) {
         return std::nullopt;
     }

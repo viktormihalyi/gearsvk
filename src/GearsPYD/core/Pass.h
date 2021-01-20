@@ -1,10 +1,8 @@
 #pragma once
 
+#include "stdafx.h"
+
 #include <algorithm>
-//#include <boost/parameter/keyword.hpp>
-//#include <boost/parameter/preprocessor.hpp>
-//#include <boost/parameter/python.hpp>
-//#include <boost/python.hpp>
 #include <glm/glm.hpp>
 
 #include <iomanip>

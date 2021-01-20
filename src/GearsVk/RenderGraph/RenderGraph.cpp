@@ -31,7 +31,7 @@ bool Contains (const std::set<T>& vec, const T& value)
 
 void RenderGraph::CompileResources (const GraphSettings& settings)
 {
-    Utils::ForEachP<Resource> (settings.connectionSet.nodes, [&] (ResourceP& res) {
+    Utils::ForEachP<Resource> (settings.connectionSet.nodes, [&] (Ptr<Resource>& res) {
         res->Compile (settings);
     });
 }
@@ -42,20 +42,20 @@ RenderGraph::Pass RenderGraph::GetNextPass (const ConnectionSet& connectionSet, 
     RenderGraph::Pass result;
 
     for (Operation* op : lastPass.operations) {
-        for (const ResourceP& res : connectionSet.GetPointingTo<Resource> (op)) {
-            for (const OperationP& nextOp : connectionSet.GetPointingTo<Operation> (res.get ())) {
+        for (const Ptr<Resource>& res : connectionSet.GetPointingTo<Resource> (op)) {
+            for (const Ptr<Operation>& nextOp : connectionSet.GetPointingTo<Operation> (res.get ())) {
                 result.operations.insert (nextOp.get ());
             }
         }
     }
 
     for (auto& op : result.operations) {
-        std::vector<ResourceP> inputs  = connectionSet.GetPointingHere<Resource> (op);
-        std::vector<ResourceP> outputs = connectionSet.GetPointingTo<Resource> (op);
-        for (ResourceP input : inputs) {
+        std::vector<Ptr<Resource>> inputs  = connectionSet.GetPointingHere<Resource> (op);
+        std::vector<Ptr<Resource>> outputs = connectionSet.GetPointingTo<Resource> (op);
+        for (Ptr<Resource> input : inputs) {
             result.inputs.insert (input.get ());
         }
-        for (ResourceP output : outputs) {
+        for (Ptr<Resource> output : outputs) {
             result.outputs.insert (output.get ());
         }
     }
@@ -68,10 +68,10 @@ RenderGraph::Pass RenderGraph::GetFirstPass (const ConnectionSet& connectionSet)
 {
     std::set<Operation*> result;
 
-    Utils::ForEachP<Operation> (connectionSet.nodes, [&] (const OperationP& op) {
-        const std::vector<ResourceP> opInputs = connectionSet.GetPointingHere<Resource> (op.get ());
+    Utils::ForEachP<Operation> (connectionSet.nodes, [&] (const Ptr<Operation>& op) {
+        const std::vector<Ptr<Resource>> opInputs = connectionSet.GetPointingHere<Resource> (op.get ());
 
-        const bool allInputsAreFirstWrittenByThisOp = std::all_of (opInputs.begin (), opInputs.end (), [&] (const ResourceP& res) {
+        const bool allInputsAreFirstWrittenByThisOp = std::all_of (opInputs.begin (), opInputs.end (), [&] (const Ptr<Resource>& res) {
             return connectionSet.GetPointingHere<Node> (res.get ()).empty ();
         });
 
@@ -84,12 +84,12 @@ RenderGraph::Pass RenderGraph::GetFirstPass (const ConnectionSet& connectionSet)
     actualResult.operations = result;
 
     for (auto& op : actualResult.operations) {
-        std::vector<ResourceP> inputs  = connectionSet.GetPointingHere<Resource> (op);
-        std::vector<ResourceP> outputs = connectionSet.GetPointingTo<Resource> (op);
-        for (ResourceP input : inputs) {
+        std::vector<Ptr<Resource>> inputs  = connectionSet.GetPointingHere<Resource> (op);
+        std::vector<Ptr<Resource>> outputs = connectionSet.GetPointingTo<Resource> (op);
+        for (Ptr<Resource> input : inputs) {
             actualResult.inputs.insert (input.get ());
         }
-        for (ResourceP output : outputs) {
+        for (Ptr<Resource> output : outputs) {
             actualResult.outputs.insert (output.get ());
         }
     }
@@ -155,7 +155,7 @@ void RenderGraph::Compile (const GraphSettings& settings)
         }
     }
 
-    std::unordered_map<ImageBase*, VkImageLayout> layoutMap;
+    std::unordered_map<Image*, VkImageLayout> layoutMap;
 
     for (Pass& p : passes) {
         Utils::ForEach<ImageResource*> (p.inputs, [&] (ImageResource* img) {
@@ -171,7 +171,7 @@ void RenderGraph::Compile (const GraphSettings& settings)
     }
 
     c.clear ();
-    const std::unordered_map<ImageBase*, VkImageLayout> layoutMapStart;
+    const std::unordered_map<Image*, VkImageLayout> layoutMapStart;
     for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
         c.push_back (CommandBuffer::Create (settings.GetDevice ()));
 
@@ -201,7 +201,7 @@ void RenderGraph::Compile (const GraphSettings& settings)
 
                 std::vector<VkImageMemoryBarrier> imgBarriers;
 
-                Utils::ForEachP<ImageResource> (inputs, [&] (const ImageResourceP& img) {
+                Utils::ForEachP<ImageResource> (inputs, [&] (const Ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = layoutMap[imgbase];
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForInputs (*img);
@@ -212,7 +212,7 @@ void RenderGraph::Compile (const GraphSettings& settings)
                     }
                 });
 
-                Utils::ForEachP<ImageResource> (outputs, [&] (const ImageResourceP& img) {
+                Utils::ForEachP<ImageResource> (outputs, [&] (const Ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = layoutMap[imgbase];
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForOutputs (*img);
@@ -235,13 +235,13 @@ void RenderGraph::Compile (const GraphSettings& settings)
                     std::vector<VkBufferMemoryBarrier> {},
                     imgBarriers);
 
-                Utils::ForEachP<ImageResource> (inputs, [&] (const ImageResourceP& img) {
+                Utils::ForEachP<ImageResource> (inputs, [&] (const Ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         layoutMap[imgbase] = op->GetImageLayoutAtEndForInputs (*img);
                     }
                 });
 
-                Utils::ForEachP<ImageResource> (outputs, [&] (const ImageResourceP& img) {
+                Utils::ForEachP<ImageResource> (outputs, [&] (const Ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         layoutMap[imgbase] = op->GetImageLayoutAtEndForOutputs (*img);
                     }

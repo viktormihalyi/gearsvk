@@ -13,8 +13,8 @@
 
 class ImageBuilder;
 
-USING_PTR (ImageBase);
-class GEARSVK_API ImageBase : public VulkanObject {
+USING_PTR (Image);
+class GEARSVK_API Image : public VulkanObject {
 public:
     static const VkImageLayout INITIAL_LAYOUT = VK_IMAGE_LAYOUT_UNDEFINED;
 
@@ -44,25 +44,25 @@ private:
 
 protected:
     // for InheritedImage
-    ImageBase (VkImage handle, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers);
+    Image (VkImage handle, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers);
 
 public:
-    USING_CREATE (ImageBase);
+    USING_CREATE (Image);
 
-    ImageBase (VmaAllocator      allocator,
-               VkImageType       imageType,
-               uint32_t          width,
-               uint32_t          height,
-               uint32_t          depth,
-               VkFormat          format,
-               VkImageTiling     tiling,
-               VkImageUsageFlags usage,
-               uint32_t          arrayLayers,
-               MemoryLocation    loc);
+    Image (VmaAllocator      allocator,
+           VkImageType       imageType,
+           uint32_t          width,
+           uint32_t          height,
+           uint32_t          depth,
+           VkFormat          format,
+           VkImageTiling     tiling,
+           VkImageUsageFlags usage,
+           uint32_t          arrayLayers,
+           MemoryLocation    loc);
 
-    ImageBase (ImageBuilder&);
+    Image (ImageBuilder&);
 
-    virtual ~ImageBase () override;
+    virtual ~Image () override;
 
     VkFormat GetFormat () const { return format; }
     uint32_t GetArrayLayers () const { return arrayLayers; }
@@ -85,14 +85,14 @@ public:
 };
 
 
-// used for handling swapchain images as ImageBase
+// used for handling swapchain images as Image
 USING_PTR (InheritedImage);
-class GEARSVK_API InheritedImage : public ImageBase {
+class GEARSVK_API InheritedImage : public Image {
     USING_CREATE (InheritedImage);
 
 public:
     InheritedImage (VkImage handle, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
-        : ImageBase (handle, VK_NULL_HANDLE, width, height, depth, format, arrayLayers)
+        : Image (handle, VK_NULL_HANDLE, width, height, depth, format, arrayLayers)
     {
     }
 
@@ -107,15 +107,15 @@ class ImageBuilder {
 public:
     const VmaAllocator allocator;
 
-    std::optional<VkImageType>               imageType;
-    std::optional<uint32_t>                  width;
-    std::optional<uint32_t>                  height;
-    std::optional<uint32_t>                  depth;
-    std::optional<VkFormat>                  format;
-    std::optional<VkImageTiling>             tiling;
-    VkImageUsageFlags                        usage;
-    std::optional<uint32_t>                  arrayLayers;
-    std::optional<ImageBase::MemoryLocation> loc;
+    std::optional<VkImageType>           imageType;
+    std::optional<uint32_t>              width;
+    std::optional<uint32_t>              height;
+    std::optional<uint32_t>              depth;
+    std::optional<VkFormat>              format;
+    std::optional<VkImageTiling>         tiling;
+    VkImageUsageFlags                    usage;
+    std::optional<uint32_t>              arrayLayers;
+    std::optional<Image::MemoryLocation> loc;
 
     ImageBuilder (VmaAllocator allocator)
         : allocator (allocator)
@@ -125,9 +125,9 @@ public:
 
     // clang-format off
 
-    ImageBuilder& SetMemoryLocation (ImageBase::MemoryLocation value) { loc = value; return *this; }
-    ImageBuilder& SetCPU () { loc = ImageBase::MemoryLocation::CPU; return *this; }
-    ImageBuilder& SetGPU () { loc = ImageBase::MemoryLocation::GPU; return *this; }
+    ImageBuilder& SetMemoryLocation (Image::MemoryLocation value) { loc = value; return *this; }
+    ImageBuilder& SetCPU () { loc = Image::MemoryLocation::CPU; return *this; }
+    ImageBuilder& SetGPU () { loc = Image::MemoryLocation::GPU; return *this; }
 
     ImageBuilder& SetImageType (VkImageType value) { imageType = value; return *this; }
     ImageBuilder& Set1D () { imageType = VK_IMAGE_TYPE_1D; return *this; }
@@ -150,7 +150,7 @@ public:
 
     // clang-format on
 
-    ImageBase&& Build () const
+    Image&& Build () const
     {
         const bool allSet = imageType.has_value () &&
                             width.has_value () &&
@@ -166,7 +166,7 @@ public:
             throw std::runtime_error ("not all values set");
         }
 
-        return ImageBase (
+        return Image (
             allocator,
             *imageType,
             *width,
@@ -182,36 +182,36 @@ public:
 
 
 USING_PTR (Image1D);
-class GEARSVK_API Image1D : public ImageBase {
+class GEARSVK_API Image1D : public Image {
     USING_CREATE (Image1D);
 
 public:
     Image1D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
-        : ImageBase (allocator, VK_IMAGE_TYPE_1D, width, 1, 1, format, tiling, usage, arrayLayers, loc)
+        : Image (allocator, VK_IMAGE_TYPE_1D, width, 1, 1, format, tiling, usage, arrayLayers, loc)
     {
     }
 };
 
 
 USING_PTR (Image2D);
-class GEARSVK_API Image2D : public ImageBase {
+class GEARSVK_API Image2D : public Image {
     USING_CREATE (Image2D);
 
 public:
     Image2D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
-        : ImageBase (allocator, VK_IMAGE_TYPE_2D, width, height, 1, format, tiling, usage, arrayLayers, loc)
+        : Image (allocator, VK_IMAGE_TYPE_2D, width, height, 1, format, tiling, usage, arrayLayers, loc)
     {
     }
 };
 
 
 USING_PTR (Image3D);
-class GEARSVK_API Image3D : public ImageBase {
+class GEARSVK_API Image3D : public Image {
     USING_CREATE (Image3D);
 
 public:
     Image3D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0)
-        : ImageBase (allocator, VK_IMAGE_TYPE_3D, width, height, depth, format, tiling, usage, 1, loc)
+        : Image (allocator, VK_IMAGE_TYPE_3D, width, height, depth, format, tiling, usage, 1, loc)
     {
     }
 };

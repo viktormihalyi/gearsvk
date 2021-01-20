@@ -30,6 +30,8 @@ const std::filesystem::path ShadersFolder = PROJECT_ROOT / "src" / "Tests" / "sh
 
 using namespace RG;
 
+#include "SourceLocation.hpp"
+
 #include "UniformView.hpp"
 
 
@@ -140,7 +142,7 @@ TEST_F (HeadlessGoogleTestEnvironment, ImageMap_TextureArray)
     GraphSettings s (device, 3);
     RenderGraph   graph;
 
-    auto sp = ShaderPipeline::CreateShared (device);
+    auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -191,7 +193,7 @@ void main () {
 }
     )");
 
-    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), sp);
+    Ptr<RenderOperation> redFillOperation = RenderOperation::Create (DrawRecordableInfo::Create (1, 6), std::move (sp));
 
     s.connectionSet.Add (redFillOperation);
 
@@ -205,19 +207,19 @@ void main () {
         return std::nullopt;
     });
 
-    WritableImageResourceP presented = WritableImageResource::Create (512, 512);
+    Ptr<WritableImageResource> presented = WritableImageResource::Create (512, 512);
 
     s.connectionSet.Add (redFillOperation, presented,
-                         RG::OutputBinding::Create (0,
-                                                    presented->GetFormatProvider (),
-                                                    presented->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (0,
+                                                presented->GetFormatProvider (),
+                                                presented->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
     graph.Compile (s);
 
     {
-        RG::ReadOnlyImageResourceP textureArray = imgMap.FindByName ("textureArray_R_32x32");
+        Ptr<ReadOnlyImageResource> textureArray = imgMap.FindByName ("textureArray_R_32x32");
         GVK_ASSERT (textureArray != nullptr);
         std::vector<float> pixelData (32 * 32);
         std::generate_n (pixelData.begin (), 32 * 32, [] () {
@@ -226,7 +228,7 @@ void main () {
         textureArray->CopyTransitionTransfer (pixelData);
     }
     {
-        RG::ReadOnlyImageResourceP textureArray = imgMap.FindByName ("textureArray_RGBA_32x32");
+        Ptr<ReadOnlyImageResource> textureArray = imgMap.FindByName ("textureArray_RGBA_32x32");
         GVK_ASSERT (textureArray != nullptr);
         std::vector<glm::vec4> pixelData (32 * 32);
         std::generate_n (pixelData.begin (), 32 * 32, [] () {
@@ -252,7 +254,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
     GraphSettings s (device, 3);
     RenderGraph   graph;
 
-    auto sp = ShaderPipeline::CreateShared (device);
+    auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -295,16 +297,16 @@ void main () {
 }
     )");
 
-    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), sp);
+    Ptr<RenderOperation> redFillOperation = RenderOperation::Create (DrawRecordableInfo::Create (1, 6), std::move (sp));
 
-    ImageResourceP red = WritableImageResource::Create (512, 512);
+    Ptr<ImageResource> red = WritableImageResource::Create (512, 512);
 
     s.connectionSet.Add (redFillOperation, red,
-                         RG::OutputBinding::Create (0,
-                                                    red->GetFormatProvider (),
-                                                    red->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (0,
+                                                red->GetFormatProvider (),
+                                                red->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
     graph.Compile (s);
 
@@ -330,7 +332,7 @@ TEST_F (HeadlessGoogleTestEnvironment, TransferOperation)
     GraphSettings s (device, 1);
     RenderGraph   graph;
 
-    auto sp = ShaderPipeline::CreateShared (device);
+    auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -373,31 +375,31 @@ void main () {
 }
     )");
 
-    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), sp);
+    Ptr<RenderOperation> redFillOperation = RenderOperation::Create (DrawRecordableInfo::Create (1, 6), std::move (sp));
 
-    TransferOperationP transfer = TransferOperation::Create ();
+    Ptr<TransferOperation> transfer = TransferOperation::Create ();
 
-    WritableImageResourceP red       = WritableImageResource::Create (512, 512);
-    WritableImageResourceP duplicate = WritableImageResource::Create (512, 512);
+    Ptr<WritableImageResource> red       = WritableImageResource::Create (512, 512);
+    Ptr<WritableImageResource> duplicate = WritableImageResource::Create (512, 512);
 
 
     s.connectionSet.Add (redFillOperation, red,
-                         RG::OutputBinding::Create (0,
-                                                    red->GetFormatProvider (),
-                                                    red->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (0,
+                                                red->GetFormatProvider (),
+                                                red->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
 
     s.connectionSet.Add (red, transfer,
-                         RG::ImageInputBinding::Create (0, *red));
+                         ImageInputBinding::Create (0, *red));
 
     s.connectionSet.Add (transfer, duplicate,
-                         RG::OutputBinding::Create (0,
-                                                    duplicate->GetFormatProvider (),
-                                                    duplicate->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (0,
+                                                duplicate->GetFormatProvider (),
+                                                duplicate->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
 
     graph.Compile (s);
@@ -420,49 +422,49 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     GraphSettings s (device, 4);
     RenderGraph   graph;
 
-    WritableImageResourceP presented = WritableImageResource::Create (512, 512);
-    WritableImageResourceP green     = WritableImageResource::Create (512, 512);
-    WritableImageResourceP red       = WritableImageResource::Create (512, 512);
-    WritableImageResourceP finalImg  = WritableImageResource::Create (512, 512);
+    Ptr<WritableImageResource> presented = WritableImageResource::Create (512, 512);
+    Ptr<WritableImageResource> green     = WritableImageResource::Create (512, 512);
+    Ptr<WritableImageResource> red       = WritableImageResource::Create (512, 512);
+    Ptr<WritableImageResource> finalImg  = WritableImageResource::Create (512, 512);
 
 
-    RenderOperationP dummyPass = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
-                                                          ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                                    ShadersFolder / "test.vert",
-                                                                                                    ShadersFolder / "test.frag",
-                                                                                                }));
+    Ptr<RenderOperation> dummyPass = RenderOperation::Create (DrawRecordableInfo::Create (1, 3),
+                                                              ShaderPipeline::Create (device, std::vector<std::filesystem::path> {
+                                                                                                  ShadersFolder / "test.vert",
+                                                                                                  ShadersFolder / "test.frag",
+                                                                                              }));
 
-    RenderOperationP secondPass = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 3),
-                                                           ShaderPipeline::CreateShared (device, std::vector<std::filesystem::path> {
-                                                                                                     ShadersFolder / "fullscreenquad.vert",
-                                                                                                     ShadersFolder / "fullscreenquad.frag",
-                                                                                                 }));
+    Ptr<RenderOperation> secondPass = RenderOperation::Create (DrawRecordableInfo::Create (1, 3),
+                                                               ShaderPipeline::Create (device, std::vector<std::filesystem::path> {
+                                                                                                   ShadersFolder / "fullscreenquad.vert",
+                                                                                                   ShadersFolder / "fullscreenquad.frag",
+                                                                                               }));
 
 
     s.connectionSet.Add (green, dummyPass, ImageInputBinding::Create (0, *green));
     s.connectionSet.Add (red, secondPass, ImageInputBinding::Create (0, *red));
 
     s.connectionSet.Add (dummyPass, presented,
-                         RG::OutputBinding::Create (0,
-                                                    presented->GetFormatProvider (),
-                                                    presented->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (0,
+                                                presented->GetFormatProvider (),
+                                                presented->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
     s.connectionSet.Add (dummyPass, red,
-                         RG::OutputBinding::Create (1,
-                                                    red->GetFormatProvider (),
-                                                    red->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (1,
+                                                red->GetFormatProvider (),
+                                                red->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
 
     s.connectionSet.Add (secondPass, finalImg,
-                         RG::OutputBinding::Create (0,
-                                                    finalImg->GetFormatProvider (),
-                                                    finalImg->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (0,
+                                                finalImg->GetFormatProvider (),
+                                                finalImg->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
     graph.Compile (s);
 
@@ -497,7 +499,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, SwapchainTest)
     GraphSettings s (device, swapchain.GetImageCount ());
     RenderGraph   graph;
 
-    auto sp = ShaderPipeline::CreateShared (device);
+    auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -545,28 +547,28 @@ void main () {
 }
     )");
 
-    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, 6), sp);
+    Ptr<RenderOperation> redFillOperation = RenderOperation::Create (DrawRecordableInfo::Create (1, 6), std::move (sp));
 
-    ImageResourceP presentedCopy = WritableImageResource::Create (800, 600);
-    ImageResourceP presented     = SwapchainImageResource::Create (*presentable);
+    Ptr<ImageResource> presentedCopy = WritableImageResource::Create (800, 600);
+    Ptr<ImageResource> presented     = SwapchainImageResource::Create (*presentable);
 
     s.connectionSet.Add (redFillOperation, presented,
-                         RG::OutputBinding::Create (0,
-                                                    presented->GetFormatProvider (),
-                                                    presented->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (0,
+                                                presented->GetFormatProvider (),
+                                                presented->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
     s.connectionSet.Add (redFillOperation, presentedCopy,
-                         RG::OutputBinding::Create (1,
-                                                    presentedCopy->GetFormatProvider (),
-                                                    presentedCopy->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (1,
+                                                presentedCopy->GetFormatProvider (),
+                                                presentedCopy->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
     graph.Compile (s);
 
     BlockingGraphRenderer renderer (s, swapchain);
-    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, 10));
+    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RenderGraph& { return graph; }, 10));
 }
 
 
@@ -581,7 +583,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, VertexAndIndexBufferTest)
 
     RenderGraph graph;
 
-    auto sp = ShaderPipeline::CreateShared (device);
+    auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -637,31 +639,31 @@ void main () {
     ib.data = { 0, 1, 2, 0, 3, 2 };
     ib.Flush ();
 
-    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
-                                                                 std::move (sp));
+    Ptr<RenderOperation> redFillOperation = RenderOperation::Create (DrawRecordableInfo::Create (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
+                                                                     std::move (sp));
 
-    WritableImageResourceP  presentedCopy = WritableImageResource::Create (800, 600);
-    SwapchainImageResourceP presented     = SwapchainImageResource::Create (*presentable);
+    Ptr<WritableImageResource>  presentedCopy = WritableImageResource::Create (800, 600);
+    Ptr<SwapchainImageResource> presented     = SwapchainImageResource::Create (*presentable);
 
 
     s.connectionSet.Add (redFillOperation, presented,
-                         RG::OutputBinding::Create (0,
-                                                    presented->GetFormatProvider (),
-                                                    presented->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (0,
+                                                presented->GetFormatProvider (),
+                                                presented->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
     s.connectionSet.Add (redFillOperation, presentedCopy,
-                         RG::OutputBinding::Create (1,
-                                                    presentedCopy->GetFormatProvider (),
-                                                    presentedCopy->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (1,
+                                                presentedCopy->GetFormatProvider (),
+                                                presentedCopy->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
     graph.Compile (s);
 
     BlockingGraphRenderer renderer (s, swapchain);
-    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, 10));
+    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RenderGraph& { return graph; }, 10));
 
     CompareImages ("uv", *presentedCopy->images[0]->image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
@@ -677,7 +679,7 @@ TEST_F (HiddenWindowGoogleTestEnvironment, BasicUniformBufferTest)
     GraphSettings s (device, swapchain.GetImageCount ());
     RenderGraph   graph;
 
-    auto sp = ShaderPipeline::CreateShared (device);
+    auto sp = ShaderPipeline::Create (device);
     sp->SetVertexShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -725,7 +727,7 @@ void main () {
         float     asd;
     };
 
-    std::shared_ptr<VertexBufferTransferable<Vert>> vbb = VertexBufferTransferable<Vert>::CreateShared (
+    Ptr<VertexBufferTransferable<Vert>> vbb = VertexBufferTransferable<Vert>::Create (
         device, 4, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Vec2f, ShaderTypes::Float }, VK_VERTEX_INPUT_RATE_VERTEX);
 
     *vbb = std::vector<Vert> {
@@ -740,31 +742,31 @@ void main () {
     ib.data = { 0, 1, 2, 0, 3, 2 };
     ib.Flush ();
 
-    RenderOperationP redFillOperation = RenderOperation::Create (DrawRecordableInfo::CreateShared (1, *vbb, ib), std::move (sp));
+    Ptr<RenderOperation> redFillOperation = RenderOperation::Create (DrawRecordableInfo::Create (1, *vbb, ib), std::move (sp));
 
-    SwapchainImageResourceP presented     = SwapchainImageResource::Create (*presentable);
-    WritableImageResourceP  presentedCopy = WritableImageResource::Create (VK_FILTER_LINEAR, 800, 600, 2);
-    CPUBufferResourceP      unif          = CPUBufferResource::Create (4);
+    Ptr<SwapchainImageResource> presented     = SwapchainImageResource::Create (*presentable);
+    Ptr<WritableImageResource>  presentedCopy = WritableImageResource::Create (VK_FILTER_LINEAR, 800, 600, 2);
+    Ptr<CPUBufferResource>      unif          = CPUBufferResource::Create (4);
 
 
     s.connectionSet.Add (unif, redFillOperation,
                          UniformInputBinding::Create (0, *unif));
 
     s.connectionSet.Add (redFillOperation, presented,
-                         RG::OutputBinding::Create (2,
-                                                    presented->GetFormatProvider (),
-                                                    presented->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (2,
+                                                presented->GetFormatProvider (),
+                                                presented->GetFinalLayout (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
 
     s.connectionSet.Add (redFillOperation, presentedCopy,
-                         RG::OutputBinding::Create (0,
-                                                    presentedCopy->GetFormatProvider (),
-                                                    presentedCopy->GetFinalLayout (),
-                                                    presentedCopy->GetLayerCount (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         OutputBinding::Create (0,
+                                                presentedCopy->GetFormatProvider (),
+                                                presentedCopy->GetFinalLayout (),
+                                                presentedCopy->GetLayerCount (),
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                VK_ATTACHMENT_STORE_OP_STORE));
 
     graph.Compile (s);
 
@@ -776,7 +778,7 @@ void main () {
         unif->GetMapping (frameIndex).Copy (time);
     });
 
-    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RG::RenderGraph& { return graph; }, 10));
+    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RenderGraph& { return graph; }, 10));
 
     CompareImages ("uvoffset", *presentedCopy->images[0]->image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }

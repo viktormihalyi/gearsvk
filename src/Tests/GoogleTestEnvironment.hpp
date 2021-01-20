@@ -44,7 +44,7 @@ class GoogleTestEnvironment : public ::testing::Test {
 protected:
     VulkanEnvironmentU env;
     WindowU            window;
-    PresentableP       presentable;
+    Ptr<Presentable>     presentable;
 
     PhysicalDevice& GetPhysicalDevice () { return *env->physicalDevice; }
     Device&         GetDevice () { return *env->device; }
@@ -59,7 +59,7 @@ protected:
     virtual void SetUp ()    = 0;
     virtual void TearDown () = 0;
 
-    void CompareImages (const std::string& imageName, const ImageBase& image, std::optional<VkImageLayout> transitionFrom = std::nullopt)
+    void CompareImages (const std::string& imageName, const Image& image, std::optional<VkImageLayout> transitionFrom = std::nullopt)
     {
         if (transitionFrom.has_value ()) {
             TransitionImageLayout (GetDeviceExtra (), image, *transitionFrom, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
@@ -110,7 +110,7 @@ protected:
     {
         window      = GLFWWindow::Create ();
         env         = VulkanEnvironment::Create (gtestDebugCallback);
-        presentable = env->CreatePresentable (*window);
+        presentable = Presentable::Create (*env, *window);
     }
 
     virtual void TearDown () override
@@ -128,7 +128,7 @@ protected:
     {
         window      = HiddenGLFWWindow::Create ();
         env         = VulkanEnvironment::Create (gtestDebugCallback);
-        presentable = env->CreatePresentable (*window);
+        presentable = Presentable::Create (*env, *window);
     }
 
     virtual void TearDown () override

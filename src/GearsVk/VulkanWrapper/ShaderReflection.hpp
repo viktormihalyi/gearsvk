@@ -20,7 +20,7 @@ namespace SR {
 
 // clang-format off
 
-enum class FieldType {
+enum class FieldType : uint16_t {
     // Scalars
     Bool,
     Int,
@@ -56,15 +56,17 @@ std::string FieldTypeToString (FieldType fieldType);
 
 USING_PTR (Field);
 
-USING_PTR (FieldProvider);
-class FieldProvider {
+USING_PTR (FieldContainer);
+class FieldContainer {
 public:
-    virtual std::vector<SR::FieldP> GetFields () const = 0;
+    virtual ~FieldContainer () = default;
+
+    virtual const std::vector<SR::FieldU>& GetFields () const = 0;
 };
 
 
 USING_PTR (Field);
-class Field final : public FieldProvider, public Noncopyable {
+class Field final : public FieldContainer, public Noncopyable {
 public:
     USING_CREATE (Field);
 
@@ -82,7 +84,7 @@ public:
     uint32_t arraySize;   // 0 for non-arrays
     uint32_t arrayStride; // 0 for non-arrays
 
-    std::vector<FieldP> structFields; // when type == FieldType::Struct
+    std::vector<FieldU> structFields; // when type == FieldType::Struct
 
     Field ();
 
@@ -92,23 +94,23 @@ public:
 
     uint32_t GetSize () const;
 
-    virtual std::vector<SR::FieldP> GetFields () const override;
+    virtual const std::vector<SR::FieldU>& GetFields () const override;
 };
 
 
 USING_PTR (UBO);
-class GEARSVK_API UBO final : public FieldProvider, public Noncopyable {
+class GEARSVK_API UBO final : public FieldContainer, public Noncopyable {
     USING_CREATE (UBO);
 
 public:
     uint32_t            binding;
     uint32_t            descriptorSet;
     std::string         name;
-    std::vector<FieldP> fields;
+    std::vector<FieldU> fields;
 
     uint32_t GetFullSize () const;
 
-    virtual std::vector<SR::FieldP> GetFields () const override;
+    virtual const std::vector<SR::FieldU>& GetFields () const override;
 };
 
 
@@ -149,7 +151,7 @@ public:
 
 
 GEARSVK_API
-std::vector<UBOP> GetUBOsFromBinary (const std::vector<uint32_t>& binary);
+std::vector<Ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>& binary);
 
 GEARSVK_API
 std::vector<Sampler> GetSamplersFromBinary (const std::vector<uint32_t>& binary);
