@@ -6,7 +6,6 @@
 #include <fstream>
 #include <iostream>
 
-NoValueT NoValue;
 
 namespace Utils {
 
