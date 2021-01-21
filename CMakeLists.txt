@@ -195,7 +195,7 @@ target_compile_definitions (${TARGET_GVKRG} PRIVATE
 )
 target_compile_definitions (${TARGET_TESTS} PRIVATE)
 target_compile_definitions (${TARGET_DLL} PRIVATE GEARS_EXPORTS)
-target_compile_definitions (${TARGET_DLL_EMBEDDED} PRIVATE GEARS_EXPORTS)
+target_compile_definitions (${TARGET_DLL_EMBEDDED} PRIVATE GEARS_EMBEDDED_EXPORTS)
 
 target_include_directories (${TARGET_GVKUTILS} PRIVATE src/Utils)
 target_include_directories (${TARGET_GVKRG} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})

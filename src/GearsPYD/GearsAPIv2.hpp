@@ -15,8 +15,7 @@ enum class ShaderKind : uint8_t;
 
 void InitializeEnvironment ();
 
-// exported for tests
-GEARS_API
+GEARS_TEST_API
 void DestroyEnvironment ();
 
 void SetRenderGraphFromSequence (Sequence::P);
@@ -31,20 +30,16 @@ void DestroySurface (intptr_t handle);
 
 void SetCurrentSurface (intptr_t handle);
 
-// exported for tests
-GEARS_API
+GEARS_TEST_API
 void RenderFrame (uint32_t frameIndex);
 
 std::string GetGLSLResourcesForRandoms ();
 
-
-// for testing
-
-GEARS_API
+GEARS_TEST_API
 void SetOverriddenEnvironment (VulkanEnvironment&);
 
-GEARS_API
+GEARS_TEST_API
 void SetCurrentPresentable (Ptr<Presentable>&);
 
-GEARS_API
+GEARS_TEST_API
 void SetRenderGraphFromPyxFileSequence (const std::filesystem::path&);
