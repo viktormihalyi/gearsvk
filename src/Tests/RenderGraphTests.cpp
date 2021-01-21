@@ -35,7 +35,7 @@ using namespace RG;
 #include "UniformView.hpp"
 
 
-TEST_F (HiddenWindowGoogleTestEnvironment, Spirvrross2)
+TEST_F (HeadlessGoogleTestEnvironment, Spirvrross2)
 {
     ShaderModuleU sm = ShaderModule::CreateFromGLSLString (GetDevice (), ShaderKind::Fragment, R"(#version 450
 
@@ -127,8 +127,13 @@ layout (location = 0) out vec2 textureCoords;
         textureCoords = uvs[gl_VertexIndex];
     }
 )");
+
+        FAIL () << "expected ShaderCompileException";
+
     } catch (ShaderCompileException& e) {
-        std::cout << e.what () << std::endl;
+        // good
+    } catch (...) {
+        FAIL () << "expected ShaderCompileException";
     }
 }
 
@@ -216,7 +221,7 @@ void main () {
                                                 VK_ATTACHMENT_LOAD_OP_CLEAR,
                                                 VK_ATTACHMENT_STORE_OP_STORE));
 
-    graph.Compile (s);
+    graph.Compile (std::move (s));
 
     {
         Ptr<ReadOnlyImageResource> textureArray = imgMap.FindByName ("textureArray_R_32x32");
@@ -308,7 +313,7 @@ void main () {
                                                 VK_ATTACHMENT_LOAD_OP_CLEAR,
                                                 VK_ATTACHMENT_STORE_OP_STORE));
 
-    graph.Compile (s);
+    graph.Compile (std::move (s));
 
     graph.Submit (0);
     graph.Submit (1);
@@ -402,7 +407,7 @@ void main () {
                                                 VK_ATTACHMENT_STORE_OP_STORE));
 
 
-    graph.Compile (s);
+    graph.Compile (std::move (s));
 
     graph.Submit (0);
 
@@ -466,14 +471,10 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
                                                 VK_ATTACHMENT_LOAD_OP_CLEAR,
                                                 VK_ATTACHMENT_STORE_OP_STORE));
 
-    graph.Compile (s);
+    graph.Compile (std::move (s));
 
-    Utils::DebugTimerLogger obs;
-    {
-        Utils::TimerScope _ (obs);
-        for (uint32_t i = 0; i < 1; ++i) {
-            graph.Submit (i);
-        }
+    for (uint32_t i = 0; i < 1; ++i) {
+        graph.Submit (i);
     }
 
     vkQueueWaitIdle (graphicsQueue);
@@ -565,9 +566,9 @@ void main () {
                                                 presentedCopy->GetFinalLayout (),
                                                 VK_ATTACHMENT_LOAD_OP_CLEAR,
                                                 VK_ATTACHMENT_STORE_OP_STORE));
-    graph.Compile (s);
+    graph.Compile (std::move (s));
 
-    BlockingGraphRenderer renderer (s, swapchain);
+    BlockingGraphRenderer renderer (device, swapchain);
     window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RenderGraph& { return graph; }, 10));
 }
 
@@ -660,9 +661,9 @@ void main () {
                                                 VK_ATTACHMENT_LOAD_OP_CLEAR,
                                                 VK_ATTACHMENT_STORE_OP_STORE));
 
-    graph.Compile (s);
+    graph.Compile (std::move (s));
 
-    BlockingGraphRenderer renderer (s, swapchain);
+    BlockingGraphRenderer renderer (device, swapchain);
     window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> RenderGraph& { return graph; }, 10));
 
     CompareImages ("uv", *presentedCopy->images[0]->image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -768,9 +769,9 @@ void main () {
                                                 VK_ATTACHMENT_LOAD_OP_CLEAR,
                                                 VK_ATTACHMENT_STORE_OP_STORE));
 
-    graph.Compile (s);
+    graph.Compile (std::move (s));
 
-    BlockingGraphRenderer renderer (s, swapchain);
+    BlockingGraphRenderer renderer (device, swapchain);
 
     EventObserver obs;
     obs.Observe (renderer.preSubmitEvent, [&] (RenderGraph&, uint32_t frameIndex, uint64_t) {

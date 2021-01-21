@@ -34,7 +34,9 @@ TEST_F (GearsTests, SimpleSequence)
 
     std::vector<InheritedImageU> imgs = pres->GetSwapchain ().GetImageObjects ();
 
-    ImageData img (GetDeviceExtra (), *imgs[0]);
+    ImageData img (GetDeviceExtra (), *imgs[0], 0, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     CompareImages ("Sequence01", img);
+
+    DestroyEnvironment ();
 }

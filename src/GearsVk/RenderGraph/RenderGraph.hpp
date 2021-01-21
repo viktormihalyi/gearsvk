@@ -8,6 +8,8 @@
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 
+#include "GraphSettings.hpp"
+
 #include <set>
 
 
@@ -16,7 +18,6 @@ namespace RG {
 class Operation;
 class Resource;
 class GraphSettings;
-class ConnectionSet;
 
 
 USING_PTR (RenderGraph);
@@ -27,6 +28,8 @@ private:
     bool compiled;
 
 public:
+    GraphSettings graphSettings;
+
     const DeviceExtra* device;
     uint32_t           framesInFlight;
 
@@ -48,7 +51,7 @@ public:
     RenderGraph ();
 
     void CompileResources (const GraphSettings& settings);
-    void Compile (const GraphSettings& settings);
+    void Compile (GraphSettings&& settings);
 
     void Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores = {}, const std::vector<VkSemaphore>& signalSemaphores = {}, VkFence fence = VK_NULL_HANDLE);
     void Present (uint32_t imageIndex, Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores = {});

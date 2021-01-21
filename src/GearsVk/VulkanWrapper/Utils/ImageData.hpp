@@ -20,7 +20,7 @@ public:
     std::vector<uint8_t> data;
 
     ImageData (const DeviceExtra& device, const Image& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout = std::nullopt);
-    ImageData (const DeviceExtra& device, const Image& image, std::optional<VkImageLayout> currentLayout = std::nullopt);
+    ImageData (const DeviceExtra& device, const Image& image);
     ImageData (const std::filesystem::path& path, const uint32_t components = 4);
 
     static ImageData FromDataUint (const std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t components);

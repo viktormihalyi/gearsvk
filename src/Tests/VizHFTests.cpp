@@ -371,7 +371,7 @@ void main ()
 
     // ========================= GRAPH RESOURCE SETUP =========================
 
-    graph.Compile (s);
+    graph.Compile (std::move (s));
 
     matcap->CopyTransitionTransfer (ImageData (PROJECT_ROOT / "src" / "Tests" / "VizHF" / "matcap.jpg").data);
 
@@ -391,9 +391,9 @@ void main ()
     };
 
     {
-        Utils::DebugTimerLogger l ("transforming volume data");
-        Utils::TimerScope       s (l);
-        MultithreadedFunction   d ([&] (uint32_t threadCount, uint32_t threadIndex) {
+        // Utils::DebugTimerLogger l ("transforming volume data");
+        // Utils::TimerScope       s (l);
+        MultithreadedFunction d ([&] (uint32_t threadCount, uint32_t threadIndex) {
             const uint32_t pixelCount = 4096 * 4096;
             for (uint32_t bidx = pixelCount / threadCount * threadIndex; bidx < pixelCount / threadCount * (threadIndex + 1); ++bidx) {
                 transformedBrainData[BrainDataIndexMapping (bidx)] = rawBrainData[bidx];
@@ -406,7 +406,7 @@ void main ()
 
     // ========================= RENDERING =========================
 
-    RG::SynchronizedSwapchainGraphRenderer renderer (s, swapchain);
+    RG::SynchronizedSwapchainGraphRenderer renderer (device, swapchain);
 
     enum class DisplayMode : uint32_t {
         Feladat1 = 1,
@@ -417,11 +417,13 @@ void main ()
         Feladat6,
     };
 
+#if 0
     std::cout << "1: Befoglalo" << std::endl;
     std::cout << "2: Szintfelulet (Phong)" << std::endl;
     std::cout << "3: Matcap" << std::endl;
     std::cout << "4: Hagymahej" << std::endl;
     std::cout << "5: Arnyek" << std::endl;
+#endif
 
     DisplayMode currentDisplayMode = DisplayMode::Feladat2;
 
@@ -839,11 +841,11 @@ void main ()
 
     // ========================= GRAPH COMPILE =========================
 
-    graph.Compile (s);
+    graph.Compile (std::move (s));
 
     // ========================= RENDERING =========================
 
-    RG::SynchronizedSwapchainGraphRenderer renderer (s, swapchain);
+    RG::SynchronizedSwapchainGraphRenderer renderer (device, swapchain);
 
     bool quit = false;
 

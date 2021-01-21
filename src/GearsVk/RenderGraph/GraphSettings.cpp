@@ -70,4 +70,55 @@ const CommandPool& GraphSettings::GetCommandPool () const
 }
 
 
+GraphSettings::GraphSettings (GraphSettings&& other)
+    : connectionSet (std::move (other.connectionSet))
+    , device (other.device)
+    , framesInFlight (other.framesInFlight)
+{
+    other.device         = nullptr;
+    other.framesInFlight = 0;
+}
+
+
+GraphSettings& GraphSettings::operator= (GraphSettings&& other)
+{
+    if (this != &other) {
+        connectionSet  = std::move (other.connectionSet);
+        device         = other.device;
+        framesInFlight = other.framesInFlight;
+
+        other.device         = nullptr;
+        other.framesInFlight = 0;
+    }
+
+    return *this;
+}
+
+
+ConnectionSet::ConnectionSet () = default;
+
+
+ConnectionSet::ConnectionSet (ConnectionSet&& other)
+    : connections (std::move (other.connections))
+    , nodes (std::move (other.nodes))
+{
+    other.connections.clear ();
+    other.nodes.clear ();
+}
+
+
+ConnectionSet& ConnectionSet::operator= (ConnectionSet&& other)
+{
+    if (this != &other) {
+        connections = std::move (other.connections);
+        nodes       = std::move (other.nodes);
+
+        other.connections.clear ();
+        other.nodes.clear ();
+    }
+
+    return *this;
+}
+
+
 } // namespace RG

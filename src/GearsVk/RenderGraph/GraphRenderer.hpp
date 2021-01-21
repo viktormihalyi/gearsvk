@@ -3,6 +3,8 @@
 
 #include "GearsVkAPI.hpp"
 
+#include "DeviceExtra.hpp"
+
 #include "Event.hpp"
 #include "Ptr.hpp"
 #include "Time.hpp"
@@ -39,11 +41,10 @@ public:
 
 class GEARSVK_API RecreatableGraphRenderer : public Renderer {
 protected:
-    GraphSettings& settings;
-    Swapchain&     swapchain;
+    Swapchain& swapchain;
 
 public:
-    RecreatableGraphRenderer (GraphSettings& settings, Swapchain& swapchain);
+    RecreatableGraphRenderer (Swapchain& swapchain);
     virtual ~RecreatableGraphRenderer () = default;
 
     void Recreate (RenderGraph& graph);
@@ -59,7 +60,7 @@ private:
     TimePoint  lastDrawTime;
 
 public:
-    BlockingGraphRenderer (GraphSettings& settings, Swapchain& swapchain);
+    BlockingGraphRenderer (const DeviceExtra& device, Swapchain& swapchain);
 
     void RenderNextRecreatableFrame (RenderGraph& graph) override;
 };
@@ -91,12 +92,11 @@ private:
     // each value is [0, framesInFlight)
     std::vector<uint32_t> imageToFrameMapping;
 
-    RenderGraph* graph;
-    Swapchain&   swapchain;
-    TimePoint    lastDrawTime;
+    Swapchain& swapchain;
+    TimePoint  lastDrawTime;
 
 public:
-    SynchronizedSwapchainGraphRenderer (GraphSettings& settings, Swapchain& swapchain);
+    SynchronizedSwapchainGraphRenderer (const DeviceExtra& device, Swapchain& swapchain);
 
     ~SynchronizedSwapchainGraphRenderer ();
 

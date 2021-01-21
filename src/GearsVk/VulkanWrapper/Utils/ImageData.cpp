@@ -60,11 +60,6 @@ ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t la
     }
 }
 
-ImageData::ImageData (const DeviceExtra& device, const Image& image, std::optional<VkImageLayout> currentLayout)
-    : ImageData (device, image, 0, currentLayout)
-{
-}
-
 
 ImageData::ImageData (const std::filesystem::path& path, const uint32_t components)
     : components (components)

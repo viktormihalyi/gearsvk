@@ -112,7 +112,7 @@ std::vector<RenderGraph::Pass> RenderGraph::GetPasses (const ConnectionSet& conn
 }
 
 
-void RenderGraph::Compile (const GraphSettings& settings)
+void RenderGraph::Compile (GraphSettings&& settings)
 {
     device         = settings.device;
     framesInFlight = settings.framesInFlight;
@@ -296,6 +296,8 @@ void RenderGraph::Compile (const GraphSettings& settings)
 
         c[frameIndex]->End ();
     }
+
+    graphSettings = std::move (settings);
 
     compiled = true;
 

@@ -276,7 +276,6 @@ static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSou
         return result;
 
     } catch (ShaderCompileException& ex) {
-        std::cout << ex.what () << std::endl;
         throw;
     }
 }

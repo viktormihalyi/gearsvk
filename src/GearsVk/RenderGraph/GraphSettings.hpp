@@ -19,18 +19,16 @@ class GEARSVK_API ConnectionSet final : public Noncopyable {
     USING_CREATE (ConnectionSet);
 
 public:
-    std::set<Ptr<Node>> nodes;
-
     USING_PTR (Connection);
     struct Connection {
         USING_CREATE (Connection);
 
-        Ptr<Node>             from;
-        Ptr<Node>             to;
+        Ptr<Node>           from;
+        Ptr<Node>           to;
         IConnectionBindingU binding;
 
-        Connection (const Ptr<Node>&        from,
-                    const Ptr<Node>&        to,
+        Connection (const Ptr<Node>&      from,
+                    const Ptr<Node>&      to,
                     IConnectionBindingU&& binding)
             : from (from)
             , to (to)
@@ -43,7 +41,13 @@ private:
     std::vector<ConnectionU> connections;
 
 public:
-    ConnectionSet () = default;
+    std::set<Ptr<Node>> nodes;
+
+
+public:
+    ConnectionSet ();
+    ConnectionSet (ConnectionSet&&);
+    ConnectionSet& operator= (ConnectionSet&&);
 
     void VisitOutputsOf (const Node* node, IResourceVisitor& visitor) const;
 
@@ -146,8 +150,9 @@ public:
 
     GraphSettings (const DeviceExtra& device, uint32_t framesInFlight);
 
-
     GraphSettings ();
+    GraphSettings (GraphSettings&&);
+    GraphSettings& operator= (GraphSettings&&);
 
     const DeviceExtra& GetDevice () const;
 

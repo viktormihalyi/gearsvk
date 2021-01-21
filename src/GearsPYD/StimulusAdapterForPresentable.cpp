@@ -30,7 +30,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
 
     Ptr<RG::SwapchainImageResource> presented = RG::SwapchainImageResource::Create (*presentable);
 
-    renderer = RG::SynchronizedSwapchainGraphRenderer::Create (s, presentable->GetSwapchain ());
+    renderer = RG::SynchronizedSwapchainGraphRenderer::Create (*environment.deviceExtra, presentable->GetSwapchain ());
 
     const std::vector<Pass::P> passes = stimulus->getPasses ();
 
@@ -133,7 +133,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
     gammaTexture->CopyTransitionTransfer (gammaAndTemporalWeights);
 
 
-    renderGraph->Compile (s);
+    renderGraph->Compile (std::move (s));
 
     SetConstantUniforms ();
 }
@@ -210,7 +210,7 @@ void StimulusAdapterForPresentable::RenderFrameIndex (const uint32_t frameIndex)
             SetUniforms (renderOp->GetUUID (), frameIndex);
         }
 
-        reflection->PrintDebugInfo ();
+        // reflection->PrintDebugInfo ();
 
         reflection->Flush (swapchainImageIndex);
     });

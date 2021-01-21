@@ -15,6 +15,8 @@ enum class ShaderKind : uint8_t;
 
 void InitializeEnvironment ();
 
+// exported for tests
+GEARS_API
 void DestroyEnvironment ();
 
 void SetRenderGraphFromSequence (Sequence::P);
