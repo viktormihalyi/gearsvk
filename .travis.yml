@@ -22,13 +22,13 @@ before_install:
   - sudo apt install vulkan-sdk python3-pip python3-setuptools libgl1-mesa-dev xorg-dev libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-xinerama0-dev
   - python3 -m pip install wheel
   - python3 -m pip install conan
-  - conan profile new default --detect
-  - conan profile update settings.compiler.libcxx=libstdc++11 default
 
 
 script:
   - export CC=/usr/bin/gcc-9
   - export CXX=/usr/bin/g++-9
+  - conan profile new default --detect
+  - conan profile update settings.compiler.libcxx=libstdc++11 default
   - mkdir build
   - cd build
   - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DCMAKE_BUILD_TYPE=Debug
