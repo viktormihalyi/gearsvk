@@ -167,7 +167,7 @@ Sequence::P setSequence (Sequence::P sequence)
     kernelManager->clear ();
     sequenceRenderer->apply (::sequence, shaderManager, textureManager, kernelManager);
 
-    SetRenderGraphFromSequence (sequence);
+    Gears::SetRenderGraphFromSequence (sequence);
 
     return sequence;
 }
@@ -706,16 +706,16 @@ void FillModule (pybind11::module_& m)
     m.def ("toggleChannelsOrPreview", toggleChannelsOrPreview);
 
 
-    m.def ("InitializeEnvironment", InitializeEnvironment);
-    m.def ("DestroyEnvironment", DestroyEnvironment);
-    m.def ("StartRendering", StartRendering);
-    m.def ("CreateSurface", CreateSurface);
-    m.def ("DestroySurface", DestroySurface);
-    m.def ("DestroySurface", SetRenderGraphFromSequence);
+    m.def ("InitializeEnvironment", Gears::InitializeEnvironment);
+    m.def ("DestroyEnvironment", Gears::DestroyEnvironment);
+    m.def ("StartRendering", Gears::StartRendering);
+    m.def ("CreateSurface", Gears::CreateSurface);
+    m.def ("DestroySurface", Gears::DestroySurface);
+    m.def ("DestroySurface", Gears::SetRenderGraphFromSequence);
 
-    m.def ("SetCurrentSurface", SetCurrentSurface);
-    m.def ("RenderFrame", RenderFrame);
-    m.def ("GetGLSLResourcesForRandoms", GetGLSLResourcesForRandoms);
+    m.def ("SetCurrentSurface", Gears::SetCurrentSurface);
+    m.def ("RenderFrame", Gears::RenderFrame);
+    m.def ("GetGLSLResourcesForRandoms", Gears::GetGLSLResourcesForRandoms);
 
 #if 0
     class_<p2t::Poly2TriWrapper> (m, "CDT",

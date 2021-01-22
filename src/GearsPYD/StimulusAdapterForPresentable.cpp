@@ -217,3 +217,9 @@ void StimulusAdapterForPresentable::RenderFrameIndex (const uint32_t frameIndex)
 
     renderer->RenderNextFrame (*renderGraph);
 }
+
+
+void StimulusAdapterForPresentable::Wait ()
+{
+    renderer->Wait ();
+}

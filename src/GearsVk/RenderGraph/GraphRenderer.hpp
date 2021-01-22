@@ -100,6 +100,8 @@ public:
 
     ~SynchronizedSwapchainGraphRenderer ();
 
+    void Wait ();
+
     void RenderNextRecreatableFrame (RenderGraph& graph) override;
 };
 

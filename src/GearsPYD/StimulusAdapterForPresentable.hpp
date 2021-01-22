@@ -41,6 +41,8 @@ public:
 
     void RenderFrameIndex (const uint32_t frameIndex);
 
+    void Wait ();
+
 private:
     void SetConstantUniforms ();
     void SetUniforms (const GearsVk::UUID& renderOperationId, const uint32_t frameIndex);

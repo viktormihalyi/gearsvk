@@ -8,6 +8,7 @@
 #include "RenderGraph.hpp"
 #include "Resource.hpp"
 #include "UniformReflection.hpp"
+#include "VulkanEnvironment.hpp"
 #include "VulkanWrapper.hpp"
 
 #include "glmlib.hpp"

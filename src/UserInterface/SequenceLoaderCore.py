@@ -2,18 +2,14 @@ import os
 import importlib.machinery
 
 
-def loadParents (fullpath, rootPath):
-    print ("loadParents (" + fullpath + ", " + rootPath + ")");
-
-    if os.path.realpath (fullpath) != os.path.realpath (rootPath):
-        loadParents (fullpath + "/..", rootPath)
+def loadParents(fullpath, rootPath):
+    if os.path.realpath(fullpath) != os.path.realpath(rootPath):
+        loadParents(fullpath + "/..", rootPath)
     
-    for module in os.listdir (fullpath):
+    for module in os.listdir(fullpath):
         if module == '__init__.py' or module[-3:] != '.py':
             continue
 
-        print ("importing " + fullpath + "/" + module);
-        
         loader = importlib.machinery.SourceFileLoader('my_module', fullpath + "/" + module)
         my_module = loader.load_module()
 

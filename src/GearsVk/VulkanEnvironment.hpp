@@ -3,15 +3,23 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "Allocator.hpp"
 #include "DebugUtilsMessenger.hpp"
-#include "DeviceExtra.hpp"
+#include "Swapchain.hpp"
+
 #include "Ptr.hpp"
-#include "VulkanUtils.hpp"
-#include "VulkanWrapper.hpp"
-#include "Window.hpp"
 
 #include <optional>
+
+
+class Instance;
+class Window;
+class PhysicalDevice;
+class Device;
+class Queue;
+class CommandPool;
+class DeviceExtra;
+class Allocator;
+class Surface;
 
 class VulkanEnvironment;
 
@@ -20,16 +28,18 @@ class GEARSVK_API Presentable : public SwapchainProvider {
     USING_CREATE (Presentable);
 
 private:
-    SurfaceU   surface;
-    SwapchainU swapchain;
+    U<Window>    window;
+    U<Surface>   surface;
+    U<Swapchain> swapchain;
 
 public:
-    Presentable (VulkanEnvironment& env, SurfaceU&& surface, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
+    Presentable (VulkanEnvironment& env, U<Surface>&& surface, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
     Presentable (VulkanEnvironment& env, Window& window, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
+    Presentable (VulkanEnvironment& env, U<Window>&& window, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
 
-    virtual Swapchain& GetSwapchain () override { return *swapchain; }
+    virtual Swapchain& GetSwapchain () override;
 
-    const Surface& GetSurface () const { return *surface; }
+    const Surface& GetSurface () const;
 };
 
 
@@ -43,15 +53,15 @@ class GEARSVK_API VulkanEnvironment {
     USING_CREATE (VulkanEnvironment)
 
 public:
-    InstanceU            instance;
-    DebugUtilsMessengerU messenger;
-    PhysicalDeviceU      physicalDevice;
-    DeviceU              device;
-    QueueU               graphicsQueue;
-    QueueU               presentQueue;
-    CommandPoolU         commandPool;
-    DeviceExtraU         deviceExtra;
-    AllocatorU           alloactor;
+    U<Instance>            instance;
+    U<DebugUtilsMessenger> messenger;
+    U<PhysicalDevice>      physicalDevice;
+    U<Device>              device;
+    U<Queue>               graphicsQueue;
+    U<Queue>               presentQueue;
+    U<CommandPool>         commandPool;
+    U<DeviceExtra>         deviceExtra;
+    U<Allocator>           alloactor;
 
     VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback);
 

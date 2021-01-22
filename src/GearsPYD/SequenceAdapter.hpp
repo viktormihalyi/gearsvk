@@ -6,8 +6,12 @@
 #include "Ptr.hpp"
 
 // from Gears
+#include "GearsAPI.hpp"
 #include "core/Sequence.h"
 #include "core/Stimulus.h"
+
+// from std
+#include <optional>
 
 
 class VulkanEnvironment;
@@ -16,12 +20,13 @@ class StimulusAdapterView;
 
 
 USING_PTR (SequenceAdapter);
-class SequenceAdapter {
+class GEARS_TEST_API SequenceAdapter {
     USING_CREATE (SequenceAdapter);
 
 private:
     const Sequence::P sequence;
 
+    std::optional<uint32_t> lastRenderedFrameIndex;
 
     VulkanEnvironment& environment;
     Ptr<Presentable>   currentPresentable;
@@ -32,6 +37,8 @@ public:
     SequenceAdapter (VulkanEnvironment& environment, const Sequence::P& sequence);
 
     void RenderFrameIndex (const uint32_t frameIndex);
+
+    void Wait ();
 
     void SetCurrentPresentable (Ptr<Presentable> presentable);
 

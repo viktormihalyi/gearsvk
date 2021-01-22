@@ -1,10 +1,12 @@
 #include "SequenceAdapter.hpp"
 
 // from GearsVk
+#include "Assert.hpp"
 #include "GLFWWindow.hpp"
 #include "StimulusAdapterView.hpp"
 
 // from Gears
+#include "Surface.hpp"
 #include "VulkanEnvironment.hpp"
 
 
@@ -20,12 +22,25 @@ SequenceAdapter::SequenceAdapter (VulkanEnvironment& environment, const Sequence
 
 void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
 {
-    auto stim = sequence->getStimulusAtFrame (frameIndex);
-    if (stim) {
+    Stimulus::CP stim = sequence->getStimulusAtFrame (frameIndex);
+    if (GVK_VERIFY (stim != nullptr)) {
         views[stim]->RenderFrameIndex (currentPresentable, frameIndex);
+        lastRenderedFrameIndex = frameIndex;
     }
 }
 
+
+void SequenceAdapter::Wait ()
+{
+    if (GVK_ERROR (!lastRenderedFrameIndex.has_value ())) {
+        return;
+    }
+
+    Stimulus::CP stim = sequence->getStimulusAtFrame (*lastRenderedFrameIndex);
+    if (GVK_VERIFY (stim != nullptr)) {
+        views[stim]->RenderFrameIndex (currentPresentable, *lastRenderedFrameIndex);
+    }
+}
 
 void SequenceAdapter::SetCurrentPresentable (Ptr<Presentable> presentable)
 {

@@ -21,21 +21,22 @@
 #include <pybind11/embed.h>
 
 
-static SequenceAdapterU              currentSeq = nullptr;
+namespace Gears {
+
+
+static SequenceAdapterU              currentSeq;
 static std::vector<Ptr<Presentable>> createdSurfaces;
 
 static VulkanEnvironment& GetVkEnvironment ();
 static void               DestroyVkEnvironment ();
 
 
-/* exported to .pyd */
 void InitializeEnvironment ()
 {
     GetVkEnvironment ();
 }
 
 
-/* exported to .pyd */
 void DestroyEnvironment ()
 {
     createdSurfaces.clear ();
@@ -50,14 +51,12 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 }
 
 
-/* exported to .pyd */
 void StartRendering (const std::function<bool ()>& doRender)
 {
     currentSeq->RenderFullOnExternalWindow ();
 }
 
 
-/* exported to .pyd */
 void TryCompile (ShaderKind shaderKind, const std::string& source)
 {
     try {
@@ -70,13 +69,15 @@ void TryCompile (ShaderKind shaderKind, const std::string& source)
 }
 
 
-/* exported to .pyd */
 intptr_t CreateSurface (intptr_t hwnd)
 {
 #ifdef WIN32
     Ptr<Presentable> presentable = Presentable::Create (GetVkEnvironment (), Surface::Create (Surface::PlatformSpecific, *GetVkEnvironment ().instance, reinterpret_cast<void*> (hwnd)));
     createdSurfaces.push_back (presentable);
     return reinterpret_cast<intptr_t> (presentable.get ());
+#else
+    GVK_BREAK ("Creating native VkSurfaceKHR on this platform is not supported.")
+    return 0;
 #endif
 }
 
@@ -92,7 +93,6 @@ static Ptr<Presentable> GetSurfaceFromHandle (intptr_t surfaceHandle)
 }
 
 
-/* exported to .pyd */
 void SetCurrentSurface (intptr_t surfaceHandle)
 {
     Ptr<Presentable> presentable = GetSurfaceFromHandle (surfaceHandle);
@@ -108,53 +108,24 @@ void SetCurrentSurface (intptr_t surfaceHandle)
 }
 
 
-/* exported to .pyd */
 void RenderFrame (uint32_t frameIndex)
 {
     currentSeq->RenderFrameIndex (frameIndex);
 }
 
 
-/* exported to .pyd */
+void Wait ()
+{
+    currentSeq->Wait ();
+}
+
+
 void DestroySurface (intptr_t surfaceHandle)
 {
     createdSurfaces.erase (std::remove_if (createdSurfaces.begin (), createdSurfaces.end (), [&] (const Ptr<Presentable>& p) {
                                return reinterpret_cast<intptr_t> (p.get ()) == surfaceHandle;
                            }),
                            createdSurfaces.end ());
-}
-
-
-static VulkanEnvironmentU env_           = nullptr;
-static VulkanEnvironment* overriddenEnv_ = nullptr;
-
-
-static VulkanEnvironment& GetVkEnvironment ()
-{
-    if (overriddenEnv_ != nullptr) {
-        return *overriddenEnv_;
-    }
-
-    if (env_ == nullptr) {
-        env_ = VulkanEnvironment::Create ();
-    }
-    return *env_;
-}
-
-
-void SetOverriddenEnvironment (VulkanEnvironment& env)
-{
-    GVK_ASSERT (env_ == nullptr);
-
-    overriddenEnv_ = &env;
-}
-
-
-static void DestroyVkEnvironment ()
-{
-    if (env_ != nullptr) {
-        env_.reset ();
-    }
 }
 
 
@@ -172,8 +143,13 @@ std::string GetGLSLResourcesForRandoms ()
     )";
 }
 
-void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
+
+SequenceAdapterU GetSequenceAdapterFromPyx (VulkanEnvironment& environment, const std::filesystem::path& filePath)
 {
+    if (GVK_ERROR (!std::filesystem::exists (filePath))) {
+        return nullptr;
+    }
+
     // working directory will be the same as PROJECT_ROOT
 
     pybind11::scoped_interpreter guard;
@@ -181,8 +157,6 @@ void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
         pybind11::module sys = pybind11::module::import ("sys");
 
         sys.attr ("path").attr ("insert") (0, (PROJECT_ROOT / "src" / "UserInterface").u8string ());
-
-        pybind11::print (sys.attr ("path"));
 
         pybind11::module::import ("AppData").attr ("initConfigParams") ();
 
@@ -199,11 +173,12 @@ void SetRenderGraphFromPyxFileSequence (const std::filesystem::path& filePath)
 
         Sequence::P sequenceCpp = sequence.cast<Sequence::P> ();
 
-        SetRenderGraphFromSequence (sequenceCpp);
+        return SequenceAdapter::Create (environment, sequenceCpp);
 
     } catch (std::exception& e) {
-        GVK_BREAK ("pls ne");
+        GVK_BREAK ("Failed to load sequence.");
         std::cout << e.what () << std::endl;
+        return nullptr;
     }
 }
 
@@ -212,3 +187,27 @@ void SetCurrentPresentable (Ptr<Presentable>& p)
 {
     currentSeq->SetCurrentPresentable (p);
 }
+
+
+static VulkanEnvironmentU env_ = nullptr;
+
+
+static VulkanEnvironment& GetVkEnvironment ()
+{
+    if (env_ == nullptr) {
+        env_ = VulkanEnvironment::Create ();
+    }
+
+    return *env_;
+}
+
+
+static void DestroyVkEnvironment ()
+{
+    if (env_ != nullptr) {
+        env_.reset ();
+    }
+}
+
+
+} // namespace Gears

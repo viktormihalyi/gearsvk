@@ -4,13 +4,6 @@
 #include <iostream>
 
 
-void CommandBuffer::ImageLayoutChanged (const Image& image, VkImageLayout from, VkImageLayout to)
-{
-    const Image* img = &image;
-    layouts[img].emplace_back (from, to);
-}
-
-
 void CommandBindVertexBuffers::Record (CommandBuffer& commandBuffer)
 {
     vkCmdBindVertexBuffers (commandBuffer.GetHandle (), firstBinding, bindingCount, pBuffers.data (), pOffsets.data ());

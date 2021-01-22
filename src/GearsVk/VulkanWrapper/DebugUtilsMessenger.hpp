@@ -9,25 +9,16 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+
 USING_PTR (DebugUtilsMessenger);
-
 class GEARSVK_API DebugUtilsMessenger : public VulkanObject {
-private:
-    const VkInstance         instance;
-    VkDebugUtilsMessengerEXT handle;
-
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
-        VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
-        VkDebugUtilsMessageTypeFlagsEXT             messageType,
-        const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
-        void*                                       userData);
+    USING_CREATE (DebugUtilsMessenger);
 
 public:
     using Callback = std::function<void (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
                                          VkDebugUtilsMessageTypeFlagsEXT             messageType,
                                          const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData)>;
 
-public:
     struct Settings {
         bool verbose;
         bool info;
@@ -39,12 +30,21 @@ public:
         bool perforamnce;
     };
 
-    static const Settings defaultSettings;
-    static const Settings noPerformance;
+private:
+    const VkInstance         instance;
+    VkDebugUtilsMessengerEXT handle;
 
     Callback callback;
 
-    USING_CREATE (DebugUtilsMessenger);
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
+        VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT             messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+        void*                                       userData);
+
+public:
+    static const Settings defaultSettings;
+    static const Settings noPerformance;
 
     DebugUtilsMessenger (VkInstance instance, const Callback& callback, const Settings& settings = defaultSettings);
 

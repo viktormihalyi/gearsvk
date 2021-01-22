@@ -50,11 +50,10 @@ static void DestroyDebugUtilsMessengerEXT (VkInstance                   instance
 }
 
 
-VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsMessenger::debugCallback (
-    VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT             messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
-    void*                                       userData)
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsMessenger::debugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+                                                                   VkDebugUtilsMessageTypeFlagsEXT             messageType,
+                                                                   const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+                                                                   void*                                       userData)
 {
     if (GVK_VERIFY (userData != nullptr)) {
         reinterpret_cast<DebugUtilsMessenger*> (userData)->callback (messageSeverity, messageType, callbackData);

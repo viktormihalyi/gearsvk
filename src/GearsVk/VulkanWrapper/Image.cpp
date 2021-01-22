@@ -182,8 +182,6 @@ void Image::CmdPipelineBarrier (CommandBuffer& commandBuffer, VkImageLayout oldL
         std::vector<VkMemoryBarrier> {},
         std::vector<VkBufferMemoryBarrier> {},
         std::vector<VkImageMemoryBarrier> { barrier });
-
-    commandBuffer.ImageLayoutChanged (*this, oldLayout, newLayout);
 }
 
 

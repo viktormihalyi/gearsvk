@@ -10,12 +10,14 @@
 
 class Presentable;
 class VulkanEnvironment;
+class SequenceAdapter;
 enum class ShaderKind : uint8_t;
 
 
+namespace Gears {
+
 void InitializeEnvironment ();
 
-GEARS_TEST_API
 void DestroyEnvironment ();
 
 void SetRenderGraphFromSequence (Sequence::P);
@@ -30,16 +32,15 @@ void DestroySurface (intptr_t handle);
 
 void SetCurrentSurface (intptr_t handle);
 
-GEARS_TEST_API
 void RenderFrame (uint32_t frameIndex);
+
+void Wait ();
 
 std::string GetGLSLResourcesForRandoms ();
 
-GEARS_TEST_API
-void SetOverriddenEnvironment (VulkanEnvironment&);
-
-GEARS_TEST_API
 void SetCurrentPresentable (Ptr<Presentable>&);
 
 GEARS_TEST_API
-void SetRenderGraphFromPyxFileSequence (const std::filesystem::path&);
+U<SequenceAdapter> GetSequenceAdapterFromPyx (VulkanEnvironment&, const std::filesystem::path&);
+
+} // namespace Gears

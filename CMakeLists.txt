@@ -107,6 +107,7 @@ add_library (${TARGET_GVKRG} SHARED
     src/GearsVk/VulkanWrapper/ShaderModule.cpp
     src/GearsVk/VulkanWrapper/Swapchain.cpp
     src/GearsVk/VulkanWrapper/PhysicalDevice.cpp
+    src/GearsVk/VulkanWrapper/Instance.cpp
     src/GearsVk/VulkanWrapper/Pipeline.cpp
     src/GearsVk/VulkanWrapper/ShaderReflection.cpp
     src/GearsVk/VulkanWrapper/Sampler.cpp
@@ -140,6 +141,7 @@ add_library (${TARGET_GVKRG} SHARED
     external/msdfgen/ext/import-font.cpp)
 
 add_executable (${TARGET_TESTS}
+    src/Tests/GoogleTestEnvironment.cpp
     src/Tests/FontRenderingTests.cpp
     src/Tests/RenderGraphTests.cpp
     src/Tests/TestMain.cpp

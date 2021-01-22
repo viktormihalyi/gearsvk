@@ -7,7 +7,6 @@
 
 #include "Assert.hpp"
 #include "DeviceExtra.hpp"
-#include "ImageLayoutObserver.hpp"
 #include "Ptr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
@@ -26,7 +25,7 @@ public:
 };
 
 USING_PTR (CommandBuffer);
-class GEARSVK_API CommandBuffer : public VulkanObject, public ImageLayoutObserver {
+class GEARSVK_API CommandBuffer : public VulkanObject {
 private:
     const VkDevice      device;
     const VkCommandPool commandPool;
@@ -117,8 +116,6 @@ public:
     {
         return handle;
     }
-
-    virtual void ImageLayoutChanged (const Image& image, VkImageLayout from, VkImageLayout to) override;
 };
 
 

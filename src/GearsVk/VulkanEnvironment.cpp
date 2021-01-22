@@ -4,12 +4,23 @@
 #include "StaticInit.hpp"
 #include "TerminalColors.hpp"
 #include "Timer.hpp"
+#include "Window.hpp"
+
+#include "Allocator.hpp"
+#include "DebugUtilsMessenger.hpp"
+#include "DeviceExtra.hpp"
+#include "Instance.hpp"
+#include "Surface.hpp"
+#include "VulkanUtils.hpp"
+#include "VulkanWrapper.hpp"
+
 
 #include <iomanip>
 
 
 Presentable::Presentable (VulkanEnvironment& env, SurfaceU&& surface, SwapchainSettingsProvider& settingsProvider)
     : surface (std::move (surface))
+    , window (nullptr)
 {
     // TODO this is kind of a hack
     // when creating a swapchain, we must query if presentation is supported for the surface
@@ -25,6 +36,25 @@ Presentable::Presentable (VulkanEnvironment& env, SurfaceU&& surface, SwapchainS
 Presentable::Presentable (VulkanEnvironment& env, Window& window, SwapchainSettingsProvider& settingsProvider)
     : Presentable (env, Surface::Create (*env.instance, window.GetSurface (*env.instance)), settingsProvider)
 {
+}
+
+
+Presentable::Presentable (VulkanEnvironment& env, WindowU&& window, SwapchainSettingsProvider& settingsProvider)
+    : Presentable (env, Surface::Create (*env.instance, window->GetSurface (*env.instance)), settingsProvider)
+{
+    window = std::move (window);
+}
+
+
+Swapchain& Presentable::GetSwapchain ()
+{
+    return *swapchain;
+}
+
+
+const Surface& Presentable::GetSurface () const
+{
+    return *surface;
 }
 
 

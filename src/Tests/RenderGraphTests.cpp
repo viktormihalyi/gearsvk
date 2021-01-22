@@ -11,6 +11,7 @@
 #include "Timer.hpp"
 #include "UniformReflection.hpp"
 #include "Utils.hpp"
+#include "VulkanEnvironment.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 
