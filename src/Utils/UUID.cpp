@@ -23,14 +23,15 @@ static std::array<uint8_t, 16> GenerateUUID ()
 
 #else // TODO handle other platforms
 
+#include <cstring>
 #include <uuid/uuid.h>
 
 static std::array<uint8_t, 16> GenerateUUID ()
 {
     static_assert (sizeof (uuid_t) == 16);
 
-    uuid_t result;
-    uuid_generate_random (result);
+    uuid_t uuid;
+    uuid_generate_random (uuid);
 
     std::array<uint8_t, 16> result;
     memcpy (result.data (), &uuid, 16);
