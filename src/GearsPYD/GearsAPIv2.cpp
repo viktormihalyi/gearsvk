@@ -76,7 +76,7 @@ intptr_t CreateSurface (intptr_t hwnd)
     createdSurfaces.push_back (presentable);
     return reinterpret_cast<intptr_t> (presentable.get ());
 #else
-    GVK_BREAK ("Creating native VkSurfaceKHR on this platform is not supported.")
+    GVK_BREAK ("Creating native VkSurfaceKHR on this platform is not supported.");
     return 0;
 #endif
 }

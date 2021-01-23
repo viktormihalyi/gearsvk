@@ -75,7 +75,9 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
         Ptr<RG::RenderOperation> passOperation = RG::RenderOperation::Create (
             DrawRecordableInfo::Create (1, 4), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
-        passOperation->compileSettings.clearColor   = { stimulus->clearColor, 1.0 };
+        if (stimulus->requiresClearing) {
+            passOperation->compileSettings.clearColor = { stimulus->clearColor, 1.0 };
+        }
         passOperation->compileSettings.blendEnabled = passes.size () > 1;
 
         s.connectionSet.Add (passOperation, presented,
@@ -191,8 +193,8 @@ void StimulusAdapterForPresentable::SetUniforms (const GearsVk::UUID& renderOper
             fragmentShaderUniforms["ubo_toneRangeVar"]  = -1.f;
         }
 
-        fragmentShaderUniforms["ubo_doTone"]           = static_cast<int32_t> (false);
-        fragmentShaderUniforms["ubo_doGamma"]          = static_cast<int32_t> (false);
+        fragmentShaderUniforms["ubo_doTone"]           = static_cast<int32_t> (!stimulus->doesDynamicToneMapping);
+        fragmentShaderUniforms["ubo_doGamma"]          = static_cast<int32_t> (!stimulus->doesDynamicToneMapping);
         fragmentShaderUniforms["ubo_gammaSampleCount"] = static_cast<int32_t> (stimulus->gammaSamplesCount);
     }
 }
