@@ -1,6 +1,7 @@
 #ifndef UUID_HPP
 #define UUID_HPP
 
+#include <array>
 #include <cstddef>
 #include <string>
 
@@ -10,31 +11,31 @@ namespace GearsVk {
 
 class GVK_UTILS_API UUID {
 private:
-    std::string value;
+    std::array<uint8_t, 16> data;
 
 public:
     UUID ();
     UUID (std::nullptr_t);
 
-    operator std::string () const { return value; }
+    std::string GetValue () const;
 
-    const std::string& GetValue () const { return value; }
+    bool operator== (const UUID& other) const { return memcmp (data.data (), other.data.data (), 16) == 0; }
+    bool operator!= (const UUID& other) const { return memcmp (data.data (), other.data.data (), 16) != 0; }
 
-    bool operator== (const UUID& other) const { return value == other.value; }
-    bool operator!= (const UUID& other) const { return value != other.value; }
+    friend struct std::hash<UUID>;
 };
 
 } // namespace GearsVk
 
 
-namespace std {
 template<>
-struct hash<GearsVk::UUID> {
+struct GVK_UTILS_API std::hash<GearsVk::UUID> {
     std::size_t operator() (const GearsVk::UUID& uuid) const noexcept
     {
-        return std::hash<std::string> () (uuid.GetValue ());
+        const uint64_t firstHalf  = *reinterpret_cast<const uint64_t*> (uuid.data.data ());
+        const uint64_t secondHalf = *reinterpret_cast<const uint64_t*> (uuid.data.data () + 8);
+        return firstHalf + 31 * secondHalf;
     }
 };
-} // namespace std
 
 #endif

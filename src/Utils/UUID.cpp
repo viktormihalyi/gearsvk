@@ -1,77 +1,63 @@
 #include "UUID.hpp"
 
 #include "Assert.hpp"
-#include "Platform.hpp"
 #include "CompilerDefinitions.hpp"
+#include "Platform.hpp"
 
 #if defined(PLATFORM_WINDOWS) && defined(COMPILER_MSVC)
 #pragma comment(lib, "rpcrt4.lib")
-#include <windows.h>
 #include <cstring>
+#include <windows.h>
 
-static std::string GenerateUUID ()
+static std::array<uint8_t, 16> GenerateUUID ()
 {
-    constexpr size_t uuidSize = 16;
-    static_assert (sizeof (UUID) == uuidSize);
+    static_assert (sizeof (UUID) == 16);
 
     UUID uuid;
     UuidCreate (&uuid);
-    std::string result;
-    result.resize (uuidSize);
-    memcpy (result.data (), &uuid, uuidSize);
+
+    std::array<uint8_t, 16> result;
+    memcpy (result.data (), &uuid, 16);
     return result;
 }
 
 #else // TODO handle other platforms
 
-#include <random>
-#include <sstream>
+#include <uuid/uuid.h>
 
-static std::random_device              rd;
-static std::mt19937                    gen (rd ());
-static std::uniform_int_distribution<> dis (0, 15);
-static std::uniform_int_distribution<> dis2 (8, 11);
-
-static std::string GenerateUUID ()
+static std::array<uint8_t, 16> GenerateUUID ()
 {
-    std::stringstream ss;
-    int               i;
-    ss << std::hex;
-    for (i = 0; i < 8; i++) {
-        ss << dis (gen);
-    }
-    ss << "-";
-    for (i = 0; i < 4; i++) {
-        ss << dis (gen);
-    }
-    ss << "-4";
-    for (i = 0; i < 3; i++) {
-        ss << dis (gen);
-    }
-    ss << "-";
-    ss << dis2 (gen);
-    for (i = 0; i < 3; i++) {
-        ss << dis (gen);
-    }
-    ss << "-";
-    for (i = 0; i < 12; i++) {
-        ss << dis (gen);
-    }
-    return ss.str ();
+    static_assert (sizeof (uuid_t) == 16);
+
+    uuid_t result;
+    uuid_generate_random (result);
+
+    std::array<uint8_t, 16> result;
+    memcpy (result.data (), &uuid, 16);
+    return result;
 }
 
 #endif
 
 
 GearsVk::UUID::UUID ()
-    : value (GenerateUUID ())
+    : data (GenerateUUID ())
 {
-    GVK_ASSERT (value.size () == 16);
 }
 
 
 GearsVk::UUID::UUID (std::nullptr_t)
-    : value ("0000-00-00-00-0000")
+    : data ({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 {
-    GVK_ASSERT (value.size () == 16);
+}
+
+
+std::string GearsVk::UUID::GetValue () const
+{
+    char str[39] = {};
+    sprintf (str,
+             "{%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x}",
+             data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
+             data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15]);
+    return str;
 }

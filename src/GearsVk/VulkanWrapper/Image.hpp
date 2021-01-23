@@ -150,7 +150,7 @@ public:
 
     // clang-format on
 
-    Image&& Build () const
+    Image Build () const
     {
         const bool allSet = imageType.has_value () &&
                             width.has_value () &&
