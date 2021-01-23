@@ -21,7 +21,7 @@ class GraphSettings;
 
 
 USING_PTR (RenderGraph);
-class GEARSVK_API RenderGraph final : public Noncopyable {
+class GVK_RENDERER_API RenderGraph final : public Noncopyable {
     USING_CREATE (RenderGraph);
 
 private:

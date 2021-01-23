@@ -193,7 +193,7 @@ target_compile_definitions (${TARGET_GVKUTILS} PRIVATE
     GVK_UTILS_EXPORTS
 )   
 target_compile_definitions (${TARGET_GVKRG} PRIVATE
-    GEARSVK_EXPORTS
+    GVK_RENDERER_EXPORTS
 )
 target_compile_definitions (${TARGET_TESTS} PRIVATE)
 target_compile_definitions (${TARGET_DLL} PRIVATE GEARS_EXPORTS)

@@ -17,7 +17,7 @@
 
 
 USING_PTR (BufferTransferable);
-class GEARSVK_API BufferTransferable final {
+class GVK_RENDERER_API BufferTransferable final {
 public:
     const DeviceExtra& device;
 
@@ -53,7 +53,7 @@ public:
 
 
 USING_PTR (ImageTransferable);
-class GEARSVK_API ImageTransferable {
+class GVK_RENDERER_API ImageTransferable {
     USING_CREATE (ImageTransferable);
 
 private:
@@ -140,7 +140,7 @@ static uint32_t GetCompontentCountFromFormat (VkFormat format)
 
 
 USING_PTR (Image1DTransferable);
-class GEARSVK_API Image1DTransferable final : public ImageTransferable {
+class GVK_RENDERER_API Image1DTransferable final : public ImageTransferable {
 public:
     USING_CREATE (Image1DTransferable);
     Image1DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
@@ -152,7 +152,7 @@ public:
 
 
 USING_PTR (Image2DTransferable);
-class GEARSVK_API Image2DTransferable final : public ImageTransferable {
+class GVK_RENDERER_API Image2DTransferable final : public ImageTransferable {
 public:
     USING_CREATE (Image2DTransferable);
     Image2DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
@@ -164,7 +164,7 @@ public:
 
 
 USING_PTR (Image2DTransferableLinear);
-class GEARSVK_API Image2DTransferableLinear final : public ImageTransferable {
+class GVK_RENDERER_API Image2DTransferableLinear final : public ImageTransferable {
 public:
     USING_CREATE (Image2DTransferableLinear);
     Image2DTransferableLinear (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
@@ -176,7 +176,7 @@ public:
 
 
 USING_PTR (Image3DTransferable);
-class GEARSVK_API Image3DTransferable final : public ImageTransferable {
+class GVK_RENDERER_API Image3DTransferable final : public ImageTransferable {
 public:
     USING_CREATE (Image3DTransferable);
     Image3DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
@@ -187,7 +187,7 @@ public:
 };
 
 
-class GEARSVK_API VertexInputInfo final {
+class GVK_RENDERER_API VertexInputInfo final {
 public:
     uint32_t                                       size;
     std::vector<VkVertexInputAttributeDescription> attributes;
@@ -201,7 +201,7 @@ public:
 
 
 USING_PTR (VertexBufferTransferableUntyped);
-class GEARSVK_API VertexBufferTransferableUntyped {
+class GVK_RENDERER_API VertexBufferTransferableUntyped {
 public:
     std::vector<uint8_t>     data;
     const VertexInputInfo    info;

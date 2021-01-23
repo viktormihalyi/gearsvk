@@ -9,7 +9,7 @@
 #include "VulkanObject.hpp"
 
 USING_PTR (Pipeline);
-class GEARSVK_API Pipeline : public VulkanObject {
+class GVK_RENDERER_API Pipeline : public VulkanObject {
 private:
     const VkDevice device;
     VkPipeline     handle;
@@ -26,7 +26,8 @@ public:
               const std::vector<VkPipelineShaderStageCreateInfo>&   shaderStages,
               const std::vector<VkVertexInputBindingDescription>&   vertexBindingDescriptions,
               const std::vector<VkVertexInputAttributeDescription>& vertexAttributeDescriptions,
-              VkPrimitiveTopology                                   topology);
+              VkPrimitiveTopology                                   topology,
+              bool                                                  blendEnabled = true);
 
     ~Pipeline ()
     {

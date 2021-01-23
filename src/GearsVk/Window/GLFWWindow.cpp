@@ -117,7 +117,7 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     //int xpos, ypos, width, height;
     //glfwGetMonitorWorkarea (primaryMonitor, &xpos, &ypos, &width, &height);
 
-    const GLFWgammaramp* gammaRamp = glfwGetGammaRamp (primaryMonitor);
+    //const GLFWgammaramp* gammaRamp = glfwGetGammaRamp (primaryMonitor);
 
     GLFWmonitor* usedMonitor = nullptr;
 

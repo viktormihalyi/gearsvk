@@ -28,7 +28,7 @@ struct GlyphData {
 
 
 USING_PTR (Font);
-class GEARSVK_API Font : public Noncopyable {
+class GVK_RENDERER_API Font : public Noncopyable {
 public:
     // hide font handle
     struct Impl;

@@ -10,7 +10,7 @@
 #include "VulkanObject.hpp"
 
 USING_PTR (Semaphore);
-class GEARSVK_API Semaphore : public VulkanObject {
+class GVK_RENDERER_API Semaphore : public VulkanObject {
 private:
     const VkDevice device;
     VkSemaphore    handle;

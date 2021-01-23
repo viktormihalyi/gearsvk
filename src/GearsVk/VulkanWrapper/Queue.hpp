@@ -12,7 +12,7 @@
 class CommandBuffer;
 
 USING_PTR (Queue);
-class GEARSVK_API Queue : public Noncopyable {
+class GVK_RENDERER_API Queue : public Noncopyable {
 private:
     VkQueue handle;
 

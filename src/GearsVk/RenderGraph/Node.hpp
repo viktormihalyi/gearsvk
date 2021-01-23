@@ -10,7 +10,7 @@
 namespace RG {
 
 USING_PTR (Node);
-class GEARSVK_API Node : public Noncopyable {
+class GVK_RENDERER_API Node : public Noncopyable {
 private:
     GearsVk::UUID uuid;
 

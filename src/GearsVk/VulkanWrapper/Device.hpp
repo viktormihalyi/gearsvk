@@ -10,7 +10,7 @@
 #include <vulkan/vulkan.h>
 
 USING_PTR (Device);
-class GEARSVK_API Device {
+class GVK_RENDERER_API Device {
 public:
     virtual ~Device () = default;
 
@@ -20,7 +20,7 @@ public:
 
 
 USING_PTR (DeviceObject);
-class GEARSVK_API DeviceObject : public VulkanObject, public Device {
+class GVK_RENDERER_API DeviceObject : public VulkanObject, public Device {
     USING_CREATE (DeviceObject);
 
 private:

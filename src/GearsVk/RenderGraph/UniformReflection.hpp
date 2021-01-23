@@ -22,7 +22,7 @@ namespace RG {
 // modifying uniforms takes place in a staging cpu memory, calling Flush will copy these to the actual uniform memory
 // accessing a uniforms is available with operator[] eg.: reflection[Ptr<RG::RenderOperation>][ShaderKind][std::string][std::string]...
 
-class GEARSVK_API ImageMap {
+class GVK_RENDERER_API ImageMap {
 private:
     std::vector<std::pair<SR::Sampler, Ptr<ReadOnlyImageResource>>> images;
 
@@ -37,19 +37,19 @@ public:
 using CreateParams                 = std::tuple<glm::uvec3, VkFormat, VkFilter>;
 using ExtentProviderForImageCreate = std::function<std::optional<CreateParams> (const SR::Sampler& sampler)>;
 
-GEARSVK_API
+GVK_RENDERER_API
 ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet);
 
-GEARSVK_API
+GVK_RENDERER_API
 ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const ExtentProviderForImageCreate& extentProvider);
 
 
 USING_PTR (UniformReflection);
-class GEARSVK_API UniformReflection final : public EventObserver {
+class GVK_RENDERER_API UniformReflection final : public EventObserver {
     USING_CREATE (UniformReflection);
 
 private:
-    class GEARSVK_API UboSelector {
+    class GVK_RENDERER_API UboSelector {
     private:
         std::unordered_map<std::string, Ptr<SR::IUData>> udatas;
 
@@ -73,7 +73,7 @@ private:
         friend class UniformReflection;
     };
 
-    class GEARSVK_API ShaderKindSelector {
+    class GVK_RENDERER_API ShaderKindSelector {
     private:
         std::unordered_map<ShaderKind, UboSelector> uboSelectors;
 

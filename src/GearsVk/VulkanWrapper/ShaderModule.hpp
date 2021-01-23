@@ -14,7 +14,7 @@
 
 #include <vulkan/vulkan.h>
 
-class GEARSVK_API ShaderCompileException : public std::runtime_error {
+class GVK_RENDERER_API ShaderCompileException : public std::runtime_error {
 public:
     ShaderCompileException (const std::string& errorMessage)
         : std::runtime_error (errorMessage)
@@ -36,7 +36,7 @@ std::string ShaderKindToString (ShaderKind);
 
 
 USING_PTR (ShaderPreprocessor);
-class GEARSVK_API ShaderPreprocessor {
+class GVK_RENDERER_API ShaderPreprocessor {
 public:
     virtual ~ShaderPreprocessor () = default;
 
@@ -44,7 +44,7 @@ public:
 };
 
 
-class GEARSVK_API EmptyPreprocessor : public ShaderPreprocessor {
+class GVK_RENDERER_API EmptyPreprocessor : public ShaderPreprocessor {
 public:
     virtual std::string Preprocess (const std::string& source) override
     {
@@ -52,11 +52,11 @@ public:
     }
 };
 
-extern GEARSVK_API EmptyPreprocessor emptyPreprocessor;
+extern GVK_RENDERER_API EmptyPreprocessor emptyPreprocessor;
 
 
 USING_PTR (ShaderModule);
-class GEARSVK_API ShaderModule : public VulkanObject {
+class GVK_RENDERER_API ShaderModule : public VulkanObject {
     USING_CREATE (ShaderModule);
 
 public:

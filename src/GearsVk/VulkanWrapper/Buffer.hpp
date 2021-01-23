@@ -12,7 +12,7 @@
 
 
 USING_PTR (Buffer);
-class GEARSVK_API Buffer : public VulkanObject {
+class GVK_RENDERER_API Buffer : public VulkanObject {
     USING_CREATE (Buffer);
 
 private:

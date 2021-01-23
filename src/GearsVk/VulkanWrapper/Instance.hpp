@@ -12,18 +12,18 @@
 #include <vulkan/vulkan.h>
 
 
-struct GEARSVK_API InstanceSettings {
+struct GVK_RENDERER_API InstanceSettings {
     std::vector<const char*> extensions;
     std::vector<const char*> layers;
 };
 
 
-extern GEARSVK_API const InstanceSettings instanceDebugMode;
-extern GEARSVK_API const InstanceSettings instanceReleaseMode;
+extern GVK_RENDERER_API const InstanceSettings instanceDebugMode;
+extern GVK_RENDERER_API const InstanceSettings instanceReleaseMode;
 
 
 USING_PTR (Instance);
-class GEARSVK_API Instance : public VulkanObject {
+class GVK_RENDERER_API Instance : public VulkanObject {
     USING_CREATE (Instance);
 
 private:

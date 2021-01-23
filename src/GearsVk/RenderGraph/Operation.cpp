@@ -117,6 +117,8 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
                                                          attachmentDescriptions,
                                                          compileSettings.topology };
 
+    pipelineSettigns.blendEnabled = compileSettings.blendEnabled;
+
     compileSettings.pipeline->Compile (pipelineSettigns);
 
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
@@ -137,7 +139,15 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t frame
     });
 
 
-    VkClearValue              clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+    VkClearValue clearColor = compileSettings.clearColor.has_value ()
+                                  ? VkClearValue {
+                                        compileSettings.clearColor->x,
+                                        compileSettings.clearColor->y,
+                                        compileSettings.clearColor->z,
+                                        compileSettings.clearColor->w
+                                    }
+                                  : VkClearValue { 0.0f, 0.0f, 0.0f, 1.0f };
+
     std::vector<VkClearValue> clearValues (outputCount, clearColor);
 
     VkRenderPassBeginInfo renderPassBeginInfo = {};

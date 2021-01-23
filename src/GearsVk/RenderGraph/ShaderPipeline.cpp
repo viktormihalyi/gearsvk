@@ -158,7 +158,18 @@ void ShaderPipeline::Compile (const CompileSettings& settings)
 
     compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, { subpass }, { /* dependency */ }));
     compileResult.pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, { settings.layout }));
-    compileResult.pipeline       = std::unique_ptr<Pipeline> (new Pipeline (device, settings.width, settings.height, static_cast<uint32_t> (settings.attachmentReferences.size ()), *compileResult.pipelineLayout, *compileResult.renderPass, GetShaderStages (), bindings, attribs, settings.topology));
+    compileResult.pipeline       = std::unique_ptr<Pipeline> (new Pipeline (
+        device,
+        settings.width,
+        settings.height,
+        static_cast<uint32_t> (settings.attachmentReferences.size ()),
+        *compileResult.pipelineLayout,
+        *compileResult.renderPass,
+        GetShaderStages (),
+        bindings,
+        attribs,
+        settings.topology,
+        compileSettings.blendEnabled.has_value () ? *compileSettings.blendEnabled : true));
 }
 
 

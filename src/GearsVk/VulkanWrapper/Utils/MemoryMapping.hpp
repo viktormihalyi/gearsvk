@@ -13,7 +13,7 @@
 #include <cstring>
 
 USING_PTR (MemoryMapping);
-class GEARSVK_API MemoryMapping : public Noncopyable {
+class GVK_RENDERER_API MemoryMapping : public Noncopyable {
 private:
     const VkDevice       device;
     const VkDeviceMemory memory;

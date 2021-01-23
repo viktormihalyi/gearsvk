@@ -11,7 +11,7 @@
 
 
 USING_PTR (DebugUtilsMessenger);
-class GEARSVK_API DebugUtilsMessenger : public VulkanObject {
+class GVK_RENDERER_API DebugUtilsMessenger : public VulkanObject {
     USING_CREATE (DebugUtilsMessenger);
 
 public:

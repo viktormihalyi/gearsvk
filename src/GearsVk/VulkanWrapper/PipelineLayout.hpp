@@ -9,7 +9,7 @@
 #include "VulkanObject.hpp"
 
 USING_PTR (PipelineLayout);
-class GEARSVK_API PipelineLayout : public Noncopyable {
+class GVK_RENDERER_API PipelineLayout : public Noncopyable {
 private:
     const VkDevice   device;
     VkPipelineLayout handle;

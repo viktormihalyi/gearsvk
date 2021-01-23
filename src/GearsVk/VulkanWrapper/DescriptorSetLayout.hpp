@@ -10,7 +10,7 @@
 #include "VulkanObject.hpp"
 
 USING_PTR (DescriptorSetLayout);
-class GEARSVK_API DescriptorSetLayout : public VulkanObject {
+class GVK_RENDERER_API DescriptorSetLayout : public VulkanObject {
     USING_CREATE (DescriptorSetLayout);
 
 private:

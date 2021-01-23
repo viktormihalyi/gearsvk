@@ -20,7 +20,7 @@ class StimulusAdapterView;
 
 
 USING_PTR (SequenceAdapter);
-class GEARS_TEST_API SequenceAdapter {
+class GEARS_API_TEST SequenceAdapter {
     USING_CREATE (SequenceAdapter);
 
 private:

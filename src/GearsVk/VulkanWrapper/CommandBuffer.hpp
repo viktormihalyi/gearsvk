@@ -16,7 +16,7 @@ class Image;
 class CommandBuffer;
 
 USING_PTR (Command);
-class GEARSVK_API Command {
+class GVK_RENDERER_API Command {
 public:
     virtual ~Command () = default;
 
@@ -25,7 +25,7 @@ public:
 };
 
 USING_PTR (CommandBuffer);
-class GEARSVK_API CommandBuffer : public VulkanObject {
+class GVK_RENDERER_API CommandBuffer : public VulkanObject {
 private:
     const VkDevice      device;
     const VkCommandPool commandPool;
@@ -120,7 +120,7 @@ public:
 
 
 USING_PTR (CommandBindVertexBuffers);
-class GEARSVK_API CommandBindVertexBuffers : public Command {
+class GVK_RENDERER_API CommandBindVertexBuffers : public Command {
     USING_CREATE (CommandBindVertexBuffers);
 
 private:
@@ -147,7 +147,7 @@ public:
 
 
 USING_PTR (CommandPipelineBarrier);
-class GEARSVK_API CommandPipelineBarrier : public Command {
+class GVK_RENDERER_API CommandPipelineBarrier : public Command {
     USING_CREATE (CommandPipelineBarrier);
 
 private:
@@ -176,7 +176,7 @@ public:
 
 
 USING_PTR (CommandGeneric);
-class GEARSVK_API CommandGeneric : public Command {
+class GVK_RENDERER_API CommandGeneric : public Command {
     USING_CREATE (CommandGeneric);
 
 private:

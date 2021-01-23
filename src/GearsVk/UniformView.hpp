@@ -25,7 +25,7 @@ USING_PTR (UBO);
 // we can set the variable with operator=(T)
 
 USING_PTR (UView);
-class GEARSVK_API UView final {
+class GVK_RENDERER_API UView final {
     USING_CREATE (UView);
 
 public:
@@ -89,7 +89,7 @@ public:
 
 // view to a single UBO + properly sized byte array for it
 USING_PTR (IUData);
-class GEARSVK_API IUData {
+class GVK_RENDERER_API IUData {
 public:
     virtual ~IUData () = default;
 
@@ -148,7 +148,7 @@ public:
 
 
 // view to a single UBO + properly sized byte array for it
-class GEARSVK_API DummyUData final : public IUData {
+class GVK_RENDERER_API DummyUData final : public IUData {
 public:
     virtual UView operator[] (std::string_view str) override
     {
@@ -176,7 +176,7 @@ extern DummyUData dummyUData;
 
 
 USING_PTR (UDataExternal);
-class GEARSVK_API UDataExternal final : public IUData, public Noncopyable {
+class GVK_RENDERER_API UDataExternal final : public IUData, public Noncopyable {
 private:
     UView    root;
     uint8_t* bytes;
@@ -197,7 +197,7 @@ public:
 
 
 USING_PTR (UDataInternal);
-class GEARSVK_API UDataInternal final : public IUData, public Noncopyable {
+class GVK_RENDERER_API UDataInternal final : public IUData, public Noncopyable {
     USING_CREATE (UDataInternal);
 
 private:
@@ -221,7 +221,7 @@ public:
 // we can select a single UBO with operator[](std::string_view)
 
 USING_PTR (ShaderUData);
-class GEARSVK_API ShaderUData final : public Noncopyable {
+class GVK_RENDERER_API ShaderUData final : public Noncopyable {
     USING_CREATE (ShaderUData);
 
 private:

@@ -10,7 +10,7 @@
 #include "vk_mem_alloc.h"
 
 USING_PTR (DeviceExtra);
-class GEARSVK_API DeviceExtra : public Device {
+class GVK_RENDERER_API DeviceExtra : public Device {
     USING_CREATE (DeviceExtra);
 
 public:

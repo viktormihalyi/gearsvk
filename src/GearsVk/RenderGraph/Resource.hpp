@@ -25,7 +25,7 @@ class Operation;
 class IResourceVisitor;
 
 USING_PTR (Resource);
-class GEARSVK_API Resource : public Node {
+class GVK_RENDERER_API Resource : public Node {
 public:
     virtual ~Resource () = default;
 
@@ -48,7 +48,7 @@ class CPUBufferResource;
 
 
 USING_PTR (IResourceVisitor);
-class GEARSVK_API IResourceVisitor {
+class GVK_RENDERER_API IResourceVisitor {
 public:
     virtual ~IResourceVisitor () = default;
 
@@ -95,14 +95,14 @@ public:
 
 
 USING_PTR (InputBufferBindableResource);
-class GEARSVK_API InputBufferBindableResource : public Resource, public InputBufferBindable {
+class GVK_RENDERER_API InputBufferBindableResource : public Resource, public InputBufferBindable {
 public:
     virtual ~InputBufferBindableResource () = default;
 };
 
 
 USING_PTR (ImageResource);
-class GEARSVK_API ImageResource : public Resource {
+class GVK_RENDERER_API ImageResource : public Resource {
 public:
     virtual ~ImageResource () = default;
 
@@ -122,7 +122,7 @@ public:
 
 
 USING_PTR (OneTimeCompileResource);
-class GEARSVK_API OneTimeCompileResource : public ImageResource {
+class GVK_RENDERER_API OneTimeCompileResource : public ImageResource {
 private:
     bool compiled;
 
@@ -148,12 +148,12 @@ public:
 
 
 USING_PTR (WritableImageResource);
-class GEARSVK_API WritableImageResource : public ImageResource, public InputImageBindable {
+class GVK_RENDERER_API WritableImageResource : public ImageResource, public InputImageBindable {
     USING_CREATE (WritableImageResource);
 
 protected:
     USING_PTR (SingleImageResource);
-    struct GEARSVK_API SingleImageResource final {
+    struct GVK_RENDERER_API SingleImageResource final {
         USING_CREATE (SingleImageResource);
 
         static const VkFormat FormatRGBA;
@@ -298,7 +298,7 @@ public:
 
 
 USING_PTR (SingleWritableImageResource);
-class GEARSVK_API SingleWritableImageResource : public WritableImageResource {
+class GVK_RENDERER_API SingleWritableImageResource : public WritableImageResource {
     USING_CREATE (SingleWritableImageResource);
 
 private:
@@ -350,7 +350,7 @@ public:
 
 
 USING_PTR (GPUBufferResource);
-class GEARSVK_API GPUBufferResource : public InputBufferBindableResource {
+class GVK_RENDERER_API GPUBufferResource : public InputBufferBindableResource {
     USING_CREATE (GPUBufferResource);
 
 private:
@@ -391,7 +391,7 @@ public:
 
 
 USING_PTR (ReadOnlyImageResource);
-class GEARSVK_API ReadOnlyImageResource : public OneTimeCompileResource, public InputImageBindable {
+class GVK_RENDERER_API ReadOnlyImageResource : public OneTimeCompileResource, public InputImageBindable {
     USING_CREATE (ReadOnlyImageResource);
 
 public:
@@ -490,7 +490,7 @@ public:
 
 
 USING_PTR (SwapchainImageResource);
-class GEARSVK_API SwapchainImageResource : public ImageResource, public InputImageBindable {
+class GVK_RENDERER_API SwapchainImageResource : public ImageResource, public InputImageBindable {
     USING_CREATE (SwapchainImageResource);
 
 public:
@@ -556,7 +556,7 @@ public:
 
 
 USING_PTR (CPUBufferResource);
-class GEARSVK_API CPUBufferResource : public InputBufferBindableResource {
+class GVK_RENDERER_API CPUBufferResource : public InputBufferBindableResource {
     USING_CREATE (CPUBufferResource);
 
 public:

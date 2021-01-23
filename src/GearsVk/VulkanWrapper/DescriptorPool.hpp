@@ -10,7 +10,7 @@
 
 USING_PTR (DescriptorPool);
 
-class GEARSVK_API DescriptorPool : public VulkanObject {
+class GVK_RENDERER_API DescriptorPool : public VulkanObject {
 private:
     const VkDevice   device;
     VkDescriptorPool handle;

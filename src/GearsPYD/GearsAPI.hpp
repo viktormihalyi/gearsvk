@@ -12,13 +12,13 @@
 #endif
 
 #ifdef _WIN32
-#if defined(GEARS_EMBEDDED_EXPORTS) || defined(GEARS_EXPORTS)
-#define GEARS_TEST_API __declspec(dllexport)
+#if defined(GEARS_EXPORTS) || defined(GEARS_EMBEDDED_EXPORTS)
+#define GEARS_API_TEST __declspec(dllexport)
 #else
-#define GEARS_TEST_API __declspec(dllimport)
+#define GEARS_API_TEST __declspec(dllimport)
 #endif
 #else
-#define GEARS_TEST_API
+#define GEARS_API_TEST
 #endif
 
 

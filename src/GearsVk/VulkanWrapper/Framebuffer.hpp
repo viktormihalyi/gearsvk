@@ -11,7 +11,7 @@
 #include <vulkan/vulkan.h>
 
 USING_PTR (Framebuffer);
-class GEARSVK_API Framebuffer final : public VulkanObject {
+class GVK_RENDERER_API Framebuffer final : public VulkanObject {
 private:
     const VkDevice device;
     VkFramebuffer  handle;

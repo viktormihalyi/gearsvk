@@ -9,7 +9,7 @@
 #include "VulkanObject.hpp"
 
 USING_PTR (RenderPass);
-class GEARSVK_API RenderPass : public VulkanObject {
+class GVK_RENDERER_API RenderPass : public VulkanObject {
 private:
     const VkDevice device;
     VkRenderPass   handle;

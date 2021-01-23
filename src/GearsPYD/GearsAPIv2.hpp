@@ -40,7 +40,7 @@ std::string GetGLSLResourcesForRandoms ();
 
 void SetCurrentPresentable (Ptr<Presentable>&);
 
-GEARS_TEST_API
+GEARS_API_TEST
 U<SequenceAdapter> GetSequenceAdapterFromPyx (VulkanEnvironment&, const std::filesystem::path&);
 
 } // namespace Gears

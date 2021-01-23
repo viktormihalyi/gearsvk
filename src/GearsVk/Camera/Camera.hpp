@@ -11,7 +11,7 @@
 
 USING_PTR (Camera);
 
-class GEARSVK_API Camera {
+class GVK_RENDERER_API Camera {
 public:
     glm::vec3 position;
     glm::vec3 ahead;

@@ -16,7 +16,35 @@
 
 
 Stimulus::Stimulus ()
-    : name ("N/A"), sequence (nullptr), brief ("<no description>"), duration (1), startingFrame (0), spatialFilter (nullptr), randomGridWidth (0), randomGridHeight (0), randomSeed (0), freezeRandomsAfterFrame (0), particleGridWidth (0), particleGridHeight (0), gammaSamplesCount (2), toneRangeMin (0.f), toneRangeMax (1.f), toneRangeMean (0.5f), toneRangeVar (-0.25f), toneMappingMode (ToneMappingMode::LINEAR), usesForwardRendering (false), fullScreenTemporalFiltering (false), mono (true), doesToneMappingInStimulusGenerator (true), requiresClearing (false), clearColor (0.5f, 0.5f, 0.5f), doesDynamicToneMapping (false), computesFullAverageForHistogram (true), stretchFactor (1.f), meanOffset (0.f), histogramMeasurementImpedance (0.95f)
+    : name ("N/A")
+    , sequence (nullptr)
+    , brief ("<no description>")
+    , duration (1)
+    , startingFrame (0)
+    , spatialFilter (nullptr)
+    , randomGridWidth (0)
+    , randomGridHeight (0)
+    , randomSeed (0)
+    , freezeRandomsAfterFrame (0)
+    , particleGridWidth (0)
+    , particleGridHeight (0)
+    , gammaSamplesCount (2)
+    , toneRangeMin (0.f)
+    , toneRangeMax (1.f)
+    , toneRangeMean (0.5f)
+    , toneRangeVar (-0.25f)
+    , toneMappingMode (ToneMappingMode::LINEAR)
+    , usesForwardRendering (false)
+    , fullScreenTemporalFiltering (false)
+    , mono (true)
+    , doesToneMappingInStimulusGenerator (true)
+    , requiresClearing (false)
+    , clearColor (0.5f, 0.5f, 0.5f)
+    , doesDynamicToneMapping (false)
+    , computesFullAverageForHistogram (true)
+    , stretchFactor (1.f)
+    , meanOffset (0.f)
+    , histogramMeasurementImpedance (0.95f)
 {
     measuredToneRangeMin = std::numeric_limits<float>::quiet_NaN ();
     measuredToneRangeMax = std::numeric_limits<float>::quiet_NaN ();
@@ -277,7 +305,7 @@ pybind11::object Stimulus::setGamma (pybind11::object gammaList, bool invert)
 
 pybind11::object Stimulus::setTemporalWeights (pybind11::object twList, bool fullScreen)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
     fullScreenTemporalFiltering = fullScreen;
     using namespace boost::python;
@@ -543,7 +571,7 @@ void Stimulus::registerCallback (uint msg, pybind11::object callback)
 
 void Stimulus::finishLtiSettings ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
     if (temporalProcessingStateCount == 3) {
         temporalMemoryLength = 64;
@@ -636,7 +664,7 @@ pybind11::object Stimulus::setLtiMatrix (pybind11::object mList)
 
 pybind11::object Stimulus::setLtiImpulseResponse (pybind11::object mList, uint nStates)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
     fullScreenTemporalFiltering        = true;
     doesToneMappingInStimulusGenerator = false;

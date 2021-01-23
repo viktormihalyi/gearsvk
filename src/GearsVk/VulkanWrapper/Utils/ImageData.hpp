@@ -9,7 +9,7 @@
 #include "DeviceExtra.hpp"
 #include "Image.hpp"
 
-class GEARSVK_API ImageData {
+class GVK_RENDERER_API ImageData {
 private:
     ImageData () = default;
 

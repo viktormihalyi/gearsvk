@@ -11,7 +11,7 @@
 
 USING_PTR (SingleTimeCommand);
 
-class GEARSVK_API SingleTimeCommand final : public CommandBuffer {
+class GVK_RENDERER_API SingleTimeCommand final : public CommandBuffer {
 private:
     const Queue&        queue;
 

@@ -11,6 +11,8 @@
 #include "DrawRecordable.hpp"
 #include "Node.hpp"
 
+#include "glmlib.hpp"
+
 #include <vector>
 
 USING_PTR (ShaderPipeline);
@@ -23,7 +25,7 @@ class GraphSettings;
 class ConnectionSet;
 
 USING_PTR (Operation);
-struct GEARSVK_API Operation : public Node {
+struct GVK_RENDERER_API Operation : public Node {
     USING_CREATE (Operation);
 
     virtual ~Operation () = default;
@@ -43,7 +45,7 @@ struct GEARSVK_API Operation : public Node {
 };
 
 USING_PTR (RenderOperation);
-struct GEARSVK_API RenderOperation : public Operation {
+struct GVK_RENDERER_API RenderOperation : public Operation {
     USING_CREATE (RenderOperation);
 
     struct CompileSettings {
@@ -51,6 +53,9 @@ struct GEARSVK_API RenderOperation : public Operation {
         VertexAttributeProviderU vertexAttributeProvider;
         ShaderPipelineU          pipeline;
         VkPrimitiveTopology      topology;
+
+        std::optional<glm::vec4> clearColor;
+        std::optional<bool>      blendEnabled;
     };
 
     struct CompileResult {
@@ -98,7 +103,7 @@ private:
 
 
 USING_PTR (TransferOperation);
-class GEARSVK_API TransferOperation : public Operation {
+class GVK_RENDERER_API TransferOperation : public Operation {
     USING_CREATE (TransferOperation);
 
 public:

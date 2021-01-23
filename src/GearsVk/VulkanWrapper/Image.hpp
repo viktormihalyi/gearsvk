@@ -14,7 +14,7 @@
 class ImageBuilder;
 
 USING_PTR (Image);
-class GEARSVK_API Image : public VulkanObject {
+class GVK_RENDERER_API Image : public VulkanObject {
 public:
     static const VkImageLayout INITIAL_LAYOUT = VK_IMAGE_LAYOUT_UNDEFINED;
 
@@ -87,7 +87,7 @@ public:
 
 // used for handling swapchain images as Image
 USING_PTR (InheritedImage);
-class GEARSVK_API InheritedImage : public Image {
+class GVK_RENDERER_API InheritedImage : public Image {
     USING_CREATE (InheritedImage);
 
 public:
@@ -182,7 +182,7 @@ public:
 
 
 USING_PTR (Image1D);
-class GEARSVK_API Image1D : public Image {
+class GVK_RENDERER_API Image1D : public Image {
     USING_CREATE (Image1D);
 
 public:
@@ -194,7 +194,7 @@ public:
 
 
 USING_PTR (Image2D);
-class GEARSVK_API Image2D : public Image {
+class GVK_RENDERER_API Image2D : public Image {
     USING_CREATE (Image2D);
 
 public:
@@ -206,7 +206,7 @@ public:
 
 
 USING_PTR (Image3D);
-class GEARSVK_API Image3D : public Image {
+class GVK_RENDERER_API Image3D : public Image {
     USING_CREATE (Image3D);
 
 public:

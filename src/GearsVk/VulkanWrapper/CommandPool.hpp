@@ -10,7 +10,7 @@
 
 USING_PTR (CommandPool);
 
-class GEARSVK_API CommandPool : public VulkanObject {
+class GVK_RENDERER_API CommandPool : public VulkanObject {
 private:
     const VkDevice device;
     VkCommandPool  handle;

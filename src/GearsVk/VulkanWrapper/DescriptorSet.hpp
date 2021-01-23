@@ -13,7 +13,7 @@
 
 USING_PTR (DescriptorSet);
 
-class GEARSVK_API DescriptorSet : public Noncopyable {
+class GVK_RENDERER_API DescriptorSet : public Noncopyable {
 private:
     const VkDevice         device;
     const VkDescriptorPool descriptorPool;

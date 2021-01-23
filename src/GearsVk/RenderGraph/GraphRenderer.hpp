@@ -21,7 +21,7 @@ class RenderGraph;
 class GraphSettings;
 
 
-class GEARSVK_API Renderer {
+class GVK_RENDERER_API Renderer {
 public:
     Event<RenderGraph&, uint32_t, uint64_t> preSubmitEvent;
     Event<>                                 recreateEvent;
@@ -39,7 +39,7 @@ public:
 };
 
 
-class GEARSVK_API RecreatableGraphRenderer : public Renderer {
+class GVK_RENDERER_API RecreatableGraphRenderer : public Renderer {
 protected:
     Swapchain& swapchain;
 
@@ -54,7 +54,7 @@ public:
 };
 
 
-class GEARSVK_API BlockingGraphRenderer final : public RecreatableGraphRenderer {
+class GVK_RENDERER_API BlockingGraphRenderer final : public RecreatableGraphRenderer {
 private:
     SemaphoreU s;
     TimePoint  lastDrawTime;
@@ -67,7 +67,7 @@ public:
 
 
 USING_PTR (SynchronizedSwapchainGraphRenderer);
-class GEARSVK_API SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
+class GVK_RENDERER_API SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
     USING_CREATE (SynchronizedSwapchainGraphRenderer);
 
 private:

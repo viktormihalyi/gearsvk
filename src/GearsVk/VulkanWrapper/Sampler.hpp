@@ -9,7 +9,7 @@
 #include <vulkan/vulkan.h>
 
 USING_PTR (Sampler);
-class GEARSVK_API Sampler : public VulkanObject {
+class GVK_RENDERER_API Sampler : public VulkanObject {
 private:
     const VkDevice device;
     VkSampler      handle;

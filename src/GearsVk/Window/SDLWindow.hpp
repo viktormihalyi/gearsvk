@@ -9,7 +9,7 @@
 #include <vector>
 
 USING_PTR (SDLWindowBase);
-class GEARSVK_API SDLWindowBase : public Window {
+class GVK_RENDERER_API SDLWindowBase : public Window {
 private:
     static uint32_t windowCount;
 

@@ -15,7 +15,7 @@
 #include <vector>
 
 
-class GEARSVK_API QueueFamilySelector {
+class GVK_RENDERER_API QueueFamilySelector {
 public:
     using Selector = std::function<std::optional<uint32_t> (VkPhysicalDevice, VkSurfaceKHR, const std::vector<VkQueueFamilyProperties>&)>;
 
@@ -40,18 +40,18 @@ public:
 };
 
 
-class GEARSVK_API DefaultQueueFamilySelector final : public QueueFamilySelector {
+class GVK_RENDERER_API DefaultQueueFamilySelector final : public QueueFamilySelector {
 public:
     DefaultQueueFamilySelector ();
 };
 
 
-GEARSVK_API
+GVK_RENDERER_API
 extern DefaultQueueFamilySelector defaultQueueFamilySelector;
 
 
 USING_PTR (PhysicalDevice);
-class GEARSVK_API PhysicalDevice final : public Noncopyable {
+class GVK_RENDERER_API PhysicalDevice final : public Noncopyable {
 public:
     struct QueueFamilies {
         std::optional<uint32_t> graphics;

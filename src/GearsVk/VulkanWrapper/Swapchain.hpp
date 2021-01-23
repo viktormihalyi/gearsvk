@@ -13,7 +13,7 @@
 #include <vulkan/vulkan.h>
 
 
-class GEARSVK_API SwapchainSettingsProvider {
+class GVK_RENDERER_API SwapchainSettingsProvider {
 public:
     virtual VkSurfaceFormatKHR SelectSurfaceFormat (const std::vector<VkSurfaceFormatKHR>&) = 0;
     virtual VkPresentModeKHR   SelectPresentMode (const std::vector<VkPresentModeKHR>&)     = 0;
@@ -22,7 +22,7 @@ public:
 };
 
 
-class GEARSVK_API DefaultSwapchainSettings : public SwapchainSettingsProvider {
+class GVK_RENDERER_API DefaultSwapchainSettings : public SwapchainSettingsProvider {
 public:
     virtual VkSurfaceFormatKHR SelectSurfaceFormat (const std::vector<VkSurfaceFormatKHR>& formats) override;
     virtual VkPresentModeKHR   SelectPresentMode (const std::vector<VkPresentModeKHR>& modes) override;
@@ -30,17 +30,17 @@ public:
     virtual uint32_t           SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities) override;
 };
 
-class GEARSVK_API DefaultSwapchainSettingsSingleImage : public DefaultSwapchainSettings {
+class GVK_RENDERER_API DefaultSwapchainSettingsSingleImage : public DefaultSwapchainSettings {
 public:
     virtual uint32_t SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities) override;
 };
 
-GEARSVK_API
+GVK_RENDERER_API
 extern DefaultSwapchainSettings defaultSwapchainSettings;
 
 
 USING_PTR (Swapchain);
-class GEARSVK_API Swapchain {
+class GVK_RENDERER_API Swapchain {
 public:
     virtual ~Swapchain () = default;
 
@@ -68,7 +68,7 @@ public:
 };
 
 USING_PTR (RealSwapchain);
-class GEARSVK_API RealSwapchain : public Swapchain,
+class GVK_RENDERER_API RealSwapchain : public Swapchain,
                                   public Noncopyable {
 public:
     static const VkImageUsageFlags ImageUsage;
@@ -169,7 +169,7 @@ private:
 
 
 USING_PTR (FakeSwapchain);
-class GEARSVK_API FakeSwapchain : public Swapchain {
+class GVK_RENDERER_API FakeSwapchain : public Swapchain {
 private:
     ImageU                    image;
     std::vector<ImageView2DU> imageViews;

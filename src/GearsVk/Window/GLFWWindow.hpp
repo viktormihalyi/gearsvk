@@ -11,7 +11,7 @@
 
 
 USING_PTR (GLFWWindowBase);
-class GEARSVK_API GLFWWindowBase : public Window {
+class GVK_RENDERER_API GLFWWindowBase : public Window {
 private:
     struct Impl;
     std::unique_ptr<Impl> impl;
@@ -43,7 +43,7 @@ public:
 
 
 USING_PTR (GLFWWindow);
-class GEARSVK_API GLFWWindow : public GLFWWindowBase {
+class GVK_RENDERER_API GLFWWindow : public GLFWWindowBase {
 public:
     USING_CREATE (GLFWWindow);
     GLFWWindow ();
@@ -52,7 +52,7 @@ public:
 
 
 USING_PTR (HiddenGLFWWindow);
-class GEARSVK_API HiddenGLFWWindow : public GLFWWindowBase {
+class GVK_RENDERER_API HiddenGLFWWindow : public GLFWWindowBase {
 public:
     USING_CREATE (HiddenGLFWWindow);
     HiddenGLFWWindow ();

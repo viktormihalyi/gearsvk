@@ -50,7 +50,7 @@ enum class FieldType : uint16_t {
 
 // clang-format on
 
-GEARSVK_API
+GVK_RENDERER_API
 std::string FieldTypeToString (FieldType fieldType);
 
 
@@ -99,7 +99,7 @@ public:
 
 
 USING_PTR (UBO);
-class GEARSVK_API UBO final : public FieldContainer, public Noncopyable {
+class GVK_RENDERER_API UBO final : public FieldContainer, public Noncopyable {
     USING_CREATE (UBO);
 
 public:
@@ -114,7 +114,7 @@ public:
 };
 
 
-class GEARSVK_API Sampler final {
+class GVK_RENDERER_API Sampler final {
 public:
     enum class Type {
         Sampler1D,
@@ -131,7 +131,7 @@ public:
 };
 
 
-class GEARSVK_API Output {
+class GVK_RENDERER_API Output {
 public:
     std::string   name;
     uint32_t      location;
@@ -140,7 +140,7 @@ public:
 };
 
 
-class GEARSVK_API Input {
+class GVK_RENDERER_API Input {
 public:
     std::string   name;
     uint32_t      location;
@@ -150,19 +150,19 @@ public:
 };
 
 
-GEARSVK_API
+GVK_RENDERER_API
 std::vector<Ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>& binary);
 
-GEARSVK_API
+GVK_RENDERER_API
 std::vector<Sampler> GetSamplersFromBinary (const std::vector<uint32_t>& binary);
 
-GEARSVK_API
+GVK_RENDERER_API
 std::vector<Input> GetInputsFromBinary (const std::vector<uint32_t>& binary);
 
-GEARSVK_API
+GVK_RENDERER_API
 std::vector<Output> GetOutputsFromBinary (const std::vector<uint32_t>& binary);
 
-GEARSVK_API
+GVK_RENDERER_API
 VkFormat FieldTypeToVkFormat (FieldType fieldType);
 
 

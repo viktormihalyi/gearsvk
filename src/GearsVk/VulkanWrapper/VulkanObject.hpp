@@ -7,7 +7,7 @@
 #include "UUID.hpp"
 
 USING_PTR (VulkanObject);
-class GEARSVK_API VulkanObject : public Noncopyable {
+class GVK_RENDERER_API VulkanObject : public Noncopyable {
 private:
     GearsVk::UUID uuid;
 

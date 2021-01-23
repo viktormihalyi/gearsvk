@@ -14,7 +14,7 @@
 
 USING_PTR (Window);
 
-class GEARSVK_API Window : public Noncopyable {
+class GVK_RENDERER_API Window : public Noncopyable {
 public:
     struct Events {
         // window events

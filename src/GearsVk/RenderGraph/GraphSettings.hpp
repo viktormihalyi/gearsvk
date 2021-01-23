@@ -15,7 +15,7 @@ namespace RG {
 class IResourceVisitor;
 
 USING_PTR (ConnectionSet);
-class GEARSVK_API ConnectionSet final : public Noncopyable {
+class GVK_RENDERER_API ConnectionSet final : public Noncopyable {
     USING_CREATE (ConnectionSet);
 
 public:
@@ -138,7 +138,7 @@ public:
 
 
 USING_PTR (GraphSettings);
-class GEARSVK_API GraphSettings {
+class GVK_RENDERER_API GraphSettings {
     USING_CREATE (GraphSettings);
 
 public:

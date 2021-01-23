@@ -10,7 +10,7 @@
 #include "VulkanObject.hpp"
 
 USING_PTR (Fence);
-class GEARSVK_API Fence : public VulkanObject {
+class GVK_RENDERER_API Fence : public VulkanObject {
 private:
     const VkDevice device;
     VkFence        handle;

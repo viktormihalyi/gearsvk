@@ -24,7 +24,7 @@ class Surface;
 class VulkanEnvironment;
 
 USING_PTR (Presentable);
-class GEARSVK_API Presentable : public SwapchainProvider {
+class GVK_RENDERER_API Presentable : public SwapchainProvider {
     USING_CREATE (Presentable);
 
 private:
@@ -43,13 +43,13 @@ public:
 };
 
 
-GEARSVK_API
+GVK_RENDERER_API
 void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
                         VkDebugUtilsMessageTypeFlagsEXT,
                         const VkDebugUtilsMessengerCallbackDataEXT* callbackData);
 
 USING_PTR (VulkanEnvironment);
-class GEARSVK_API VulkanEnvironment {
+class GVK_RENDERER_API VulkanEnvironment {
     USING_CREATE (VulkanEnvironment)
 
 public:

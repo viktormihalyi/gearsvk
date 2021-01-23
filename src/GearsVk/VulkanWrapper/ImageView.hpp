@@ -11,7 +11,7 @@
 #include <vulkan/vulkan.h>
 
 USING_PTR (ImageViewBase);
-class GEARSVK_API ImageViewBase : public VulkanObject {
+class GVK_RENDERER_API ImageViewBase : public VulkanObject {
 private:
     const VkDevice device;
     const VkFormat format;
@@ -65,7 +65,7 @@ public:
 
 
 USING_PTR (ImageView1D);
-class GEARSVK_API ImageView1D : public ImageViewBase {
+class GVK_RENDERER_API ImageView1D : public ImageViewBase {
 public:
     USING_CREATE (ImageView1D);
 
@@ -82,7 +82,7 @@ public:
 
 
 USING_PTR (ImageView2D);
-class GEARSVK_API ImageView2D : public ImageViewBase {
+class GVK_RENDERER_API ImageView2D : public ImageViewBase {
 public:
     USING_CREATE (ImageView2D);
 
@@ -98,7 +98,7 @@ public:
 };
 
 USING_PTR (ImageView2DArray);
-class GEARSVK_API ImageView2DArray : public ImageViewBase {
+class GVK_RENDERER_API ImageView2DArray : public ImageViewBase {
 public:
     USING_CREATE (ImageView2DArray);
 
@@ -115,7 +115,7 @@ public:
 
 
 USING_PTR (ImageView3D);
-class GEARSVK_API ImageView3D : public ImageViewBase {
+class GVK_RENDERER_API ImageView3D : public ImageViewBase {
 public:
     USING_CREATE (ImageView3D);
 
@@ -132,7 +132,7 @@ public:
 
 
 USING_PTR (ImageViewCube);
-class GEARSVK_API ImageViewCube : public ImageViewBase {
+class GVK_RENDERER_API ImageViewCube : public ImageViewBase {
 public:
     USING_CREATE (ImageViewCube);
 

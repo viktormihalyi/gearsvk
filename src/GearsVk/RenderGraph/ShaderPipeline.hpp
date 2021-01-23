@@ -9,7 +9,7 @@
 #include <vulkan/vulkan.h>
 
 USING_PTR (ShaderPipeline);
-class GEARSVK_API ShaderPipeline {
+class GVK_RENDERER_API ShaderPipeline {
     USING_CREATE (ShaderPipeline);
 
 private:
@@ -36,6 +36,8 @@ public:
         std::vector<VkAttachmentReference>   attachmentReferences;
         std::vector<VkAttachmentDescription> attachmentDescriptions;
         VkPrimitiveTopology                  topology;
+
+        std::optional<bool> blendEnabled;
     };
 
 

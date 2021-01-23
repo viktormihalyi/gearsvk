@@ -9,7 +9,7 @@
 
 
 USING_PTR (Surface);
-class GEARSVK_API Surface : public VulkanObject {
+class GVK_RENDERER_API Surface : public VulkanObject {
     USING_CREATE (Surface);
 
 private:
