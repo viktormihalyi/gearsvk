@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstddef>
+#include <functional>
 #include <string>
 
 #include "GVKUtilsAPI.hpp"
