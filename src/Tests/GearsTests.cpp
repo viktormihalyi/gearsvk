@@ -43,7 +43,7 @@ protected:
             return;
         }
 
-        pres = Presentable::Create (*env, HiddenGLFWWindow::Create (), DefaultSwapchainSettingsSingleImage ());
+        pres = Presentable::Create (*env, HiddenGLFWWindow::Create (), defaultSwapchainSettingsSingleImage);
 
         sequenceAdapter->SetCurrentPresentable (pres);
     }

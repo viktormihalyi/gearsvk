@@ -38,6 +38,9 @@ public:
 GVK_RENDERER_API
 extern DefaultSwapchainSettings defaultSwapchainSettings;
 
+GVK_RENDERER_API
+extern DefaultSwapchainSettingsSingleImage defaultSwapchainSettingsSingleImage;
+
 
 USING_PTR (Swapchain);
 class GVK_RENDERER_API Swapchain {
@@ -69,7 +72,7 @@ public:
 
 USING_PTR (RealSwapchain);
 class GVK_RENDERER_API RealSwapchain : public Swapchain,
-                                  public Noncopyable {
+                                       public Noncopyable {
 public:
     static const VkImageUsageFlags ImageUsage;
 

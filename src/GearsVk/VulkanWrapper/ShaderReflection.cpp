@@ -167,6 +167,10 @@ static uint32_t BaseTypeToByteSize (spirv_cross::SPIRType::BaseType b)
 
         case BaseType::Double:
             return 8;
+
+        default:
+            GVK_BREAK ("bad BaseType");
+            return 4;
     }
 }
 
@@ -332,7 +336,7 @@ std::vector<Ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
         // eg. array of 4 on binding 2 will create 4 different bindings: 2, 3, 4, 5
         GVK_ASSERT (arraySize == 0);
 
-        Ptr<UBO> root           = UBO::Create ();
+        Ptr<UBO> root       = UBO::Create ();
         root->name          = resource.name;
         root->binding       = *decorations.Binding;
         root->descriptorSet = *decorations.DescriptorSet;

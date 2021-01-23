@@ -7,9 +7,11 @@
 
 namespace SR {
 
+static const std::vector<SR::FieldU> emptyFieldVector;
+
 class EmptyFieldContainer : public FieldContainer {
 public:
-    virtual const std::vector<SR::FieldU>& GetFields () const { return {}; }
+    virtual const std::vector<SR::FieldU>& GetFields () const { return emptyFieldVector; }
 } emptyFields;
 
 const UView UView::invalidUview (UView::Type::Variable, nullptr, 0, 0, emptyFields, nullptr);
