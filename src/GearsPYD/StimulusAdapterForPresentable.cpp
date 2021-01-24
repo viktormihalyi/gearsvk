@@ -38,8 +38,10 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
 
     for (const Pass::P& pass : passes) {
         GVK_ASSERT (pass->rasterizationMode == Pass::RasterizationMode::fullscreen);
-        const std::string vert = pass->getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode::fullscreen);
-        const std::string geom = pass->getStimulusGeneratorGeometryShaderSource (Pass::RasterizationMode::fullscreen);
+        GVK_ASSERT (pass->rasterizationMode == Pass::RasterizationMode::fullscreen);
+
+        const std::string vert = pass->getStimulusGeneratorVertexShaderSource (pass->rasterizationMode);
+        const std::string geom = pass->getStimulusGeneratorGeometryShaderSource (pass->rasterizationMode);
         const std::string frag = pass->getStimulusGeneratorShaderSource ();
 
         /*

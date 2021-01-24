@@ -1,6 +1,27 @@
-﻿#include "SequenceRenderer.h"
+﻿#include "StimulusRenderer.h"
+
+#include "gpu/Framebuffer.hpp"
+#include "gpu/Nothing.hpp"
+#include "gpu/Pointgrid.hpp"
+#include "gpu/Quad.hpp"
+#include "gpu/RandomSequenceBuffer.hpp"
+#include "gpu/Shader.hpp"
+#include "gpu/StimulusGrid.hpp"
+#include "gpu/Texture.hpp"
+#include "gpu/TextureQueue.hpp"
+
+
+#include "core/PassRenderer.h"
+#include "core/ShaderManager.h"
+#include "core/Stimulus.h"
+#include "core/TextureManager.h"
+#include "core/filter/SpatialFilterRenderer.h"
+#include "filter/SpatialFilter.h"
+
+#include "SequenceRenderer.h"
 #include "core/pythonerr.h"
 #include "event/events.h"
+#include "filter/SpatialFilterRenderer.h"
 #include "filter/clSpatialFilterRenderer.h"
 #include "filter/glSpatialFilterRenderer.h"
 #include "stdafx.h"
@@ -11,7 +32,7 @@
 #include <limits>
 #include <sstream>
 
-StimulusRenderer::StimulusRenderer (SequenceRenderer::P sequenceRenderer, Stimulus::CP stimulus, ShaderManager::P shaderManager, TextureManager::P textureManager, KernelManager::P kernelManager)
+StimulusRenderer::StimulusRenderer (Ptr<SequenceRenderer> sequenceRenderer, PtrC<Stimulus> stimulus, Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager, Ptr<KernelManager> kernelManager)
     : stimulus (stimulus)
     , sequenceRenderer (sequenceRenderer)
 {
@@ -79,10 +100,10 @@ StimulusRenderer::StimulusRenderer (SequenceRenderer::P sequenceRenderer, Stimul
     passRenderers.clear ();
 }
 
-void StimulusRenderer::apply (ShaderManager::P shaderManager, TextureManager::P textureManager)
+void StimulusRenderer::apply (Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager)
 {
     for (auto& p : stimulus->getPasses ()) {
-        PassRenderer::P passRenderer = PassRenderer::create (getSharedPtr (), p, shaderManager, textureManager);
+        Ptr<PassRenderer> passRenderer = PassRenderer::create (getSharedPtr (), p, shaderManager, textureManager);
         passRenderers.push_back (passRenderer);
     }
 }
@@ -94,7 +115,7 @@ StimulusRenderer::~StimulusRenderer ()
 
 void StimulusRenderer::preRender ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
     /*
     if (sequenceRenderer->clFFT () && spatialFilterRenderer) {
         std::function<void (int)> stim = [&] (int frame) {
@@ -162,7 +183,7 @@ void StimulusRenderer::renderStimulus (GLuint defaultFrameBuffer, int skippedFra
 
     if (!sequenceRenderer->paused) {
         try {
-            Gears::Event::Frame::P frameEvent = Gears::Event::Frame::create (iFrame, time);
+            Gears::Event::Ptr<Frame> frameEvent = Gears::Event::Frame::create (iFrame, time);
             if (iFrame == 1)
                 stimulus->executeCallbacks<Gears::Event::StimulusStart> (Gears::Event::StimulusStart::create ());
 
@@ -411,7 +432,7 @@ void StimulusRenderer::renderStimulus (GLuint defaultFrameBuffer, int skippedFra
 
 void StimulusRenderer::renderSample (uint sFrame, int left, int top, int width, int height)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
     /*
     float time = sFrame / stimulus->sequence->deviceFrameRate * stimulus->sequence->frameRateDivisor;
 
@@ -458,7 +479,7 @@ void StimulusRenderer::renderSample (uint sFrame, int left, int top, int width, 
 
 void StimulusRenderer::renderTimeline (bool* signals, uint startFrame, uint frameCount)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
     /*
 
     for (auto& p : passRenderers)
@@ -566,7 +587,7 @@ void StimulusRenderer::renderTimeline (bool* signals, uint startFrame, uint fram
 
 void StimulusRenderer::renderSpatialKernel (float min, float max, float width, float height)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
     /*
     if (kernelShader == nullptr) {
         glClear (GL_COLOR_BUFFER_BIT);
@@ -597,7 +618,7 @@ void StimulusRenderer::renderSpatialKernel (float min, float max, float width, f
 
 void StimulusRenderer::renderSpatialProfile (float min, float max, float width, float height)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 
     if (profileShader == nullptr) {
         //    glClear (GL_COLOR_BUFFER_BIT);
@@ -636,7 +657,7 @@ void StimulusRenderer::reset ()
 
 void StimulusRenderer::renderTemporalKernel ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
     /*
     glColor3d (1, 0, 0);
     glLineWidth (2);
@@ -684,3 +705,7 @@ void StimulusRenderer::skipFrames (uint nFramesToSkip)
 {
     iFrame += nFramesToSkip;
 }
+
+
+bool                  StimulusRenderer::hasSpatialFilter () const { return spatialFilterRenderer != nullptr; }
+Ptr<SequenceRenderer> StimulusRenderer::getSequenceRenderer () const { return sequenceRenderer; }

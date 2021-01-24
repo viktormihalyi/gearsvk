@@ -6,10 +6,6 @@
 #endif
 
 #include <algorithm>
-//#include <boost/parameter/keyword.hpp>
-//#include <boost/parameter/preprocessor.hpp>
-//#include <boost/parameter/python.hpp>
-//#include <boost/python.hpp>
 #include <glm/glm.hpp>
 #include <iomanip>
 #include <list>
@@ -18,7 +14,8 @@
 #include <string>
 #include <vector>
 
-#include "core/SequenceRenderer.h"
+class SequenceRenderer;
+
 
 class StimulusWindow {
 #ifdef _WIN32
@@ -60,9 +57,9 @@ class StimulusWindow {
     int  vscreenh; // ...are stored in these variables
     bool quit;     // indicates the state of application
 
-    std::string         glSpecs;
-    SequenceRenderer::P sequenceRenderer;
-    Ticker::P           ticker;
+    std::string           glSpecs;
+    Ptr<SequenceRenderer> sequenceRenderer;
+    Ptr<Ticker>           ticker;
     StimulusWindow ();
 
     pybind11::object onHideCallback;
@@ -75,10 +72,10 @@ class StimulusWindow {
 
 public:
     GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (StimulusWindow);
-    static StimulusWindow::P instanceCreated;
-    void                     createWindow (bool windowed, uint width, uint height);
-    void                     run ();
-    void                     closeWindow ();
+    static Ptr<StimulusWindow> instanceCreated;
+    void                       createWindow (bool windowed, uint width, uint height);
+    void                       run ();
+    void                       closeWindow ();
     ~StimulusWindow () {}
 
 #ifdef _WIN32
@@ -110,10 +107,7 @@ public:
     void makeCurrent ();
     void setCursorPos ();
 
-    void setSequenceRenderer (SequenceRenderer::P sequenceRenderer)
-    {
-        this->sequenceRenderer = sequenceRenderer;
-    }
+    void setSequenceRenderer (Ptr<SequenceRenderer> sequenceRenderer);
 
     void onHide (pybind11::object onHide)
     {

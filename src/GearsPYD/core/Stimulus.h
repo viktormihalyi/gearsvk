@@ -1,12 +1,10 @@
 #pragma once
 
-#include "core/Pass.h"
-#include "event/Base.h"
+#include "Ptr.hpp"
+#include "stdafx.h"
+
 #include <algorithm>
-//#include <boost/parameter/keyword.hpp>
-//#include <boost/parameter/preprocessor.hpp>
-//#include <boost/parameter/python.hpp>
-//#include <boost/python.hpp>
+
 #include <iomanip>
 #include <list>
 #include <map>
@@ -16,6 +14,7 @@
 
 #include <glm/glm.hpp>
 
+class Pass;
 class Sequence;
 class SpatialFilter;
 
@@ -26,10 +25,10 @@ public:
     std::string name;  //< Unique name.
     std::string brief; //< A short discription of the stimulus.
 
-    std::shared_ptr<Sequence> sequence; //< Part of this sequence.
+    Ptr<Sequence> sequence; //< Part of this sequence.
 
-    std::vector<Pass::P> passes;
-    void                 addPass (Pass::P pass);
+    std::vector<Ptr<Pass>> passes;
+    void                   addPass (Ptr<Pass> pass);
 
     pybind11::object joiner;
     pybind11::object setJoiner (pybind11::object joiner);
@@ -73,7 +72,7 @@ public:
 
     glm::mat4 temporalProcessingStateTransitionMatrix[4];
 
-    std::shared_ptr<SpatialFilter> spatialFilter;
+    Ptr<SpatialFilter> spatialFilter;
 
     std::string randomGeneratorShaderSource; //< Prng.
     uint        randomGridWidth;             //<	Number of cells per row in 2D random grid array for random number generation.
@@ -130,7 +129,7 @@ public:
     //! Destructor. Releases dynamically allocated memory.
     ~Stimulus ();
 
-    void setSequence (std::shared_ptr<Sequence> sequence)
+    void setSequence (Ptr<Sequence> sequence)
     {
         this->sequence = sequence;
     }
@@ -208,7 +207,7 @@ public:
         return s + temporalFilterPlotFragmentShaderSource;
     }
 
-    void setSpatialFilter (std::shared_ptr<SpatialFilter> spatialFilter)
+    void setSpatialFilter (Ptr<SpatialFilter> spatialFilter)
     {
         this->spatialFilter                      = spatialFilter;
         this->fullScreenTemporalFiltering        = true;
@@ -223,7 +222,7 @@ public:
         }
     }
 
-    std::shared_ptr<const SpatialFilter> getSpatialFilter () const
+    Ptr<const SpatialFilter> getSpatialFilter () const
     {
         return spatialFilter;
     }
@@ -246,13 +245,13 @@ public:
     pybind11::object setLtiMatrix (pybind11::object mList);
     pybind11::object setLtiImpulseResponse (pybind11::object mList, uint nStates);
 
-    std::map<uint, std::vector<pybind11::object> > callbacks;
+    std::map<uint, std::vector<pybind11::object>> callbacks;
 
     void registerCallback (uint msg, pybind11::object callback);
 
 #if 0
     template<typename T>
-    bool executeCallbacks (typename T::P wevent) const
+    bool executeCallbacks (typename Ptr<T> wevent) const
     {
         bool handled = false;
         auto ic      = callbacks.find (T::typeId);
@@ -284,7 +283,7 @@ public:
         return temporalMemoryLength > 1 || this->temporalProcessingStateCount > 0;
     }
 
-    std::shared_ptr<Sequence> getSequence () { return sequence; }
+    Ptr<Sequence> getSequence () { return sequence; }
 
     float getDuration_s () const;
 
@@ -318,8 +317,8 @@ public:
 
     const SignalMap& getSignals () const { return tickSignals; }
 
-    void                        enableColorMode () { mono = false; }
-    const std::vector<Pass::P>& getPasses () const { return passes; }
+    void                          enableColorMode () { mono = false; }
+    const std::vector<Ptr<Pass>>& getPasses () const;
 
     void setClearColor (float all, float r, float g, float b)
     {

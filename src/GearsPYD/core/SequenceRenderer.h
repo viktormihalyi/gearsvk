@@ -1,26 +1,13 @@
 #pragma once
 
+#include "OpenGLProxy.hpp"
+#include "Ptr.hpp"
+#include "stdafx.h"
+
 #include "core/PortHandler.h"
-#include "core/Sequence.h"
-#include "core/ShaderManager.h"
-#include "core/StimulusRenderer.h"
-#include "core/TextureManager.h"
-#include "core/Ticker.h"
+#include "core/Stimulus.h"
 
-#include "filter/KernelManager.h"
-#include "filter/fft/glFFT.h"
-#include "filter/fft/openCLFFT.h"
-
-#include "gpu/Framebuffer.hpp"
-#include "gpu/Nothing.hpp"
-#include "gpu/Pointgrid.hpp"
-#include "gpu/Quad.hpp"
-#include "gpu/RandomSequenceBuffer.hpp"
-#include "gpu/Shader.hpp"
-#include "gpu/StimulusGrid.hpp"
-#include "gpu/Texture.hpp"
-#include "gpu/TextureQueue.hpp"
-
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -28,9 +15,21 @@
 #include <string>
 #include <vector>
 
-#if 0
-#include "FontManager.h"
-#endif
+class Sequence;
+class FramebufferGL;
+class StimulusRenderer;
+class Nothing;
+class Shader;
+class Texture1D;
+class Response;
+class Texture2D;
+class RandomSequenceBuffer;
+class TextureQueue;
+class TextureManager;
+class KernelManager;
+class ShaderManager;
+class Ticker;
+
 
 //! Represents the currently active sequence. Manages resources for GPU computation.
 class SequenceRenderer {
@@ -39,21 +38,23 @@ class SequenceRenderer {
     friend class SpatialFilterRenderer;
 
     //! Active sequence.
-    Sequence::CP   sequence;
+    PtrC<Sequence> sequence;
     FramebufferGL* spatialDomainFilteringBuffers[2];
 
-    bool                                                                                                      paused;
-    unsigned int                                                                                              iFrame;
+    bool         paused;
+    unsigned int iFrame;
+
     std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::high_resolution_clock::duration> firstFrameTimePoint;
     std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::high_resolution_clock::duration> previousFrameTimePoint;
-    int                                                                                                       cFrame;
-    int                                                                                                       totalFramesSkipped;
-    std::vector<int>                                                                                          skippedFrames;
+
+    int              cFrame;
+    int              totalFramesSkipped;
+    std::vector<int> skippedFrames;
 
     bool isDrawingPreview;
     int  vSyncPeriodsSinceLastFrame = -1;
 
-    using StimulusRendererMap = std::map<unsigned int, StimulusRenderer::P>;
+    using StimulusRendererMap = std::map<unsigned int, Ptr<StimulusRenderer>>;
     StimulusRendererMap           stimulusRenderers;
     StimulusRendererMap::iterator selectedStimulusRenderer;
 
@@ -70,17 +71,17 @@ class SequenceRenderer {
     std::map<std::string, std::string> text;
     bool                               textVisible;
     bool                               responseVisible;
-    Response::CP                       currentResponse;
+    PtrC<Response>                     currentResponse;
 
     //! Index of current slice in texture queue. Changes continuously during sequence.
     unsigned int currentSlice;
 
-    std::unique_ptr<RandomSequenceBuffer> randomSequenceBuffers[5];
-    std::ofstream         randomExportStream;
-    RandomSequenceBuffer* particleBuffers[2];
-    TextureQueue*         textureQueue;
-    TextureQueue*         currentTemporalProcessingState;
-    TextureQueue*         nextTemporalProcessingState;
+    U<RandomSequenceBuffer> randomSequenceBuffers[5];
+    std::ofstream           randomExportStream;
+    RandomSequenceBuffer*   particleBuffers[2];
+    TextureQueue*           textureQueue;
+    TextureQueue*           currentTemporalProcessingState;
+    TextureQueue*           nextTemporalProcessingState;
 #if 0
     FontManager fontManager;
 #endif
@@ -135,9 +136,9 @@ class SequenceRenderer {
 
     void readCalibrationResults ();
 
-    GLboolean _redMaskByIndex[3]   = {GL_TRUE, GL_FALSE, GL_FALSE};
-    GLboolean _greenMaskByIndex[3] = {GL_FALSE, GL_TRUE, GL_FALSE};
-    GLboolean _blueMaskByIndex[3]  = {GL_FALSE, GL_FALSE, GL_TRUE};
+    GLboolean _redMaskByIndex[3]   = { GL_TRUE, GL_FALSE, GL_FALSE };
+    GLboolean _greenMaskByIndex[3] = { GL_FALSE, GL_TRUE, GL_FALSE };
+    GLboolean _blueMaskByIndex[3]  = { GL_FALSE, GL_FALSE, GL_TRUE };
 
     //! Constructor. Sets some parameters to zero, but the sequence remains invalid until apply is called.
     SequenceRenderer ();
@@ -146,7 +147,7 @@ public:
     GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (SequenceRenderer);
 
     //! Creates GPU resources for the sequence, releasing earlier ones, if any.
-    void apply (Sequence::P sequence, ShaderManager::P shaderManager, TextureManager::P textureManager, KernelManager::P kernelManager);
+    void apply (Ptr<Sequence> sequence, Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager, Ptr<KernelManager> kernelManager);
 
     void cleanup ();
     void reset ();
@@ -165,30 +166,25 @@ public:
 
     pybind11::object renderSample (uint sFrame, int left, int top, int width, int height);
 
-    Stimulus::CP getSelectedStimulus ()
-    {
-        if (selectedStimulusRenderer == stimulusRenderers.end ())
-            return nullptr;
-        return selectedStimulusRenderer->second->getStimulus ();
-    }
+    PtrC<Stimulus> getSelectedStimulus ();
 
-    Stimulus::CP getCurrentStimulus ();
-    Response::CP getCurrentResponse ();
-    void         abort ();
+    PtrC<Stimulus> getCurrentStimulus ();
+    PtrC<Response> getCurrentResponse ();
+    void           abort ();
 
     unsigned int getCurrentFrame ();
 
-    Sequence::CP getSequence () { return sequence; }
+    PtrC<Sequence> getSequence ();
 
     //	Quad* getFullscreenQuad(){return fullscreenQuad;}
-    Nothing* getNothing () { return nothing; }
+    Nothing* getNothing ();
 
     void pickStimulus (double x, double y);
 
     void raiseSignal (std::string channel);
     void clearSignal (std::string channel);
 
-    Ticker::P                  startTicker ();
+    Ptr<Ticker>                startTicker ();
     const Stimulus::SignalMap& tick (uint& iTick);
 
     void skip (int skipCount);
@@ -229,8 +225,8 @@ public:
         paused = !paused;
     }
 
-    void beginCalibrationFrame (Stimulus::CP stimulus);
-    void endCalibrationFrame (Stimulus::CP stimulus);
+    void beginCalibrationFrame (PtrC<Stimulus> stimulus);
+    void endCalibrationFrame (PtrC<Stimulus> stimulus);
 
     void beginVideoExportFrame ();
     void endVideoExportFrame ();
@@ -251,7 +247,7 @@ public:
     }
     void showText () { this->textVisible = !this->textVisible; }
 
-    void updateSpatialKernel (KernelManager::P kernelManager);
+    void updateSpatialKernel (Ptr<KernelManager> kernelManager);
 
     double getTime ();
 
@@ -269,8 +265,5 @@ public:
         isDrawingPreview = !isDrawingPreview;
     }
 
-    bool clFFT ()
-    {
-        return sequence->useOpenCL;
-    }
+    bool clFFT ();
 };

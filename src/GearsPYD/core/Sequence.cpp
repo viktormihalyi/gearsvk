@@ -1,6 +1,7 @@
 #include "core/Sequence.h"
 #include "PythonDict.h"
 #include "core/Response.h"
+#include "core/Stimulus.h"
 #include "filter/SpatialFilter.h"
 #include "stdafx.h"
 #include <algorithm>

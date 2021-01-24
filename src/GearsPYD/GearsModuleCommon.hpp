@@ -1,6 +1,7 @@
 
 // from Gears
 #include "GearsAPIv2.hpp"
+#include "core/Pass.h"
 #include "core/PythonDict.h"
 #include "core/Response.h"
 #include "core/Sequence.h"
@@ -9,6 +10,7 @@
 #include "core/TextureManager.h"
 #include "core/Ticker.h"
 #include "core/filter/KernelManager.h"
+#include "core/filter/SpatialFilter.h"
 #include "core/filter/fft/openCLFFT.h"
 #include "curve/Poly2TriWrapper.h"
 #include "event/events.h"

@@ -1,5 +1,13 @@
 ﻿#include "PassRenderer.h"
+#include "Pass.h"
 #include "SequenceRenderer.h"
+#include "ShaderManager.h"
+#include "TextureManager.h"
+#include "core/Sequence.h"
+#include "core/SequenceRenderer.h"
+#include "core/StimulusRenderer.h"
+#include "filter/SpatialFilter.h"
+#include "gpu/Nothing.hpp"
 #include "stdafx.h"
 #include <chrono>
 #include <ctime>
@@ -8,8 +16,8 @@
 #include <limits>
 #include <sstream>
 
-PassRenderer::PassRenderer (std::shared_ptr<StimulusRenderer> stimulusRenderer, Pass::CP pass,
-                            ShaderManager::P shaderManager, TextureManager::P textureManager)
+PassRenderer::PassRenderer (Ptr<StimulusRenderer> stimulusRenderer, PtrC<Pass> pass,
+                            Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager)
     : pass (pass), stimulusRenderer (stimulusRenderer), polytex (nullptr)
 {
     stimulusGeneratorShader = shaderManager->loadShader (
@@ -33,7 +41,7 @@ PassRenderer::PassRenderer (std::shared_ptr<StimulusRenderer> stimulusRenderer, 
     videoFrameV = nullptr;
 
     if (pass->hasVideo ()) {
-        throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+        throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
         if (movieDecoder.initialize (pass->getVideo ())) {
             movieDecoder.stop ();
@@ -195,7 +203,7 @@ void PassRenderer::renderPass (int skippedFrames, int offset)
     else if (pass->rasterizationMode == Pass::RasterizationMode::triangles)
         sequenceRenderer->getNothing ()->renderTriangles (pass->polygonMask.size ());
     else if (pass->rasterizationMode == Pass::RasterizationMode::quads) {
-        throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+        throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
         /*
         glEnable (GL_BLEND);
         if (pass->transparent)
@@ -211,7 +219,7 @@ void PassRenderer::renderPass (int skippedFrames, int offset)
     if (!sequenceRenderer->paused) {
         iFrame++;
         if (pass->hasVideo () && videoFrameY != nullptr) {
-            throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+            throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
             if (movieDecoder.decodeVideoFrame (videoFrame)) {
                 videoFrameY->setData8bit (videoFrame.getYPlane ());
@@ -236,7 +244,7 @@ void PassRenderer::renderSample (uint sFrame)
 
 void PassRenderer::renderTimeline (uint startFrame, uint frameCount)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
     auto stimulus         = pass->getStimulus ();
     auto sequenceRenderer = stimulusRenderer->getSequenceRenderer ();

@@ -14,7 +14,6 @@
 #include "Utils.hpp"
 
 
-
 Pass::Pass ()
     : name ("N/A")
     , brief ("<no description>")
@@ -507,7 +506,7 @@ std::string Pass::getStimulusGeneratorShaderSource () const
 
     uint32_t lastUniformBinding = 1;
 
-    std::vector<std::string> uniforms = {"patternSizeOnRetina", "swizzleForFft", "frame"};
+    std::vector<std::string> uniforms = { "patternSizeOnRetina", "swizzleForFft", "frame" };
 
     s += GenerateUniformBlock (lastUniformBinding, "vec2", "patternSizeOnRetina");
     s += GenerateUniformBlock (lastUniformBinding, "int", "swizzleForFft");

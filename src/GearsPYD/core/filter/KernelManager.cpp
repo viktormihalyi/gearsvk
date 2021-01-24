@@ -1,7 +1,23 @@
 #include "stdafx.h"
 
+#include "core/Sequence.h"
 #include "core/SequenceRenderer.h"
 #include "core/filter/KernelManager.h"
+
+#include "gpu/Framebuffer.hpp"
+#include "gpu/Pointgrid.hpp"
+#include "gpu/Quad.hpp"
+#include "gpu/RandomSequenceBuffer.hpp"
+#include "gpu/Shader.hpp"
+#include "gpu/StimulusGrid.hpp"
+#include "gpu/Texture.hpp"
+#include "gpu/TextureQueue.hpp"
+
+#include "core/ShaderManager.h"
+#include "core/filter/SpatialFilter.h"
+#include "core/filter/fft/glFFT.h"
+#include "core/filter/fft/openCLFFT.h"
+
 
 #include <sstream>
 
@@ -37,7 +53,7 @@ uint KernelManager::getKernel (SpatialFilter::CP spatialFilter)
 #endif
     } else {
         FramebufferGL* bufi = new FramebufferGL (spatialFilter->horizontalSampleCount, spatialFilter->verticalSampleCount, 1, GL_RGBA16F);
-        kernels[slongid]    = Kernel {nullptr, bufi, kernelShader};
+        kernels[slongid]    = Kernel { nullptr, bufi, kernelShader };
     }
 
     return update (spatialFilter);

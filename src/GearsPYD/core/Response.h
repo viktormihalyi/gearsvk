@@ -1,14 +1,10 @@
 #pragma once
 
+#include "Ptr.hpp"
 #include "stdafx.h"
 
-#include "core/Pass.h"
-#include "event/Base.h"
 #include <algorithm>
-//#include <boost/parameter/keyword.hpp>
-//#include <boost/parameter/preprocessor.hpp>
-//#include <boost/parameter/python.hpp>
-//#include <boost/python.hpp>
+
 #include <iomanip>
 #include <list>
 #include <map>
@@ -35,7 +31,7 @@ public:
     unsigned int        duration; //frames
     unsigned int        startingFrame;
 
-    std::shared_ptr<Sequence> sequence; //< Part of this sequence.
+    Ptr<Sequence> sequence; //< Part of this sequence.
 
 
     Response ();
@@ -49,8 +45,8 @@ public:
     pybind11::object setJoiner (pybind11::object joiner);
 
 
-    std::map<uint, std::vector<pybind11::object> > callbacks;
-    void                                           registerCallback (uint msg, pybind11::object callback);
+    std::map<uint, std::vector<pybind11::object>> callbacks;
+    void                                          registerCallback (uint msg, pybind11::object callback);
 
 #if 0
     template<typename T>
@@ -71,10 +67,10 @@ public:
 
     void addButton (std::string label, float x, float y, float w, float h, uint key, bool visible);
 
-    void setSequence (std::shared_ptr<Sequence> sequence)
+    void setSequence (Ptr<Sequence> sequence)
     {
         this->sequence = sequence;
     }
 
-    std::shared_ptr<Sequence> getSequence () { return sequence; }
+    Ptr<Sequence> getSequence () { return sequence; }
 };

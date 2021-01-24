@@ -16,9 +16,9 @@ set (CONAN_DISABLE_CHECK_COMPILER ON CACHE BOOL "" FORCE)
 
 set (PROJECT_NAME GearsVk)
 
-set (TARGET_GVKUTILS GVkUtils)
-set (TARGET_GVKRG GVkRenderGraph)
-set (TARGET_TESTS GVkTest)
+set (TARGET_GVKUTILS GVKUtils)
+set (TARGET_GVKRENDERER GVKRenderer)
+set (TARGET_TEST GVKTest)
 set (TARGET_DLL GearsModule)
 set (TARGET_DLL_EMBEDDED GearsModuleEmbedded)
 
@@ -98,7 +98,7 @@ add_library (${TARGET_GVKUTILS} SHARED
     
     src/Utils/UUID.cpp)
 
-add_library (${TARGET_GVKRG} SHARED
+add_library (${TARGET_GVKRENDERER} SHARED
     src/GearsVk/VulkanWrapper/Utils/VulkanUtils.cpp
     src/GearsVk/VulkanWrapper/Utils/BufferTransferable.cpp
     src/GearsVk/VulkanWrapper/Utils/ImageData.cpp
@@ -140,7 +140,7 @@ add_library (${TARGET_GVKRG} SHARED
 
     external/msdfgen/ext/import-font.cpp)
 
-add_executable (${TARGET_TESTS}
+add_executable (${TARGET_TEST}
     src/Tests/GoogleTestEnvironment.cpp
     src/Tests/FontRenderingTests.cpp
     src/Tests/RenderGraphTests.cpp
@@ -192,16 +192,16 @@ target_compile_definitions (${TARGET_GVKUTILS} PRIVATE
     PROJECT_ROOT_FULL_PATH=\"${CMAKE_SOURCE_DIR}\"
     GVK_UTILS_EXPORTS
 )   
-target_compile_definitions (${TARGET_GVKRG} PRIVATE
+target_compile_definitions (${TARGET_GVKRENDERER} PRIVATE
     GVK_RENDERER_EXPORTS
 )
-target_compile_definitions (${TARGET_TESTS} PRIVATE)
+target_compile_definitions (${TARGET_TEST} PRIVATE)
 target_compile_definitions (${TARGET_DLL} PRIVATE GEARS_EXPORTS)
 target_compile_definitions (${TARGET_DLL_EMBEDDED} PRIVATE GEARS_EMBEDDED_EXPORTS)
 
 target_include_directories (${TARGET_GVKUTILS} PRIVATE src/Utils)
-target_include_directories (${TARGET_GVKRG} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
-target_include_directories (${TARGET_TESTS} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
+target_include_directories (${TARGET_GVKRENDERER} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
+target_include_directories (${TARGET_TEST} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_DLL} PRIVATE
     ${GEARSVK_INCLUDE_FOLDERS}
     src/GearsPYD
@@ -220,14 +220,14 @@ else ()
 target_link_libraries (${TARGET_GVKUTILS})
 endif ()
 
-target_link_libraries (${TARGET_GVKRG} ${TARGET_GVKUTILS} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
-target_link_libraries (${TARGET_DLL} ${TARGET_GVKRG} ${Python3_LIBRARIES})
-target_link_libraries (${TARGET_DLL_EMBEDDED} ${TARGET_GVKRG} ${Python3_LIBRARIES})
-target_link_libraries (${TARGET_TESTS} ${TARGET_GVKRG} ${TARGET_DLL_EMBEDDED} ${CONAN_LIBS})
+target_link_libraries (${TARGET_GVKRENDERER} ${TARGET_GVKUTILS} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
+target_link_libraries (${TARGET_DLL} ${TARGET_GVKRENDERER} ${Python3_LIBRARIES})
+target_link_libraries (${TARGET_DLL_EMBEDDED} ${TARGET_GVKRENDERER} ${Python3_LIBRARIES})
+target_link_libraries (${TARGET_TEST} ${TARGET_GVKRENDERER} ${TARGET_DLL_EMBEDDED} ${CONAN_LIBS})
 
 target_compile_options (${TARGET_GVKUTILS} PRIVATE ${COMPILER_FLAGS})
-target_compile_options (${TARGET_GVKRG} PRIVATE ${COMPILER_FLAGS})
-target_compile_options (${TARGET_TESTS} PRIVATE ${COMPILER_FLAGS})
+target_compile_options (${TARGET_GVKRENDERER} PRIVATE ${COMPILER_FLAGS})
+target_compile_options (${TARGET_TEST} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL_EMBEDDED} PRIVATE ${COMPILER_FLAGS})
 
@@ -257,13 +257,13 @@ add_custom_command (
 endif ()
 
 add_custom_command (
-    TARGET ${TARGET_GVKRG}
+    TARGET ${TARGET_GVKRENDERER}
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_FILE:${TARGET_GVKRG}>
+        $<TARGET_FILE:${TARGET_GVKRENDERER}>
         ${UI_PATH}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Copying ${TARGET_GVKRG}..."
+    COMMENT "Copying ${TARGET_GVKRENDERER}..."
 )
 
 add_custom_command (

@@ -1,40 +1,35 @@
 #pragma once
 
-#include "gpu/Framebuffer.hpp"
-#include "gpu/Pointgrid.hpp"
-#include "gpu/Quad.hpp"
-#include "gpu/RandomSequenceBuffer.hpp"
-#include "gpu/Shader.hpp"
-#include "gpu/StimulusGrid.hpp"
-#include "gpu/Texture.hpp"
-#include "gpu/TextureQueue.hpp"
+#include "Ptr.hpp"
+#include "stdafx.h"
 
-#include "core/Sequence.h"
-#include "core/filter/KernelManager.h"
-#include "core/filter/SpatialFilter.h"
-#include "fft/FFT.h"
 #include <functional>
 #include <map>
 #include <string>
 
 class SequenceRenderer;
+class SpatialFilter;
+class KernelManager;
+class ShaderManager;
+class SpatialFilter;
+enum class FFTChannelMode : uint8_t;
 
 //! Represents the currently active sequence. Manages resources for GPU computation.
 class SpatialFilterRenderer {
 protected:
-    std::shared_ptr<SequenceRenderer> sequenceRenderer;
-    unsigned int                      spatialKernelId = 0;
-    Shader*                           spatialDomainConvolutionShader;
-    Shader*                           copyShader;
+    Ptr<SequenceRenderer> sequenceRenderer;
+    unsigned int          spatialKernelId = 0;
+    Shader*               spatialDomainConvolutionShader;
+    Shader*               copyShader;
 
     std::function<void (int)> renderStim;
     FFTChannelMode            channelMode;
     std::function<void ()>    renderQuad;
 
-    SpatialFilter::P spatialFilter;
-    KernelManager::P kernelManager;
-    ShaderManager::P shaderManager;
-    SpatialFilterRenderer (std::shared_ptr<SequenceRenderer> sequenceRenderer, ShaderManager::P shaderManager, KernelManager::P _kernelManager, SpatialFilter::P _spatialFilter);
+    Ptr<SpatialFilter> spatialFilter;
+    Ptr<KernelManager> kernelManager;
+    Ptr<ShaderManager> shaderManager;
+    SpatialFilterRenderer (Ptr<SequenceRenderer> sequenceRenderer, Ptr<ShaderManager> shaderManager, Ptr<KernelManager> _kernelManager, Ptr<SpatialFilter> _spatialFilter);
 
 public:
     void renderFrame (std::function<void (int)> renderStimulus);

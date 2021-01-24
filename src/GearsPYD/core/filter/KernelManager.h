@@ -1,29 +1,22 @@
 #pragma once
 
-#include "gpu/Framebuffer.hpp"
-#include "gpu/Pointgrid.hpp"
-#include "gpu/Quad.hpp"
-#include "gpu/RandomSequenceBuffer.hpp"
-#include "gpu/Shader.hpp"
-#include "gpu/StimulusGrid.hpp"
-#include "gpu/Texture.hpp"
-#include "gpu/TextureQueue.hpp"
-
-#include "core/ShaderManager.h"
-#include "core/filter/SpatialFilter.h"
-#include "core/filter/fft/glFFT.h"
-#include "core/filter/fft/openCLFFT.h"
-
 #include <map>
 #include <string>
 
+#include "Ptr.hpp"
+#include "stdafx.h"
+
 class SequenceRenderer;
+class FFT;
+class FramebufferGL;
+class Shader;
+class SpatialFilter;
 
 class KernelManager {
-    std::shared_ptr<SequenceRenderer> sequenceRenderer;
-    ShaderManager::P                  shaderManager;
+    Ptr<SequenceRenderer> sequenceRenderer;
+    Ptr<ShaderManager>    shaderManager;
 
-    KernelManager (std::shared_ptr<SequenceRenderer> sequenceRenderer, ShaderManager::P shaderManager);
+    KernelManager (Ptr<SequenceRenderer> sequenceRenderer, Ptr<ShaderManager> shaderManager);
 
 public:
     GEARS_SHARED_CREATE (KernelManager);
@@ -36,9 +29,9 @@ public:
 
     using KernelMap = std::map<std::string, Kernel>;
 
-    unsigned int getKernel (SpatialFilter::CP spatialFilter);
-    //bool         getKernelChannels (SpatialFilter::CP spatialFilter, cl_mem& r);
-    unsigned int update (SpatialFilter::CP spatialFilter);
+    unsigned int getKernel (PtrC<SpatialFilter> spatialFilter);
+    //bool         getKernelChannels (PtrC<SpatialFilter> spatialFilter, cl_mem& r);
+    unsigned int update (PtrC<SpatialFilter> spatialFilter);
 
     void clear ();
 

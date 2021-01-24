@@ -1,16 +1,9 @@
 #include "GearsAPIv2.hpp"
 
-// from Utils
-#include "NoInline.hpp"
-#include "Noncopyable.hpp"
-#include "UUID.hpp"
-
 // from GearsVk
-#include "FullscreenQuad.hpp"
-#include "GLFWWindow.hpp"
 #include "ShaderModule.hpp"
-#include "UniformReflection.hpp"
 #include "VulkanEnvironment.hpp"
+#include "Window.hpp"
 
 // from Gears
 #include "SequenceAdapter.hpp"

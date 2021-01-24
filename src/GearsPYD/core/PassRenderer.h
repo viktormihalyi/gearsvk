@@ -1,31 +1,26 @@
 #pragma once
 
-//#include "TextureQueue.hpp"
-//#include "StimulusGrid.hpp"
-//#include "Shader.hpp"
-//#include "Texture.hpp"
-//#include "FramebufferGL.hpp"
-//#include "Pointgrid.hpp"
-//#include "Quad.hpp"
-
-//#include "MovieDecoder.h"
-
+#include "Ptr.hpp"
 #include "stdafx.h"
 
-#include "Pass.h"
-#include "ShaderManager.h"
-#include "TextureManager.h"
+#include "glmlib.hpp"
+
 #include <map>
 #include <string>
 
 class SequenceRenderer;
 class StimulusRenderer;
+class Pass;
+class Shader;
+class TextureManager;
+class ShaderManager;
+class Texture2D;
 
 class PassRenderer {
-    std::shared_ptr<StimulusRenderer> stimulusRenderer;
+    Ptr<StimulusRenderer> stimulusRenderer;
 
     unsigned int iFrame;
-    Pass::CP     pass;
+    PtrC<Pass>   pass;
 
     Shader* stimulusGeneratorShader;
     Shader* timelineShader;
@@ -33,8 +28,8 @@ class PassRenderer {
     using TextureSettings = std::map<std::string, Texture2D*>;
     TextureSettings textureSettings;
 
-    PassRenderer (std::shared_ptr<StimulusRenderer> stimulusRenderer, Pass::CP pass,
-                  ShaderManager::P shaderManager, TextureManager::P textureManager);
+    PassRenderer (Ptr<StimulusRenderer> stimulusRenderer, PtrC<Pass> pass,
+                  Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager);
 
     Texture2D* polytex;
 
@@ -57,7 +52,7 @@ public:
 
     unsigned int getCurrentFrame () { return iFrame; }
 
-    Pass::CP getPass () const { return pass; }
+    PtrC<Pass> getPass () const { return pass; }
 
     void reset ();
     void skipFrames (uint nFramesToSkip);

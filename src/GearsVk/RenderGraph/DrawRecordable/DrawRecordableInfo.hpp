@@ -159,13 +159,13 @@ public:
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {
-            commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdBindIndexBuffer (commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16); });
+            commandBuffer.RecordT<CommandGeneric> ([=] (VkCommandBuffer commandBuffer) { vkCmdBindIndexBuffer (commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16); });
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {
-            commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdDrawIndexed (commandBuffer, indexCount, instanceCount, 0, 0, 0); });
+            commandBuffer.RecordT<CommandGeneric> ([=] (VkCommandBuffer commandBuffer) { vkCmdDrawIndexed (commandBuffer, indexCount, instanceCount, 0, 0, 0); });
         } else {
-            commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdDraw (commandBuffer, vertexCount, instanceCount, 0, 0); });
+            commandBuffer.RecordT<CommandGeneric> ([=] (VkCommandBuffer commandBuffer) { vkCmdDraw (commandBuffer, vertexCount, instanceCount, 0, 0); });
         }
     }
 

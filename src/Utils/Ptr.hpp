@@ -7,6 +7,9 @@ template<typename T>
 using Ptr = std::shared_ptr<T>;
 
 template<typename T>
+using PtrC = std::shared_ptr<T const>;
+
+template<typename T>
 using U = std::unique_ptr<T>;
 
 #define USING_PTR(classname)                           \
@@ -26,6 +29,6 @@ public:                                                                         
     static std::unique_ptr<classname> Create (Parameters&&... parameters)                             \
     {                                                                                                 \
         return std::unique_ptr<classname> (new classname (std::forward<Parameters> (parameters)...)); \
-    }                                                                                                 
+    }
 
 #endif

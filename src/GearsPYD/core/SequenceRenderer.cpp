@@ -1,6 +1,29 @@
 ﻿#include "SequenceRenderer.h"
 #include "core/pythonerr.h"
 #include "stdafx.h"
+
+#include "core/Response.h"
+#include "core/Sequence.h"
+#include "core/ShaderManager.h"
+#include "core/Stimulus.h"
+#include "core/StimulusRenderer.h"
+#include "core/TextureManager.h"
+#include "core/Ticker.h"
+
+#include "filter/KernelManager.h"
+#include "filter/fft/glFFT.h"
+#include "filter/fft/openCLFFT.h"
+
+#include "gpu/Framebuffer.hpp"
+#include "gpu/Nothing.hpp"
+#include "gpu/Pointgrid.hpp"
+#include "gpu/Quad.hpp"
+#include "gpu/RandomSequenceBuffer.hpp"
+#include "gpu/Shader.hpp"
+#include "gpu/StimulusGrid.hpp"
+#include "gpu/Texture.hpp"
+#include "gpu/TextureQueue.hpp"
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -584,7 +607,7 @@ bool SequenceRenderer::renderFrame (GLuint defaultFrameBuffer, unsigned channelI
 
 void SequenceRenderer::renderTimeline ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 
 #if 0
     glClearColor (0, 0, 0, 1);
@@ -756,7 +779,7 @@ void SequenceRenderer::renderTimeline ()
 
 void SequenceRenderer::renderSelectedStimulusTimeline ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 
 #if 0
     glClearColor (0, 0, 0, 1);
@@ -780,7 +803,7 @@ void SequenceRenderer::renderSelectedStimulusTimeline ()
 
 void SequenceRenderer::renderSelectedStimulusSpatialKernel (float min, float max, float width, float height)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 
 #if 0
     if (selectedStimulusRenderer == stimulusRenderers.end ())
@@ -794,7 +817,7 @@ void SequenceRenderer::renderSelectedStimulusSpatialKernel (float min, float max
 
 void SequenceRenderer::renderSelectedStimulusSpatialProfile (float min, float max, float width, float height)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
     if (selectedStimulusRenderer == stimulusRenderers.end ())
         return;
@@ -807,7 +830,7 @@ void SequenceRenderer::renderSelectedStimulusSpatialProfile (float min, float ma
 
 void SequenceRenderer::renderSelectedStimulusTemporalKernel ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
     if (selectedStimulusRenderer == stimulusRenderers.end ())
         return;
@@ -953,7 +976,7 @@ void SequenceRenderer::renderParticles (Shader* particleShader, uint iStimulusFr
 
 void SequenceRenderer::renderRandoms (Shader* randomGeneratorShader, uint iStimulusFrame, uint randomSeed, uint freezeRandomsAfterFrame)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 
 #if 0
     if (freezeRandomsAfterFrame != 0 && freezeRandomsAfterFrame < iStimulusFrame)
@@ -1117,7 +1140,7 @@ bool SequenceRenderer::exporting () const
 
 void SequenceRenderer::beginCalibrationFrame (Stimulus::CP stimulus)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
     if (calibrating || stimulus->doesDynamicToneMapping) {
         glViewport (
@@ -1133,7 +1156,7 @@ void SequenceRenderer::beginCalibrationFrame (Stimulus::CP stimulus)
 
 void SequenceRenderer::beginVideoExportFrame ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
     if (exportingToVideo) {
         if (videoExportImage == nullptr) {
@@ -1156,7 +1179,7 @@ void SequenceRenderer::beginVideoExportFrame ()
 
 void SequenceRenderer::endVideoExportFrame ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 
 #if 0
     if (exportingToVideo) // add to histogram
@@ -1227,7 +1250,7 @@ void SequenceRenderer::endVideoExportFrame ()
 
 void SequenceRenderer::endCalibrationFrame (Stimulus::CP stimulus)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 
 #if 0
     if (calibrating || stimulus->doesDynamicToneMapping) // add to histogram
@@ -1289,7 +1312,7 @@ void SequenceRenderer::endCalibrationFrame (Stimulus::CP stimulus)
 
 void SequenceRenderer::enableVideoExport (const char* path, int fr, int w, int h)
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
     std::filesystem::path bpath (path);
     if (!std::filesystem::exists (bpath.parent_path ()))
@@ -1391,7 +1414,7 @@ void SequenceRenderer::enableCalibration (uint startingFrame, uint duration, flo
 
 void SequenceRenderer::readCalibrationResults ()
 {
-    throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
+    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 
 #if 0
     glBindTexture (GL_TEXTURE_2D, histogramBuffer->getColorBuffer (0));
@@ -1534,4 +1557,24 @@ void SequenceRenderer::setResponded ()
 {
     iFrame          = currentResponse->startingFrame + currentResponse->duration;
     currentResponse = nullptr;
+}
+
+
+PtrC<Stimulus> SequenceRenderer::getSelectedStimulus ()
+{
+    if (selectedStimulusRenderer == stimulusRenderers.end ())
+        return nullptr;
+    return selectedStimulusRenderer->second->getStimulus ();
+}
+
+
+PtrC<Sequence> SequenceRenderer::getSequence () { return sequence; }
+
+
+Nothing* SequenceRenderer::getNothing () { return nothing; }
+
+
+bool SequenceRenderer::clFFT ()
+{
+    return sequence->useOpenCL;
 }

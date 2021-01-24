@@ -1,18 +1,14 @@
 #pragma once
 
-#include "gpu/Framebuffer.hpp"
-#include "gpu/Pointgrid.hpp"
-#include "gpu/Quad.hpp"
-#include "gpu/RandomSequenceBuffer.hpp"
-#include "gpu/Shader.hpp"
-#include "gpu/StimulusGrid.hpp"
-#include "gpu/Texture.hpp"
-#include "gpu/TextureQueue.hpp"
+#include "Ptr.hpp"
+#include "glmlib.hpp"
+#include "stdafx.h"
 
-#include "core/Sequence.h"
 #include <list>
 #include <map>
 #include <string>
+
+class Sequence;
 
 //! Structure describing a spatial filter logic.
 class SpatialFilter : public std::enable_shared_from_this<SpatialFilter> {

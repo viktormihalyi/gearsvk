@@ -1,8 +1,10 @@
+#include "core/Stimulus.h"
+
 #include "core/PythonDict.h"
 #include "stdafx.h"
 
+#include "core/Pass.h"
 #include "core/Sequence.h"
-#include "core/Stimulus.h"
 #include "filter/SpatialFilter.h"
 #include <algorithm>
 #include <ctime>
@@ -553,7 +555,10 @@ pybind11::object Stimulus::setTemporalWeightingFunction (std::string func, int m
     return pybind11::object ();
 }
 
-void Stimulus::addPass (Pass::P pass)
+const std::vector<Ptr<Pass>>& Stimulus::getPasses () const { return passes; }
+
+
+void Stimulus::addPass (Ptr<Pass> pass)
 {
     pass->setStimulus (getSharedPtr ());
     pass->joiner ();
