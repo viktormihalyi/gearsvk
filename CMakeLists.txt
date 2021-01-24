@@ -223,7 +223,7 @@ endif ()
 target_link_libraries (${TARGET_GVKRG} ${TARGET_GVKUTILS} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
 target_link_libraries (${TARGET_DLL} ${TARGET_GVKRG} ${Python3_LIBRARIES})
 target_link_libraries (${TARGET_DLL_EMBEDDED} ${TARGET_GVKRG} ${Python3_LIBRARIES})
-target_link_libraries (${TARGET_TESTS} ${TARGET_GVKRG} ${TARGET_DLL_EMBEDDED})
+target_link_libraries (${TARGET_TESTS} ${TARGET_GVKRG} ${TARGET_DLL_EMBEDDED} ${CONAN_LIBS})
 
 target_compile_options (${TARGET_GVKUTILS} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_GVKRG} PRIVATE ${COMPILER_FLAGS})
