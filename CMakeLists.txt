@@ -215,7 +215,7 @@ target_include_directories (${TARGET_DLL_EMBEDDED} PRIVATE
 
 if (WIN32)
 target_link_libraries (${TARGET_GVKUTILS} rpcrt4)
-elseif (uuid)
+elseif (UNIX)
 target_link_libraries (${TARGET_GVKUTILS} uuid)
 else ()
 target_link_libraries (${TARGET_GVKUTILS})
