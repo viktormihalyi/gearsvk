@@ -3,6 +3,7 @@
 // from GearsVk
 #include "Assert.hpp"
 #include "VulkanEnvironment.hpp"
+#include "GraphRenderer.hpp"
 
 // from Gears
 #include "StimulusAdapterForPresentable.hpp"
