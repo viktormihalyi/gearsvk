@@ -39,7 +39,6 @@ conan_basic_setup ()
 
 find_package (Vulkan REQUIRED)
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
-find_package (uuid)
 
 if (${Vulkan_FOUND})
     message ("Vulkan_LIBRARIES     = " ${Vulkan_LIBRARIES})
