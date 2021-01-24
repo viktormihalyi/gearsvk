@@ -5,6 +5,10 @@
 #include <windows.h>
 #endif
 
+#ifndef WM_USER
+#define WM_USER 0
+#endif
+
 #include "stdafx.h"
 
 namespace Gears {
