@@ -4,10 +4,12 @@
 #include "Assert.hpp"
 #include "GLFWWindow.hpp"
 #include "StimulusAdapterView.hpp"
-
-// from Gears
 #include "Surface.hpp"
 #include "VulkanEnvironment.hpp"
+
+// from Gears
+#include "core/Sequence.h"
+#include "core/Stimulus.h"
 
 
 SequenceAdapter::SequenceAdapter (VulkanEnvironment& environment, const Sequence::P& sequence)

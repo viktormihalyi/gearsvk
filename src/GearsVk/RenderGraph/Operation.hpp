@@ -54,8 +54,8 @@ struct GVK_RENDERER_API RenderOperation : public Operation {
         ShaderPipelineU          pipeline;
         VkPrimitiveTopology      topology;
 
-        std::optional<glm::vec4> clearColor;
-        std::optional<bool>      blendEnabled;
+        std::optional<glm::vec4> clearColor;   // (0, 0, 0, 1) by default
+        std::optional<bool>      blendEnabled; // true by default
     };
 
     struct CompileResult {

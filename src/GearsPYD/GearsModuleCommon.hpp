@@ -12,7 +12,6 @@
 #include "core/filter/KernelManager.h"
 #include "core/filter/SpatialFilter.h"
 #include "core/filter/fft/openCLFFT.h"
-#include "curve/Poly2TriWrapper.h"
 #include "event/events.h"
 #include "stdafx.h"
 

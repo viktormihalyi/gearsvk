@@ -6,9 +6,10 @@
 
 // from Gears
 #include "StimulusAdapterForPresentable.hpp"
+#include "core/Stimulus.h"
 
 
-StimulusAdapterView::StimulusAdapterView (VulkanEnvironment& environment, const Stimulus::CP& stimulus)
+StimulusAdapterView::StimulusAdapterView (VulkanEnvironment& environment, const PtrC<Stimulus>& stimulus)
     : environment (environment)
     , stimulus (stimulus)
 {

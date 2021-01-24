@@ -1,13 +1,16 @@
 #include "StimulusAdapterForPresentable.hpp"
 
 // from Gears
+#include "core/Pass.h"
 #include "core/Sequence.h"
+#include "core/Stimulus.h"
 
 // from GearsVkUtils
 #include "Assert.hpp"
 
 // from GearsVk
 #include "DrawRecordableInfo.hpp"
+#include "GraphRenderer.hpp"
 #include "GraphSettings.hpp"
 #include "Operation.hpp"
 #include "RenderGraph.hpp"

@@ -1,5 +1,3 @@
-#include "core/Sequence.h"
-
 #include <cstdint>
 #include <filesystem>
 #include <functional>
@@ -11,6 +9,7 @@
 class Presentable;
 class VulkanEnvironment;
 class SequenceAdapter;
+class Sequence;
 enum class ShaderKind : uint8_t;
 
 
@@ -20,7 +19,7 @@ void InitializeEnvironment ();
 
 void DestroyEnvironment ();
 
-void SetRenderGraphFromSequence (Sequence::P);
+void SetRenderGraphFromSequence (Ptr<Sequence>);
 
 void StartRendering (const std::function<bool ()>&);
 

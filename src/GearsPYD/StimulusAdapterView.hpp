@@ -5,9 +5,6 @@
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 
-// from Gears
-#include "core/Stimulus.h"
-
 // from std
 #include <map>
 
@@ -15,6 +12,7 @@
 class VulkanEnvironment;
 class Presentable;
 class StimulusAdapterForPresentable;
+class Stimulus;
 
 
 USING_PTR (StimulusAdapterView);
@@ -22,13 +20,13 @@ class StimulusAdapterView : public Noncopyable {
     USING_CREATE (StimulusAdapterView);
 
 private:
-    VulkanEnvironment& environment;
-    const Stimulus::CP stimulus;
+    VulkanEnvironment&   environment;
+    const PtrC<Stimulus> stimulus;
 
     std::map<Ptr<Presentable>, Ptr<StimulusAdapterForPresentable>> compiledAdapters;
 
 public:
-    StimulusAdapterView (VulkanEnvironment& environment, const Stimulus::CP& stimulus);
+    StimulusAdapterView (VulkanEnvironment& environment, const PtrC<Stimulus>& stimulus);
 
     void CreateForPresentable (Ptr<Presentable>& presentable);
 

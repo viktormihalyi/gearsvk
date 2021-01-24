@@ -1,14 +1,15 @@
 #include "GearsAPIv2.hpp"
 
 // from GearsVk
+#include "Instance.hpp"
 #include "ShaderModule.hpp"
+#include "Surface.hpp"
 #include "VulkanEnvironment.hpp"
 #include "Window.hpp"
 
 // from Gears
 #include "SequenceAdapter.hpp"
 #include "core/Sequence.h"
-#include "gpu/Shader.hpp"
 
 // from pybind11
 #include <pybind11/embed.h>

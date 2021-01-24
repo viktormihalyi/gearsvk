@@ -10,9 +10,6 @@
 #include <memory>
 #include <pybind11/pybind11.h>
 
-// TODO remove
-#define WM_USER 0x0400
-
 
 template<typename T>
 struct extract {
@@ -38,10 +35,10 @@ struct extract {
 #include "SourceLocation.hpp"
 
 #define THROW_LOC() \
-    throw ::std::runtime_error (::Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ())
+    throw ::std::runtime_error (::Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ())
 
 #define LOG_LOC() \
-    throw ::std::cout << ::Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString () << std::endl
+    throw ::std::cout << ::Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString () << std::endl
 
 using uint = unsigned int;
 
