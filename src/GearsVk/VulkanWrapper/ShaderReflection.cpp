@@ -2,10 +2,11 @@
 
 #include "Assert.hpp"
 
-#include "spirv_cross.hpp"
-
 #include <optional>
 #include <sstream>
+
+// from SPRIV-Cross
+#include "spirv_cross.hpp"
 
 
 namespace SR {

@@ -39,6 +39,7 @@ conan_basic_setup ()
 
 find_package (Vulkan REQUIRED)
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
+find_package (uuid)
 
 if (${Vulkan_FOUND})
     message ("Vulkan_LIBRARIES     = " ${Vulkan_LIBRARIES})
@@ -212,7 +213,14 @@ target_include_directories (${TARGET_DLL_EMBEDDED} PRIVATE
 )
 
 
+if (WIN32)
+target_link_libraries (${TARGET_GVKUTILS} rpcrt4)
+elseif (uuid)
+target_link_libraries (${TARGET_GVKUTILS} uuid)
+else ()
 target_link_libraries (${TARGET_GVKUTILS})
+endif ()
+
 target_link_libraries (${TARGET_GVKRG} ${TARGET_GVKUTILS} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
 target_link_libraries (${TARGET_DLL} ${TARGET_GVKRG} ${Python3_LIBRARIES})
 target_link_libraries (${TARGET_DLL_EMBEDDED} ${TARGET_GVKRG} ${Python3_LIBRARIES})

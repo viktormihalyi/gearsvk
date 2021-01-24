@@ -4,24 +4,25 @@
 #include "CompilerDefinitions.hpp"
 #include "Platform.hpp"
 
-#if defined(PLATFORM_WINDOWS) && defined(COMPILER_MSVC)
-#pragma comment(lib, "rpcrt4.lib")
+#ifdef PLATFORM_WINDOWS
 #include <cstring>
-#include <windows.h>
+#include <rpc.h>
 
 static std::array<uint8_t, 16> GenerateUUID ()
 {
     static_assert (sizeof (UUID) == 16);
 
     UUID uuid;
-    UuidCreate (&uuid);
+
+    RPC_STATUS err = UuidCreate (&uuid);
+    GVK_VERIFY (err == RPC_S_OK);
 
     std::array<uint8_t, 16> result;
     memcpy (result.data (), &uuid, 16);
     return result;
 }
 
-#else // TODO handle other platforms
+#elif (__has_include(<uuid/uuid.h>))
 
 #include <cstring>
 #include <uuid/uuid.h>
@@ -35,6 +36,26 @@ static std::array<uint8_t, 16> GenerateUUID ()
 
     std::array<uint8_t, 16> result;
     memcpy (result.data (), &uuid, 16);
+    return result;
+}
+
+#else
+
+#include <cstring>
+#include <random>
+
+static std::array<uint8_t, 16> GenerateUUID ()
+{
+    static std::random_device rd;
+    static std::mt19937_64    gen (rd ());
+
+    static std::uniform_int_distribution<uint64_t> dis (
+        std::numeric_limits<std::uint64_t>::min (),
+        std::numeric_limits<std::uint64_t>::max ());
+
+    std::array<uint8_t, 16> result;
+    *reinterpret_cast<uint64_t*> (result.data ())     = dis (gen);
+    *reinterpret_cast<uint64_t*> (result.data () + 8) = dis (gen);
     return result;
 }
 

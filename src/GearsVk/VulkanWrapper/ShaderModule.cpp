@@ -15,8 +15,6 @@
 
 // from glslang
 #include <SPIRV/GlslangToSpv.h>
-#include <glslang/MachineIndependent/reflection.h>
-#include <glslang/Public/ShaderLang.h>
 
 
 EmptyPreprocessor emptyPreprocessor;
