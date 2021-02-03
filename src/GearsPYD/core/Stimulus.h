@@ -129,113 +129,37 @@ public:
     //! Destructor. Releases dynamically allocated memory.
     ~Stimulus ();
 
-    void setSequence (Ptr<Sequence> sequence)
-    {
-        this->sequence = sequence;
-    }
+    void setSequence (Ptr<Sequence> sequence);
 
     void onSequenceComplete ();
 
-    unsigned int setStartingFrame (unsigned int offset)
-    {
-        this->startingFrame = offset;
-        return duration;
-    }
+    unsigned int setStartingFrame (unsigned int offset);
 
     void saveConfig (const std::string& expName);
 
     void setDuration (unsigned int duration);
-    uint getDuration () const { return duration; }
+    uint getDuration () const;
 
-    std::string getRandomGeneratorShaderSource () const
-    {
-        std::string s ("#version 450\n");
-        s += "layout (binding = 0) uniform ubo_patternSizeOnRetina { vec2 patternSizeOnRetina; };\n";
-        s += "layout (binding = 1) uniform ubo_swizzleForFft { bool swizzleForFft; };\n";
-        s += "layout (binding = 2) uniform ubo_frame { int frame; };\n";
-        s += "layout (binding = 3) uniform ubo_time { float time; };\n";
+    std::string getRandomGeneratorShaderSource () const;
 
-        //for(auto& svar : shaderColors)
-        //{
-        //	s += "uniform vec3 ";
-        //	s += svar.first;
-        //	s += ";\n";
-        //}
-        //for(auto& svar : shaderVectors)
-        //{
-        //	s += "uniform vec2 ";
-        //	s += svar.first;
-        //	s += ";\n";
-        //}
-        //for(auto& svar : shaderVariables)
-        //{
-        //	s += "uniform float ";
-        //	s += svar.first;
-        //	s += ";\n";
-        //}
-        return s + randomGeneratorShaderSource;
-    }
+    std::string getParticleShaderSource () const;
 
-    std::string getParticleShaderSource () const
-    {
-        std::string s ("#version 450\n");
-        s += "uniform vec2 patternSizeOnRetina;\n";
-        s += "uniform int frame;\n";
-        s += "uniform float time;\n";
+    std::string getTemporalFilterShaderSource () const;
 
-        return s + particleShaderSource;
-    }
+    std::string getTemporalFilterPlotVertexShaderSource () const;
 
-    std::string getTemporalFilterShaderSource () const
-    {
-        std::string s ("#version 450\n");
-        return s +
-               "	uniform sampler1D gamma;																	\n" +
-               temporalFilterFuncSource + temporalFilterShaderSource;
-    }
+    std::string getTemporalFilterPlotFragmentShaderSource () const;
 
-    std::string getTemporalFilterPlotVertexShaderSource () const
-    {
-        std::string s ("#version 450\n");
-        return s +
-               "	uniform sampler1D gamma;																	\n" + temporalFilterFuncSource + temporalFilterPlotVertexShaderSource;
-    }
+    void setSpatialFilter (Ptr<SpatialFilter> spatialFilter);
 
-    std::string getTemporalFilterPlotFragmentShaderSource () const
-    {
-        std::string s ("#version 450\n");
-        return s + temporalFilterPlotFragmentShaderSource;
-    }
-
-    void setSpatialFilter (Ptr<SpatialFilter> spatialFilter)
-    {
-        this->spatialFilter                      = spatialFilter;
-        this->fullScreenTemporalFiltering        = true;
-        this->doesToneMappingInStimulusGenerator = false;
-        if (this->temporalMemoryLength == 0 && this->temporalProcessingStateCount == 0) {
-            this->temporalMemoryLength = 1;
-            this->temporalWeights[63]  = 1;
-            for (int i = 0; i < 63; i++)
-                temporalWeights[i] = 0;
-            temporalWeightMin = 1;
-            temporalWeightMax = 1;
-        }
-    }
-
-    Ptr<const SpatialFilter> getSpatialFilter () const
-    {
-        return spatialFilter;
-    }
+    Ptr<const SpatialFilter> getSpatialFilter () const;
 
     float getSpatialPlotMin ();
     float getSpatialPlotMax ();
     float getSpatialPlotWidth ();
     float getSpatialPlotHeight ();
 
-    uint getStartingFrame () const
-    {
-        return startingFrame;
-    }
+    uint getStartingFrame () const;
 
     pybind11::object set (pybind11::object settings);
 
@@ -273,17 +197,11 @@ public:
     pybind11::object onFrame (pybind11::object callback);
     pybind11::object onFinish (pybind11::object callback);
 
-    bool hasSpatialFiltering () const
-    {
-        return spatialFilter != nullptr;
-    }
+    bool hasSpatialFiltering () const;
 
-    bool hasTemporalFiltering () const
-    {
-        return temporalMemoryLength > 1 || this->temporalProcessingStateCount > 0;
-    }
+    bool hasTemporalFiltering () const;
 
-    Ptr<Sequence> getSequence () { return sequence; }
+    Ptr<Sequence> getSequence ();
 
     float getDuration_s () const;
 
@@ -291,53 +209,41 @@ public:
     pybind11::object setPythonObject (pybind11::object o);
     pybind11::object getPythonObject () const;
 
-    bool usesChannel (std::string channel) { return stimulusChannels.count (channel) == 1; }
-    uint getChannelCount () { return stimulusChannels.size (); }
+    bool usesChannel (std::string channel);
+    uint getChannelCount ();
 
     pybind11::object getMeasuredHistogramAsPythonList ();
 
-    void setMeasuredDynamics (
-        float  measuredToneRangeMin,
-        float  measuredToneRangeMax,
-        float  measuredMean,
-        float  measuredVariance,
-        float* histi,
-        uint   histogramResolution) const;
+    void setMeasuredDynamics (float  measuredToneRangeMin,
+                              float  measuredToneRangeMax,
+                              float  measuredMean,
+                              float  measuredVariance,
+                              float* histi,
+                              uint   histogramResolution) const;
 
-    pybind11::object setMeasuredDynamicsFromPython (
-        float            measuredToneRangeMin,
-        float            measuredToneRangeMax,
-        float            measuredMean,
-        float            measuredVariance,
-        pybind11::object histogramList) const;
+    pybind11::object setMeasuredDynamicsFromPython (float            measuredToneRangeMin,
+                                                    float            measuredToneRangeMax,
+                                                    float            measuredMean,
+                                                    float            measuredVariance,
+                                                    pybind11::object histogramList) const;
 
     void setToneMappingLinear (float min, float max, bool dynamic) const;
     void setToneMappingErf (float mean, float var, bool dynamic) const;
     void setToneMappingEqualized (bool dynamic) const;
 
-    const SignalMap& getSignals () const { return tickSignals; }
+    const SignalMap& getSignals () const;
 
-    void                          enableColorMode () { mono = false; }
+    void enableColorMode ();
+
     const std::vector<Ptr<Pass>>& getPasses () const;
 
-    void setClearColor (float all, float r, float g, float b)
-    {
-        if (all >= -1)
-            clearColor = glm::vec3 (all, all, all);
-        else
-            clearColor = glm::vec3 (r, g, b);
-    }
+    void setClearColor (float all, float r, float g, float b);
 
-    void addTag (std::string tag)
-    {
-        interactives.insert (tag);
-    }
-    const std::set<std::string>& getTags () const { return interactives; }
+    void addTag (std::string tag);
 
-    bool doesErfToneMapping () const
-    {
-        return toneMappingMode == ToneMappingMode::ERF;
-    }
+    const std::set<std::string>& getTags () const;
+
+    bool doesErfToneMapping () const;
 
     std::string getDynamicToneShaderSource () const;
 };

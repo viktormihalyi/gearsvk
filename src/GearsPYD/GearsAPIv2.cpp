@@ -128,8 +128,7 @@ std::string GetGLSLResourcesForRandoms ()
     return R"(
 #ifndef GEARS_RANDOMS_RESOURCES
 #define GEARS_RANDOMS_RESOURCES
-#define RANDOMS_ARRAY_SIZE 5
-    layout (binding = 201) uniform usampler2D randoms[RANDOMS_ARRAY_SIZE];
+    layout (binding = 201) uniform usampler2D randoms;
     layout (binding = 202) uniform ubo_cellSize { vec2 cellSize; };
     layout (binding = 203) uniform ubo_randomGridSize { ivec2 randomGridSize; };
     layout (binding = 204) uniform ubo_randomsIndex { uint randomsIndex; };

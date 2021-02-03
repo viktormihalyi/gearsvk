@@ -41,13 +41,13 @@ private:
 public:
     StimulusAdapterForPresentable (const VulkanEnvironment& environment, Ptr<Presentable>& presentable, const PtrC<Stimulus>& stimulus);
 
-    void RenderFrameIndex (const uint32_t frameIndex);
+    void RenderFrameIndex (const PtrC<Stimulus>& stimulus, const uint32_t frameIndex);
 
     void Wait ();
 
 private:
     void SetConstantUniforms ();
-    void SetUniforms (const GearsVk::UUID& renderOperationId, const uint32_t frameIndex);
+    void SetUniforms (const GearsVk::UUID& renderOperationId, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex);
 };
 
 

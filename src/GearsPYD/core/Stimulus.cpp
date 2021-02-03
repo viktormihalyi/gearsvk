@@ -274,6 +274,7 @@ Stimulus::~Stimulus ()
     interactives.clear ();
 }
 
+
 pybind11::object Stimulus::setGamma (pybind11::object gammaList, bool invert)
 {
     using namespace pybind11;
@@ -305,6 +306,7 @@ pybind11::object Stimulus::setGamma (pybind11::object gammaList, bool invert)
     return gammaList;
 }
 
+
 pybind11::object Stimulus::setTemporalWeights (pybind11::object twList, bool fullScreen)
 {
     throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
@@ -333,6 +335,7 @@ pybind11::object Stimulus::setTemporalWeights (pybind11::object twList, bool ful
 #endif
     return twList;
 }
+
 
 //pybind11::object Stimulus::set(pybind11::object settings)
 //{
@@ -376,12 +379,14 @@ float Stimulus::getSpatialPlotMin ()
     return 0;
 }
 
+
 float Stimulus::getSpatialPlotMax ()
 {
     if (spatialFilter)
         return spatialFilter->maximum;
     return 1;
 }
+
 
 float Stimulus::getSpatialPlotWidth ()
 {
@@ -390,12 +395,14 @@ float Stimulus::getSpatialPlotWidth ()
     return 200.0;
 }
 
+
 float Stimulus::getSpatialPlotHeight ()
 {
     if (spatialFilter)
         return spatialFilter->height_um;
     return 200.0;
 }
+
 
 void Stimulus::raiseSignalOnTick (uint iTick, std::string channel)
 {
@@ -406,6 +413,7 @@ void Stimulus::raiseSignalOnTick (uint iTick, std::string channel)
     stimulusChannels.insert (channel);
 }
 
+
 void Stimulus::clearSignalOnTick (uint iTick, std::string channel)
 {
     SignalEvent e;
@@ -415,10 +423,12 @@ void Stimulus::clearSignalOnTick (uint iTick, std::string channel)
     stimulusChannels.insert (channel);
 }
 
+
 void Stimulus::overrideTickSignals ()
 {
     tickSignals.clear ();
 }
+
 
 pybind11::object Stimulus::onStart (pybind11::object callback)
 {
@@ -426,11 +436,13 @@ pybind11::object Stimulus::onStart (pybind11::object callback)
     return startCallback;
 }
 
+
 pybind11::object Stimulus::onFrame (pybind11::object callback)
 {
     frameCallback = callback;
     return frameCallback;
 }
+
 
 pybind11::object Stimulus::onFinish (pybind11::object callback)
 {
@@ -445,15 +457,18 @@ pybind11::object Stimulus::setJoiner (pybind11::object joiner)
     return this->joiner;
 }
 
+
 float Stimulus::getDuration_s () const
 {
     return duration * sequence->getFrameInterval_s ();
 }
 
+
 void Stimulus::setDuration (unsigned int duration)
 {
     this->duration = sequence->useHighFreqRender ? roundForHighFrequency (duration) : duration;
 }
+
 
 pybind11::object Stimulus::setPythonObject (pybind11::object o)
 {
@@ -461,10 +476,12 @@ pybind11::object Stimulus::setPythonObject (pybind11::object o)
     return pythonObject;
 }
 
+
 pybind11::object Stimulus::getPythonObject () const
 {
     return pythonObject;
 }
+
 
 pybind11::object Stimulus::getMeasuredHistogramAsPythonList ()
 {
@@ -474,17 +491,18 @@ pybind11::object Stimulus::getMeasuredHistogramAsPythonList ()
     return l;
 }
 
+
 unsigned int Stimulus::roundForHighFrequency (unsigned int duration)
 {
     return (duration % 3 == 0) ? duration : ((duration % 3 == 1) ? duration - 1 : duration + 1);
 }
 
-pybind11::object Stimulus::setMeasuredDynamicsFromPython (
-    float            measuredToneRangeMin,
-    float            measuredToneRangeMax,
-    float            measuredMean,
-    float            measuredVariance,
-    pybind11::object histogramList) const
+
+pybind11::object Stimulus::setMeasuredDynamicsFromPython (float            measuredToneRangeMin,
+                                                          float            measuredToneRangeMax,
+                                                          float            measuredMean,
+                                                          float            measuredVariance,
+                                                          pybind11::object histogramList) const
 {
     const_cast<Stimulus*> (this)->measuredToneRangeMin = measuredToneRangeMin;
     const_cast<Stimulus*> (this)->measuredToneRangeMax = measuredToneRangeMax;
@@ -497,13 +515,12 @@ pybind11::object Stimulus::setMeasuredDynamicsFromPython (
     return histogramList;
 }
 
-void Stimulus::setMeasuredDynamics (
-    float  measuredToneRangeMin,
-    float  measuredToneRangeMax,
-    float  measuredMean,
-    float  measuredVariance,
-    float* histi,
-    uint   histogramResolution) const
+void Stimulus::setMeasuredDynamics (float  measuredToneRangeMin,
+                                    float  measuredToneRangeMax,
+                                    float  measuredMean,
+                                    float  measuredVariance,
+                                    float* histi,
+                                    uint   histogramResolution) const
 {
     const_cast<Stimulus*> (this)->measuredToneRangeMin = measuredToneRangeMin;
     const_cast<Stimulus*> (this)->measuredToneRangeMax = measuredToneRangeMax;
@@ -803,4 +820,180 @@ std::string Stimulus::getDynamicToneShaderSource () const
     else //if(toneMappingMode == ToneMappingMode::EQUALIZED)
         return s +
                "	uniform sampler1D gamma;																	\n" + equalizedDynamicToneShaderSource;
+}
+
+
+void Stimulus::setSequence (Ptr<Sequence> sequence)
+{
+    this->sequence = sequence;
+}
+
+
+unsigned int Stimulus::setStartingFrame (unsigned int offset)
+{
+    this->startingFrame = offset;
+    return duration;
+}
+
+
+uint Stimulus::getDuration () const
+{
+    return duration;
+}
+
+
+std::string Stimulus::getRandomGeneratorShaderSource () const
+{
+    std::string s ("#version 450\n");
+    s += "layout (binding = 200) uniform ubo_patternSizeOnRetina { vec2 patternSizeOnRetina; };\n";
+    s += "layout (binding = 201) uniform ubo_swizzleForFft { bool swizzleForFft; };\n";
+    s += "layout (binding = 202) uniform ubo_frame { int frame; };\n";
+    s += "layout (binding = 203) uniform ubo_time { float time; };\n";
+
+    //for(auto& svar : shaderColors)
+    //{
+    //	s += "uniform vec3 ";
+    //	s += svar.first;
+    //	s += ";\n";
+    //}
+    //for(auto& svar : shaderVectors)
+    //{
+    //	s += "uniform vec2 ";
+    //	s += svar.first;
+    //	s += ";\n";
+    //}
+    //for(auto& svar : shaderVariables)
+    //{
+    //	s += "uniform float ";
+    //	s += svar.first;
+    //	s += ";\n";
+    //}
+    return s + randomGeneratorShaderSource;
+}
+
+std::string Stimulus::getParticleShaderSource () const
+{
+    std::string s ("#version 450\n");
+    s += "uniform vec2 patternSizeOnRetina;\n";
+    s += "uniform int frame;\n";
+    s += "uniform float time;\n";
+
+    return s + particleShaderSource;
+}
+
+std::string Stimulus::getTemporalFilterShaderSource () const
+{
+    std::string s ("#version 450\n");
+    return s + "	uniform sampler1D gamma;	\n" + temporalFilterFuncSource + temporalFilterShaderSource;
+}
+
+
+std::string Stimulus::getTemporalFilterPlotVertexShaderSource () const
+{
+    std::string s ("#version 450\n");
+    return s + "	uniform sampler1D gamma;	\n" + temporalFilterFuncSource + temporalFilterPlotVertexShaderSource;
+}
+
+
+std::string Stimulus::getTemporalFilterPlotFragmentShaderSource () const
+{
+    std::string s ("#version 450\n");
+    return s + temporalFilterPlotFragmentShaderSource;
+}
+
+
+void Stimulus::setSpatialFilter (Ptr<SpatialFilter> spatialFilter)
+{
+    this->spatialFilter                      = spatialFilter;
+    this->fullScreenTemporalFiltering        = true;
+    this->doesToneMappingInStimulusGenerator = false;
+    if (this->temporalMemoryLength == 0 && this->temporalProcessingStateCount == 0) {
+        this->temporalMemoryLength = 1;
+        this->temporalWeights[63]  = 1;
+        for (int i = 0; i < 63; i++)
+            temporalWeights[i] = 0;
+        temporalWeightMin = 1;
+        temporalWeightMax = 1;
+    }
+}
+
+
+Ptr<const SpatialFilter> Stimulus::getSpatialFilter () const
+{
+    return spatialFilter;
+}
+
+
+uint Stimulus::getStartingFrame () const
+{
+    return startingFrame;
+}
+
+
+bool Stimulus::hasSpatialFiltering () const
+{
+    return spatialFilter != nullptr;
+}
+
+
+bool Stimulus::hasTemporalFiltering () const
+{
+    return temporalMemoryLength > 1 || this->temporalProcessingStateCount > 0;
+}
+
+
+Ptr<Sequence> Stimulus::getSequence ()
+{
+    return sequence;
+}
+
+
+bool Stimulus::usesChannel (std::string channel)
+{
+    return stimulusChannels.count (channel) == 1;
+}
+
+
+uint Stimulus::getChannelCount ()
+{
+    return stimulusChannels.size ();
+}
+
+
+const Stimulus::SignalMap& Stimulus::getSignals () const
+{
+    return tickSignals;
+}
+
+
+void Stimulus::enableColorMode ()
+{
+    mono = false;
+}
+
+
+void Stimulus::setClearColor (float all, float r, float g, float b)
+{
+    if (all >= -1)
+        clearColor = glm::vec3 (all, all, all);
+    else
+        clearColor = glm::vec3 (r, g, b);
+}
+
+
+void Stimulus::addTag (std::string tag)
+{
+    interactives.insert (tag);
+}
+
+
+const std::set<std::string>& Stimulus::getTags () const
+{
+    return interactives;
+}
+
+
+bool Stimulus::doesErfToneMapping () const
+{
+    return toneMappingMode == ToneMappingMode::ERF;
 }

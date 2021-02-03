@@ -239,13 +239,13 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
     shader.setEnvTarget (EShTargetSpv, TargetVersion);
 
     if (!shader.parse (&resources, 100, false, messages)) {
-        throw ShaderCompileException (shader.getInfoLog ());
+        throw ShaderCompileException (sourceCode + "\n\n" + shader.getInfoLog ());
     }
     TProgram program;
     program.addShader (&shader);
 
     if (!program.link (EShMsgDefault)) {
-        throw ShaderCompileException (program.getInfoLog ());
+        throw ShaderCompileException (sourceCode + "\n\n" + program.getInfoLog ());
     }
 
     spv::SpvBuildLogger logger;

@@ -244,13 +244,18 @@ add_custom_command (
     COMMENT "Copying ${TARGET_DLL}..."
 )
 
+if (${CMAKE_BUILD_TYPE} EQUAL "Debug")
+    set (PYTHON_MODULE_POSTFIX d)
+    # TODO handle for other platforms
+endif ()
+
 if (WIN32)
 add_custom_command (
     TARGET ${TARGET_DLL}
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename
-        ${UI_PATH}/GearsModule.dll
-        ${UI_PATH}/GearsModule.pyd
+        ${UI_PATH}/${TARGET_DLL}.dll
+        ${UI_PATH}/${TARGET_DLL}${PYTHON_MODULE_POSTFIX}.pyd
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Rename .dll to .pyd..."
 )

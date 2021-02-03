@@ -23,9 +23,11 @@
 #include <string>
 
 
-StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnvironment& environment, Ptr<Presentable>& presentable, const Stimulus::CP& stimulus)
-    : stimulus (stimulus)
-    , presentable (presentable)
+constexpr bool LogDebugInfo = false;
+
+
+StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnvironment& environment, Ptr<Presentable>& presentable, const PtrC<Stimulus>& stimulus)
+    : presentable (presentable)
 {
     renderGraph = RG::RenderGraph::Create ();
 
@@ -40,34 +42,16 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
     GVK_ASSERT (passes.size () == 1);
 
     for (const Pass::P& pass : passes) {
+        if constexpr (LogDebugInfo) {
+            std::cout << pass->ToDebugString () << std::endl;
+        }
+
         GVK_ASSERT (pass->rasterizationMode == Pass::RasterizationMode::fullscreen);
         GVK_ASSERT (pass->rasterizationMode == Pass::RasterizationMode::fullscreen);
 
         const std::string vert = pass->getStimulusGeneratorVertexShaderSource (pass->rasterizationMode);
         const std::string geom = pass->getStimulusGeneratorGeometryShaderSource (pass->rasterizationMode);
         const std::string frag = pass->getStimulusGeneratorShaderSource ();
-
-        /*
-        ShaderPipelineP randomPip = ShaderPipeline::Create (*environment.device);
-        randomPip->SetVertexShaderFromString (*Utils::ReadTextFile (PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Shaders" / "quad.vert"));
-        randomPip->SetFragmentShaderFromString (stim->getRandomGeneratorShaderSource ());
-
-        {
-            RG::RenderGraph randomGenerator;
-
-            auto randomResourceHistory = randomGenerator.CreateResource<SingleWritableImageResource> (VK_FILTER_LINEAR, 256, 256, 5, VK_FORMAT_R8G8B8A8_UINT);
-            auto randomResourceOUT     = randomGenerator.CreateResource<SingleWritableImageResource> (VK_FILTER_LINEAR, 256, 256, 1, VK_FORMAT_R8G8B8A8_UINT);
-            auto randomRender          = randomGenerator.CreateOperation<RenderOperation> (DrawRecordableInfo::Create (1, 4), randomPip, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
-            auto backTransfer1         = randomGenerator.CreateOperation<TransferOperation> ();
-            auto backTransfer2         = randomGenerator.CreateOperation<TransferOperation> ();
-            auto backTransfer3         = randomGenerator.CreateOperation<TransferOperation> ();
-            auto backTransfer4         = randomGenerator.CreateOperation<TransferOperation> ();
-
-            randomGenerator.CreateInputConnection (*randomRender, *randomResourceHistory, ImageInputBinding::Create (0, *randomResourceHistory));
-            randomGenerator.CreateInputConnection (*randomRender, *randomResourceHistory, ImageInputBinding::Create (0, *randomResourceHistory));
-            randomGenerator.CreateOutputConnection (*randomRender, 0, *randomResourceOUT);
-        }
-        */
 
         ShaderPipelineU sequencePip = ShaderPipeline::Create (*environment.device);
 
@@ -85,6 +69,9 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
         }
         passOperation->compileSettings.blendEnabled = passes.size () > 1;
 
+        GVK_ASSERT (!stimulus->usesForwardRendering);
+        GVK_ASSERT (stimulus->mono);
+
         s.connectionSet.Add (passOperation, presented,
                              RG::OutputBinding::Create (0,
                                                         presented->GetFormatProvider (),
@@ -96,7 +83,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
         break;
     }
 
-    reflection = RG::UniformReflection::Create (s.connectionSet);
+    std::optional<uint32_t> randomBinding;
 
     RG::ImageMap imgMap = RG::CreateEmptyImageResources (s.connectionSet, [&] (const SR::Sampler& sampler) -> std::optional<RG::CreateParams> {
         if (sampler.name == "gamma") {
@@ -104,28 +91,40 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
         }
 
         if (sampler.name == "randoms") {
-            GVK_ASSERT (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0);
-            return std::make_tuple (glm::uvec3 { stimulus->sequence->maxRandomGridWidth, stimulus->sequence->maxRandomGridHeight, 0 }, VK_FORMAT_R32G32B32A32_UINT, VK_FILTER_NEAREST);
+            randomBinding = sampler.binding;
+            return std::nullopt;
         }
 
         return std::nullopt;
     });
 
-    Ptr<RG::ReadOnlyImageResource> randomTexture = imgMap.FindByName ("randoms");
-    if (randomTexture != nullptr) {
-        randomTexture->Compile (RG::GraphSettings (*environment.deviceExtra, 0));
+    if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0 && randomBinding.has_value ()) {
+        Ptr<RG::WritableImageResource> randomTexture = RG::WritableImageResource::Create (
+            VK_FILTER_NEAREST,
+            stimulus->sequence->maxRandomGridWidth,
+            stimulus->sequence->maxRandomGridHeight,
+            1,
+            VK_FORMAT_R32G32B32A32_UINT);
 
-        std::random_device rd;
-        std::mt19937_64    gen (rd ());
+        ShaderPipelineU randoSeqPipeline = ShaderPipeline::Create (*environment.device);
+        randoSeqPipeline->SetVertexShaderFromString (*Utils::ReadTextFile (PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Shaders" / "quad.vert"));
+        randoSeqPipeline->SetFragmentShaderFromString (stimulus->getRandomGeneratorShaderSource ());
 
-        std::uniform_int_distribution<uint32_t> dis;
+        Ptr<RG::RenderOperation> randomRenderer = RG::RenderOperation::Create (DrawRecordableInfo::Create (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
-        const size_t          randomsSize = randomTexture->GetImages ()[0]->GetWidth () * randomTexture->GetImages ()[0]->GetHeight () * 4;
-        std::vector<uint32_t> randomValues (randomsSize);
-        for (uint32_t i = 0; i < randomsSize; i++)
-            randomValues[i] = dis (gen);
-        for (uint32_t i = 0; i < randomTexture->GetImages ()[0]->GetArrayLayers (); i++)
-            randomTexture->CopyLayer (randomValues, i);
+        randomRenderer->compileSettings.blendEnabled = false;
+
+        s.connectionSet.Add (randomRenderer, randomTexture,
+                             RG::OutputBinding::Create (0,
+                                                        randomTexture->GetFormatProvider (),
+                                                        randomTexture->GetFinalLayout (),
+                                                        1,
+                                                        VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                        VK_ATTACHMENT_STORE_OP_STORE));
+
+        GVK_ASSERT (randomBinding.has_value ());
+        s.connectionSet.Add (randomTexture, passToOperation[passes[0]],
+                             RG::ImageInputBinding::Create (*randomBinding, *randomTexture, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
     }
 
     Ptr<RG::ReadOnlyImageResource> gammaTexture = imgMap.FindByName ("gamma");
@@ -141,6 +140,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
         gammaAndTemporalWeights[128 + i] = stimulus->temporalWeights[i];
     gammaTexture->CopyTransitionTransfer (gammaAndTemporalWeights);
 
+    reflection = RG::UniformReflection::Create (s.connectionSet);
 
     renderGraph->Compile (std::move (s));
 
@@ -160,7 +160,8 @@ void StimulusAdapterForPresentable::SetConstantUniforms ()
     }
 }
 
-void StimulusAdapterForPresentable::SetUniforms (const GearsVk::UUID& renderOperationId, const uint32_t frameIndex)
+
+void StimulusAdapterForPresentable::SetUniforms (const GearsVk::UUID& renderOperationId, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex)
 {
     RG::UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOperationId][ShaderKind::Vertex];
     RG::UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOperationId][ShaderKind::Fragment];
@@ -204,7 +205,8 @@ void StimulusAdapterForPresentable::SetUniforms (const GearsVk::UUID& renderOper
     }
 }
 
-void StimulusAdapterForPresentable::RenderFrameIndex (const uint32_t frameIndex)
+
+void StimulusAdapterForPresentable::RenderFrameIndex (const PtrC<Stimulus>& stimulus, const uint32_t frameIndex)
 {
     const uint32_t stimulusStartingFrame = stimulus->getStartingFrame ();
     const uint32_t stimulusEndingFrame   = stimulus->getStartingFrame () + stimulus->getDuration ();
@@ -216,10 +218,12 @@ void StimulusAdapterForPresentable::RenderFrameIndex (const uint32_t frameIndex)
     SingleEventObserver obs;
     obs.Observe (renderer->preSubmitEvent, [&] (RG::RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
         for (auto& [pass, renderOp] : passToOperation) {
-            SetUniforms (renderOp->GetUUID (), frameIndex);
+            SetUniforms (renderOp->GetUUID (), stimulus, frameIndex);
         }
 
-        reflection->PrintDebugInfo ();
+        if constexpr (LogDebugInfo) {
+            reflection->PrintDebugInfo ();
+        }
 
         reflection->Flush (swapchainImageIndex);
     });

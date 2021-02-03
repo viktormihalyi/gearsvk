@@ -242,4 +242,6 @@ public:
     void onSequenceComplete ();
 
     void enableColorMode () { mono = false; }
+
+    std::string ToDebugString () const;
 };

@@ -2,8 +2,8 @@
 
 // from GearsVk
 #include "Assert.hpp"
-#include "VulkanEnvironment.hpp"
 #include "GraphRenderer.hpp"
+#include "VulkanEnvironment.hpp"
 
 // from Gears
 #include "StimulusAdapterForPresentable.hpp"
@@ -19,27 +19,20 @@ StimulusAdapterView::StimulusAdapterView (VulkanEnvironment& environment, const 
 
 void StimulusAdapterView::CreateForPresentable (Ptr<Presentable>& presentable)
 {
+    const bool contains = std::find_if (compiledAdapters.begin (), compiledAdapters.end (), [&] (const auto& x) { return x.first == presentable; }) != compiledAdapters.end ();
+    if (GVK_ERROR (contains)) {
+        return;
+    }
+
     compiledAdapters[presentable] = StimulusAdapterForPresentable::Create (environment, presentable, stimulus);
 }
 
 
-void StimulusAdapterView::RenderFrameIndex (Ptr<Presentable>& presentable, const uint32_t frameIndex)
+void StimulusAdapterView::RenderFrameIndex (Ptr<Presentable>& presentable, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex)
 {
     if (GVK_ERROR (compiledAdapters.find (presentable) == compiledAdapters.end ())) {
         return;
     }
 
-    compiledAdapters[presentable]->RenderFrameIndex (frameIndex);
-}
-
-
-uint32_t StimulusAdapterView::GetStartingFrame () const
-{
-    return stimulus->getStartingFrame ();
-}
-
-
-uint32_t StimulusAdapterView::GetEndingFrame () const
-{
-    return stimulus->getStartingFrame () + stimulus->getDuration ();
+    compiledAdapters[presentable]->RenderFrameIndex (stimulus, frameIndex);
 }

@@ -113,6 +113,7 @@ public:
         }
     }
 
+
     void VisitInputsOf (const Node* node, IConnectionBindingVisitor& visitor) const
     {
         for (const ConnectionU& c : connections) {
@@ -129,6 +130,7 @@ public:
         nodes.insert (to);
         connections.push_back (Connection::Create (from, to, std::move (binding)));
     }
+
 
     void Add (const Ptr<Node>& node)
     {

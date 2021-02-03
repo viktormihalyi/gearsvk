@@ -30,11 +30,7 @@ public:
 
     void CreateForPresentable (Ptr<Presentable>& presentable);
 
-    void RenderFrameIndex (Ptr<Presentable>& presentable, const uint32_t frameIndex);
-
-    uint32_t GetStartingFrame () const;
-
-    uint32_t GetEndingFrame () const;
+    void RenderFrameIndex (Ptr<Presentable>& presentable, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex);
 };
 
 #endif

@@ -17,10 +17,13 @@ private:
     const VkDevice        device;
     VkDescriptorSetLayout handle;
 
+    std::vector<VkDescriptorSetLayoutBinding> bindings;
+
 public:
     DescriptorSetLayout (VkDevice device, const std::vector<VkDescriptorSetLayoutBinding>& bindings)
         : device (device)
         , handle (VK_NULL_HANDLE)
+        , bindings (bindings)
     {
         for (size_t i = 0; i < bindings.size (); ++i) {
             for (size_t j = 0; j < bindings.size (); ++j) {
@@ -43,8 +46,10 @@ public:
     DescriptorSetLayout (DescriptorSetLayout&& other)
         : device (other.device)
         , handle (other.handle)
+        , bindings (other.bindings)
     {
         other.handle = VK_NULL_HANDLE;
+        other.bindings.clear ();
     }
 
     virtual ~DescriptorSetLayout () override

@@ -82,6 +82,7 @@ void BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph)
     }
 }
 
+
 SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (const DeviceExtra& device, Swapchain& swapchain)
     : RecreatableGraphRenderer (swapchain)
     , framesInFlight (swapchain.GetImageCount ())

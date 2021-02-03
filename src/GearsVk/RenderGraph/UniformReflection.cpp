@@ -138,6 +138,9 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
                 Ptr<ReadOnlyImageResource> imgRes;
 
                 const std::optional<CreateParams> providedExtent = extentProvider (sampler);
+                if (!providedExtent.has_value ()) {
+                    continue;
+                }
 
                 const glm::uvec3 extent = providedExtent.has_value () ? std::get<0> (*providedExtent) : glm::uvec3 { 512, 512, 512 };
                 const VkFormat   format = providedExtent.has_value () ? std::get<1> (*providedExtent) : VK_FORMAT_R8_SRGB;

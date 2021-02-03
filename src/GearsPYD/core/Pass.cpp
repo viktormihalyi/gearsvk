@@ -12,6 +12,7 @@
 #include <sstream>
 
 #include "Utils.hpp"
+#include "Assert.hpp"
 
 
 Pass::Pass ()
@@ -541,4 +542,37 @@ std::string Pass::getStimulusGeneratorShaderSource () const
 void Pass::setStimulusGeneratorShaderSource (const std::string& src)
 {
     stimulusGeneratorShaderSource = src;
+}
+
+
+std::string Pass::ToDebugString () const
+{
+    std::stringstream ss;
+    
+    ss << "Name: " << name << std::endl;
+    ss << "Brief: " << brief << std::endl;
+
+    switch (rasterizationMode) {
+        case RasterizationMode::fullscreen: ss << "RasterizationMode::fullscreen"; break;
+        case RasterizationMode::quads: ss << "RasterizationMode::quads"; break;
+        case RasterizationMode::triangles: ss << "RasterizationMode::triangles"; break;
+        default: GVK_BREAK ("unkown RasterizationMode"); ss << "unkown RasterizationMode"; break;
+    }
+
+    ss << std::endl;
+
+    const std::string vert = getStimulusGeneratorVertexShaderSource (rasterizationMode);
+    const std::string geom = getStimulusGeneratorGeometryShaderSource (rasterizationMode);
+    const std::string frag = getStimulusGeneratorShaderSource ();
+
+    if (!vert.empty ())
+        ss << "Vertex shader:" << std::endl << vert << std::endl;
+
+    if (!geom.empty ())
+        ss << "Geometry shader:" << std::endl << geom << std::endl;
+
+    if (!frag.empty ())
+        ss << "Fragment shader:" << std::endl << frag << std::endl;
+
+    return ss.str ();
 }
