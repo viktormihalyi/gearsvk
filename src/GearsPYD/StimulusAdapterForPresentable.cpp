@@ -110,11 +110,11 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
         randoSeqPipeline->SetVertexShaderFromString (*Utils::ReadTextFile (PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Shaders" / "quad.vert"));
         randoSeqPipeline->SetFragmentShaderFromString (stimulus->getRandomGeneratorShaderSource ());
 
-        Ptr<RG::RenderOperation> randomRenderer = RG::RenderOperation::Create (DrawRecordableInfo::Create (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        randomGeneratorOperation = RG::RenderOperation::Create (DrawRecordableInfo::Create (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
-        randomRenderer->compileSettings.blendEnabled = false;
+        std::static_pointer_cast<RG::RenderOperation> (randomGeneratorOperation)->compileSettings.blendEnabled = false;
 
-        s.connectionSet.Add (randomRenderer, randomTexture,
+        s.connectionSet.Add (randomGeneratorOperation, randomTexture,
                              RG::OutputBinding::Create (0,
                                                         randomTexture->GetFormatProvider (),
                                                         randomTexture->GetFinalLayout (),
@@ -219,6 +219,10 @@ void StimulusAdapterForPresentable::RenderFrameIndex (const PtrC<Stimulus>& stim
     obs.Observe (renderer->preSubmitEvent, [&] (RG::RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
         for (auto& [pass, renderOp] : passToOperation) {
             SetUniforms (renderOp->GetUUID (), stimulus, frameIndex);
+        }
+
+        if (randomGeneratorOperation != nullptr) {
+            (*reflection)[randomGeneratorOperation->GetUUID ()][ShaderKind::Fragment]["ubo_seed"] = static_cast<uint32_t> (frameIndex);
         }
 
         if constexpr (LogDebugInfo) {

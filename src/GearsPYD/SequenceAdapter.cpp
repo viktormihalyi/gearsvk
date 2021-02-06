@@ -103,11 +103,9 @@ SequenceAdapter::SequenceAdapter (VulkanEnvironment& environment, const Sequence
 
         if (equivalentAdapter != nullptr) {
             views[stim] = equivalentAdapter;
-            std::cout << "recycling " << stindex << std::endl;
         } else {
             views[stim]   = StimulusAdapterView::Create (environment, stim);
             created[stim] = views[stim];
-            std::cout << "creating new " << stindex << std::endl;
         }
 
         ++stindex;

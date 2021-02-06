@@ -36,6 +36,7 @@ private:
     Ptr<RG::RenderGraph>                      renderGraph;
     Ptr<RG::UniformReflection>                reflection;
     std::map<Ptr<Pass>, Ptr<RG::Operation>>   passToOperation;
+    Ptr<RG::Operation>                        randomGeneratorOperation;
     U<RG::SynchronizedSwapchainGraphRenderer> renderer;
 
 public:

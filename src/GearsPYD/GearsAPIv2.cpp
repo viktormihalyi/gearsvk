@@ -116,9 +116,11 @@ void Wait ()
 
 void DestroySurface (intptr_t surfaceHandle)
 {
-    createdSurfaces.erase (std::remove_if (createdSurfaces.begin (), createdSurfaces.end (), [&] (const Ptr<Presentable>& p) {
-                               return reinterpret_cast<intptr_t> (p.get ()) == surfaceHandle;
-                           }),
+    const auto FindPresentable = [&] (const Ptr<Presentable>& p) {
+        return reinterpret_cast<intptr_t> (p.get ()) == surfaceHandle;
+    };
+
+    createdSurfaces.erase (std::remove_if (createdSurfaces.begin (), createdSurfaces.end (), FindPresentable),
                            createdSurfaces.end ());
 }
 

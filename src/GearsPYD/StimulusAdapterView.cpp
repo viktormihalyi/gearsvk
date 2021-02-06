@@ -20,7 +20,7 @@ StimulusAdapterView::StimulusAdapterView (VulkanEnvironment& environment, const 
 void StimulusAdapterView::CreateForPresentable (Ptr<Presentable>& presentable)
 {
     const bool contains = std::find_if (compiledAdapters.begin (), compiledAdapters.end (), [&] (const auto& x) { return x.first == presentable; }) != compiledAdapters.end ();
-    if (GVK_ERROR (contains)) {
+    if (contains) {
         return;
     }
 
