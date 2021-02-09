@@ -34,7 +34,7 @@ try:
     gears.setSequence(movingbar)
 
     print("StartRendering")
-    gears.StartRendering(lambda: False)
+    gears.StartRendering()
 
     print("success")
     gears.DestroyEnvironment()

@@ -21,7 +21,7 @@ void DestroyEnvironment ();
 
 void SetRenderGraphFromSequence (Ptr<Sequence>);
 
-void StartRendering (const std::function<bool ()>&);
+void StartRendering ();
 
 void TryCompile (ShaderKind shaderKind, const std::string& source);
 

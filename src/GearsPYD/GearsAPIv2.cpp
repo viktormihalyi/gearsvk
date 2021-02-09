@@ -45,9 +45,16 @@ void SetRenderGraphFromSequence (Sequence::P seq)
 }
 
 
-void StartRendering (const std::function<bool ()>& doRender)
+void StartRendering ()
 {
-    currentSeq->RenderFullOnExternalWindow ();
+    try {
+        currentSeq->RenderFullOnExternalWindow ();
+    } catch (std::exception& ex) {
+        std::cerr << ex.what () << std::endl;
+        GVK_BREAK ("rendering failed");
+    } catch (...) {
+        GVK_BREAK ("rendering failed!!");
+    }
 }
 
 

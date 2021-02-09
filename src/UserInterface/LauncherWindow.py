@@ -855,7 +855,7 @@ class LauncherWindow(QWidget):
             # Cause all warnings to always be triggered.
             warnings.simplefilter("always")
             #gears.run()
-            gears.StartRendering(lambda: False)
+            gears.StartRendering()
             for e in w:
                 self.warn(e.message)
         #self.mediaWindow.start(self)
