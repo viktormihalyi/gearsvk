@@ -57,18 +57,19 @@ endif ()
 
 set (PYTHON_VIRTUALENV_PATH env)
 
+
+if (WIN32)
+    set (PYTHON_VENV_COMMAND ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH}/Scripts/activate.bat)
+else ()
+    set (PYTHON_VENV_COMMAND source ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH}/bin/activate)
+endif ()
+
 if (NOT EXISTS ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH})
     message ("Creating Python3 virtual environment at ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH}")
     execute_process (COMMAND
         ${Python3_EXECUTABLE} -m venv ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH})
 
-    if (WIN32)
-        execute_process (COMMAND
-            ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH}/Scripts/activate.bat)
-    else ()
-        execute_process (COMMAND
-            source ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH}/bin/activate)
-    endif ()
+    execute_process (COMMAND ${PYTHON_VENV_COMMAND})
 
     message ("Insatlling pip dependencies.")
     execute_process (COMMAND
@@ -292,6 +293,7 @@ add_custom_command (
 add_custom_command (
     TARGET ${TARGET_DLL}
     POST_BUILD
+    COMMAND ${PYTHON_VENV_COMMAND}
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_BINARY_DIR}/bin/setup.py build -b ${CMAKE_BINARY_DIR}/install
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     COMMENT "Running setup.py..."
