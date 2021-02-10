@@ -280,6 +280,7 @@ else ()
     set (PYD_MODULE_EXTENSION_TARGET so)
 endif ()
 
+if (NOT ${CMAKE_BINARY_DIR}/bin/${TARGET_DLL}.${PYD_MODULE_EXTENSION_SOURCE} EQUAL ${CMAKE_BINARY_DIR}/bin/${TARGET_DLL}${PYTHON_MODULE_POSTFIX}.${PYD_MODULE_EXTENSION_TARGET})
 add_custom_command (
     TARGET ${TARGET_DLL}
     POST_BUILD
@@ -289,6 +290,7 @@ add_custom_command (
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Copying ${TARGET_DLL}..."
 )
+endif ()
 
 add_custom_command (
     TARGET ${TARGET_DLL}
