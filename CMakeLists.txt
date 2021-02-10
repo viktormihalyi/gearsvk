@@ -260,46 +260,39 @@ set (UI_PATH ${CMAKE_SOURCE_DIR}/src/UserInterface)
 add_custom_command (
     TARGET ${TARGET_DLL}
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_FILE:${TARGET_DLL}>
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${UI_PATH}
+        ${CMAKE_BINARY_DIR}/bin
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Copying ${TARGET_DLL}..."
+    COMMENT "Copying UserInterface..."
 )
 
 if (${CMAKE_BUILD_TYPE} EQUAL "Debug")
     set (PYTHON_MODULE_POSTFIX d)
-    # TODO handle for other platforms
 endif ()
 
 if (WIN32)
-add_custom_command (
-    TARGET ${TARGET_DLL}
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E rename
-        ${UI_PATH}/${TARGET_DLL}.dll
-        ${UI_PATH}/${TARGET_DLL}${PYTHON_MODULE_POSTFIX}.pyd
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Rename .dll to .pyd..."
-)
+    set (PYD_MODULE_EXTENSION_SOURCE dll)
+    set (PYD_MODULE_EXTENSION_TARGET pyd)
+else ()
+    set (PYD_MODULE_EXTENSION_SOURCE so)
+    set (PYD_MODULE_EXTENSION_TARGET so)
 endif ()
 
 add_custom_command (
-    TARGET ${TARGET_GVKRENDERER}
+    TARGET ${TARGET_DLL}
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_FILE:${TARGET_GVKRENDERER}>
-        ${UI_PATH}
+        ${CMAKE_BINARY_DIR}/bin/${TARGET_DLL}.${PYD_MODULE_EXTENSION_SOURCE}
+        ${CMAKE_BINARY_DIR}/bin/${TARGET_DLL}${PYTHON_MODULE_POSTFIX}.${PYD_MODULE_EXTENSION_TARGET}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Copying ${TARGET_GVKRENDERER}..."
+    COMMENT "Copying ${TARGET_DLL}..."
 )
 
 add_custom_command (
-    TARGET ${TARGET_GVKUTILS}
+    TARGET ${TARGET_DLL}
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_FILE:${TARGET_GVKUTILS}>
-        ${UI_PATH}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Copying ${TARGET_GVKUTILS}..."
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_BINARY_DIR}/bin/setup.py build -b ${CMAKE_BINARY_DIR}/install
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    COMMENT "Running setup.py..."
 )
