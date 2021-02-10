@@ -1,6 +1,7 @@
 #include "GearsAPIv2.hpp"
 
 // from GearsVk
+#include "GraphRenderer.hpp"
 #include "Instance.hpp"
 #include "ShaderModule.hpp"
 #include "Surface.hpp"

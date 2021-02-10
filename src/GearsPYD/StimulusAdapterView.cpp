@@ -28,11 +28,11 @@ void StimulusAdapterView::CreateForPresentable (Ptr<Presentable>& presentable)
 }
 
 
-void StimulusAdapterView::RenderFrameIndex (Ptr<Presentable>& presentable, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex)
+void StimulusAdapterView::RenderFrameIndex (RG::Renderer& renderer, Ptr<Presentable>& presentable, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex)
 {
     if (GVK_ERROR (compiledAdapters.find (presentable) == compiledAdapters.end ())) {
         return;
     }
 
-    compiledAdapters[presentable]->RenderFrameIndex (stimulus, frameIndex);
+    compiledAdapters[presentable]->RenderFrameIndex (renderer, stimulus, frameIndex);
 }

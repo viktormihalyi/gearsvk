@@ -19,6 +19,7 @@ class RenderGraph;
 class UniformReflection;
 class Operation;
 class SynchronizedSwapchainGraphRenderer;
+class Renderer;
 } // namespace RG
 
 class Presentable;
@@ -33,16 +34,15 @@ private:
     const PtrC<Stimulus>   stimulus;
     const Ptr<Presentable> presentable;
 
-    Ptr<RG::RenderGraph>                      renderGraph;
-    Ptr<RG::UniformReflection>                reflection;
-    std::map<Ptr<Pass>, Ptr<RG::Operation>>   passToOperation;
-    Ptr<RG::Operation>                        randomGeneratorOperation;
-    U<RG::SynchronizedSwapchainGraphRenderer> renderer;
+    Ptr<RG::RenderGraph>                    renderGraph;
+    Ptr<RG::UniformReflection>              reflection;
+    std::map<Ptr<Pass>, Ptr<RG::Operation>> passToOperation;
+    Ptr<RG::Operation>                      randomGeneratorOperation;
 
 public:
     StimulusAdapterForPresentable (const VulkanEnvironment& environment, Ptr<Presentable>& presentable, const PtrC<Stimulus>& stimulus);
 
-    void RenderFrameIndex (const PtrC<Stimulus>& stimulus, const uint32_t frameIndex);
+    void RenderFrameIndex (RG::Renderer& renderer, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex);
 
     void Wait ();
 

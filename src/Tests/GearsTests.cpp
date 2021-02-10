@@ -3,6 +3,7 @@
 #include "DrawRecordableInfo.hpp"
 #include "Font.hpp"
 #include "GLFWWindow.hpp"
+#include "GraphRenderer.hpp"
 #include "ImageData.hpp"
 #include "RenderGraph.hpp"
 #include "UniformReflection.hpp"
@@ -112,4 +113,6 @@ TEST_F (GearsTests, 2_chess_30Hz)
     RenderAndCompare (480, "2_chess_30Hz_480");
     RenderAndCompare (780, "2_chess_30Hz_780");
     RenderAndCompare (1200, "2_chess_30Hz_1200");
+
+    sequenceAdapter->RenderFullOnExternalWindow ();
 }

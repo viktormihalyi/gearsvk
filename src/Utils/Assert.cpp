@@ -3,6 +3,7 @@
 #include "CompilerDefinitions.hpp"
 #include "MessageBox.hpp"
 
+#include <iostream>
 #include <set>
 #include <string>
 
@@ -65,12 +66,21 @@ static void ShowAssertPopup (const std::string& title,
 }
 
 
-bool DebugAssertFunc (bool condition, const bool shouldBe, const char* message, const char* conditionString, const SourceLocation& location)
+bool DebugBreakAssertFunc (bool condition, const bool shouldBe, const char* message, const char* conditionString, const SourceLocation& location)
 {
     if (condition != shouldBe) {
         const std::string assertLocation = location.ToString ();
         bool              ignored        = true;
         ShowAssertPopup (message, conditionString, assertLocation, ignored);
+    }
+    return condition;
+}
+
+
+bool LogAssertFunc (bool condition, const bool shouldBe, const char* message, const char* conditionString, const SourceLocation& location)
+{
+    if (condition != shouldBe) {
+        std::cout << "[" << message << "] " << location.ToString () << std::endl;
     }
     return condition;
 }

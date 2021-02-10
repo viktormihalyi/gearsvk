@@ -26,6 +26,7 @@ public:
     Event<RenderGraph&, uint32_t, uint64_t> preSubmitEvent;
     Event<>                                 recreateEvent;
     Event<uint32_t>                         swapchainImageAcquiredEvent;
+    Event<>                                 presentedEvent;
 
     virtual ~Renderer () = default;
 

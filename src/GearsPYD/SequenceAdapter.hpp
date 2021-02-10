@@ -18,6 +18,9 @@ class StimulusAdapterView;
 class Stimulus;
 class Sequence;
 
+namespace RG {
+class SynchronizedSwapchainGraphRenderer;
+}
 
 USING_PTR (SequenceAdapter);
 class GEARS_API_TEST SequenceAdapter {
@@ -32,6 +35,8 @@ private:
     Ptr<Presentable>   currentPresentable;
 
     std::map<PtrC<Stimulus>, Ptr<StimulusAdapterView>> views;
+
+    U<RG::SynchronizedSwapchainGraphRenderer> renderer;
 
 public:
     SequenceAdapter (VulkanEnvironment& environment, const Ptr<Sequence>& sequence);

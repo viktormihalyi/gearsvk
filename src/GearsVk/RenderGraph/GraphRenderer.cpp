@@ -10,7 +10,7 @@
 #include "Resource.hpp"
 
 
-constexpr bool LOG_RENDERING = false;
+constexpr bool LOG_RENDERING = true;
 
 
 namespace RG {
@@ -188,6 +188,10 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph
         if constexpr (LOG_RENDERING)
             std::cout << "waited for fence " << previousFrameIndex << " " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
     }
+
+    // SIGNAL HERE
+    presentedEvent.Notify ();
+
 
     // update mapping
     imageToFrameMapping[currentImageIndex] = currentFrameIndex;

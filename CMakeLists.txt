@@ -50,9 +50,33 @@ endif ()
 if (${Python3_FOUND})
     message ("Python3_LIBRARIES    = " ${Python3_LIBRARIES})
     message ("Python3_INCLUDE_DIRS = " ${Python3_INCLUDE_DIRS})
+    message ("Python3_EXECUTABLE   = " ${Python3_EXECUTABLE})
 else ()
     error ()
 endif ()
+
+set (PYTHON_VIRTUALENV_PATH env)
+
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH})
+    message ("Creating Python3 virtual environment at ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH}")
+    execute_process (COMMAND
+        ${Python3_EXECUTABLE} -m venv ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH})
+
+    if (WIN32)
+        execute_process (COMMAND
+            ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH}/Scripts/activate.bat)
+    else ()
+        execute_process (COMMAND
+            source ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH}/bin/activate)
+    endif ()
+
+    message ("Insatlling pip dependencies.")
+    execute_process (COMMAND
+        ${Python3_EXECUTABLE} -m pip install -r ${CMAKE_SOURCE_DIR}/requirements.txt)
+else ()
+    message ("Python3 virtual environment already exists at ${CMAKE_SOURCE_DIR}/${PYTHON_VIRTUALENV_PATH}")
+endif ()
+
 
 if (MSVC)
     set (COMPILER_FLAGS /wd4251 /wd4244 /wd4267 /wd4275 /wd4099)
@@ -90,13 +114,12 @@ set (GEARSVK_INCLUDE_FOLDERS
 
 add_library (${TARGET_GVKUTILS} SHARED
     src/Utils/Assert.cpp
-    
     src/Utils/MessageBox.cpp
     src/Utils/SourceLocation.cpp
     src/Utils/Utils.cpp
     src/Utils/Time.cpp
-    
-    src/Utils/UUID.cpp)
+    src/Utils/UUID.cpp
+)
 
 add_library (${TARGET_GVKRENDERER} SHARED
     src/GearsVk/VulkanWrapper/Utils/VulkanUtils.cpp

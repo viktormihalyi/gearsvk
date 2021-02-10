@@ -35,8 +35,6 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
 
     Ptr<RG::SwapchainImageResource> presented = RG::SwapchainImageResource::Create (*presentable);
 
-    renderer = RG::SynchronizedSwapchainGraphRenderer::Create (*environment.deviceExtra, presentable->GetSwapchain ());
-
     const std::vector<Pass::P> passes = stimulus->getPasses ();
 
     GVK_ASSERT (passes.size () == 1);
@@ -206,7 +204,7 @@ void StimulusAdapterForPresentable::SetUniforms (const GearsVk::UUID& renderOper
 }
 
 
-void StimulusAdapterForPresentable::RenderFrameIndex (const PtrC<Stimulus>& stimulus, const uint32_t frameIndex)
+void StimulusAdapterForPresentable::RenderFrameIndex (RG::Renderer& renderer, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex)
 {
     const uint32_t stimulusStartingFrame = stimulus->getStartingFrame ();
     const uint32_t stimulusEndingFrame   = stimulus->getStartingFrame () + stimulus->getDuration ();
@@ -216,7 +214,7 @@ void StimulusAdapterForPresentable::RenderFrameIndex (const PtrC<Stimulus>& stim
     }
 
     SingleEventObserver obs;
-    obs.Observe (renderer->preSubmitEvent, [&] (RG::RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
+    obs.Observe (renderer.preSubmitEvent, [&] (RG::RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
         for (auto& [pass, renderOp] : passToOperation) {
             SetUniforms (renderOp->GetUUID (), stimulus, frameIndex);
         }
@@ -232,11 +230,6 @@ void StimulusAdapterForPresentable::RenderFrameIndex (const PtrC<Stimulus>& stim
         reflection->Flush (swapchainImageIndex);
     });
 
-    renderer->RenderNextFrame (*renderGraph);
-}
 
-
-void StimulusAdapterForPresentable::Wait ()
-{
-    renderer->Wait ();
+    renderer.RenderNextFrame (*renderGraph);
 }

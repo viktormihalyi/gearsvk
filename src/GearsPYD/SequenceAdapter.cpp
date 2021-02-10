@@ -3,6 +3,7 @@
 // from GearsVk
 #include "Assert.hpp"
 #include "GLFWWindow.hpp"
+#include "GraphRenderer.hpp"
 #include "StimulusAdapterView.hpp"
 #include "Surface.hpp"
 #include "VulkanEnvironment.hpp"
@@ -115,9 +116,13 @@ SequenceAdapter::SequenceAdapter (VulkanEnvironment& environment, const Sequence
 
 void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
 {
+    if (GVK_ERROR (renderer == nullptr)) {
+        return;
+    }
+
     Stimulus::CP stim = sequence->getStimulusAtFrame (frameIndex);
     if (GVK_VERIFY (stim != nullptr)) {
-        views[stim]->RenderFrameIndex (currentPresentable, stim, frameIndex);
+        views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex);
         lastRenderedFrameIndex = frameIndex;
     }
 }
@@ -125,13 +130,8 @@ void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
 
 void SequenceAdapter::Wait ()
 {
-    if (GVK_ERROR (!lastRenderedFrameIndex.has_value ())) {
-        return;
-    }
-
-    Stimulus::CP stim = sequence->getStimulusAtFrame (*lastRenderedFrameIndex);
-    if (GVK_VERIFY (stim != nullptr)) {
-        views[stim]->RenderFrameIndex (currentPresentable, stim, *lastRenderedFrameIndex);
+    if (GVK_VERIFY (renderer != nullptr)) {
+        renderer->Wait ();
     }
 }
 
@@ -142,6 +142,8 @@ void SequenceAdapter::SetCurrentPresentable (Ptr<Presentable> presentable)
     for (auto& [stim, view] : views) {
         view->CreateForPresentable (currentPresentable);
     }
+
+    renderer = RG::SynchronizedSwapchainGraphRenderer::Create (*environment.deviceExtra, presentable->GetSwapchain ());
 }
 
 
