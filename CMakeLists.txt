@@ -256,6 +256,7 @@ target_compile_options (${TARGET_DLL} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL_EMBEDDED} PRIVATE ${COMPILER_FLAGS})
 
 
+if (NOT DEFINED CI)
 set (UI_PATH ${CMAKE_SOURCE_DIR}/src/UserInterface)
 
 add_custom_command (
@@ -304,3 +305,4 @@ add_custom_command (
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     COMMENT "Running setup.py..."
 )
+endif ()
