@@ -9,6 +9,8 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+namespace GVK {
+
 USING_PTR (Semaphore);
 class GVK_RENDERER_API Semaphore : public VulkanObject {
 private:
@@ -28,8 +30,6 @@ private:
     }
 
 public:
-    USING_CREATE (Semaphore);
-
     Semaphore (VkDevice device)
         : device (device)
         , handle (CreateSemaphore (device))
@@ -47,5 +47,7 @@ public:
         return handle;
     }
 };
+
+}
 
 #endif

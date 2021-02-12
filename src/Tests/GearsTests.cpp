@@ -17,6 +17,9 @@
 #include "SequenceAdapter.hpp"
 
 
+using namespace GVK;
+using namespace GVK::RG;
+
 static const std::filesystem::path SequencesFolder = PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Sequences";
 
 
@@ -32,7 +35,7 @@ protected:
 
     virtual void SetUp () override
     {
-        env = VulkanEnvironment::Create (gtestDebugCallback);
+        env = Make<VulkanEnvironment> (gtestDebugCallback);
     }
 
     virtual void TearDown () override
@@ -55,7 +58,7 @@ protected:
             return;
         }
 
-        pres = Presentable::Create (*env, HiddenGLFWWindow::Create (), defaultSwapchainSettingsSingleImage);
+        pres = Make<Presentable> (*env, Make<HiddenGLFWWindow> (), defaultSwapchainSettingsSingleImage);
 
         bool success = false;
         try {

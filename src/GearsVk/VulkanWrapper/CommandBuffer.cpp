@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+namespace GVK {
 
 void CommandBindVertexBuffers::Record (CommandBuffer& commandBuffer)
 {
@@ -26,4 +27,6 @@ void CommandPipelineBarrier::Record (CommandBuffer& commandBuffer)
         static_cast<uint32_t> (memoryBarriers.size ()), memoryBarriers.data (),
         static_cast<uint32_t> (bufferMemoryBarriers.size ()), bufferMemoryBarriers.data (),
         static_cast<uint32_t> (imageMemoryBarriers.size ()), imageMemoryBarriers.data ());
+}
+
 }

@@ -9,6 +9,7 @@
 
 #include "VulkanUtils.hpp"
 
+namespace GVK {
 
 ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout)
     : components (4)
@@ -176,4 +177,6 @@ void ImageData::ConvertBGRToRGB ()
     for (size_t i = 0; i < width * height * components; i += components) {
         std::swap (data[i + 0], data[i + 2]);
     }
+}
+
 }

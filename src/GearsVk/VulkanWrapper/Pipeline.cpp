@@ -1,5 +1,7 @@
 #include "Pipeline.hpp"
 
+namespace GVK {
+
 Pipeline::Pipeline (VkDevice                                              device,
                     uint32_t                                              width,
                     uint32_t                                              height,
@@ -127,4 +129,6 @@ Pipeline::Pipeline (VkDevice                                              device
     if (GVK_ERROR (vkCreateGraphicsPipelines (device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &handle) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create pipeline");
     }
+}
+
 }

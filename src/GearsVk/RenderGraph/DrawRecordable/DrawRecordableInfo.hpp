@@ -8,6 +8,7 @@
 
 #include "BufferTransferable.hpp"
 
+namespace GVK {
 
 class VertexBufferList {
 private:
@@ -80,7 +81,7 @@ public:
 
 
 USING_PTR (DrawRecordableInfo);
-struct DrawRecordableInfo : public DrawRecordable {
+class DrawRecordableInfo : public DrawRecordable {
 public:
     const uint32_t instanceCount;
 
@@ -91,8 +92,6 @@ public:
 
     const uint32_t indexCount;
     const VkBuffer indexBuffer;
-
-    USING_CREATE (DrawRecordableInfo);
 
     DrawRecordableInfo (const uint32_t                                        instanceCount,
                         uint32_t                                              vertexCount,
@@ -190,5 +189,6 @@ private:
     virtual const DrawRecordableInfo& GetDrawRecordableInfo () const = 0;
 };
 
+} // namespace GVK
 
 #endif

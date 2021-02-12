@@ -12,6 +12,8 @@
 
 #include <vulkan/vulkan.h>
 
+namespace GVK {
+
 USING_PTR (Window);
 
 class GVK_RENDERER_API Window : public Noncopyable {
@@ -39,8 +41,6 @@ public:
     } events;
 
 public:
-    USING_CREATE (Window);
-
     using DrawCallback = std::function<void (bool& stopFlag)>;
 
     enum class Mode {
@@ -72,5 +72,7 @@ public:
 
     static std::vector<const char*> GetExtensions ();
 };
+
+}
 
 #endif

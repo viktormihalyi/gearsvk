@@ -4,6 +4,7 @@
 #include "Operation.hpp"
 #include "Resource.hpp"
 
+namespace GVK {
 
 namespace RG {
 
@@ -173,7 +174,7 @@ void RenderGraph::Compile (GraphSettings&& settings)
     c.clear ();
     const std::unordered_map<Image*, VkImageLayout> layoutMapStart;
     for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
-        c.push_back (CommandBuffer::Create (settings.GetDevice ()));
+        c.push_back (Make<CommandBuffer> (settings.GetDevice ()));
 
         c[frameIndex]->Begin ();
 
@@ -334,3 +335,5 @@ void RenderGraph::Present (uint32_t imageIndex, Swapchain& swapchain, const std:
 }
 
 } // namespace RG
+
+} // namespace GVK

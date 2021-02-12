@@ -3,16 +3,20 @@
 
 #include "Operation.hpp"
 #include "RenderGraph.hpp"
+#include "ShaderReflection.hpp"
 #include "Resource.hpp"
 
 #include "Assert.hpp"
 #include "GearsVkAPI.hpp"
 #include "UniformView.hpp"
+#include "UUID.hpp"
 #include "glmlib.hpp"
 
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+
+namespace GVK {
 
 namespace RG {
 
@@ -24,18 +28,18 @@ namespace RG {
 
 class GVK_RENDERER_API ImageMap {
 private:
-    std::vector<std::pair<SR::Sampler, Ptr<ReadOnlyImageResource>>> images;
+    std::vector<std::pair<GVK::SR::Sampler, Ptr<ReadOnlyImageResource>>> images;
 
 public:
     ImageMap ();
 
     Ptr<ReadOnlyImageResource> FindByName (const std::string& name) const;
 
-    void Put (const SR::Sampler& sampler, const Ptr<ReadOnlyImageResource>& res);
+    void Put (const GVK::SR::Sampler& sampler, const Ptr<ReadOnlyImageResource>& res);
 };
 
 using CreateParams                 = std::tuple<glm::uvec3, VkFormat, VkFilter>;
-using ExtentProviderForImageCreate = std::function<std::optional<CreateParams> (const SR::Sampler& sampler)>;
+using ExtentProviderForImageCreate = std::function<std::optional<CreateParams> (const GVK::SR::Sampler& sampler)>;
 
 GVK_RENDERER_API
 ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet);
@@ -46,15 +50,13 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 
 USING_PTR (UniformReflection);
 class GVK_RENDERER_API UniformReflection final : public EventObserver {
-    USING_CREATE (UniformReflection);
-
 private:
     class GVK_RENDERER_API UboSelector {
     private:
-        std::unordered_map<std::string, Ptr<SR::IUData>> udatas;
+        std::unordered_map<std::string, Ptr<GVK::SR::IUData>> udatas;
 
     public:
-        SR::IUData& operator[] (const std::string& uboName)
+        GVK::SR::IUData& operator[] (const std::string& uboName)
         {
             auto it = udatas.find (uboName);
             if (it != udatas.end ()) {
@@ -62,10 +64,10 @@ private:
             }
 
             GVK_ASSERT (false);
-            return SR::dummyUData;
+            return GVK::SR::dummyUData;
         }
 
-        void Set (const std::string& uboName, const Ptr<SR::IUData>& uboData)
+        void Set (const std::string& uboName, const Ptr<GVK::SR::IUData>& uboData)
         {
             udatas[uboName] = uboData;
         }
@@ -103,33 +105,33 @@ public:
 
 public:
     // operation uuid
-    std::unordered_map<GearsVk::UUID, ShaderKindSelector> selectors;
+    std::unordered_map<GVK::UUID, ShaderKindSelector> selectors;
 
     RG::ConnectionSet& connectionSet;
 
     //
-    std::vector<Ptr<RG::InputBufferBindableResource>>                                                           uboResources;
-    std::vector<std::tuple<Ptr<RG::RenderOperation>, uint32_t, Ptr<RG::InputBufferBindableResource>, ShaderKind>> uboConnections;
-    std::unordered_map<GearsVk::UUID, Ptr<SR::IUData>>                                                          udatas;
+    std::vector<Ptr<RG::InputBufferBindableResource>>                                                             uboResources;
+    std::vector<std::tuple<Ptr<RG::RenderOperation>, uint32_t, Ptr<RG::InputBufferBindableResource>, GVK::ShaderKind>> uboConnections;
+    std::unordered_map<GVK::UUID, Ptr<GVK::SR::IUData>>                                                            udatas;
 
 public:
-    using Filter          = std::function<bool (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<SR::UBO>&)>;
-    using ResourceCreator = std::function<Ptr<RG::InputBufferBindableResource> (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<SR::UBO>&)>;
+    using Filter          = std::function<bool (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<GVK::SR::UBO>&)>;
+    using ResourceCreator = std::function<Ptr<RG::InputBufferBindableResource> (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<GVK::SR::UBO>&)>;
 
 public:
-    static bool DefaultFilter (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<SR::UBO>&)
+    static bool DefaultFilter (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<GVK::SR::UBO>&)
     {
         return false;
     }
 
-    static Ptr<RG::InputBufferBindableResource> DefaultResourceCreator (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<SR::UBO>& ubo)
+    static Ptr<RG::InputBufferBindableResource> DefaultResourceCreator (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<GVK::SR::UBO>& ubo)
     {
-        return RG::CPUBufferResource::Create (ubo->GetFullSize ());
+        return Make<RG::CPUBufferResource> (ubo->GetFullSize ());
     }
 
-    static Ptr<RG::InputBufferBindableResource> GPUBufferResourceCreator (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<SR::UBO>& ubo)
+    static Ptr<RG::InputBufferBindableResource> GPUBufferResourceCreator (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<GVK::SR::UBO>& ubo)
     {
-        return RG::GPUBufferResource::Create (ubo->GetFullSize ());
+        return Make<RG::GPUBufferResource> (ubo->GetFullSize ());
     }
 
 public:
@@ -141,7 +143,7 @@ public:
 
     ShaderKindSelector& operator[] (const RG::RenderOperation& renderOp);
     ShaderKindSelector& operator[] (const Ptr<RG::RenderOperation>& renderOp);
-    ShaderKindSelector& operator[] (const GearsVk::UUID& renderOpId);
+    ShaderKindSelector& operator[] (const GVK::UUID& renderOpId);
 
 private:
     void CreateGraphResources (const Filter& filter, const ResourceCreator& resourceCreator);
@@ -153,7 +155,7 @@ public:
 };
 
 
-inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const GearsVk::UUID& renderOpId)
+inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const GVK::UUID& renderOpId)
 {
     GVK_ASSERT (selectors.find (renderOpId) != selectors.end ());
     return selectors.at (renderOpId);
@@ -173,5 +175,7 @@ inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (con
 
 
 } // namespace RG
+
+}
 
 #endif

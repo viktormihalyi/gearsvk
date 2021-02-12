@@ -9,6 +9,7 @@
 #include "Timer.hpp"
 #include <iostream>
 
+namespace GVK {
 
 struct GLFWInitializer {
 private:
@@ -384,4 +385,7 @@ HiddenGLFWWindow::HiddenGLFWWindow ()
           { GLFW_VISIBLE, GLFW_FALSE },
       })
 {
+}
+
+
 }

@@ -9,7 +9,7 @@
 
 constexpr bool LogShaderCreation = false;
 
-Event<std::string> Shader::uniformBoundEvent;
+GVK::Event<std::string> Shader::uniformBoundEvent;
 
 
 static bool Contains (const std::string& str, const std::string& substring)
@@ -21,21 +21,21 @@ static bool Contains (const std::string& str, const std::string& substring)
 static void LogVertexShader (std::string source)
 {
     if constexpr (LogShaderCreation) {
-        Gears::TryCompile (ShaderKind::Vertex, source);
+        Gears::TryCompile (GVK::ShaderKind::Vertex, source);
     }
 }
 
 static void LogGeometryShader (std::string source)
 {
     if constexpr (LogShaderCreation) {
-        Gears::TryCompile (ShaderKind::Geometry, source);
+        Gears::TryCompile (GVK::ShaderKind::Geometry, source);
     }
 }
 
 static void LogFragmentShader (std::string source)
 {
     if constexpr (LogShaderCreation) {
-        Gears::TryCompile (ShaderKind::Fragment, source);
+        Gears::TryCompile (GVK::ShaderKind::Fragment, source);
     }
 }
 

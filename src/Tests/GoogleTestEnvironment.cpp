@@ -7,6 +7,8 @@
 #include "VulkanEnvironment.hpp"
 #include "VulkanWrapper.hpp"
 
+using namespace GVK;
+
 
 const std::filesystem::path ReferenceImagesFolder = PROJECT_ROOT / "src" / "Tests" / "ReferenceImages";
 const std::filesystem::path TempFolder            = PROJECT_ROOT / "temp";
@@ -102,7 +104,7 @@ void GoogleTestEnvironmentBase::CompareImages (const std::string& name, const Im
 
 void HeadlessGoogleTestEnvironment::SetUp ()
 {
-    env = VulkanEnvironment::Create (gtestDebugCallback);
+    env = Make<VulkanEnvironment> (gtestDebugCallback);
 }
 
 
@@ -114,9 +116,9 @@ void HeadlessGoogleTestEnvironment::TearDown ()
 
 void ShownWindowGoogleTestEnvironment::SetUp ()
 {
-    window      = GLFWWindow::Create ();
-    env         = VulkanEnvironment::Create (gtestDebugCallback);
-    presentable = Presentable::Create (*env, *window);
+    window      = Make<GLFWWindow> ();
+    env         = Make<VulkanEnvironment> (gtestDebugCallback);
+    presentable = Make<Presentable> (*env, *window);
 }
 
 
@@ -130,9 +132,9 @@ void ShownWindowGoogleTestEnvironment::TearDown ()
 
 void HiddenWindowGoogleTestEnvironment::SetUp ()
 {
-    window      = HiddenGLFWWindow::Create ();
-    env         = VulkanEnvironment::Create (gtestDebugCallback);
-    presentable = Presentable::Create (*env, *window);
+    window      = Make<HiddenGLFWWindow> ();
+    env         = Make<VulkanEnvironment> (gtestDebugCallback);
+    presentable = Make<Presentable> (*env, *window);
 }
 
 

@@ -10,11 +10,10 @@
 #include "VulkanObject.hpp"
 #include "vk_mem_alloc.h"
 
+namespace GVK {
 
 USING_PTR (Buffer);
 class GVK_RENDERER_API Buffer : public VulkanObject {
-    USING_CREATE (Buffer);
-
 private:
     const VmaAllocator allocator;
     VkBuffer           handle;
@@ -39,8 +38,6 @@ public:
 
 USING_PTR (UniformBuffer);
 class UniformBuffer : public Buffer {
-    USING_CREATE (UniformBuffer);
-
 public:
     UniformBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
         : Buffer (allocator, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | usageFlags, loc)
@@ -51,8 +48,6 @@ public:
 
 USING_PTR (StorageBuffer);
 class StorageBuffer : public Buffer {
-    USING_CREATE (StorageBuffer);
-
 public:
     StorageBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
         : Buffer (allocator, bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | usageFlags, loc)
@@ -63,8 +58,6 @@ public:
 
 USING_PTR (IndexBuffer);
 class IndexBuffer : public Buffer {
-    USING_CREATE (IndexBuffer);
-
 public:
     IndexBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
         : Buffer (allocator, bufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | usageFlags, loc)
@@ -75,13 +68,13 @@ public:
 
 USING_PTR (VertexBuffer);
 class VertexBuffer : public Buffer {
-    USING_CREATE (VertexBuffer);
-
 public:
     VertexBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
         : Buffer (allocator, bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | usageFlags, loc)
     {
     }
 };
+
+}
 
 #endif

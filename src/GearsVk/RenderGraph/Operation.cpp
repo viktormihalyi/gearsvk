@@ -3,10 +3,11 @@
 #include "GraphSettings.hpp"
 #include "Resource.hpp"
 #include "ShaderPipeline.hpp"
+#include "Ptr.hpp"
 
+namespace GVK {
 
 namespace RG {
-
 
 std::vector<VkAttachmentDescription> RenderOperation::GetAttachmentDescriptions (const ConnectionSet& connectionSet) const
 {
@@ -86,10 +87,10 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     s *= graphSettings.framesInFlight;
 
     if (s > 0) {
-        compileResult.descriptorPool = DescriptorPool::Create (graphSettings.GetDevice (), s, s, graphSettings.framesInFlight);
+        compileResult.descriptorPool = Make<DescriptorPool> (graphSettings.GetDevice (), s, s, graphSettings.framesInFlight);
 
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            DescriptorSetU descriptorSet = DescriptorSet::Create (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
+            DescriptorSetU descriptorSet = Make<DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
             graphSettings.connectionSet.ProcessInputBindingsOf (this, [&] (const IConnectionBinding& binding) {
                 binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);
@@ -122,7 +123,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     compileSettings.pipeline->Compile (pipelineSettigns);
 
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-        compileResult.framebuffers.push_back (Framebuffer::Create (graphSettings.GetDevice (), *compileSettings.pipeline->compileResult.renderPass, GetOutputImageViews (graphSettings.connectionSet, frameIndex), width, height));
+        compileResult.framebuffers.push_back (Make<Framebuffer> (graphSettings.GetDevice (), *compileSettings.pipeline->compileResult.renderPass, GetOutputImageViews (graphSettings.connectionSet, frameIndex), width, height));
     }
 
     compileResult.width  = width;
@@ -308,3 +309,5 @@ void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t ima
 
 
 } // namespace RG
+
+} // namespace GVK

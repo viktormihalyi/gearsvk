@@ -11,11 +11,10 @@
 
 #include "vk_mem_alloc.h"
 
+namespace GVK {
 
 USING_PTR (Allocator);
 class Allocator : public Noncopyable {
-    USING_CREATE (Allocator);
-
 private:
     VmaAllocator handle;
 
@@ -40,5 +39,7 @@ public:
 
     operator VmaAllocator () const { return handle; }
 };
+
+} // namespace GVK
 
 #endif

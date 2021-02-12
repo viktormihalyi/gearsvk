@@ -9,8 +9,9 @@
 
 #include <vulkan/vulkan.h>
 
-USING_PTR (SingleTimeCommand);
+namespace GVK {
 
+USING_PTR (SingleTimeCommand);
 class GVK_RENDERER_API SingleTimeCommand final : public CommandBuffer {
 private:
     const Queue&        queue;
@@ -36,5 +37,7 @@ public:
         queue.Wait ();
     }
 };
+
+}
 
 #endif

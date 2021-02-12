@@ -2,6 +2,7 @@
 
 #include "Assert.hpp"
 
+namespace GVK {
 
 Image::Image (VkImage handle, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
     : handle (handle)
@@ -227,4 +228,6 @@ void Image::CmdCopyBufferPartToImage (CommandBuffer& commandBuffer, VkBuffer buf
             1,
             &region);
     });
+}
+
 }

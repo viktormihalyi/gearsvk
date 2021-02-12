@@ -8,6 +8,8 @@
 
 #include <vulkan/vulkan.h>
 
+namespace GVK {
+
 USING_PTR (Sampler);
 class GVK_RENDERER_API Sampler : public VulkanObject {
 private:
@@ -16,13 +18,13 @@ private:
     const VkFilter filter;
 
 public:
-    USING_CREATE (Sampler);
-
     Sampler (VkDevice device, VkFilter filter, VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER);
 
     ~Sampler ();
 
     operator VkSampler () const { return handle; }
 };
+
+}
 
 #endif

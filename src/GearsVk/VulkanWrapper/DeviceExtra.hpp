@@ -9,10 +9,10 @@
 
 #include "vk_mem_alloc.h"
 
+namespace GVK {
+
 USING_PTR (DeviceExtra);
 class GVK_RENDERER_API DeviceExtra : public Device {
-    USING_CREATE (DeviceExtra);
-
 public:
     Device&      device;
     CommandPool& commandPool;
@@ -46,5 +46,6 @@ public:
     virtual void Wait () const override { device.Wait (); }
 };
 
+}
 
 #endif

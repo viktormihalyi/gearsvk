@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+namespace GVK {
+
 namespace SR {
 
 static const std::vector<SR::FieldU> emptyFieldVector;
@@ -165,7 +167,7 @@ ShaderUData::ShaderUData (const std::vector<Ptr<SR::UBO>>& ubos)
     : ubos (ubos)
 {
     for (auto& a : ubos) {
-        udatas.push_back (UDataInternal::Create (a));
+        udatas.push_back (Make<UDataInternal> (a));
         uboNames.push_back (a->name);
     }
 }
@@ -198,3 +200,5 @@ Ptr<SR::UBO> ShaderUData::GetUbo (std::string_view str)
 }
 
 } // namespace SR
+
+} // namespace GVK

@@ -29,6 +29,7 @@
 //      SingleEventObserver can only subsribe to only one Event at a time.
 //      EventObserver can subscribe to multiple events. one EventObserver can only observe an Event once.
 
+namespace GVK {
 
 template<typename... ARGS>
 class Event;
@@ -206,6 +207,7 @@ public:
     }
 };
 
+
 class SingleEventObserver {
 private:
     std::unique_ptr<IEventObserverScope> observer;
@@ -243,5 +245,6 @@ public:
     }
 };
 
+} // namespace GVK
 
 #endif

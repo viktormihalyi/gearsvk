@@ -10,19 +10,18 @@
 #include <vulkan/vulkan.h>
 
 
+namespace GVK {
+
 namespace RG {
 
 class IResourceVisitor;
 
 USING_PTR (ConnectionSet);
 class GVK_RENDERER_API ConnectionSet final : public Noncopyable {
-    USING_CREATE (ConnectionSet);
-
 public:
     USING_PTR (Connection);
-    struct Connection {
-        USING_CREATE (Connection);
-
+    class Connection {
+    public:
         Ptr<Node>           from;
         Ptr<Node>           to;
         IConnectionBindingU binding;
@@ -128,7 +127,7 @@ public:
     {
         nodes.insert (from);
         nodes.insert (to);
-        connections.push_back (Connection::Create (from, to, std::move (binding)));
+        connections.push_back (Make<Connection> (from, to, std::move (binding)));
     }
 
 
@@ -141,8 +140,6 @@ public:
 
 USING_PTR (GraphSettings);
 class GVK_RENDERER_API GraphSettings {
-    USING_CREATE (GraphSettings);
-
 public:
     ConnectionSet      connectionSet;
     const DeviceExtra* device;
@@ -164,5 +161,7 @@ public:
 };
 
 } // namespace RG
+
+} // namespace GVK
 
 #endif

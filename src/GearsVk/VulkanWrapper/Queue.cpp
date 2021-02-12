@@ -3,6 +3,8 @@
 #include "CommandBuffer.hpp"
 #include <iostream>
 
+namespace GVK {
+
 Queue dummyQueue (VK_NULL_HANDLE);
 
 
@@ -39,4 +41,6 @@ void Queue::Submit (const std::vector<VkSemaphore>&          waitSemaphores,
     result.pSignalSemaphores    = signalSemaphores.data ();
 
     vkQueueSubmit (handle, 1, &result, fenceToSignal);
+}
+
 }

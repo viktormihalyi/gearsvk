@@ -7,6 +7,7 @@
 
 #include <sstream>
 
+namespace GVK {
 
 const InstanceSettings instanceDebugMode { { VK_EXT_DEBUG_UTILS_EXTENSION_NAME }, { "VK_LAYER_KHRONOS_validation" } };
 const InstanceSettings instanceReleaseMode { {}, {} };
@@ -104,4 +105,6 @@ Instance::~Instance ()
 {
     vkDestroyInstance (handle, nullptr);
     handle = VK_NULL_HANDLE;
+}
+
 }

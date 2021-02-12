@@ -5,6 +5,8 @@
 
 #include <chrono>
 
+namespace GVK {
+
 class GVK_UTILS_API TimePoint {
 public:
     using Precision = std::chrono::nanoseconds;
@@ -39,5 +41,6 @@ public:
     static const std::chrono::time_point<TimePoint::Clock> ApplicationStartTime;
 };
 
+} // namespace GVK
 
 #endif

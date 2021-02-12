@@ -10,6 +10,8 @@
 
 #include <vulkan/vulkan.h>
 
+namespace GVK {
+
 USING_PTR (ImageViewBase);
 class GVK_RENDERER_API ImageViewBase : public VulkanObject {
 private:
@@ -18,8 +20,6 @@ private:
     VkImageView    handle;
 
 public:
-    USING_CREATE (ImageViewBase);
-
     ImageViewBase (VkDevice device, VkImage image, VkFormat format, VkImageViewType viewType, uint32_t layerIndex = 0, uint32_t layerCount = 1)
         : device (device)
         , format (format)
@@ -67,8 +67,6 @@ public:
 USING_PTR (ImageView1D);
 class GVK_RENDERER_API ImageView1D : public ImageViewBase {
 public:
-    USING_CREATE (ImageView1D);
-
     ImageView1D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
         : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_1D, layerIndex)
     {
@@ -84,8 +82,6 @@ public:
 USING_PTR (ImageView2D);
 class GVK_RENDERER_API ImageView2D : public ImageViewBase {
 public:
-    USING_CREATE (ImageView2D);
-
     ImageView2D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0, uint32_t layerCount = 1)
         : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_2D, layerIndex, layerCount)
     {
@@ -100,8 +96,6 @@ public:
 USING_PTR (ImageView2DArray);
 class GVK_RENDERER_API ImageView2DArray : public ImageViewBase {
 public:
-    USING_CREATE (ImageView2DArray);
-
     ImageView2DArray (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0, uint32_t layerCount = 1)
         : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_2D, layerIndex, layerCount)
     {
@@ -117,8 +111,6 @@ public:
 USING_PTR (ImageView3D);
 class GVK_RENDERER_API ImageView3D : public ImageViewBase {
 public:
-    USING_CREATE (ImageView3D);
-
     ImageView3D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
         : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_3D, layerIndex)
     {
@@ -134,8 +126,6 @@ public:
 USING_PTR (ImageViewCube);
 class GVK_RENDERER_API ImageViewCube : public ImageViewBase {
 public:
-    USING_CREATE (ImageViewCube);
-
     ImageViewCube (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
         : ImageViewBase (device, image, format, VK_IMAGE_VIEW_TYPE_CUBE, layerIndex)
     {
@@ -146,5 +136,7 @@ public:
     {
     }
 };
+
+}
 
 #endif

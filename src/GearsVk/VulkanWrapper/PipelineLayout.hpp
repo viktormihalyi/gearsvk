@@ -8,6 +8,8 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+namespace GVK {
+
 USING_PTR (PipelineLayout);
 class GVK_RENDERER_API PipelineLayout : public Noncopyable {
 private:
@@ -35,8 +37,6 @@ private:
     }
 
 public:
-    USING_CREATE (PipelineLayout);
-
     PipelineLayout (VkDevice device, const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts)
         : device (device)
         , handle (CreatePipelineLayout (device, descriptorSetLayouts))
@@ -55,5 +55,7 @@ public:
         return handle;
     }
 };
+
+}
 
 #endif

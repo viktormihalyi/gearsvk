@@ -10,8 +10,9 @@
 #include "Resource.hpp"
 
 
-constexpr bool LOG_RENDERING = true;
+constexpr bool LOG_RENDERING = false;
 
+namespace GVK {
 
 namespace RG {
 
@@ -55,7 +56,7 @@ RecreatableGraphRenderer::RecreatableGraphRenderer (Swapchain& swapchain)
 
 BlockingGraphRenderer::BlockingGraphRenderer (const DeviceExtra& device, Swapchain& swapchain)
     : RecreatableGraphRenderer (swapchain)
-    , s (Semaphore::Create (device))
+    , s (Make<Semaphore> (device))
 {
 }
 
@@ -93,9 +94,9 @@ SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (const De
     GVK_ASSERT (imageCount <= framesInFlight);
 
     for (uint32_t i = 0; i < framesInFlight; ++i) {
-        imageAvailableSemaphore.push_back (Semaphore::Create (device));
-        renderFinishedSemaphore.push_back (Semaphore::Create (device));
-        inFlightFences.push_back (Fence::Create (device));
+        imageAvailableSemaphore.push_back (Make<Semaphore> (device));
+        renderFinishedSemaphore.push_back (Make<Semaphore> (device));
+        inFlightFences.push_back (Make<Fence> (device));
     }
 
     for (uint32_t i = 0; i < imageCount; ++i) {
@@ -239,3 +240,5 @@ void SynchronizedSwapchainGraphRenderer::Wait ()
 }
 
 } // namespace RG
+
+} // namespace GVK

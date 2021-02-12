@@ -12,6 +12,7 @@
 
 #include <vulkan/vulkan.h>
 
+namespace GVK {
 
 class GVK_RENDERER_API SwapchainSettingsProvider {
 public:
@@ -118,8 +119,6 @@ private:
     static CreateResult CreateForResult (const CreateSettings& createSettings);
 
 public:
-    USING_CREATE (RealSwapchain);
-
     RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface, SwapchainSettingsProvider& settings = defaultSwapchainSettings);
     RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, SwapchainSettingsProvider& settings = defaultSwapchainSettings);
 
@@ -181,8 +180,6 @@ private:
     const uint32_t            height;
 
 public:
-    USING_CREATE (FakeSwapchain);
-
     FakeSwapchain (const DeviceExtra& device, uint32_t width, uint32_t height);
 
     virtual VkFormat             GetImageFormat () const override { return image->GetFormat (); }
@@ -209,5 +206,6 @@ public:
     }
 };
 
+}
 
 #endif

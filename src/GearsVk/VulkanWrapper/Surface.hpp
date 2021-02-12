@@ -2,16 +2,15 @@
 #define SURFACE_HPP
 
 #include "GearsVkAPI.hpp"
-#include "VulkanObject.hpp"
 #include "Ptr.hpp"
+#include "VulkanObject.hpp"
 
 #include <vulkan/vulkan.h>
 
+namespace GVK {
 
 USING_PTR (Surface);
 class GVK_RENDERER_API Surface : public VulkanObject {
-    USING_CREATE (Surface);
-
 private:
     VkInstance   instance;
     VkSurfaceKHR handle;
@@ -29,5 +28,7 @@ public:
 
     operator VkSurfaceKHR () const { return handle; }
 };
+
+}
 
 #endif

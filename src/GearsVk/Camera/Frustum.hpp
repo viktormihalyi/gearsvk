@@ -5,6 +5,7 @@
 
 #include "glmlib.hpp"
 
+namespace GVK {
 
 USING_PTR (Frustum);
 class Frustum {
@@ -48,5 +49,7 @@ public:
 
     glm::mat4 GetMatrix () const override;
 };
+
+} // namespace GVK
 
 #endif

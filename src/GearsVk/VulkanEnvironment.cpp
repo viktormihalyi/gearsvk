@@ -17,6 +17,7 @@
 
 #include <iomanip>
 
+namespace GVK {
 
 Presentable::Presentable (VulkanEnvironment& env, SurfaceU&& surface, SwapchainSettingsProvider& settingsProvider)
     : surface (std::move (surface))
@@ -29,18 +30,18 @@ Presentable::Presentable (VulkanEnvironment& env, SurfaceU&& surface, SwapchainS
 
     env.RecreateForPresentable (*this);
 
-    swapchain = RealSwapchain::Create (*env.physicalDevice, *env.device, *this->surface, settingsProvider);
+    swapchain = Make<RealSwapchain> (*env.physicalDevice, *env.device, *this->surface, settingsProvider);
 }
 
 
 Presentable::Presentable (VulkanEnvironment& env, Window& window, SwapchainSettingsProvider& settingsProvider)
-    : Presentable (env, Surface::Create (*env.instance, window.GetSurface (*env.instance)), settingsProvider)
+    : Presentable (env, Make<Surface> (*env.instance, window.GetSurface (*env.instance)), settingsProvider)
 {
 }
 
 
 Presentable::Presentable (VulkanEnvironment& env, WindowU&& window, SwapchainSettingsProvider& settingsProvider)
-    : Presentable (env, Surface::Create (*env.instance, window->GetSurface (*env.instance)), settingsProvider)
+    : Presentable (env, Make<Surface> (*env.instance, window->GetSurface (*env.instance)), settingsProvider)
 {
     window = std::move (window);
 }
@@ -100,15 +101,15 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
     const std::vector<const char*> windowExtenions = Window::GetExtensions ();
     is.extensions.insert (is.extensions.end (), windowExtenions.begin (), windowExtenions.end ());
 
-    instance = Instance::Create (is);
+    instance = Make<Instance> (is);
 
     if (IsDebugBuild && callback.has_value ()) {
-        messenger = DebugUtilsMessenger::Create (*instance, *callback, DebugUtilsMessenger::noPerformance);
+        messenger = Make<DebugUtilsMessenger> (*instance, *callback, DebugUtilsMessenger::noPerformance);
     }
 
     VkSurfaceKHR physicalDeviceSurfaceHandle = VK_NULL_HANDLE;
 
-    physicalDevice = PhysicalDevice::Create (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
+    physicalDevice = Make<PhysicalDevice> (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
 
 #ifdef LOG_VULKAN_INFO
     {
@@ -146,15 +147,15 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
 
     deviceExtensions.push_back (VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-    device = DeviceObject::Create (*physicalDevice, std::vector<uint32_t> { *physicalDevice->GetQueueFamilies ().graphics }, deviceExtensions);
+    device = Make<DeviceObject> (*physicalDevice, std::vector<uint32_t> { *physicalDevice->GetQueueFamilies ().graphics }, deviceExtensions);
 
-    alloactor = Allocator::Create (*instance, *physicalDevice, *device);
+    alloactor = Make<Allocator> (*instance, *physicalDevice, *device);
 
-    graphicsQueue = Queue::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
+    graphicsQueue = Make<Queue> (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
-    commandPool = CommandPool::Create (*device, *physicalDevice->GetQueueFamilies ().graphics);
+    commandPool = Make<CommandPool> (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
-    deviceExtra = DeviceExtra::Create (*device, *commandPool, *alloactor, *graphicsQueue);
+    deviceExtra = Make<DeviceExtra> (*device, *commandPool, *alloactor, *graphicsQueue);
 
 #ifdef LOG_VULKAN_INFO
     VkPhysicalDeviceProperties deviceProperties;
@@ -176,4 +177,6 @@ void VulkanEnvironment::RecreateForPresentable (const Presentable& presentable)
 {
     const Surface& surface = presentable.GetSurface ();
     physicalDevice->RecreateForSurface (surface);
+}
+
 }

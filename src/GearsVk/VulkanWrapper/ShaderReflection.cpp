@@ -8,6 +8,7 @@
 // from SPRIV-Cross
 #include "spirv_cross.hpp"
 
+namespace GVK {
 
 namespace SR {
 
@@ -301,7 +302,7 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
         AllDecorations               typeMemDecor (compiler, type.self, i);
         const spirv_cross::SPIRType& Mtype = compiler.get_type (type.member_types[i]);
 
-        FieldU f       = Field::Create ();
+        FieldU f       = Make<Field> ();
         f->name        = typeMemDecor.name;
         f->offset      = *typeMemDecor.Offset;
         f->arrayStride = typeMemDecorA.ArrayStride ? *typeMemDecorA.ArrayStride : 0;
@@ -337,7 +338,7 @@ std::vector<Ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
         // eg. array of 4 on binding 2 will create 4 different bindings: 2, 3, 4, 5
         GVK_ASSERT (arraySize == 0);
 
-        Ptr<UBO> root       = UBO::Create ();
+        Ptr<UBO> root       = Make<UBO> ();
         root->name          = resource.name;
         root->binding       = *decorations.Binding;
         root->descriptorSet = *decorations.DescriptorSet;
@@ -573,6 +574,8 @@ std::string FieldTypeToString (FieldType fieldType)
 
         ENUM_TO_STRING_DEFAULT (FieldType);
     }
+}
+
 }
 
 }; // namespace SR

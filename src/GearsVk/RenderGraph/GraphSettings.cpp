@@ -2,6 +2,8 @@
 
 #include "Resource.hpp"
 
+namespace GVK {
+
 namespace RG {
 
 
@@ -122,3 +124,5 @@ ConnectionSet& ConnectionSet::operator= (ConnectionSet&& other)
 
 
 } // namespace RG
+
+}

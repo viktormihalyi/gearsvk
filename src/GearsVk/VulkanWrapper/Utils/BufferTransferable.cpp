@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+namespace GVK {
+
 struct ShaderType {
     uint32_t size;
     uint32_t alignment;
@@ -90,4 +92,6 @@ std::vector<VkVertexInputBindingDescription> VertexInputInfo::GetBindings (uint3
         a.binding = binding;
     }
     return result;
+}
+
 }

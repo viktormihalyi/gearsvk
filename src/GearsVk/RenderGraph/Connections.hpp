@@ -12,6 +12,8 @@
 #include <functional>
 #include <vector>
 
+namespace GVK {
+
 namespace RG {
 
 class IConnectionBindingVisitor;
@@ -120,8 +122,6 @@ public:
 
 USING_PTR (UniformInputBinding);
 class UniformInputBinding : public InputBinding {
-    USING_CREATE (UniformInputBinding);
-
 public:
     InputBufferBindable&     bufferProvider;
     const uint32_t           binding;
@@ -171,8 +171,6 @@ public:
 
 USING_PTR (ImageInputBinding);
 class ImageInputBinding : public InputBinding {
-    USING_CREATE (ImageInputBinding);
-
 public:
     InputImageBindable&      imageViewProvider;
     const uint32_t           binding;
@@ -225,8 +223,6 @@ public:
 
 USING_PTR (OutputBinding);
 class OutputBinding : public IConnectionBinding {
-    USING_CREATE (OutputBinding);
-
 public:
     const uint32_t             binding;
     std::function<VkFormat ()> formatProvider;
@@ -304,5 +300,7 @@ public:
 };
 
 } // namespace RG
+
+} // namespace GVK
 
 #endif

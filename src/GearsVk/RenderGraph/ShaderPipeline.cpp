@@ -3,6 +3,9 @@
 #include "MultithreadedFunction.hpp"
 #include "Timer.hpp"
 
+namespace GVK {
+
+namespace RG {
 
 ShaderModuleU& ShaderPipeline::GetShaderByIndex (uint32_t index)
 {
@@ -247,5 +250,9 @@ DescriptorSetLayoutU ShaderPipeline::CreateDescriptorSetLayout (VkDevice device)
         layout.insert (layout.end (), layoutPart.begin (), layoutPart.end ());
     });
 
-    return DescriptorSetLayout::Create (device, layout);
+    return Make<DescriptorSetLayout> (device, layout);
+}
+
+}
+
 }

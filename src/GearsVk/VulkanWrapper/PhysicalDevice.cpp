@@ -1,5 +1,6 @@
 #include "PhysicalDevice.hpp"
 
+namespace GVK {
 
 DefaultQueueFamilySelector defaultQueueFamilySelector;
 
@@ -176,4 +177,6 @@ void PhysicalDevice::RecreateForSurface (VkSurfaceKHR surface)
 {
     handle        = CreatePhysicalDevice (instance, requestedDeviceExtensionSet);
     queueFamilies = FindQueueFamilyIndices (handle, surface, selector);
+}
+
 }

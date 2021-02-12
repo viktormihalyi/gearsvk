@@ -6,6 +6,8 @@
 #include "InputState.hpp"
 #include "Window.hpp"
 
+namespace GVK {
+
 class CameraControl : public EventObserver {
 private:
     Camera&        camera;
@@ -15,7 +17,7 @@ private:
 public:
     CameraControl (Camera& camera, Window::Events& windowEvents)
         : camera (camera)
-        , keyboard (KeyboardState::Create ())
+        , keyboard (Make<KeyboardState> ())
     {
         using namespace std::placeholders;
 
@@ -64,5 +66,7 @@ private:
         lastPos = currentPos;
     }
 };
+
+} // namespace GVK
 
 #endif

@@ -11,6 +11,8 @@
 #include "DescriptorPool.hpp"
 #include "DescriptorSetLayout.hpp"
 
+namespace GVK {
+
 USING_PTR (DescriptorSet);
 
 class GVK_RENDERER_API DescriptorSet : public Noncopyable {
@@ -20,8 +22,6 @@ private:
     VkDescriptorSet        handle;
 
 public:
-    USING_CREATE (DescriptorSet);
-
     DescriptorSet (VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout layout)
         : device (device)
         , descriptorPool (descriptorPool)
@@ -60,5 +60,6 @@ public:
     }
 };
 
+}
 
 #endif

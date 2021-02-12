@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 
+namespace GVK {
 
 std::string GetVersionString (uint32_t version)
 {
@@ -82,7 +83,7 @@ static ImageU CreateCopyImageOnCPU (const DeviceExtra& device, const Image& imag
     const uint32_t width  = image.GetWidth ();
     const uint32_t height = image.GetHeight ();
 
-    Image2DU dst = Image2D::Create (device.GetAllocator (), Image::MemoryLocation::CPU, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
+    Image2DU dst = Make<Image2D> (device.GetAllocator (), Image::MemoryLocation::CPU, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
 
     TransitionImageLayout (device, *dst, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
@@ -170,3 +171,5 @@ std::thread SaveImageToFileAsync (const DeviceExtra& device, const Image& image,
         ImageData (device, image, layerIndex).SaveTo (filePath);
     });
 };
+
+}

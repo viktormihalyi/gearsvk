@@ -9,6 +9,8 @@
 
 #include <vulkan/vulkan.h>
 
+namespace GVK {
+
 USING_PTR (Device);
 class GVK_RENDERER_API Device {
 public:
@@ -21,8 +23,6 @@ public:
 
 USING_PTR (DeviceObject);
 class GVK_RENDERER_API DeviceObject : public VulkanObject, public Device {
-    USING_CREATE (DeviceObject);
-
 private:
     const VkPhysicalDevice physicalDevice;
     VkDevice               handle;
@@ -91,5 +91,7 @@ public:
         vkDeviceWaitIdle (handle);
     }
 };
+
+}
 
 #endif

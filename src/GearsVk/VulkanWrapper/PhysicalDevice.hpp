@@ -14,6 +14,7 @@
 #include <optional>
 #include <vector>
 
+namespace GVK {
 
 class GVK_RENDERER_API QueueFamilySelector {
 public:
@@ -69,8 +70,6 @@ private:
     QueueFamilies    queueFamilies;
 
 public:
-    USING_CREATE (PhysicalDevice);
-
     PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet, const QueueFamilySelector& Selector = defaultQueueFamilySelector);
 
     ~PhysicalDevice ();
@@ -95,5 +94,7 @@ public:
         return features;
     }
 };
+
+}
 
 #endif

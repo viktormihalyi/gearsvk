@@ -1,19 +1,23 @@
 #ifndef STIMULUSADAPTERFORPRESENTABLE_HPP
 #define STIMULUSADAPTERFORPRESENTABLE_HPP
 
+// from GearsVk
+#include "Event.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 
 // from std
 #include <map>
+#include <vector>
 
 class Pass;
 class Stimulus;
 
-namespace GearsVk {
+namespace GVK {
 class UUID;
 }
 
+namespace GVK {
 namespace RG {
 class RenderGraph;
 class UniformReflection;
@@ -21,34 +25,35 @@ class Operation;
 class SynchronizedSwapchainGraphRenderer;
 class Renderer;
 } // namespace RG
-
 class Presentable;
 class VulkanEnvironment;
+}
 
 
 USING_PTR (StimulusAdapterForPresentable);
 class StimulusAdapterForPresentable : public Noncopyable {
-    USING_CREATE (StimulusAdapterForPresentable);
-
 private:
     const PtrC<Stimulus>   stimulus;
-    const Ptr<Presentable> presentable;
+    const Ptr<GVK::Presentable> presentable;
 
-    Ptr<RG::RenderGraph>                    renderGraph;
-    Ptr<RG::UniformReflection>              reflection;
-    std::map<Ptr<Pass>, Ptr<RG::Operation>> passToOperation;
-    Ptr<RG::Operation>                      randomGeneratorOperation;
+    Ptr<GVK::RG::RenderGraph>                    renderGraph;
+    Ptr<GVK::RG::UniformReflection>              reflection;
+    std::map<Ptr<Pass>, Ptr<GVK::RG::Operation>> passToOperation;
+    Ptr<GVK::RG::Operation>                      randomGeneratorOperation;
+
+    std::unordered_map<uint32_t, U<GVK::SingleEventObserver>> presentObservers;
+    std::vector<uint32_t>                                presentedEventDeleteQueue;
 
 public:
-    StimulusAdapterForPresentable (const VulkanEnvironment& environment, Ptr<Presentable>& presentable, const PtrC<Stimulus>& stimulus);
+    StimulusAdapterForPresentable (const GVK::VulkanEnvironment& environment, Ptr<GVK::Presentable>& presentable, const PtrC<Stimulus>& stimulus);
 
-    void RenderFrameIndex (RG::Renderer& renderer, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex);
+    void RenderFrameIndex (GVK::RG::Renderer& renderer, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex, GVK::Event<uint32_t>& frameIndexPresentedEvent);
 
     void Wait ();
 
 private:
     void SetConstantUniforms ();
-    void SetUniforms (const GearsVk::UUID& renderOperationId, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex);
+    void SetUniforms (const GVK::UUID& renderOperationId, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex);
 };
 
 

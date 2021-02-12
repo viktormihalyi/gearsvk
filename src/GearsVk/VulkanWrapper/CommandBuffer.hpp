@@ -11,6 +11,8 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+namespace GVK {
+
 class Image;
 
 class CommandBuffer;
@@ -38,8 +40,6 @@ public:
     std::vector<CommandU> recordedAbstractCommands;
 
 public:
-    USING_CREATE (CommandBuffer);
-
     CommandBuffer (VkDevice device, VkCommandPool commandPool)
         : device (device)
         , commandPool (commandPool)
@@ -121,8 +121,6 @@ public:
 
 USING_PTR (CommandBindVertexBuffers);
 class GVK_RENDERER_API CommandBindVertexBuffers : public Command {
-    USING_CREATE (CommandBindVertexBuffers);
-
 private:
     const uint32_t                  firstBinding;
     const uint32_t                  bindingCount;
@@ -148,8 +146,6 @@ public:
 
 USING_PTR (CommandPipelineBarrier);
 class GVK_RENDERER_API CommandPipelineBarrier : public Command {
-    USING_CREATE (CommandPipelineBarrier);
-
 private:
     const VkPipelineStageFlags               srcStageMask;
     const VkPipelineStageFlags               dstStageMask;
@@ -177,8 +173,6 @@ public:
 
 USING_PTR (CommandGeneric);
 class GVK_RENDERER_API CommandGeneric : public Command {
-    USING_CREATE (CommandGeneric);
-
 private:
     std::function<void (VkCommandBuffer)> recordCallback;
 
@@ -194,5 +188,6 @@ public:
     }
 };
 
+} // namespace GVK
 
 #endif

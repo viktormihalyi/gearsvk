@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <thread>
 
+namespace GVK {
 
 std::string GetVersionString (uint32_t version);
 
@@ -52,5 +53,6 @@ static constexpr VkFormat Vec4u = VK_FORMAT_R32G32B32A32_UINT;
 
 }; // namespace ShaderTypes
 
+}
 
 #endif

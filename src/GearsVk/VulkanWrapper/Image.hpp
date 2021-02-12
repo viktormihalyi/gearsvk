@@ -11,6 +11,8 @@
 
 #include <vulkan/vulkan.h>
 
+namespace GVK {
+
 class ImageBuilder;
 
 USING_PTR (Image);
@@ -47,8 +49,6 @@ protected:
     Image (VkImage handle, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers);
 
 public:
-    USING_CREATE (Image);
-
     Image (VmaAllocator      allocator,
            VkImageType       imageType,
            uint32_t          width,
@@ -88,8 +88,6 @@ public:
 // used for handling swapchain images as Image
 USING_PTR (InheritedImage);
 class GVK_RENDERER_API InheritedImage : public Image {
-    USING_CREATE (InheritedImage);
-
 public:
     InheritedImage (VkImage handle, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
         : Image (handle, VK_NULL_HANDLE, width, height, depth, format, arrayLayers)
@@ -183,8 +181,6 @@ public:
 
 USING_PTR (Image1D);
 class GVK_RENDERER_API Image1D : public Image {
-    USING_CREATE (Image1D);
-
 public:
     Image1D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
         : Image (allocator, VK_IMAGE_TYPE_1D, width, 1, 1, format, tiling, usage, arrayLayers, loc)
@@ -195,8 +191,6 @@ public:
 
 USING_PTR (Image2D);
 class GVK_RENDERER_API Image2D : public Image {
-    USING_CREATE (Image2D);
-
 public:
     Image2D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
         : Image (allocator, VK_IMAGE_TYPE_2D, width, height, 1, format, tiling, usage, arrayLayers, loc)
@@ -207,13 +201,13 @@ public:
 
 USING_PTR (Image3D);
 class GVK_RENDERER_API Image3D : public Image {
-    USING_CREATE (Image3D);
-
 public:
     Image3D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0)
         : Image (allocator, VK_IMAGE_TYPE_3D, width, height, depth, format, tiling, usage, 1, loc)
     {
     }
 };
+
+}
 
 #endif

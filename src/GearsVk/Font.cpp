@@ -12,6 +12,7 @@
 #include <functional>
 #include <map>
 
+namespace GVK {
 
 static msdfgen::FontHandle* GetFont (const std::filesystem::path& fontFile)
 {
@@ -252,4 +253,5 @@ GlyphData Font::GetGlyphMTDF (uint32_t width, uint32_t height, uint32_t unicode)
     };
 
     return GetGlyph<4> (impl->fontHandle, width, height, emSize, unicode, generator);
+}
 }

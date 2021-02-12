@@ -15,19 +15,20 @@
 
 #include <vector>
 
-USING_PTR (ShaderPipeline);
 
+namespace GVK {
 
 namespace RG {
+
+USING_PTR (ShaderPipeline);
 
 class Resource;
 class GraphSettings;
 class ConnectionSet;
 
 USING_PTR (Operation);
-struct GVK_RENDERER_API Operation : public Node {
-    USING_CREATE (Operation);
-
+class GVK_RENDERER_API Operation : public Node {
+public:
     virtual ~Operation () = default;
 
     virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height)                                = 0;
@@ -45,9 +46,8 @@ struct GVK_RENDERER_API Operation : public Node {
 };
 
 USING_PTR (RenderOperation);
-struct GVK_RENDERER_API RenderOperation : public Operation {
-    USING_CREATE (RenderOperation);
-
+class GVK_RENDERER_API RenderOperation : public Operation {
+public:
     struct CompileSettings {
         PureDrawRecordableU      drawRecordable;
         VertexAttributeProviderU vertexAttributeProvider;
@@ -104,8 +104,6 @@ private:
 
 USING_PTR (TransferOperation);
 class GVK_RENDERER_API TransferOperation : public Operation {
-    USING_CREATE (TransferOperation);
-
 public:
     TransferOperation ();
 
@@ -122,5 +120,8 @@ public:
 
 
 } // namespace RG
+
+} // namespace GVK
+
 
 #endif

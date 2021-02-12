@@ -1,5 +1,6 @@
 #include "Buffer.hpp"
 
+namespace GVK {
 
 Buffer::Buffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
     : allocator (allocator)
@@ -27,4 +28,6 @@ Buffer::~Buffer ()
     }
 
     handle = VK_NULL_HANDLE;
+}
+
 }

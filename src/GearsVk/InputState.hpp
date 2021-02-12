@@ -6,6 +6,8 @@
 
 #include <array>
 
+namespace GVK {
+
 //#define ASSERT_ON_KEYS GVK_VERIFY
 #define ASSERT_ON_KEYS
 
@@ -18,8 +20,6 @@ private:
     std::array<bool, KEYCOUNT> pressedKeys;
 
 public:
-    USING_CREATE (KeyboardState);
-
     KeyboardState ()
     {
         pressedKeys.fill (false);
@@ -61,5 +61,7 @@ public:
     {
     }
 };
+
+} // namespace GVK
 
 #endif

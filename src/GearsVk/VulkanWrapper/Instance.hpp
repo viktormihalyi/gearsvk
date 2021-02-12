@@ -11,6 +11,7 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
+namespace GVK {
 
 struct GVK_RENDERER_API InstanceSettings {
     std::vector<const char*> extensions;
@@ -24,8 +25,6 @@ extern GVK_RENDERER_API const InstanceSettings instanceReleaseMode;
 
 USING_PTR (Instance);
 class GVK_RENDERER_API Instance : public VulkanObject {
-    USING_CREATE (Instance);
-
 private:
     VkInstance handle;
 
@@ -37,5 +36,7 @@ public:
 
     operator VkInstance () const { return handle; }
 };
+
+}
 
 #endif

@@ -85,7 +85,7 @@ static bool IsEquivalentStimulus (const Stimulus& left, const Stimulus& right)
 }
 
 
-SequenceAdapter::SequenceAdapter (VulkanEnvironment& environment, const Sequence::P& sequence)
+SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const Sequence::P& sequence)
     : sequence (sequence)
     , environment (environment)
 {
@@ -105,12 +105,24 @@ SequenceAdapter::SequenceAdapter (VulkanEnvironment& environment, const Sequence
         if (equivalentAdapter != nullptr) {
             views[stim] = equivalentAdapter;
         } else {
-            views[stim]   = StimulusAdapterView::Create (environment, stim);
+            views[stim]   = Make<StimulusAdapterView> (environment, stim);
             created[stim] = views[stim];
         }
 
         ++stindex;
     }
+
+
+    firstFrameMs = 0;
+    lastNs       = GVK::TimePoint::SinceApplicationStart ().AsMilliseconds ();
+    obs.Observe (presentedFrameIndexEvent, [&] (uint32_t idx) {
+        const double frameDisplayRateMs = 1.0 / 60.0 * 1000.0;
+
+        const auto nowT  = GVK::TimePoint::SinceApplicationStart ();
+        const auto nowNs = nowT.AsMilliseconds ();
+        std::cout << "frame index shown: " << idx << " (ns: " << nowNs << ", delta ns: " << (nowNs - lastNs) << ", delta from expected: " << ((idx * frameDisplayRateMs) - nowNs) << ")" << std::endl;
+        lastNs = nowNs;
+    });
 }
 
 
@@ -120,9 +132,14 @@ void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
         return;
     }
 
+    if (frameIndex == 1) {
+        firstFrameMs = GVK::TimePoint::SinceApplicationStart ().AsMilliseconds ();
+        std::cout << "firstFrameMs = " << firstFrameMs << std::endl;
+    }
+
     Stimulus::CP stim = sequence->getStimulusAtFrame (frameIndex);
     if (GVK_VERIFY (stim != nullptr)) {
-        views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex);
+        views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex, presentedFrameIndexEvent);
         lastRenderedFrameIndex = frameIndex;
     }
 }
@@ -135,7 +152,7 @@ void SequenceAdapter::Wait ()
     }
 }
 
-void SequenceAdapter::SetCurrentPresentable (Ptr<Presentable> presentable)
+void SequenceAdapter::SetCurrentPresentable (Ptr<GVK::Presentable> presentable)
 {
     currentPresentable = presentable;
 
@@ -143,11 +160,11 @@ void SequenceAdapter::SetCurrentPresentable (Ptr<Presentable> presentable)
         view->CreateForPresentable (currentPresentable);
     }
 
-    renderer = RG::SynchronizedSwapchainGraphRenderer::Create (*environment.deviceExtra, presentable->GetSwapchain ());
+    renderer = Make<GVK::RG::SynchronizedSwapchainGraphRenderer> (*environment.deviceExtra, presentable->GetSwapchain ());
 }
 
 
-Ptr<Presentable> SequenceAdapter::GetCurrentPresentable ()
+Ptr<GVK::Presentable> SequenceAdapter::GetCurrentPresentable ()
 {
     return currentPresentable;
 }
@@ -155,9 +172,9 @@ Ptr<Presentable> SequenceAdapter::GetCurrentPresentable ()
 
 void SequenceAdapter::RenderFullOnExternalWindow ()
 {
-    WindowU window = HiddenGLFWWindow::Create ();
+    U<GVK::Window> window = Make<GVK::HiddenGLFWWindow> ();
 
-    SetCurrentPresentable (Presentable::Create (environment, *window));
+    SetCurrentPresentable (Make<GVK::Presentable> (environment, *window));
 
     window->Show ();
 

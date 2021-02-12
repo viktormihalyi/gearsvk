@@ -45,6 +45,9 @@
 #include <unordered_map>
 
 
+using namespace GVK;
+using namespace GVK::RG;
+
 using VizHFTests = HiddenWindowGoogleTestEnvironment;
 
 
@@ -65,7 +68,7 @@ TEST_F (VizHFTests, HF1)
 
     // ========================= GRAPH OPERATIONS =========================
 
-    ShaderPipelineU sp = ShaderPipeline::Create (device);
+    RG::ShaderPipelineU sp = Make<RG::ShaderPipeline> (device);
 
     sp->SetVertexShaderFromString (R"(#version 450
 
@@ -348,24 +351,24 @@ void main ()
 }
 )");
 
-    Ptr<RG::RenderOperation> brainRenderOp = RG::RenderOperation::Create (FullscreenQuad::Create (device), std::move (sp));
+    Ptr<RG::RenderOperation> brainRenderOp = Make<RenderOperation> (Make<FullscreenQuad> (device), std::move (sp));
 
 
     // ========================= GRAPH RESOURCES =========================
 
-    Ptr<RG::SwapchainImageResource> presented = RG::SwapchainImageResource::Create (*presentable);
-    Ptr<RG::ReadOnlyImageResource>  matcap    = RG::ReadOnlyImageResource::Create (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
-    Ptr<RG::ReadOnlyImageResource>  agy3d     = RG::ReadOnlyImageResource::Create (VK_FORMAT_R8_SRGB, 256, 256, 256);
+    Ptr<RG::SwapchainImageResource> presented = Make<SwapchainImageResource> (*presentable);
+    Ptr<RG::ReadOnlyImageResource>  matcap    = Make<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
+    Ptr<RG::ReadOnlyImageResource>  agy3d     = Make<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
 
     s.connectionSet.Add (brainRenderOp, presented,
-                         RG::OutputBinding::Create (0,
-                                                    presented->GetFormatProvider (),
-                                                    presented->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         Make<OutputBinding> (0,
+                                              presented->GetFormatProvider (),
+                                              presented->GetFinalLayout (),
+                                              VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                              VK_ATTACHMENT_STORE_OP_STORE));
 
-    s.connectionSet.Add (agy3d, brainRenderOp, RG::ImageInputBinding::Create (2, *agy3d));
-    s.connectionSet.Add (matcap, brainRenderOp, RG::ImageInputBinding::Create (3, *matcap));
+    s.connectionSet.Add (agy3d, brainRenderOp, Make<ImageInputBinding> (2, *agy3d));
+    s.connectionSet.Add (matcap, brainRenderOp, Make<ImageInputBinding> (3, *matcap));
 
     RG::UniformReflection r (s.connectionSet);
 
@@ -563,7 +566,7 @@ TEST_F (VizHFTests, HF2)
 
     // ========================= GRAPH OPERATIONS & RESOURCES =========================
 
-    ShaderPipelineU sp = ShaderPipeline::Create (device);
+    ShaderPipelineU sp = Make<ShaderPipeline> (device);
 
     sp->SetVertexShaderFromString (R"(#version 450
 
@@ -822,18 +825,18 @@ void main ()
 }
 )");
 
-    Ptr<RG::RenderOperation> brainRenderOp = RG::RenderOperation::Create (FullscreenQuad::Create (deviceExtra), std::move (sp));
+    Ptr<RG::RenderOperation> brainRenderOp = Make<RenderOperation> (Make<FullscreenQuad> (deviceExtra), std::move (sp));
 
-    Ptr<RG::SwapchainImageResource> presented = RG::SwapchainImageResource::Create (*presentable);
+    Ptr<RG::SwapchainImageResource> presented = Make<SwapchainImageResource> (*presentable);
 
     // ========================= GRAPH CONNECTIONS =========================
 
     s.connectionSet.Add (brainRenderOp, presented,
-                         RG::OutputBinding::Create (0,
-                                                    presented->GetFormatProvider (),
-                                                    presented->GetFinalLayout (),
-                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                    VK_ATTACHMENT_STORE_OP_STORE));
+                         Make<OutputBinding> (0,
+                                              presented->GetFormatProvider (),
+                                              presented->GetFinalLayout (),
+                                              VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                              VK_ATTACHMENT_STORE_OP_STORE));
 
     // ========================= UNIFORM REFLECTION =========================
 

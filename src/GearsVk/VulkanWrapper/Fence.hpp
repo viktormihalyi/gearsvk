@@ -9,6 +9,8 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+namespace GVK {
+
 USING_PTR (Fence);
 class GVK_RENDERER_API Fence : public VulkanObject {
 private:
@@ -16,8 +18,6 @@ private:
     VkFence        handle;
 
 public:
-    USING_CREATE (Fence);
-
     Fence (VkDevice device)
         : device (device)
         , handle (VK_NULL_HANDLE)
@@ -51,4 +51,7 @@ public:
         vkResetFences (device, 1, &handle);
     }
 };
+
+}
+
 #endif

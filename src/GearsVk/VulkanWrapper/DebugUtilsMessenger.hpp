@@ -9,11 +9,10 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+namespace GVK {
 
 USING_PTR (DebugUtilsMessenger);
 class GVK_RENDERER_API DebugUtilsMessenger : public VulkanObject {
-    USING_CREATE (DebugUtilsMessenger);
-
 public:
     using Callback = std::function<void (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
                                          VkDebugUtilsMessageTypeFlagsEXT             messageType,
@@ -52,5 +51,7 @@ public:
 
     operator VkDebugUtilsMessengerEXT () const { return handle; }
 };
+
+} // namespace GVK
 
 #endif

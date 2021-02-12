@@ -9,6 +9,7 @@
 #include "CommandBuffer.hpp"
 #include "Ptr.hpp"
 
+namespace GVK {
 
 USING_PTR (VertexAttributeProvider);
 class VertexAttributeProvider {
@@ -38,8 +39,6 @@ private:
     Type callback;
 
 public:
-    USING_CREATE (LambdaPureDrawRecordable);
-
     LambdaPureDrawRecordable (const Type& callback)
         : callback (callback)
     {
@@ -57,5 +56,7 @@ class DrawRecordable : public VertexAttributeProvider, public PureDrawRecordable
 public:
     virtual ~DrawRecordable () = default;
 };
+
+} // namespace GVK
 
 #endif

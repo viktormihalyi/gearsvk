@@ -10,6 +10,8 @@
 
 #include <optional>
 
+namespace GVK {
+
 
 class Instance;
 class Window;
@@ -25,8 +27,6 @@ class VulkanEnvironment;
 
 USING_PTR (Presentable);
 class GVK_RENDERER_API Presentable : public SwapchainProvider {
-    USING_CREATE (Presentable);
-
 private:
     U<Window>    window;
     U<Surface>   surface;
@@ -50,8 +50,6 @@ void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
 
 USING_PTR (VulkanEnvironment);
 class GVK_RENDERER_API VulkanEnvironment {
-    USING_CREATE (VulkanEnvironment)
-
 public:
     U<Instance>            instance;
     U<DebugUtilsMessenger> messenger;
@@ -71,6 +69,8 @@ public:
 
     void RecreateForPresentable (const Presentable&);
 };
+
+} // namespace GVK
 
 
 #endif

@@ -8,6 +8,7 @@
 
 #include "glmlib.hpp"
 
+namespace GVK {
 
 USING_PTR (GlobalUpVectorProvider);
 class GlobalUpVectorProvider {
@@ -29,7 +30,6 @@ private:
     const glm::vec3 upVector;
 
 public:
-    USING_CREATE (GlobalZ);
     GlobalZ ()
         : upVector (0, 0, 1)
     {
@@ -211,3 +211,5 @@ void Camera::SetFrontAndBackPlane (float front, float back)
 
     InvalidateMatrices ();
 }
+
+} // namespace GVK

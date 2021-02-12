@@ -10,6 +10,8 @@
 
 #include <iostream>
 
+namespace GVK {
+
 USING_PTR (DeviceMemory);
 class GVK_RENDERER_API DeviceMemory : public VulkanObject {
 public:
@@ -23,8 +25,6 @@ private:
     VkDeviceMemory handle;
 
 public:
-    USING_CREATE (DeviceMemory);
-
     DeviceMemory (VkDevice device, const size_t allocationSize, const uint32_t memoryTypeIndex);
 
     virtual ~DeviceMemory () override;
@@ -33,5 +33,7 @@ public:
 
     size_t GetSize () const { return allocationSize; }
 };
+
+}
 
 #endif

@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+namespace GVK {
 
 uint32_t SDLWindowBase::windowCount = 0;
 
@@ -178,6 +179,8 @@ SDLWindow::SDLWindow ()
 HiddenSDLWindow::HiddenSDLWindow ()
     : SDLWindowBase (SDL_WINDOW_HIDDEN)
 {
+}
+
 }
 
 #endif

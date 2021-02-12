@@ -11,6 +11,7 @@
 #include <vulkan/vulkan_win32.h>
 #endif
 
+namespace GVK {
 
 Surface::Surface (VkInstance instance, VkSurfaceKHR&& handle)
     : instance (instance)
@@ -54,4 +55,6 @@ Surface::~Surface ()
         vkDestroySurfaceKHR (instance, handle, nullptr);
         handle = VK_NULL_HANDLE;
     }
+}
+
 }

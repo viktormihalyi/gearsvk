@@ -9,6 +9,8 @@
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
 
+namespace GVK {
+
 class CommandBuffer;
 
 USING_PTR (Queue);
@@ -17,8 +19,6 @@ private:
     VkQueue handle;
 
 public:
-    USING_CREATE (Queue);
-
     Queue (VkDevice device, uint32_t index)
     {
         vkGetDeviceQueue (device, index, 0, &handle); // only one queue per device
@@ -52,5 +52,7 @@ public:
 };
 
 extern Queue dummyQueue;
+
+}
 
 #endif

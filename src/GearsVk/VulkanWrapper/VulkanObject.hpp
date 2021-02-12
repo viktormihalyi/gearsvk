@@ -6,10 +6,12 @@
 #include "Ptr.hpp"
 #include "UUID.hpp"
 
+namespace GVK {
+
 USING_PTR (VulkanObject);
 class GVK_RENDERER_API VulkanObject : public Noncopyable {
 private:
-    GearsVk::UUID uuid;
+    GVK::UUID uuid;
 
 protected:
     VulkanObject ();
@@ -17,10 +19,12 @@ protected:
 public:
     virtual ~VulkanObject ();
 
-    const GearsVk::UUID& GetUUID () const
+    const GVK::UUID& GetUUID () const
     {
         return uuid;
     }
 };
+
+}
 
 #endif

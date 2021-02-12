@@ -8,7 +8,7 @@
 
 #include "GVKUtilsAPI.hpp"
 
-namespace GearsVk {
+namespace GVK {
 
 class GVK_UTILS_API UUID {
 private:
@@ -26,12 +26,12 @@ public:
     friend struct std::hash<UUID>;
 };
 
-} // namespace GearsVk
+} // namespace GVK
 
 
 template<>
-struct GVK_UTILS_API std::hash<GearsVk::UUID> {
-    std::size_t operator() (const GearsVk::UUID& uuid) const noexcept
+struct GVK_UTILS_API std::hash<GVK::UUID> {
+    std::size_t operator() (const GVK::UUID& uuid) const noexcept
     {
         const uint64_t firstHalf  = *reinterpret_cast<const uint64_t*> (uuid.data.data ());
         const uint64_t secondHalf = *reinterpret_cast<const uint64_t*> (uuid.data.data () + 8);

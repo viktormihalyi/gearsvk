@@ -256,7 +256,8 @@ target_compile_options (${TARGET_DLL} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL_EMBEDDED} PRIVATE ${COMPILER_FLAGS})
 
 
-if (NOT DEFINED CI)
+if (DEFINED CREATE_INSTALLER)
+
 set (UI_PATH ${CMAKE_SOURCE_DIR}/src/UserInterface)
 
 add_custom_command (

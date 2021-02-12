@@ -1,5 +1,6 @@
 #include "DebugUtilsMessenger.hpp"
 
+namespace GVK {
 
 const DebugUtilsMessenger::Settings DebugUtilsMessenger::defaultSettings {
     true,
@@ -96,4 +97,6 @@ DebugUtilsMessenger::~DebugUtilsMessenger ()
 {
     DestroyDebugUtilsMessengerEXT (instance, handle, nullptr);
     handle = VK_NULL_HANDLE;
+}
+
 }

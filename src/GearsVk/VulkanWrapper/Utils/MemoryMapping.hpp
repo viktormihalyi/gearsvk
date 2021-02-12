@@ -12,6 +12,8 @@
 
 #include <cstring>
 
+namespace GVK {
+
 USING_PTR (MemoryMapping);
 class GVK_RENDERER_API MemoryMapping : public Noncopyable {
 private:
@@ -27,8 +29,6 @@ private:
     void* mappedMemory;
 
 public:
-    USING_CREATE (MemoryMapping);
-
     MemoryMapping (VkDevice device, VkDeviceMemory memory, size_t offset, size_t size)
         : device (device)
         , allocator (VK_NULL_HANDLE)
@@ -105,5 +105,7 @@ public:
     uint32_t GetSize () { return size; }
     uint32_t GetOffset () { return offset; }
 };
+
+}
 
 #endif

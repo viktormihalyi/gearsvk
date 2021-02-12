@@ -19,11 +19,11 @@
 namespace Gears {
 
 
-static SequenceAdapterU              currentSeq;
-static std::vector<Ptr<Presentable>> createdSurfaces;
+static SequenceAdapterU                   currentSeq;
+static std::vector<Ptr<GVK::Presentable>> createdSurfaces;
 
-static VulkanEnvironment& GetVkEnvironment ();
-static void               DestroyVkEnvironment ();
+static GVK::VulkanEnvironment& GetVkEnvironment ();
+static void                    DestroyVkEnvironment ();
 
 
 void InitializeEnvironment ()
@@ -42,7 +42,7 @@ void DestroyEnvironment ()
 
 void SetRenderGraphFromSequence (Sequence::P seq)
 {
-    currentSeq = SequenceAdapter::Create (GetVkEnvironment (), seq);
+    currentSeq = Make<SequenceAdapter> (GetVkEnvironment (), seq);
 }
 
 
@@ -59,12 +59,12 @@ void StartRendering ()
 }
 
 
-void TryCompile (ShaderKind shaderKind, const std::string& source)
+void TryCompile (GVK::ShaderKind shaderKind, const std::string& source)
 {
     try {
-        ShaderModule::CreateFromGLSLString (*GetVkEnvironment ().device, shaderKind, source);
+        GVK::ShaderModule::CreateFromGLSLString (*GetVkEnvironment ().device, shaderKind, source);
         std::cout << "compile succeeded" << std::endl;
-    } catch (const ShaderCompileException&) {
+    } catch (const GVK::ShaderCompileException&) {
         std::cout << "compile failed, source code: " << std::endl;
         std::cout << source << std::endl;
     }
@@ -74,7 +74,7 @@ void TryCompile (ShaderKind shaderKind, const std::string& source)
 intptr_t CreateSurface (intptr_t hwnd)
 {
 #ifdef WIN32
-    Ptr<Presentable> presentable = Presentable::Create (GetVkEnvironment (), Surface::Create (Surface::PlatformSpecific, *GetVkEnvironment ().instance, reinterpret_cast<void*> (hwnd)));
+    Ptr<GVK::Presentable> presentable = Make<GVK::Presentable> (GetVkEnvironment (), Make<GVK::Surface> (GVK::Surface::PlatformSpecific, *GetVkEnvironment ().instance, reinterpret_cast<void*> (hwnd)));
     createdSurfaces.push_back (presentable);
     return reinterpret_cast<intptr_t> (presentable.get ());
 #else
@@ -84,9 +84,9 @@ intptr_t CreateSurface (intptr_t hwnd)
 }
 
 
-static Ptr<Presentable> GetSurfaceFromHandle (intptr_t surfaceHandle)
+static Ptr<GVK::Presentable> GetSurfaceFromHandle (intptr_t surfaceHandle)
 {
-    for (const Ptr<Presentable>& createdSurface : createdSurfaces) {
+    for (const Ptr<GVK::Presentable>& createdSurface : createdSurfaces) {
         if (reinterpret_cast<intptr_t> (createdSurface.get ()) == surfaceHandle) {
             return createdSurface;
         }
@@ -97,7 +97,7 @@ static Ptr<Presentable> GetSurfaceFromHandle (intptr_t surfaceHandle)
 
 void SetCurrentSurface (intptr_t surfaceHandle)
 {
-    Ptr<Presentable> presentable = GetSurfaceFromHandle (surfaceHandle);
+    Ptr<GVK::Presentable> presentable = GetSurfaceFromHandle (surfaceHandle);
     if (GVK_ERROR (presentable == nullptr)) {
         return;
     }
@@ -124,7 +124,7 @@ void Wait ()
 
 void DestroySurface (intptr_t surfaceHandle)
 {
-    const auto FindPresentable = [&] (const Ptr<Presentable>& p) {
+    const auto FindPresentable = [&] (const Ptr<GVK::Presentable>& p) {
         return reinterpret_cast<intptr_t> (p.get ()) == surfaceHandle;
     };
 
@@ -147,11 +147,12 @@ std::string GetGLSLResourcesForRandoms ()
 }
 
 
-SequenceAdapterU GetSequenceAdapterFromPyx (VulkanEnvironment& environment, const std::filesystem::path& filePath)
+SequenceAdapterU GetSequenceAdapterFromPyx (GVK::VulkanEnvironment& environment, const std::filesystem::path& filePath)
 {
     if (GVK_ERROR (!std::filesystem::exists (filePath))) {
         return nullptr;
     }
+
 
     // working directory will be the same as PROJECT_ROOT
 
@@ -176,7 +177,7 @@ SequenceAdapterU GetSequenceAdapterFromPyx (VulkanEnvironment& environment, cons
 
         Sequence::P sequenceCpp = sequence.cast<Sequence::P> ();
 
-        return SequenceAdapter::Create (environment, sequenceCpp);
+        return Make<SequenceAdapter> (environment, sequenceCpp);
 
     } catch (std::exception& e) {
         GVK_BREAK ("Failed to load sequence.");
@@ -186,19 +187,19 @@ SequenceAdapterU GetSequenceAdapterFromPyx (VulkanEnvironment& environment, cons
 }
 
 
-void SetCurrentPresentable (Ptr<Presentable>& p)
+void SetCurrentPresentable (Ptr<GVK::Presentable>& p)
 {
     currentSeq->SetCurrentPresentable (p);
 }
 
 
-static VulkanEnvironmentU env_ = nullptr;
+static U<GVK::VulkanEnvironment> env_ = nullptr;
 
 
-static VulkanEnvironment& GetVkEnvironment ()
+static GVK::VulkanEnvironment& GetVkEnvironment ()
 {
     if (env_ == nullptr) {
-        env_ = VulkanEnvironment::Create ();
+        env_ = Make<GVK::VulkanEnvironment> ();
     }
 
     return *env_;

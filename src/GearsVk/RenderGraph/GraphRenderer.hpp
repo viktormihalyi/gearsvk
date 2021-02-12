@@ -10,6 +10,7 @@
 #include "Time.hpp"
 #include "Window.hpp"
 
+namespace GVK {
 
 USING_PTR (Swapchain);
 USING_PTR (Fence);
@@ -69,8 +70,6 @@ public:
 
 USING_PTR (SynchronizedSwapchainGraphRenderer);
 class GVK_RENDERER_API SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
-    USING_CREATE (SynchronizedSwapchainGraphRenderer);
-
 private:
     // number of render operations able to run simultaneously
     // optimally equal to imageCount, but may be lower.
@@ -107,5 +106,7 @@ public:
 };
 
 } // namespace RG
+
+}
 
 #endif

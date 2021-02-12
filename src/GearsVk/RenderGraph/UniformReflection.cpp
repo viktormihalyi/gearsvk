@@ -2,6 +2,7 @@
 
 #include "Event.hpp"
 
+namespace GVK {
 
 namespace RG {
 
@@ -44,7 +45,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
                 // graph.AddResource (uboRes);
                 GVK_ASSERT (uboRes != nullptr);
 
-                Ptr<SR::UDataInternal> uboData = SR::UDataInternal::Create (ubo);
+                Ptr<SR::UDataInternal> uboData = Make<SR::UDataInternal> (ubo);
                 ubosel.Set (ubo->name, uboData);
 
                 uboConnections.push_back (std::make_tuple (renderOp, ubo->binding, uboRes, shaderModule.GetShaderKind ()));
@@ -75,7 +76,7 @@ void UniformReflection::CreateGraphConnections ()
     };
 
     for (auto& [operation, binding, resource, shaderKind] : uboConnections) {
-        connectionSet.Add (resource, operation, RG::UniformInputBinding::Create (binding, *resource, shaderKindToShaderStage (shaderKind)));
+        connectionSet.Add (resource, operation, Make<RG::UniformInputBinding> (binding, *resource, shaderKindToShaderStage (shaderKind)));
     }
 
     uboConnections.clear ();
@@ -151,15 +152,15 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
                 switch (sampler.type) {
                     case SR::Sampler::Type::Sampler1D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y == 0 && extent.z == 0));
-                        imgRes = ReadOnlyImageResource::Create (format, filter, extent.x, 1, 1, layerCount);
+                        imgRes = Make<ReadOnlyImageResource> (format, filter, extent.x, 1, 1, layerCount);
                         break;
                     case SR::Sampler::Type::Sampler2D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y != 0 && extent.z == 0));
-                        imgRes = ReadOnlyImageResource::Create (format, filter, extent.x, extent.y, 1, layerCount);
+                        imgRes = Make<ReadOnlyImageResource> (format, filter, extent.x, extent.y, 1, layerCount);
                         break;
                     case SR::Sampler::Type::Sampler3D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y != 0 && extent.z != 0));
-                        imgRes = ReadOnlyImageResource::Create (format, filter, extent.x, extent.y, extent.z, layerCount);
+                        imgRes = Make<ReadOnlyImageResource> (format, filter, extent.x, extent.y, extent.z, layerCount);
                         break;
                     default:
                         GVK_BREAK ("unexpected sampler type");
@@ -172,7 +173,7 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 
                 result.Put (sampler, imgRes);
 
-                connectionSet.Add (imgRes, renderOp, ImageInputBinding::Create (sampler.binding, *imgRes, (sampler.arraySize > 0) ? sampler.arraySize : 1));
+                connectionSet.Add (imgRes, renderOp, Make<ImageInputBinding> (sampler.binding, *imgRes, (sampler.arraySize > 0) ? sampler.arraySize : 1));
             }
         });
     });
@@ -181,3 +182,6 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 }
 
 } // namespace RG
+
+} // namespace GVK
+

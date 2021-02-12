@@ -5,12 +5,13 @@
 #include "GearsAPI.hpp"
 #include "Ptr.hpp"
 
-
+namespace GVK {
 class Presentable;
 class VulkanEnvironment;
+enum class ShaderKind : uint8_t;
+} // namespace GVK
 class SequenceAdapter;
 class Sequence;
-enum class ShaderKind : uint8_t;
 
 
 namespace Gears {
@@ -23,7 +24,7 @@ void SetRenderGraphFromSequence (Ptr<Sequence>);
 
 void StartRendering ();
 
-void TryCompile (ShaderKind shaderKind, const std::string& source);
+void TryCompile (GVK::ShaderKind shaderKind, const std::string& source);
 
 intptr_t CreateSurface (intptr_t hwnd);
 
@@ -37,9 +38,9 @@ void Wait ();
 
 std::string GetGLSLResourcesForRandoms ();
 
-void SetCurrentPresentable (Ptr<Presentable>&);
+void SetCurrentPresentable (Ptr<GVK::Presentable>&);
 
 GEARS_API_TEST
-U<SequenceAdapter> GetSequenceAdapterFromPyx (VulkanEnvironment&, const std::filesystem::path&);
+U<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment&, const std::filesystem::path&);
 
 } // namespace Gears

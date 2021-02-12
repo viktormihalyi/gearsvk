@@ -8,6 +8,8 @@
 #include <optional>
 #include <vector>
 
+namespace GVK {
+
 USING_PTR (SDLWindowBase);
 class GVK_RENDERER_API SDLWindowBase : public Window {
 private:
@@ -43,7 +45,6 @@ public:
 USING_PTR (SDLWindow);
 class SDLWindow final : public SDLWindowBase {
 public:
-    USING_CREATE (SDLWindow);
     SDLWindow ();
 };
 
@@ -51,8 +52,9 @@ public:
 USING_PTR (HiddenSDLWindow);
 class HiddenSDLWindow final : public SDLWindowBase {
 public:
-    USING_CREATE (HiddenSDLWindow);
     HiddenSDLWindow ();
 };
+
+} // namespace GVK
 
 #endif

@@ -8,6 +8,8 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+namespace GVK {
+
 USING_PTR (DescriptorPool);
 
 class GVK_RENDERER_API DescriptorPool : public VulkanObject {
@@ -16,17 +18,15 @@ private:
     VkDescriptorPool handle;
 
 public:
-    USING_CREATE (DescriptorPool);
-
     DescriptorPool (VkDevice device, uint32_t descriptorCountUbo, uint32_t descriptorCountSampler, uint32_t maxSets)
         : device (device)
         , handle (VK_NULL_HANDLE)
     {
         std::vector<VkDescriptorPoolSize> poolSizes = {};
         if (descriptorCountUbo > 0)
-            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCountUbo});
+            poolSizes.push_back ({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCountUbo });
         if (descriptorCountSampler > 0)
-            poolSizes.push_back ({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler});
+            poolSizes.push_back ({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler });
 
         if (GVK_ERROR (poolSizes.empty ())) {
             throw std::runtime_error ("empty pool");
@@ -54,5 +54,7 @@ public:
         return handle;
     }
 };
+
+}
 
 #endif

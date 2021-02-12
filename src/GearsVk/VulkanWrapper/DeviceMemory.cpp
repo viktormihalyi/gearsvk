@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+namespace GVK {
+
 static void LogMemoryOperation (const std::string& operation, const size_t allocationSize, const uint32_t memoryTypeIndex)
 {
     static const uint32_t ONE_GB = 1024 * 1024 * 1024;
@@ -65,4 +67,6 @@ DeviceMemory::~DeviceMemory ()
 #if 1
     LogFree (allocationSize, memoryTypeIndex);
 #endif
+}
+
 }

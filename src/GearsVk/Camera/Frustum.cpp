@@ -2,6 +2,8 @@
 
 #include "glmlib.hpp"
 
+namespace GVK {
+
 PerspectiveFrustum::PerspectiveFrustum (float backPlane, float frontPlane, float fov, float aspectRatio)
     : backPlane (backPlane)
     , frontPlane (frontPlane)
@@ -30,3 +32,5 @@ glm::mat4 OrthographicFrustum::GetMatrix () const
 {
     return glm::ortho (left, right, bottom, top);
 }
+
+} // namespace GVK

@@ -6,6 +6,10 @@
 
 #include "Node.hpp"
 
+namespace GVK {
+
+namespace RG {
+
 USING_PTR (InputBufferBindable);
 class InputBufferBindable {
 public:
@@ -20,5 +24,8 @@ public:
     virtual VkSampler   GetSampler ()                                                   = 0;
 };
 
+}
+
+}
 
 #endif

@@ -14,6 +14,8 @@
 
 #include <vulkan/vulkan.h>
 
+namespace GVK {
+
 class GVK_RENDERER_API ShaderCompileException : public std::runtime_error {
 public:
     ShaderCompileException (const std::string& errorMessage)
@@ -57,8 +59,6 @@ extern GVK_RENDERER_API EmptyPreprocessor emptyPreprocessor;
 
 USING_PTR (ShaderModule);
 class GVK_RENDERER_API ShaderModule : public VulkanObject {
-    USING_CREATE (ShaderModule);
-
 public:
     static constexpr uint32_t ShaderKindCount = 6;
 
@@ -72,10 +72,10 @@ public:
     struct Reflection {
         ShaderKind shaderKind;
 
-        std::vector<Ptr<SR::UBO>>  ubos;
-        std::vector<SR::Sampler> samplers;
-        std::vector<SR::Input>   inputs;
-        std::vector<SR::Output>  outputs;
+        std::vector<Ptr<SR::UBO>> ubos;
+        std::vector<SR::Sampler>  samplers;
+        std::vector<SR::Input>    inputs;
+        std::vector<SR::Output>   outputs;
 
         Reflection (ShaderKind shaderKind, const std::vector<uint32_t>& binary);
 
@@ -109,8 +109,8 @@ private:
 
     ShaderPreprocessor& preprocessor;
 
-private:
-    // private ctor, use factories instead
+public:
+    // dont use this ctor, use factories instead
     ShaderModule (ShaderKind                   shaderKind,
                   ReadMode                     mode,
                   VkDevice                     device,
@@ -141,5 +141,7 @@ public:
 
     const Reflection& GetReflection () const { return reflection; }
 };
+
+}
 
 #endif

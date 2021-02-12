@@ -9,6 +9,7 @@
 #include <optional>
 #include <vector>
 
+namespace GVK {
 
 USING_PTR (GLFWWindowBase);
 class GVK_RENDERER_API GLFWWindowBase : public Window {
@@ -45,7 +46,6 @@ public:
 USING_PTR (GLFWWindow);
 class GVK_RENDERER_API GLFWWindow : public GLFWWindowBase {
 public:
-    USING_CREATE (GLFWWindow);
     GLFWWindow ();
     virtual ~GLFWWindow () = default;
 };
@@ -54,9 +54,10 @@ public:
 USING_PTR (HiddenGLFWWindow);
 class GVK_RENDERER_API HiddenGLFWWindow : public GLFWWindowBase {
 public:
-    USING_CREATE (HiddenGLFWWindow);
     HiddenGLFWWindow ();
     virtual ~HiddenGLFWWindow () = default;
 };
+
+}
 
 #endif

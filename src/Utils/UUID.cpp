@@ -62,19 +62,19 @@ static std::array<uint8_t, 16> GenerateUUID ()
 #endif
 
 
-GearsVk::UUID::UUID ()
+GVK::UUID::UUID ()
     : data (GenerateUUID ())
 {
 }
 
 
-GearsVk::UUID::UUID (std::nullptr_t)
+GVK::UUID::UUID (std::nullptr_t)
     : data ({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 {
 }
 
 
-std::string GearsVk::UUID::GetValue () const
+std::string GVK::UUID::GetValue () const
 {
     char str[39] = {};
     sprintf (str,

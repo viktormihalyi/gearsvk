@@ -10,6 +10,8 @@
 
 #include <vulkan/vulkan.h>
 
+namespace GVK {
+
 USING_PTR (Framebuffer);
 class GVK_RENDERER_API Framebuffer final : public VulkanObject {
 private:
@@ -20,8 +22,6 @@ private:
     const uint32_t height;
 
 public:
-    USING_CREATE (Framebuffer);
-
     Framebuffer (VkDevice device, VkRenderPass renderPass, const std::vector<std::reference_wrapper<ImageView2D>>& attachments, uint32_t width, uint32_t height)
         : Framebuffer (device, renderPass, Utils::ConvertToHandles<ImageView2D, VkImageView> (attachments), width, height)
     {
@@ -70,5 +70,7 @@ public:
         return handle;
     }
 };
+
+}
 
 #endif

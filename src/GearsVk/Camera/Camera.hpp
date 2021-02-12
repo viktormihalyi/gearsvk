@@ -9,6 +9,8 @@
 
 #include "glmlib.hpp"
 
+namespace GVK {
+
 USING_PTR (Camera);
 
 class GVK_RENDERER_API Camera {
@@ -35,8 +37,6 @@ public:
     Event<glm::vec3> positionChanged;
 
 public:
-    USING_CREATE (Camera);
-
     enum class MovementDirection {
         Forward,
         Backward,
@@ -71,5 +71,6 @@ public:
     void  SetFrontAndBackPlane (float back, float front);
 };
 
+} // namespace GVK
 
 #endif

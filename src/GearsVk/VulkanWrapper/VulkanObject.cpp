@@ -2,6 +2,7 @@
 
 #include <set>
 
+namespace GVK {
 
 static std::set<VulkanObject*> objects;
 
@@ -14,4 +15,6 @@ VulkanObject::VulkanObject ()
 VulkanObject::~VulkanObject ()
 {
     objects.erase (this);
+}
+
 }

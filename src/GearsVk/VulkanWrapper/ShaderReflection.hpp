@@ -14,6 +14,7 @@
 
 // NOTE: SSBOs are not supported
 
+namespace GVK {
 
 namespace SR {
 
@@ -68,8 +69,6 @@ public:
 USING_PTR (Field);
 class Field final : public FieldContainer, public Noncopyable {
 public:
-    USING_CREATE (Field);
-
     std::string name;
     FieldType   type;
 
@@ -100,8 +99,6 @@ public:
 
 USING_PTR (UBO);
 class GVK_RENDERER_API UBO final : public FieldContainer, public Noncopyable {
-    USING_CREATE (UBO);
-
 public:
     uint32_t            binding;
     uint32_t            descriptorSet;
@@ -167,5 +164,7 @@ VkFormat FieldTypeToVkFormat (FieldType fieldType);
 
 
 } // namespace SR
+
+}
 
 #endif

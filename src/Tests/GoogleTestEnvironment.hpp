@@ -14,6 +14,7 @@
 // from vulkan
 #include <vulkan/vulkan.h>
 
+namespace GVK {
 class VulkanEnvironment;
 class ImageData;
 class Presentable;
@@ -25,6 +26,7 @@ class Queue;
 class Window;
 class DeviceExtra;
 class Image;
+} // namespace GVK
 
 
 extern const std::filesystem::path ReferenceImagesFolder;
@@ -41,26 +43,26 @@ using EmptyTestEnvironment = ::testing::Test;
 
 class GoogleTestEnvironmentBase : public ::testing::Test {
 protected:
-    U<VulkanEnvironment> env;
-    U<Window>            window;
-    Ptr<Presentable>     presentable;
+    U<GVK::VulkanEnvironment> env;
+    U<GVK::Window>            window;
+    Ptr<GVK::Presentable>     presentable;
 
-    PhysicalDevice& GetPhysicalDevice ();
-    Device&         GetDevice ();
-    CommandPool&    GetCommandPool ();
-    Queue&          GetGraphicsQueue ();
-    DeviceExtra&    GetDeviceExtra ();
-    Window&         GetWindow ();
-    Swapchain&      GetSwapchain ();
+    GVK::PhysicalDevice& GetPhysicalDevice ();
+    GVK::Device&         GetDevice ();
+    GVK::CommandPool&    GetCommandPool ();
+    GVK::Queue&          GetGraphicsQueue ();
+    GVK::DeviceExtra&    GetDeviceExtra ();
+    GVK::Window&         GetWindow ();
+    GVK::Swapchain&      GetSwapchain ();
 
     virtual ~GoogleTestEnvironmentBase () override = default;
 
     virtual void SetUp ()    = 0;
     virtual void TearDown () = 0;
 
-    void CompareImages (const std::string& imageName, const Image& image, std::optional<VkImageLayout> transitionFrom = std::nullopt);
+    void CompareImages (const std::string& imageName, const GVK::Image& image, std::optional<VkImageLayout> transitionFrom = std::nullopt);
 
-    void CompareImages (const std::string& name, const ImageData& actualImage);
+    void CompareImages (const std::string& name, const GVK::ImageData& actualImage);
 };
 
 
@@ -70,7 +72,6 @@ protected:
     virtual void SetUp () override;
     virtual void TearDown () override;
 };
-
 
 // window shown by default
 class ShownWindowGoogleTestEnvironment : public GoogleTestEnvironmentBase {

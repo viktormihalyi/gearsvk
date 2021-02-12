@@ -8,6 +8,8 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+namespace GVK {
+
 USING_PTR (CommandPool);
 
 class GVK_RENDERER_API CommandPool : public VulkanObject {
@@ -16,8 +18,6 @@ private:
     VkCommandPool  handle;
 
 public:
-    USING_CREATE (CommandPool);
-
     CommandPool (VkDevice device, uint32_t queueIndex)
         : device (device)
         , handle (VK_NULL_HANDLE)
@@ -42,5 +42,7 @@ public:
         return handle;
     }
 };
+
+} // namespace GVK
 
 #endif

@@ -12,6 +12,7 @@
 
 #include <set>
 
+namespace GVK {
 
 namespace RG {
 
@@ -22,8 +23,6 @@ class GraphSettings;
 
 USING_PTR (RenderGraph);
 class GVK_RENDERER_API RenderGraph final : public Noncopyable {
-    USING_CREATE (RenderGraph);
-
 private:
     bool compiled;
 
@@ -65,5 +64,7 @@ private:
 
 
 } // namespace RG
+
+}
 
 #endif

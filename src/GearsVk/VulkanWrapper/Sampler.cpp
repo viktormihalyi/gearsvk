@@ -2,6 +2,8 @@
 
 #include "Assert.hpp"
 
+namespace GVK {
+
 Sampler::Sampler (VkDevice device, VkFilter filter, VkSamplerAddressMode addressMode)
     : device (device)
     , filter (filter)
@@ -34,4 +36,6 @@ Sampler::~Sampler ()
 {
     vkDestroySampler (device, handle, nullptr);
     handle = VK_NULL_HANDLE;
+}
+
 }

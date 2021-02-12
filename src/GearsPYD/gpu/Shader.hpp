@@ -35,7 +35,7 @@ public:
 
 class Shader : public UniformBinder {
 public:
-    static Event<std::string> uniformBoundEvent;
+    static GVK::Event<std::string> uniformBoundEvent;
 
 private:
     struct Type {

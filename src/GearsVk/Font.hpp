@@ -14,10 +14,10 @@
 
 #include "glmlib.hpp"
 
+namespace GVK {
+
 USING_PTR (GlyphData);
 struct GlyphData {
-    USING_CREATE (GlyphData);
-
     std::vector<float> data;
     uint32_t           width;
     uint32_t           height;
@@ -42,7 +42,6 @@ public:
     double underlineY, underlineThickness;
 
 public:
-    USING_CREATE (Font);
     Font (const std::filesystem::path& fontFile);
     ~Font ();
 
@@ -62,8 +61,6 @@ public:
 
 USING_PTR (FontManager)
 class FontManager {
-    USING_CREATE (FontManager);
-
 public:
     enum class Type {
         SDF,
@@ -115,7 +112,7 @@ private:
 
             std::cout << "generated '" << static_cast<char> (unicode) << "', scale: " << data.scale << ", translation: " << data.translation << std::endl;
 
-            const auto insertResult = loadedGlyphs.insert ({ unicode, GlyphData::Create (data) });
+            const auto insertResult = loadedGlyphs.insert ({ unicode, Make<GlyphData> (data) });
 
             GVK_ASSERT (insertResult.second);
 
@@ -147,6 +144,8 @@ public:
         return font.GetKerning (unicode1, unicode2);
     }
 };
+
+} // namespace GVK
 
 
 #endif

@@ -9,10 +9,10 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+namespace GVK {
+
 USING_PTR (DescriptorSetLayout);
 class GVK_RENDERER_API DescriptorSetLayout : public VulkanObject {
-    USING_CREATE (DescriptorSetLayout);
-
 private:
     const VkDevice        device;
     VkDescriptorSetLayout handle;
@@ -63,5 +63,7 @@ public:
         return handle;
     }
 };
+
+}
 
 #endif

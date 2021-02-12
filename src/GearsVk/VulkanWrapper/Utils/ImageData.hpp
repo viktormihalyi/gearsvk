@@ -9,6 +9,8 @@
 #include "DeviceExtra.hpp"
 #include "Image.hpp"
 
+namespace GVK {
+
 class GVK_RENDERER_API ImageData {
 private:
     ImageData () = default;
@@ -35,5 +37,7 @@ public:
     void SaveTo (const std::filesystem::path& path) const;
     void UploadTo (const DeviceExtra& device, const Image& image, std::optional<VkImageLayout> currentLayout = std::nullopt) const;
 };
+
+}
 
 #endif

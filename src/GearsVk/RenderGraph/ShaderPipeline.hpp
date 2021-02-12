@@ -8,10 +8,12 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
+namespace GVK {
+
+namespace RG {
+
 USING_PTR (ShaderPipeline);
 class GVK_RENDERER_API ShaderPipeline {
-    USING_CREATE (ShaderPipeline);
-
 private:
     const VkDevice device;
 
@@ -80,5 +82,9 @@ public:
 
     DescriptorSetLayoutU CreateDescriptorSetLayout (VkDevice device) const;
 };
+
+} // namespace RG
+
+} // namespace GVK
 
 #endif

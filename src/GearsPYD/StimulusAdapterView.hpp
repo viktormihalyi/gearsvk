@@ -2,6 +2,7 @@
 #define STIMULUSADAPTERVIEW_HPP
 
 // from GearsVk
+#include "Event.hpp"
 #include "Noncopyable.hpp"
 #include "Ptr.hpp"
 
@@ -9,32 +10,36 @@
 #include <map>
 
 
-class VulkanEnvironment;
-class Presentable;
 class StimulusAdapterForPresentable;
 class Stimulus;
 
+namespace GVK {
+class VulkanEnvironment;
+class Presentable;
 namespace RG {
 class Renderer;
 }
+} // namespace GVK
 
 
 USING_PTR (StimulusAdapterView);
 class StimulusAdapterView : public Noncopyable {
-    USING_CREATE (StimulusAdapterView);
-
 private:
-    VulkanEnvironment&   environment;
-    const PtrC<Stimulus> stimulus;
+    GVK::VulkanEnvironment& environment;
+    const PtrC<Stimulus>    stimulus;
 
-    std::map<Ptr<Presentable>, Ptr<StimulusAdapterForPresentable>> compiledAdapters;
+    std::map<Ptr<GVK::Presentable>, Ptr<StimulusAdapterForPresentable>> compiledAdapters;
 
 public:
-    StimulusAdapterView (VulkanEnvironment& environment, const PtrC<Stimulus>& stimulus);
+    StimulusAdapterView (GVK::VulkanEnvironment& environment, const PtrC<Stimulus>& stimulus);
 
-    void CreateForPresentable (Ptr<Presentable>& presentable);
+    void CreateForPresentable (Ptr<GVK::Presentable>& presentable);
 
-    void RenderFrameIndex (RG::Renderer& renderer, Ptr<Presentable>& presentable, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex);
+    void RenderFrameIndex (GVK::RG::Renderer&     renderer,
+                           Ptr<GVK::Presentable>& presentable,
+                           const PtrC<Stimulus>&  stimulus,
+                           const uint32_t         frameIndex,
+                           GVK::Event<uint32_t>&  frameIndexPresentedEvent);
 };
 
 #endif

@@ -11,6 +11,8 @@
 #include <cstring>
 #include <vector>
 
+namespace GVK {
+
 USING_PTR (ShaderModule);
 
 namespace SR {
@@ -26,8 +28,6 @@ USING_PTR (UBO);
 
 USING_PTR (UView);
 class GVK_RENDERER_API UView final {
-    USING_CREATE (UView);
-
 public:
     static const UView invalidUview;
 
@@ -183,7 +183,6 @@ private:
     uint32_t size;
 
 public:
-    USING_CREATE (UDataExternal);
     UDataExternal (const Ptr<SR::UBO>& ubo, uint8_t* bytes, uint32_t size);
 
     virtual UView operator[] (std::string_view str) override;
@@ -198,8 +197,6 @@ public:
 
 USING_PTR (UDataInternal);
 class GVK_RENDERER_API UDataInternal final : public IUData, public Noncopyable {
-    USING_CREATE (UDataInternal);
-
 private:
     std::vector<uint8_t> bytes;
     UView                root;
@@ -222,12 +219,10 @@ public:
 
 USING_PTR (ShaderUData);
 class GVK_RENDERER_API ShaderUData final : public Noncopyable {
-    USING_CREATE (ShaderUData);
-
 private:
-    std::vector<IUDataU>     udatas;
-    std::vector<std::string> uboNames;
-    std::vector<Ptr<SR::UBO>>    ubos;
+    std::vector<IUDataU>      udatas;
+    std::vector<std::string>  uboNames;
+    std::vector<Ptr<SR::UBO>> ubos;
 
 public:
     ShaderUData (const std::vector<Ptr<SR::UBO>>& ubos);
@@ -242,5 +237,8 @@ public:
 
 
 } // namespace SR
+
+}
+
 
 #endif

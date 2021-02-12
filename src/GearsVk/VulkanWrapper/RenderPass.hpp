@@ -8,6 +8,8 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+namespace GVK {
+
 USING_PTR (RenderPass);
 class GVK_RENDERER_API RenderPass : public VulkanObject {
 private:
@@ -15,8 +17,6 @@ private:
     VkRenderPass   handle;
 
 public:
-    USING_CREATE (RenderPass);
-
     RenderPass (VkDevice                                    device,
                 const std::vector<VkAttachmentDescription>& attachments,
                 const std::vector<VkSubpassDescription>&    subpasses,
@@ -48,5 +48,7 @@ public:
         return handle;
     }
 };
+
+}
 
 #endif

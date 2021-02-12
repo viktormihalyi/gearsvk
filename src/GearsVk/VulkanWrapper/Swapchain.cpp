@@ -1,5 +1,6 @@
 #include "Swapchain.hpp"
 
+namespace GVK {
 
 DefaultSwapchainSettings            defaultSwapchainSettings;
 DefaultSwapchainSettingsSingleImage defaultSwapchainSettingsSingleImage;
@@ -139,7 +140,7 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
     vkGetSwapchainImagesKHR (createSettings.device, createResult.handle, &imageCount, createResult.images.data ());
 
     for (size_t i = 0; i < createResult.images.size (); ++i) {
-        createResult.imageViews.push_back (ImageView2D::Create (createSettings.device, createResult.images[i], createResult.surfaceFormat.format));
+        createResult.imageViews.push_back (Make<ImageView2D> (createSettings.device, createResult.images[i], createResult.surfaceFormat.format));
     }
     return createResult;
 }
@@ -186,7 +187,7 @@ std::vector<InheritedImageU> RealSwapchain::GetImageObjects () const
     std::vector<InheritedImageU> result;
 
     for (uint32_t swapchainImageIndex = 0; swapchainImageIndex < GetImageCount (); ++swapchainImageIndex) {
-        result.push_back (InheritedImage::Create (
+        result.push_back (Make<InheritedImage> (
             createResult.images[swapchainImageIndex],
             GetWidth (),
             GetHeight (),
@@ -243,8 +244,10 @@ FakeSwapchain::FakeSwapchain (const DeviceExtra& device, uint32_t width, uint32_
     : device (device)
     , width (width)
     , height (height)
-    , image (Image2D::Create (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1))
+    , image (Make<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1))
 {
-    imageViews.push_back (ImageView2D::Create (device, *image));
+    imageViews.push_back (Make<ImageView2D> (device, *image));
     TransitionImageLayout (device, *image, Image2D::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+}
+
 }

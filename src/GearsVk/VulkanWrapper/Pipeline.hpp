@@ -8,6 +8,8 @@
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
+namespace GVK {
+
 USING_PTR (Pipeline);
 class GVK_RENDERER_API Pipeline : public VulkanObject {
 private:
@@ -15,8 +17,6 @@ private:
     VkPipeline     handle;
 
 public:
-    USING_CREATE (Pipeline);
-
     Pipeline (VkDevice                                              device,
               uint32_t                                              width,
               uint32_t                                              height,
@@ -40,5 +40,7 @@ public:
         return handle;
     }
 };
+
+}
 
 #endif

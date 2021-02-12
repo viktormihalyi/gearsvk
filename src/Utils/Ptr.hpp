@@ -17,18 +17,10 @@ using U = std::unique_ptr<T>;
     using classname##U   = std::unique_ptr<classname>; \
     using classname##Ref = std::reference_wrapper<classname>;
 
-#define USING_PTR2(classname, basename)               \
-    using classname      = basename;                  \
-    using classname##U   = std::unique_ptr<basename>; \
-    using classname##Ref = std::reference_wrapper<basename>;
-
-
-#define USING_CREATE(classname)                                                                       \
-public:                                                                                               \
-    template<class... Parameters>                                                                     \
-    static std::unique_ptr<classname> Create (Parameters&&... parameters)                             \
-    {                                                                                                 \
-        return std::unique_ptr<classname> (new classname (std::forward<Parameters> (parameters)...)); \
-    }
+template<typename ObjectType, class... Parameters>
+std::unique_ptr<ObjectType> Make (Parameters&&... parameters)
+{
+    return std::unique_ptr<ObjectType> (new ObjectType (std::forward<Parameters> (parameters)...));
+}
 
 #endif

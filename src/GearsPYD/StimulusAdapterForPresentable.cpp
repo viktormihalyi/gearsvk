@@ -26,14 +26,14 @@
 constexpr bool LogDebugInfo = false;
 
 
-StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnvironment& environment, Ptr<Presentable>& presentable, const PtrC<Stimulus>& stimulus)
+StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanEnvironment& environment, Ptr<GVK::Presentable>& presentable, const PtrC<Stimulus>& stimulus)
     : presentable (presentable)
 {
-    renderGraph = RG::RenderGraph::Create ();
+    renderGraph = Make<GVK::RG::RenderGraph> ();
 
-    RG::GraphSettings s (*environment.deviceExtra, presentable->GetSwapchain ().GetImageCount ());
+    GVK::RG::GraphSettings s (*environment.deviceExtra, presentable->GetSwapchain ().GetImageCount ());
 
-    Ptr<RG::SwapchainImageResource> presented = RG::SwapchainImageResource::Create (*presentable);
+    Ptr<GVK::RG::SwapchainImageResource> presented = Make<GVK::RG::SwapchainImageResource> (*presentable);
 
     const std::vector<Pass::P> passes = stimulus->getPasses ();
 
@@ -51,16 +51,16 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
         const std::string geom = pass->getStimulusGeneratorGeometryShaderSource (pass->rasterizationMode);
         const std::string frag = pass->getStimulusGeneratorShaderSource ();
 
-        ShaderPipelineU sequencePip = ShaderPipeline::Create (*environment.device);
+        U<GVK::RG::ShaderPipeline> sequencePip = Make<GVK::RG::ShaderPipeline> (*environment.device);
 
         sequencePip->SetVertexShaderFromString (vert);
         if (!geom.empty ()) {
-            sequencePip->SetShaderFromSourceString (ShaderKind::Geometry, geom);
+            sequencePip->SetShaderFromSourceString (GVK::ShaderKind::Geometry, geom);
         }
         sequencePip->SetFragmentShaderFromString (frag);
 
-        Ptr<RG::RenderOperation> passOperation = RG::RenderOperation::Create (
-            DrawRecordableInfo::Create (1, 4), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        Ptr<GVK::RG::RenderOperation> passOperation = Make<GVK::RG::RenderOperation> (
+            Make<GVK::DrawRecordableInfo> (1, 4), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
         if (stimulus->requiresClearing) {
             passOperation->compileSettings.clearColor = { stimulus->clearColor, 1.0 };
@@ -71,11 +71,11 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
         GVK_ASSERT (stimulus->mono);
 
         s.connectionSet.Add (passOperation, presented,
-                             RG::OutputBinding::Create (0,
-                                                        presented->GetFormatProvider (),
-                                                        presented->GetFinalLayout (),
-                                                        VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                        VK_ATTACHMENT_STORE_OP_STORE));
+                             Make<GVK::RG::OutputBinding> (0,
+                                                           presented->GetFormatProvider (),
+                                                           presented->GetFinalLayout (),
+                                                           VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                           VK_ATTACHMENT_STORE_OP_STORE));
 
         passToOperation[pass] = passOperation;
         break;
@@ -83,7 +83,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
 
     std::optional<uint32_t> randomBinding;
 
-    RG::ImageMap imgMap = RG::CreateEmptyImageResources (s.connectionSet, [&] (const SR::Sampler& sampler) -> std::optional<RG::CreateParams> {
+    GVK::RG::ImageMap imgMap = GVK::RG::CreateEmptyImageResources (s.connectionSet, [&] (const GVK::SR::Sampler& sampler) -> std::optional<GVK::RG::CreateParams> {
         if (sampler.name == "gamma") {
             return std::make_tuple (glm::uvec3 { 256, 0, 0 }, VK_FORMAT_R32_SFLOAT, VK_FILTER_NEAREST);
         }
@@ -97,39 +97,39 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
     });
 
     if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0 && randomBinding.has_value ()) {
-        Ptr<RG::WritableImageResource> randomTexture = RG::WritableImageResource::Create (
+        Ptr<GVK::RG::WritableImageResource> randomTexture = Make<GVK::RG::WritableImageResource> (
             VK_FILTER_NEAREST,
             stimulus->sequence->maxRandomGridWidth,
             stimulus->sequence->maxRandomGridHeight,
             1,
             VK_FORMAT_R32G32B32A32_UINT);
 
-        ShaderPipelineU randoSeqPipeline = ShaderPipeline::Create (*environment.device);
+        U<GVK::RG::ShaderPipeline> randoSeqPipeline = Make<GVK::RG::ShaderPipeline> (*environment.device);
         randoSeqPipeline->SetVertexShaderFromString (*Utils::ReadTextFile (PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Shaders" / "quad.vert"));
         randoSeqPipeline->SetFragmentShaderFromString (stimulus->getRandomGeneratorShaderSource ());
 
-        randomGeneratorOperation = RG::RenderOperation::Create (DrawRecordableInfo::Create (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        randomGeneratorOperation = Make<GVK::RG::RenderOperation> (Make<GVK::DrawRecordableInfo> (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
-        std::static_pointer_cast<RG::RenderOperation> (randomGeneratorOperation)->compileSettings.blendEnabled = false;
+        std::static_pointer_cast<GVK::RG::RenderOperation> (randomGeneratorOperation)->compileSettings.blendEnabled = false;
 
         s.connectionSet.Add (randomGeneratorOperation, randomTexture,
-                             RG::OutputBinding::Create (0,
-                                                        randomTexture->GetFormatProvider (),
-                                                        randomTexture->GetFinalLayout (),
-                                                        1,
-                                                        VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                        VK_ATTACHMENT_STORE_OP_STORE));
+                             Make<GVK::RG::OutputBinding> (0,
+                                                           randomTexture->GetFormatProvider (),
+                                                           randomTexture->GetFinalLayout (),
+                                                           1,
+                                                           VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                           VK_ATTACHMENT_STORE_OP_STORE));
 
         GVK_ASSERT (randomBinding.has_value ());
         s.connectionSet.Add (randomTexture, passToOperation[passes[0]],
-                             RG::ImageInputBinding::Create (*randomBinding, *randomTexture, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
+                             Make<GVK::RG::ImageInputBinding> (*randomBinding, *randomTexture, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
     }
 
-    Ptr<RG::ReadOnlyImageResource> gammaTexture = imgMap.FindByName ("gamma");
+    Ptr<GVK::RG::ReadOnlyImageResource> gammaTexture = imgMap.FindByName ("gamma");
     GVK_ASSERT (gammaTexture != nullptr);
 
     // this is a one time compile resource, which doesnt use framesinflight attrib
-    gammaTexture->Compile (RG::GraphSettings (*environment.deviceExtra, 0));
+    gammaTexture->Compile (GVK::RG::GraphSettings (*environment.deviceExtra, 0));
 
     std::vector<float> gammaAndTemporalWeights (256, 0.f);
     for (int i = 0; i < 101; i++)
@@ -138,7 +138,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const VulkanEnviro
         gammaAndTemporalWeights[128 + i] = stimulus->temporalWeights[i];
     gammaTexture->CopyTransitionTransfer (gammaAndTemporalWeights);
 
-    reflection = RG::UniformReflection::Create (s.connectionSet);
+    reflection = Make<GVK::RG::UniformReflection> (s.connectionSet);
 
     renderGraph->Compile (std::move (s));
 
@@ -150,19 +150,19 @@ void StimulusAdapterForPresentable::SetConstantUniforms ()
 {
     for (auto& [pass, op] : passToOperation) {
         for (auto& [name, value] : pass->shaderVariables)
-            (*reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<float> (value);
+            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<float> (value);
         for (auto& [name, value] : pass->shaderVectors)
-            (*reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec2> (value);
+            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec2> (value);
         for (auto& [name, value] : pass->shaderColors)
-            (*reflection)[op->GetUUID ()][ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec3> (value);
+            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec3> (value);
     }
 }
 
 
-void StimulusAdapterForPresentable::SetUniforms (const GearsVk::UUID& renderOperationId, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex)
+void StimulusAdapterForPresentable::SetUniforms (const GVK::UUID& renderOperationId, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex)
 {
-    RG::UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOperationId][ShaderKind::Vertex];
-    RG::UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOperationId][ShaderKind::Fragment];
+    GVK::RG::UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOperationId][GVK::ShaderKind::Vertex];
+    GVK::RG::UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOperationId][GVK::ShaderKind::Fragment];
 
     const double timeInSeconds = frameIndex / 60.0;
 
@@ -204,7 +204,7 @@ void StimulusAdapterForPresentable::SetUniforms (const GearsVk::UUID& renderOper
 }
 
 
-void StimulusAdapterForPresentable::RenderFrameIndex (RG::Renderer& renderer, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex)
+void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer& renderer, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex, GVK::Event<uint32_t>& frameIndexPresentedEvent)
 {
     const uint32_t stimulusStartingFrame = stimulus->getStartingFrame ();
     const uint32_t stimulusEndingFrame   = stimulus->getStartingFrame () + stimulus->getDuration ();
@@ -213,14 +213,14 @@ void StimulusAdapterForPresentable::RenderFrameIndex (RG::Renderer& renderer, co
         return;
     }
 
-    SingleEventObserver obs;
-    obs.Observe (renderer.preSubmitEvent, [&] (RG::RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
+    GVK::EventObserver obs;
+    obs.Observe (renderer.preSubmitEvent, [&] (GVK::RG::RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
         for (auto& [pass, renderOp] : passToOperation) {
             SetUniforms (renderOp->GetUUID (), stimulus, frameIndex);
         }
 
         if (randomGeneratorOperation != nullptr) {
-            (*reflection)[randomGeneratorOperation->GetUUID ()][ShaderKind::Fragment]["ubo_seed"] = static_cast<uint32_t> (frameIndex);
+            (*reflection)[randomGeneratorOperation->GetUUID ()][GVK::ShaderKind::Fragment]["ubo_seed"] = static_cast<uint32_t> (frameIndex);
         }
 
         if constexpr (LogDebugInfo) {
@@ -230,6 +230,18 @@ void StimulusAdapterForPresentable::RenderFrameIndex (RG::Renderer& renderer, co
         reflection->Flush (swapchainImageIndex);
     });
 
+    U<GVK::SingleEventObserver> presentObs = Make<GVK::SingleEventObserver> ();
+    presentObs->Observe (renderer.presentedEvent, [&, frameIndex] () {
+        frameIndexPresentedEvent.Notify (frameIndex);
+        presentedEventDeleteQueue.push_back (frameIndex);
+    });
+    GVK_ASSERT (presentObservers.count (frameIndex) == 0);
+    presentObservers[frameIndex] = std::move (presentObs);
 
     renderer.RenderNextFrame (*renderGraph);
+
+    for (uint32_t presentedNotified : presentedEventDeleteQueue) {
+        presentObservers.erase (presentedNotified);
+    }
+    presentedEventDeleteQueue.clear ();
 }

@@ -17,6 +17,8 @@
 #include <SPIRV/GlslangToSpv.h>
 
 
+namespace GVK {
+    
 EmptyPreprocessor emptyPreprocessor;
 
 
@@ -345,7 +347,7 @@ ShaderModuleU ShaderModule::CreateFromSPVFile (VkDevice device, ShaderKind shade
 
     VkShaderModule handle = CreateShaderModule (device, *binaryC);
 
-    return ShaderModule::Create (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, "", emptyPreprocessor);
+    return Make<ShaderModule> (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, "", emptyPreprocessor);
 }
 
 
@@ -363,7 +365,7 @@ ShaderModuleU ShaderModule::CreateFromGLSLFile (VkDevice device, const std::file
 
     VkShaderModule handle = CreateShaderModule (device, *binary);
 
-    return ShaderModule::Create (
+    return Make<ShaderModule> (
         ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind,
         ReadMode::GLSLFilePath,
         device,
@@ -381,7 +383,7 @@ ShaderModuleU ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind sh
 
     VkShaderModule handle = CreateShaderModule (device, binary);
 
-    return ShaderModule::Create (
+    return Make<ShaderModule> (
         shaderKind,
         ReadMode::GLSLString,
         device,
@@ -649,4 +651,6 @@ std::string ShaderKindToString (ShaderKind shaderKind)
             GVK_BREAK ("unexpected shaderkind type");
             return "";
     }
+}
+
 }
