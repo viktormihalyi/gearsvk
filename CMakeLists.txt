@@ -237,13 +237,12 @@ target_include_directories (${TARGET_DLL_EMBEDDED} PRIVATE
 
 
 if (WIN32)
-target_link_libraries (${TARGET_GVKUTILS} rpcrt4)
+set (UUID_LIB rpcrt4)
 elseif (UNIX)
-target_link_libraries (${TARGET_GVKUTILS} uuid)
-else ()
-target_link_libraries (${TARGET_GVKUTILS})
+set (UUID_LIB uuid)
 endif ()
 
+target_link_libraries (${TARGET_GVKUTILS} ${UUID_LIB})
 target_link_libraries (${TARGET_GVKRENDERER} ${TARGET_GVKUTILS} ${Vulkan_LIBRARIES} ${CONAN_LIBS} msdfgen)
 target_link_libraries (${TARGET_DLL} ${TARGET_GVKRENDERER} ${Python3_LIBRARIES})
 target_link_libraries (${TARGET_DLL_EMBEDDED} ${TARGET_GVKRENDERER} ${Python3_LIBRARIES})
@@ -311,7 +310,7 @@ add_custom_command (
     TARGET ${TARGET_DLL}
     POST_BUILD
     COMMAND ${PYTHON_VENV_COMMAND}
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_BINARY_DIR}/bin/setup.py build -b ${CMAKE_BINARY_DIR}/install
+    COMMAND python3 ${CMAKE_BINARY_DIR}/bin/setup.py build -b ${CMAKE_BINARY_DIR}/install
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     COMMENT "Running setup.py..."
 )
