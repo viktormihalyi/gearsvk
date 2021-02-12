@@ -32,19 +32,6 @@ const std::filesystem::path ShadersFolder = PROJECT_ROOT / "TestData" / "shaders
 #include "SourceLocation.hpp"
 #include "UniformView.hpp"
 
-#include <windows.h>
-
-
-TEST_F (HeadlessGoogleTestEnvironment, RootPath)
-{
-    char ownPth[MAX_PATH] = {};
-
-    // When NULL is passed to GetModuleHandle, the handle of the exe itself is returned
-    // Use GetModuleFileName() with module handle to get the path
-    GetModuleFileName (NULL, ownPth, (sizeof (ownPth)));
-    std::filesystem::path rootPath (ownPth);
-    std::cout << rootPath.u8string ().c_str () << std::endl;
-}
 
 TEST_F (HeadlessGoogleTestEnvironment, Spirvrross2)
 {
