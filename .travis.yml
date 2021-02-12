@@ -31,5 +31,5 @@ script:
   - conan profile update settings.compiler.libcxx=libstdc++11 default
   - mkdir build
   - cd build
-  - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DCMAKE_BUILD_TYPE=Debug -DCI
+  - cmake .. -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DCMAKE_BUILD_TYPE=Debug
   - make VERBOSE=1

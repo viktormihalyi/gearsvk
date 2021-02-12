@@ -160,13 +160,13 @@ SequenceAdapterU GetSequenceAdapterFromPyx (GVK::VulkanEnvironment& environment,
     try {
         pybind11::module sys = pybind11::module::import ("sys");
 
-        sys.attr ("path").attr ("insert") (0, (PROJECT_ROOT / "src" / "UserInterface").u8string ());
+        sys.attr ("path").attr ("insert") (0, (PROJECT_ROOT).u8string ());
 
         pybind11::module::import ("AppData").attr ("initConfigParams") ();
 
         pybind11::module sequenceLoader = pybind11::module::import ("SequenceLoaderCore");
 
-        sequenceLoader.attr ("loadParents") (filePath.parent_path ().u8string (), (PROJECT_ROOT / "src" / "UserInterface" / "Project").u8string ());
+        sequenceLoader.attr ("loadParents") (filePath.parent_path ().u8string (), (PROJECT_ROOT / "Project").u8string ());
 
         pybind11::module machinery        = pybind11::module::import ("importlib.machinery");
         pybind11::object sourceFileLoader = machinery.attr ("SourceFileLoader");

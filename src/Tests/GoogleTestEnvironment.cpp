@@ -10,7 +10,7 @@
 using namespace GVK;
 
 
-const std::filesystem::path ReferenceImagesFolder = PROJECT_ROOT / "src" / "Tests" / "ReferenceImages";
+const std::filesystem::path ReferenceImagesFolder = PROJECT_ROOT / "TestData" / "ReferenceImages";
 const std::filesystem::path TempFolder            = PROJECT_ROOT / "temp";
 
 

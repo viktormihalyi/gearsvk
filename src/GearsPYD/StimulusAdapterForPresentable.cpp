@@ -105,7 +105,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
             VK_FORMAT_R32G32B32A32_UINT);
 
         U<GVK::RG::ShaderPipeline> randoSeqPipeline = Make<GVK::RG::ShaderPipeline> (*environment.device);
-        randoSeqPipeline->SetVertexShaderFromString (*Utils::ReadTextFile (PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Shaders" / "quad.vert"));
+        randoSeqPipeline->SetVertexShaderFromString (*Utils::ReadTextFile (PROJECT_ROOT / "Project" / "Shaders" / "quad.vert"));
         randoSeqPipeline->SetFragmentShaderFromString (stimulus->getRandomGeneratorShaderSource ());
 
         randomGeneratorOperation = Make<GVK::RG::RenderOperation> (Make<GVK::DrawRecordableInfo> (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);

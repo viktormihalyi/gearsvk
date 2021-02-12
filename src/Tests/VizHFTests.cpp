@@ -376,9 +376,9 @@ void main ()
 
     graph.Compile (std::move (s));
 
-    matcap->CopyTransitionTransfer (ImageData (PROJECT_ROOT / "src" / "Tests" / "VizHF" / "matcap.jpg").data);
+    matcap->CopyTransitionTransfer (ImageData (PROJECT_ROOT / "TestData" / "VizHF" / "matcap.jpg").data);
 
-    std::vector<uint8_t> rawBrainData = ImageData (PROJECT_ROOT / "src" / "Tests" / "VizHF" / "brain.jpg", 1).data;
+    std::vector<uint8_t> rawBrainData = ImageData (PROJECT_ROOT / "TestData" / "VizHF" / "brain.jpg", 1).data;
 
     std::vector<uint8_t> transformedBrainData (256 * 256 * 256);
 

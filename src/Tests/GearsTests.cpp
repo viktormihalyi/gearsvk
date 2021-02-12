@@ -20,7 +20,7 @@
 using namespace GVK;
 using namespace GVK::RG;
 
-static const std::filesystem::path SequencesFolder = PROJECT_ROOT / "src" / "UserInterface" / "Project" / "Sequences";
+static const std::filesystem::path SequencesFolder = PROJECT_ROOT / "Project" / "Sequences";
 
 
 StaticInit nosync ([] () {

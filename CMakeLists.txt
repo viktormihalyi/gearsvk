@@ -256,19 +256,28 @@ target_compile_options (${TARGET_DLL} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL_EMBEDDED} PRIVATE ${COMPILER_FLAGS})
 
 
-if (DEFINED CREATE_INSTALLER)
-
-set (UI_PATH ${CMAKE_SOURCE_DIR}/src/UserInterface)
-
 add_custom_command (
     TARGET ${TARGET_DLL}
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${UI_PATH}
+        ${CMAKE_SOURCE_DIR}/src/UserInterface
         ${CMAKE_BINARY_DIR}/bin
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Copying UserInterface..."
 )
+
+add_custom_command (
+    TARGET ${TARGET_TEST}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/src/Tests/TestData
+        ${CMAKE_BINARY_DIR}/bin/TestData
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Copying TestData..."
+)
+
+
+if (DEFINED CREATE_INSTALLER)
 
 if (${CMAKE_BUILD_TYPE} MATCHES Debug)
     message ("Build type is Debug, will rename ${TARGET_DLL}")

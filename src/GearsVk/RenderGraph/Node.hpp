@@ -14,12 +14,12 @@ namespace RG {
 USING_PTR (Node);
 class GVK_RENDERER_API Node : public Noncopyable {
 private:
-    UUID uuid;
+    GVK::UUID uuid;
 
 public:
     virtual ~Node () = default;
 
-    const UUID& GetUUID () const { return uuid; }
+    const GVK::UUID& GetUUID () const { return uuid; }
 };
 
 } // namespace RG
