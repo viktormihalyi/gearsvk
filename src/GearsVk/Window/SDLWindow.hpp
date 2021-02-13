@@ -10,7 +10,6 @@
 
 namespace GVK {
 
-USING_PTR (SDLWindowBase);
 class GVK_RENDERER_API SDLWindowBase : public Window {
 private:
     static uint32_t windowCount;
@@ -42,14 +41,12 @@ public:
 };
 
 
-USING_PTR (SDLWindow);
 class SDLWindow final : public SDLWindowBase {
 public:
     SDLWindow ();
 };
 
 
-USING_PTR (HiddenSDLWindow);
 class HiddenSDLWindow final : public SDLWindowBase {
 public:
     HiddenSDLWindow ();

@@ -13,20 +13,19 @@
 
 namespace GVK {
 
-USING_PTR (ShaderModule);
+class ShaderModule;
 
 namespace SR {
 
-USING_PTR (FieldContainer);
-USING_PTR (Field);
-USING_PTR (UBO);
+class FieldContainer;
+class Field;
+class UBO;
 
 // view (size and offset) to a single variable (could be primitive, struct, array) in a uniform block
 // we can walk down the struct hierarchy with operator[](std::string_view)
 // we can select an element in an array with operator[](uint32_t)
 // we can set the variable with operator=(T)
 
-USING_PTR (UView);
 class GVK_RENDERER_API UView final {
 public:
     static const UView invalidUview;
@@ -42,7 +41,7 @@ private:
     const uint32_t            offset;
     const uint32_t            size;
     const SR::FieldContainer& parentContainer;
-    const SR::FieldU&         currentField;
+    const U<SR::Field>&       currentField;
 
 public:
     UView (Type                      type,
@@ -50,7 +49,7 @@ public:
            uint32_t                  offset,
            uint32_t                  size,
            const SR::FieldContainer& parentContainer,
-           const SR::FieldU&         currentField = nullptr);
+           const U<SR::Field>&       currentField = nullptr);
 
     UView (const Ptr<SR::UBO>& root, uint8_t* data);
 
@@ -88,7 +87,6 @@ public:
 
 
 // view to a single UBO + properly sized byte array for it
-USING_PTR (IUData);
 class GVK_RENDERER_API IUData {
 public:
     virtual ~IUData () = default;
@@ -175,7 +173,6 @@ public:
 extern DummyUData dummyUData;
 
 
-USING_PTR (UDataExternal);
 class GVK_RENDERER_API UDataExternal final : public IUData, public Noncopyable {
 private:
     UView    root;
@@ -195,7 +192,6 @@ public:
 };
 
 
-USING_PTR (UDataInternal);
 class GVK_RENDERER_API UDataInternal final : public IUData, public Noncopyable {
 private:
     std::vector<uint8_t> bytes;
@@ -217,17 +213,16 @@ public:
 // view and byte array for _all_ UBOs in a shader
 // we can select a single UBO with operator[](std::string_view)
 
-USING_PTR (ShaderUData);
 class GVK_RENDERER_API ShaderUData final : public Noncopyable {
 private:
-    std::vector<IUDataU>      udatas;
+    std::vector<U<IUData>>    udatas;
     std::vector<std::string>  uboNames;
     std::vector<Ptr<SR::UBO>> ubos;
 
 public:
     ShaderUData (const std::vector<Ptr<SR::UBO>>& ubos);
     ShaderUData (const std::vector<uint32_t>& shaderBinary);
-    ShaderUData (const ShaderModuleU& shaderModule);
+    ShaderUData (const U<ShaderModule>& shaderModule);
     ShaderUData (const ShaderModule& shaderModule);
 
     IUData& operator[] (std::string_view str);
@@ -238,7 +233,7 @@ public:
 
 } // namespace SR
 
-}
+} // namespace GVK
 
 
 #endif

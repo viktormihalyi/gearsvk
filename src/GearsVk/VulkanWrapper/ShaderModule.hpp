@@ -37,7 +37,6 @@ enum class ShaderKind : uint8_t {
 std::string ShaderKindToString (ShaderKind);
 
 
-USING_PTR (ShaderPreprocessor);
 class GVK_RENDERER_API ShaderPreprocessor {
 public:
     virtual ~ShaderPreprocessor () = default;
@@ -57,7 +56,6 @@ public:
 extern GVK_RENDERER_API EmptyPreprocessor emptyPreprocessor;
 
 
-USING_PTR (ShaderModule);
 class GVK_RENDERER_API ShaderModule : public VulkanObject {
 public:
     static constexpr uint32_t ShaderKindCount = 6;
@@ -121,9 +119,9 @@ public:
                   ShaderPreprocessor&          preprocessor);
 
 public:
-    static ShaderModuleU CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, ShaderPreprocessor& preprocessor = emptyPreprocessor);
-    static ShaderModuleU CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation, ShaderPreprocessor& preprocessor = emptyPreprocessor);
-    static ShaderModuleU CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation);
+    static U<ShaderModule> CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, ShaderPreprocessor& preprocessor = emptyPreprocessor);
+    static U<ShaderModule> CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation, ShaderPreprocessor& preprocessor = emptyPreprocessor);
+    static U<ShaderModule> CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation);
 
     virtual ~ShaderModule ();
 
@@ -142,6 +140,6 @@ public:
     const Reflection& GetReflection () const { return reflection; }
 };
 
-}
+} // namespace GVK
 
 #endif

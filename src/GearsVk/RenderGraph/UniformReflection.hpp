@@ -3,13 +3,13 @@
 
 #include "Operation.hpp"
 #include "RenderGraph.hpp"
-#include "ShaderReflection.hpp"
 #include "Resource.hpp"
+#include "ShaderReflection.hpp"
 
 #include "Assert.hpp"
 #include "GearsVkAPI.hpp"
-#include "UniformView.hpp"
 #include "UUID.hpp"
+#include "UniformView.hpp"
 #include "glmlib.hpp"
 
 #include <tuple>
@@ -48,7 +48,6 @@ GVK_RENDERER_API
 ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const ExtentProviderForImageCreate& extentProvider);
 
 
-USING_PTR (UniformReflection);
 class GVK_RENDERER_API UniformReflection final : public EventObserver {
 private:
     class GVK_RENDERER_API UboSelector {
@@ -110,9 +109,9 @@ public:
     RG::ConnectionSet& connectionSet;
 
     //
-    std::vector<Ptr<RG::InputBufferBindableResource>>                                                             uboResources;
+    std::vector<Ptr<RG::InputBufferBindableResource>>                                                                  uboResources;
     std::vector<std::tuple<Ptr<RG::RenderOperation>, uint32_t, Ptr<RG::InputBufferBindableResource>, GVK::ShaderKind>> uboConnections;
-    std::unordered_map<GVK::UUID, Ptr<GVK::SR::IUData>>                                                            udatas;
+    std::unordered_map<GVK::UUID, Ptr<GVK::SR::IUData>>                                                                udatas;
 
 public:
     using Filter          = std::function<bool (const Ptr<RG::RenderOperation>&, const ShaderModule&, const Ptr<GVK::SR::UBO>&)>;
@@ -176,6 +175,6 @@ inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (con
 
 } // namespace RG
 
-}
+} // namespace GVK
 
 #endif

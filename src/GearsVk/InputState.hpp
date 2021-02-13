@@ -11,8 +11,6 @@ namespace GVK {
 //#define ASSERT_ON_KEYS GVK_VERIFY
 #define ASSERT_ON_KEYS
 
-USING_PTR (KeyboardState);
-
 class KeyboardState {
 private:
     static const uint32_t KEYCOUNT = 1024;

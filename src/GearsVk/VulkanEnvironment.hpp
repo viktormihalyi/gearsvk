@@ -25,7 +25,6 @@ class Surface;
 
 class VulkanEnvironment;
 
-USING_PTR (Presentable);
 class GVK_RENDERER_API Presentable : public SwapchainProvider {
 private:
     U<Window>    window;
@@ -48,7 +47,6 @@ void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
                         VkDebugUtilsMessageTypeFlagsEXT,
                         const VkDebugUtilsMessengerCallbackDataEXT* callbackData);
 
-USING_PTR (VulkanEnvironment);
 class GVK_RENDERER_API VulkanEnvironment {
 public:
     U<Instance>            instance;

@@ -21,7 +21,6 @@ class Resource;
 class GraphSettings;
 
 
-USING_PTR (RenderGraph);
 class GVK_RENDERER_API RenderGraph final : public Noncopyable {
 private:
     bool compiled;
@@ -41,7 +40,7 @@ private:
 
     std::vector<Pass> passes;
 
-    std::vector<CommandBufferU> c;
+    std::vector<U<CommandBuffer>> c;
 
 public:
     Event<> compileEvent;
@@ -65,6 +64,6 @@ private:
 
 } // namespace RG
 
-}
+} // namespace GVK
 
 #endif

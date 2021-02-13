@@ -35,7 +35,7 @@ const std::filesystem::path ShadersFolder = PROJECT_ROOT / "TestData" / "shaders
 
 TEST_F (HeadlessGoogleTestEnvironment, Spirvrross2)
 {
-    GVK::ShaderModuleU sm = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Fragment, R"(#version 450
+    U<GVK::ShaderModule> sm = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Fragment, R"(#version 450
 
 struct A {
     vec3 abc;

@@ -12,7 +12,6 @@
 
 namespace GVK {
 
-USING_PTR (ImageViewBase);
 class GVK_RENDERER_API ImageViewBase : public VulkanObject {
 private:
     const VkDevice device;
@@ -64,7 +63,6 @@ public:
 };
 
 
-USING_PTR (ImageView1D);
 class GVK_RENDERER_API ImageView1D : public ImageViewBase {
 public:
     ImageView1D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
@@ -79,7 +77,6 @@ public:
 };
 
 
-USING_PTR (ImageView2D);
 class GVK_RENDERER_API ImageView2D : public ImageViewBase {
 public:
     ImageView2D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0, uint32_t layerCount = 1)
@@ -93,7 +90,6 @@ public:
     }
 };
 
-USING_PTR (ImageView2DArray);
 class GVK_RENDERER_API ImageView2DArray : public ImageViewBase {
 public:
     ImageView2DArray (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0, uint32_t layerCount = 1)
@@ -108,7 +104,6 @@ public:
 };
 
 
-USING_PTR (ImageView3D);
 class GVK_RENDERER_API ImageView3D : public ImageViewBase {
 public:
     ImageView3D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
@@ -123,7 +118,6 @@ public:
 };
 
 
-USING_PTR (ImageViewCube);
 class GVK_RENDERER_API ImageViewCube : public ImageViewBase {
 public:
     ImageViewCube (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0)
@@ -137,6 +131,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

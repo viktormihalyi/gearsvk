@@ -11,7 +11,6 @@
 
 namespace GVK {
 
-USING_PTR (DebugUtilsMessenger);
 class GVK_RENDERER_API DebugUtilsMessenger : public VulkanObject {
 public:
     using Callback = std::function<void (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,

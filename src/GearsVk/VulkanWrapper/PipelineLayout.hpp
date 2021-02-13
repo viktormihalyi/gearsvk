@@ -10,7 +10,6 @@
 
 namespace GVK {
 
-USING_PTR (PipelineLayout);
 class GVK_RENDERER_API PipelineLayout : public Noncopyable {
 private:
     const VkDevice   device;
@@ -56,6 +55,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

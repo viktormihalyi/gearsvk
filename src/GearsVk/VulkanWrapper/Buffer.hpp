@@ -12,7 +12,6 @@
 
 namespace GVK {
 
-USING_PTR (Buffer);
 class GVK_RENDERER_API Buffer : public VulkanObject {
 private:
     const VmaAllocator allocator;
@@ -36,7 +35,6 @@ public:
 };
 
 
-USING_PTR (UniformBuffer);
 class UniformBuffer : public Buffer {
 public:
     UniformBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
@@ -46,7 +44,6 @@ public:
 };
 
 
-USING_PTR (StorageBuffer);
 class StorageBuffer : public Buffer {
 public:
     StorageBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
@@ -56,7 +53,6 @@ public:
 };
 
 
-USING_PTR (IndexBuffer);
 class IndexBuffer : public Buffer {
 public:
     IndexBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
@@ -66,7 +62,6 @@ public:
 };
 
 
-USING_PTR (VertexBuffer);
 class VertexBuffer : public Buffer {
 public:
     VertexBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
@@ -75,6 +70,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

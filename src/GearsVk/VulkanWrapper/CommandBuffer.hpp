@@ -17,7 +17,6 @@ class Image;
 
 class CommandBuffer;
 
-USING_PTR (Command);
 class GVK_RENDERER_API Command {
 public:
     virtual ~Command () = default;
@@ -26,7 +25,6 @@ public:
     virtual std::string ToString () const { return ""; }
 };
 
-USING_PTR (CommandBuffer);
 class GVK_RENDERER_API CommandBuffer : public VulkanObject {
 private:
     const VkDevice      device;
@@ -36,8 +34,8 @@ private:
     std::unordered_map<const Image*, std::vector<std::pair<VkImageLayout, VkImageLayout>>> layouts;
 
 public:
-    bool                  canRecordCommands;
-    std::vector<CommandU> recordedAbstractCommands;
+    bool                    canRecordCommands;
+    std::vector<U<Command>> recordedAbstractCommands;
 
 public:
     CommandBuffer (VkDevice device, VkCommandPool commandPool)
@@ -100,7 +98,7 @@ public:
         canRecordCommands = false;
     }
 
-    void Record (CommandU&& command)
+    void Record (U<Command>&& command)
     {
         command->Record (*this);
         recordedAbstractCommands.push_back (std::move (command));
@@ -119,7 +117,6 @@ public:
 };
 
 
-USING_PTR (CommandBindVertexBuffers);
 class GVK_RENDERER_API CommandBindVertexBuffers : public Command {
 private:
     const uint32_t                  firstBinding;
@@ -144,7 +141,6 @@ public:
 };
 
 
-USING_PTR (CommandPipelineBarrier);
 class GVK_RENDERER_API CommandPipelineBarrier : public Command {
 private:
     const VkPipelineStageFlags               srcStageMask;
@@ -171,7 +167,6 @@ public:
 };
 
 
-USING_PTR (CommandGeneric);
 class GVK_RENDERER_API CommandGeneric : public Command {
 private:
     std::function<void (VkCommandBuffer)> recordCallback;

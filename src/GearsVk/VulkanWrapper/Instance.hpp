@@ -23,7 +23,6 @@ extern GVK_RENDERER_API const InstanceSettings instanceDebugMode;
 extern GVK_RENDERER_API const InstanceSettings instanceReleaseMode;
 
 
-USING_PTR (Instance);
 class GVK_RENDERER_API Instance : public VulkanObject {
 private:
     VkInstance handle;
@@ -37,6 +36,6 @@ public:
     operator VkInstance () const { return handle; }
 };
 
-}
+} // namespace GVK
 
 #endif

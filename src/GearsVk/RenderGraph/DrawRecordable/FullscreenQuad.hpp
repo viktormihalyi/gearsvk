@@ -8,8 +8,6 @@
 
 namespace GVK {
 
-USING_PTR (FullscreenQuad);
-
 class FullscreenQuad : public DrawRecordableInfoProvider {
 private:
     struct Vertex {
@@ -20,7 +18,7 @@ private:
     VertexBufferTransferable<Vertex> vertexBuffer;
     IndexBufferTransferable          indexBuffer;
 
-    DrawRecordableInfoU info;
+    U<DrawRecordableInfo> info;
 
 public:
     FullscreenQuad (const DeviceExtra& device)

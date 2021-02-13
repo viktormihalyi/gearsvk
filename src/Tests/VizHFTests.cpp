@@ -68,7 +68,7 @@ TEST_F (VizHFTests, HF1)
 
     // ========================= GRAPH OPERATIONS =========================
 
-    RG::ShaderPipelineU sp = Make<RG::ShaderPipeline> (device);
+    U<RG::ShaderPipeline> sp = Make<RG::ShaderPipeline> (device);
 
     sp->SetVertexShaderFromString (R"(#version 450
 
@@ -566,7 +566,7 @@ TEST_F (VizHFTests, HF2)
 
     // ========================= GRAPH OPERATIONS & RESOURCES =========================
 
-    ShaderPipelineU sp = Make<ShaderPipeline> (device);
+    U<ShaderPipeline> sp = Make<ShaderPipeline> (device);
 
     sp->SetVertexShaderFromString (R"(#version 450
 

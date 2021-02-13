@@ -11,7 +11,6 @@
 
 namespace GVK {
 
-USING_PTR (Fence);
 class GVK_RENDERER_API Fence : public VulkanObject {
 private:
     const VkDevice device;
@@ -52,6 +51,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

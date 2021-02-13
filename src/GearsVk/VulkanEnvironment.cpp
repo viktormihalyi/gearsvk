@@ -19,7 +19,7 @@
 
 namespace GVK {
 
-Presentable::Presentable (VulkanEnvironment& env, SurfaceU&& surface, SwapchainSettingsProvider& settingsProvider)
+Presentable::Presentable (VulkanEnvironment& env, U<Surface>&& surface, SwapchainSettingsProvider& settingsProvider)
     : surface (std::move (surface))
     , window (nullptr)
 {
@@ -40,7 +40,7 @@ Presentable::Presentable (VulkanEnvironment& env, Window& window, SwapchainSetti
 }
 
 
-Presentable::Presentable (VulkanEnvironment& env, WindowU&& window, SwapchainSettingsProvider& settingsProvider)
+Presentable::Presentable (VulkanEnvironment& env, U<Window>&& window, SwapchainSettingsProvider& settingsProvider)
     : Presentable (env, Make<Surface> (*env.instance, window->GetSurface (*env.instance)), settingsProvider)
 {
     window = std::move (window);
@@ -179,4 +179,4 @@ void VulkanEnvironment::RecreateForPresentable (const Presentable& presentable)
     physicalDevice->RecreateForSurface (surface);
 }
 
-}
+} // namespace GVK

@@ -78,12 +78,12 @@ void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuff
 }
 
 
-static ImageU CreateCopyImageOnCPU (const DeviceExtra& device, const Image& image, uint32_t layerIndex = 0)
+static U<Image> CreateCopyImageOnCPU (const DeviceExtra& device, const Image& image, uint32_t layerIndex = 0)
 {
     const uint32_t width  = image.GetWidth ();
     const uint32_t height = image.GetHeight ();
 
-    Image2DU dst = Make<Image2D> (device.GetAllocator (), Image::MemoryLocation::CPU, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
+    U<Image2D> dst = Make<Image2D> (device.GetAllocator (), Image::MemoryLocation::CPU, image.GetWidth (), image.GetHeight (), image.GetFormat (), VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
 
     TransitionImageLayout (device, *dst, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
@@ -140,7 +140,7 @@ bool AreImagesEqual (const DeviceExtra& device, const Image& image, const std::f
     const uint32_t pixelCount = width * height;
     const uint32_t byteCount  = pixelCount * 4;
 
-    ImageU dst = CreateCopyImageOnCPU (device, image, layerIndex);
+    U<Image> dst = CreateCopyImageOnCPU (device, image, layerIndex);
 
 
     std::vector<std::array<uint8_t, 4>> mapped (pixelCount);

@@ -18,7 +18,6 @@ namespace RG {
 
 class IConnectionBindingVisitor;
 
-USING_PTR (IConnectionBinding);
 class IConnectionBinding : public Noncopyable {
 public:
     ~IConnectionBinding ()                          = default;
@@ -37,7 +36,6 @@ class ImageInputBinding;
 class OutputBinding;
 
 
-USING_PTR (IConnectionBindingVisitor);
 class IConnectionBindingVisitor : public Noncopyable {
 public:
     virtual void Visit (UniformInputBinding& binding) = 0;
@@ -45,7 +43,6 @@ public:
     virtual void Visit (OutputBinding& binding)       = 0;
 };
 
-USING_PTR (IConnectionBindingVisitorFn);
 class IConnectionBindingVisitorFn : public IConnectionBindingVisitor {
 private:
     template<typename T>
@@ -70,7 +67,6 @@ public:
     virtual void Visit (OutputBinding& binding) override { b3 (binding); }
 };
 
-USING_PTR (InputBinding);
 class InputBinding : public IConnectionBinding {
 public:
     virtual ~InputBinding () = default;
@@ -120,7 +116,6 @@ public:
 };
 
 
-USING_PTR (UniformInputBinding);
 class UniformInputBinding : public InputBinding {
 public:
     InputBufferBindable&     bufferProvider;
@@ -169,7 +164,6 @@ public:
 };
 
 
-USING_PTR (ImageInputBinding);
 class ImageInputBinding : public InputBinding {
 public:
     InputImageBindable&      imageViewProvider;
@@ -221,7 +215,6 @@ public:
 };
 
 
-USING_PTR (OutputBinding);
 class OutputBinding : public IConnectionBinding {
 public:
     const uint32_t             binding;

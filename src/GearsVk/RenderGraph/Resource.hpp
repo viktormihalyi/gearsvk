@@ -25,7 +25,6 @@ class Operation;
 
 class IResourceVisitor;
 
-USING_PTR (Resource);
 class GVK_RENDERER_API Resource : public Node {
 public:
     virtual ~Resource () = default;
@@ -48,7 +47,6 @@ class GPUBufferResource;
 class CPUBufferResource;
 
 
-USING_PTR (IResourceVisitor);
 class GVK_RENDERER_API IResourceVisitor {
 public:
     virtual ~IResourceVisitor () = default;
@@ -61,7 +59,6 @@ public:
 };
 
 
-USING_PTR (IResourceVisitorFn);
 class IResourceVisitorFn : public IResourceVisitor {
 private:
     template<typename T>
@@ -95,14 +92,12 @@ public:
 };
 
 
-USING_PTR (InputBufferBindableResource);
 class GVK_RENDERER_API InputBufferBindableResource : public Resource, public InputBufferBindable {
 public:
     virtual ~InputBufferBindableResource () = default;
 };
 
 
-USING_PTR (ImageResource);
 class GVK_RENDERER_API ImageResource : public Resource {
 public:
     virtual ~ImageResource () = default;
@@ -122,7 +117,6 @@ public:
 };
 
 
-USING_PTR (OneTimeCompileResource);
 class GVK_RENDERER_API OneTimeCompileResource : public ImageResource {
 private:
     bool compiled;
@@ -148,17 +142,15 @@ public:
 };
 
 
-USING_PTR (WritableImageResource);
 class GVK_RENDERER_API WritableImageResource : public ImageResource, public InputImageBindable {
 protected:
-    USING_PTR (SingleImageResource);
     class GVK_RENDERER_API SingleImageResource final {
     public:
         static const VkFormat FormatRGBA;
         static const VkFormat FormatRGB;
 
-        const ImageU                 image;
-        std::vector<ImageView2DU>    imageViews;
+        const U<Image>               image;
+        std::vector<U<ImageView2D>>  imageViews;
         std::optional<VkImageLayout> layoutRead;
         std::optional<VkImageLayout> layoutWrite;
 
@@ -193,8 +185,8 @@ public:
     const uint32_t height;
     const uint32_t arrayLayers;
 
-    std::vector<SingleImageResourceU> images;
-    SamplerU                          sampler;
+    std::vector<U<SingleImageResource>> images;
+    U<Sampler>                          sampler;
 
 public:
     WritableImageResource (VkFilter filter, uint32_t width, uint32_t height, uint32_t arrayLayers, VkFormat format = SingleImageResource::FormatRGBA)
@@ -261,7 +253,6 @@ public:
 
 namespace GVKr {
 
-USING_PTR (Event);
 class Event : public VulkanObject {
 private:
     VkDevice device;
@@ -293,10 +284,9 @@ public:
 } // namespace GVKr
 
 
-USING_PTR (SingleWritableImageResource);
 class GVK_RENDERER_API SingleWritableImageResource : public WritableImageResource {
 private:
-    GVKr::EventU readWriteSync;
+    U<GVKr::Event> readWriteSync;
 
 public:
     using WritableImageResource::WritableImageResource;
@@ -343,11 +333,10 @@ public:
 };
 
 
-USING_PTR (GPUBufferResource);
 class GVK_RENDERER_API GPUBufferResource : public InputBufferBindableResource {
 private:
-    BufferTransferableU buffer;
-    const uint32_t      size;
+    U<BufferTransferable> buffer;
+    const uint32_t        size;
 
 public:
     GPUBufferResource (const uint32_t size)
@@ -382,12 +371,11 @@ public:
 };
 
 
-USING_PTR (ReadOnlyImageResource);
 class GVK_RENDERER_API ReadOnlyImageResource : public OneTimeCompileResource, public InputImageBindable {
 public:
-    ImageTransferableU image;
-    ImageViewBaseU     imageView;
-    SamplerU           sampler;
+    U<ImageTransferable> image;
+    U<ImageViewBase>     imageView;
+    U<Sampler>           sampler;
 
     const VkFormat format;
     const VkFilter filter;
@@ -479,12 +467,11 @@ public:
 };
 
 
-USING_PTR (SwapchainImageResource);
 class GVK_RENDERER_API SwapchainImageResource : public ImageResource, public InputImageBindable {
 public:
-    std::vector<ImageView2DU>    imageViews;
-    SwapchainProvider&           swapchainProv;
-    std::vector<InheritedImageU> inheritedImages;
+    std::vector<U<ImageView2D>>    imageViews;
+    SwapchainProvider&             swapchainProv;
+    std::vector<U<InheritedImage>> inheritedImages;
 
 public:
     SwapchainImageResource (SwapchainProvider& swapchainProv)
@@ -543,12 +530,11 @@ public:
 };
 
 
-USING_PTR (CPUBufferResource);
 class GVK_RENDERER_API CPUBufferResource : public InputBufferBindableResource {
 public:
-    const uint32_t              size;
-    std::vector<BufferU>        buffers;
-    std::vector<MemoryMappingU> mappings;
+    const uint32_t                size;
+    std::vector<U<Buffer>>        buffers;
+    std::vector<U<MemoryMapping>> mappings;
 
 public:
     CPUBufferResource (uint32_t size)

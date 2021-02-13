@@ -10,7 +10,6 @@
 
 namespace GVK {
 
-USING_PTR (RenderPass);
 class GVK_RENDERER_API RenderPass : public VulkanObject {
 private:
     const VkDevice device;
@@ -49,6 +48,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

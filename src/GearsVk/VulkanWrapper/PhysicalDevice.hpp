@@ -51,7 +51,6 @@ GVK_RENDERER_API
 extern DefaultQueueFamilySelector defaultQueueFamilySelector;
 
 
-USING_PTR (PhysicalDevice);
 class GVK_RENDERER_API PhysicalDevice final : public Noncopyable {
 public:
     struct QueueFamilies {
@@ -95,6 +94,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

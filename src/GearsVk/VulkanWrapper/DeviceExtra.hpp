@@ -11,7 +11,6 @@
 
 namespace GVK {
 
-USING_PTR (DeviceExtra);
 class GVK_RENDERER_API DeviceExtra : public Device {
 public:
     Device&      device;
@@ -46,6 +45,6 @@ public:
     virtual void Wait () const override { device.Wait (); }
 };
 
-}
+} // namespace GVK
 
 #endif

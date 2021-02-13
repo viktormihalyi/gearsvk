@@ -11,7 +11,6 @@
 
 namespace GVK {
 
-USING_PTR (VertexAttributeProvider);
 class VertexAttributeProvider {
 public:
     virtual ~VertexAttributeProvider () = default;
@@ -21,7 +20,6 @@ public:
 };
 
 
-USING_PTR (PureDrawRecordable);
 class PureDrawRecordable {
 public:
     virtual ~PureDrawRecordable () = default;
@@ -30,7 +28,6 @@ public:
 };
 
 
-USING_PTR (LambdaPureDrawRecordable);
 class LambdaPureDrawRecordable : private PureDrawRecordable {
 public:
     using Type = std::function<void (CommandBuffer&)>;
@@ -51,7 +48,6 @@ private:
     }
 };
 
-USING_PTR (DrawRecordable);
 class DrawRecordable : public VertexAttributeProvider, public PureDrawRecordable {
 public:
     virtual ~DrawRecordable () = default;

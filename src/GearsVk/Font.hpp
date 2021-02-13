@@ -16,7 +16,6 @@
 
 namespace GVK {
 
-USING_PTR (GlyphData);
 struct GlyphData {
     std::vector<float> data;
     uint32_t           width;
@@ -27,7 +26,6 @@ struct GlyphData {
 };
 
 
-USING_PTR (Font);
 class GVK_RENDERER_API Font : public Noncopyable {
 public:
     // hide font handle
@@ -59,7 +57,6 @@ public:
 };
 
 
-USING_PTR (FontManager)
 class FontManager {
 public:
     enum class Type {
@@ -87,7 +84,7 @@ private:
     const uint32_t height;
     const Type     distanceFieldType;
 
-    std::unordered_map<uint32_t, GlyphDataU> loadedGlyphs;
+    std::unordered_map<uint32_t, U<GlyphData>> loadedGlyphs;
 
 public:
     Event<uint32_t> glyphLoaded;

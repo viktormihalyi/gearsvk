@@ -20,13 +20,12 @@ namespace GVK {
 
 namespace RG {
 
-USING_PTR (ShaderPipeline);
+class ShaderPipeline;
 
 class Resource;
 class GraphSettings;
 class ConnectionSet;
 
-USING_PTR (Operation);
 class GVK_RENDERER_API Operation : public Node {
 public:
     virtual ~Operation () = default;
@@ -45,26 +44,25 @@ public:
     virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&)   = 0;
 };
 
-USING_PTR (RenderOperation);
 class GVK_RENDERER_API RenderOperation : public Operation {
 public:
     struct CompileSettings {
-        PureDrawRecordableU      drawRecordable;
-        VertexAttributeProviderU vertexAttributeProvider;
-        ShaderPipelineU          pipeline;
-        VkPrimitiveTopology      topology;
+        U<PureDrawRecordable>      drawRecordable;
+        U<VertexAttributeProvider> vertexAttributeProvider;
+        U<ShaderPipeline>          pipeline;
+        VkPrimitiveTopology        topology;
 
         std::optional<glm::vec4> clearColor;   // (0, 0, 0, 1) by default
         std::optional<bool>      blendEnabled; // true by default
     };
 
     struct CompileResult {
-        uint32_t                    width;
-        uint32_t                    height;
-        DescriptorPoolU             descriptorPool;
-        DescriptorSetLayoutU        descriptorSetLayout;
-        std::vector<DescriptorSetU> descriptorSets;
-        std::vector<FramebufferU>   framebuffers;
+        uint32_t                      width;
+        uint32_t                      height;
+        U<DescriptorPool>             descriptorPool;
+        U<DescriptorSetLayout>        descriptorSetLayout;
+        std::vector<U<DescriptorSet>> descriptorSets;
+        std::vector<U<Framebuffer>>   framebuffers;
 
         void Clear ()
         {
@@ -79,8 +77,8 @@ public:
     CompileResult   compileResult;
 
 
-    RenderOperation (DrawRecordableU&& drawRecordable, ShaderPipelineU&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    RenderOperation (PureDrawRecordableU&& drawRecordable, VertexAttributeProviderU&&, ShaderPipelineU&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    RenderOperation (U<DrawRecordable>&& drawRecordable, U<ShaderPipeline>&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    RenderOperation (U<PureDrawRecordable>&& drawRecordable, U<VertexAttributeProvider>&&, U<ShaderPipeline>&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
     virtual ~RenderOperation () = default;
 
@@ -102,7 +100,6 @@ private:
 };
 
 
-USING_PTR (TransferOperation);
 class GVK_RENDERER_API TransferOperation : public Operation {
 public:
     TransferOperation ();

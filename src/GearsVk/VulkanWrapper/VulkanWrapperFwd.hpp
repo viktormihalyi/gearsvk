@@ -4,37 +4,37 @@
 #include "Ptr.hpp"
 
 // utils
-USING_PTR (BufferTransferable);
-USING_PTR (MemoryMapping);
-USING_PTR (SingleTimeCommand);
-USING_PTR (VulkanObject);
+class BufferTransferable;
+class MemoryMapping;
+class SingleTimeCommand;
+class VulkanObject;
 
 // object wrappers
-USING_PTR (Buffer);
-USING_PTR (CommandBuffer);
-USING_PTR (CommandPool);
-USING_PTR (DebugUtilsMessenger);
-USING_PTR (DescriptorPool);
-USING_PTR (DescriptorSet);
-USING_PTR (DescriptorSetLayout);
-USING_PTR (DeviceObject);
-USING_PTR (DeviceExtra);
-USING_PTR (DeviceMemory);
-USING_PTR (Fence);
-USING_PTR (Framebuffer);
-USING_PTR (Image);
-USING_PTR (ImageViewBase);
-USING_PTR (Instance);
-USING_PTR (PhysicalDevice);
-USING_PTR (Pipeline);
-USING_PTR (PipelineLayout);
-USING_PTR (Queue);
-USING_PTR (RenderPass);
-USING_PTR (Sampler);
-USING_PTR (Semaphore);
-USING_PTR (ShaderModule);
-USING_PTR (ShaderReflection);
-USING_PTR (Surface);
-USING_PTR (Swapchain);
+class Buffer;
+class CommandBuffer;
+class CommandPool;
+class DebugUtilsMessenger;
+class DescriptorPool;
+class DescriptorSet;
+class DescriptorSetLayout;
+class DeviceObject;
+class DeviceExtra;
+class DeviceMemory;
+class Fence;
+class Framebuffer;
+class Image;
+class ImageViewBase;
+class Instance;
+class PhysicalDevice;
+class Pipeline;
+class PipelineLayout;
+class Queue;
+class RenderPass;
+class Sampler;
+class Semaphore;
+class ShaderModule;
+class ShaderReflection;
+class Surface;
+class Swapchain;
 
 #endif

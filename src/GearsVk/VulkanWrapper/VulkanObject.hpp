@@ -8,7 +8,6 @@
 
 namespace GVK {
 
-USING_PTR (VulkanObject);
 class GVK_RENDERER_API VulkanObject : public Noncopyable {
 private:
     GVK::UUID uuid;
@@ -25,6 +24,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

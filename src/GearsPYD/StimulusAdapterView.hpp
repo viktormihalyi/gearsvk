@@ -22,7 +22,6 @@ class Renderer;
 } // namespace GVK
 
 
-USING_PTR (StimulusAdapterView);
 class StimulusAdapterView : public Noncopyable {
 private:
     GVK::VulkanEnvironment& environment;

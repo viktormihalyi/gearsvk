@@ -80,7 +80,7 @@ protected:
         sequenceAdapter->RenderFrameIndex (frameIndex);
         sequenceAdapter->Wait ();
 
-        std::vector<InheritedImageU> imgs = pres->GetSwapchain ().GetImageObjects ();
+        std::vector<U<InheritedImage>> imgs = pres->GetSwapchain ().GetImageObjects ();
 
         ImageData img (GetDeviceExtra (), *imgs[0], 0, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 

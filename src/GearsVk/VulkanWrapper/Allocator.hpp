@@ -13,7 +13,6 @@
 
 namespace GVK {
 
-USING_PTR (Allocator);
 class Allocator : public Noncopyable {
 private:
     VmaAllocator handle;

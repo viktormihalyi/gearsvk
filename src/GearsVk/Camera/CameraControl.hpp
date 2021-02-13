@@ -10,9 +10,9 @@ namespace GVK {
 
 class CameraControl : public EventObserver {
 private:
-    Camera&        camera;
-    MouseState     mouse;
-    KeyboardStateU keyboard;
+    Camera&          camera;
+    MouseState       mouse;
+    U<KeyboardState> keyboard;
 
 public:
     CameraControl (Camera& camera, Window::Events& windowEvents)

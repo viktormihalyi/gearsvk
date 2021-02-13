@@ -12,23 +12,22 @@ namespace GVK {
 
 namespace RG {
 
-USING_PTR (ShaderPipeline);
 class GVK_RENDERER_API ShaderPipeline {
 private:
     const VkDevice device;
 
 public:
-    ShaderModuleU vertexShader;
-    ShaderModuleU fragmentShader;
-    ShaderModuleU geometryShader;
-    ShaderModuleU tessellationEvaluationShader;
-    ShaderModuleU tessellationControlShader;
-    ShaderModuleU computeShader;
+    U<ShaderModule> vertexShader;
+    U<ShaderModule> fragmentShader;
+    U<ShaderModule> geometryShader;
+    U<ShaderModule> tessellationEvaluationShader;
+    U<ShaderModule> tessellationControlShader;
+    U<ShaderModule> computeShader;
 
 
-    ShaderModuleU& GetShaderByIndex (uint32_t index);
-    ShaderModuleU& GetShaderByExtension (const std::string& extension);
-    ShaderModuleU& GetShaderByKind (ShaderKind kind);
+    U<ShaderModule>& GetShaderByIndex (uint32_t index);
+    U<ShaderModule>& GetShaderByExtension (const std::string& extension);
+    U<ShaderModule>& GetShaderByKind (ShaderKind kind);
 
 public:
     struct CompileSettings {
@@ -44,9 +43,9 @@ public:
 
 
     struct CompileResult {
-        RenderPassU     renderPass;
-        PipelineLayoutU pipelineLayout;
-        PipelineU       pipeline;
+        U<RenderPass>     renderPass;
+        U<PipelineLayout> pipelineLayout;
+        U<Pipeline>       pipeline;
 
         void Clear ()
         {
@@ -80,7 +79,7 @@ public:
 
     std::vector<VkPipelineShaderStageCreateInfo> GetShaderStages () const;
 
-    DescriptorSetLayoutU CreateDescriptorSetLayout (VkDevice device) const;
+    U<DescriptorSetLayout> CreateDescriptorSetLayout (VkDevice device) const;
 };
 
 } // namespace RG

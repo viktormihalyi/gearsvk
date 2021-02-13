@@ -12,7 +12,6 @@
 
 namespace GVK {
 
-USING_PTR (Framebuffer);
 class GVK_RENDERER_API Framebuffer final : public VulkanObject {
 private:
     const VkDevice device;
@@ -71,6 +70,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

@@ -14,8 +14,6 @@
 
 namespace GVK {
 
-USING_PTR (Window);
-
 class GVK_RENDERER_API Window : public Noncopyable {
 public:
     struct Events {
@@ -73,6 +71,6 @@ public:
     static std::vector<const char*> GetExtensions ();
 };
 
-}
+} // namespace GVK
 
 #endif

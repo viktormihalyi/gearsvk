@@ -27,7 +27,6 @@ class SynchronizedSwapchainGraphRenderer;
 }
 } // namespace GVK
 
-USING_PTR (SequenceAdapter);
 class GEARS_API_TEST SequenceAdapter {
 private:
     const Ptr<Sequence> sequence;

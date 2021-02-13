@@ -12,9 +12,9 @@
 
 namespace GVK {
 
-USING_PTR (Swapchain);
-USING_PTR (Fence);
-USING_PTR (Semaphore);
+class Swapchain;
+class Fence;
+class Semaphore;
 
 namespace RG {
 
@@ -58,8 +58,8 @@ public:
 
 class GVK_RENDERER_API BlockingGraphRenderer final : public RecreatableGraphRenderer {
 private:
-    SemaphoreU s;
-    TimePoint  lastDrawTime;
+    U<Semaphore> s;
+    TimePoint    lastDrawTime;
 
 public:
     BlockingGraphRenderer (const DeviceExtra& device, Swapchain& swapchain);
@@ -68,7 +68,6 @@ public:
 };
 
 
-USING_PTR (SynchronizedSwapchainGraphRenderer);
 class GVK_RENDERER_API SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
 private:
     // number of render operations able to run simultaneously
@@ -83,9 +82,9 @@ private:
 
     // size is framesInFlight
     // synchronization objects for each frame in flight
-    std::vector<SemaphoreU> imageAvailableSemaphore; // present signals, submit  waits
-    std::vector<SemaphoreU> renderFinishedSemaphore; // submit  signals, present waits
-    std::vector<FenceU>     inFlightFences;          // waited before submit, signaled by submit
+    std::vector<U<Semaphore>> imageAvailableSemaphore; // present signals, submit  waits
+    std::vector<U<Semaphore>> renderFinishedSemaphore; // submit  signals, present waits
+    std::vector<U<Fence>>     inFlightFences;          // waited before submit, signaled by submit
 
     // size is imageCount
     // determines what frame is rendering to each swapchain image
@@ -107,6 +106,6 @@ public:
 
 } // namespace RG
 
-}
+} // namespace GVK
 
 #endif

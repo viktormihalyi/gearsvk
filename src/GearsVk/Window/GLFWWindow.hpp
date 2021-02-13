@@ -11,7 +11,6 @@
 
 namespace GVK {
 
-USING_PTR (GLFWWindowBase);
 class GVK_RENDERER_API GLFWWindowBase : public Window {
 private:
     struct Impl;
@@ -43,7 +42,6 @@ public:
 };
 
 
-USING_PTR (GLFWWindow);
 class GVK_RENDERER_API GLFWWindow : public GLFWWindowBase {
 public:
     GLFWWindow ();
@@ -51,13 +49,12 @@ public:
 };
 
 
-USING_PTR (HiddenGLFWWindow);
 class GVK_RENDERER_API HiddenGLFWWindow : public GLFWWindowBase {
 public:
     HiddenGLFWWindow ();
     virtual ~HiddenGLFWWindow () = default;
 };
 
-}
+} // namespace GVK
 
 #endif

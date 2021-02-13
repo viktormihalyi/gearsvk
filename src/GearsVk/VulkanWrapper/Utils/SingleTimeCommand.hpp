@@ -11,10 +11,9 @@
 
 namespace GVK {
 
-USING_PTR (SingleTimeCommand);
 class GVK_RENDERER_API SingleTimeCommand final : public CommandBuffer {
 private:
-    const Queue&        queue;
+    const Queue& queue;
 
 public:
     SingleTimeCommand (VkDevice device, VkCommandPool commandPool, const Queue& queue)
@@ -38,6 +37,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

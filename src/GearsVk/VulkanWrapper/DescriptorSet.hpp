@@ -13,8 +13,6 @@
 
 namespace GVK {
 
-USING_PTR (DescriptorSet);
-
 class GVK_RENDERER_API DescriptorSet : public Noncopyable {
 private:
     const VkDevice         device;
@@ -60,6 +58,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

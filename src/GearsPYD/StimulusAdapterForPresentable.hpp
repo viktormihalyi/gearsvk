@@ -27,13 +27,12 @@ class Renderer;
 } // namespace RG
 class Presentable;
 class VulkanEnvironment;
-}
+} // namespace GVK
 
 
-USING_PTR (StimulusAdapterForPresentable);
 class StimulusAdapterForPresentable : public Noncopyable {
 private:
-    const PtrC<Stimulus>   stimulus;
+    const PtrC<Stimulus>        stimulus;
     const Ptr<GVK::Presentable> presentable;
 
     Ptr<GVK::RG::RenderGraph>                    renderGraph;
@@ -42,7 +41,7 @@ private:
     Ptr<GVK::RG::Operation>                      randomGeneratorOperation;
 
     std::unordered_map<uint32_t, U<GVK::SingleEventObserver>> presentObservers;
-    std::vector<uint32_t>                                presentedEventDeleteQueue;
+    std::vector<uint32_t>                                     presentedEventDeleteQueue;
 
 public:
     StimulusAdapterForPresentable (const GVK::VulkanEnvironment& environment, Ptr<GVK::Presentable>& presentable, const PtrC<Stimulus>& stimulus);

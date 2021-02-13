@@ -11,7 +11,6 @@
 
 namespace GVK {
 
-USING_PTR (DescriptorSetLayout);
 class GVK_RENDERER_API DescriptorSetLayout : public VulkanObject {
 private:
     const VkDevice        device;
@@ -64,6 +63,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

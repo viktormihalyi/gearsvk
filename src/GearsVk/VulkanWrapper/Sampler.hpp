@@ -10,7 +10,6 @@
 
 namespace GVK {
 
-USING_PTR (Sampler);
 class GVK_RENDERER_API Sampler : public VulkanObject {
 private:
     const VkDevice device;
@@ -25,6 +24,6 @@ public:
     operator VkSampler () const { return handle; }
 };
 
-}
+} // namespace GVK
 
 #endif

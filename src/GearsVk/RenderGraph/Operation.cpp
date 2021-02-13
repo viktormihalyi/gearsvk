@@ -1,9 +1,9 @@
 #include "Operation.hpp"
 
 #include "GraphSettings.hpp"
+#include "Ptr.hpp"
 #include "Resource.hpp"
 #include "ShaderPipeline.hpp"
-#include "Ptr.hpp"
 
 namespace GVK {
 
@@ -60,13 +60,13 @@ std::vector<VkImageView> RenderOperation::GetOutputImageViews (const ConnectionS
 }
 
 
-RenderOperation::RenderOperation (DrawRecordableU&& drawRecordable, ShaderPipelineU&& shaderPipeline, VkPrimitiveTopology topology)
+RenderOperation::RenderOperation (U<DrawRecordable>&& drawRecordable, U<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
     : compileSettings ({ std::move (drawRecordable), std::move (drawRecordable), std::move (shaderPipeline), topology })
 {
 }
 
 
-RenderOperation::RenderOperation (PureDrawRecordableU&& drawRecordable, VertexAttributeProviderU&& vap, ShaderPipelineU&& shaderPipeline, VkPrimitiveTopology topology)
+RenderOperation::RenderOperation (U<PureDrawRecordable>&& drawRecordable, U<VertexAttributeProvider>&& vap, U<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
     : compileSettings ({ std::move (drawRecordable), std::move (vap), std::move (shaderPipeline), topology })
 {
 }
@@ -90,7 +90,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
         compileResult.descriptorPool = Make<DescriptorPool> (graphSettings.GetDevice (), s, s, graphSettings.framesInFlight);
 
         for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            DescriptorSetU descriptorSet = Make<DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
+            U<DescriptorSet> descriptorSet = Make<DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
             graphSettings.connectionSet.ProcessInputBindingsOf (this, [&] (const IConnectionBinding& binding) {
                 binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);

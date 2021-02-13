@@ -9,11 +9,11 @@ namespace GVK {
 
 namespace SR {
 
-static const std::vector<SR::FieldU> emptyFieldVector;
+static const std::vector<U<SR::Field>> emptyFieldVector;
 
 class EmptyFieldContainer : public FieldContainer {
 public:
-    virtual const std::vector<SR::FieldU>& GetFields () const { return emptyFieldVector; }
+    virtual const std::vector<U<SR::Field>>& GetFields () const { return emptyFieldVector; }
 } emptyFields;
 
 const UView UView::invalidUview (UView::Type::Variable, nullptr, 0, 0, emptyFields, nullptr);
@@ -26,7 +26,7 @@ UView::UView (Type                      type,
               uint32_t                  offset,
               uint32_t                  size,
               const SR::FieldContainer& parentContainer,
-              const SR::FieldU&         currentField)
+              const U<SR::Field>&         currentField)
     : type (type)
     , data (data)
     , offset (offset)
@@ -65,7 +65,7 @@ UView UView::operator[] (std::string_view str)
 
     GVK_ASSERT (type != Type::Array);
 
-    for (const SR::FieldU& f : parentContainer.GetFields ()) {
+    for (const U<SR::Field>& f : parentContainer.GetFields ()) {
         if (str == f->name) {
             if (f->IsArray ()) {
                 return UView (Type::Array, data, offset + f->offset, f->size, *f, f);
@@ -177,7 +177,7 @@ ShaderUData::ShaderUData (const std::vector<uint32_t>& shaderBinary)
 {
 }
 
-ShaderUData::ShaderUData (const ShaderModuleU& shaderModule)
+ShaderUData::ShaderUData (const U<ShaderModule>& shaderModule)
     : ShaderUData (shaderModule->GetBinary ())
 {
 }

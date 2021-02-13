@@ -80,7 +80,6 @@ public:
 };
 
 
-USING_PTR (DrawRecordableInfo);
 class DrawRecordableInfo : public DrawRecordable {
 public:
     const uint32_t instanceCount;

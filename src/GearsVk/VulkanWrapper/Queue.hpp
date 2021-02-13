@@ -13,7 +13,6 @@ namespace GVK {
 
 class CommandBuffer;
 
-USING_PTR (Queue);
 class GVK_RENDERER_API Queue : public Noncopyable {
 private:
     VkQueue handle;
@@ -53,6 +52,6 @@ public:
 
 extern Queue dummyQueue;
 
-}
+} // namespace GVK
 
 #endif

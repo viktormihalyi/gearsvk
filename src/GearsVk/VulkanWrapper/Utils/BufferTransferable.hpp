@@ -17,7 +17,6 @@
 
 namespace GVK {
 
-USING_PTR (BufferTransferable);
 class GVK_RENDERER_API BufferTransferable final {
 public:
     const DeviceExtra& device;
@@ -51,7 +50,6 @@ public:
 };
 
 
-USING_PTR (ImageTransferable);
 class GVK_RENDERER_API ImageTransferable {
 private:
     const DeviceExtra& device;
@@ -60,7 +58,7 @@ private:
     MemoryMapping bufferCPUMapping;
 
 public:
-    ImageU imageGPU;
+    U<Image> imageGPU;
 
 protected:
     ImageTransferable (const DeviceExtra& device, uint32_t bufferSize)
@@ -136,7 +134,6 @@ static uint32_t GetCompontentCountFromFormat (VkFormat format)
 }
 
 
-USING_PTR (Image1DTransferable);
 class GVK_RENDERER_API Image1DTransferable final : public ImageTransferable {
 public:
     Image1DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
@@ -147,7 +144,6 @@ public:
 };
 
 
-USING_PTR (Image2DTransferable);
 class GVK_RENDERER_API Image2DTransferable final : public ImageTransferable {
 public:
     Image2DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
@@ -158,7 +154,6 @@ public:
 };
 
 
-USING_PTR (Image2DTransferableLinear);
 class GVK_RENDERER_API Image2DTransferableLinear final : public ImageTransferable {
 public:
     Image2DTransferableLinear (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
@@ -169,7 +164,6 @@ public:
 };
 
 
-USING_PTR (Image3DTransferable);
 class GVK_RENDERER_API Image3DTransferable final : public ImageTransferable {
 public:
     Image3DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
@@ -193,7 +187,6 @@ public:
 };
 
 
-USING_PTR (VertexBufferTransferableUntyped);
 class GVK_RENDERER_API VertexBufferTransferableUntyped {
 public:
     std::vector<uint8_t>     data;
@@ -277,6 +270,6 @@ using IndexBufferTransferableU   = U<IndexBufferTransferableBase<uint16_t, VK_IN
 using IndexBufferTransferable32  = IndexBufferTransferableBase<uint32_t, VK_INDEX_TYPE_UINT32>;
 using IndexBufferTransferable32U = U<IndexBufferTransferableBase<uint32_t, VK_INDEX_TYPE_UINT32>>;
 
-}
+} // namespace GVK
 
 #endif

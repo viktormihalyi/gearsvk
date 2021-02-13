@@ -12,7 +12,6 @@
 
 namespace GVK {
 
-USING_PTR (DeviceMemory);
 class GVK_RENDERER_API DeviceMemory : public VulkanObject {
 public:
     static constexpr VkMemoryPropertyFlags GPU = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -34,6 +33,6 @@ public:
     size_t GetSize () const { return allocationSize; }
 };
 
-}
+} // namespace GVK
 
 #endif

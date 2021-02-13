@@ -10,7 +10,6 @@
 
 namespace GVK {
 
-USING_PTR (GlobalUpVectorProvider);
 class GlobalUpVectorProvider {
 public:
     virtual ~GlobalUpVectorProvider () = default;
@@ -22,8 +21,6 @@ public:
     virtual const glm::vec3& GetUpVector () const                                             = 0;
 };
 
-
-USING_PTR (GlobalZ);
 
 class GlobalZ final : public GlobalUpVectorProvider {
 private:

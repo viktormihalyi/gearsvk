@@ -11,7 +11,6 @@ namespace GVK {
 
 namespace RG {
 
-USING_PTR (Node);
 class GVK_RENDERER_API Node : public Noncopyable {
 private:
     GVK::UUID uuid;

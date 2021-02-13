@@ -10,8 +10,6 @@
 
 namespace GVK {
 
-USING_PTR (CommandPool);
-
 class GVK_RENDERER_API CommandPool : public VulkanObject {
 private:
     const VkDevice device;

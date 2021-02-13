@@ -15,7 +15,6 @@ namespace GVK {
 
 class ImageBuilder;
 
-USING_PTR (Image);
 class GVK_RENDERER_API Image : public VulkanObject {
 public:
     static const VkImageLayout INITIAL_LAYOUT = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -86,7 +85,6 @@ public:
 
 
 // used for handling swapchain images as Image
-USING_PTR (InheritedImage);
 class GVK_RENDERER_API InheritedImage : public Image {
 public:
     InheritedImage (VkImage handle, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
@@ -179,7 +177,6 @@ public:
 };
 
 
-USING_PTR (Image1D);
 class GVK_RENDERER_API Image1D : public Image {
 public:
     Image1D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
@@ -189,7 +186,6 @@ public:
 };
 
 
-USING_PTR (Image2D);
 class GVK_RENDERER_API Image2D : public Image {
 public:
     Image2D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
@@ -199,7 +195,6 @@ public:
 };
 
 
-USING_PTR (Image3D);
 class GVK_RENDERER_API Image3D : public Image {
 public:
     Image3D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0)
@@ -208,6 +203,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

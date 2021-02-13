@@ -9,7 +9,7 @@ namespace RG {
 
 void ConnectionSet::VisitOutputsOf (const Node* node, IResourceVisitor& visitor) const
 {
-    for (const ConnectionU& c : connections) {
+    for (const U<Connection>& c : connections) {
         if (c->from.get () == node) {
             if (Ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c->to)) {
                 asResource->Visit (visitor);
@@ -23,7 +23,7 @@ void ConnectionSet::VisitOutputsOf (const Node* node, IResourceVisitor& visitor)
 
 void ConnectionSet::VisitInputsOf (const Node* node, IResourceVisitor& visitor) const
 {
-    for (const ConnectionU& c : connections) {
+    for (const U<Connection>& c : connections) {
         if (c->to.get () == node) {
             if (Ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c->from)) {
                 asResource->Visit (visitor);

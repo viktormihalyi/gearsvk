@@ -10,8 +10,6 @@
 
 namespace GVK {
 
-USING_PTR (DescriptorPool);
-
 class GVK_RENDERER_API DescriptorPool : public VulkanObject {
 private:
     const VkDevice   device;
@@ -55,6 +53,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

@@ -10,7 +10,6 @@
 
 namespace GVK {
 
-USING_PTR (Pipeline);
 class GVK_RENDERER_API Pipeline : public VulkanObject {
 private:
     const VkDevice device;
@@ -41,6 +40,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

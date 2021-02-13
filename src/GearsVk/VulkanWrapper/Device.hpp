@@ -11,7 +11,6 @@
 
 namespace GVK {
 
-USING_PTR (Device);
 class GVK_RENDERER_API Device {
 public:
     virtual ~Device () = default;
@@ -21,7 +20,6 @@ public:
 };
 
 
-USING_PTR (DeviceObject);
 class GVK_RENDERER_API DeviceObject : public VulkanObject, public Device {
 private:
     const VkPhysicalDevice physicalDevice;
@@ -92,6 +90,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

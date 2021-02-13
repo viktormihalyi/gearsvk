@@ -16,19 +16,17 @@ namespace RG {
 
 class IResourceVisitor;
 
-USING_PTR (ConnectionSet);
 class GVK_RENDERER_API ConnectionSet final : public Noncopyable {
 public:
-    USING_PTR (Connection);
     class Connection {
     public:
-        Ptr<Node>           from;
-        Ptr<Node>           to;
-        IConnectionBindingU binding;
+        Ptr<Node>             from;
+        Ptr<Node>             to;
+        U<IConnectionBinding> binding;
 
-        Connection (const Ptr<Node>&      from,
-                    const Ptr<Node>&      to,
-                    IConnectionBindingU&& binding)
+        Connection (const Ptr<Node>&        from,
+                    const Ptr<Node>&        to,
+                    U<IConnectionBinding>&& binding)
             : from (from)
             , to (to)
             , binding (std::move (binding))
@@ -37,7 +35,7 @@ public:
     };
 
 private:
-    std::vector<ConnectionU> connections;
+    std::vector<U<Connection>> connections;
 
 public:
     std::set<Ptr<Node>> nodes;
@@ -57,7 +55,7 @@ public:
     {
         std::vector<Ptr<T>> result;
 
-        for (const ConnectionU& c : connections) {
+        for (const U<Connection>& c : connections) {
             if (c->from.get () == node) {
                 if (auto asCasted = std::dynamic_pointer_cast<T> (c->to)) {
                     result.push_back (asCasted);
@@ -73,7 +71,7 @@ public:
     {
         std::vector<Ptr<T>> result;
 
-        for (const ConnectionU& c : connections) {
+        for (const U<Connection>& c : connections) {
             if (c->to.get () == node) {
                 if (auto asCasted = std::dynamic_pointer_cast<T> (c->from)) {
                     result.push_back (asCasted);
@@ -86,7 +84,7 @@ public:
 
     void VisitOutputsOf (const Node* node, IConnectionBindingVisitor& visitor) const
     {
-        for (const ConnectionU& c : connections) {
+        for (const U<Connection>& c : connections) {
             if (c->from.get () == node) {
                 c->binding->Visit (visitor);
             }
@@ -96,7 +94,7 @@ public:
     template<typename Processor>
     void ProcessInputBindingsOf (const Node* node, const Processor& processor) const
     {
-        for (const ConnectionU& c : connections) {
+        for (const U<Connection>& c : connections) {
             if (c->to.get () == node) {
                 processor (*c->binding);
             }
@@ -105,7 +103,7 @@ public:
     template<typename Processor>
     void ProcessOutputBindingsOf (const Node* node, const Processor& processor) const
     {
-        for (const ConnectionU& c : connections) {
+        for (const U<Connection>& c : connections) {
             if (c->from.get () == node) {
                 processor (*c->binding);
             }
@@ -115,7 +113,7 @@ public:
 
     void VisitInputsOf (const Node* node, IConnectionBindingVisitor& visitor) const
     {
-        for (const ConnectionU& c : connections) {
+        for (const U<Connection>& c : connections) {
             if (c->to.get () == node) {
                 c->binding->Visit (visitor);
             }
@@ -123,7 +121,7 @@ public:
     }
 
 
-    void Add (const Ptr<Node>& from, const Ptr<Node>& to, IConnectionBindingU&& binding)
+    void Add (const Ptr<Node>& from, const Ptr<Node>& to, U<IConnectionBinding>&& binding)
     {
         nodes.insert (from);
         nodes.insert (to);
@@ -138,7 +136,6 @@ public:
 };
 
 
-USING_PTR (GraphSettings);
 class GVK_RENDERER_API GraphSettings {
 public:
     ConnectionSet      connectionSet;

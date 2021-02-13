@@ -9,7 +9,6 @@
 
 namespace GVK {
 
-USING_PTR (Surface);
 class GVK_RENDERER_API Surface : public VulkanObject {
 private:
     VkInstance   instance;
@@ -29,6 +28,6 @@ public:
     operator VkSurfaceKHR () const { return handle; }
 };
 
-}
+} // namespace GVK
 
 #endif

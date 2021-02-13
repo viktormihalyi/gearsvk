@@ -14,7 +14,6 @@
 
 namespace GVK {
 
-USING_PTR (MemoryMapping);
 class GVK_RENDERER_API MemoryMapping : public Noncopyable {
 private:
     const VkDevice       device;
@@ -106,6 +105,6 @@ public:
     uint32_t GetOffset () { return offset; }
 };
 
-}
+} // namespace GVK
 
 #endif

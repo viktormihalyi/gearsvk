@@ -19,7 +19,7 @@
 namespace Gears {
 
 
-static SequenceAdapterU                   currentSeq;
+static U<SequenceAdapter>                 currentSeq;
 static std::vector<Ptr<GVK::Presentable>> createdSurfaces;
 
 static GVK::VulkanEnvironment& GetVkEnvironment ();
@@ -147,7 +147,7 @@ std::string GetGLSLResourcesForRandoms ()
 }
 
 
-SequenceAdapterU GetSequenceAdapterFromPyx (GVK::VulkanEnvironment& environment, const std::filesystem::path& filePath)
+U<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment& environment, const std::filesystem::path& filePath)
 {
     if (GVK_ERROR (!std::filesystem::exists (filePath))) {
         return nullptr;

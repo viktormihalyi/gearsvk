@@ -7,7 +7,6 @@
 
 namespace GVK {
 
-USING_PTR (Frustum);
 class Frustum {
 public:
     virtual ~Frustum () = default;

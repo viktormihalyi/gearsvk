@@ -55,7 +55,7 @@ uint32_t Field::GetSize () const
 }
 
 
-const std::vector<SR::FieldU>& Field::GetFields () const
+const std::vector<U<SR::Field>>& Field::GetFields () const
 {
     return structFields;
 }
@@ -72,7 +72,7 @@ uint32_t UBO::GetFullSize () const
 }
 
 
-const std::vector<SR::FieldU>& UBO::GetFields () const
+const std::vector<U<SR::Field>>& UBO::GetFields () const
 {
     return fields;
 }
@@ -291,7 +291,7 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
 }
 
 
-static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeID typeId, std::vector<FieldU>& parentFields, const uint32_t depth = 0)
+static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeID typeId, std::vector<U<Field>>& parentFields, const uint32_t depth = 0)
 {
     const spirv_cross::SPIRType& type = compiler.get_type (typeId);
 
@@ -302,7 +302,7 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
         AllDecorations               typeMemDecor (compiler, type.self, i);
         const spirv_cross::SPIRType& Mtype = compiler.get_type (type.member_types[i]);
 
-        FieldU f       = Make<Field> ();
+        U<Field> f       = Make<Field> ();
         f->name        = typeMemDecor.name;
         f->offset      = *typeMemDecor.Offset;
         f->arrayStride = typeMemDecorA.ArrayStride ? *typeMemDecorA.ArrayStride : 0;

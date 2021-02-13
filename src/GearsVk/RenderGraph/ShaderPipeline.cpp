@@ -7,7 +7,7 @@ namespace GVK {
 
 namespace RG {
 
-ShaderModuleU& ShaderPipeline::GetShaderByIndex (uint32_t index)
+U<ShaderModule>& ShaderPipeline::GetShaderByIndex (uint32_t index)
 {
     switch (index) {
         case 0: return vertexShader;
@@ -23,7 +23,7 @@ ShaderModuleU& ShaderPipeline::GetShaderByIndex (uint32_t index)
 }
 
 
-ShaderModuleU& ShaderPipeline::GetShaderByExtension (const std::string& extension)
+U<ShaderModule>& ShaderPipeline::GetShaderByExtension (const std::string& extension)
 {
     if (extension == ".vert") {
         return vertexShader;
@@ -42,7 +42,7 @@ ShaderModuleU& ShaderPipeline::GetShaderByExtension (const std::string& extensio
 }
 
 
-ShaderModuleU& ShaderPipeline::GetShaderByKind (ShaderKind kind)
+U<ShaderModule>& ShaderPipeline::GetShaderByKind (ShaderKind kind)
 {
     switch (kind) {
         case ShaderKind::Vertex: return vertexShader;
@@ -182,8 +182,8 @@ void ShaderPipeline::Reload ()
     Utils::TimerScope       ts (tl);
 
     MultithreadedFunction reloader (5, [&] (uint32_t, uint32_t threadIndex) {
-        ShaderModuleU& currentShader = GetShaderByIndex (threadIndex);
-        ShaderModuleU  newShader;
+        U<ShaderModule>& currentShader = GetShaderByIndex (threadIndex);
+        U<ShaderModule>  newShader;
 
         if (currentShader != nullptr) {
             switch (currentShader->GetReadMode ()) {
@@ -241,7 +241,7 @@ void ShaderPipeline::IterateShaders (const std::function<void (ShaderModule&)>& 
 }
 
 
-DescriptorSetLayoutU ShaderPipeline::CreateDescriptorSetLayout (VkDevice device) const
+U<DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLayout (VkDevice device) const
 {
     std::vector<VkDescriptorSetLayoutBinding> layout;
 
@@ -253,6 +253,6 @@ DescriptorSetLayoutU ShaderPipeline::CreateDescriptorSetLayout (VkDevice device)
     return Make<DescriptorSetLayout> (device, layout);
 }
 
-}
+} // namespace RG
 
-}
+} // namespace GVK

@@ -11,7 +11,6 @@
 
 namespace GVK {
 
-USING_PTR (Semaphore);
 class GVK_RENDERER_API Semaphore : public VulkanObject {
 private:
     const VkDevice device;
@@ -48,6 +47,6 @@ public:
     }
 };
 
-}
+} // namespace GVK
 
 #endif

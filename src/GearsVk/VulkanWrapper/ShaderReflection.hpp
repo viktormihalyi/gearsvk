@@ -55,18 +55,16 @@ GVK_RENDERER_API
 std::string FieldTypeToString (FieldType fieldType);
 
 
-USING_PTR (Field);
+class Field;
 
-USING_PTR (FieldContainer);
 class FieldContainer {
 public:
     virtual ~FieldContainer () = default;
 
-    virtual const std::vector<SR::FieldU>& GetFields () const = 0;
+    virtual const std::vector<U<SR::Field>>& GetFields () const = 0;
 };
 
 
-USING_PTR (Field);
 class Field final : public FieldContainer, public Noncopyable {
 public:
     std::string name;
@@ -83,7 +81,7 @@ public:
     uint32_t arraySize;   // 0 for non-arrays
     uint32_t arrayStride; // 0 for non-arrays
 
-    std::vector<FieldU> structFields; // when type == FieldType::Struct
+    std::vector<U<Field>> structFields; // when type == FieldType::Struct
 
     Field ();
 
@@ -93,21 +91,20 @@ public:
 
     uint32_t GetSize () const;
 
-    virtual const std::vector<SR::FieldU>& GetFields () const override;
+    virtual const std::vector<U<SR::Field>>& GetFields () const override;
 };
 
 
-USING_PTR (UBO);
 class GVK_RENDERER_API UBO final : public FieldContainer, public Noncopyable {
 public:
-    uint32_t            binding;
-    uint32_t            descriptorSet;
-    std::string         name;
-    std::vector<FieldU> fields;
+    uint32_t              binding;
+    uint32_t              descriptorSet;
+    std::string           name;
+    std::vector<U<Field>> fields;
 
     uint32_t GetFullSize () const;
 
-    virtual const std::vector<SR::FieldU>& GetFields () const override;
+    virtual const std::vector<U<SR::Field>>& GetFields () const override;
 };
 
 
@@ -165,6 +162,6 @@ VkFormat FieldTypeToVkFormat (FieldType fieldType);
 
 } // namespace SR
 
-}
+} // namespace GVK
 
 #endif

@@ -182,9 +182,9 @@ RealSwapchain::~RealSwapchain ()
 }
 
 
-std::vector<InheritedImageU> RealSwapchain::GetImageObjects () const
+std::vector<U<InheritedImage>> RealSwapchain::GetImageObjects () const
 {
-    std::vector<InheritedImageU> result;
+    std::vector<U<InheritedImage>> result;
 
     for (uint32_t swapchainImageIndex = 0; swapchainImageIndex < GetImageCount (); ++swapchainImageIndex) {
         result.push_back (Make<InheritedImage> (
