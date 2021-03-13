@@ -24,7 +24,7 @@ class XorShift128(Component) :
             }
 
             void main ()
-            {
+            { 
                 vec2 randCoord = fTexCoord;
                 randCoord += vec2 (float (seed), 0.f);
                 nextElement = uvec4 (rand (randCoord) * uint (-1));

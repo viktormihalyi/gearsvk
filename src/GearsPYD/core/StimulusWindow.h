@@ -58,8 +58,8 @@ class StimulusWindow {
     bool quit;     // indicates the state of application
 
     std::string           glSpecs;
-    Ptr<SequenceRenderer> sequenceRenderer;
-    Ptr<Ticker>           ticker;
+    std::shared_ptr<SequenceRenderer> sequenceRenderer;
+    std::shared_ptr<Ticker>           ticker;
     StimulusWindow ();
 
     pybind11::object onHideCallback;
@@ -72,7 +72,7 @@ class StimulusWindow {
 
 public:
     GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (StimulusWindow);
-    static Ptr<StimulusWindow> instanceCreated;
+    static std::shared_ptr<StimulusWindow> instanceCreated;
     void                       createWindow (bool windowed, uint width, uint height);
     void                       run ();
     void                       closeWindow ();
@@ -107,7 +107,7 @@ public:
     void makeCurrent ();
     void setCursorPos ();
 
-    void setSequenceRenderer (Ptr<SequenceRenderer> sequenceRenderer);
+    void setSequenceRenderer (std::shared_ptr<SequenceRenderer> sequenceRenderer);
 
     void onHide (pybind11::object onHide)
     {

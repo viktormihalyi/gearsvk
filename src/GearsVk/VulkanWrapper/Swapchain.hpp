@@ -47,13 +47,13 @@ class GVK_RENDERER_API Swapchain {
 public:
     virtual ~Swapchain () = default;
 
-    virtual VkFormat                           GetImageFormat () const  = 0;
-    virtual uint32_t                           GetImageCount () const   = 0;
-    virtual uint32_t                           GetWidth () const        = 0;
-    virtual uint32_t                           GetHeight () const       = 0;
-    virtual std::vector<VkImage>               GetImages () const       = 0;
-    virtual std::vector<U<InheritedImage>>     GetImageObjects () const = 0;
-    virtual const std::vector<U<ImageView2D>>& GetImageViews () const   = 0;
+    virtual VkFormat                            GetImageFormat () const  = 0;
+    virtual uint32_t                            GetImageCount () const   = 0;
+    virtual uint32_t                            GetWidth () const        = 0;
+    virtual uint32_t                            GetHeight () const       = 0;
+    virtual std::vector<VkImage>                GetImages () const       = 0;
+    virtual std::vector<std::unique_ptr<InheritedImage>>     GetImageObjects () const = 0;
+    virtual const std::vector<std::unique_ptr<ImageView2D>>& GetImageViews () const   = 0;
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const                                              = 0;
     virtual void     Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const = 0;
@@ -92,9 +92,9 @@ private:
         VkPresentModeKHR   presentMode;
         VkExtent2D         extent;
 
-        std::vector<VkImage>        images;
-        std::vector<U<ImageView2D>> imageViews;
-        std::vector<U<Framebuffer>> framebuffers;
+        std::vector<VkImage>         images;
+        std::vector<std::unique_ptr<ImageView2D>> imageViews;
+        std::vector<std::unique_ptr<Framebuffer>> framebuffers;
 
         CreateResult ()
             : handle (VK_NULL_HANDLE)
@@ -128,13 +128,13 @@ public:
 
     operator VkSwapchainKHR () const { return createResult.handle; }
 
-    virtual VkFormat                           GetImageFormat () const override { return createResult.surfaceFormat.format; }
-    virtual uint32_t                           GetImageCount () const override { return createResult.imageCount; }
-    virtual uint32_t                           GetWidth () const override { return createResult.extent.width; }
-    virtual uint32_t                           GetHeight () const override { return createResult.extent.height; }
-    virtual std::vector<VkImage>               GetImages () const override { return createResult.images; }
-    virtual const std::vector<U<ImageView2D>>& GetImageViews () const override { return createResult.imageViews; }
-    virtual std::vector<U<InheritedImage>>     GetImageObjects () const override;
+    virtual VkFormat                            GetImageFormat () const override { return createResult.surfaceFormat.format; }
+    virtual uint32_t                            GetImageCount () const override { return createResult.imageCount; }
+    virtual uint32_t                            GetWidth () const override { return createResult.extent.width; }
+    virtual uint32_t                            GetHeight () const override { return createResult.extent.height; }
+    virtual std::vector<VkImage>                GetImages () const override { return createResult.images; }
+    virtual const std::vector<std::unique_ptr<ImageView2D>>& GetImageViews () const override { return createResult.imageViews; }
+    virtual std::vector<std::unique_ptr<InheritedImage>>     GetImageObjects () const override;
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override;
 
@@ -168,11 +168,11 @@ private:
 
 class GVK_RENDERER_API FakeSwapchain : public Swapchain {
 private:
-    U<Image>                    image;
-    std::vector<U<ImageView2D>> imageViews;
-    const DeviceExtra&          device;
-    const uint32_t              width;
-    const uint32_t              height;
+    std::unique_ptr<Image>                    image;
+    std::vector<std::unique_ptr<ImageView2D>> imageViews;
+    const DeviceExtra&           device;
+    const uint32_t               width;
+    const uint32_t               height;
 
 public:
     FakeSwapchain (const DeviceExtra& device, uint32_t width, uint32_t height);
@@ -191,7 +191,7 @@ public:
         return 0;
     }
 
-    virtual const std::vector<U<ImageView2D>>& GetImageViews () const override { return imageViews; }
+    virtual const std::vector<std::unique_ptr<ImageView2D>>& GetImageViews () const override { return imageViews; }
 
     virtual bool SupportsPresenting () const override { return false; }
 

@@ -5,10 +5,10 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
-#include "Ptr.hpp"
 #include "ShaderReflection.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
+#include <memory>
 
 #include <filesystem>
 
@@ -70,10 +70,10 @@ public:
     struct Reflection {
         ShaderKind shaderKind;
 
-        std::vector<Ptr<SR::UBO>> ubos;
-        std::vector<SR::Sampler>  samplers;
-        std::vector<SR::Input>    inputs;
-        std::vector<SR::Output>   outputs;
+        std::vector<std::shared_ptr<SR::UBO>> ubos;
+        std::vector<SR::Sampler>              samplers;
+        std::vector<SR::Input>                inputs;
+        std::vector<SR::Output>               outputs;
 
         Reflection (ShaderKind shaderKind, const std::vector<uint32_t>& binary);
 
@@ -119,9 +119,9 @@ public:
                   ShaderPreprocessor&          preprocessor);
 
 public:
-    static U<ShaderModule> CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, ShaderPreprocessor& preprocessor = emptyPreprocessor);
-    static U<ShaderModule> CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation, ShaderPreprocessor& preprocessor = emptyPreprocessor);
-    static U<ShaderModule> CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation);
+    static std::unique_ptr<ShaderModule> CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, ShaderPreprocessor& preprocessor = emptyPreprocessor);
+    static std::unique_ptr<ShaderModule> CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation, ShaderPreprocessor& preprocessor = emptyPreprocessor);
+    static std::unique_ptr<ShaderModule> CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation);
 
     virtual ~ShaderModule ();
 

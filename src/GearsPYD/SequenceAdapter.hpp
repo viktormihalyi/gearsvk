@@ -3,7 +3,7 @@
 
 // from GearsVk
 #include "Event.hpp"
-#include "Ptr.hpp"
+#include <memory>
 
 // from Gears
 #include "GearsAPI.hpp"
@@ -29,16 +29,16 @@ class SynchronizedSwapchainGraphRenderer;
 
 class GEARS_API_TEST SequenceAdapter {
 private:
-    const Ptr<Sequence> sequence;
+    const std::shared_ptr<Sequence> sequence;
 
     std::optional<uint32_t> lastRenderedFrameIndex;
 
-    GVK::VulkanEnvironment& environment;
-    Ptr<GVK::Presentable>   currentPresentable;
+    GVK::VulkanEnvironment&           environment;
+    std::shared_ptr<GVK::Presentable> currentPresentable;
 
-    std::map<PtrC<Stimulus>, Ptr<StimulusAdapterView>> views;
+    std::map<std::shared_ptr<Stimulus const>, std::shared_ptr<StimulusAdapterView>> views;
 
-    U<GVK::RG::SynchronizedSwapchainGraphRenderer> renderer;
+    std::unique_ptr<GVK::RG::SynchronizedSwapchainGraphRenderer> renderer;
 
     GVK::Event<uint32_t>     presentedFrameIndexEvent;
     GVK::SingleEventObserver obs;
@@ -47,15 +47,15 @@ private:
     uint64_t firstFrameMs;
 
 public:
-    SequenceAdapter (GVK::VulkanEnvironment& environment, const Ptr<Sequence>& sequence);
+    SequenceAdapter (GVK::VulkanEnvironment& environment, const std::shared_ptr<Sequence>& sequence);
 
     void RenderFrameIndex (const uint32_t frameIndex);
 
     void Wait ();
 
-    void SetCurrentPresentable (Ptr<GVK::Presentable> presentable);
+    void SetCurrentPresentable (std::shared_ptr<GVK::Presentable> presentable);
 
-    Ptr<GVK::Presentable> GetCurrentPresentable ();
+    std::shared_ptr<GVK::Presentable> GetCurrentPresentable ();
 
     void RenderFullOnExternalWindow ();
 };

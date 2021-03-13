@@ -4,7 +4,7 @@
 // from GearsVk
 #include "Event.hpp"
 #include "Noncopyable.hpp"
-#include "Ptr.hpp"
+#include <memory>
 
 // from std
 #include <map>
@@ -24,21 +24,21 @@ class Renderer;
 
 class StimulusAdapterView : public Noncopyable {
 private:
-    GVK::VulkanEnvironment& environment;
-    const PtrC<Stimulus>    stimulus;
+    GVK::VulkanEnvironment&               environment;
+    const std::shared_ptr<Stimulus const> stimulus;
 
-    std::map<Ptr<GVK::Presentable>, Ptr<StimulusAdapterForPresentable>> compiledAdapters;
+    std::map<std::shared_ptr<GVK::Presentable>, std::shared_ptr<StimulusAdapterForPresentable>> compiledAdapters;
 
 public:
-    StimulusAdapterView (GVK::VulkanEnvironment& environment, const PtrC<Stimulus>& stimulus);
+    StimulusAdapterView (GVK::VulkanEnvironment& environment, const std::shared_ptr<Stimulus const>& stimulus);
 
-    void CreateForPresentable (Ptr<GVK::Presentable>& presentable);
+    void CreateForPresentable (std::shared_ptr<GVK::Presentable>& presentable);
 
-    void RenderFrameIndex (GVK::RG::Renderer&     renderer,
-                           Ptr<GVK::Presentable>& presentable,
-                           const PtrC<Stimulus>&  stimulus,
-                           const uint32_t         frameIndex,
-                           GVK::Event<uint32_t>&  frameIndexPresentedEvent);
+    void RenderFrameIndex (GVK::RG::Renderer&                     renderer,
+                           std::shared_ptr<GVK::Presentable>&     presentable,
+                           const std::shared_ptr<Stimulus const>& stimulus,
+                           const uint32_t                         frameIndex,
+                           GVK::Event<uint32_t>&                  frameIndexPresentedEvent);
 };
 
 #endif

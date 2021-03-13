@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Ptr.hpp"
 #include "stdafx.h"
+#include <memory>
 
 #include <functional>
 #include <map>
@@ -17,19 +17,19 @@ enum class FFTChannelMode : uint8_t;
 //! Represents the currently active sequence. Manages resources for GPU computation.
 class SpatialFilterRenderer {
 protected:
-    Ptr<SequenceRenderer> sequenceRenderer;
-    unsigned int          spatialKernelId = 0;
-    Shader*               spatialDomainConvolutionShader;
-    Shader*               copyShader;
+    std::shared_ptr<SequenceRenderer> sequenceRenderer;
+    unsigned int                      spatialKernelId = 0;
+    Shader*                           spatialDomainConvolutionShader;
+    Shader*                           copyShader;
 
     std::function<void (int)> renderStim;
     FFTChannelMode            channelMode;
     std::function<void ()>    renderQuad;
 
-    Ptr<SpatialFilter> spatialFilter;
-    Ptr<KernelManager> kernelManager;
-    Ptr<ShaderManager> shaderManager;
-    SpatialFilterRenderer (Ptr<SequenceRenderer> sequenceRenderer, Ptr<ShaderManager> shaderManager, Ptr<KernelManager> _kernelManager, Ptr<SpatialFilter> _spatialFilter);
+    std::shared_ptr<SpatialFilter> spatialFilter;
+    std::shared_ptr<KernelManager> kernelManager;
+    std::shared_ptr<ShaderManager> shaderManager;
+    SpatialFilterRenderer (std::shared_ptr<SequenceRenderer> sequenceRenderer, std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<KernelManager> _kernelManager, std::shared_ptr<SpatialFilter> _spatialFilter);
 
 public:
     void renderFrame (std::function<void (int)> renderStimulus);

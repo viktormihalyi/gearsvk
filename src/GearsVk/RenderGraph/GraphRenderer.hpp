@@ -6,9 +6,9 @@
 #include "DeviceExtra.hpp"
 
 #include "Event.hpp"
-#include "Ptr.hpp"
 #include "Time.hpp"
 #include "Window.hpp"
+#include <memory>
 
 namespace GVK {
 
@@ -58,8 +58,8 @@ public:
 
 class GVK_RENDERER_API BlockingGraphRenderer final : public RecreatableGraphRenderer {
 private:
-    U<Semaphore> s;
-    TimePoint    lastDrawTime;
+    std::unique_ptr<Semaphore> s;
+    TimePoint                  lastDrawTime;
 
 public:
     BlockingGraphRenderer (const DeviceExtra& device, Swapchain& swapchain);
@@ -82,9 +82,9 @@ private:
 
     // size is framesInFlight
     // synchronization objects for each frame in flight
-    std::vector<U<Semaphore>> imageAvailableSemaphore; // present signals, submit  waits
-    std::vector<U<Semaphore>> renderFinishedSemaphore; // submit  signals, present waits
-    std::vector<U<Fence>>     inFlightFences;          // waited before submit, signaled by submit
+    std::vector<std::unique_ptr<Semaphore>> imageAvailableSemaphore; // present signals, submit  waits
+    std::vector<std::unique_ptr<Semaphore>> renderFinishedSemaphore; // submit  signals, present waits
+    std::vector<std::unique_ptr<Fence>>     inFlightFences;          // waited before submit, signaled by submit
 
     // size is imageCount
     // determines what frame is rendering to each swapchain image

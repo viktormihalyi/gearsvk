@@ -6,7 +6,7 @@
 #include "DebugUtilsMessenger.hpp"
 #include "Swapchain.hpp"
 
-#include "Ptr.hpp"
+#include <memory>
 
 #include <optional>
 
@@ -27,14 +27,14 @@ class VulkanEnvironment;
 
 class GVK_RENDERER_API Presentable : public SwapchainProvider {
 private:
-    U<Window>    window;
-    U<Surface>   surface;
-    U<Swapchain> swapchain;
+    std::unique_ptr<Window>    window;
+    std::unique_ptr<Surface>   surface;
+    std::unique_ptr<Swapchain> swapchain;
 
 public:
-    Presentable (VulkanEnvironment& env, U<Surface>&& surface, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
+    Presentable (VulkanEnvironment& env, std::unique_ptr<Surface>&& surface, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
     Presentable (VulkanEnvironment& env, Window& window, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
-    Presentable (VulkanEnvironment& env, U<Window>&& window, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
+    Presentable (VulkanEnvironment& env, std::unique_ptr<Window>&& window, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
 
     virtual Swapchain& GetSwapchain () override;
 
@@ -49,15 +49,15 @@ void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
 
 class GVK_RENDERER_API VulkanEnvironment {
 public:
-    U<Instance>            instance;
-    U<DebugUtilsMessenger> messenger;
-    U<PhysicalDevice>      physicalDevice;
-    U<Device>              device;
-    U<Queue>               graphicsQueue;
-    U<Queue>               presentQueue;
-    U<CommandPool>         commandPool;
-    U<DeviceExtra>         deviceExtra;
-    U<Allocator>           alloactor;
+    std::unique_ptr<Instance>            instance;
+    std::unique_ptr<DebugUtilsMessenger> messenger;
+    std::unique_ptr<PhysicalDevice>      physicalDevice;
+    std::unique_ptr<Device>              device;
+    std::unique_ptr<Queue>               graphicsQueue;
+    std::unique_ptr<Queue>               presentQueue;
+    std::unique_ptr<CommandPool>         commandPool;
+    std::unique_ptr<DeviceExtra>         deviceExtra;
+    std::unique_ptr<Allocator>           alloactor;
 
     VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback);
 

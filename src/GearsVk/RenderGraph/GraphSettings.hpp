@@ -6,7 +6,7 @@
 #include "Connections.hpp"
 #include "DeviceExtra.hpp"
 #include "Node.hpp"
-#include "Ptr.hpp"
+#include <memory>
 #include <vulkan/vulkan.h>
 
 
@@ -20,13 +20,13 @@ class GVK_RENDERER_API ConnectionSet final : public Noncopyable {
 public:
     class Connection {
     public:
-        Ptr<Node>             from;
-        Ptr<Node>             to;
-        U<IConnectionBinding> binding;
+        std::shared_ptr<Node>               from;
+        std::shared_ptr<Node>               to;
+        std::unique_ptr<IConnectionBinding> binding;
 
-        Connection (const Ptr<Node>&        from,
-                    const Ptr<Node>&        to,
-                    U<IConnectionBinding>&& binding)
+        Connection (const std::shared_ptr<Node>&          from,
+                    const std::shared_ptr<Node>&          to,
+                    std::unique_ptr<IConnectionBinding>&& binding)
             : from (from)
             , to (to)
             , binding (std::move (binding))
@@ -35,10 +35,10 @@ public:
     };
 
 private:
-    std::vector<U<Connection>> connections;
+    std::vector<std::unique_ptr<Connection>> connections;
 
 public:
-    std::set<Ptr<Node>> nodes;
+    std::set<std::shared_ptr<Node>> nodes;
 
 
 public:
@@ -51,11 +51,11 @@ public:
     void VisitInputsOf (const Node* node, IResourceVisitor& visitor) const;
 
     template<typename T>
-    std::vector<Ptr<T>> GetPointingTo (const Node* node) const
+    std::vector<std::shared_ptr<T>> GetPointingTo (const Node* node) const
     {
-        std::vector<Ptr<T>> result;
+        std::vector<std::shared_ptr<T>> result;
 
-        for (const U<Connection>& c : connections) {
+        for (const std::unique_ptr<Connection>& c : connections) {
             if (c->from.get () == node) {
                 if (auto asCasted = std::dynamic_pointer_cast<T> (c->to)) {
                     result.push_back (asCasted);
@@ -67,11 +67,11 @@ public:
     }
 
     template<typename T>
-    std::vector<Ptr<T>> GetPointingHere (const Node* node) const
+    std::vector<std::shared_ptr<T>> GetPointingHere (const Node* node) const
     {
-        std::vector<Ptr<T>> result;
+        std::vector<std::shared_ptr<T>> result;
 
-        for (const U<Connection>& c : connections) {
+        for (const std::unique_ptr<Connection>& c : connections) {
             if (c->to.get () == node) {
                 if (auto asCasted = std::dynamic_pointer_cast<T> (c->from)) {
                     result.push_back (asCasted);
@@ -84,7 +84,7 @@ public:
 
     void VisitOutputsOf (const Node* node, IConnectionBindingVisitor& visitor) const
     {
-        for (const U<Connection>& c : connections) {
+        for (const std::unique_ptr<Connection>& c : connections) {
             if (c->from.get () == node) {
                 c->binding->Visit (visitor);
             }
@@ -94,7 +94,7 @@ public:
     template<typename Processor>
     void ProcessInputBindingsOf (const Node* node, const Processor& processor) const
     {
-        for (const U<Connection>& c : connections) {
+        for (const std::unique_ptr<Connection>& c : connections) {
             if (c->to.get () == node) {
                 processor (*c->binding);
             }
@@ -103,7 +103,7 @@ public:
     template<typename Processor>
     void ProcessOutputBindingsOf (const Node* node, const Processor& processor) const
     {
-        for (const U<Connection>& c : connections) {
+        for (const std::unique_ptr<Connection>& c : connections) {
             if (c->from.get () == node) {
                 processor (*c->binding);
             }
@@ -113,7 +113,7 @@ public:
 
     void VisitInputsOf (const Node* node, IConnectionBindingVisitor& visitor) const
     {
-        for (const U<Connection>& c : connections) {
+        for (const std::unique_ptr<Connection>& c : connections) {
             if (c->to.get () == node) {
                 c->binding->Visit (visitor);
             }
@@ -121,15 +121,15 @@ public:
     }
 
 
-    void Add (const Ptr<Node>& from, const Ptr<Node>& to, U<IConnectionBinding>&& binding)
+    void Add (const std::shared_ptr<Node>& from, const std::shared_ptr<Node>& to, std::unique_ptr<IConnectionBinding>&& binding)
     {
         nodes.insert (from);
         nodes.insert (to);
-        connections.push_back (Make<Connection> (from, to, std::move (binding)));
+        connections.push_back (std::make_unique<Connection> (from, to, std::move (binding)));
     }
 
 
-    void Add (const Ptr<Node>& node)
+    void Add (const std::shared_ptr<Node>& node)
     {
         nodes.insert (node);
     }

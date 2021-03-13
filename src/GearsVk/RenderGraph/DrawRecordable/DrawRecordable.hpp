@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "CommandBuffer.hpp"
-#include "Ptr.hpp"
+#include <memory>
 
 namespace GVK {
 

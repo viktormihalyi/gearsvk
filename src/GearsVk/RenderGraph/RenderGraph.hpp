@@ -4,9 +4,9 @@
 #include "GearsVkAPI.hpp"
 
 #include "Event.hpp"
-#include "Ptr.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
+#include <memory>
 
 #include "GraphSettings.hpp"
 
@@ -40,7 +40,7 @@ private:
 
     std::vector<Pass> passes;
 
-    std::vector<U<CommandBuffer>> c;
+    std::vector<std::unique_ptr<CommandBuffer>> c;
 
 public:
     Event<> compileEvent;

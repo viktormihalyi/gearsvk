@@ -10,14 +10,14 @@ namespace GVK {
 
 class CameraControl : public EventObserver {
 private:
-    Camera&          camera;
-    MouseState       mouse;
-    U<KeyboardState> keyboard;
+    Camera&                        camera;
+    MouseState                     mouse;
+    std::unique_ptr<KeyboardState> keyboard;
 
 public:
     CameraControl (Camera& camera, Window::Events& windowEvents)
         : camera (camera)
-        , keyboard (Make<KeyboardState> ())
+        , keyboard (std::make_unique<KeyboardState> ())
     {
         using namespace std::placeholders;
 

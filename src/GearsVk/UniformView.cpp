@@ -9,11 +9,11 @@ namespace GVK {
 
 namespace SR {
 
-static const std::vector<U<SR::Field>> emptyFieldVector;
+static const std::vector<std::unique_ptr<SR::Field>> emptyFieldVector;
 
 class EmptyFieldContainer : public FieldContainer {
 public:
-    virtual const std::vector<U<SR::Field>>& GetFields () const { return emptyFieldVector; }
+    virtual const std::vector<std::unique_ptr<SR::Field>>& GetFields () const { return emptyFieldVector; }
 } emptyFields;
 
 const UView UView::invalidUview (UView::Type::Variable, nullptr, 0, 0, emptyFields, nullptr);
@@ -21,12 +21,12 @@ const UView UView::invalidUview (UView::Type::Variable, nullptr, 0, 0, emptyFiel
 DummyUData dummyUData;
 
 
-UView::UView (Type                      type,
-              uint8_t*                  data,
-              uint32_t                  offset,
-              uint32_t                  size,
-              const SR::FieldContainer& parentContainer,
-              const U<SR::Field>&         currentField)
+UView::UView (Type                              type,
+              uint8_t*                          data,
+              uint32_t                          offset,
+              uint32_t                          size,
+              const SR::FieldContainer&         parentContainer,
+              const std::unique_ptr<SR::Field>& currentField)
     : type (type)
     , data (data)
     , offset (offset)
@@ -37,7 +37,7 @@ UView::UView (Type                      type,
 }
 
 
-UView::UView (const Ptr<SR::UBO>& root, uint8_t* data)
+UView::UView (const std::shared_ptr<SR::UBO>& root, uint8_t* data)
     : UView (Type::Variable, data, 0, root->GetFullSize (), *root, nullptr)
 {
 }
@@ -65,7 +65,7 @@ UView UView::operator[] (std::string_view str)
 
     GVK_ASSERT (type != Type::Array);
 
-    for (const U<SR::Field>& f : parentContainer.GetFields ()) {
+    for (const std::unique_ptr<SR::Field>& f : parentContainer.GetFields ()) {
         if (str == f->name) {
             if (f->IsArray ()) {
                 return UView (Type::Array, data, offset + f->offset, f->size, *f, f);
@@ -105,7 +105,7 @@ std::vector<std::string> UView::GetFieldNames () const
 }
 
 
-UDataInternal::UDataInternal (const Ptr<SR::UBO>& ubo)
+UDataInternal::UDataInternal (const std::shared_ptr<SR::UBO>& ubo)
     : bytes (ubo->GetFullSize (), 0)
     , root (ubo, bytes.data ())
 {
@@ -133,7 +133,7 @@ uint32_t UDataInternal::GetSize () const
     return bytes.size ();
 }
 
-UDataExternal::UDataExternal (const Ptr<SR::UBO>& ubo, uint8_t* bytes, uint32_t size)
+UDataExternal::UDataExternal (const std::shared_ptr<SR::UBO>& ubo, uint8_t* bytes, uint32_t size)
     : root (ubo, bytes)
     , bytes (bytes)
     , size (size)
@@ -163,11 +163,11 @@ uint32_t UDataExternal::GetSize () const
 }
 
 
-ShaderUData::ShaderUData (const std::vector<Ptr<SR::UBO>>& ubos)
+ShaderUData::ShaderUData (const std::vector<std::shared_ptr<SR::UBO>>& ubos)
     : ubos (ubos)
 {
     for (auto& a : ubos) {
-        udatas.push_back (Make<UDataInternal> (a));
+        udatas.push_back (std::make_unique<UDataInternal> (a));
         uboNames.push_back (a->name);
     }
 }
@@ -177,7 +177,7 @@ ShaderUData::ShaderUData (const std::vector<uint32_t>& shaderBinary)
 {
 }
 
-ShaderUData::ShaderUData (const U<ShaderModule>& shaderModule)
+ShaderUData::ShaderUData (const std::unique_ptr<ShaderModule>& shaderModule)
     : ShaderUData (shaderModule->GetBinary ())
 {
 }
@@ -193,7 +193,7 @@ IUData& ShaderUData::operator[] (std::string_view str)
     return *udatas[index];
 }
 
-Ptr<SR::UBO> ShaderUData::GetUbo (std::string_view str)
+std::shared_ptr<SR::UBO> ShaderUData::GetUbo (std::string_view str)
 {
     const uint32_t index = std::distance (uboNames.begin (), std::find (uboNames.begin (), uboNames.end (), str));
     return ubos[index];

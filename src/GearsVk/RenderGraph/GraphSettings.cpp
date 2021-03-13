@@ -9,9 +9,9 @@ namespace RG {
 
 void ConnectionSet::VisitOutputsOf (const Node* node, IResourceVisitor& visitor) const
 {
-    for (const U<Connection>& c : connections) {
+    for (const std::unique_ptr<Connection>& c : connections) {
         if (c->from.get () == node) {
-            if (Ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c->to)) {
+            if (std::shared_ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c->to)) {
                 asResource->Visit (visitor);
             } else {
                 GVK_BREAK ("???");
@@ -23,9 +23,9 @@ void ConnectionSet::VisitOutputsOf (const Node* node, IResourceVisitor& visitor)
 
 void ConnectionSet::VisitInputsOf (const Node* node, IResourceVisitor& visitor) const
 {
-    for (const U<Connection>& c : connections) {
+    for (const std::unique_ptr<Connection>& c : connections) {
         if (c->to.get () == node) {
-            if (Ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c->from)) {
+            if (std::shared_ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c->from)) {
                 asResource->Visit (visitor);
             } else {
                 GVK_BREAK ("???");
@@ -125,4 +125,4 @@ ConnectionSet& ConnectionSet::operator= (ConnectionSet&& other)
 
 } // namespace RG
 
-}
+} // namespace GVK

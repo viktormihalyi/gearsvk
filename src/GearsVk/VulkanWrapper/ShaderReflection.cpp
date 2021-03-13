@@ -55,7 +55,7 @@ uint32_t Field::GetSize () const
 }
 
 
-const std::vector<U<SR::Field>>& Field::GetFields () const
+const std::vector<std::unique_ptr<SR::Field>>& Field::GetFields () const
 {
     return structFields;
 }
@@ -72,7 +72,7 @@ uint32_t UBO::GetFullSize () const
 }
 
 
-const std::vector<U<SR::Field>>& UBO::GetFields () const
+const std::vector<std::unique_ptr<SR::Field>>& UBO::GetFields () const
 {
     return fields;
 }
@@ -284,6 +284,24 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
         case BaseType::Struct:
             return FieldType::Struct;
 
+        case BaseType::Int64:
+            switch (vecSize) {
+                case 1: return FieldType::i64;
+                case 2: return FieldType::i64_vec2;
+                case 3: return FieldType::i64_vec3;
+                case 4: return FieldType::i64_vec4;
+                default: throw std::runtime_error ("wtf");
+            }
+
+        case BaseType::UInt64:
+            switch (vecSize) {
+                case 1: return FieldType::u64;
+                case 2: return FieldType::u64_vec2;
+                case 3: return FieldType::u64_vec3;
+                case 4: return FieldType::u64_vec4;
+                default: throw std::runtime_error ("wtf");
+            }
+
         default:
             GVK_ASSERT (false);
             return FieldType::Unknown;
@@ -291,7 +309,7 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
 }
 
 
-static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeID typeId, std::vector<U<Field>>& parentFields, const uint32_t depth = 0)
+static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeID typeId, std::vector<std::unique_ptr<Field>>& parentFields, const uint32_t depth = 0)
 {
     const spirv_cross::SPIRType& type = compiler.get_type (typeId);
 
@@ -302,13 +320,13 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
         AllDecorations               typeMemDecor (compiler, type.self, i);
         const spirv_cross::SPIRType& Mtype = compiler.get_type (type.member_types[i]);
 
-        U<Field> f       = Make<Field> ();
-        f->name        = typeMemDecor.name;
-        f->offset      = *typeMemDecor.Offset;
-        f->arrayStride = typeMemDecorA.ArrayStride ? *typeMemDecorA.ArrayStride : 0;
-        f->arraySize   = !Mtype.array.empty () ? Mtype.array[0] : 0;
-        f->size        = (Mtype.width * Mtype.vecsize * Mtype.columns) / 8;
-        f->type        = BaseTypeNMToSRFieldType (Mtype.basetype, Mtype.vecsize, Mtype.columns);
+        std::unique_ptr<Field> f = std::make_unique<Field> ();
+        f->name                  = typeMemDecor.name;
+        f->offset                = *typeMemDecor.Offset;
+        f->arrayStride           = typeMemDecorA.ArrayStride ? *typeMemDecorA.ArrayStride : 0;
+        f->arraySize             = !Mtype.array.empty () ? Mtype.array[0] : 0;
+        f->size                  = (Mtype.width * Mtype.vecsize * Mtype.columns) / 8;
+        f->type                  = BaseTypeNMToSRFieldType (Mtype.basetype, Mtype.vecsize, Mtype.columns);
 
         GVK_ASSERT (Mtype.array.empty () || Mtype.array.size () == 1);
 
@@ -321,13 +339,13 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
 }
 
 
-std::vector<Ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
+std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
 {
     spirv_cross::Compiler compiler (binary);
 
     const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
 
-    std::vector<Ptr<UBO>> ubos;
+    std::vector<std::shared_ptr<UBO>> ubos;
 
     for (auto& resource : resources.uniform_buffers) {
         AllDecorations decorations (compiler, resource.id);
@@ -338,10 +356,10 @@ std::vector<Ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
         // eg. array of 4 on binding 2 will create 4 different bindings: 2, 3, 4, 5
         GVK_ASSERT (arraySize == 0);
 
-        Ptr<UBO> root       = Make<UBO> ();
-        root->name          = resource.name;
-        root->binding       = *decorations.Binding;
-        root->descriptorSet = *decorations.DescriptorSet;
+        std::shared_ptr<UBO> root = std::make_unique<UBO> ();
+        root->name                = resource.name;
+        root->binding             = *decorations.Binding;
+        root->descriptorSet       = *decorations.DescriptorSet;
 
         IterateTypeTree (compiler, resource.base_type_id, root->fields);
 
@@ -350,7 +368,7 @@ std::vector<Ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
         ubos.push_back (root);
     }
 
-    std::sort (ubos.begin (), ubos.end (), [] (const Ptr<UBO>& first, const Ptr<UBO>& second) {
+    std::sort (ubos.begin (), ubos.end (), [] (const std::shared_ptr<UBO>& first, const std::shared_ptr<UBO>& second) {
         return first->binding < second->binding;
     });
 
@@ -576,6 +594,6 @@ std::string FieldTypeToString (FieldType fieldType)
     }
 }
 
-}
+} // namespace SR
 
-}; // namespace SR
+}; // namespace GVK

@@ -30,12 +30,12 @@ StaticInit nosync ([] () {
 
 class GearsTests : public GoogleTestEnvironmentBase {
 protected:
-    Ptr<Presentable>   pres;
-    U<SequenceAdapter> sequenceAdapter;
+    std::shared_ptr<Presentable>     pres;
+    std::unique_ptr<SequenceAdapter> sequenceAdapter;
 
     virtual void SetUp () override
     {
-        env = Make<VulkanEnvironment> (gtestDebugCallback);
+        env = std::make_unique<VulkanEnvironment> (gtestDebugCallback);
     }
 
     virtual void TearDown () override
@@ -58,7 +58,7 @@ protected:
             return;
         }
 
-        pres = Make<Presentable> (*env, Make<HiddenGLFWWindow> (), defaultSwapchainSettingsSingleImage);
+        pres = std::make_unique<Presentable> (*env, std::make_unique<HiddenGLFWWindow> (), defaultSwapchainSettingsSingleImage);
 
         bool success = false;
         try {
@@ -80,7 +80,7 @@ protected:
         sequenceAdapter->RenderFrameIndex (frameIndex);
         sequenceAdapter->Wait ();
 
-        std::vector<U<InheritedImage>> imgs = pres->GetSwapchain ().GetImageObjects ();
+        std::vector<std::unique_ptr<InheritedImage>> imgs = pres->GetSwapchain ().GetImageObjects ();
 
         ImageData img (GetDeviceExtra (), *imgs[0], 0, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 

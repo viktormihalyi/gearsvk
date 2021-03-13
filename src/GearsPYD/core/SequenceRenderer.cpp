@@ -1560,7 +1560,7 @@ void SequenceRenderer::setResponded ()
 }
 
 
-PtrC<Stimulus> SequenceRenderer::getSelectedStimulus ()
+std::shared_ptr<Stimulus const> SequenceRenderer::getSelectedStimulus ()
 {
     if (selectedStimulusRenderer == stimulusRenderers.end ())
         return nullptr;
@@ -1568,7 +1568,7 @@ PtrC<Stimulus> SequenceRenderer::getSelectedStimulus ()
 }
 
 
-PtrC<Sequence> SequenceRenderer::getSequence () { return sequence; }
+std::shared_ptr<Sequence const> SequenceRenderer::getSequence () { return sequence; }
 
 
 Nothing* SequenceRenderer::getNothing () { return nothing; }

@@ -89,12 +89,12 @@ SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const Seq
     : sequence (sequence)
     , environment (environment)
 {
-    std::map<PtrC<Stimulus>, Ptr<StimulusAdapterView>> created;
+    std::map<std::shared_ptr<Stimulus const>, std::shared_ptr<StimulusAdapterView>> created;
 
     size_t stindex = 0;
 
     for (auto& [_, stim] : sequence->getStimuli ()) {
-        Ptr<StimulusAdapterView> equivalentAdapter;
+        std::shared_ptr<StimulusAdapterView> equivalentAdapter;
         for (const auto& [mappedStimulus, adapter] : created) {
             if (IsEquivalentStimulus (*mappedStimulus, *stim)) {
                 equivalentAdapter = adapter;
@@ -105,7 +105,7 @@ SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const Seq
         if (equivalentAdapter != nullptr) {
             views[stim] = equivalentAdapter;
         } else {
-            views[stim]   = Make<StimulusAdapterView> (environment, stim);
+            views[stim]   = std::make_unique<StimulusAdapterView> (environment, stim);
             created[stim] = views[stim];
         }
 
@@ -152,7 +152,7 @@ void SequenceAdapter::Wait ()
     }
 }
 
-void SequenceAdapter::SetCurrentPresentable (Ptr<GVK::Presentable> presentable)
+void SequenceAdapter::SetCurrentPresentable (std::shared_ptr<GVK::Presentable> presentable)
 {
     currentPresentable = presentable;
 
@@ -160,11 +160,11 @@ void SequenceAdapter::SetCurrentPresentable (Ptr<GVK::Presentable> presentable)
         view->CreateForPresentable (currentPresentable);
     }
 
-    renderer = Make<GVK::RG::SynchronizedSwapchainGraphRenderer> (*environment.deviceExtra, presentable->GetSwapchain ());
+    renderer = std::make_unique<GVK::RG::SynchronizedSwapchainGraphRenderer> (*environment.deviceExtra, presentable->GetSwapchain ());
 }
 
 
-Ptr<GVK::Presentable> SequenceAdapter::GetCurrentPresentable ()
+std::shared_ptr<GVK::Presentable> SequenceAdapter::GetCurrentPresentable ()
 {
     return currentPresentable;
 }
@@ -172,9 +172,9 @@ Ptr<GVK::Presentable> SequenceAdapter::GetCurrentPresentable ()
 
 void SequenceAdapter::RenderFullOnExternalWindow ()
 {
-    U<GVK::Window> window = Make<GVK::HiddenGLFWWindow> ();
+    std::unique_ptr<GVK::Window> window = std::make_unique<GVK::HiddenGLFWWindow> ();
 
-    SetCurrentPresentable (Make<GVK::Presentable> (environment, *window));
+    SetCurrentPresentable (std::make_unique<GVK::Presentable> (environment, *window));
 
     window->Show ();
 

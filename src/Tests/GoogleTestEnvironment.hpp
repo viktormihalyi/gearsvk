@@ -1,7 +1,7 @@
 #ifndef GOOGLETESTENVIRONMENT_HPP
 #define GOOGLETESTENVIRONMENT_HPP
 
-#include "Ptr.hpp"
+#include <memory>
 
 // from gtest
 #include "gtest/gtest.h"
@@ -43,9 +43,9 @@ using EmptyTestEnvironment = ::testing::Test;
 
 class GoogleTestEnvironmentBase : public ::testing::Test {
 protected:
-    U<GVK::VulkanEnvironment> env;
-    U<GVK::Window>            window;
-    Ptr<GVK::Presentable>     presentable;
+    std::unique_ptr<GVK::VulkanEnvironment> env;
+    std::unique_ptr<GVK::Window>            window;
+    std::shared_ptr<GVK::Presentable>       presentable;
 
     GVK::PhysicalDevice& GetPhysicalDevice ();
     GVK::Device&         GetDevice ();

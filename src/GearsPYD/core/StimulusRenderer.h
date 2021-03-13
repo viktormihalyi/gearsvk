@@ -4,8 +4,8 @@
 #include <string>
 
 #include "OpenGLProxy.hpp"
-#include "Ptr.hpp"
 #include "stdafx.h"
+#include <memory>
 
 class ShaderManager;
 class TextureManager;
@@ -21,12 +21,12 @@ class SpatialFilterRenderer;
 //! Represents the currently active sequence. Manages resources for GPU computation.
 class StimulusRenderer {
     friend class PassRenderer;
-    Ptr<SequenceRenderer> sequenceRenderer;
+    std::shared_ptr<SequenceRenderer> sequenceRenderer;
 
-    unsigned int             iFrame;
-    unsigned int             iTick;
-    PtrC<Stimulus>           stimulus;
-    U<SpatialFilterRenderer> spatialFilterRenderer;
+    unsigned int                           iFrame;
+    unsigned int                           iTick;
+    std::shared_ptr<Stimulus const>        stimulus;
+    std::unique_ptr<SpatialFilterRenderer> spatialFilterRenderer;
 
     Shader* randomGeneratorShader;
     Shader* particleShader;
@@ -42,14 +42,14 @@ class StimulusRenderer {
     Texture1D* gammaTexture;
     Texture2D* measuredHistogramTexture;
 
-    std::vector<Ptr<PassRenderer>> passRenderers;
+    std::vector<std::shared_ptr<PassRenderer>> passRenderers;
 
-    StimulusRenderer (Ptr<SequenceRenderer> sequenceRenderer, PtrC<Stimulus> stimulus, Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager, Ptr<KernelManager> kernelManager);
+    StimulusRenderer (std::shared_ptr<SequenceRenderer> sequenceRenderer, std::shared_ptr<Stimulus const> stimulus, std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<TextureManager> textureManager, std::shared_ptr<KernelManager> kernelManager);
 
 public:
     GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (StimulusRenderer);
     ~StimulusRenderer ();
-    void apply (Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager);
+    void apply (std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<TextureManager> textureManager);
 
     void preRender ();
     void renderStimulus (GLuint defaultFrameBuffer, int skippedFrames);
@@ -62,11 +62,11 @@ public:
     unsigned int getCurrentFrame () { return iFrame; }
     unsigned int tick () { return iTick++; }
 
-    PtrC<Stimulus> getStimulus () const { return stimulus; }
+    std::shared_ptr<Stimulus const> getStimulus () const { return stimulus; }
 
     void reset ();
     void skipFrames (uint nFramesToSkip);
 
-    bool                  hasSpatialFilter () const;
-    Ptr<SequenceRenderer> getSequenceRenderer () const;
+    bool                              hasSpatialFilter () const;
+    std::shared_ptr<SequenceRenderer> getSequenceRenderer () const;
 };

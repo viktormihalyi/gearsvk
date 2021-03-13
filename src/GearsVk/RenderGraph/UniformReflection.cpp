@@ -19,8 +19,8 @@ UniformReflection::UniformReflection (RG::ConnectionSet& connectionSet, const Fi
 
 void UniformReflection::Flush (uint32_t frameIndex)
 {
-    Utils::ForEachP<RG::CPUBufferResource> (uboResources, [&] (const Ptr<RG::CPUBufferResource>& uboRes) {
-        const Ptr<SR::IUData> uboData = udatas.at (uboRes->GetUUID ());
+    Utils::ForEachP<RG::CPUBufferResource> (uboResources, [&] (const std::shared_ptr<RG::CPUBufferResource>& uboRes) {
+        const std::shared_ptr<SR::IUData> uboData = udatas.at (uboRes->GetUUID ());
 
         uboRes->GetMapping (frameIndex).Copy (uboData->GetData (), uboData->GetSize ());
     });
@@ -31,21 +31,21 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
 {
     // GVK_ASSERT (!graph.operations.empty ());
 
-    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const Ptr<RG::RenderOperation>& renderOp) {
+    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
         ShaderKindSelector newsel;
 
         renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
             UboSelector ubosel;
-            for (Ptr<SR::UBO> ubo : shaderModule.GetReflection ().ubos) {
+            for (std::shared_ptr<SR::UBO> ubo : shaderModule.GetReflection ().ubos) {
                 if (filter (renderOp, shaderModule, ubo)) {
                     continue;
                 }
 
-                Ptr<RG::InputBufferBindableResource> uboRes = resourceCreator (renderOp, shaderModule, ubo);
+                std::shared_ptr<RG::InputBufferBindableResource> uboRes = resourceCreator (renderOp, shaderModule, ubo);
                 // graph.AddResource (uboRes);
                 GVK_ASSERT (uboRes != nullptr);
 
-                Ptr<SR::UDataInternal> uboData = Make<SR::UDataInternal> (ubo);
+                std::shared_ptr<SR::UDataInternal> uboData = std::make_unique<SR::UDataInternal> (ubo);
                 ubosel.Set (ubo->name, uboData);
 
                 uboConnections.push_back (std::make_tuple (renderOp, ubo->binding, uboRes, shaderModule.GetShaderKind ()));
@@ -76,7 +76,7 @@ void UniformReflection::CreateGraphConnections ()
     };
 
     for (auto& [operation, binding, resource, shaderKind] : uboConnections) {
-        connectionSet.Add (resource, operation, Make<RG::UniformInputBinding> (binding, *resource, shaderKindToShaderStage (shaderKind)));
+        connectionSet.Add (resource, operation, std::make_unique<RG::UniformInputBinding> (binding, *resource, shaderKindToShaderStage (shaderKind)));
     }
 
     uboConnections.clear ();
@@ -106,7 +106,7 @@ void UniformReflection::PrintDebugInfo ()
 ImageMap::ImageMap () = default;
 
 
-Ptr<ReadOnlyImageResource> ImageMap::FindByName (const std::string& name) const
+std::shared_ptr<ReadOnlyImageResource> ImageMap::FindByName (const std::string& name) const
 {
     for (auto& im : images) {
         if (im.first.name == name) {
@@ -117,7 +117,7 @@ Ptr<ReadOnlyImageResource> ImageMap::FindByName (const std::string& name) const
 }
 
 
-void ImageMap::Put (const SR::Sampler& sampler, const Ptr<ReadOnlyImageResource>& res)
+void ImageMap::Put (const SR::Sampler& sampler, const std::shared_ptr<ReadOnlyImageResource>& res)
 {
     images.emplace_back (sampler, res);
 }
@@ -133,10 +133,10 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 {
     ImageMap result;
 
-    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const Ptr<RG::RenderOperation>& renderOp) {
+    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
         renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
             for (const SR::Sampler& sampler : shaderModule.GetReflection ().samplers) {
-                Ptr<ReadOnlyImageResource> imgRes;
+                std::shared_ptr<ReadOnlyImageResource> imgRes;
 
                 const std::optional<CreateParams> providedExtent = extentProvider (sampler);
                 if (!providedExtent.has_value ()) {
@@ -152,15 +152,15 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
                 switch (sampler.type) {
                     case SR::Sampler::Type::Sampler1D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y == 0 && extent.z == 0));
-                        imgRes = Make<ReadOnlyImageResource> (format, filter, extent.x, 1, 1, layerCount);
+                        imgRes = std::make_unique<ReadOnlyImageResource> (format, filter, extent.x, 1, 1, layerCount);
                         break;
                     case SR::Sampler::Type::Sampler2D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y != 0 && extent.z == 0));
-                        imgRes = Make<ReadOnlyImageResource> (format, filter, extent.x, extent.y, 1, layerCount);
+                        imgRes = std::make_unique<ReadOnlyImageResource> (format, filter, extent.x, extent.y, 1, layerCount);
                         break;
                     case SR::Sampler::Type::Sampler3D:
                         GVK_ASSERT (!providedExtent.has_value () || (extent.x != 0 && extent.y != 0 && extent.z != 0));
-                        imgRes = Make<ReadOnlyImageResource> (format, filter, extent.x, extent.y, extent.z, layerCount);
+                        imgRes = std::make_unique<ReadOnlyImageResource> (format, filter, extent.x, extent.y, extent.z, layerCount);
                         break;
                     default:
                         GVK_BREAK ("unexpected sampler type");
@@ -173,7 +173,7 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 
                 result.Put (sampler, imgRes);
 
-                connectionSet.Add (imgRes, renderOp, Make<ImageInputBinding> (sampler.binding, *imgRes, (sampler.arraySize > 0) ? sampler.arraySize : 1));
+                connectionSet.Add (imgRes, renderOp, std::make_unique<ImageInputBinding> (sampler.binding, *imgRes, (sampler.arraySize > 0) ? sampler.arraySize : 1));
             }
         });
     });
@@ -184,4 +184,3 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 } // namespace RG
 
 } // namespace GVK
-

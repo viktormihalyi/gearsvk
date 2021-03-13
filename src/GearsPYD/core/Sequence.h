@@ -3,8 +3,8 @@
 #include <map>
 #include <string>
 
-#include "Ptr.hpp"
 #include "stdafx.h"
+#include <memory>
 
 class Stimulus;
 class Response;
@@ -12,8 +12,8 @@ class Response;
 //! A structure that contains all sequence parameters.
 class Sequence : public std::enable_shared_from_this<Sequence> {
 public:
-    using StimulusMap = std::map<unsigned int, PtrC<Stimulus>>;
-    using ResponseMap = std::map<unsigned int, PtrC<Response>>;
+    using StimulusMap = std::map<unsigned int, std::shared_ptr<Stimulus const>>;
+    using ResponseMap = std::map<unsigned int, std::shared_ptr<Response const>>;
     struct Channel {
         std::string  portName;
         unsigned int raiseFunc;
@@ -27,11 +27,11 @@ public:
     using SignalMap = std::multimap<unsigned int, SignalEvent>;
 
 private:
-    StimulusMap   stimuli; //<	Stimulus descriptors mapped to their starting frame index.
-    ChannelMap    channels;
-    SignalMap     signals;
-    ResponseMap   responses;
-    Ptr<Response> temp_r;
+    StimulusMap               stimuli; //<	Stimulus descriptors mapped to their starting frame index.
+    ChannelMap                channels;
+    SignalMap                 signals;
+    ResponseMap               responses;
+    std::shared_ptr<Response> temp_r;
 
     float maxKernelWidth_um;  //< The maximum horizontal extent of the spatial kernels used, measured on the retina [um].
     float maxKernelHeight_um; //< The maximum vertical extent of the spatial kernels used, measured on the retina [um].
@@ -126,9 +126,9 @@ public:
         this->fieldHeight_px = fieldHeight_px;
     }
 
-    void addResponse (Ptr<Response> response);
+    void addResponse (std::shared_ptr<Response> response);
     //! Adds stimulus to sequence and sets the starting frame of the stimulus.
-    void addStimulus (Ptr<Stimulus> stimulus);
+    void addStimulus (std::shared_ptr<Stimulus> stimulus);
 
     void addChannel (std::string channelName, std::string portName, std::string bitName);
 
@@ -199,9 +199,9 @@ public:
 
     pybind11::object set (pybind11::object settings);
 
-    pybind11::object resetCallback;
-    pybind11::object onReset (pybind11::object cb);
-    Ptr<Sequence>    setAgenda (pybind11::object agenda);
+    pybind11::object          resetCallback;
+    pybind11::object          onReset (pybind11::object cb);
+    std::shared_ptr<Sequence> setAgenda (pybind11::object agenda);
 
     pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);
@@ -222,8 +222,8 @@ public:
 
     uint getShortestStimulusDuration () { return shortestStimulusDuration; }
 
-    PtrC<Stimulus> getStimulusAtFrame (uint iFrame);
-    PtrC<Response> getResponseAtFrame (uint iFrame) const;
+    std::shared_ptr<Stimulus const> getStimulusAtFrame (uint iFrame);
+    std::shared_ptr<Response const> getResponseAtFrame (uint iFrame) const;
 
     uint getMaxMemoryLength () const { return maxMemoryLength; }
     uint getMaxTemporalProcessingStateCount () const { return maxTemporalProcessingStateCount; }

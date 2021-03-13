@@ -3,8 +3,8 @@
 
 #include "GearsVkAPI.hpp"
 #include "Noncopyable.hpp"
-#include "Ptr.hpp"
 #include "UUID.hpp"
+#include <memory>
 
 namespace GVK {
 

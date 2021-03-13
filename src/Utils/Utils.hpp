@@ -4,7 +4,7 @@
 #include "GVKUtilsAPI.hpp"
 
 #include "Noncopyable.hpp"
-#include "Ptr.hpp"
+#include <memory>
 
 #include <algorithm>
 #include <cstddef>

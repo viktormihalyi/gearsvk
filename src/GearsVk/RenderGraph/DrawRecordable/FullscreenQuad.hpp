@@ -18,7 +18,7 @@ private:
     VertexBufferTransferable<Vertex> vertexBuffer;
     IndexBufferTransferable          indexBuffer;
 
-    U<DrawRecordableInfo> info;
+    std::unique_ptr<DrawRecordableInfo> info;
 
 public:
     FullscreenQuad (const DeviceExtra& device)
@@ -37,7 +37,7 @@ public:
         vertexBuffer.Flush ();
         indexBuffer.Flush ();
 
-        info = Make<DrawRecordableInfo> (1, vertexBuffer, indexBuffer);
+        info = std::make_unique<DrawRecordableInfo> (1, vertexBuffer, indexBuffer);
     }
 
 private:

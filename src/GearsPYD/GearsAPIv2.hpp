@@ -3,7 +3,7 @@
 #include <functional>
 
 #include "GearsAPI.hpp"
-#include "Ptr.hpp"
+#include <memory>
 
 namespace GVK {
 class Presentable;
@@ -20,7 +20,7 @@ void InitializeEnvironment ();
 
 void DestroyEnvironment ();
 
-void SetRenderGraphFromSequence (Ptr<Sequence>);
+void SetRenderGraphFromSequence (std::shared_ptr<Sequence>);
 
 void StartRendering ();
 
@@ -38,9 +38,9 @@ void Wait ();
 
 std::string GetGLSLResourcesForRandoms ();
 
-void SetCurrentPresentable (Ptr<GVK::Presentable>&);
+void SetCurrentPresentable (std::shared_ptr<GVK::Presentable>&);
 
 GEARS_API_TEST
-U<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment&, const std::filesystem::path&);
+std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment&, const std::filesystem::path&);
 
 } // namespace Gears

@@ -2,7 +2,7 @@
 #define INPUTSTATE_HPP
 
 #include "Assert.hpp"
-#include "Ptr.hpp"
+#include <memory>
 
 #include <array>
 

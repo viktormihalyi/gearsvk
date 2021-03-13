@@ -19,7 +19,7 @@
 
 namespace GVK {
 
-Presentable::Presentable (VulkanEnvironment& env, U<Surface>&& surface, SwapchainSettingsProvider& settingsProvider)
+Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Surface>&& surface, SwapchainSettingsProvider& settingsProvider)
     : surface (std::move (surface))
     , window (nullptr)
 {
@@ -30,18 +30,18 @@ Presentable::Presentable (VulkanEnvironment& env, U<Surface>&& surface, Swapchai
 
     env.RecreateForPresentable (*this);
 
-    swapchain = Make<RealSwapchain> (*env.physicalDevice, *env.device, *this->surface, settingsProvider);
+    swapchain = std::make_unique<RealSwapchain> (*env.physicalDevice, *env.device, *this->surface, settingsProvider);
 }
 
 
 Presentable::Presentable (VulkanEnvironment& env, Window& window, SwapchainSettingsProvider& settingsProvider)
-    : Presentable (env, Make<Surface> (*env.instance, window.GetSurface (*env.instance)), settingsProvider)
+    : Presentable (env, std::make_unique<Surface> (*env.instance, window.GetSurface (*env.instance)), settingsProvider)
 {
 }
 
 
-Presentable::Presentable (VulkanEnvironment& env, U<Window>&& window, SwapchainSettingsProvider& settingsProvider)
-    : Presentable (env, Make<Surface> (*env.instance, window->GetSurface (*env.instance)), settingsProvider)
+Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Window>&& window, SwapchainSettingsProvider& settingsProvider)
+    : Presentable (env, std::make_unique<Surface> (*env.instance, window->GetSurface (*env.instance)), settingsProvider)
 {
     window = std::move (window);
 }
@@ -101,15 +101,15 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
     const std::vector<const char*> windowExtenions = Window::GetExtensions ();
     is.extensions.insert (is.extensions.end (), windowExtenions.begin (), windowExtenions.end ());
 
-    instance = Make<Instance> (is);
+    instance = std::make_unique<Instance> (is);
 
     if (IsDebugBuild && callback.has_value ()) {
-        messenger = Make<DebugUtilsMessenger> (*instance, *callback, DebugUtilsMessenger::noPerformance);
+        messenger = std::make_unique<DebugUtilsMessenger> (*instance, *callback, DebugUtilsMessenger::noPerformance);
     }
 
     VkSurfaceKHR physicalDeviceSurfaceHandle = VK_NULL_HANDLE;
 
-    physicalDevice = Make<PhysicalDevice> (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
+    physicalDevice = std::make_unique<PhysicalDevice> (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
 
 #ifdef LOG_VULKAN_INFO
     {
@@ -147,15 +147,15 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
 
     deviceExtensions.push_back (VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-    device = Make<DeviceObject> (*physicalDevice, std::vector<uint32_t> { *physicalDevice->GetQueueFamilies ().graphics }, deviceExtensions);
+    device = std::make_unique<DeviceObject> (*physicalDevice, std::vector<uint32_t> { *physicalDevice->GetQueueFamilies ().graphics }, deviceExtensions);
 
-    alloactor = Make<Allocator> (*instance, *physicalDevice, *device);
+    alloactor = std::make_unique<Allocator> (*instance, *physicalDevice, *device);
 
-    graphicsQueue = Make<Queue> (*device, *physicalDevice->GetQueueFamilies ().graphics);
+    graphicsQueue = std::make_unique<Queue> (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
-    commandPool = Make<CommandPool> (*device, *physicalDevice->GetQueueFamilies ().graphics);
+    commandPool = std::make_unique<CommandPool> (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
-    deviceExtra = Make<DeviceExtra> (*device, *commandPool, *alloactor, *graphicsQueue);
+    deviceExtra = std::make_unique<DeviceExtra> (*device, *commandPool, *alloactor, *graphicsQueue);
 
 #ifdef LOG_VULKAN_INFO
     VkPhysicalDeviceProperties deviceProperties;

@@ -7,7 +7,7 @@ namespace GVK {
 
 namespace RG {
 
-U<ShaderModule>& ShaderPipeline::GetShaderByIndex (uint32_t index)
+std::unique_ptr<ShaderModule>& ShaderPipeline::GetShaderByIndex (uint32_t index)
 {
     switch (index) {
         case 0: return vertexShader;
@@ -23,7 +23,7 @@ U<ShaderModule>& ShaderPipeline::GetShaderByIndex (uint32_t index)
 }
 
 
-U<ShaderModule>& ShaderPipeline::GetShaderByExtension (const std::string& extension)
+std::unique_ptr<ShaderModule>& ShaderPipeline::GetShaderByExtension (const std::string& extension)
 {
     if (extension == ".vert") {
         return vertexShader;
@@ -42,7 +42,7 @@ U<ShaderModule>& ShaderPipeline::GetShaderByExtension (const std::string& extens
 }
 
 
-U<ShaderModule>& ShaderPipeline::GetShaderByKind (ShaderKind kind)
+std::unique_ptr<ShaderModule>& ShaderPipeline::GetShaderByKind (ShaderKind kind)
 {
     switch (kind) {
         case ShaderKind::Vertex: return vertexShader;
@@ -182,8 +182,8 @@ void ShaderPipeline::Reload ()
     Utils::TimerScope       ts (tl);
 
     MultithreadedFunction reloader (5, [&] (uint32_t, uint32_t threadIndex) {
-        U<ShaderModule>& currentShader = GetShaderByIndex (threadIndex);
-        U<ShaderModule>  newShader;
+        std::unique_ptr<ShaderModule>& currentShader = GetShaderByIndex (threadIndex);
+        std::unique_ptr<ShaderModule>  newShader;
 
         if (currentShader != nullptr) {
             switch (currentShader->GetReadMode ()) {
@@ -241,7 +241,7 @@ void ShaderPipeline::IterateShaders (const std::function<void (ShaderModule&)>& 
 }
 
 
-U<DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLayout (VkDevice device) const
+std::unique_ptr<DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLayout (VkDevice device) const
 {
     std::vector<VkDescriptorSetLayoutBinding> layout;
 
@@ -250,7 +250,7 @@ U<DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLayout (VkDevice devic
         layout.insert (layout.end (), layoutPart.begin (), layoutPart.end ());
     });
 
-    return Make<DescriptorSetLayout> (device, layout);
+    return std::make_unique<DescriptorSetLayout> (device, layout);
 }
 
 } // namespace RG

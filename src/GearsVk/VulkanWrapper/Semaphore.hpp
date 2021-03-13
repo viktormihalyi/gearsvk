@@ -5,9 +5,9 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
-#include "Ptr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
+#include <memory>
 
 namespace GVK {
 

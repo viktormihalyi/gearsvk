@@ -19,8 +19,8 @@
 namespace Gears {
 
 
-static U<SequenceAdapter>                 currentSeq;
-static std::vector<Ptr<GVK::Presentable>> createdSurfaces;
+static std::unique_ptr<SequenceAdapter>               currentSeq;
+static std::vector<std::shared_ptr<GVK::Presentable>> createdSurfaces;
 
 static GVK::VulkanEnvironment& GetVkEnvironment ();
 static void                    DestroyVkEnvironment ();
@@ -42,7 +42,7 @@ void DestroyEnvironment ()
 
 void SetRenderGraphFromSequence (Sequence::P seq)
 {
-    currentSeq = Make<SequenceAdapter> (GetVkEnvironment (), seq);
+    currentSeq = std::make_unique<SequenceAdapter> (GetVkEnvironment (), seq);
 }
 
 
@@ -74,7 +74,7 @@ void TryCompile (GVK::ShaderKind shaderKind, const std::string& source)
 intptr_t CreateSurface (intptr_t hwnd)
 {
 #ifdef WIN32
-    Ptr<GVK::Presentable> presentable = Make<GVK::Presentable> (GetVkEnvironment (), Make<GVK::Surface> (GVK::Surface::PlatformSpecific, *GetVkEnvironment ().instance, reinterpret_cast<void*> (hwnd)));
+    std::shared_ptr<GVK::Presentable> presentable = std::make_unique<GVK::Presentable> (GetVkEnvironment (), std::make_unique<GVK::Surface> (GVK::Surface::PlatformSpecific, *GetVkEnvironment ().instance, reinterpret_cast<void*> (hwnd)));
     createdSurfaces.push_back (presentable);
     return reinterpret_cast<intptr_t> (presentable.get ());
 #else
@@ -84,9 +84,9 @@ intptr_t CreateSurface (intptr_t hwnd)
 }
 
 
-static Ptr<GVK::Presentable> GetSurfaceFromHandle (intptr_t surfaceHandle)
+static std::shared_ptr<GVK::Presentable> GetSurfaceFromHandle (intptr_t surfaceHandle)
 {
-    for (const Ptr<GVK::Presentable>& createdSurface : createdSurfaces) {
+    for (const std::shared_ptr<GVK::Presentable>& createdSurface : createdSurfaces) {
         if (reinterpret_cast<intptr_t> (createdSurface.get ()) == surfaceHandle) {
             return createdSurface;
         }
@@ -97,7 +97,7 @@ static Ptr<GVK::Presentable> GetSurfaceFromHandle (intptr_t surfaceHandle)
 
 void SetCurrentSurface (intptr_t surfaceHandle)
 {
-    Ptr<GVK::Presentable> presentable = GetSurfaceFromHandle (surfaceHandle);
+    std::shared_ptr<GVK::Presentable> presentable = GetSurfaceFromHandle (surfaceHandle);
     if (GVK_ERROR (presentable == nullptr)) {
         return;
     }
@@ -124,7 +124,7 @@ void Wait ()
 
 void DestroySurface (intptr_t surfaceHandle)
 {
-    const auto FindPresentable = [&] (const Ptr<GVK::Presentable>& p) {
+    const auto FindPresentable = [&] (const std::shared_ptr<GVK::Presentable>& p) {
         return reinterpret_cast<intptr_t> (p.get ()) == surfaceHandle;
     };
 
@@ -147,7 +147,7 @@ std::string GetGLSLResourcesForRandoms ()
 }
 
 
-U<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment& environment, const std::filesystem::path& filePath)
+std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment& environment, const std::filesystem::path& filePath)
 {
     if (GVK_ERROR (!std::filesystem::exists (filePath))) {
         return nullptr;
@@ -177,7 +177,7 @@ U<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment& environmen
 
         Sequence::P sequenceCpp = sequence.cast<Sequence::P> ();
 
-        return Make<SequenceAdapter> (environment, sequenceCpp);
+        return std::make_unique<SequenceAdapter> (environment, sequenceCpp);
 
     } catch (std::exception& e) {
         GVK_BREAK ("Failed to load sequence.");
@@ -187,19 +187,19 @@ U<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment& environmen
 }
 
 
-void SetCurrentPresentable (Ptr<GVK::Presentable>& p)
+void SetCurrentPresentable (std::shared_ptr<GVK::Presentable>& p)
 {
     currentSeq->SetCurrentPresentable (p);
 }
 
 
-static U<GVK::VulkanEnvironment> env_ = nullptr;
+static std::unique_ptr<GVK::VulkanEnvironment> env_ = nullptr;
 
 
 static GVK::VulkanEnvironment& GetVkEnvironment ()
 {
     if (env_ == nullptr) {
-        env_ = Make<GVK::VulkanEnvironment> ();
+        env_ = std::make_unique<GVK::VulkanEnvironment> ();
     }
 
     return *env_;

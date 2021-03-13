@@ -18,7 +18,7 @@
 
 
 namespace GVK {
-    
+
 EmptyPreprocessor emptyPreprocessor;
 
 
@@ -334,7 +334,7 @@ ShaderModule::ShaderModule (ShaderKind                   shaderKind,
 }
 
 
-U<ShaderModule> ShaderModule::CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation)
+std::unique_ptr<ShaderModule> ShaderModule::CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation)
 {
     std::optional<std::vector<char>> binaryC = Utils::ReadBinaryFile (fileLocation);
     if (GVK_ERROR (!binaryC.has_value ())) {
@@ -347,11 +347,11 @@ U<ShaderModule> ShaderModule::CreateFromSPVFile (VkDevice device, ShaderKind sha
 
     VkShaderModule handle = CreateShaderModule (device, *binaryC);
 
-    return Make<ShaderModule> (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, "", emptyPreprocessor);
+    return std::make_unique<ShaderModule> (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, "", emptyPreprocessor);
 }
 
 
-U<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation, ShaderPreprocessor& preprocessor)
+std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation, ShaderPreprocessor& preprocessor)
 {
     std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
     if (GVK_ERROR (!fileContents.has_value ())) {
@@ -365,7 +365,7 @@ U<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device, const std::fi
 
     VkShaderModule handle = CreateShaderModule (device, *binary);
 
-    return Make<ShaderModule> (
+    return std::make_unique<ShaderModule> (
         ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind,
         ReadMode::GLSLFilePath,
         device,
@@ -377,13 +377,13 @@ U<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device, const std::fi
 }
 
 
-U<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, ShaderPreprocessor& preprocessor)
+std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, ShaderPreprocessor& preprocessor)
 {
     std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind), preprocessor);
 
     VkShaderModule handle = CreateShaderModule (device, binary);
 
-    return Make<ShaderModule> (
+    return std::make_unique<ShaderModule> (
         shaderKind,
         ReadMode::GLSLString,
         device,
@@ -450,7 +450,7 @@ ShaderModule::Reflection::GetLayout () const
         result.push_back (bin);
     }
 
-    for (const Ptr<SR::UBO>& ubo : ubos) {
+    for (const std::shared_ptr<SR::UBO>& ubo : ubos) {
         VkDescriptorSetLayoutBinding bin = {};
         bin.binding                      = ubo->binding;
         bin.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -494,7 +494,7 @@ ShaderModule::Reflection::GetDescriptorWrites (
         result.push_back (write);
     }
 
-    for (const Ptr<SR::UBO>& ubo : ubos) {
+    for (const std::shared_ptr<SR::UBO>& ubo : ubos) {
         const VkDescriptorBufferInfo bufferInfo = bufferInfoProvider (*ubo);
 
         VkWriteDescriptorSet write = {};
@@ -653,4 +653,4 @@ std::string ShaderKindToString (ShaderKind shaderKind)
     }
 }
 
-}
+} // namespace GVK

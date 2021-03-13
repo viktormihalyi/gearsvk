@@ -56,7 +56,7 @@ RecreatableGraphRenderer::RecreatableGraphRenderer (Swapchain& swapchain)
 
 BlockingGraphRenderer::BlockingGraphRenderer (const DeviceExtra& device, Swapchain& swapchain)
     : RecreatableGraphRenderer (swapchain)
-    , s (Make<Semaphore> (device))
+    , s (std::make_unique<Semaphore> (device))
 {
 }
 
@@ -94,9 +94,9 @@ SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (const De
     GVK_ASSERT (imageCount <= framesInFlight);
 
     for (uint32_t i = 0; i < framesInFlight; ++i) {
-        imageAvailableSemaphore.push_back (Make<Semaphore> (device));
-        renderFinishedSemaphore.push_back (Make<Semaphore> (device));
-        inFlightFences.push_back (Make<Fence> (device));
+        imageAvailableSemaphore.push_back (std::make_unique<Semaphore> (device));
+        renderFinishedSemaphore.push_back (std::make_unique<Semaphore> (device));
+        inFlightFences.push_back (std::make_unique<Fence> (device));
     }
 
     for (uint32_t i = 0; i < imageCount; ++i) {

@@ -2,8 +2,8 @@
 #define SURFACE_HPP
 
 #include "GearsVkAPI.hpp"
-#include "Ptr.hpp"
 #include "VulkanObject.hpp"
+#include <memory>
 
 #include <vulkan/vulkan.h>
 

@@ -68,7 +68,7 @@ TEST_F (VizHFTests, HF1)
 
     // ========================= GRAPH OPERATIONS =========================
 
-    U<RG::ShaderPipeline> sp = Make<RG::ShaderPipeline> (device);
+    std::unique_ptr<RG::ShaderPipeline> sp = std::make_unique<RG::ShaderPipeline> (device);
 
     sp->SetVertexShaderFromString (R"(#version 450
 
@@ -351,24 +351,24 @@ void main ()
 }
 )");
 
-    Ptr<RG::RenderOperation> brainRenderOp = Make<RenderOperation> (Make<FullscreenQuad> (device), std::move (sp));
+    std::shared_ptr<RG::RenderOperation> brainRenderOp = std::make_unique<RenderOperation> (std::make_unique<FullscreenQuad> (device), std::move (sp));
 
 
     // ========================= GRAPH RESOURCES =========================
 
-    Ptr<RG::SwapchainImageResource> presented = Make<SwapchainImageResource> (*presentable);
-    Ptr<RG::ReadOnlyImageResource>  matcap    = Make<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
-    Ptr<RG::ReadOnlyImageResource>  agy3d     = Make<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
+    std::shared_ptr<RG::SwapchainImageResource> presented = std::make_unique<SwapchainImageResource> (*presentable);
+    std::shared_ptr<RG::ReadOnlyImageResource>  matcap    = std::make_unique<ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
+    std::shared_ptr<RG::ReadOnlyImageResource>  agy3d     = std::make_unique<ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
 
     s.connectionSet.Add (brainRenderOp, presented,
-                         Make<OutputBinding> (0,
-                                              presented->GetFormatProvider (),
-                                              presented->GetFinalLayout (),
-                                              VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                              VK_ATTACHMENT_STORE_OP_STORE));
+                         std::make_unique<OutputBinding> (0,
+                                                          presented->GetFormatProvider (),
+                                                          presented->GetFinalLayout (),
+                                                          VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                          VK_ATTACHMENT_STORE_OP_STORE));
 
-    s.connectionSet.Add (agy3d, brainRenderOp, Make<ImageInputBinding> (2, *agy3d));
-    s.connectionSet.Add (matcap, brainRenderOp, Make<ImageInputBinding> (3, *matcap));
+    s.connectionSet.Add (agy3d, brainRenderOp, std::make_unique<ImageInputBinding> (2, *agy3d));
+    s.connectionSet.Add (matcap, brainRenderOp, std::make_unique<ImageInputBinding> (3, *matcap));
 
     RG::UniformReflection r (s.connectionSet);
 
@@ -566,7 +566,7 @@ TEST_F (VizHFTests, HF2)
 
     // ========================= GRAPH OPERATIONS & RESOURCES =========================
 
-    U<ShaderPipeline> sp = Make<ShaderPipeline> (device);
+    std::unique_ptr<ShaderPipeline> sp = std::make_unique<ShaderPipeline> (device);
 
     sp->SetVertexShaderFromString (R"(#version 450
 
@@ -825,18 +825,18 @@ void main ()
 }
 )");
 
-    Ptr<RG::RenderOperation> brainRenderOp = Make<RenderOperation> (Make<FullscreenQuad> (deviceExtra), std::move (sp));
+    std::shared_ptr<RG::RenderOperation> brainRenderOp = std::make_unique<RenderOperation> (std::make_unique<FullscreenQuad> (deviceExtra), std::move (sp));
 
-    Ptr<RG::SwapchainImageResource> presented = Make<SwapchainImageResource> (*presentable);
+    std::shared_ptr<RG::SwapchainImageResource> presented = std::make_unique<SwapchainImageResource> (*presentable);
 
     // ========================= GRAPH CONNECTIONS =========================
 
     s.connectionSet.Add (brainRenderOp, presented,
-                         Make<OutputBinding> (0,
-                                              presented->GetFormatProvider (),
-                                              presented->GetFinalLayout (),
-                                              VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                              VK_ATTACHMENT_STORE_OP_STORE));
+                         std::make_unique<OutputBinding> (0,
+                                                          presented->GetFormatProvider (),
+                                                          presented->GetFinalLayout (),
+                                                          VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                          VK_ATTACHMENT_STORE_OP_STORE));
 
     // ========================= UNIFORM REFLECTION =========================
 

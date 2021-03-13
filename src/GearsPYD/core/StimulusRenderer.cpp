@@ -32,7 +32,7 @@
 #include <limits>
 #include <sstream>
 
-StimulusRenderer::StimulusRenderer (Ptr<SequenceRenderer> sequenceRenderer, PtrC<Stimulus> stimulus, Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager, Ptr<KernelManager> kernelManager)
+StimulusRenderer::StimulusRenderer (std::shared_ptr<SequenceRenderer> sequenceRenderer, std::shared_ptr<Stimulus const> stimulus, std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<TextureManager> textureManager, std::shared_ptr<KernelManager> kernelManager)
     : stimulus (stimulus)
     , sequenceRenderer (sequenceRenderer)
 {
@@ -100,10 +100,10 @@ StimulusRenderer::StimulusRenderer (Ptr<SequenceRenderer> sequenceRenderer, PtrC
     passRenderers.clear ();
 }
 
-void StimulusRenderer::apply (Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager)
+void StimulusRenderer::apply (std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<TextureManager> textureManager)
 {
     for (auto& p : stimulus->getPasses ()) {
-        Ptr<PassRenderer> passRenderer = PassRenderer::create (getSharedPtr (), p, shaderManager, textureManager);
+        std::shared_ptr<PassRenderer> passRenderer = PassRenderer::create (getSharedPtr (), p, shaderManager, textureManager);
         passRenderers.push_back (passRenderer);
     }
 }
@@ -183,7 +183,7 @@ void StimulusRenderer::renderStimulus (GLuint defaultFrameBuffer, int skippedFra
 
     if (!sequenceRenderer->paused) {
         try {
-            Gears::Event::Ptr<Frame> frameEvent = Gears::Event::Frame::create (iFrame, time);
+            Gears::Event::std::shared_ptr<Frame> frameEvent = Gears::Event::Frame::create (iFrame, time);
             if (iFrame == 1)
                 stimulus->executeCallbacks<Gears::Event::StimulusStart> (Gears::Event::StimulusStart::create ());
 
@@ -707,5 +707,5 @@ void StimulusRenderer::skipFrames (uint nFramesToSkip)
 }
 
 
-bool                  StimulusRenderer::hasSpatialFilter () const { return spatialFilterRenderer != nullptr; }
-Ptr<SequenceRenderer> StimulusRenderer::getSequenceRenderer () const { return sequenceRenderer; }
+bool                              StimulusRenderer::hasSpatialFilter () const { return spatialFilterRenderer != nullptr; }
+std::shared_ptr<SequenceRenderer> StimulusRenderer::getSequenceRenderer () const { return sequenceRenderer; }

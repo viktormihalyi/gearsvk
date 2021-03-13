@@ -3,7 +3,7 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
-#include "Ptr.hpp"
+#include <memory>
 
 #include <algorithm>
 #include <functional>

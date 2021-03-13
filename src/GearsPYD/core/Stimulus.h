@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Ptr.hpp"
 #include "stdafx.h"
+#include <memory>
 
 #include <algorithm>
 
@@ -25,10 +25,10 @@ public:
     std::string name;  //< Unique name.
     std::string brief; //< A short discription of the stimulus.
 
-    Ptr<Sequence> sequence; //< Part of this sequence.
+    std::shared_ptr<Sequence> sequence; //< Part of this sequence.
 
-    std::vector<Ptr<Pass>> passes;
-    void                   addPass (Ptr<Pass> pass);
+    std::vector<std::shared_ptr<Pass>> passes;
+    void                               addPass (std::shared_ptr<Pass> pass);
 
     pybind11::object joiner;
     pybind11::object setJoiner (pybind11::object joiner);
@@ -72,7 +72,7 @@ public:
 
     glm::mat4 temporalProcessingStateTransitionMatrix[4];
 
-    Ptr<SpatialFilter> spatialFilter;
+    std::shared_ptr<SpatialFilter> spatialFilter;
 
     std::string randomGeneratorShaderSource; //< Prng.
     uint        randomGridWidth;             //<	Number of cells per row in 2D random grid array for random number generation.
@@ -129,7 +129,7 @@ public:
     //! Destructor. Releases dynamically allocated memory.
     ~Stimulus ();
 
-    void setSequence (Ptr<Sequence> sequence);
+    void setSequence (std::shared_ptr<Sequence> sequence);
 
     void onSequenceComplete ();
 
@@ -150,9 +150,9 @@ public:
 
     std::string getTemporalFilterPlotFragmentShaderSource () const;
 
-    void setSpatialFilter (Ptr<SpatialFilter> spatialFilter);
+    void setSpatialFilter (std::shared_ptr<SpatialFilter> spatialFilter);
 
-    Ptr<const SpatialFilter> getSpatialFilter () const;
+    std::shared_ptr<const SpatialFilter> getSpatialFilter () const;
 
     float getSpatialPlotMin ();
     float getSpatialPlotMax ();
@@ -175,7 +175,7 @@ public:
 
 #if 0
     template<typename T>
-    bool executeCallbacks (typename Ptr<T> wevent) const
+    bool executeCallbacks (typename std::shared_ptr<T> wevent) const
     {
         bool handled = false;
         auto ic      = callbacks.find (T::typeId);
@@ -201,7 +201,7 @@ public:
 
     bool hasTemporalFiltering () const;
 
-    Ptr<Sequence> getSequence ();
+    std::shared_ptr<Sequence> getSequence ();
 
     float getDuration_s () const;
 
@@ -235,7 +235,7 @@ public:
 
     void enableColorMode ();
 
-    const std::vector<Ptr<Pass>>& getPasses () const;
+    const std::vector<std::shared_ptr<Pass>>& getPasses () const;
 
     void setClearColor (float all, float r, float g, float b);
 

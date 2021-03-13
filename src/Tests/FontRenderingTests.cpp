@@ -40,7 +40,7 @@ TEST_F (FontRenderingTests, MSDFGEN)
 
     constexpr uint32_t glyphWidthHeight = 16;
 
-    auto sp = Make<ShaderPipeline> (device);
+    auto sp = std::make_unique<ShaderPipeline> (device);
 
     sp->SetVertexShaderFromString (R"(
 #version 450
@@ -133,7 +133,7 @@ void main ()
         glm::vec2 uv;
     };
 
-    auto vbb = Make<VertexBufferTransferable<Vert>> (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Vec2f }, VK_VERTEX_INPUT_RATE_VERTEX);
+    auto vbb = std::make_unique<VertexBufferTransferable<Vert>> (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Vec2f }, VK_VERTEX_INPUT_RATE_VERTEX);
 
     *vbb = std::vector<Vert> {
         { glm::vec2 (0.0f, 0.0f), glm::vec2 (0.f, 0.f) },
@@ -154,18 +154,18 @@ void main ()
 
     FontManager fm ("C:\\Windows\\Fonts\\arialbd.ttf", glyphWidthHeight, glyphWidthHeight, FontManager::Type::SDF);
 
-    auto instanceBuffer = Make<VertexBufferTransferable<InstVert>> (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Uint }, VK_VERTEX_INPUT_RATE_INSTANCE);
+    auto instanceBuffer = std::make_unique<VertexBufferTransferable<InstVert>> (device, 512, std::vector<VkFormat> { ShaderTypes::Vec2f, ShaderTypes::Uint }, VK_VERTEX_INPUT_RATE_INSTANCE);
 
     VertexBufferList vbs;
     vbs.Add (vbb);
     vbs.Add (instanceBuffer);
 
-    Ptr<RG::RenderOperation> renderOp = graph.CreateOperation<RG::RenderOperation> (Make<DrawRecordableInfo> (5, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
+    std::shared_ptr<RG::RenderOperation> renderOp = graph.CreateOperation<RG::RenderOperation> (std::make_unique<DrawRecordableInfo> (5, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
 
     RG::WritableImageResourceP outputImage = graph.CreateResource<RG::WritableImageResource> (512, 512);
     RG::ReadOnlyImageResourceP glyphs      = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, glyphWidthHeight, glyphWidthHeight, 1, 512);
 
-    graph.CreateInputConnection (*renderOp, *glyphs, Make<RG::ImageInputBinding> (0, *glyphs));
+    graph.CreateInputConnection (*renderOp, *glyphs, std::make_unique<RG::ImageInputBinding> (0, *glyphs));
     graph.CreateOutputConnection (*renderOp, 0, *outputImage);
 
     RG::UniformReflection refl (graph);

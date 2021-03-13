@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Ptr.hpp"
 #include "glmlib.hpp"
 #include "stdafx.h"
+#include <memory>
 
 #include <list>
 #include <map>

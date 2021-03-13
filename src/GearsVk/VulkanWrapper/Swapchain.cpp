@@ -140,7 +140,7 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
     vkGetSwapchainImagesKHR (createSettings.device, createResult.handle, &imageCount, createResult.images.data ());
 
     for (size_t i = 0; i < createResult.images.size (); ++i) {
-        createResult.imageViews.push_back (Make<ImageView2D> (createSettings.device, createResult.images[i], createResult.surfaceFormat.format));
+        createResult.imageViews.push_back (std::make_unique<ImageView2D> (createSettings.device, createResult.images[i], createResult.surfaceFormat.format));
     }
     return createResult;
 }
@@ -182,12 +182,12 @@ RealSwapchain::~RealSwapchain ()
 }
 
 
-std::vector<U<InheritedImage>> RealSwapchain::GetImageObjects () const
+std::vector<std::unique_ptr<InheritedImage>> RealSwapchain::GetImageObjects () const
 {
-    std::vector<U<InheritedImage>> result;
+    std::vector<std::unique_ptr<InheritedImage>> result;
 
     for (uint32_t swapchainImageIndex = 0; swapchainImageIndex < GetImageCount (); ++swapchainImageIndex) {
-        result.push_back (Make<InheritedImage> (
+        result.push_back (std::make_unique<InheritedImage> (
             createResult.images[swapchainImageIndex],
             GetWidth (),
             GetHeight (),
@@ -244,10 +244,10 @@ FakeSwapchain::FakeSwapchain (const DeviceExtra& device, uint32_t width, uint32_
     : device (device)
     , width (width)
     , height (height)
-    , image (Make<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1))
+    , image (std::make_unique<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, RealSwapchain::ImageUsage, 1))
 {
-    imageViews.push_back (Make<ImageView2D> (device, *image));
+    imageViews.push_back (std::make_unique<ImageView2D> (device, *image));
     TransitionImageLayout (device, *image, Image2D::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 }
 
-}
+} // namespace GVK

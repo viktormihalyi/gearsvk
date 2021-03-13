@@ -1,7 +1,7 @@
 #ifndef FRUSTUM_HPP
 #define FRUSTUM_HPP
 
-#include "Ptr.hpp"
+#include <memory>
 
 #include "glmlib.hpp"
 

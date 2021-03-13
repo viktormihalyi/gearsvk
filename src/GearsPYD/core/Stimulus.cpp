@@ -572,10 +572,10 @@ pybind11::object Stimulus::setTemporalWeightingFunction (std::string func, int m
     return pybind11::object ();
 }
 
-const std::vector<Ptr<Pass>>& Stimulus::getPasses () const { return passes; }
+const std::vector<std::shared_ptr<Pass>>& Stimulus::getPasses () const { return passes; }
 
 
-void Stimulus::addPass (Ptr<Pass> pass)
+void Stimulus::addPass (std::shared_ptr<Pass> pass)
 {
     pass->setStimulus (getSharedPtr ());
     pass->joiner ();
@@ -823,7 +823,7 @@ std::string Stimulus::getDynamicToneShaderSource () const
 }
 
 
-void Stimulus::setSequence (Ptr<Sequence> sequence)
+void Stimulus::setSequence (std::shared_ptr<Sequence> sequence)
 {
     this->sequence = sequence;
 }
@@ -902,7 +902,7 @@ std::string Stimulus::getTemporalFilterPlotFragmentShaderSource () const
 }
 
 
-void Stimulus::setSpatialFilter (Ptr<SpatialFilter> spatialFilter)
+void Stimulus::setSpatialFilter (std::shared_ptr<SpatialFilter> spatialFilter)
 {
     this->spatialFilter                      = spatialFilter;
     this->fullScreenTemporalFiltering        = true;
@@ -918,7 +918,7 @@ void Stimulus::setSpatialFilter (Ptr<SpatialFilter> spatialFilter)
 }
 
 
-Ptr<const SpatialFilter> Stimulus::getSpatialFilter () const
+std::shared_ptr<const SpatialFilter> Stimulus::getSpatialFilter () const
 {
     return spatialFilter;
 }
@@ -942,7 +942,7 @@ bool Stimulus::hasTemporalFiltering () const
 }
 
 
-Ptr<Sequence> Stimulus::getSequence ()
+std::shared_ptr<Sequence> Stimulus::getSequence ()
 {
     return sequence;
 }

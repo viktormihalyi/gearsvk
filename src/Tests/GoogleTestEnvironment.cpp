@@ -104,7 +104,7 @@ void GoogleTestEnvironmentBase::CompareImages (const std::string& name, const Im
 
 void HeadlessGoogleTestEnvironment::SetUp ()
 {
-    env = Make<VulkanEnvironment> (gtestDebugCallback);
+    env = std::make_unique<VulkanEnvironment> (gtestDebugCallback);
 }
 
 
@@ -116,9 +116,9 @@ void HeadlessGoogleTestEnvironment::TearDown ()
 
 void ShownWindowGoogleTestEnvironment::SetUp ()
 {
-    window      = Make<GLFWWindow> ();
-    env         = Make<VulkanEnvironment> (gtestDebugCallback);
-    presentable = Make<Presentable> (*env, *window);
+    window      = std::make_unique<GLFWWindow> ();
+    env         = std::make_unique<VulkanEnvironment> (gtestDebugCallback);
+    presentable = std::make_unique<Presentable> (*env, *window);
 }
 
 
@@ -132,9 +132,9 @@ void ShownWindowGoogleTestEnvironment::TearDown ()
 
 void HiddenWindowGoogleTestEnvironment::SetUp ()
 {
-    window      = Make<HiddenGLFWWindow> ();
-    env         = Make<VulkanEnvironment> (gtestDebugCallback);
-    presentable = Make<Presentable> (*env, *window);
+    window      = std::make_unique<HiddenGLFWWindow> ();
+    env         = std::make_unique<VulkanEnvironment> (gtestDebugCallback);
+    presentable = std::make_unique<Presentable> (*env, *window);
 }
 
 

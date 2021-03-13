@@ -10,7 +10,7 @@
 #include "Event.hpp"
 #include "GearsVkAPI.hpp"
 #include "Noncopyable.hpp"
-#include "Ptr.hpp"
+#include <memory>
 
 #include "glmlib.hpp"
 
@@ -84,7 +84,7 @@ private:
     const uint32_t height;
     const Type     distanceFieldType;
 
-    std::unordered_map<uint32_t, U<GlyphData>> loadedGlyphs;
+    std::unordered_map<uint32_t, std::unique_ptr<GlyphData>> loadedGlyphs;
 
 public:
     Event<uint32_t> glyphLoaded;
@@ -109,7 +109,7 @@ private:
 
             std::cout << "generated '" << static_cast<char> (unicode) << "', scale: " << data.scale << ", translation: " << data.translation << std::endl;
 
-            const auto insertResult = loadedGlyphs.insert ({ unicode, Make<GlyphData> (data) });
+            const auto insertResult = loadedGlyphs.insert ({ unicode, std::make_unique<GlyphData> (data) });
 
             GVK_ASSERT (insertResult.second);
 

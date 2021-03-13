@@ -5,8 +5,8 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
-#include "Ptr.hpp"
 #include "Utils.hpp"
+#include <memory>
 
 #include "DescriptorPool.hpp"
 #include "DescriptorSetLayout.hpp"

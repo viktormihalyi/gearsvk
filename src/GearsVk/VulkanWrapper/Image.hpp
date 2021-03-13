@@ -3,9 +3,9 @@
 
 #include "CommandBuffer.hpp"
 #include "Noncopyable.hpp"
-#include "Ptr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
+#include <memory>
 
 #include "vk_mem_alloc.h"
 

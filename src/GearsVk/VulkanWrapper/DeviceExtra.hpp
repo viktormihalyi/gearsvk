@@ -1,7 +1,7 @@
 #ifndef DEVICEEXTRA_HPP
 #define DEVICEEXTRA_HPP
 
-#include "Ptr.hpp"
+#include <memory>
 
 #include "CommandPool.hpp"
 #include "Device.hpp"

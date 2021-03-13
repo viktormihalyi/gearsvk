@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Ptr.hpp"
 #include "stdafx.h"
+#include <memory>
 
 #include "glmlib.hpp"
 
@@ -17,10 +17,10 @@ class ShaderManager;
 class Texture2D;
 
 class PassRenderer {
-    Ptr<StimulusRenderer> stimulusRenderer;
+    std::shared_ptr<StimulusRenderer> stimulusRenderer;
 
-    unsigned int iFrame;
-    PtrC<Pass>   pass;
+    unsigned int                iFrame;
+    std::shared_ptr<Pass const> pass;
 
     Shader* stimulusGeneratorShader;
     Shader* timelineShader;
@@ -28,8 +28,8 @@ class PassRenderer {
     using TextureSettings = std::map<std::string, Texture2D*>;
     TextureSettings textureSettings;
 
-    PassRenderer (Ptr<StimulusRenderer> stimulusRenderer, PtrC<Pass> pass,
-                  Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager);
+    PassRenderer (std::shared_ptr<StimulusRenderer> stimulusRenderer, std::shared_ptr<Pass const> pass,
+                  std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<TextureManager> textureManager);
 
     Texture2D* polytex;
 
@@ -52,7 +52,7 @@ public:
 
     unsigned int getCurrentFrame () { return iFrame; }
 
-    PtrC<Pass> getPass () const { return pass; }
+    std::shared_ptr<Pass const> getPass () const { return pass; }
 
     void reset ();
     void skipFrames (uint nFramesToSkip);

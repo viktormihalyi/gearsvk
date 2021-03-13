@@ -7,9 +7,9 @@
 
 #include "Assert.hpp"
 #include "DeviceExtra.hpp"
-#include "Ptr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
+#include <memory>
 
 namespace GVK {
 
@@ -34,8 +34,8 @@ private:
     std::unordered_map<const Image*, std::vector<std::pair<VkImageLayout, VkImageLayout>>> layouts;
 
 public:
-    bool                    canRecordCommands;
-    std::vector<U<Command>> recordedAbstractCommands;
+    bool                                  canRecordCommands;
+    std::vector<std::unique_ptr<Command>> recordedAbstractCommands;
 
 public:
     CommandBuffer (VkDevice device, VkCommandPool commandPool)
@@ -98,7 +98,7 @@ public:
         canRecordCommands = false;
     }
 
-    void Record (U<Command>&& command)
+    void Record (std::unique_ptr<Command>&& command)
     {
         command->Record (*this);
         recordedAbstractCommands.push_back (std::move (command));

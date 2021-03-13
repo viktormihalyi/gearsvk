@@ -1,7 +1,7 @@
 #ifndef VULKANWRAPPERFWD_HPP
 #define VULKANWRAPPERFWD_HPP
 
-#include "Ptr.hpp"
+#include <memory>
 
 // utils
 class BufferTransferable;

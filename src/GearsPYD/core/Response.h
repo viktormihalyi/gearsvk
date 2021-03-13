@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Ptr.hpp"
 #include "stdafx.h"
+#include <memory>
 
 #include <algorithm>
 
@@ -31,7 +31,7 @@ public:
     unsigned int        duration; //frames
     unsigned int        startingFrame;
 
-    Ptr<Sequence> sequence; //< Part of this sequence.
+    std::shared_ptr<Sequence> sequence; //< Part of this sequence.
 
 
     Response ();
@@ -67,10 +67,10 @@ public:
 
     void addButton (std::string label, float x, float y, float w, float h, uint key, bool visible);
 
-    void setSequence (Ptr<Sequence> sequence)
+    void setSequence (std::shared_ptr<Sequence> sequence)
     {
         this->sequence = sequence;
     }
 
-    Ptr<Sequence> getSequence () { return sequence; }
+    std::shared_ptr<Sequence> getSequence () { return sequence; }
 };

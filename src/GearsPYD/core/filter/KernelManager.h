@@ -3,8 +3,8 @@
 #include <map>
 #include <string>
 
-#include "Ptr.hpp"
 #include "stdafx.h"
+#include <memory>
 
 class SequenceRenderer;
 class FFT;
@@ -13,10 +13,10 @@ class Shader;
 class SpatialFilter;
 
 class KernelManager {
-    Ptr<SequenceRenderer> sequenceRenderer;
-    Ptr<ShaderManager>    shaderManager;
+    std::shared_ptr<SequenceRenderer> sequenceRenderer;
+    std::shared_ptr<ShaderManager>    shaderManager;
 
-    KernelManager (Ptr<SequenceRenderer> sequenceRenderer, Ptr<ShaderManager> shaderManager);
+    KernelManager (std::shared_ptr<SequenceRenderer> sequenceRenderer, std::shared_ptr<ShaderManager> shaderManager);
 
 public:
     GEARS_SHARED_CREATE (KernelManager);
@@ -29,9 +29,9 @@ public:
 
     using KernelMap = std::map<std::string, Kernel>;
 
-    unsigned int getKernel (PtrC<SpatialFilter> spatialFilter);
-    //bool         getKernelChannels (PtrC<SpatialFilter> spatialFilter, cl_mem& r);
-    unsigned int update (PtrC<SpatialFilter> spatialFilter);
+    unsigned int getKernel (std::shared_ptr<SpatialFilter const> spatialFilter);
+    //bool         getKernelChannels (std::shared_ptr<SpatialFilter const> spatialFilter, cl_mem& r);
+    unsigned int update (std::shared_ptr<SpatialFilter const> spatialFilter);
 
     void clear ();
 

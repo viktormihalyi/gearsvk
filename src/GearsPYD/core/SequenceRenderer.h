@@ -1,8 +1,8 @@
 #pragma once
 
 #include "OpenGLProxy.hpp"
-#include "Ptr.hpp"
 #include "stdafx.h"
+#include <memory>
 
 #include "core/PortHandler.h"
 #include "core/Stimulus.h"
@@ -38,8 +38,8 @@ class SequenceRenderer {
     friend class SpatialFilterRenderer;
 
     //! Active sequence.
-    PtrC<Sequence> sequence;
-    FramebufferGL* spatialDomainFilteringBuffers[2];
+    std::shared_ptr<Sequence const> sequence;
+    FramebufferGL*                  spatialDomainFilteringBuffers[2];
 
     bool         paused;
     unsigned int iFrame;
@@ -54,7 +54,7 @@ class SequenceRenderer {
     bool isDrawingPreview;
     int  vSyncPeriodsSinceLastFrame = -1;
 
-    using StimulusRendererMap = std::map<unsigned int, Ptr<StimulusRenderer>>;
+    using StimulusRendererMap = std::map<unsigned int, std::shared_ptr<StimulusRenderer>>;
     StimulusRendererMap           stimulusRenderers;
     StimulusRendererMap::iterator selectedStimulusRenderer;
 
@@ -71,17 +71,17 @@ class SequenceRenderer {
     std::map<std::string, std::string> text;
     bool                               textVisible;
     bool                               responseVisible;
-    PtrC<Response>                     currentResponse;
+    std::shared_ptr<Response const>    currentResponse;
 
     //! Index of current slice in texture queue. Changes continuously during sequence.
     unsigned int currentSlice;
 
-    U<RandomSequenceBuffer> randomSequenceBuffers[5];
-    std::ofstream           randomExportStream;
-    RandomSequenceBuffer*   particleBuffers[2];
-    TextureQueue*           textureQueue;
-    TextureQueue*           currentTemporalProcessingState;
-    TextureQueue*           nextTemporalProcessingState;
+    std::unique_ptr<RandomSequenceBuffer> randomSequenceBuffers[5];
+    std::ofstream                         randomExportStream;
+    RandomSequenceBuffer*                 particleBuffers[2];
+    TextureQueue*                         textureQueue;
+    TextureQueue*                         currentTemporalProcessingState;
+    TextureQueue*                         nextTemporalProcessingState;
 #if 0
     FontManager fontManager;
 #endif
@@ -147,7 +147,7 @@ public:
     GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (SequenceRenderer);
 
     //! Creates GPU resources for the sequence, releasing earlier ones, if any.
-    void apply (Ptr<Sequence> sequence, Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager, Ptr<KernelManager> kernelManager);
+    void apply (std::shared_ptr<Sequence> sequence, std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<TextureManager> textureManager, std::shared_ptr<KernelManager> kernelManager);
 
     void cleanup ();
     void reset ();
@@ -166,15 +166,15 @@ public:
 
     pybind11::object renderSample (uint sFrame, int left, int top, int width, int height);
 
-    PtrC<Stimulus> getSelectedStimulus ();
+    std::shared_ptr<Stimulus const> getSelectedStimulus ();
 
-    PtrC<Stimulus> getCurrentStimulus ();
-    PtrC<Response> getCurrentResponse ();
-    void           abort ();
+    std::shared_ptr<Stimulus const> getCurrentStimulus ();
+    std::shared_ptr<Response const> getCurrentResponse ();
+    void                            abort ();
 
     unsigned int getCurrentFrame ();
 
-    PtrC<Sequence> getSequence ();
+    std::shared_ptr<Sequence const> getSequence ();
 
     //	Quad* getFullscreenQuad(){return fullscreenQuad;}
     Nothing* getNothing ();
@@ -184,7 +184,7 @@ public:
     void raiseSignal (std::string channel);
     void clearSignal (std::string channel);
 
-    Ptr<Ticker>                startTicker ();
+    std::shared_ptr<Ticker>    startTicker ();
     const Stimulus::SignalMap& tick (uint& iTick);
 
     void skip (int skipCount);
@@ -225,8 +225,8 @@ public:
         paused = !paused;
     }
 
-    void beginCalibrationFrame (PtrC<Stimulus> stimulus);
-    void endCalibrationFrame (PtrC<Stimulus> stimulus);
+    void beginCalibrationFrame (std::shared_ptr<Stimulus const> stimulus);
+    void endCalibrationFrame (std::shared_ptr<Stimulus const> stimulus);
 
     void beginVideoExportFrame ();
     void endVideoExportFrame ();
@@ -247,7 +247,7 @@ public:
     }
     void showText () { this->textVisible = !this->textVisible; }
 
-    void updateSpatialKernel (Ptr<KernelManager> kernelManager);
+    void updateSpatialKernel (std::shared_ptr<KernelManager> kernelManager);
 
     double getTime ();
 

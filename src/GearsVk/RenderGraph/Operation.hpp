@@ -47,22 +47,22 @@ public:
 class GVK_RENDERER_API RenderOperation : public Operation {
 public:
     struct CompileSettings {
-        U<PureDrawRecordable>      drawRecordable;
-        U<VertexAttributeProvider> vertexAttributeProvider;
-        U<ShaderPipeline>          pipeline;
-        VkPrimitiveTopology        topology;
+        std::unique_ptr<PureDrawRecordable>      drawRecordable;
+        std::unique_ptr<VertexAttributeProvider> vertexAttributeProvider;
+        std::unique_ptr<ShaderPipeline>          pipeline;
+        VkPrimitiveTopology                      topology;
 
         std::optional<glm::vec4> clearColor;   // (0, 0, 0, 1) by default
         std::optional<bool>      blendEnabled; // true by default
     };
 
     struct CompileResult {
-        uint32_t                      width;
-        uint32_t                      height;
-        U<DescriptorPool>             descriptorPool;
-        U<DescriptorSetLayout>        descriptorSetLayout;
-        std::vector<U<DescriptorSet>> descriptorSets;
-        std::vector<U<Framebuffer>>   framebuffers;
+        uint32_t                                    width;
+        uint32_t                                    height;
+        std::unique_ptr<DescriptorPool>             descriptorPool;
+        std::unique_ptr<DescriptorSetLayout>        descriptorSetLayout;
+        std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
+        std::vector<std::unique_ptr<Framebuffer>>   framebuffers;
 
         void Clear ()
         {
@@ -77,8 +77,8 @@ public:
     CompileResult   compileResult;
 
 
-    RenderOperation (U<DrawRecordable>&& drawRecordable, U<ShaderPipeline>&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    RenderOperation (U<PureDrawRecordable>&& drawRecordable, U<VertexAttributeProvider>&&, U<ShaderPipeline>&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    RenderOperation (std::unique_ptr<DrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    RenderOperation (std::unique_ptr<PureDrawRecordable>&& drawRecordable, std::unique_ptr<VertexAttributeProvider>&&, std::unique_ptr<ShaderPipeline>&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
     virtual ~RenderOperation () = default;
 

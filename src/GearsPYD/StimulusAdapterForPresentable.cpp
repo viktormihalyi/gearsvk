@@ -26,14 +26,14 @@
 constexpr bool LogDebugInfo = false;
 
 
-StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanEnvironment& environment, Ptr<GVK::Presentable>& presentable, const PtrC<Stimulus>& stimulus)
+StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanEnvironment& environment, std::shared_ptr<GVK::Presentable>& presentable, const std::shared_ptr<Stimulus const>& stimulus)
     : presentable (presentable)
 {
-    renderGraph = Make<GVK::RG::RenderGraph> ();
+    renderGraph = std::make_unique<GVK::RG::RenderGraph> ();
 
     GVK::RG::GraphSettings s (*environment.deviceExtra, presentable->GetSwapchain ().GetImageCount ());
 
-    Ptr<GVK::RG::SwapchainImageResource> presented = Make<GVK::RG::SwapchainImageResource> (*presentable);
+    std::shared_ptr<GVK::RG::SwapchainImageResource> presented = std::make_unique<GVK::RG::SwapchainImageResource> (*presentable);
 
     const std::vector<Pass::P> passes = stimulus->getPasses ();
 
@@ -51,7 +51,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
         const std::string geom = pass->getStimulusGeneratorGeometryShaderSource (pass->rasterizationMode);
         const std::string frag = pass->getStimulusGeneratorShaderSource ();
 
-        U<GVK::RG::ShaderPipeline> sequencePip = Make<GVK::RG::ShaderPipeline> (*environment.device);
+        std::unique_ptr<GVK::RG::ShaderPipeline> sequencePip = std::make_unique<GVK::RG::ShaderPipeline> (*environment.device);
 
         sequencePip->SetVertexShaderFromString (vert);
         if (!geom.empty ()) {
@@ -59,8 +59,8 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
         }
         sequencePip->SetFragmentShaderFromString (frag);
 
-        Ptr<GVK::RG::RenderOperation> passOperation = Make<GVK::RG::RenderOperation> (
-            Make<GVK::DrawRecordableInfo> (1, 4), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        std::shared_ptr<GVK::RG::RenderOperation> passOperation = std::make_unique<GVK::RG::RenderOperation> (
+            std::make_unique<GVK::DrawRecordableInfo> (1, 4), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
         if (stimulus->requiresClearing) {
             passOperation->compileSettings.clearColor = { stimulus->clearColor, 1.0 };
@@ -71,11 +71,11 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
         GVK_ASSERT (stimulus->mono);
 
         s.connectionSet.Add (passOperation, presented,
-                             Make<GVK::RG::OutputBinding> (0,
-                                                           presented->GetFormatProvider (),
-                                                           presented->GetFinalLayout (),
-                                                           VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                           VK_ATTACHMENT_STORE_OP_STORE));
+                             std::make_unique<GVK::RG::OutputBinding> (0,
+                                                                       presented->GetFormatProvider (),
+                                                                       presented->GetFinalLayout (),
+                                                                       VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                                       VK_ATTACHMENT_STORE_OP_STORE));
 
         passToOperation[pass] = passOperation;
         break;
@@ -97,35 +97,35 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
     });
 
     if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0 && randomBinding.has_value ()) {
-        Ptr<GVK::RG::WritableImageResource> randomTexture = Make<GVK::RG::WritableImageResource> (
+        std::shared_ptr<GVK::RG::WritableImageResource> randomTexture = std::make_unique<GVK::RG::WritableImageResource> (
             VK_FILTER_NEAREST,
             stimulus->sequence->maxRandomGridWidth,
             stimulus->sequence->maxRandomGridHeight,
             1,
             VK_FORMAT_R32G32B32A32_UINT);
 
-        U<GVK::RG::ShaderPipeline> randoSeqPipeline = Make<GVK::RG::ShaderPipeline> (*environment.device);
+        std::unique_ptr<GVK::RG::ShaderPipeline> randoSeqPipeline = std::make_unique<GVK::RG::ShaderPipeline> (*environment.device);
         randoSeqPipeline->SetVertexShaderFromString (*Utils::ReadTextFile (PROJECT_ROOT / "Project" / "Shaders" / "quad.vert"));
         randoSeqPipeline->SetFragmentShaderFromString (stimulus->getRandomGeneratorShaderSource ());
 
-        randomGeneratorOperation = Make<GVK::RG::RenderOperation> (Make<GVK::DrawRecordableInfo> (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        randomGeneratorOperation = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
         std::static_pointer_cast<GVK::RG::RenderOperation> (randomGeneratorOperation)->compileSettings.blendEnabled = false;
 
         s.connectionSet.Add (randomGeneratorOperation, randomTexture,
-                             Make<GVK::RG::OutputBinding> (0,
-                                                           randomTexture->GetFormatProvider (),
-                                                           randomTexture->GetFinalLayout (),
-                                                           1,
-                                                           VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                           VK_ATTACHMENT_STORE_OP_STORE));
+                             std::make_unique<GVK::RG::OutputBinding> (0,
+                                                                       randomTexture->GetFormatProvider (),
+                                                                       randomTexture->GetFinalLayout (),
+                                                                       1,
+                                                                       VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                                       VK_ATTACHMENT_STORE_OP_STORE));
 
         GVK_ASSERT (randomBinding.has_value ());
         s.connectionSet.Add (randomTexture, passToOperation[passes[0]],
-                             Make<GVK::RG::ImageInputBinding> (*randomBinding, *randomTexture, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
+                             std::make_unique<GVK::RG::ImageInputBinding> (*randomBinding, *randomTexture, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
     }
 
-    Ptr<GVK::RG::ReadOnlyImageResource> gammaTexture = imgMap.FindByName ("gamma");
+    std::shared_ptr<GVK::RG::ReadOnlyImageResource> gammaTexture = imgMap.FindByName ("gamma");
     GVK_ASSERT (gammaTexture != nullptr);
 
     // this is a one time compile resource, which doesnt use framesinflight attrib
@@ -138,7 +138,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
         gammaAndTemporalWeights[128 + i] = stimulus->temporalWeights[i];
     gammaTexture->CopyTransitionTransfer (gammaAndTemporalWeights);
 
-    reflection = Make<GVK::RG::UniformReflection> (s.connectionSet);
+    reflection = std::make_unique<GVK::RG::UniformReflection> (s.connectionSet);
 
     renderGraph->Compile (std::move (s));
 
@@ -159,7 +159,7 @@ void StimulusAdapterForPresentable::SetConstantUniforms ()
 }
 
 
-void StimulusAdapterForPresentable::SetUniforms (const GVK::UUID& renderOperationId, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex)
+void StimulusAdapterForPresentable::SetUniforms (const GVK::UUID& renderOperationId, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t frameIndex)
 {
     GVK::RG::UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOperationId][GVK::ShaderKind::Vertex];
     GVK::RG::UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOperationId][GVK::ShaderKind::Fragment];
@@ -204,7 +204,7 @@ void StimulusAdapterForPresentable::SetUniforms (const GVK::UUID& renderOperatio
 }
 
 
-void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer& renderer, const PtrC<Stimulus>& stimulus, const uint32_t frameIndex, GVK::Event<uint32_t>& frameIndexPresentedEvent)
+void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer& renderer, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t frameIndex, GVK::Event<uint32_t>& frameIndexPresentedEvent)
 {
     const uint32_t stimulusStartingFrame = stimulus->getStartingFrame ();
     const uint32_t stimulusEndingFrame   = stimulus->getStartingFrame () + stimulus->getDuration ();
@@ -230,7 +230,7 @@ void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer& rendere
         reflection->Flush (swapchainImageIndex);
     });
 
-    U<GVK::SingleEventObserver> presentObs = Make<GVK::SingleEventObserver> ();
+    std::unique_ptr<GVK::SingleEventObserver> presentObs = std::make_unique<GVK::SingleEventObserver> ();
     presentObs->Observe (renderer.presentedEvent, [&, frameIndex] () {
         frameIndexPresentedEvent.Notify (frameIndex);
         presentedEventDeleteQueue.push_back (frameIndex);

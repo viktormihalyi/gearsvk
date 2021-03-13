@@ -16,8 +16,8 @@
 #include <limits>
 #include <sstream>
 
-PassRenderer::PassRenderer (Ptr<StimulusRenderer> stimulusRenderer, PtrC<Pass> pass,
-                            Ptr<ShaderManager> shaderManager, Ptr<TextureManager> textureManager)
+PassRenderer::PassRenderer (std::shared_ptr<StimulusRenderer> stimulusRenderer, std::shared_ptr<Pass const> pass,
+                            std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<TextureManager> textureManager)
     : pass (pass), stimulusRenderer (stimulusRenderer), polytex (nullptr)
 {
     stimulusGeneratorShader = shaderManager->loadShader (

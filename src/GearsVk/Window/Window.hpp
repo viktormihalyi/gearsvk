@@ -5,7 +5,7 @@
 
 #include "Event.hpp"
 #include "Noncopyable.hpp"
-#include "Ptr.hpp"
+#include <memory>
 
 #include <functional>
 #include <vector>

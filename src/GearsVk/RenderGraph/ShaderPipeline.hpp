@@ -17,17 +17,17 @@ private:
     const VkDevice device;
 
 public:
-    U<ShaderModule> vertexShader;
-    U<ShaderModule> fragmentShader;
-    U<ShaderModule> geometryShader;
-    U<ShaderModule> tessellationEvaluationShader;
-    U<ShaderModule> tessellationControlShader;
-    U<ShaderModule> computeShader;
+    std::unique_ptr<ShaderModule> vertexShader;
+    std::unique_ptr<ShaderModule> fragmentShader;
+    std::unique_ptr<ShaderModule> geometryShader;
+    std::unique_ptr<ShaderModule> tessellationEvaluationShader;
+    std::unique_ptr<ShaderModule> tessellationControlShader;
+    std::unique_ptr<ShaderModule> computeShader;
 
 
-    U<ShaderModule>& GetShaderByIndex (uint32_t index);
-    U<ShaderModule>& GetShaderByExtension (const std::string& extension);
-    U<ShaderModule>& GetShaderByKind (ShaderKind kind);
+    std::unique_ptr<ShaderModule>& GetShaderByIndex (uint32_t index);
+    std::unique_ptr<ShaderModule>& GetShaderByExtension (const std::string& extension);
+    std::unique_ptr<ShaderModule>& GetShaderByKind (ShaderKind kind);
 
 public:
     struct CompileSettings {
@@ -43,9 +43,9 @@ public:
 
 
     struct CompileResult {
-        U<RenderPass>     renderPass;
-        U<PipelineLayout> pipelineLayout;
-        U<Pipeline>       pipeline;
+        std::unique_ptr<RenderPass>     renderPass;
+        std::unique_ptr<PipelineLayout> pipelineLayout;
+        std::unique_ptr<Pipeline>       pipeline;
 
         void Clear ()
         {
@@ -79,7 +79,7 @@ public:
 
     std::vector<VkPipelineShaderStageCreateInfo> GetShaderStages () const;
 
-    U<DescriptorSetLayout> CreateDescriptorSetLayout (VkDevice device) const;
+    std::unique_ptr<DescriptorSetLayout> CreateDescriptorSetLayout (VkDevice device) const;
 };
 
 } // namespace RG

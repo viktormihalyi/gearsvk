@@ -9,9 +9,9 @@
 #include "DeviceMemory.hpp"
 #include "Image.hpp"
 #include "MemoryMapping.hpp"
-#include "Ptr.hpp"
 #include "SingleTimeCommand.hpp"
 #include "VulkanUtils.hpp"
+#include <memory>
 
 #include <cstring>
 
@@ -58,7 +58,7 @@ private:
     MemoryMapping bufferCPUMapping;
 
 public:
-    U<Image> imageGPU;
+    std::unique_ptr<Image> imageGPU;
 
 protected:
     ImageTransferable (const DeviceExtra& device, uint32_t bufferSize)
@@ -139,7 +139,7 @@ public:
     Image1DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
         : ImageTransferable (device, width * GetCompontentCountFromFormat (format))
     {
-        imageGPU = Make<Image1D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
+        imageGPU = std::make_unique<Image1D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
     }
 };
 
@@ -149,7 +149,7 @@ public:
     Image2DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
         : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format))
     {
-        imageGPU = Make<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
+        imageGPU = std::make_unique<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
     }
 };
 
@@ -159,7 +159,7 @@ public:
     Image2DTransferableLinear (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
         : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format))
     {
-        imageGPU = Make<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_LINEAR, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
+        imageGPU = std::make_unique<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_LINEAR, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
     }
 };
 
@@ -169,7 +169,7 @@ public:
     Image3DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
         : ImageTransferable (device, width * height * depth * GetCompontentCountFromFormat (format))
     {
-        imageGPU = Make<Image3D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
+        imageGPU = std::make_unique<Image3D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
     }
 };
 
@@ -266,9 +266,9 @@ public:
 };
 
 using IndexBufferTransferable    = IndexBufferTransferableBase<uint16_t, VK_INDEX_TYPE_UINT16>;
-using IndexBufferTransferableU   = U<IndexBufferTransferableBase<uint16_t, VK_INDEX_TYPE_UINT16>>;
+using IndexBufferTransferableU   = std::unique_ptr<IndexBufferTransferableBase<uint16_t, VK_INDEX_TYPE_UINT16>>;
 using IndexBufferTransferable32  = IndexBufferTransferableBase<uint32_t, VK_INDEX_TYPE_UINT32>;
-using IndexBufferTransferable32U = U<IndexBufferTransferableBase<uint32_t, VK_INDEX_TYPE_UINT32>>;
+using IndexBufferTransferable32U = std::unique_ptr<IndexBufferTransferableBase<uint32_t, VK_INDEX_TYPE_UINT32>>;
 
 } // namespace GVK
 

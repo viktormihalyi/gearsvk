@@ -2,7 +2,7 @@
 #define DRAWRECORDABLEINFO_HPP
 
 #include "DrawRecordable.hpp"
-#include "Ptr.hpp"
+#include <memory>
 
 #include <vulkan/vulkan.h>
 
@@ -13,7 +13,7 @@ namespace GVK {
 class VertexBufferList {
 private:
     template<typename T>
-    std::vector<T> Get (std::function<T (const Ptr<VertexBufferTransferableUntyped>&)> getterFunc) const
+    std::vector<T> Get (std::function<T (const std::shared_ptr<VertexBufferTransferableUntyped>&)> getterFunc) const
     {
         std::vector<T> result;
 
@@ -25,7 +25,7 @@ private:
     }
 
     template<typename T>
-    std::vector<T> GetFromVector (std::function<std::vector<T> (const Ptr<VertexBufferTransferableUntyped>&)> getterFunc) const
+    std::vector<T> GetFromVector (std::function<std::vector<T> (const std::shared_ptr<VertexBufferTransferableUntyped>&)> getterFunc) const
     {
         std::vector<T> result;
 
@@ -38,23 +38,23 @@ private:
     }
 
 public:
-    std::vector<Ptr<VertexBufferTransferableUntyped>> vertexBuffers;
+    std::vector<std::shared_ptr<VertexBufferTransferableUntyped>> vertexBuffers;
 
     VertexBufferList () = default;
 
-    VertexBufferList (std::vector<Ptr<VertexBufferTransferableUntyped>> vertexBuffers)
+    VertexBufferList (std::vector<std::shared_ptr<VertexBufferTransferableUntyped>> vertexBuffers)
         : vertexBuffers (vertexBuffers)
     {
     }
 
-    void Add (Ptr<VertexBufferTransferableUntyped> vb)
+    void Add (std::shared_ptr<VertexBufferTransferableUntyped> vb)
     {
         vertexBuffers.push_back (vb);
     }
 
     std::vector<VkBuffer> GetHandles () const
     {
-        return Get<VkBuffer> ([] (const Ptr<VertexBufferTransferableUntyped>& vb) {
+        return Get<VkBuffer> ([] (const std::shared_ptr<VertexBufferTransferableUntyped>& vb) {
             return vb->buffer.GetBufferToBind ();
         });
     }
@@ -62,7 +62,7 @@ public:
     std::vector<VkVertexInputBindingDescription> GetBindings () const
     {
         uint32_t nextBinding = 0;
-        return GetFromVector<VkVertexInputBindingDescription> ([&] (const Ptr<VertexBufferTransferableUntyped>& vb) {
+        return GetFromVector<VkVertexInputBindingDescription> ([&] (const std::shared_ptr<VertexBufferTransferableUntyped>& vb) {
             return vb->info.GetBindings (nextBinding++);
         });
     }
@@ -71,7 +71,7 @@ public:
     {
         size_t nextLocation = 0;
         size_t nextBinding  = 0;
-        return GetFromVector<VkVertexInputAttributeDescription> ([&] (const Ptr<VertexBufferTransferableUntyped>& vb) {
+        return GetFromVector<VkVertexInputAttributeDescription> ([&] (const std::shared_ptr<VertexBufferTransferableUntyped>& vb) {
             auto attribs = vb->info.GetAttributes (nextLocation, nextBinding++);
             nextLocation += attribs.size ();
             return attribs;

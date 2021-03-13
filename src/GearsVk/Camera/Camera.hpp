@@ -18,7 +18,7 @@ public:
     glm::vec3 up;
     glm::vec3 right;
 
-    U<Frustum> frustum;
+    std::unique_ptr<Frustum> frustum;
 
     float speed;
     float yaw;
