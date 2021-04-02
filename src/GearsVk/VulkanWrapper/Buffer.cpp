@@ -2,7 +2,7 @@
 
 namespace GVK {
 
-template <typename T>
+template<typename T>
 class VulkanObjectHandleHolder final {
 private:
     T handle;
@@ -20,7 +20,7 @@ public:
 
     ~VulkanObjectHandleHolder ()
     {
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     VulkanObjectHandleHolder (const VulkanObjectHandleHolder&) = delete;
@@ -28,18 +28,18 @@ public:
 
     VulkanObjectHandleHolder (VulkanObjectHandleHolder&& other)
     {
-        handle = other.handle;
-        other.handle = VK_NULL_HANDLE;
+        handle       = other.handle;
+        other.handle = nullptr;
     }
-    
+
     VulkanObjectHandleHolder& operator= (VulkanObjectHandleHolder&& other)
     {
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
         std::swap (handle, other.handle);
         return *this;
     }
 
-    operator T() { return handle; }
+    operator T () { return handle; }
 };
 
 Buffer::Buffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
@@ -67,7 +67,7 @@ Buffer::~Buffer ()
         vmaDestroyBuffer (allocator, handle, allocationHandle);
     }
 
-    handle = VK_NULL_HANDLE;
+    handle = nullptr;
 }
 
-}
+} // namespace GVK

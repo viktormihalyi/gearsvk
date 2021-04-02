@@ -5,10 +5,8 @@
 
 #include "Assert.hpp"
 #include "Device.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
-
-#include <iostream>
 
 namespace GVK {
 
@@ -18,10 +16,10 @@ public:
     static constexpr VkMemoryPropertyFlags CPU = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
 private:
-    const VkDevice device;
-    const size_t   allocationSize;
-    const uint32_t memoryTypeIndex;
-    VkDeviceMemory handle;
+    VkDevice                        device;
+    size_t                          allocationSize;
+    uint32_t                        memoryTypeIndex;
+    GVK::MovablePtr<VkDeviceMemory> handle;
 
 public:
     DeviceMemory (VkDevice device, const size_t allocationSize, const uint32_t memoryTypeIndex);

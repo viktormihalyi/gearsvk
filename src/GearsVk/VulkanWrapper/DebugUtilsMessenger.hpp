@@ -4,10 +4,9 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
-#include <memory>
 
 namespace GVK {
 
@@ -29,10 +28,9 @@ public:
     };
 
 private:
-    const VkInstance         instance;
-    VkDebugUtilsMessengerEXT handle;
-
-    Callback callback;
+    VkInstance                                instance;
+    GVK::MovablePtr<VkDebugUtilsMessengerEXT> handle;
+    Callback                                  callback;
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback (
         VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,

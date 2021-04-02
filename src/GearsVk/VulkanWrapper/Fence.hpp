@@ -4,17 +4,17 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
-#include <memory>
 
 namespace GVK {
 
+
 class GVK_RENDERER_API Fence : public VulkanObject {
 private:
-    const VkDevice device;
-    VkFence        handle;
+    VkDevice                 device;
+    GVK::MovablePtr<VkFence> handle;
 
 public:
     Fence (VkDevice device)
@@ -32,7 +32,7 @@ public:
     virtual ~Fence () override
     {
         vkDestroyFence (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     operator VkFence () const

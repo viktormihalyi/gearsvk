@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
@@ -12,8 +12,8 @@ namespace GVK {
 
 class GVK_RENDERER_API RenderPass : public VulkanObject {
 private:
-    const VkDevice device;
-    VkRenderPass   handle;
+    VkDevice                      device;
+    GVK::MovablePtr<VkRenderPass> handle;
 
 public:
     RenderPass (VkDevice                                    device,
@@ -39,7 +39,7 @@ public:
     virtual ~RenderPass () override
     {
         vkDestroyRenderPass (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     operator VkRenderPass () const

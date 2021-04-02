@@ -63,7 +63,7 @@ bool WriteBinaryFile (const std::filesystem::path& filePath, const std::vector<u
 }
 
 
-static void EnsureParentFolder (const std::filesystem::path& filePath)
+void EnsureParentFolderExists (const std::filesystem::path& filePath)
 {
     if (!std::filesystem::exists (filePath.parent_path ())) {
         std::filesystem::create_directories (filePath.parent_path ());
@@ -73,7 +73,7 @@ static void EnsureParentFolder (const std::filesystem::path& filePath)
 
 bool WriteBinaryFile (const std::filesystem::path& filePath, const void* data, size_t size)
 {
-    EnsureParentFolder (filePath);
+    EnsureParentFolderExists (filePath);
 
     std::ofstream file (filePath, std::ios::out | std::ios::binary);
 
@@ -89,7 +89,7 @@ bool WriteBinaryFile (const std::filesystem::path& filePath, const void* data, s
 
 bool WriteTextFile (const std::filesystem::path& filePath, const std::string& text)
 {
-    EnsureParentFolder (filePath);
+    EnsureParentFolderExists (filePath);
 
     std::ofstream file (filePath, std::ios::out | std::ios::binary);
 

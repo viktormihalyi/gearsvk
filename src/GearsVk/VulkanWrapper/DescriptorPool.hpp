@@ -44,7 +44,7 @@ public:
     ~DescriptorPool ()
     {
         vkDestroyDescriptorPool (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     operator VkDescriptorPool () const

@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
@@ -12,8 +12,8 @@ namespace GVK {
 
 class GVK_RENDERER_API CommandPool : public VulkanObject {
 private:
-    const VkDevice device;
-    VkCommandPool  handle;
+    VkDevice                       device;
+    GVK::MovablePtr<VkCommandPool> handle;
 
 public:
     CommandPool (VkDevice device, uint32_t queueIndex)
@@ -32,7 +32,7 @@ public:
     ~CommandPool ()
     {
         vkDestroyCommandPool (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     operator VkCommandPool () const

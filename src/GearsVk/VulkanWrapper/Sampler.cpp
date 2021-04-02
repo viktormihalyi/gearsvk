@@ -35,7 +35,7 @@ Sampler::Sampler (VkDevice device, VkFilter filter, VkSamplerAddressMode address
 Sampler::~Sampler ()
 {
     vkDestroySampler (device, handle, nullptr);
-    handle = VK_NULL_HANDLE;
+    handle = nullptr;
 }
 
-}
+} // namespace GVK

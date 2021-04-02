@@ -3,10 +3,9 @@
 
 #include "Assert.hpp"
 #include "Image.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
-#include <memory>
 
 #include <vulkan/vulkan.h>
 
@@ -14,9 +13,9 @@ namespace GVK {
 
 class GVK_RENDERER_API ImageViewBase : public VulkanObject {
 private:
-    const VkDevice device;
-    const VkFormat format;
-    VkImageView    handle;
+    VkDevice                     device;
+    VkFormat                     format;
+    GVK::MovablePtr<VkImageView> handle;
 
 public:
     ImageViewBase (VkDevice device, VkImage image, VkFormat format, VkImageViewType viewType, uint32_t layerIndex = 0, uint32_t layerCount = 1)
@@ -54,7 +53,7 @@ public:
     virtual ~ImageViewBase ()
     {
         vkDestroyImageView (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     VkFormat GetFormat () const { return format; }

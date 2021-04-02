@@ -83,7 +83,9 @@ void GoogleTestEnvironmentBase::CompareImages (const std::string& imageName, con
     EXPECT_TRUE (imagesMatch);
 
     if (!imagesMatch) {
-        SaveImageToFileAsync (GetDeviceExtra (), image, TempFolder / (imageName + "_actual.png")).join ();
+        const std::filesystem::path outPath = TempFolder / (imageName + "_actual.png");
+        std::cout << "Saving " << outPath.u8string () << "..." << std::endl;
+        SaveImageToFileAsync (GetDeviceExtra (), image, outPath).join ();
     }
 }
 
@@ -97,7 +99,9 @@ void GoogleTestEnvironmentBase::CompareImages (const std::string& name, const Im
     EXPECT_TRUE (imagesMatch);
 
     if (!imagesMatch) {
-        actualImage.SaveTo (TempFolder / (name + "_Actual.png"));
+        const std::filesystem::path outPath = TempFolder / (name + "_Actual.png");
+        std::cout << "Saving " << outPath.u8string () << "..." << std::endl;
+        actualImage.SaveTo (outPath);
     }
 }
 

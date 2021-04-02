@@ -6,16 +6,16 @@
 #include "GearsVkAPI.hpp"
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 
 namespace GVK {
 
 class CommandBuffer;
 
-class GVK_RENDERER_API Queue : public Noncopyable {
+class GVK_RENDERER_API Queue {
 private:
-    VkQueue handle;
+    GVK::MovablePtr<VkQueue> handle;
 
 public:
     Queue (VkDevice device, uint32_t index)
@@ -30,7 +30,7 @@ public:
 
     ~Queue ()
     {
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     operator VkQueue () const

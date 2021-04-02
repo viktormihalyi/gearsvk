@@ -6,7 +6,7 @@
 #include "Assert.hpp"
 #include "Framebuffer.hpp"
 #include "ImageView.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "PhysicalDevice.hpp"
 #include "Utils.hpp"
 
@@ -47,11 +47,11 @@ class GVK_RENDERER_API Swapchain {
 public:
     virtual ~Swapchain () = default;
 
-    virtual VkFormat                            GetImageFormat () const  = 0;
-    virtual uint32_t                            GetImageCount () const   = 0;
-    virtual uint32_t                            GetWidth () const        = 0;
-    virtual uint32_t                            GetHeight () const       = 0;
-    virtual std::vector<VkImage>                GetImages () const       = 0;
+    virtual VkFormat                                         GetImageFormat () const  = 0;
+    virtual uint32_t                                         GetImageCount () const   = 0;
+    virtual uint32_t                                         GetWidth () const        = 0;
+    virtual uint32_t                                         GetHeight () const       = 0;
+    virtual std::vector<VkImage>                             GetImages () const       = 0;
     virtual std::vector<std::unique_ptr<InheritedImage>>     GetImageObjects () const = 0;
     virtual const std::vector<std::unique_ptr<ImageView2D>>& GetImageViews () const   = 0;
 
@@ -70,8 +70,7 @@ public:
     }
 };
 
-class GVK_RENDERER_API RealSwapchain : public Swapchain,
-                                       public Noncopyable {
+class GVK_RENDERER_API RealSwapchain : public Swapchain {
 public:
     static const VkImageUsageFlags ImageUsage;
 
@@ -85,14 +84,14 @@ private:
     };
 
     struct CreateResult {
-        VkSwapchainKHR handle;
+        GVK::MovablePtr<VkSwapchainKHR> handle;
 
         uint32_t           imageCount;
         VkSurfaceFormatKHR surfaceFormat;
         VkPresentModeKHR   presentMode;
         VkExtent2D         extent;
 
-        std::vector<VkImage>         images;
+        std::vector<VkImage>                      images;
         std::vector<std::unique_ptr<ImageView2D>> imageViews;
         std::vector<std::unique_ptr<Framebuffer>> framebuffers;
 
@@ -128,11 +127,11 @@ public:
 
     operator VkSwapchainKHR () const { return createResult.handle; }
 
-    virtual VkFormat                            GetImageFormat () const override { return createResult.surfaceFormat.format; }
-    virtual uint32_t                            GetImageCount () const override { return createResult.imageCount; }
-    virtual uint32_t                            GetWidth () const override { return createResult.extent.width; }
-    virtual uint32_t                            GetHeight () const override { return createResult.extent.height; }
-    virtual std::vector<VkImage>                GetImages () const override { return createResult.images; }
+    virtual VkFormat                                         GetImageFormat () const override { return createResult.surfaceFormat.format; }
+    virtual uint32_t                                         GetImageCount () const override { return createResult.imageCount; }
+    virtual uint32_t                                         GetWidth () const override { return createResult.extent.width; }
+    virtual uint32_t                                         GetHeight () const override { return createResult.extent.height; }
+    virtual std::vector<VkImage>                             GetImages () const override { return createResult.images; }
     virtual const std::vector<std::unique_ptr<ImageView2D>>& GetImageViews () const override { return createResult.imageViews; }
     virtual std::vector<std::unique_ptr<InheritedImage>>     GetImageObjects () const override;
 
@@ -144,7 +143,7 @@ public:
 };
 
 
-class ExtentProvider {
+class GVK_RENDERER_API ExtentProvider {
 public:
     virtual ~ExtentProvider () = default;
 
@@ -152,7 +151,7 @@ public:
 };
 
 
-class SwapchainProvider : public ExtentProvider {
+class GVK_RENDERER_API SwapchainProvider : public ExtentProvider {
 public:
     virtual ~SwapchainProvider () = default;
 
@@ -170,9 +169,9 @@ class GVK_RENDERER_API FakeSwapchain : public Swapchain {
 private:
     std::unique_ptr<Image>                    image;
     std::vector<std::unique_ptr<ImageView2D>> imageViews;
-    const DeviceExtra&           device;
-    const uint32_t               width;
-    const uint32_t               height;
+    const DeviceExtra&                        device;
+    const uint32_t                            width;
+    const uint32_t                            height;
 
 public:
     FakeSwapchain (const DeviceExtra& device, uint32_t width, uint32_t height);

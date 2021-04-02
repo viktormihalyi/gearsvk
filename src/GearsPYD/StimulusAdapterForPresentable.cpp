@@ -125,6 +125,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
                              std::make_unique<GVK::RG::ImageInputBinding> (*randomBinding, *randomTexture, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
     }
 
+
     std::shared_ptr<GVK::RG::ReadOnlyImageResource> gammaTexture = imgMap.FindByName ("gamma");
     GVK_ASSERT (gammaTexture != nullptr);
 
@@ -177,12 +178,14 @@ void StimulusAdapterForPresentable::SetUniforms (const GVK::UUID& renderOperatio
     fragmentShaderUniforms["ubo_swizzleForFft"] = 0xffffffff;
 
     if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0) {
-        fragmentShaderUniforms["ubo_cellSize"] = static_cast<glm::vec2> (
-            stimulus->sequence->fieldWidth_um / stimulus->randomGridWidth,
-            stimulus->sequence->fieldHeight_um / stimulus->randomGridHeight);
-        fragmentShaderUniforms["ubo_randomGridSize"] = static_cast<glm::ivec2> (
-            stimulus->sequence->maxRandomGridWidth,
-            stimulus->sequence->maxRandomGridHeight);
+        if (fragmentShaderUniforms.Contains ("ubo_cellSize")) {
+            fragmentShaderUniforms["ubo_cellSize"] = static_cast<glm::vec2> (
+                stimulus->sequence->fieldWidth_um / stimulus->randomGridWidth,
+                stimulus->sequence->fieldHeight_um / stimulus->randomGridHeight);
+            fragmentShaderUniforms["ubo_randomGridSize"] = static_cast<glm::ivec2> (
+                stimulus->sequence->maxRandomGridWidth,
+                stimulus->sequence->maxRandomGridHeight);
+        }
     }
 
     if (stimulus->doesToneMappingInStimulusGenerator) {
@@ -219,8 +222,16 @@ void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer& rendere
             SetUniforms (renderOp->GetUUID (), stimulus, frameIndex);
         }
 
+
         if (randomGeneratorOperation != nullptr) {
-            (*reflection)[randomGeneratorOperation->GetUUID ()][GVK::ShaderKind::Fragment]["ubo_seed"] = static_cast<uint32_t> (frameIndex);
+            auto& fragmentShaderUniforms       = (*reflection)[randomGeneratorOperation->GetUUID ()][GVK::ShaderKind::Fragment];
+            fragmentShaderUniforms["ubo_seed"] = static_cast<uint32_t> (frameIndex);
+            if (fragmentShaderUniforms.Contains ("ubo_lcg")) {
+                fragmentShaderUniforms["ubo_lcg"]["frameIndex"] = static_cast<uint32_t> (frameIndex);
+                fragmentShaderUniforms["ubo_lcg"]["seed"]       = static_cast<uint32_t> (89236738);
+                fragmentShaderUniforms["ubo_lcg"]["gridSizeX"]  = static_cast<uint32_t> (stimulus->sequence->maxRandomGridWidth);
+                fragmentShaderUniforms["ubo_lcg"]["gridSizeY"]  = static_cast<uint32_t> (stimulus->sequence->maxRandomGridHeight);
+            }
         }
 
         if constexpr (LogDebugInfo) {

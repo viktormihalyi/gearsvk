@@ -71,6 +71,11 @@ private:
             udatas[uboName] = uboData;
         }
 
+        bool Contains (const std::string& uboName) const
+        {
+            return udatas.find (uboName) != udatas.end ();
+        }
+
         friend class UniformReflection;
     };
 

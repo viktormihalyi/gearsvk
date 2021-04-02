@@ -2,7 +2,7 @@
 #define INSTANCE_HPP
 
 #include "GearsVkAPI.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "VulkanObject.hpp"
 
 #include <iostream>
@@ -25,7 +25,7 @@ extern GVK_RENDERER_API const InstanceSettings instanceReleaseMode;
 
 class GVK_RENDERER_API Instance : public VulkanObject {
 private:
-    VkInstance handle;
+    GVK::MovablePtr<VkInstance> handle;
 
 public:
     Instance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers);

@@ -1,5 +1,7 @@
 #include "Swapchain.hpp"
 
+#include <iostream>
+
 namespace GVK {
 
 DefaultSwapchainSettings            defaultSwapchainSettings;

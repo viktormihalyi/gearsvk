@@ -104,7 +104,7 @@ Instance::Instance (const InstanceSettings& settings)
 Instance::~Instance ()
 {
     vkDestroyInstance (handle, nullptr);
-    handle = VK_NULL_HANDLE;
+    handle = nullptr;
 }
 
-}
+} // namespace GVK

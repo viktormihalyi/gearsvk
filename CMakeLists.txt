@@ -120,6 +120,7 @@ add_library (${TARGET_GVKUTILS} SHARED
     src/Utils/Utils.cpp
     src/Utils/Time.cpp
     src/Utils/UUID.cpp
+    src/Utils/CommandLineFlag.cpp
 )
 
 add_library (${TARGET_GVKRENDERER} SHARED

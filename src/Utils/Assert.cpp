@@ -1,11 +1,14 @@
 #include "Assert.hpp"
 
+#include "CommandLineFlag.hpp"
 #include "CompilerDefinitions.hpp"
 #include "MessageBox.hpp"
 
 #include <iostream>
+#include <memory>
 #include <set>
 #include <string>
+#include <vector>
 
 
 namespace Utils {
@@ -66,12 +69,19 @@ static void ShowAssertPopup (const std::string& title,
 }
 
 
+static CommandLineOnOffFlag disableAssertsFlag (std::vector<std::string> { "--disableAsserts", "-a" }, "Disables asserts.");
+
+
 bool DebugBreakAssertFunc (bool condition, const bool shouldBe, const char* message, const char* conditionString, const SourceLocation& location)
 {
     if (condition != shouldBe) {
         const std::string assertLocation = location.ToString ();
         bool              ignored        = true;
-        ShowAssertPopup (message, conditionString, assertLocation, ignored);
+        if (disableAssertsFlag.IsFlagOn ()) {
+            std::cout << "[" << message << "] " << location.ToString () << std::endl;
+        } else {
+            ShowAssertPopup (message, conditionString, assertLocation, ignored);
+        }
     }
     return condition;
 }

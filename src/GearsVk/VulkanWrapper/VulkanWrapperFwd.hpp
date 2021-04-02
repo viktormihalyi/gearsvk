@@ -1,8 +1,6 @@
 #ifndef VULKANWRAPPERFWD_HPP
 #define VULKANWRAPPERFWD_HPP
 
-#include <memory>
-
 // utils
 class BufferTransferable;
 class MemoryMapping;

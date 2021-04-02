@@ -169,7 +169,7 @@ private:
 public:
     EventObserver () = default;
 
-    EventObserver (EventObserver&& other)
+    EventObserver (EventObserver&& other) noexcept
         : observers (std::move (other.observers))
         , observedEvents (std::move (other.observedEvents))
     {

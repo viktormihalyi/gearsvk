@@ -4,17 +4,16 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
-#include <memory>
 
 namespace GVK {
 
 class GVK_RENDERER_API DescriptorSetLayout : public VulkanObject {
 private:
-    const VkDevice        device;
-    VkDescriptorSetLayout handle;
+    VkDevice                               device;
+    GVK::MovablePtr<VkDescriptorSetLayout> handle;
 
     std::vector<VkDescriptorSetLayoutBinding> bindings;
 
@@ -42,19 +41,10 @@ public:
         }
     }
 
-    DescriptorSetLayout (DescriptorSetLayout&& other)
-        : device (other.device)
-        , handle (other.handle)
-        , bindings (other.bindings)
-    {
-        other.handle = VK_NULL_HANDLE;
-        other.bindings.clear ();
-    }
-
     virtual ~DescriptorSetLayout () override
     {
         vkDestroyDescriptorSetLayout (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     operator VkDescriptorSetLayout () const

@@ -121,6 +121,8 @@ static VkPhysicalDevice CreatePhysicalDevice (VkInstance instance, const std::se
         VkPhysicalDeviceFeatures deviceFeatures;
         vkGetPhysicalDeviceFeatures (device, &deviceFeatures);
 
+        GVK_ASSERT (deviceFeatures.shaderInt64 == VK_TRUE);
+
         // check if the device supports all requested extensions
         const std::set<std::string> supportedDeviceExtensionSet   = Utils::ToSet<VkExtensionProperties, std::string> (supportedDeviceExtensions, extensionNameAccessor);
         const std::set<std::string> unsupportedDeviceExtensionSet = Utils::SetDiff (requestedDeviceExtensionSet, supportedDeviceExtensionSet);
@@ -169,7 +171,7 @@ PhysicalDevice::PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const
 
 PhysicalDevice::~PhysicalDevice ()
 {
-    handle = VK_NULL_HANDLE;
+    handle = nullptr;
 }
 
 
@@ -179,4 +181,4 @@ void PhysicalDevice::RecreateForSurface (VkSurfaceKHR surface)
     queueFamilies = FindQueueFamilyIndices (handle, surface, selector);
 }
 
-}
+} // namespace GVK

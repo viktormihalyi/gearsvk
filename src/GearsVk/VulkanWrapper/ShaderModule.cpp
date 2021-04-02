@@ -3,6 +3,7 @@
 // from Utils
 #include "Assert.hpp"
 #include "BuildType.hpp"
+#include "CommandLineFlag.hpp"
 #include "Utils.hpp"
 
 // from VulkanWrapper
@@ -15,6 +16,9 @@
 
 // from glslang
 #include <SPIRV/GlslangToSpv.h>
+
+
+static Utils::CommandLineOnOffFlag disableShaderCacheFlag ("--disableShaderCache");
 
 
 namespace GVK {
@@ -160,6 +164,10 @@ private:
 public:
     std::optional<std::vector<uint32_t>> Load (const std::string& sourceCode) const
     {
+        if (disableShaderCacheFlag.IsFlagOn ()) {
+            return std::nullopt;
+        }
+
         const std::string hashString = GetShaderSourceHash (sourceCode);
 
         const std::string cachedCodeFileName   = hashString + "_code.txt";
@@ -196,6 +204,10 @@ public:
 
     bool Save (const std::string& sourceCode, const std::vector<uint32_t>& binary) const
     {
+        if (disableShaderCacheFlag.IsFlagOn ()) {
+            return false;
+        }
+
         const std::string hashString = GetShaderSourceHash (sourceCode);
 
         const std::string cachedCodeFileName   = hashString + "_code.txt";
@@ -398,7 +410,7 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice devic
 ShaderModule::~ShaderModule ()
 {
     vkDestroyShaderModule (device, handle, nullptr);
-    handle = VK_NULL_HANDLE;
+    handle = nullptr;
 }
 
 

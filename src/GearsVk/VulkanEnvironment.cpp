@@ -1,6 +1,7 @@
 #include "VulkanEnvironment.hpp"
 
 #include "BuildType.hpp"
+#include "CommandLineFlag.hpp"
 #include "StaticInit.hpp"
 #include "TerminalColors.hpp"
 #include "Timer.hpp"
@@ -16,6 +17,11 @@
 
 
 #include <iomanip>
+
+
+static Utils::CommandLineOnOffFlag disableValidationLayersFlag (std::vector<std::string> { "--disableValidationLayers", "-v" }, "Disables Vulkan validation layers.");
+static Utils::CommandLineOnOffFlag logVulkanVersionFlag ("--logVulkanVersion");
+
 
 namespace GVK {
 
@@ -103,7 +109,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
 
     instance = std::make_unique<Instance> (is);
 
-    if (IsDebugBuild && callback.has_value ()) {
+    if (IsDebugBuild && callback.has_value () && !disableValidationLayersFlag.IsFlagOn ()) {
         messenger = std::make_unique<DebugUtilsMessenger> (*instance, *callback, DebugUtilsMessenger::noPerformance);
     }
 
@@ -111,8 +117,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
 
     physicalDevice = std::make_unique<PhysicalDevice> (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
 
-#ifdef LOG_VULKAN_INFO
-    {
+    if (logVulkanVersionFlag.IsFlagOn ()) {
         VkPhysicalDeviceProperties properties = physicalDevice->GetProperties ();
 
         auto DeviceTypeToString = [] (VkPhysicalDeviceType type) -> std::string {
@@ -141,7 +146,6 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
         vkGetPhysicalDeviceFormatProperties (*physicalDevice, VK_FORMAT_R32G32B32_SFLOAT, &props);
         vkGetPhysicalDeviceFormatProperties (*physicalDevice, VK_FORMAT_R32G32B32_SFLOAT, &props);
     }
-#endif
 
     std::vector<const char*> deviceExtensions;
 
@@ -157,13 +161,13 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
 
     deviceExtra = std::make_unique<DeviceExtra> (*device, *commandPool, *alloactor, *graphicsQueue);
 
-#ifdef LOG_VULKAN_INFO
-    VkPhysicalDeviceProperties deviceProperties;
-    vkGetPhysicalDeviceProperties (*physicalDevice, &deviceProperties);
+    if (logVulkanVersionFlag.IsFlagOn ()) {
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties (*physicalDevice, &deviceProperties);
 
-    std::cout << "physical device api version: " << GetVersionString (deviceProperties.apiVersion) << std::endl;
-    std::cout << "physical device driver version: " << GetVersionString (deviceProperties.driverVersion) << std::endl;
-#endif
+        std::cout << "physical device api version: " << GetVersionString (deviceProperties.apiVersion) << std::endl;
+        std::cout << "physical device driver version: " << GetVersionString (deviceProperties.driverVersion) << std::endl;
+    }
 }
 
 

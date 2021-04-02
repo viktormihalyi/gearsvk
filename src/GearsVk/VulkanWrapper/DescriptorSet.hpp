@@ -4,9 +4,8 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
-#include <memory>
 
 #include "DescriptorPool.hpp"
 #include "DescriptorSetLayout.hpp"
@@ -15,9 +14,9 @@ namespace GVK {
 
 class GVK_RENDERER_API DescriptorSet : public Noncopyable {
 private:
-    const VkDevice         device;
-    const VkDescriptorPool descriptorPool;
-    VkDescriptorSet        handle;
+    VkDevice                         device;
+    VkDescriptorPool                 descriptorPool;
+    GVK::MovablePtr<VkDescriptorSet> handle;
 
 public:
     DescriptorSet (VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout layout)
@@ -45,7 +44,7 @@ public:
     {
         // only free for VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
         // vkFreeDescriptorSets (device, descriptorPool, 1, &handle);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
 

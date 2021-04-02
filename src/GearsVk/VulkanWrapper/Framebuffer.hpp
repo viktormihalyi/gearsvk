@@ -3,10 +3,9 @@
 
 #include "Assert.hpp"
 #include "ImageView.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
-#include <memory>
 
 #include <vulkan/vulkan.h>
 
@@ -14,11 +13,11 @@ namespace GVK {
 
 class GVK_RENDERER_API Framebuffer final : public VulkanObject {
 private:
-    const VkDevice device;
-    VkFramebuffer  handle;
+    VkDevice                       device;
+    GVK::MovablePtr<VkFramebuffer> handle;
 
-    const uint32_t width;
-    const uint32_t height;
+    uint32_t width;
+    uint32_t height;
 
 public:
     Framebuffer (VkDevice device, VkRenderPass renderPass, const std::vector<std::reference_wrapper<ImageView2D>>& attachments, uint32_t width, uint32_t height)
@@ -51,7 +50,7 @@ public:
     virtual ~Framebuffer () override
     {
         vkDestroyFramebuffer (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     const size_t GetWidth () const

@@ -2,10 +2,9 @@
 #define IMAGE_HPP
 
 #include "CommandBuffer.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
-#include <memory>
 
 #include "vk_mem_alloc.h"
 
@@ -30,18 +29,18 @@ public:
     };
 
 protected:
-    VkImage handle;
+    GVK::MovablePtr<VkImage> handle;
 
 private:
-    const VkDevice     device;
-    const VmaAllocator allocator;
-    VmaAllocation      allocationHandle;
+    VkDevice      device;
+    VmaAllocator  allocator;
+    VmaAllocation allocationHandle;
 
-    const VkFormat format;
-    uint32_t       width;
-    uint32_t       height;
-    uint32_t       depth;
-    uint32_t       arrayLayers;
+    VkFormat format;
+    uint32_t width;
+    uint32_t height;
+    uint32_t depth;
+    uint32_t arrayLayers;
 
 protected:
     // for InheritedImage
@@ -94,12 +93,12 @@ public:
 
     virtual ~InheritedImage () override
     {
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 };
 
 
-class ImageBuilder {
+class GVK_RENDERER_API ImageBuilder {
 public:
     const VmaAllocator allocator;
 

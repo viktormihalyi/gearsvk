@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
@@ -12,8 +12,8 @@ namespace GVK {
 
 class GVK_RENDERER_API Pipeline : public VulkanObject {
 private:
-    const VkDevice device;
-    VkPipeline     handle;
+    VkDevice                    device;
+    GVK::MovablePtr<VkPipeline> handle;
 
 public:
     Pipeline (VkDevice                                              device,
@@ -31,7 +31,7 @@ public:
     ~Pipeline ()
     {
         vkDestroyPipeline (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     operator VkPipeline () const

@@ -1,36 +1,40 @@
-#include <vulkan/vulkan.h>
 
+// from GearsVk
 #include "FullscreenQuad.hpp"
 #include "GraphRenderer.hpp"
 #include "GraphSettings.hpp"
+#include "ImageData.hpp"
 #include "Operation.hpp"
 #include "RenderGraph.hpp"
 #include "Resource.hpp"
 #include "ShaderPipeline.hpp"
-#include "Timer.hpp"
 #include "UniformReflection.hpp"
-#include "Utils.hpp"
+#include "UniformView.hpp"
 #include "VulkanEnvironment.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
-#include <memory>
-
 #include "glmlib.hpp"
 
+// from std
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <string>
 #include <thread>
 
+// from Testing
 #include "GoogleTestEnvironment.hpp"
-#include "ImageData.hpp"
+
+// from Utils
+#include "SourceLocation.hpp"
+#include "Timer.hpp"
+#include "Utils.hpp"
+
+// from vulkan
+#include <vulkan/vulkan.h>
 
 
 const std::filesystem::path ShadersFolder = PROJECT_ROOT / "TestData" / "shaders";
-
-
-#include "SourceLocation.hpp"
-#include "UniformView.hpp"
 
 
 uint64_t Forrest_G (const uint64_t k, const uint64_t seed, const uint64_t g, const uint64_t m)
@@ -75,15 +79,16 @@ TEST_F (HeadlessGoogleTestEnvironment, rng)
 {
     double   sum     = 0.0;
     int      count   = 0;
-    uint64_t modolus = (static_cast<uint64_t> (1) << 31) - 1; // 2^31 - 1
-    uint64_t mul_a   = 48271;                                 // minstd_rand
+    uint64_t modolus = 2147483647; //(static_cast<uint64_t> (1) << 31) - 1; // 2^31 - 1
+    uint64_t mul_a   = 48271;      // minstd_rand
     uint64_t inc_c   = 0;
 
     for (int i = 10; i < 100000; ++i) {
         double val  = static_cast<double> (Forrest_G (i, 634, mul_a, modolus));
         double val2 = static_cast<double> (Forrest_C (i, 634, mul_a, 0, modolus));
         GVK_ASSERT (val == val2);
-        sum += val / modolus;
+        const double perc = val / modolus;
+        sum += perc;
         ++count;
     }
 
@@ -93,16 +98,51 @@ TEST_F (HeadlessGoogleTestEnvironment, rng)
 
 TEST_F (HeadlessGoogleTestEnvironment, LCGShader)
 {
-    std::unique_ptr<GVK::ShaderModule> sm = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Fragment, R"(
+    GVK::DeviceExtra& device        = GetDeviceExtra ();
+    GVK::CommandPool& commandPool   = GetCommandPool ();
+    GVK::Queue&       graphicsQueue = GetGraphicsQueue ();
+
+    GVK::RG::RenderGraph graph;
+
+    auto sp = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    sp->SetVertexShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec2 textureCoords;
+
+vec2 uvs[6] = vec2[] (
+    vec2 (0.f, 0.f),
+    vec2 (0.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (0.f, 0.f),
+    vec2 (1.f, 0.f)
+);
+
+vec2 positions[6] = vec2[] (
+    vec2 (-1.f, -1.f),
+    vec2 (-1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (-1.f, -1.f),
+    vec2 (+1.f, -1.f)
+);
+
+
+void main() {
+    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
+    textureCoords = uvs[gl_VertexIndex];
+}
+    )");
+
+    sp->SetFragmentShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_EXT_shader_explicit_arithmetic_types : enable
 
+layout (location = 0) in vec2 textureCoords;
 layout (location = 0) out vec4 outColor;
-
-layout (std140, binding = 2) uniform Asd {
-    int64_t hehehe;
-};
 
 uint64_t Forrest_G (const uint64_t k, const uint64_t seed, const uint64_t g, const uint64_t m)
 {
@@ -141,14 +181,35 @@ uint64_t Forrest_C (const uint64_t k, const uint64_t seed, const uint64_t g, con
     return C;
 }
 
-void main () {
-    outColor = vec4 (
-        Forrest_G (123, 456, 48271, 2147483647),
-        Forrest_C (123, 456, 48271, 0, 2147483647),
-        0,
-        1);
+void main ()
+{
+    float rng = float (Forrest_C (int (textureCoords.y * 800 * 600 + textureCoords.x * 600), 456, 48271, 0, 2147483647)) / float(2147483647);
+ 
+   outColor = vec4 (vec3 (rng), 1);
 }
     )");
+
+
+    std::shared_ptr<GVK::RG::RenderOperation> redFillOperation = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp));
+
+    std::shared_ptr<GVK::RG::ImageResource> red = std::make_unique<GVK::RG::WritableImageResource> (512, 512);
+
+    GVK::RG::GraphSettings s (device, 3);
+    s.connectionSet.Add (redFillOperation, red,
+                         std::make_unique<GVK::RG::OutputBinding> (0,
+                                                                   red->GetFormatProvider (),
+                                                                   red->GetFinalLayout (),
+                                                                   VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+
+    graph.Compile (std::move (s));
+
+    graph.Submit (0);
+
+    vkQueueWaitIdle (graphicsQueue);
+    vkDeviceWaitIdle (device);
+
+    CompareImages ("lcg", *red->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
 
 

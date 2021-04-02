@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
 
@@ -12,10 +12,10 @@ namespace GVK {
 
 class GVK_RENDERER_API PipelineLayout : public Noncopyable {
 private:
-    const VkDevice   device;
-    VkPipelineLayout handle;
+    VkDevice                          device;
+    GVK::MovablePtr<VkPipelineLayout> handle;
 
-    const std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+    std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 
     static VkPipelineLayout CreatePipelineLayout (VkDevice device, const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts)
     {
@@ -46,7 +46,7 @@ public:
     ~PipelineLayout ()
     {
         vkDestroyPipelineLayout (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     operator VkPipelineLayout () const

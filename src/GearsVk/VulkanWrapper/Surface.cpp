@@ -53,8 +53,8 @@ Surface::~Surface ()
 {
     if (handle != VK_NULL_HANDLE) {
         vkDestroySurfaceKHR (instance, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 }
 
-}
+} // namespace GVK

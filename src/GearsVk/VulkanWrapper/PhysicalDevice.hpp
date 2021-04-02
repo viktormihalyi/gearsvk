@@ -4,7 +4,7 @@
 #include "GearsVkAPI.hpp"
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanUtils.hpp"
 
@@ -61,12 +61,12 @@ public:
     };
 
 private:
-    const VkInstance            instance;
-    const std::set<std::string> requestedDeviceExtensionSet;
-    const QueueFamilySelector   selector;
+    VkInstance            instance;
+    std::set<std::string> requestedDeviceExtensionSet;
+    QueueFamilySelector   selector;
 
-    VkPhysicalDevice handle;
-    QueueFamilies    queueFamilies;
+    GVK::MovablePtr<VkPhysicalDevice> handle;
+    QueueFamilies                     queueFamilies;
 
 public:
     PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet, const QueueFamilySelector& Selector = defaultQueueFamilySelector);

@@ -7,9 +7,9 @@
 
 #include "Assert.hpp"
 #include "DeviceExtra.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
-#include <memory>
 
 namespace GVK {
 
@@ -27,9 +27,9 @@ public:
 
 class GVK_RENDERER_API CommandBuffer : public VulkanObject {
 private:
-    const VkDevice      device;
-    const VkCommandPool commandPool;
-    VkCommandBuffer     handle;
+    VkDevice                         device;
+    VkCommandPool                    commandPool;
+    GVK::MovablePtr<VkCommandBuffer> handle;
 
     std::unordered_map<const Image*, std::vector<std::pair<VkImageLayout, VkImageLayout>>> layouts;
 
@@ -63,7 +63,7 @@ public:
     virtual ~CommandBuffer () override
     {
         vkFreeCommandBuffers (device, commandPool, 1, &handle);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     void Begin (VkCommandBufferUsageFlags flags = 0)

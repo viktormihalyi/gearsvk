@@ -145,6 +145,7 @@ uint32_t ImageData::GetByteCount () const
 
 void ImageData::SaveTo (const std::filesystem::path& path) const
 {
+    Utils::EnsureParentFolderExists (path);
     GVK_ASSERT (width * height * components == data.size ());
 
     const int result = stbi_write_png (path.u8string ().c_str (), width, height, components, data.data (), width * components);
@@ -179,4 +180,4 @@ void ImageData::ConvertBGRToRGB ()
     }
 }
 
-}
+} // namespace GVK

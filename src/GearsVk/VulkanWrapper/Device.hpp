@@ -2,10 +2,9 @@
 #define DEVICE_HPP
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
-#include <memory>
 
 #include <vulkan/vulkan.h>
 
@@ -22,8 +21,8 @@ public:
 
 class GVK_RENDERER_API DeviceObject : public VulkanObject, public Device {
 private:
-    const VkPhysicalDevice physicalDevice;
-    VkDevice               handle;
+    VkPhysicalDevice          physicalDevice;
+    GVK::MovablePtr<VkDevice> handle;
 
     uint32_t FindMemoryType (uint32_t typeFilter, VkMemoryPropertyFlags properties) const
     {
@@ -57,6 +56,7 @@ public:
         }
 
         VkPhysicalDeviceFeatures deviceFeatures = {};
+        deviceFeatures.shaderInt64 = VK_TRUE;
 
         VkDeviceCreateInfo createInfo      = {};
         createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -76,7 +76,7 @@ public:
     {
         vkDeviceWaitIdle (handle);
         vkDestroyDevice (handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     virtual operator VkDevice () const override

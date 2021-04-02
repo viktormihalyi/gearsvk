@@ -4,9 +4,9 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
+#include "MovablePtr.hpp"
 #include "Noncopyable.hpp"
 #include "Utils.hpp"
-#include <memory>
 
 #include "vk_mem_alloc.h"
 
@@ -14,18 +14,18 @@
 
 namespace GVK {
 
-class GVK_RENDERER_API MemoryMapping : public Noncopyable {
+class GVK_RENDERER_API MemoryMapping {
 private:
-    const VkDevice       device;
-    const VkDeviceMemory memory;
+    GVK::MovablePtr<VkDevice>       device;
+    GVK::MovablePtr<VkDeviceMemory> memory;
 
-    const VmaAllocator  allocator;
-    const VmaAllocation allocationHandle;
+    GVK::MovablePtr<VmaAllocator>  allocator;
+    GVK::MovablePtr<VmaAllocation> allocationHandle;
 
-    const size_t offset;
-    size_t       size;
+    size_t offset;
+    size_t size;
 
-    void* mappedMemory;
+    GVK::MovablePtr<void*> mappedMemory;
 
 public:
     MemoryMapping (VkDevice device, VkDeviceMemory memory, size_t offset, size_t size)

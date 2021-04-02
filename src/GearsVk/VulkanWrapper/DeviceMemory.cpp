@@ -1,5 +1,6 @@
 #include "DeviceMemory.hpp"
 
+#include <iostream>
 #include <sstream>
 
 namespace GVK {
@@ -62,11 +63,11 @@ DeviceMemory::DeviceMemory (VkDevice device, const size_t allocationSize, const 
 DeviceMemory::~DeviceMemory ()
 {
     vkFreeMemory (device, handle, nullptr);
-    handle = VK_NULL_HANDLE;
+    handle = nullptr;
 
 #if 1
     LogFree (allocationSize, memoryTypeIndex);
 #endif
 }
 
-}
+} // namespace GVK

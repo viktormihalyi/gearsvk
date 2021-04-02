@@ -33,7 +33,7 @@ public:
     ~Allocator ()
     {
         vmaDestroyAllocator (handle);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     operator VmaAllocator () const { return handle; }

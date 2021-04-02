@@ -57,6 +57,9 @@ std::string ReplaceAll (const std::string& str, const std::string& substringToRe
 GVK_UTILS_API
 bool StringContains (const std::string& str, const std::string& substr);
 
+GVK_UTILS_API
+void EnsureParentFolderExists (const std::filesystem::path& filePath);
+
 template<typename SourceType, typename DestType>
 std::set<DestType> ToSet (const std::vector<SourceType>& vec)
 {

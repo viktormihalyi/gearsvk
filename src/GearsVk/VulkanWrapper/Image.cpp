@@ -89,7 +89,7 @@ Image::~Image ()
     } else if (allocator != VK_NULL_HANDLE) {
         vmaDestroyImage (allocator, handle, allocationHandle);
     }
-    handle = VK_NULL_HANDLE;
+    handle = nullptr;
 }
 
 
@@ -230,4 +230,4 @@ void Image::CmdCopyBufferPartToImage (CommandBuffer& commandBuffer, VkBuffer buf
     });
 }
 
-}
+} // namespace GVK

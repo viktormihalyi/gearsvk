@@ -153,6 +153,10 @@ bool AreImagesEqual (const DeviceExtra& device, const Image& image, const std::f
     std::vector<std::array<uint8_t, 4>> expected (pixelCount);
     int                                 expectedWidth, expectedHeight, expectedComponents;
     unsigned char*                      exepctedData = stbi_load (expectedImage.u8string ().c_str (), &expectedWidth, &expectedHeight, &expectedComponents, STBI_rgb_alpha);
+    if (GVK_ERROR (exepctedData == nullptr)) {
+        return false;
+    }
+
     if (GVK_ERROR (expectedWidth != width || expectedHeight != height || expectedComponents != 4)) {
         stbi_image_free (exepctedData);
         return false;

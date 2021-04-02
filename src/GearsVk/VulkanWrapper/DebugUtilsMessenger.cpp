@@ -96,7 +96,7 @@ DebugUtilsMessenger::DebugUtilsMessenger (VkInstance instance, const Callback& c
 DebugUtilsMessenger::~DebugUtilsMessenger ()
 {
     DestroyDebugUtilsMessengerEXT (instance, handle, nullptr);
-    handle = VK_NULL_HANDLE;
+    handle = nullptr;
 }
 
-}
+} // namespace GVK

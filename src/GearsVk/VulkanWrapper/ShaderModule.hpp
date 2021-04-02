@@ -4,11 +4,10 @@
 #include "GearsVkAPI.hpp"
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "ShaderReflection.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
-#include <memory>
 
 #include <filesystem>
 
@@ -60,7 +59,6 @@ class GVK_RENDERER_API ShaderModule : public VulkanObject {
 public:
     static constexpr uint32_t ShaderKindCount = 6;
 
-
     enum class ReadMode {
         GLSLFilePath,
         SPVFilePath,
@@ -94,14 +92,14 @@ public:
     };
 
 private:
-    const VkDevice   device;
-    VkShaderModule   handle;
-    const ReadMode   readMode;
-    const ShaderKind shaderKind;
+    VkDevice                        device;
+    GVK::MovablePtr<VkShaderModule> handle;
+    ReadMode                        readMode;
+    ShaderKind                      shaderKind;
 
-    std::string                 sourceCode;
-    const std::filesystem::path fileLocation;
-    std::vector<uint32_t>       binary;
+    std::string           sourceCode;
+    std::filesystem::path fileLocation;
+    std::vector<uint32_t> binary;
 
     Reflection reflection;
 

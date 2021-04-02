@@ -2,8 +2,8 @@
 #define SURFACE_HPP
 
 #include "GearsVkAPI.hpp"
+#include "MovablePtr.hpp"
 #include "VulkanObject.hpp"
-#include <memory>
 
 #include <vulkan/vulkan.h>
 
@@ -11,8 +11,8 @@ namespace GVK {
 
 class GVK_RENDERER_API Surface : public VulkanObject {
 private:
-    VkInstance   instance;
-    VkSurfaceKHR handle;
+    VkInstance                    instance;
+    GVK::MovablePtr<VkSurfaceKHR> handle;
 
 public:
     Surface (VkInstance instance, VkSurfaceKHR&& handle);

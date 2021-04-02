@@ -275,7 +275,7 @@ public:
     virtual ~Event () override
     {
         vkDestroyEvent (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     operator VkEvent () const { return handle; }

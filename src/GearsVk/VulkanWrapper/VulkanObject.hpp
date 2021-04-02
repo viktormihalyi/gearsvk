@@ -2,13 +2,11 @@
 #define VULKANOBJECT_HPP
 
 #include "GearsVkAPI.hpp"
-#include "Noncopyable.hpp"
 #include "UUID.hpp"
-#include <memory>
 
 namespace GVK {
 
-class GVK_RENDERER_API VulkanObject : public Noncopyable {
+class GVK_RENDERER_API VulkanObject {
 private:
     GVK::UUID uuid;
 

@@ -11,7 +11,7 @@ class LCG(Component):
         stimulus.randomGridHeight = randomGridSize[1]
         stimulus.randomSeed = randomSeed
         stimulus.randomGeneratorShaderSource = """
-            layout (binding = 6) uniform ubo_lcg { uint seed; uint frameIndex; };
+            layout (binding = 6) uniform ubo_lcg { uint seed; uint frameIndex; uint gridSizeX; uint gridSizeY; };
             
             layout (location = 1) in vec2 fTexCoord;
 
@@ -37,29 +37,29 @@ class LCG(Component):
 
                 return C;
             }
+            
+            float rand (vec2 co)
+            {
+                return fract (sin (dot (co.xy, vec2 (12.9898, 78.233))) * 43758.5453);
+            }
 
             void main ()
             {
-                const vec2 randCoord = fTexCoord;
-
-                uint32_t gridWidth  = @<gridSizeX>@;
-                uint32_t gridHeight = @<gridSizeY>@;
-
-                // each frame gets gridWidth*gridHeight random uvec4s
-
-                const uint64_t gridFrameOffset = gridWidth * gridHeight * frameIndex * 4;
-                const uint32_t k = gridFrameOffset + 4 * (frameIndex + uint (fTexCoord.x * gridWidth) * gridWidth + uint (fTexCoord.y * gridHeight));
-
-                const uint64_t modulus = 2147483647;
-                const uint64_t g       = 48271;
-                const uint64_t c       = 0;
-                const uint64_t seed    = 456;
-
-                uint64_t rng_0 = Forrest_C (k + 0, seed, g, c, modulus);
-                uint64_t rng_1 = Forrest_C (k + 1, seed, g, c, modulus);
-                uint64_t rng_2 = Forrest_C (k + 2, seed, g, c, modulus);
-                uint64_t rng_3 = Forrest_C (k + 3, seed, g, c, modulus);
+                uint32_t gridWidth  = gridSizeX;
+                uint32_t gridHeight = gridSizeY;
                 
-                nextElement = uvec4 (rng_0, rng_1, rng_2, rng_3);
+                const uint64_t frameOffset = gridWidth * gridHeight * 4 * frameIndex;
+                const uint64_t pxOffset = uint (fTexCoord.y * gridWidth * gridHeight + fTexCoord.x * gridHeight) * 4;
+
+                const float perc1 = float (Forrest_C (frameOffset + pxOffset + 0, seed, 48271, 0, 2147483647)) / float (2147483647);
+                const float perc2 = float (Forrest_C (frameOffset + pxOffset + 1, seed, 48271, 0, 2147483647)) / float (2147483647);
+                const float perc3 = float (Forrest_C (frameOffset + pxOffset + 2, seed, 48271, 0, 2147483647)) / float (2147483647);
+                const float perc4 = float (Forrest_C (frameOffset + pxOffset + 3, seed, 48271, 0, 2147483647)) / float (2147483647);
+
+                nextElement = uvec4 (perc1 * uint (-1), perc2 * uint (-1), perc3 * uint (-1), perc4 * uint (-1));
+                
+                //vec2 randCoord = fTexCoord;
+                //randCoord += vec2 (float (seed), 0.f);
+                //nextElement = uvec4 (rand (randCoord) * uint (-1));
             }
-		""".format(gridSizeX=randomGridSize[0], gridSizeY=randomGridSize)
+		"""

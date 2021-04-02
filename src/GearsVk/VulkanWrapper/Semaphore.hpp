@@ -4,17 +4,16 @@
 #include <vulkan/vulkan.h>
 
 #include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
-#include <memory>
 
 namespace GVK {
 
 class GVK_RENDERER_API Semaphore : public VulkanObject {
 private:
-    const VkDevice device;
-    VkSemaphore    handle;
+    VkDevice                     device;
+    GVK::MovablePtr<VkSemaphore> handle;
 
     static VkSemaphore CreateSemaphore (VkDevice device)
     {
@@ -38,7 +37,7 @@ public:
     ~Semaphore ()
     {
         vkDestroySemaphore (device, handle, nullptr);
-        handle = VK_NULL_HANDLE;
+        handle = nullptr;
     }
 
     operator VkSemaphore () const
