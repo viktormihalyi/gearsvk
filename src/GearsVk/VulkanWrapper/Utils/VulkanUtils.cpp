@@ -154,6 +154,7 @@ bool AreImagesEqual (const DeviceExtra& device, const Image& image, const std::f
     int                                 expectedWidth, expectedHeight, expectedComponents;
     unsigned char*                      exepctedData = stbi_load (expectedImage.u8string ().c_str (), &expectedWidth, &expectedHeight, &expectedComponents, STBI_rgb_alpha);
     if (GVK_ERROR (exepctedData == nullptr)) {
+        std::cout << "Failed to load " << expectedImage.u8string () << std::endl;
         return false;
     }
 

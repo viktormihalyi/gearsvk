@@ -255,23 +255,26 @@ target_compile_options (${TARGET_TEST} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL_EMBEDDED} PRIVATE ${COMPILER_FLAGS})
 
+add_custom_target (foo ALL)
 
 add_custom_command (
-    TARGET ${TARGET_DLL}
+    TARGET foo
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/src/UserInterface
         ${CMAKE_BINARY_DIR}/bin
+    COMMAND ${CMAKE_COMMAND} -E echo [COPY] Copying UserInterface...
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Copying UserInterface..."
 )
 
 add_custom_command (
-    TARGET ${TARGET_TEST}
+    TARGET foo
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/src/Tests/TestData
         ${CMAKE_BINARY_DIR}/bin/TestData
+    COMMAND ${CMAKE_COMMAND} -E echo [COPY] Copying Tests/TestData...
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Copying TestData..."
 )
@@ -302,6 +305,7 @@ add_custom_command (
     COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_BINARY_DIR}/${PYD_MODULE_NAME}.${PYD_MODULE_EXTENSION_SOURCE}
         ${CMAKE_BINARY_DIR}/bin/${TARGET_DLL}${PYTHON_MODULE_POSTFIX}.${PYD_MODULE_EXTENSION_TARGET}
+    COMMAND ${CMAKE_COMMAND} -E echo [COPY] Copying ${TARGET_DLL}...
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Copying ${TARGET_DLL}..."
 )
@@ -312,6 +316,7 @@ add_custom_command (
     POST_BUILD
     COMMAND ${PYTHON_VENV_COMMAND}
     COMMAND python3 ${CMAKE_BINARY_DIR}/bin/setup.py build -b ${CMAKE_BINARY_DIR}/install
+    COMMAND ${CMAKE_COMMAND} -E echo [COPY] Running setup.py...
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     COMMENT "Running setup.py..."
 )

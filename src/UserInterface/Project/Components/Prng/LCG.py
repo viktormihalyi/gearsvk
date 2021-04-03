@@ -38,11 +38,6 @@ class LCG(Component):
                 return C;
             }
             
-            float rand (vec2 co)
-            {
-                return fract (sin (dot (co.xy, vec2 (12.9898, 78.233))) * 43758.5453);
-            }
-
             void main ()
             {
                 uint32_t gridWidth  = gridSizeX;
@@ -57,9 +52,5 @@ class LCG(Component):
                 const float perc4 = float (Forrest_C (frameOffset + pxOffset + 3, seed, 48271, 0, 2147483647)) / float (2147483647);
 
                 nextElement = uvec4 (perc1 * uint (-1), perc2 * uint (-1), perc3 * uint (-1), perc4 * uint (-1));
-                
-                //vec2 randCoord = fTexCoord;
-                //randCoord += vec2 (float (seed), 0.f);
-                //nextElement = uvec4 (rand (randCoord) * uint (-1));
             }
 		"""

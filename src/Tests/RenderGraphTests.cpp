@@ -96,7 +96,7 @@ TEST_F (HeadlessGoogleTestEnvironment, rng)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, LCGShader)
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_LCGShader)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
