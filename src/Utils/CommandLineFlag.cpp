@@ -53,7 +53,6 @@ void CommandLineFlagRegistry::MatchAll (int argc, char** argv)
 
     if (wasUnused) {
         PrintCommandLineHelpMessage ();
-        exit (EXIT_FAILURE);
     }
 }
 

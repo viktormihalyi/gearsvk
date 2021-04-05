@@ -21,6 +21,7 @@ set (TARGET_GVKRENDERER GVKRenderer)
 set (TARGET_TEST GVKTest)
 set (TARGET_DLL GearsModule)
 set (TARGET_DLL_EMBEDDED GearsModuleEmbedded)
+set (TARGET_SEQRUNNER SequenceRunner)
 
 project (${PROJECT_NAME})
 
@@ -164,7 +165,7 @@ add_library (${TARGET_GVKRENDERER} SHARED
     src/GearsVk/UniformView.cpp
 
     external/msdfgen/ext/import-font.cpp)
-
+    
 add_executable (${TARGET_TEST}
     src/Tests/GoogleTestEnvironment.cpp
     src/Tests/FontRenderingTests.cpp
@@ -172,6 +173,9 @@ add_executable (${TARGET_TEST}
     src/Tests/TestMain.cpp
     src/Tests/GearsTests.cpp
     src/Tests/VizHFTests.cpp)
+
+add_executable (${TARGET_SEQRUNNER}
+    src/SequenceRunner/SequenceRunner.cpp)
 
 set (GEARSMODULE_COMMON_SOURCES
     src/GearsPYD/event/events.cpp
@@ -221,12 +225,14 @@ target_compile_definitions (${TARGET_GVKRENDERER} PRIVATE
     GVK_RENDERER_EXPORTS
 )
 target_compile_definitions (${TARGET_TEST} PRIVATE)
+target_compile_definitions (${TARGET_SEQRUNNER} PRIVATE)
 target_compile_definitions (${TARGET_DLL} PRIVATE GEARS_EXPORTS)
 target_compile_definitions (${TARGET_DLL_EMBEDDED} PRIVATE GEARS_EMBEDDED_EXPORTS)
 
 target_include_directories (${TARGET_GVKUTILS} PRIVATE src/Utils)
 target_include_directories (${TARGET_GVKRENDERER} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_TEST} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
+target_include_directories (${TARGET_SEQRUNNER} PRIVATE ${GEARSVK_INCLUDE_FOLDERS})
 target_include_directories (${TARGET_DLL} PRIVATE
     ${GEARSVK_INCLUDE_FOLDERS}
     src/GearsPYD
@@ -248,10 +254,12 @@ target_link_libraries (${TARGET_GVKRENDERER} ${TARGET_GVKUTILS} ${Vulkan_LIBRARI
 target_link_libraries (${TARGET_DLL} ${TARGET_GVKRENDERER} ${Python3_LIBRARIES})
 target_link_libraries (${TARGET_DLL_EMBEDDED} ${TARGET_GVKRENDERER} ${Python3_LIBRARIES})
 target_link_libraries (${TARGET_TEST} ${TARGET_GVKRENDERER} ${TARGET_DLL_EMBEDDED} ${CONAN_LIBS})
+target_link_libraries (${TARGET_SEQRUNNER} ${TARGET_GVKRENDERER} ${TARGET_DLL_EMBEDDED} ${CONAN_LIBS})
 
 target_compile_options (${TARGET_GVKUTILS} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_GVKRENDERER} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_TEST} PRIVATE ${COMPILER_FLAGS})
+target_compile_options (${TARGET_SEQRUNNER} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL} PRIVATE ${COMPILER_FLAGS})
 target_compile_options (${TARGET_DLL_EMBEDDED} PRIVATE ${COMPILER_FLAGS})
 

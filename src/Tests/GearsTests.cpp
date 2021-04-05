@@ -86,6 +86,12 @@ protected:
 
         CompareImages (checkName, img);
     }
+
+    void RenderFirstFrame ()
+    {
+        sequenceAdapter->RenderFrameIndex (1);
+        sequenceAdapter->Wait ();
+    }
 };
 
 
@@ -116,6 +122,176 @@ TEST_F (GearsTests, 2_chess_30Hz)
     RenderAndCompare (480, "2_chess_30Hz_480");
     RenderAndCompare (780, "2_chess_30Hz_780");
     RenderAndCompare (1200, "2_chess_30Hz_1200");
+}
 
-    //sequenceAdapter->RenderFullOnExternalWindow ();
+
+TEST_F (GearsTests, 1_fullfield_whites)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "1_Plain" / "1_fullfield_whites.pyx");
+
+    RenderAndCompare (122, "1_fullfield_whites_122");
+    RenderAndCompare (480, "1_fullfield_whites_480");
+    RenderAndCompare (780, "1_fullfield_whites_780");
+    RenderAndCompare (1200, "1_fullfield_whites_1200");
+}
+
+
+TEST_F (GearsTests, LoadOnly_2_fullfield_with_short_blacks)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "1_Plain" / "2_fullfield_with_short_blacks.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_3_offhunter)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "1_Plain" / "3_offhunter.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_4_melaparam)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "1_Plain" / "4_melaparam.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_1_square_oscillation)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "2_Oscillations" / "1_square_oscillation.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_2_sine_oscillation)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "2_Oscillations" / "2_sine_oscillation.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_3_mulifreq_synthesis)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "2_Oscillations" / "3_mulifreq_synthesis.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_4_mulifreq_floating)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "2_Oscillations" / "4_mulifreq_floating.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_1_linear_descreasing)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "3_Contrast" / "1_linear_descreasing.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_2_linear_increasing)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "3_Contrast" / "2_linear_increasing.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_3_rep2_n6_)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "3_Contrast" / "3_rep2_n6_.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_4_rep2_n6_05_1_0)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "3_Contrast" / "4_rep2_n6_05_1_0.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_1_chirp_freqmod_updown)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "4_SinChirp" / "1_chirp_freqmod_updown.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_2_chirp_freqmod_downup)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "4_SinChirp" / "2_chirp_freqmod_downup.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_3_chirp_ampmod_3Hz)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "4_SinChirp" / "3_chirp_ampmod_3Hz.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_4_chirp_ampmod_6Hz)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "4_SinChirp" / "4_chirp_ampmod_6Hz.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_5_chirp_ampmod_9Hz)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "4_SinChirp" / "5_chirp_ampmod_9Hz.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_9_15sec_chirp_freqmod_updown)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "4_SinChirp" / "9_15sec_chirp_freqmod_updown.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_g_chirp_lin_freqmod_updown)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "4_SinChirp" / "g_chirp_lin_freqmod_updown.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_1_squarechirp_freqmod_updown)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "5_SquareChirp" / "1_squarechirp_freqmod_updown.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_2_squarechirp_freqmod_downup)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "5_SquareChirp" / "2_squarechirp_freqmod_downup.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_3_squarechirp_ampmod_3Hz)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "5_SquareChirp" / "3_squarechirp_ampmod_3Hz.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_4_squarechirp_ampmod_6Hz)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "5_SquareChirp" / "4_squarechirp_ampmod_6Hz.pyx");
+    RenderFirstFrame ();
+}
+
+
+TEST_F (GearsTests, LoadOnly_5_squarechirp_ampmod_9Hz)
+{
+    LoadFromFile (SequencesFolder / "2_FullFields" / "5_SquareChirp" / "5_squarechirp_ampmod_9Hz.pyx");
+    RenderFirstFrame ();
 }

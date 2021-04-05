@@ -236,7 +236,9 @@ SynchronizedSwapchainGraphRenderer::~SynchronizedSwapchainGraphRenderer ()
 
 void SynchronizedSwapchainGraphRenderer::Wait ()
 {
-    inFlightFences[currentFrameIndex]->Wait ();
+    for (auto& fence : inFlightFences) {
+        fence->Wait ();
+    }
 }
 
 } // namespace RG
