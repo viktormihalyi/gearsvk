@@ -13,14 +13,14 @@ public:
 
     void Register (CommandLineFlag& flag);
 
-    void MatchAll (int argc, char** argv);
+    void MatchAll (int argc, char** argv, bool printUnusedWarning);
 };
 
 
 static void PrintCommandLineHelpMessage ();
 
 
-void CommandLineFlagRegistry::MatchAll (int argc, char** argv)
+void CommandLineFlagRegistry::MatchAll (int argc, char** argv, bool printUnusedWarning)
 {
     GVK_ASSERT (argc >= 1);
 
@@ -43,16 +43,18 @@ void CommandLineFlagRegistry::MatchAll (int argc, char** argv)
         flag->Match (argc, argv, matcher);
     }
 
-    bool wasUnused = false;
-    for (int i = 0; i < argc; ++i) {
-        if (!usedIndices[i]) {
-            std::cout << "[COMMAND LINE ARGS] Argument \"" << argv[i] << "\" is unknown (at index " << i << ")" << std::endl;
-            wasUnused = true;
+    if (printUnusedWarning) {
+        bool wasUnused = false;
+        for (int i = 0; i < argc; ++i) {
+            if (!usedIndices[i]) {
+                std::cout << "[COMMAND LINE ARGS] Argument \"" << argv[i] << "\" is unknown (at index " << i << ")" << std::endl;
+                wasUnused = true;
+            }
         }
-    }
 
-    if (wasUnused) {
-        PrintCommandLineHelpMessage ();
+        if (wasUnused) {
+            PrintCommandLineHelpMessage ();
+        }
     }
 }
 
@@ -80,10 +82,11 @@ CommandLineFlag::CommandLineFlag ()
     globalCommandLineFlagRegistry->Register (*this);
 }
 
-void CommandLineFlag::MatchAll (int argc, char** argv)
+
+void CommandLineFlag::MatchAll (int argc, char** argv, bool printUnusedWarning)
 {
     EnsureRegistryInitialized ();
-    globalCommandLineFlagRegistry->MatchAll (argc, argv);
+    globalCommandLineFlagRegistry->MatchAll (argc, argv, printUnusedWarning);
 }
 
 

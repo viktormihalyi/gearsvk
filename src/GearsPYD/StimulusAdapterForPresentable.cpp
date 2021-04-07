@@ -26,7 +26,9 @@
 constexpr bool LogDebugInfo = false;
 
 
-StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanEnvironment& environment, std::shared_ptr<GVK::Presentable>& presentable, const std::shared_ptr<Stimulus const>& stimulus)
+StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanEnvironment&          environment,
+                                                              std::shared_ptr<GVK::Presentable>&     presentable,
+                                                              const std::shared_ptr<Stimulus const>& stimulus)
     : presentable (presentable)
 {
     renderGraph = std::make_unique<GVK::RG::RenderGraph> ();
@@ -39,12 +41,12 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
 
     GVK_ASSERT (passes.size () == 1);
 
+    bool firstPass = true;
     for (const Pass::P& pass : passes) {
         if constexpr (LogDebugInfo) {
             std::cout << pass->ToDebugString () << std::endl;
         }
 
-        GVK_ASSERT (pass->rasterizationMode == Pass::RasterizationMode::fullscreen);
         GVK_ASSERT (pass->rasterizationMode == Pass::RasterizationMode::fullscreen);
 
         const std::string vert = pass->getStimulusGeneratorVertexShaderSource (pass->rasterizationMode);
@@ -65,7 +67,12 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
         if (stimulus->requiresClearing) {
             passOperation->compileSettings.clearColor = { stimulus->clearColor, 1.0 };
         }
-        passOperation->compileSettings.blendEnabled = passes.size () > 1;
+
+        if (!firstPass) {
+            passOperation->compileSettings.clearColor = std::nullopt;
+        }
+        
+        passOperation->compileSettings.blendEnabled = false;//passes.size () > 1;
 
         GVK_ASSERT (!stimulus->usesForwardRendering);
         GVK_ASSERT (stimulus->mono);
@@ -78,7 +85,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
                                                                        VK_ATTACHMENT_STORE_OP_STORE));
 
         passToOperation[pass] = passOperation;
-        break;
+        firstPass = false;
     }
 
     std::optional<uint32_t> randomBinding;
@@ -96,6 +103,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
         return std::nullopt;
     });
 
+    // TODO 0 means viewport size
     if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0 && randomBinding.has_value ()) {
         std::shared_ptr<GVK::RG::WritableImageResource> randomTexture = std::make_unique<GVK::RG::WritableImageResource> (
             VK_FILTER_NEAREST,
@@ -225,7 +233,9 @@ void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer& rendere
 
         if (randomGeneratorOperation != nullptr) {
             auto& fragmentShaderUniforms       = (*reflection)[randomGeneratorOperation->GetUUID ()][GVK::ShaderKind::Fragment];
-            fragmentShaderUniforms["ubo_seed"] = static_cast<uint32_t> (frameIndex);
+            if (fragmentShaderUniforms.Contains ("ubo_seed")) {
+                fragmentShaderUniforms["ubo_seed"] = static_cast<uint32_t> (frameIndex);
+            }
             if (fragmentShaderUniforms.Contains ("ubo_lcg")) {
                 fragmentShaderUniforms["ubo_lcg"]["frameIndex"] = static_cast<uint32_t> (frameIndex);
                 fragmentShaderUniforms["ubo_lcg"]["seed"]       = static_cast<uint32_t> (89236738);

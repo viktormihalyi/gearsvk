@@ -42,11 +42,9 @@ class ShiftingBarcode(SingleShape) :
                 background = Pif.Solid(
                     color=color2,
                     ),
-                prng =  Prng.CellShift(
-                    randomSeed = randomSeed,
+                prng =  Prng.LCG(
+                    # TODO randomSeed = randomSeed,
                     randomGridSize = randomGridSize,
-                    step = step,
-                    initialValue = initialValue,
                     ),
                 spatialFilter = spatialFilter,
                 )

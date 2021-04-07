@@ -78,6 +78,14 @@ Pipeline::Pipeline (VkDevice                                              device
     colorBlendAttachment.dstAlphaBlendFactor                 = VK_BLEND_FACTOR_ZERO;
     colorBlendAttachment.alphaBlendOp                        = VK_BLEND_OP_ADD;
 
+    // new
+    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
+    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+
     std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments (attachmentCount, colorBlendAttachment);
 
     VkPipelineColorBlendStateCreateInfo colorBlending = {};

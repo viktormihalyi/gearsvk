@@ -26,7 +26,7 @@ public:
 
     virtual std::string GetHelpText () { return ""; }
 
-    static void MatchAll (int argc, char** argv);
+    static void MatchAll (int argc, char** argv, bool printUnusedWarning = true);
 
 protected:
     static bool MatchOne (int argc, char** argv, Matcher& matcher, const std::string& flag);

@@ -12,13 +12,7 @@ class SaturatedColorRandomGrid(Base) :
         #randoms and cellSize are set from the C++ DLL
         stimulus = spass.getStimulus()
         spass.enableColorMode()
-        spass.setShaderFunction( name = functionName, src = self.glslEsc( '''
-            #ifndef GEARS_RANDOMS_RESOURCES
-            #define GEARS_RANDOMS_RESOURCES
-            uniform usampler2D randoms;
-            uniform vec2 cellSize;
-            uniform ivec2 randomGridSize;
-            #endif
+        spass.setShaderFunction( name = functionName, src = self.glslEsc( gears.GetGLSLResourcesForRandoms () + '''
             vec3 @<X>@ (vec2 x, float time){ 
                 uvec3 v = texelFetch(randoms, ivec2( (x + randomGridSize * cellSize*0.5) / cellSize), 0).xyz;
                 return vec3(

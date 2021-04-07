@@ -32,6 +32,7 @@ public:
     const VkShaderStageFlagBits vkflag;
     const ShaderKind            shaderKind;
     const EShLanguage           esh;
+    const std::string           displayName;
 
 private:
     ShaderKindInfo () = default;
@@ -54,6 +55,7 @@ const ShaderKindInfo ShaderKindInfo::vert {
     VK_SHADER_STAGE_VERTEX_BIT,
     ShaderKind::Vertex,
     EShLangVertex,
+    "Vertex Shader",
 };
 
 const ShaderKindInfo ShaderKindInfo::tesc {
@@ -61,6 +63,7 @@ const ShaderKindInfo ShaderKindInfo::tesc {
     VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
     ShaderKind::TessellationControl,
     EShLangTessControl,
+    "Tessellation Control Shader",
 };
 
 const ShaderKindInfo ShaderKindInfo::tese {
@@ -68,6 +71,7 @@ const ShaderKindInfo ShaderKindInfo::tese {
     VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
     ShaderKind::TessellationEvaluation,
     EShLangTessEvaluation,
+    "Tessellation Evaluation Shader",
 };
 
 const ShaderKindInfo ShaderKindInfo::geom {
@@ -75,6 +79,7 @@ const ShaderKindInfo ShaderKindInfo::geom {
     VK_SHADER_STAGE_GEOMETRY_BIT,
     ShaderKind::Geometry,
     EShLangGeometry,
+    "Geometry Shader",
 };
 
 const ShaderKindInfo ShaderKindInfo::frag {
@@ -82,6 +87,7 @@ const ShaderKindInfo ShaderKindInfo::frag {
     VK_SHADER_STAGE_FRAGMENT_BIT,
     ShaderKind::Fragment,
     EShLangFragment,
+    "Fragment Shader",
 };
 
 const ShaderKindInfo ShaderKindInfo::comp {
@@ -89,6 +95,7 @@ const ShaderKindInfo ShaderKindInfo::comp {
     VK_SHADER_STAGE_COMPUTE_BIT,
     ShaderKind::Compute,
     EShLangCompute,
+    "Compute Shader",
 };
 
 
@@ -186,7 +193,7 @@ public:
             return std::nullopt;
         }
 
-        if (GVK_ERROR (!std::filesystem::exists (tempFolder / cachedBinaryFileName))) {
+        if (!std::filesystem::exists (tempFolder / cachedBinaryFileName)) {
             return std::nullopt;
         }
 
@@ -253,13 +260,21 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
     shader.setEnvTarget (EShTargetSpv, TargetVersion);
 
     if (!shader.parse (&resources, 100, false, messages)) {
-        throw ShaderCompileException (sourceCode + "\n\n" + shader.getInfoLog ());
+        throw ShaderCompileException ("Failed to parse " + shaderKind.displayName + ":\n"
+                                     + "================================== GLSL CODE BEGIN ==================================\n"
+                                     + sourceCode + "\n"
+                                     + "================================== GLSL CODE END ====================================\n"
+                                     + shader.getInfoLog ());
     }
     TProgram program;
     program.addShader (&shader);
 
     if (!program.link (EShMsgDefault)) {
-        throw ShaderCompileException (sourceCode + "\n\n" + program.getInfoLog ());
+        throw ShaderCompileException ("Failed to link " + shaderKind.displayName + ":\n"
+                                     + "================================== GLSL CODE BEGIN ==================================\n"
+                                     + sourceCode + "\n"
+                                     + "================================== GLSL CODE END ====================================\n"
+                                     + shader.getInfoLog ());
     }
 
     spv::SpvBuildLogger logger;

@@ -2,6 +2,7 @@
 
 #include "MultithreadedFunction.hpp"
 #include "Timer.hpp"
+#include "BuildType.hpp"
 
 namespace GVK {
 
@@ -244,6 +245,14 @@ void ShaderPipeline::IterateShaders (const std::function<void (ShaderModule&)>& 
 std::unique_ptr<DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLayout (VkDevice device) const
 {
     std::vector<VkDescriptorSetLayoutBinding> layout;
+
+    std::vector<std::string> shaderSources;
+
+    if constexpr (IsDebugBuild) {
+        IterateShaders ([&] (ShaderModule& shaderModule) {
+            shaderSources.push_back (shaderModule.GetSourceCode ());
+        });
+    }
 
     IterateShaders ([&] (ShaderModule& shaderModule) {
         auto layoutPart = shaderModule.GetReflection ().GetLayout ();

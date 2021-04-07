@@ -178,7 +178,7 @@ void SequenceAdapter::RenderFullOnExternalWindow ()
 
     window->Show ();
 
-    uint32_t frameIndex = 0;
+    uint32_t frameIndex = 0; // 1 ???
 
     window->DoEventLoop ([&] (bool& shouldStop) {
         RenderFrameIndex (frameIndex);

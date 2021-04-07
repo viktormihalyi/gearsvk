@@ -136,6 +136,8 @@ public:
     VkPipelineShaderStageCreateInfo GetShaderStageCreateInfo () const;
 
     const Reflection& GetReflection () const { return reflection; }
+
+    const std::string& GetSourceCode () const { return sourceCode; }
 };
 
 } // namespace GVK

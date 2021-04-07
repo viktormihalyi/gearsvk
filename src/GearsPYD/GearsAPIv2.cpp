@@ -143,6 +143,7 @@ std::string GetGLSLResourcesForRandoms ()
     layout (binding = 203) uniform ubo_randomGridSize { ivec2 randomGridSize; };
     layout (binding = 204) uniform ubo_randomsIndex { uint randomsIndex; };
 #endif
+
     )";
 }
 

@@ -8,13 +8,13 @@ def create(mediaWindow):
 					duration_s	=	20,
 					passes = [
 						Pass.Generic(
-								pif		=	Pif.SineWheel(
-										color1		=	'green',
+								pif		=	Pif.SineGrating(
+										color1		=	'blue'
 								),
 						),
 						Pass.Generic(
-								pif		=	Pif.SineGrating(
-										color1		=	'blue'
+								pif		=	Pif.SineWheel(
+										color1		=	'green',
 								),
 						),
 						],
