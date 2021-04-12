@@ -138,7 +138,8 @@ void RecreatableGraphRenderer::RenderNextFrame (RenderGraph& graph)
     try {
         RenderNextRecreatableFrame (graph);
     } catch (OutOfDateSwapchain&) {
-        Recreate (graph);
+        throw;
+        //Recreate (graph);
     }
 }
 

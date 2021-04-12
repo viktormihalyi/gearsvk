@@ -52,6 +52,7 @@ struct GLFWWindowBase::Impl {
 
     uint32_t width;
     uint32_t height;
+    uint32_t refreshRate;
 
     uint32_t widthWindowed;
     uint32_t heightWindowed;
@@ -66,6 +67,7 @@ struct GLFWWindowBase::Impl {
 
         , width (0)
         , height (0)
+        , refreshRate (0)
 
         , widthWindowed (0)
         , heightWindowed (0)
@@ -122,11 +124,13 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
 
     GLFWmonitor* usedMonitor = nullptr;
 
+    const GLFWvidmode* mode = glfwGetVideoMode (primaryMonitor);
+    impl->refreshRate       = mode->refreshRate;
+
     if (useFullscreen) {
-        const GLFWvidmode* mode = glfwGetVideoMode (primaryMonitor);
-        impl->width             = mode->width;
-        impl->height            = mode->height;
-        usedMonitor             = primaryMonitor;
+        impl->width  = mode->width;
+        impl->height = mode->height;
+        usedMonitor  = primaryMonitor;
     }
 
     impl->window = glfwCreateWindow (impl->width, impl->height, "test", usedMonitor, nullptr);
@@ -197,7 +201,7 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
         self->impl->width  = width;
         self->impl->height = height;
 
-        std::cout << "window resized" << std::endl;
+        std::cout << "window resized to (" << self->impl->width << ", " << self->impl->height << ")" << std::endl;
         self->events.resized (width, height);
     });
 
@@ -211,8 +215,10 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         if (focused) {
+            std::cout << "window focus gained " << std::endl;
             self->events.focused ();
         } else {
+            std::cout << "window focus lost " << std::endl;
             self->events.focusLost ();
         }
     });
@@ -259,6 +265,12 @@ uint32_t GLFWWindowBase::GetHeight () const
 float GLFWWindowBase::GetAspectRatio () const
 {
     return static_cast<float> (impl->width) / impl->height;
+}
+
+
+double GLFWWindowBase::GetRefreshRate () const
+{
+    return impl->refreshRate;
 }
 
 
@@ -365,12 +377,14 @@ void GLFWWindowBase::SetWindowMode (Mode mode)
     } else {
         GVK_BREAK ("unexpected window mode type");
     }
+
+    impl->mode = mode;
 }
 
 
 Window::Mode GLFWWindowBase::GetWindowMode ()
 {
-    return Window::Mode::Windowed;
+    return impl->mode;
 }
 
 
@@ -388,4 +402,4 @@ HiddenGLFWWindow::HiddenGLFWWindow ()
 }
 
 
-}
+} // namespace GVK

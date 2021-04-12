@@ -177,6 +177,13 @@ void RealSwapchain::RecreateForSurface (VkSurfaceKHR surface)
 }
 
 
+bool RealSwapchain::IsEqualSettings (const Swapchain& other)
+{
+    GVK_ASSERT (dynamic_cast<const RealSwapchain*> (&other) != nullptr);
+    return createResult.IsEqualSettings (static_cast<const RealSwapchain&> (other).createResult);
+}
+
+
 RealSwapchain::~RealSwapchain ()
 {
     vkDestroySwapchainKHR (createSettings.device, createResult.handle, nullptr);
@@ -213,7 +220,7 @@ uint32_t RealSwapchain::GetNextImageIndex (VkSemaphore signalSemaphore) const
 
     if (err == VK_ERROR_OUT_OF_DATE_KHR) {
         std::cout << "out of date swapchain detected" << std::endl;
-        throw OutOfDateSwapchain ();
+        throw OutOfDateSwapchain { *this };
     }
 
     return result;
@@ -237,7 +244,7 @@ void RealSwapchain::Present (VkQueue queue, uint32_t imageIndex, const std::vect
     }
 
     if (err == VK_SUBOPTIMAL_KHR) {
-        throw OutOfDateSwapchain ();
+        throw OutOfDateSwapchain { *this };
     }
 }
 

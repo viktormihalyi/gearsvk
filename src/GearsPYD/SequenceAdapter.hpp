@@ -58,6 +58,9 @@ public:
     std::shared_ptr<GVK::Presentable> GetCurrentPresentable ();
 
     void RenderFullOnExternalWindow ();
+
+private:
+    void StimulusAdapterViews ();
 };
 
 

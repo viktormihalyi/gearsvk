@@ -41,6 +41,8 @@ public:
     static const std::chrono::time_point<TimePoint::Clock> ApplicationStartTime;
 };
 
+using TimeDelta = TimePoint;
+
 } // namespace GVK
 
 #endif

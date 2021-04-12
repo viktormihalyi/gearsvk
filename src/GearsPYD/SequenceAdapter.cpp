@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <map>
 
+
 static bool IsEquivalentStimulus (const Stimulus& left, const Stimulus& right)
 {
     if (left.passes.size () != right.passes.size ()) {
@@ -89,6 +90,23 @@ SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const Seq
     : sequence (sequence)
     , environment (environment)
 {
+    StimulusAdapterViews ();
+
+    firstFrameMs = 0;
+    lastNs       = GVK::TimePoint::SinceApplicationStart ().AsMilliseconds ();
+    obs.Observe (presentedFrameIndexEvent, [&] (uint32_t idx) {
+        const double frameDisplayRateMs = 1.0 / 60.0 * 1000.0;
+
+        const auto nowT  = GVK::TimePoint::SinceApplicationStart ();
+        const auto nowNs = nowT.AsMilliseconds ();
+        std::cout << "frame index shown: " << idx << " (ns: " << nowNs << ", delta ns: " << (nowNs - lastNs) << ", delta from expected: " << ((idx * frameDisplayRateMs) - nowNs) << ")" << std::endl;
+        lastNs = nowNs;
+    });
+}
+
+
+void SequenceAdapter::StimulusAdapterViews ()
+{
     std::map<std::shared_ptr<Stimulus const>, std::shared_ptr<StimulusAdapterView>> created;
 
     size_t stindex = 0;
@@ -111,18 +129,6 @@ SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const Seq
 
         ++stindex;
     }
-
-
-    firstFrameMs = 0;
-    lastNs       = GVK::TimePoint::SinceApplicationStart ().AsMilliseconds ();
-    obs.Observe (presentedFrameIndexEvent, [&] (uint32_t idx) {
-        const double frameDisplayRateMs = 1.0 / 60.0 * 1000.0;
-
-        const auto nowT  = GVK::TimePoint::SinceApplicationStart ();
-        const auto nowNs = nowT.AsMilliseconds ();
-        std::cout << "frame index shown: " << idx << " (ns: " << nowNs << ", delta ns: " << (nowNs - lastNs) << ", delta from expected: " << ((idx * frameDisplayRateMs) - nowNs) << ")" << std::endl;
-        lastNs = nowNs;
-    });
 }
 
 
@@ -132,15 +138,30 @@ void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
         return;
     }
 
+    if (currentPresentable->GetWindow ().GetWidth () == 0 && currentPresentable->GetWindow ().GetHeight () == 0) {
+        return;
+    }
+
     if (frameIndex == 1) {
         firstFrameMs = GVK::TimePoint::SinceApplicationStart ().AsMilliseconds ();
         std::cout << "firstFrameMs = " << firstFrameMs << std::endl;
     }
 
-    Stimulus::CP stim = sequence->getStimulusAtFrame (frameIndex);
-    if (GVK_VERIFY (stim != nullptr)) {
-        views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex, presentedFrameIndexEvent);
-        lastRenderedFrameIndex = frameIndex;
+    try {
+        Stimulus::CP stim = sequence->getStimulusAtFrame (frameIndex);
+        if (GVK_VERIFY (stim != nullptr)) {
+            views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex, presentedFrameIndexEvent);
+            lastRenderedFrameIndex = frameIndex;
+        }
+    } catch (GVK::OutOfDateSwapchain& ex) {
+        if (currentPresentable->GetWindow ().GetWidth () == 0 && currentPresentable->GetWindow ().GetHeight () == 0) {
+            return;
+        }
+        environment.Wait ();
+        views.clear ();
+        currentPresentable->GetSwapchain ().Recreate ();
+        StimulusAdapterViews ();
+        SetCurrentPresentable (currentPresentable);
     }
 }
 
@@ -151,6 +172,7 @@ void SequenceAdapter::Wait ()
         renderer->Wait ();
     }
 }
+
 
 void SequenceAdapter::SetCurrentPresentable (std::shared_ptr<GVK::Presentable> presentable)
 {
@@ -172,15 +194,34 @@ std::shared_ptr<GVK::Presentable> SequenceAdapter::GetCurrentPresentable ()
 
 void SequenceAdapter::RenderFullOnExternalWindow ()
 {
-    std::unique_ptr<GVK::Window> window = std::make_unique<GVK::HiddenGLFWWindow> ();
+    std::unique_ptr<GVK::Presentable> presentable = std::make_unique<GVK::Presentable> (environment, std::make_unique<GVK::HiddenGLFWWindow> ());
 
-    SetCurrentPresentable (std::make_unique<GVK::Presentable> (environment, *window));
+    GVK::Window& window = presentable->GetWindow ();
 
-    window->Show ();
+    //window->SetWindowMode (GVK::Window::Mode::Fullscreen);
 
-    uint32_t frameIndex = 0; // 1 ???
+    GVK::SingleEventObserver kobs;
+    kobs.Observe (window.events.keyPressed, [&] (uint32_t key) {
+        // F11
+        if (key == 300) {
+            window.SetWindowMode (window.GetWindowMode () == GVK::Window::Mode::Windowed
+                                      ? GVK::Window::Mode::Fullscreen
+                                      : GVK::Window::Mode::Windowed);
+        }
+        std::cout << key << std::endl;
+    });
 
-    window->DoEventLoop ([&] (bool& shouldStop) {
+    SetCurrentPresentable (std::move (presentable));
+
+    window.Show ();
+
+    uint32_t frameIndex = 1; // TODO do all sequences start at frame 1?
+
+    window.DoEventLoop ([&] (bool& shouldStop) {
+        if (window.GetWidth () == 0 && window.GetHeight () == 0) {
+            return;
+        }
+
         RenderFrameIndex (frameIndex);
 
         frameIndex++;
@@ -190,5 +231,5 @@ void SequenceAdapter::RenderFullOnExternalWindow ()
         }
     });
 
-    window->Close ();
+    window.Close ();
 }

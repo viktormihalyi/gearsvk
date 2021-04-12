@@ -49,7 +49,7 @@ Presentable::Presentable (VulkanEnvironment& env, Window& window, SwapchainSetti
 Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Window>&& window, SwapchainSettingsProvider& settingsProvider)
     : Presentable (env, std::make_unique<Surface> (*env.instance, window->GetSurface (*env.instance)), settingsProvider)
 {
-    window = std::move (window);
+    this->window = std::move (window);
 }
 
 
@@ -63,6 +63,24 @@ const Surface& Presentable::GetSurface () const
 {
     return *surface;
 }
+
+
+Window& Presentable::GetWindow ()
+{
+    GVK_ASSERT (window != nullptr);
+    return *window;
+}
+
+
+std::optional<double> Presentable::GetRefreshRate () const
+{
+    if (window != nullptr) {
+        return window->GetRefreshRate ();
+    }
+
+    return std::nullopt;
+}
+
 
 
 constexpr uint32_t LogColumnWidth = 36;

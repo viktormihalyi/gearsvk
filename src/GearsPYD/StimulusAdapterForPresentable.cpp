@@ -71,8 +71,8 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
         if (!firstPass) {
             passOperation->compileSettings.clearColor = std::nullopt;
         }
-        
-        passOperation->compileSettings.blendEnabled = false;//passes.size () > 1;
+
+        passOperation->compileSettings.blendEnabled = false; //passes.size () > 1;
 
         GVK_ASSERT (!stimulus->usesForwardRendering);
         GVK_ASSERT (stimulus->mono);
@@ -85,7 +85,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
                                                                        VK_ATTACHMENT_STORE_OP_STORE));
 
         passToOperation[pass] = passOperation;
-        firstPass = false;
+        firstPass             = false;
     }
 
     std::optional<uint32_t> randomBinding;
@@ -173,13 +173,16 @@ void StimulusAdapterForPresentable::SetUniforms (const GVK::UUID& renderOperatio
     GVK::RG::UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOperationId][GVK::ShaderKind::Vertex];
     GVK::RG::UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOperationId][GVK::ShaderKind::Fragment];
 
-    const double timeInSeconds = frameIndex / 60.0;
+    const double deviceRefreshRateDefault = 60.0;
+    const double deviceRefreshRate        = presentable->GetRefreshRate ().value_or (deviceRefreshRateDefault);
 
-    const glm::vec2 patternSizeOnRetina (1920, 1080);
+    const double timeInSeconds = frameIndex / deviceRefreshRate;
+
+    const glm::vec2 patternSizeOnRetina (presentable->GetSwapchain ().GetWidth (), presentable->GetSwapchain ().GetHeight ());
 
     vertexShaderUniforms["PatternSizeOnRetina"] = patternSizeOnRetina;
 
-    fragmentShaderUniforms["ubo_time"]                = static_cast<float> (timeInSeconds - stimulus->getStartingFrame () / 60.f);
+    fragmentShaderUniforms["ubo_time"]                = static_cast<float> (timeInSeconds - stimulus->getStartingFrame () / deviceRefreshRate);
     fragmentShaderUniforms["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
     fragmentShaderUniforms["ubo_frame"]               = static_cast<int32_t> (frameIndex);
 
@@ -232,7 +235,7 @@ void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer& rendere
 
 
         if (randomGeneratorOperation != nullptr) {
-            auto& fragmentShaderUniforms       = (*reflection)[randomGeneratorOperation->GetUUID ()][GVK::ShaderKind::Fragment];
+            auto& fragmentShaderUniforms = (*reflection)[randomGeneratorOperation->GetUUID ()][GVK::ShaderKind::Fragment];
             if (fragmentShaderUniforms.Contains ("ubo_seed")) {
                 fragmentShaderUniforms["ubo_seed"] = static_cast<uint32_t> (frameIndex);
             }

@@ -110,6 +110,7 @@ public:
     virtual std::vector<Image*> GetImages () const                    = 0;
     virtual std::vector<Image*> GetImages (uint32_t frameIndex) const = 0;
 
+
     std::function<VkFormat ()> GetFormatProvider () const
     {
         return [&] () { return GetFormat (); };
@@ -487,6 +488,8 @@ public:
         const std::vector<VkImage> swapChainImages = swapchainProv.GetSwapchain ().GetImages ();
 
         imageViews.clear ();
+        inheritedImages.clear ();
+
         for (size_t i = 0; i < swapChainImages.size (); ++i) {
             imageViews.push_back (std::make_unique<ImageView2D> (graphSettings.GetDevice (), swapChainImages[i], swapchainProv.GetSwapchain ().GetImageFormat ()));
             inheritedImages.push_back (std::make_unique<InheritedImage> (
@@ -548,8 +551,8 @@ public:
     // overriding Resource
     virtual void Compile (const GraphSettings& graphSettings) override
     {
-        buffers.clear ();
         mappings.clear ();
+        buffers.clear ();
 
         for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
             buffers.push_back (std::make_unique<UniformBuffer> (graphSettings.GetDevice ().GetAllocator (), size, 0, Buffer::MemoryLocation::CPU));

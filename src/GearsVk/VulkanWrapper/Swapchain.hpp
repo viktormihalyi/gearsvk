@@ -60,12 +60,15 @@ public:
     virtual bool     SupportsPresenting () const                                                                        = 0;
     virtual void     Recreate ()                                                                                        = 0;
     virtual void     RecreateForSurface (VkSurfaceKHR surface)                                                          = 0;
+    virtual bool     IsEqualSettings (const Swapchain& other)                                                           = 0;
 };
 
-class OutOfDateSwapchain : public std::runtime_error {
+class GVK_RENDERER_API OutOfDateSwapchain : public std::runtime_error {
 public:
-    OutOfDateSwapchain ()
-        : std::runtime_error ("out of date swapchain detected")
+    const Swapchain& swapchain;
+    OutOfDateSwapchain (const Swapchain& swapchain)
+        : std::runtime_error { "out of date swapchain detected" }
+        , swapchain { swapchain }
     {
     }
 };
@@ -97,7 +100,18 @@ private:
 
         CreateResult ()
             : handle (VK_NULL_HANDLE)
+            , imageCount (0)
         {
+        }
+
+        bool IsEqualSettings (const CreateResult& other)
+        {
+            return imageCount == other.imageCount &&
+                   surfaceFormat.format == other.surfaceFormat.format &&
+                   surfaceFormat.colorSpace == other.surfaceFormat.colorSpace &&
+                   presentMode == other.presentMode &&
+                   extent.width == other.extent.width &&
+                   extent.height == other.extent.height;
         }
 
         void Clear ()
@@ -122,6 +136,8 @@ public:
     virtual void Recreate () override;
 
     virtual void RecreateForSurface (VkSurfaceKHR surface) override;
+
+    virtual bool IsEqualSettings (const Swapchain& other) override;
 
     virtual ~RealSwapchain ();
 
@@ -183,6 +199,7 @@ public:
     virtual std::vector<VkImage> GetImages () const override { return { *image }; }
     virtual void                 Recreate () override {}
     virtual void                 RecreateForSurface (VkSurfaceKHR) override {}
+    virtual bool                 IsEqualSettings (const Swapchain&) override { return true; }
 
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override
     {

@@ -138,6 +138,46 @@ TEST_F (GearsTests, 1_fullfield_whites)
 
 // clang-format off
 
+TEST_F (GearsTests, LoadOnly_0_Utility_1_Spots_1_tiny_red) { LoadFromFile (SequencesFolder / "0_Utility" / "1_Spots" / "1_tiny_red.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_0_Utility_1_Spots_2_big_red) { LoadFromFile (SequencesFolder / "0_Utility" / "1_Spots" / "2_big_red.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_0_Utility_1_Spots_3_interactive_red) { LoadFromFile (SequencesFolder / "0_Utility" / "1_Spots" / "3_interactive_red.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_0_Utility_1_Spots_7_tiny_red_short) { LoadFromFile (SequencesFolder / "0_Utility" / "1_Spots" / "7_tiny_red_short.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_0_Utility_1_Spots_8_electrodeGrid) { LoadFromFile (SequencesFolder / "0_Utility" / "1_Spots" / "8_electrodeGrid.pyx"); RenderFirstFrame (); }
+
+TEST_F (GearsTests, LoadOnly_0_Utility_2_FullField_1_long) { LoadFromFile (SequencesFolder / "0_Utility" / "2_FullField" / "1_long.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_0_Utility_2_FullField_2_wide_intensity_range_gradient) { LoadFromFile (SequencesFolder / "0_Utility" / "2_FullField" / "2_wide_intensity_range_gradient.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_0_Utility_2_FullField_3_wide_intensity_range_gradient_tone_test) { LoadFromFile (SequencesFolder / "0_Utility" / "2_FullField" / "3_wide_intensity_range_gradient_tone_test.pyx"); RenderFirstFrame (); }
+
+TEST_F (GearsTests, LoadOnly_1_Spots_1_VaryingSize_1_spot_and_fullfield) { LoadFromFile (SequencesFolder / "1_Spots" / "1_VaryingSize" / "1_spot_and_fullfield.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_1_Spots_1_VaryingSize_2_increasing_radii) { LoadFromFile (SequencesFolder / "1_Spots" / "1_VaryingSize" / "2_increasing_radii.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_1_Spots_1_VaryingSize_3_annuli_increasing_radii) { LoadFromFile (SequencesFolder / "1_Spots" / "1_VaryingSize" / "3_annuli_increasing_radii.pyx"); RenderFirstFrame (); }
+
+TEST_F (GearsTests, LoadOnly_1_Spots_2_ElectrodeTargeted_1_targeting_seqA) { LoadFromFile (SequencesFolder / "1_Spots" / "2_ElectrodeTargeted" / "1_targeting_seqA.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_1_Spots_2_ElectrodeTargeted_2_targeting_seqB) { LoadFromFile (SequencesFolder / "1_Spots" / "2_ElectrodeTargeted" / "2_targeting_seqB.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_1_Spots_2_ElectrodeTargeted_2_targeting_seqC) { LoadFromFile (SequencesFolder / "1_Spots" / "2_ElectrodeTargeted" / "3_targeting_seqC.pyx"); RenderFirstFrame (); }
+
+TEST_F (GearsTests, LoadOnly_1_Spots_3_Oscillations_1_sine_increasing_freqs) { LoadFromFile (SequencesFolder / "1_Spots" / "3_Oscillations" / "1_sine_increasing_freqs.pyx"); RenderFirstFrame (); }
+
+TEST_F (GearsTests, LoadOnly_1_Spots_3_SineChirp_1_spotchirp_freqmod_updown) { LoadFromFile (SequencesFolder / "1_Spots" / "3_SineChirp" / "1_spotchirp_freqmod_updown.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_1_Spots_3_SineChirp_2_spotchirp_freqmod_downup) { LoadFromFile (SequencesFolder / "1_Spots" / "3_SineChirp" / "2_spotchirp_freqmod_downup.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_1_Spots_3_SineChirp_3_spotchirp_ampmod_3Hz) { LoadFromFile (SequencesFolder / "1_Spots" / "3_SineChirp" / "3_spotchirp_ampmod_3Hz.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_1_Spots_3_SineChirp_4_spotchirp_ampmod_6Hz) { LoadFromFile (SequencesFolder / "1_Spots" / "3_SineChirp" / "4_spotchirp_ampmod_6Hz.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_1_Spots_3_SineChirp_5_spotchirp_ampmod_9Hz) { LoadFromFile (SequencesFolder / "1_Spots" / "3_SineChirp" / "5_spotchirp_ampmod_9Hz.pyx"); RenderFirstFrame (); }
+
+TEST_F (GearsTests, DISABLED_LoadOnly_1_Spots_4_SampleFilters_1_Spatial_0_compare) { LoadFromFile (SequencesFolder / "1_Spots" / "4_SampleFilters" / "1_Spatial" / "0_compare.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, DISABLED_LoadOnly_1_Spots_4_SampleFilters_1_Spatial_test) { LoadFromFile (SequencesFolder / "1_Spots" / "4_SampleFilters" / "1_Spatial" / "test.pyx"); RenderFirstFrame (); }
+
+TEST_F (GearsTests, DISABLED_LoadOnly_1_Spots_4_SampleFilters_2_Temporal_1_exponential) { LoadFromFile (SequencesFolder / "1_Spots" / "4_SampleFilters" / "2_Temporal" / "1_exponential.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, DISABLED_LoadOnly_1_Spots_4_SampleFilters_2_Temporal_2_cell) { LoadFromFile (SequencesFolder / "1_Spots" / "4_SampleFilters" / "2_Temporal" / "2_cell.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, DISABLED_LoadOnly_1_Spots_4_SampleFilters_2_Temporal_3_exponentialLti) { LoadFromFile (SequencesFolder / "1_Spots" / "4_SampleFilters" / "2_Temporal" / "3_exponentialLti.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, DISABLED_LoadOnly_1_Spots_4_SampleFilters_2_Temporal_4_cellLti3) { LoadFromFile (SequencesFolder / "1_Spots" / "4_SampleFilters" / "2_Temporal" / "4_cellLti3.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, DISABLED_LoadOnly_1_Spots_4_SampleFilters_2_Temporal_5_cellLti7) { LoadFromFile (SequencesFolder / "1_Spots" / "4_SampleFilters" / "2_Temporal" / "5_cellLti7.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, DISABLED_LoadOnly_1_Spots_4_SampleFilters_2_Temporal_6_cellLti3Color) { LoadFromFile (SequencesFolder / "1_Spots" / "4_SampleFilters" / "2_Temporal" / "6_cellLti3Color.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, DISABLED_LoadOnly_1_Spots_4_SampleFilters_2_Temporal_7_cellLti7Color) { LoadFromFile (SequencesFolder / "1_Spots" / "4_SampleFilters" / "2_Temporal" / "7_cellLti7Color.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, DISABLED_LoadOnly_1_Spots_4_SampleFilters_2_Temporal_8_explicitLti7Color) { LoadFromFile (SequencesFolder / "1_Spots" / "4_SampleFilters" / "2_Temporal" / "8_explicitLti7Color.pyx"); RenderFirstFrame (); }
+
+TEST_F (GearsTests, DISABLED_LoadOnly_1_Spots_4_SampleFilters_test) { LoadFromFile (SequencesFolder / "1_Spots" / "4_SampleFilters" / "test.pyx"); RenderFirstFrame (); }
+
 TEST_F (GearsTests, LoadOnly_2_FullFields_1_Plain_2_fullfield_with_short_blacks) { LoadFromFile (SequencesFolder / "2_FullFields" / "1_Plain" / "2_fullfield_with_short_blacks.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_2_FullFields_1_Plain_3_offhunter) { LoadFromFile (SequencesFolder / "2_FullFields" / "1_Plain" / "3_offhunter.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_2_FullFields_1_Plain_4_melaparam) { LoadFromFile (SequencesFolder / "2_FullFields" / "1_Plain" / "4_melaparam.pyx"); RenderFirstFrame (); }

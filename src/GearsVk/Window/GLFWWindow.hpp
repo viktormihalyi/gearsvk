@@ -28,6 +28,7 @@ public:
     virtual uint32_t GetWidth () const override;
     virtual uint32_t GetHeight () const override;
     virtual float    GetAspectRatio () const override;
+    virtual double   GetRefreshRate () const override;
 
     virtual void SetWindowMode (Mode) override;
     virtual Mode GetWindowMode () override;

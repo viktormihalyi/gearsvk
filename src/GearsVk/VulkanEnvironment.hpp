@@ -39,6 +39,9 @@ public:
     virtual Swapchain& GetSwapchain () override;
 
     const Surface& GetSurface () const;
+    Window& GetWindow ();
+
+    std::optional<double> GetRefreshRate () const;
 };
 
 
