@@ -3,7 +3,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Assert.hpp"
 #include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
@@ -17,38 +16,15 @@ private:
     GVK::MovablePtr<VkFence> handle;
 
 public:
-    Fence (VkDevice device)
-        : device (device)
-        , handle (VK_NULL_HANDLE)
-    {
-        VkFenceCreateInfo fenceInfo = {};
-        fenceInfo.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceInfo.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
-        if (GVK_ERROR (vkCreateFence (device, &fenceInfo, nullptr, &handle) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to create fence");
-        }
-    }
+    Fence (VkDevice device);
 
-    virtual ~Fence () override
-    {
-        vkDestroyFence (device, handle, nullptr);
-        handle = nullptr;
-    }
+    virtual ~Fence () override;
 
-    operator VkFence () const
-    {
-        return handle;
-    }
+    operator VkFence () const { return handle; }
 
-    void Wait () const
-    {
-        vkWaitForFences (device, 1, &handle, VK_TRUE, UINT64_MAX);
-    }
+    void Wait () const;
 
-    void Reset () const
-    {
-        vkResetFences (device, 1, &handle);
-    }
+    void Reset () const;
 };
 
 } // namespace GVK

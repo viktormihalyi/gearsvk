@@ -28,11 +28,11 @@ void StimulusAdapterView::CreateForPresentable (std::shared_ptr<GVK::Presentable
 }
 
 
-void StimulusAdapterView::RenderFrameIndex (GVK::RG::Renderer& renderer, std::shared_ptr<GVK::Presentable>& presentable, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t frameIndex, GVK::Event<uint32_t>& frameIndexPresentedEvent)
+void StimulusAdapterView::RenderFrameIndex (GVK::RG::Renderer& renderer, std::shared_ptr<GVK::Presentable>& presentable, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t frameIndex, GVK::RG::IFrameDisplayObserver& frameDisplayObserver)
 {
     if (GVK_ERROR (compiledAdapters.find (presentable) == compiledAdapters.end ())) {
         return;
     }
 
-    compiledAdapters[presentable]->RenderFrameIndex (renderer, stimulus, frameIndex, frameIndexPresentedEvent);
+    compiledAdapters[presentable]->RenderFrameIndex (renderer, stimulus, frameIndex, frameDisplayObserver);
 }

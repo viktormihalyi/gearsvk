@@ -3,7 +3,9 @@
 
 // from GearsVk
 #include "Event.hpp"
+#include "GraphRenderer.hpp"
 #include "Noncopyable.hpp"
+#include "Time.hpp"
 #include <memory>
 
 // from std
@@ -26,6 +28,7 @@ class SynchronizedSwapchainGraphRenderer;
 class Renderer;
 } // namespace RG
 class Presentable;
+class IFrameDisplayObserver;
 class VulkanEnvironment;
 } // namespace GVK
 
@@ -46,7 +49,10 @@ private:
 public:
     StimulusAdapterForPresentable (const GVK::VulkanEnvironment& environment, std::shared_ptr<GVK::Presentable>& presentable, const std::shared_ptr<Stimulus const>& stimulus);
 
-    void RenderFrameIndex (GVK::RG::Renderer& renderer, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t frameIndex, GVK::Event<uint32_t>& frameIndexPresentedEvent);
+    void RenderFrameIndex (GVK::RG::Renderer&                     renderer,
+                           const std::shared_ptr<Stimulus const>& stimulus,
+                           const uint32_t                         frameIndex,
+                           GVK::RG::IFrameDisplayObserver&        frameDisplayObserver);
 
     void Wait ();
 

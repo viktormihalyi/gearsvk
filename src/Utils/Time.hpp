@@ -14,10 +14,21 @@ public:
 
 private:
     uint64_t nanoseconds;
+#ifndef NDEBUG
+    double seconds;
+    double milliseconds;
+    double microseconds;
+#endif
+
 
 public:
     TimePoint (uint64_t nanoseconds = 0)
         : nanoseconds (nanoseconds)
+#ifndef NDEBUG
+        , seconds (AsSeconds ())
+        , milliseconds (AsMilliseconds ())
+        , microseconds (AsMicroseconds ())
+#endif
     {
     }
 
@@ -27,6 +38,11 @@ public:
     double AsNanoseconds () const { return static_cast<double> (nanoseconds); }
 
     operator uint64_t () const { return nanoseconds; }
+
+    TimePoint operator- (TimePoint other) const
+    {
+        return TimePoint (nanoseconds - other.nanoseconds);
+    }
 
     static TimePoint SinceEpoch ()
     {

@@ -16,6 +16,8 @@ namespace GVK {
 
 namespace RG {
 
+IFrameDisplayObserver noOpFrameDisplayObserver;
+
 Window::DrawCallback Renderer::GetInfiniteDrawCallback (const std::function<RenderGraph&()>& graphProvider)
 {
     return [&] (bool&) -> void {
@@ -61,7 +63,7 @@ BlockingGraphRenderer::BlockingGraphRenderer (const DeviceExtra& device, Swapcha
 }
 
 
-void BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph)
+void BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver&)
 {
     const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*s);
     swapchainImageAcquiredEvent.Notify (currentImageIndex);
@@ -133,10 +135,10 @@ void RecreatableGraphRenderer::Recreate (RenderGraph& graph)
 }
 
 
-void RecreatableGraphRenderer::RenderNextFrame (RenderGraph& graph)
+void RecreatableGraphRenderer::RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer)
 {
     try {
-        RenderNextRecreatableFrame (graph);
+        RenderNextRecreatableFrame (graph, observer);
     } catch (OutOfDateSwapchain&) {
         throw;
         //Recreate (graph);
@@ -169,16 +171,23 @@ public:
 DeltaTimer t;
 
 
-void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph)
+void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& frameDisplayObserver)
 {
     if constexpr (LOG_RENDERING)
         std::cout << "RenderNextRecreatable called " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
+    frameDisplayObserver.OnImageFenceWaitStarted (currentFrameIndex);
     inFlightFences[currentFrameIndex]->Wait ();
+    //std::cout << "render ended for " << currentFrameIndex << " at " << std::fixed << GVK::TimePoint::SinceEpoch ().AsMilliseconds () << std::endl;
+    frameDisplayObserver.OnImageFenceWaitEnded (currentFrameIndex);
     if constexpr (LOG_RENDERING)
         std::cout << "waited for fence " << currentFrameIndex << " " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
+    frameDisplayObserver.OnImageAcquisitionStarted ();
     const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentFrameIndex]);
+    //std::cout << "got img for      " << currentFrameIndex << " at " << std::fixed << GVK::TimePoint::SinceEpoch ().AsMilliseconds () << std::endl;
+    frameDisplayObserver.OnImageAcquisitionReturned (currentFrameIndex);
+
     swapchainImageAcquiredEvent.Notify (currentImageIndex);
 
     if constexpr (LOG_RENDERING)
@@ -190,6 +199,8 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph
         if constexpr (LOG_RENDERING)
             std::cout << "waited for fence " << previousFrameIndex << " " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
     }
+
+    frameDisplayObserver.OnImageAcquisitionEnded (currentFrameIndex);
 
     // SIGNAL HERE
     presentedEvent.Notify ();
@@ -214,12 +225,14 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph
             std::cout << "preSubmitEvent " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
     }
 
+    frameDisplayObserver.OnRenderStarted (currentFrameIndex);
     graph.Submit (currentFrameIndex, submitWaitSemaphores, submitSignalSemaphores, *inFlightFences[currentFrameIndex]);
     if constexpr (LOG_RENDERING)
         std::cout << "submitted " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
     GVK_ASSERT (swapchain.SupportsPresenting ());
 
+    frameDisplayObserver.OnPresentStarted (currentFrameIndex);
     graph.Present (currentImageIndex, swapchain, presentWaitSemaphores);
     if constexpr (LOG_RENDERING)
         std::cout << "presented " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;

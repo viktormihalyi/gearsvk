@@ -141,6 +141,7 @@ add_library (${TARGET_GVKRENDERER} SHARED
     src/GearsVk/VulkanWrapper/Queue.cpp
     src/GearsVk/VulkanWrapper/VulkanObject.cpp
     src/GearsVk/VulkanWrapper/Buffer.cpp
+    src/GearsVk/VulkanWrapper/Fence.cpp
     src/GearsVk/VulkanWrapper/Surface.cpp
     src/GearsVk/VulkanWrapper/Image.cpp
     src/GearsVk/VulkanWrapper/CommandBuffer.cpp

@@ -15,6 +15,7 @@
 
 // from std
 #include <algorithm>
+#include <iomanip>
 #include <map>
 
 
@@ -89,8 +90,10 @@ static bool IsEquivalentStimulus (const Stimulus& left, const Stimulus& right)
 SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const Sequence::P& sequence)
     : sequence (sequence)
     , environment (environment)
+    , timings { 0 }
 {
     StimulusAdapterViews ();
+
 
     firstFrameMs = 0;
     lastNs       = GVK::TimePoint::SinceApplicationStart ().AsMilliseconds ();
@@ -132,6 +135,47 @@ void SequenceAdapter::StimulusAdapterViews ()
 }
 
 
+// render finished for PREVIOUS frame
+void SequenceTiming::OnImageAcquisitionReturned (uint32_t)
+{
+}
+
+// render finished for PREVIOUS frame
+void SequenceTiming::OnImageFenceWaitEnded (uint32_t frameIndex)
+{
+    const GVK::TimePoint currTime = GVK::TimePoint::SinceEpoch ();
+
+    //std::cout << "current Time ms: " << std::fixed << currTime.AsMilliseconds () << " render  finished " << frameIndex << std::endl;
+
+    frameRenderFinished[frameIndex] = currTime;
+
+    timeData.resize (currentFrameIndex + 1);
+    timeData[currentFrameIndex].beg = currTime;
+}
+
+
+// present finished for PREVIOUS frame
+void SequenceTiming::OnImageAcquisitionEnded (uint32_t frameIndex)
+{
+    const GVK::TimePoint currTime = GVK::TimePoint::SinceEpoch ();
+
+    //std::cout << "current Time ms: " << std::fixed << currTime.AsMilliseconds () << " present finished " << frameIndex << std::endl;
+
+    framePresentFinished[frameIndex] = currTime;
+    timeData.resize (currentFrameIndex + 1);
+    timeData[currentFrameIndex].end = currTime;
+
+    std::cout << "currentFrameIndex: "
+              << currentFrameIndex
+              << " - rendering finished at "
+              << timeData[currentFrameIndex].end.AsSeconds ()
+              << " sec with "
+              << std::fixed << GVK::TimePoint (framePresentFinished[frameIndex] - frameRenderFinished[frameIndex]).AsMilliseconds ()
+              << " ms accuracy"
+              << std::endl;
+}
+
+
 void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
 {
     if (GVK_ERROR (renderer == nullptr)) {
@@ -150,7 +194,8 @@ void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
     try {
         Stimulus::CP stim = sequence->getStimulusAtFrame (frameIndex);
         if (GVK_VERIFY (stim != nullptr)) {
-            views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex, presentedFrameIndexEvent);
+            timings.currentFrameIndex = frameIndex;
+            views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex, timings);
             lastRenderedFrameIndex = frameIndex;
         }
     } catch (GVK::OutOfDateSwapchain& ex) {

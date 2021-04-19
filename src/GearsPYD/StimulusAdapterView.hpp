@@ -18,7 +18,8 @@ class VulkanEnvironment;
 class Presentable;
 namespace RG {
 class Renderer;
-}
+class IFrameDisplayObserver;
+} // namespace RG
 } // namespace GVK
 
 
@@ -38,7 +39,7 @@ public:
                            std::shared_ptr<GVK::Presentable>&     presentable,
                            const std::shared_ptr<Stimulus const>& stimulus,
                            const uint32_t                         frameIndex,
-                           GVK::Event<uint32_t>&                  frameIndexPresentedEvent);
+                           GVK::RG::IFrameDisplayObserver&        frameDisplayObserver);
 };
 
 #endif

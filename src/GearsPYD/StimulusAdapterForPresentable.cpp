@@ -218,7 +218,10 @@ void StimulusAdapterForPresentable::SetUniforms (const GVK::UUID& renderOperatio
 }
 
 
-void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer& renderer, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t frameIndex, GVK::Event<uint32_t>& frameIndexPresentedEvent)
+void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer&                     renderer,
+                                                      const std::shared_ptr<Stimulus const>& stimulus,
+                                                      const uint32_t                         frameIndex,
+                                                      GVK::RG::IFrameDisplayObserver&        frameDisplayObserver)
 {
     const uint32_t stimulusStartingFrame = stimulus->getStartingFrame ();
     const uint32_t stimulusEndingFrame   = stimulus->getStartingFrame () + stimulus->getDuration ();
@@ -256,13 +259,12 @@ void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer& rendere
 
     std::unique_ptr<GVK::SingleEventObserver> presentObs = std::make_unique<GVK::SingleEventObserver> ();
     presentObs->Observe (renderer.presentedEvent, [&, frameIndex] () {
-        frameIndexPresentedEvent.Notify (frameIndex);
         presentedEventDeleteQueue.push_back (frameIndex);
     });
     GVK_ASSERT (presentObservers.count (frameIndex) == 0);
     presentObservers[frameIndex] = std::move (presentObs);
 
-    renderer.RenderNextFrame (*renderGraph);
+    renderer.RenderNextFrame (*renderGraph, frameDisplayObserver);
 
     for (uint32_t presentedNotified : presentedEventDeleteQueue) {
         presentObservers.erase (presentedNotified);

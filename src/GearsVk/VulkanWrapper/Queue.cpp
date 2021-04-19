@@ -25,6 +25,8 @@ void Queue::Submit (const std::vector<VkSemaphore>&          waitSemaphores,
 #endif
 
     std::vector<VkCommandBuffer> submittedCmdBufferHandles;
+    submittedCmdBufferHandles.reserve (commandBuffers.size ());
+
     for (CommandBuffer* cmd : commandBuffers) {
         GVK_ASSERT (cmd != nullptr);
         submittedCmdBufferHandles.push_back (cmd->GetHandle ());

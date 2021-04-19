@@ -22,6 +22,22 @@ class RenderGraph;
 class GraphSettings;
 
 
+class GVK_RENDERER_API IFrameDisplayObserver {
+public:
+    virtual ~IFrameDisplayObserver () = default;
+
+    virtual void OnImageFenceWaitStarted (uint32_t) {}
+    virtual void OnImageFenceWaitEnded (uint32_t) {}
+    virtual void OnImageAcquisitionStarted () {}
+    virtual void OnImageAcquisitionReturned (uint32_t) {}
+    virtual void OnImageAcquisitionEnded (uint32_t) {}
+    virtual void OnRenderStarted (uint32_t) {}
+    virtual void OnPresentStarted (uint32_t) {}
+};
+
+extern GVK_RENDERER_API IFrameDisplayObserver noOpFrameDisplayObserver;
+
+
 class GVK_RENDERER_API Renderer {
 public:
     Event<RenderGraph&, uint32_t, uint64_t> preSubmitEvent;
@@ -31,7 +47,7 @@ public:
 
     virtual ~Renderer () = default;
 
-    virtual void RenderNextFrame (RenderGraph& graph) = 0;
+    virtual void RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) = 0;
 
     Window::DrawCallback GetInfiniteDrawCallback (const std::function<RenderGraph&()>& graphProvider);
 
@@ -51,8 +67,8 @@ public:
 
     void Recreate (RenderGraph& graph);
 
-    void         RenderNextFrame (RenderGraph& graph) override;
-    virtual void RenderNextRecreatableFrame (RenderGraph& graph) = 0;
+    void         RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
+    virtual void RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) = 0;
 };
 
 
@@ -64,7 +80,7 @@ private:
 public:
     BlockingGraphRenderer (const DeviceExtra& device, Swapchain& swapchain);
 
-    void RenderNextRecreatableFrame (RenderGraph& graph) override;
+    void RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
 };
 
 
@@ -101,7 +117,7 @@ public:
 
     void Wait ();
 
-    void RenderNextRecreatableFrame (RenderGraph& graph) override;
+    void RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
 };
 
 } // namespace RG
