@@ -1,5 +1,8 @@
 #include "PhysicalDevice.hpp"
 
+#include "BuildType.hpp"
+
+
 namespace GVK {
 
 DefaultQueueFamilySelector defaultQueueFamilySelector;
@@ -179,6 +182,11 @@ void PhysicalDevice::RecreateForSurface (VkSurfaceKHR surface)
 {
     handle        = CreatePhysicalDevice (instance, requestedDeviceExtensionSet);
     queueFamilies = FindQueueFamilyIndices (handle, surface, selector);
+
+    if constexpr (IsDebugBuild) {
+        properties = std::make_unique<VkPhysicalDeviceProperties> (GetProperties ());
+        features = std::make_unique<VkPhysicalDeviceFeatures> (GetFeatures ());
+    }
 }
 
 } // namespace GVK

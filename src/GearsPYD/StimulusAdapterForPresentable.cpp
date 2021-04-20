@@ -159,11 +159,11 @@ void StimulusAdapterForPresentable::SetConstantUniforms ()
 {
     for (auto& [pass, op] : passToOperation) {
         for (auto& [name, value] : pass->shaderVariables)
-            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<float> (value);
+            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment]["commonUniformBlock"][name] = static_cast<float> (value);
         for (auto& [name, value] : pass->shaderVectors)
-            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec2> (value);
+            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment]["commonUniformBlock"][name] = static_cast<glm::vec2> (value);
         for (auto& [name, value] : pass->shaderColors)
-            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment][std::string ("ubo_" + name)] = static_cast<glm::vec3> (value);
+            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment]["commonUniformBlock"][name] = static_cast<glm::vec3> (value);
     }
 }
 
@@ -182,38 +182,38 @@ void StimulusAdapterForPresentable::SetUniforms (const GVK::UUID& renderOperatio
 
     vertexShaderUniforms["PatternSizeOnRetina"] = patternSizeOnRetina;
 
-    fragmentShaderUniforms["ubo_time"]                = static_cast<float> (timeInSeconds - stimulus->getStartingFrame () / deviceRefreshRate);
-    fragmentShaderUniforms["ubo_patternSizeOnRetina"] = patternSizeOnRetina;
-    fragmentShaderUniforms["ubo_frame"]               = static_cast<int32_t> (frameIndex);
+    fragmentShaderUniforms["commonUniformBlock"]["time"]                = static_cast<float> (timeInSeconds - stimulus->getStartingFrame () / deviceRefreshRate);
+    fragmentShaderUniforms["commonUniformBlock"]["patternSizeOnRetina"] = patternSizeOnRetina;
+    fragmentShaderUniforms["commonUniformBlock"]["frame"]               = static_cast<int32_t> (frameIndex);
 
-    fragmentShaderUniforms["ubo_swizzleForFft"] = 0xffffffff;
+    fragmentShaderUniforms["commonUniformBlock"]["swizzleForFft"] = 0xffffffff;
 
     if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0) {
-        if (fragmentShaderUniforms.Contains ("ubo_cellSize")) {
-            fragmentShaderUniforms["ubo_cellSize"] = static_cast<glm::vec2> (
+        if (fragmentShaderUniforms.Contains ("randomUniformBlock")) {
+            fragmentShaderUniforms["randomUniformBlock"]["cellSize"] = static_cast<glm::vec2> (
                 stimulus->sequence->fieldWidth_um / stimulus->randomGridWidth,
                 stimulus->sequence->fieldHeight_um / stimulus->randomGridHeight);
-            fragmentShaderUniforms["ubo_randomGridSize"] = static_cast<glm::ivec2> (
+            fragmentShaderUniforms["randomUniformBlock"]["randomGridSize"] = static_cast<glm::ivec2> (
                 stimulus->sequence->maxRandomGridWidth,
                 stimulus->sequence->maxRandomGridHeight);
         }
     }
 
     if (stimulus->doesToneMappingInStimulusGenerator) {
-        fragmentShaderUniforms["ubo_toneRangeMin"] = stimulus->toneRangeMin;
-        fragmentShaderUniforms["ubo_toneRangeMax"] = stimulus->toneRangeMax;
+        fragmentShaderUniforms["toneMapping"]["toneRangeMin"] = stimulus->toneRangeMin;
+        fragmentShaderUniforms["toneMapping"]["toneRangeMax"] = stimulus->toneRangeMax;
 
         if (stimulus->toneMappingMode == Stimulus::ToneMappingMode::ERF) {
-            fragmentShaderUniforms["ubo_toneRangeMean"] = stimulus->toneRangeMean;
-            fragmentShaderUniforms["ubo_toneRangeVar"]  = stimulus->toneRangeVar;
+            fragmentShaderUniforms["toneMapping"]["toneRangeMean"] = stimulus->toneRangeMean;
+            fragmentShaderUniforms["toneMapping"]["toneRangeVar"]  = stimulus->toneRangeVar;
         } else {
-            fragmentShaderUniforms["ubo_toneRangeMean"] = 0.f;
-            fragmentShaderUniforms["ubo_toneRangeVar"]  = -1.f;
+            fragmentShaderUniforms["toneMapping"]["toneRangeMean"] = 0.f;
+            fragmentShaderUniforms["toneMapping"]["toneRangeVar"]  = -1.f;
         }
 
-        fragmentShaderUniforms["ubo_doTone"]           = static_cast<int32_t> (!stimulus->doesDynamicToneMapping);
-        fragmentShaderUniforms["ubo_doGamma"]          = static_cast<int32_t> (!stimulus->doesDynamicToneMapping);
-        fragmentShaderUniforms["ubo_gammaSampleCount"] = static_cast<int32_t> (stimulus->gammaSamplesCount);
+        fragmentShaderUniforms["toneMapping"]["doTone"]           = static_cast<int32_t> (!stimulus->doesDynamicToneMapping);
+        fragmentShaderUniforms["toneMapping"]["doGamma"]          = static_cast<int32_t> (!stimulus->doesDynamicToneMapping);
+        fragmentShaderUniforms["toneMapping"]["gammaSampleCount"] = static_cast<int32_t> (stimulus->gammaSamplesCount);
     }
 }
 

@@ -55,6 +55,10 @@ Buffer::Buffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags us
     VmaAllocationCreateInfo allocInfo = {};
     allocInfo.usage                   = (loc == MemoryLocation::GPU) ? VMA_MEMORY_USAGE_GPU_ONLY : VMA_MEMORY_USAGE_CPU_COPY;
 
+    if (loc == MemoryLocation::CPU) {
+        allocInfo.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    }
+
     if (GVK_ERROR (vmaCreateBuffer (allocator, &bufferInfo, &allocInfo, &handle, &allocationHandle, nullptr) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create vma buffer");
     }

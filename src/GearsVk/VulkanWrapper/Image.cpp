@@ -56,6 +56,10 @@ Image::Image (VmaAllocator      allocator,
 
     VmaAllocationCreateInfo allocInfo = {};
     allocInfo.usage                   = (loc == MemoryLocation::GPU) ? VMA_MEMORY_USAGE_GPU_ONLY : VMA_MEMORY_USAGE_CPU_COPY;
+    
+    if (loc == MemoryLocation::CPU) {
+        allocInfo.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    }
 
     if (GVK_ERROR (vmaCreateImage (allocator, &imageInfo, &allocInfo, &handle, &allocationHandle, nullptr) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create image!");

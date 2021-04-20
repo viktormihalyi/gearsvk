@@ -139,9 +139,11 @@ std::string GetGLSLResourcesForRandoms ()
 #ifndef GEARS_RANDOMS_RESOURCES
 #define GEARS_RANDOMS_RESOURCES
     layout (binding = 201) uniform usampler2D randoms;
-    layout (binding = 202) uniform ubo_cellSize { vec2 cellSize; };
-    layout (binding = 203) uniform ubo_randomGridSize { ivec2 randomGridSize; };
-    layout (binding = 204) uniform ubo_randomsIndex { uint randomsIndex; };
+    layout (binding = 202) uniform randomUniformBlock {
+        vec2    cellSize;
+        ivec2   randomGridSize;
+        uint    randomsIndex;
+    };
 #endif
 
     )";

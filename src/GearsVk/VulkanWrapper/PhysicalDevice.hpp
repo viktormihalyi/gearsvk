@@ -68,6 +68,9 @@ private:
     GVK::MovablePtr<VkPhysicalDevice> handle;
     QueueFamilies                     queueFamilies;
 
+    std::unique_ptr<VkPhysicalDeviceProperties> properties;
+    std::unique_ptr<VkPhysicalDeviceFeatures> features;
+
 public:
     PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet, const QueueFamilySelector& Selector = defaultQueueFamilySelector);
 

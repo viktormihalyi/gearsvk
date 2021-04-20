@@ -184,14 +184,16 @@ void Pass::onSequenceComplete ()
     if (stimulus->doesToneMappingInStimulusGenerator) {
         setShaderFunction ("toneMap",
                            R"GLSLC0D3(
-			layout (binding = 101) uniform sampler1D gamma;																	
-			layout (binding = 102) uniform ubo_toneRangeMin { float toneRangeMin; };																
-			layout (binding = 103) uniform ubo_toneRangeMax { float toneRangeMax; };																
-			layout (binding = 104) uniform ubo_toneRangeMean { float toneRangeMean; };																
-			layout (binding = 105) uniform ubo_toneRangeVar { float toneRangeVar; };																
-			layout (binding = 106) uniform ubo_gammaSampleCount { int gammaSampleCount; };																
-			layout (binding = 107) uniform ubo_doTone { bool doTone; };
-			layout (binding = 108) uniform ubo_doGamma { bool doGamma; };
+			layout (binding = 101) uniform sampler1D gamma;
+			layout (binding = 102) uniform toneMapping {
+			    float   toneRangeMin;
+			    float   toneRangeMax;
+			    float   toneRangeMean;
+			    float   toneRangeVar;
+			    int     gammaSampleCount;
+			    bool    doTone;
+			    bool    doGamma;
+            };
 
 			vec3 toneMap(vec3 color){																	
 				vec3 outcolor = color;
@@ -486,6 +488,18 @@ static std::string GenerateUniformBlock (uint32_t& binding, const std::string& t
     return ss.str ();
 }
 
+static std::string GenerateUniformBlock (uint32_t& binding, const std::string& uboName, const std::vector<std::pair<std::string, std::string>>& typeNamePairs)
+{
+    std::stringstream ss;
+    ss << "layout (binding = " << binding << ") uniform " << uboName << " { " << std::endl;;
+    for (auto& [type, name] : typeNamePairs) {
+       ss << "    " << type << " " << name << ";" << std::endl;
+    }
+       ss << "};" << std::endl;
+    binding++;
+    return ss.str ();
+}
+
 
 static void ReplaceAll (std::string& str, const std::string& from, const std::string& to)
 {
@@ -507,25 +521,26 @@ std::string Pass::getStimulusGeneratorShaderSource () const
 
     uint32_t lastUniformBinding = 1;
 
-    std::vector<std::string> uniforms = { "patternSizeOnRetina", "swizzleForFft", "frame" };
+    std::vector<std::pair<std::string, std::string>> commonBlock;
 
-    s += GenerateUniformBlock (lastUniformBinding, "vec2", "patternSizeOnRetina");
-    s += GenerateUniformBlock (lastUniformBinding, "int", "swizzleForFft");
-    s += GenerateUniformBlock (lastUniformBinding, "int", "frame");
-    s += GenerateUniformBlock (lastUniformBinding, "float", "time");
+    const std::vector<std::string> uniforms = { "patternSizeOnRetina", "swizzleForFft", "frame" };
+
+    commonBlock.emplace_back ("vec2", "patternSizeOnRetina");
+    commonBlock.emplace_back ("int", "swizzleForFft");
+    commonBlock.emplace_back ("int", "frame");
+    commonBlock.emplace_back ("float", "time");
 
     for (auto& svar : shaderColors) {
-        s += GenerateUniformBlock (lastUniformBinding, "vec3", svar.first);
-        uniforms.push_back (svar.first);
+        commonBlock.emplace_back ("vec3", svar.first);
     }
     for (auto& svar : shaderVectors) {
-        s += GenerateUniformBlock (lastUniformBinding, "vec2", svar.first);
-        uniforms.push_back (svar.first);
+        commonBlock.emplace_back ("vec2", svar.first);
     }
     for (auto& svar : shaderVariables) {
-        s += GenerateUniformBlock (lastUniformBinding, "float", svar.first);
-        uniforms.push_back (svar.first);
+        commonBlock.emplace_back ("float", svar.first);
     }
+
+    s += GenerateUniformBlock (lastUniformBinding, "commonUniformBlock", commonBlock);
 
     for (std::string sfunc : shaderFunctionOrder) {
         std::string funcSource = shaderFunctions.find (sfunc)->second;

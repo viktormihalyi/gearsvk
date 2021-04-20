@@ -65,7 +65,10 @@ uint32_t DefaultSwapchainSettings::SelectImageCount (const VkSurfaceCapabilities
 
 uint32_t DefaultSwapchainSettingsSingleImage::SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities)
 {
-    GVK_ASSERT (capabilities.minImageCount >= 1 && 1 <= capabilities.maxImageCount);
+    if (GVK_ERROR (capabilities.minImageCount > 1)) {
+        return capabilities.minImageCount;
+    }
+
     return 1;
 }
 
@@ -239,11 +242,11 @@ void RealSwapchain::Present (VkQueue queue, uint32_t imageIndex, const std::vect
     presentInfo.pResults           = nullptr;
 
     const VkResult err = vkQueuePresentKHR (queue, &presentInfo);
-    if (GVK_ERROR (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR)) {
+    if (GVK_ERROR (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR && err != VK_ERROR_OUT_OF_DATE_KHR)) {
         throw std::runtime_error ("failed to present");
     }
 
-    if (err == VK_SUBOPTIMAL_KHR) {
+    if (err == VK_SUBOPTIMAL_KHR || err == VK_ERROR_OUT_OF_DATE_KHR) {
         throw OutOfDateSwapchain { *this };
     }
 }
