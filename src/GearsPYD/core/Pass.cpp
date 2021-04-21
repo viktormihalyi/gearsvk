@@ -182,60 +182,57 @@ void Pass::setStimulus (std::shared_ptr<Stimulus> stimulus)
 void Pass::onSequenceComplete ()
 {
     if (stimulus->doesToneMappingInStimulusGenerator) {
-        setShaderFunction ("toneMap",
-                           R"GLSLC0D3(
-			layout (binding = 101) uniform sampler1D gamma;
-			layout (binding = 102) uniform toneMapping {
-			    float   toneRangeMin;
-			    float   toneRangeMax;
-			    float   toneRangeMean;
-			    float   toneRangeVar;
-			    int     gammaSampleCount;
-			    bool    doTone;
-			    bool    doGamma;
-            };
+        setShaderFunction ("toneMap", R"GLSLC0D3(
+layout (binding = 101) uniform sampler1D gamma;
+layout (binding = 102) uniform toneMapping {
+    float   toneRangeMin;
+    float   toneRangeMax;
+    float   toneRangeMean;
+    float   toneRangeVar;
+    int     gammaSampleCount;
+    bool    doTone;
+    bool    doGamma;
+};
 
-			vec3 toneMap(vec3 color){																	
-				vec3 outcolor = color;
-				if(doTone)																		
-				{
-					if(toneRangeVar >= 0)																
-					{																						
-						outcolor.r = 1 - 1 / (1 + exp((outcolor.r - toneRangeMean)/toneRangeVar));	
-						outcolor.g = 1 - 1 / (1 + exp((outcolor.g - toneRangeMean)/toneRangeVar));	
-						outcolor.b = 1 - 1 / (1 + exp((outcolor.b - toneRangeMean)/toneRangeVar));	
-					}																						
-					else																					
-					{																						
-						outcolor.r = (outcolor.r - toneRangeMin) / (toneRangeMax - toneRangeMin);	
-						outcolor.g = (outcolor.g - toneRangeMin) / (toneRangeMax - toneRangeMin);	
-						outcolor.b = (outcolor.b - toneRangeMin) / (toneRangeMax - toneRangeMin);	
-					}
-				}
-																										
-				if(doGamma)
-				{																						
-					{																					
-					outcolor.r = clamp(outcolor.r, 0, 1);												
-					float gammaIndex = outcolor.r * (gammaSampleCount-1) + 0.5;							
-					outcolor.r = texture(gamma, gammaIndex/256.0).x;									
-					}																					
-					{																					
-					outcolor.g = clamp(outcolor.g, 0, 1);												
-					float gammaIndex = outcolor.g * (gammaSampleCount-1) + 0.5;							
-					outcolor.g = texture(gamma, gammaIndex/256.0).x;									
-					}																					
-					{																					
-					outcolor.b = clamp(outcolor.b, 0, 1);												
-					float gammaIndex = outcolor.b * (gammaSampleCount-1) + 0.5;							
-					outcolor.b = texture(gamma, gammaIndex/256.0).x;									
-					}																					
-				}																						
-			return outcolor; 
-			}																			
-			)GLSLC0D3");
-    } else
+vec3 toneMap(vec3 color) 
+{
+	vec3 outcolor = color;
+	if (doTone) {
+		if (toneRangeVar >= 0) {
+			outcolor.r = 1 - 1 / (1 + exp((outcolor.r - toneRangeMean)/toneRangeVar));
+			outcolor.g = 1 - 1 / (1 + exp((outcolor.g - toneRangeMean)/toneRangeVar));
+			outcolor.b = 1 - 1 / (1 + exp((outcolor.b - toneRangeMean)/toneRangeVar));
+		} else {
+			outcolor.r = (outcolor.r - toneRangeMin) / (toneRangeMax - toneRangeMin);
+			outcolor.g = (outcolor.g - toneRangeMin) / (toneRangeMax - toneRangeMin);
+			outcolor.b = (outcolor.b - toneRangeMin) / (toneRangeMax - toneRangeMin);
+		}
+	}
+	
+	if (doGamma) {
+	    {
+		    outcolor.r = clamp(outcolor.r, 0, 1);
+		    float gammaIndex = outcolor.r * (gammaSampleCount-1) + 0.5;
+		    outcolor.r = texture(gamma, gammaIndex/256.0).x;
+		}
+		{
+		    outcolor.g = clamp(outcolor.g, 0, 1);
+		    float gammaIndex = outcolor.g * (gammaSampleCount-1) + 0.5;
+		    outcolor.g = texture(gamma, gammaIndex/256.0).x;
+		}
+		{
+		    outcolor.b = clamp(outcolor.b, 0, 1);
+		    float gammaIndex = outcolor.b * (gammaSampleCount-1) + 0.5;
+		    outcolor.b = texture(gamma, gammaIndex/256.0).x;
+		}
+	}
+	
+   	return outcolor; 
+})GLSLC0D3");
+
+    } else {
         setShaderFunction ("toneMap", "vec3 toneMap(vec3 color){return color;}");
+    }
 
     if (stimulus->temporalProcessingStateCount > 3) {
         if (stimulus->getSequence ()->isMonochrome () && stimulus->mono && mono) {
@@ -335,7 +332,8 @@ layout (binding = 0) uniform PatternSizeOnRetina {
 layout (location = 0) out vec2 pos;
 layout (location = 1) out vec2 fTexCoord;
 
-void main(void) {
+void main (void)
+{
    gl_Position	= vec4(float(gl_VertexIndex / 2)*2.0-1.0, 1.0-float(gl_VertexIndex % 2)*2.0, 0.5, 1.0);
    vec2 texCoord = vec2(float(gl_VertexIndex / 2), float(gl_VertexIndex % 2));
    fTexCoord = texCoord;
