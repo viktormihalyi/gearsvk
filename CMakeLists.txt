@@ -27,6 +27,9 @@ project (${PROJECT_NAME})
 
 execute_process (COMMAND
     git submodule update --init --recursive)
+    
+execute_process (COMMAND
+    conan --version)
 
 execute_process (COMMAND
     conan install ${CMAKE_SOURCE_DIR}/conanfile.txt
