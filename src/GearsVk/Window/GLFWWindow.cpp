@@ -11,6 +11,13 @@
 
 namespace GVK {
 
+
+static void error_callback (int error, const char *description)
+{
+    std::cout << "GLFW ERROR " << error << ": " << description << std::endl;
+}
+
+
 struct GLFWInitializer {
 private:
     bool initialized;
@@ -26,7 +33,11 @@ public:
         if (!initialized) {
             initialized = true;
             int result  = glfwInit ();
-            GVK_ASSERT (result == GLFW_TRUE);
+            if (GVK_ERROR (result != GLFW_TRUE)) {
+                std::terminate ();
+            }
+            
+            glfwSetErrorCallback (error_callback);
         }
     }
 
