@@ -1,6 +1,7 @@
 #include "ImageData.hpp"
 
 #include "DeviceExtra.hpp"
+#include "Assert.hpp"
 
 #pragma warning(push, 0)
 #include "stb_image.h"
@@ -10,6 +11,21 @@
 #include "VulkanUtils.hpp"
 
 namespace GVK {
+
+const ImageData ImageData::Empty { 4, 0, 0, {} };
+
+
+ImageData::ImageData (size_t                      components,
+                      size_t                      width,
+                      size_t                      height,
+                      const std::vector<uint8_t>& data)
+    : components { components }
+    , width { width }
+    , height { height }
+    , data { data }
+{
+}
+
 
 ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout)
     : components (4)
@@ -133,6 +149,73 @@ bool ImageData::operator== (const ImageData& other) const
     GVK_ASSERT (data.size () == other.data.size ());
 
     return memcmp (data.data (), other.data.data (), data.size ()) == 0;
+}
+
+
+ImageData::ComparisonResult ImageData::CompareTo (const ImageData& other) const
+{
+    if (GVK_ERROR (width != other.width || height != other.height)) {
+        return ComparisonResult { false, nullptr };
+    }
+
+    if (*this == other) {
+        return ComparisonResult { true, nullptr };
+    }
+
+    ComparisonResult result { true, std::make_unique<ImageData> (other) };
+    std::fill (result.diffImage->data.begin (), result.diffImage->data.end (), 0);
+
+    if (components == 4) {
+        for (size_t i = 0; i < width * height * components; i += components) {
+            if (memcmp (&data[i], &other.data[i], components) != 0) {
+                const std::array<uint8_t, 4> pixel { data[i + 0], data[i + 1], data[i + 2], data[i + 3] };
+                const std::array<uint8_t, 4> pixelOther { other.data[i + 0], other.data[i + 1], other.data[i + 2], other.data[i + 3] };
+
+                const size_t diffSum = std::abs (pixel[0] - pixelOther[0]) + std::abs (pixel[1] - pixelOther[1]) + std::abs (pixel[2] - pixelOther[2]) + std::abs (pixel[3] - pixelOther[3]);
+
+                if (diffSum > 1) {
+                    const uint8_t diffR = std::abs (other.data[i + 0] - data[i + 0]);
+                    const uint8_t diffG = std::abs (other.data[i + 1] - data[i + 1]);
+                    const uint8_t diffB = std::abs (other.data[i + 2] - data[i + 2]);
+                    const uint8_t diffA = std::abs (other.data[i + 3] - data[i + 3]);
+                    const uint8_t maxDiff = std::max ({ diffR, diffG, diffB, diffA });
+                    const double  maxDiffPerc = static_cast<double> (maxDiff) / 255;
+
+                    result.diffImage->data[i + 0] = 255 * maxDiffPerc;
+                    result.diffImage->data[i + 1] = 0;
+                    result.diffImage->data[i + 2] = 0;
+                    result.diffImage->data[i + 3] = 255;
+                    result.equal                  = false;
+                }
+            }
+        }
+    } else if (components == 3) {
+        for (size_t i = 0; i < width * height * components; i += components) {
+            if (memcmp (&data[i], &other.data[i], components) != 0) {
+                const std::array<uint8_t, 3> pixel { data[i + 0], data[i + 1], data[i + 2] };
+                const std::array<uint8_t, 3> pixelOther { other.data[i + 0], other.data[i + 1], other.data[i + 2] };
+
+                const size_t diffSum = std::abs (pixel[0] - pixelOther[0]) + std::abs (pixel[1] - pixelOther[1]) + std::abs (pixel[2] - pixelOther[2]);
+
+                if (diffSum > 1) {
+                    const uint8_t diffR       = std::abs (other.data[i + 0] - data[i + 0]);
+                    const uint8_t diffG       = std::abs (other.data[i + 1] - data[i + 1]);
+                    const uint8_t diffB       = std::abs (other.data[i + 2] - data[i + 2]);
+                    const uint8_t maxDiff     = std::max ({ diffR, diffG, diffB });
+                    const double  maxDiffPerc = static_cast<double> (maxDiff) / 255;
+
+                    result.diffImage->data[i + 0] = 255 * maxDiffPerc;
+                    result.diffImage->data[i + 1] = 0;
+                    result.diffImage->data[i + 2] = 0;
+                    result.equal                  = false;
+                }
+            }
+        }
+    } else {
+        GVK_BREAK ("not supported components");
+    }
+    
+    return result;
 }
 
 

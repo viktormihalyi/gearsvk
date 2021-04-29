@@ -55,7 +55,7 @@ public:
     virtual std::vector<std::unique_ptr<InheritedImage>>     GetImageObjects () const = 0;
     virtual const std::vector<std::unique_ptr<ImageView2D>>& GetImageViews () const   = 0;
 
-    virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const                                              = 0;
+    virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore, VkFence fence = VK_NULL_HANDLE) const              = 0;
     virtual void     Present (VkQueue queue, uint32_t imageIndex, const std::vector<VkSemaphore>& waitSemaphores) const = 0;
     virtual bool     SupportsPresenting () const                                                                        = 0;
     virtual void     Recreate ()                                                                                        = 0;
@@ -151,7 +151,7 @@ public:
     virtual const std::vector<std::unique_ptr<ImageView2D>>& GetImageViews () const override { return createResult.imageViews; }
     virtual std::vector<std::unique_ptr<InheritedImage>>     GetImageObjects () const override;
 
-    virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override;
+    virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore, VkFence fenceToSignal = VK_NULL_HANDLE) const override;
 
     virtual bool SupportsPresenting () const override { return true; }
 
@@ -201,9 +201,10 @@ public:
     virtual void                 RecreateForSurface (VkSurfaceKHR) override {}
     virtual bool                 IsEqualSettings (const Swapchain&) override { return true; }
 
-    virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore) const override
+    virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore, VkFence fenceToSignal = VK_NULL_HANDLE) const override
     {
         GVK_ASSERT (signalSemaphore == VK_NULL_HANDLE);
+        GVK_ASSERT (fence == VK_NULL_HANDLE);
         return 0;
     }
 

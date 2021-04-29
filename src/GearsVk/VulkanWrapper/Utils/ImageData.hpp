@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <optional>
 #include <vector>
+#include <memory>
 
 #include "DeviceExtra.hpp"
 #include "Image.hpp"
@@ -12,8 +13,15 @@
 namespace GVK {
 
 class GVK_RENDERER_API ImageData {
+public:
+    static const ImageData Empty;
+
 private:
     ImageData () = default;
+    ImageData (size_t                      components,
+               size_t                      width,
+               size_t                      height,
+               const std::vector<uint8_t>& data);
 
 public:
     size_t               components;
@@ -29,6 +37,12 @@ public:
     static ImageData FromDataFloat (const std::vector<float>& data, uint32_t width, uint32_t height, uint32_t components);
 
     bool operator== (const ImageData& other) const;
+
+    struct ComparisonResult {
+        bool      equal;
+        std::unique_ptr<ImageData> diffImage;
+    };
+    ComparisonResult CompareTo (const ImageData& diff) const;
 
     uint32_t GetByteCount () const;
 

@@ -212,11 +212,11 @@ std::vector<std::unique_ptr<InheritedImage>> RealSwapchain::GetImageObjects () c
 }
 
 
-uint32_t RealSwapchain::GetNextImageIndex (VkSemaphore signalSemaphore) const
+uint32_t RealSwapchain::GetNextImageIndex (VkSemaphore signalSemaphore, VkFence fenceToSignal) const
 {
     uint32_t result;
 
-    VkResult err = vkAcquireNextImageKHR (createSettings.device, createResult.handle, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &result);
+    VkResult err = vkAcquireNextImageKHR (createSettings.device, createResult.handle, UINT64_MAX, signalSemaphore, fenceToSignal, &result);
     if (GVK_ERROR (err != VK_SUCCESS && err != VK_ERROR_OUT_OF_DATE_KHR && err != VK_SUBOPTIMAL_KHR)) {
         throw std::runtime_error ("bro");
     }

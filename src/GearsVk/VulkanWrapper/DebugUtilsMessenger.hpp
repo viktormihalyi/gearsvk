@@ -7,10 +7,11 @@
 #include "MovablePtr.hpp"
 #include "Utils.hpp"
 #include "VulkanObject.hpp"
+#include "Noncopyable.hpp"
 
 namespace GVK {
 
-class GVK_RENDERER_API DebugUtilsMessenger : public VulkanObject {
+class GVK_RENDERER_API DebugUtilsMessenger : public VulkanObject, public Noncopyable {
 public:
     using Callback = std::function<void (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
                                          VkDebugUtilsMessageTypeFlagsEXT             messageType,

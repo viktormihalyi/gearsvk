@@ -94,14 +94,24 @@ void GoogleTestEnvironmentBase::CompareImages (const std::string& name, const Im
 {
     const ImageData referenceImage (ReferenceImagesFolder / (name + "_Reference.png"));
 
-    const bool imagesMatch = referenceImage == actualImage;
+    const ImageData::ComparisonResult comparison = referenceImage.CompareTo (actualImage);
 
-    EXPECT_TRUE (imagesMatch);
+    EXPECT_TRUE (comparison.equal);
 
-    if (!imagesMatch) {
+    if (!comparison.equal) {
+        const std::filesystem::path outPathRef = TempFolder / (name + "_Reference.png");
+        std::cout << "Saving " << outPathRef.u8string () << "..." << std::endl;
+        referenceImage.SaveTo (outPathRef);
+
         const std::filesystem::path outPath = TempFolder / (name + "_Actual.png");
         std::cout << "Saving " << outPath.u8string () << "..." << std::endl;
         actualImage.SaveTo (outPath);
+
+        if (GVK_VERIFY (comparison.diffImage != nullptr)) {
+            const std::filesystem::path outPathDiff = TempFolder / (name + "_Diff.png");
+            std::cout << "Saving " << outPathDiff.u8string () << "..." << std::endl;
+            comparison.diffImage->SaveTo (outPathDiff);
+        }
     }
 }
 
