@@ -92,13 +92,17 @@ SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (const De
     , imageCount (swapchain.GetImageCount ())
     , currentFrameIndex (0)
     , swapchain (swapchain)
+    , presentationEngineFence (std::make_unique<Fence> (device))
 {
+    presentationEngineFence->SetName ("presentationEngineFence");
+    
     GVK_ASSERT (imageCount <= framesInFlight);
 
     for (uint32_t i = 0; i < framesInFlight; ++i) {
         imageAvailableSemaphore.push_back (std::make_unique<Semaphore> (device));
         renderFinishedSemaphore.push_back (std::make_unique<Semaphore> (device));
         inFlightFences.push_back (std::make_unique<Fence> (device));
+        inFlightFences.back ()->SetName (std::string ("inFlightFence ") + std::to_string (i));
     }
 
     for (uint32_t i = 0; i < imageCount; ++i) {
@@ -177,16 +181,20 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph
         std::cout << "RenderNextRecreatable called " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
     frameDisplayObserver.OnImageFenceWaitStarted (currentFrameIndex);
-    inFlightFences[currentFrameIndex]->Wait ();
+    //inFlightFences[currentFrameIndex]->Wait ();
     //std::cout << "render ended for " << currentFrameIndex << " at " << std::fixed << GVK::TimePoint::SinceEpoch ().AsMilliseconds () << std::endl;
     frameDisplayObserver.OnImageFenceWaitEnded (currentFrameIndex);
     if constexpr (LOG_RENDERING)
         std::cout << "waited for fence " << currentFrameIndex << " " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
     frameDisplayObserver.OnImageAcquisitionStarted ();
-    const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentFrameIndex]);
+    const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentFrameIndex], *presentationEngineFence);
     //std::cout << "got img for      " << currentFrameIndex << " at " << std::fixed << GVK::TimePoint::SinceEpoch ().AsMilliseconds () << std::endl;
     frameDisplayObserver.OnImageAcquisitionReturned (currentFrameIndex);
+
+    presentationEngineFence->Wait ();
+    frameDisplayObserver.OnImageAcquisitionFenceSignaled (currentFrameIndex);
+    presentationEngineFence->Reset ();
 
     swapchainImageAcquiredEvent.Notify (currentImageIndex);
 
@@ -227,6 +235,7 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph
 
     frameDisplayObserver.OnRenderStarted (currentFrameIndex);
     graph.Submit (currentFrameIndex, submitWaitSemaphores, submitSignalSemaphores, *inFlightFences[currentFrameIndex]);
+    //graph.Submit (currentFrameIndex, submitWaitSemaphores, submitSignalSemaphores);
     if constexpr (LOG_RENDERING)
         std::cout << "submitted " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 

@@ -204,7 +204,7 @@ public:
     virtual uint32_t GetNextImageIndex (VkSemaphore signalSemaphore, VkFence fenceToSignal = VK_NULL_HANDLE) const override
     {
         GVK_ASSERT (signalSemaphore == VK_NULL_HANDLE);
-        GVK_ASSERT (fence == VK_NULL_HANDLE);
+        GVK_ASSERT (fenceToSignal == VK_NULL_HANDLE);
         return 0;
     }
 

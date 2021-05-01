@@ -8,7 +8,8 @@ namespace GVK {
 
 class GVK_RENDERER_API VulkanObject {
 private:
-    GVK::UUID uuid;
+    GVK::UUID   uuid;
+    std::string name;
 
 protected:
     VulkanObject ();
@@ -16,10 +17,11 @@ protected:
 public:
     virtual ~VulkanObject ();
 
-    const GVK::UUID& GetUUID () const
-    {
-        return uuid;
-    }
+    void SetName (const std::string& value) { name = value; }
+
+    const std::string& GetName () const { return name; }
+
+    const GVK::UUID& GetUUID () const { return uuid; }
 };
 
 } // namespace GVK

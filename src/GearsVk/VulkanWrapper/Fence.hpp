@@ -25,6 +25,9 @@ public:
     void Wait () const;
 
     void Reset () const;
+
+private:
+    void WaitImpl () const;
 };
 
 } // namespace GVK

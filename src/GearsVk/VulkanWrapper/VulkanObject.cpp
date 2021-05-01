@@ -12,6 +12,7 @@ VulkanObject::VulkanObject ()
     objects.insert (this);
 }
 
+
 VulkanObject::~VulkanObject ()
 {
     objects.erase (this);

@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-#define LOG_WAITS 0
+constexpr bool LOG_WAITS = true;
 
 
 namespace GVK {
@@ -31,18 +31,30 @@ Fence::~Fence ()
 }
 
 
+void Fence::WaitImpl () const
+{
+    vkWaitForFences (device, 1, &handle, VK_TRUE, UINT64_MAX);
+}
+
+
 void Fence::Wait () const
 {
-#if LOG_WAITS
-    const GVK::TimePoint start = GVK::TimePoint::SinceEpoch ();
-#endif
+    if constexpr (LOG_WAITS) {
+        
+        const GVK::TimePoint start = GVK::TimePoint::SinceEpoch ();
 
-    vkWaitForFences (device, 1, &handle, VK_TRUE, UINT64_MAX);
+        WaitImpl ();
+        
+        const GVK::TimePoint end = GVK::TimePoint::SinceEpoch ();
 
-#if LOG_WAITS
-    const GVK::TimePoint end = GVK::TimePoint::SinceEpoch ();
-    std::cout << "fence " << GetUUID ().GetValue () << " waited " << std::fixed << (end - start).AsMilliseconds () << " ms" << std::endl;
-#endif
+        const std::string fenceId = !GetName ().empty () ? GetName () : GetUUID ().GetValue ();
+        std::cout << "fence \"" << fenceId << "\" waited " << std::fixed << (end - start).AsMilliseconds () << " ms" << std::endl;
+
+    } else {
+        
+        WaitImpl ();
+
+    }
 }
 
 

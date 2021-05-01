@@ -30,6 +30,7 @@ public:
     virtual void OnImageFenceWaitEnded (uint32_t) {}
     virtual void OnImageAcquisitionStarted () {}
     virtual void OnImageAcquisitionReturned (uint32_t) {}
+    virtual void OnImageAcquisitionFenceSignaled (uint32_t) {}
     virtual void OnImageAcquisitionEnded (uint32_t) {}
     virtual void OnRenderStarted (uint32_t) {}
     virtual void OnPresentStarted (uint32_t) {}
@@ -101,6 +102,8 @@ private:
     std::vector<std::unique_ptr<Semaphore>> imageAvailableSemaphore; // present signals, submit  waits
     std::vector<std::unique_ptr<Semaphore>> renderFinishedSemaphore; // submit  signals, present waits
     std::vector<std::unique_ptr<Fence>>     inFlightFences;          // waited before submit, signaled by submit
+
+    std::unique_ptr<Fence> presentationEngineFence;
 
     // size is imageCount
     // determines what frame is rendering to each swapchain image
