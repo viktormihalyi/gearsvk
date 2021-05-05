@@ -31,7 +31,7 @@ public:
     virtual ~Operation () = default;
 
     virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height)                                = 0;
-    virtual void Record (const ConnectionSet& connectionSet, uint32_t frameIndex, CommandBuffer& commandBuffer) = 0;
+    virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, CommandBuffer& commandBuffer) = 0;
     virtual bool IsActive ()                                                                                    = 0;
 
     // when record called, input images will be in GetImageLayoutAtStartForInputs ()
@@ -94,7 +94,7 @@ public:
 private:
     // helper functions
 
-    std::vector<VkImageView>             GetOutputImageViews (const ConnectionSet& conncetionSet, uint32_t frameIndex) const;
+    std::vector<VkImageView>             GetOutputImageViews (const ConnectionSet& conncetionSet, uint32_t resourceIndex) const;
     std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const ConnectionSet& conncetionSet) const;
     std::vector<VkAttachmentReference>   GetAttachmentReferences (const ConnectionSet& conncetionSet) const;
 };

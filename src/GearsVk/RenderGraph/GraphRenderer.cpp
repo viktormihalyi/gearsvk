@@ -89,12 +89,12 @@ uint32_t BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph, 
 
 
 SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (const DeviceExtra& device, Swapchain& swapchain)
-    : RecreatableGraphRenderer (swapchain)
-    , framesInFlight (swapchain.GetImageCount ())
-    , imageCount (swapchain.GetImageCount ())
-    , currentFrameIndex (0)
-    , swapchain (swapchain)
-    , presentationEngineFence (std::make_unique<Fence> (device))
+    : RecreatableGraphRenderer { swapchain }
+    , framesInFlight { swapchain.GetImageCount () }
+    , imageCount { swapchain.GetImageCount () }
+    , currentResourceIndex { 0 }
+    , swapchain { swapchain }
+    , presentationEngineFence { std::make_unique<Fence> (device) }
 {
     presentationEngineFence->SetName ("presentationEngineFence");
     
@@ -182,20 +182,20 @@ uint32_t SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderG
     if constexpr (LOG_RENDERING)
         std::cout << "RenderNextRecreatable called " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
-    frameDisplayObserver.OnImageFenceWaitStarted (currentFrameIndex);
-    //inFlightFences[currentFrameIndex]->Wait ();
-    //std::cout << "render ended for " << currentFrameIndex << " at " << std::fixed << GVK::TimePoint::SinceEpoch ().AsMilliseconds () << std::endl;
-    frameDisplayObserver.OnImageFenceWaitEnded (currentFrameIndex);
+    frameDisplayObserver.OnImageFenceWaitStarted (currentResourceIndex);
+    //inFlightFences[currentResourceIndex]->Wait ();
+    //std::cout << "render ended for " << currentResourceIndex<< " at " << std::fixed << GVK::TimePoint::SinceEpoch ().AsMilliseconds () << std::endl;
+    frameDisplayObserver.OnImageFenceWaitEnded (currentResourceIndex);
     if constexpr (LOG_RENDERING)
-        std::cout << "waited for fence " << currentFrameIndex << " " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
+        std::cout << "waited for fence " << currentResourceIndex<< " " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
     frameDisplayObserver.OnImageAcquisitionStarted ();
-    const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentFrameIndex], *presentationEngineFence);
-    //std::cout << "got img for      " << currentFrameIndex << " at " << std::fixed << GVK::TimePoint::SinceEpoch ().AsMilliseconds () << std::endl;
-    frameDisplayObserver.OnImageAcquisitionReturned (currentFrameIndex);
+    const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentResourceIndex], *presentationEngineFence);
+    //std::cout << "got img for      " << currentResourceIndex<< " at " << std::fixed << GVK::TimePoint::SinceEpoch ().AsMilliseconds () << std::endl;
+    frameDisplayObserver.OnImageAcquisitionReturned (currentResourceIndex);
 
     presentationEngineFence->Wait ();
-    frameDisplayObserver.OnImageAcquisitionFenceSignaled (currentFrameIndex);
+    frameDisplayObserver.OnImageAcquisitionFenceSignaled (currentResourceIndex);
     presentationEngineFence->Reset ();
 
     swapchainImageAcquiredEvent.Notify (currentImageIndex);
@@ -210,47 +210,47 @@ uint32_t SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderG
             std::cout << "waited for fence " << previousFrameIndex << " " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
     }
 
-    frameDisplayObserver.OnImageAcquisitionEnded (currentFrameIndex);
+    frameDisplayObserver.OnImageAcquisitionEnded (currentResourceIndex);
 
     // SIGNAL HERE
     presentedEvent.Notify ();
 
 
     // update mapping
-    imageToFrameMapping[currentImageIndex] = currentFrameIndex;
+    imageToFrameMapping[currentImageIndex] = currentResourceIndex;
 
-    const std::vector<VkSemaphore> submitWaitSemaphores   = { *imageAvailableSemaphore[currentFrameIndex] };
-    const std::vector<VkSemaphore> submitSignalSemaphores = { *renderFinishedSemaphore[currentFrameIndex] };
+    const std::vector<VkSemaphore> submitWaitSemaphores   = { *imageAvailableSemaphore[currentResourceIndex] };
+    const std::vector<VkSemaphore> submitSignalSemaphores = { *renderFinishedSemaphore[currentResourceIndex] };
     const std::vector<VkSemaphore> presentWaitSemaphores  = submitSignalSemaphores;
 
-    inFlightFences[currentFrameIndex]->Reset ();
+    inFlightFences[currentResourceIndex]->Reset ();
     if constexpr (LOG_RENDERING)
-        std::cout << "fence reset " << currentFrameIndex << " " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
+        std::cout << "fence reset " << currentResourceIndex<< " " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
     {
         const TimePoint currentTime = TimePoint::SinceApplicationStart ();
-        preSubmitEvent.Notify (graph, currentFrameIndex, currentTime - lastDrawTime);
+        preSubmitEvent.Notify (graph, currentResourceIndex, currentTime - lastDrawTime);
         lastDrawTime = currentTime;
         if constexpr (LOG_RENDERING)
             std::cout << "preSubmitEvent " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
     }
 
-    frameDisplayObserver.OnRenderStarted (currentFrameIndex);
-    graph.Submit (currentFrameIndex, submitWaitSemaphores, submitSignalSemaphores, *inFlightFences[currentFrameIndex]);
-    //graph.Submit (currentFrameIndex, submitWaitSemaphores, submitSignalSemaphores);
+    frameDisplayObserver.OnRenderStarted (currentResourceIndex);
+    graph.Submit (currentResourceIndex, submitWaitSemaphores, submitSignalSemaphores, *inFlightFences[currentResourceIndex]);
+    //graph.Submit (currentResourceIndex, submitWaitSemaphores, submitSignalSemaphores);
     if constexpr (LOG_RENDERING)
         std::cout << "submitted " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
     GVK_ASSERT (swapchain.SupportsPresenting ());
 
-    frameDisplayObserver.OnPresentStarted (currentFrameIndex);
+    frameDisplayObserver.OnPresentStarted (currentResourceIndex);
     graph.Present (currentImageIndex, swapchain, presentWaitSemaphores);
     if constexpr (LOG_RENDERING)
         std::cout << "presented " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
-    const uint32_t usedFrameIndex = currentFrameIndex;
+    const uint32_t usedFrameIndex = currentResourceIndex;
 
-    currentFrameIndex = (currentFrameIndex + 1) % framesInFlight;
+    currentResourceIndex= (currentResourceIndex+ 1) % framesInFlight;
     if constexpr (LOG_RENDERING)
         std::cout << "RenderNextRecreatable ended " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 

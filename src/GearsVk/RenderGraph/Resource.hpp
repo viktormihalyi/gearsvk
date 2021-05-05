@@ -31,11 +31,11 @@ public:
 
     virtual void Compile (const GraphSettings&) = 0;
 
-    virtual void OnPreRead (uint32_t frameIndex, CommandBuffer&) {};
-    virtual void OnPreWrite (uint32_t frameIndex, CommandBuffer&) {};
-    virtual void OnPostWrite (uint32_t frameIndex, CommandBuffer&) {};
-    virtual void OnGraphExecutionStarted (uint32_t frameIndex, CommandBuffer&) {};
-    virtual void OnGraphExecutionEnded (uint32_t frameIndex, CommandBuffer&) {};
+    virtual void OnPreRead (uint32_t resourceIndex, CommandBuffer&) {};
+    virtual void OnPreWrite (uint32_t resourceIndex, CommandBuffer&) {};
+    virtual void OnPostWrite (uint32_t resourceIndex, CommandBuffer&) {};
+    virtual void OnGraphExecutionStarted (uint32_t resourceIndex, CommandBuffer&) {};
+    virtual void OnGraphExecutionEnded (uint32_t resourceIndex, CommandBuffer&) {};
 
     virtual void Visit (IResourceVisitor&) = 0;
 };
@@ -108,7 +108,7 @@ public:
     virtual VkFormat            GetFormat () const                    = 0;
     virtual uint32_t            GetLayerCount () const                = 0;
     virtual std::vector<Image*> GetImages () const                    = 0;
-    virtual std::vector<Image*> GetImages (uint32_t frameIndex) const = 0;
+    virtual std::vector<Image*> GetImages (uint32_t resourceIndex) const = 0;
 
 
     std::function<VkFormat ()> GetFormatProvider () const
@@ -211,7 +211,7 @@ public:
         sampler = std::make_unique<Sampler> (graphSettings.GetDevice (), filter);
 
         images.clear ();
-        for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
+        for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
             images.push_back (std::make_unique<SingleImageResource> (graphSettings.GetDevice (), width, height, arrayLayers, format));
         }
     }
@@ -241,12 +241,12 @@ public:
         return result;
     }
 
-    virtual std::vector<Image*> GetImages (uint32_t frameIndex) const override
+    virtual std::vector<Image*> GetImages (uint32_t resourceIndex) const override
     {
-        return { images[frameIndex]->image.get () };
+        return { images[resourceIndex]->image.get () };
     }
     // overriding InputImageBindable
-    virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t layerIndex) override { return *images[frameIndex]->imageViews[layerIndex]; }
+    virtual VkImageView GetImageViewForFrame (uint32_t resourceIndex, uint32_t layerIndex) override { return *images[resourceIndex]->imageViews[layerIndex]; }
     virtual VkSampler   GetSampler () override { return *sampler; }
 
     virtual void Visit (IResourceVisitor& visitor) override { visitor.Visit (*this); }
@@ -301,7 +301,7 @@ public:
         images.push_back (std::make_unique<SingleImageResource> (graphSettings.GetDevice (), width, height, arrayLayers, GetFormat ()));
     }
 
-    virtual void OnPreRead (uint32_t frameIndex, CommandBuffer& commandBuffer) override
+    virtual void OnPreRead (uint32_t resourceIndex, CommandBuffer& commandBuffer) override
     {
         commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
             VkEvent handle = *readWriteSync;
@@ -316,14 +316,14 @@ public:
         });
     }
 
-    virtual void OnPreWrite (uint32_t frameIndex, CommandBuffer& commandBuffer) override
+    virtual void OnPreWrite (uint32_t resourceIndex, CommandBuffer& commandBuffer) override
     {
         commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
             vkCmdResetEvent (commandBuffer, *readWriteSync, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
         });
     }
 
-    virtual void OnPostWrite (uint32_t frameIndex, CommandBuffer& commandBuffer) override
+    virtual void OnPostWrite (uint32_t resourceIndex, CommandBuffer& commandBuffer) override
     {
         commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
             vkCmdSetEvent (commandBuffer, *readWriteSync, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
@@ -519,14 +519,14 @@ public:
         return result;
     }
 
-    virtual std::vector<Image*> GetImages (uint32_t frameIndex) const override
+    virtual std::vector<Image*> GetImages (uint32_t resourceIndex) const override
     {
-        return { inheritedImages[frameIndex].get () };
+        return { inheritedImages[resourceIndex].get () };
     }
 
 
     // overriding InputImageBindable
-    virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t) override { return *imageViews[frameIndex]; }
+    virtual VkImageView GetImageViewForFrame (uint32_t resourceIndex, uint32_t) override { return *imageViews[resourceIndex]; }
     virtual VkSampler   GetSampler () override { return VK_NULL_HANDLE; }
 
     virtual void Visit (IResourceVisitor& visitor) override { visitor.Visit (*this); }
@@ -561,10 +561,10 @@ public:
     }
 
     // overriding InputBufferBindable
-    virtual VkBuffer GetBufferForFrame (uint32_t frameIndex) override { return *buffers[frameIndex]; }
+    virtual VkBuffer GetBufferForFrame (uint32_t resourceIndex) override { return *buffers[resourceIndex]; }
     virtual uint32_t GetBufferSize () override { return size; }
 
-    MemoryMapping& GetMapping (uint32_t frameIndex) { return *mappings[frameIndex]; }
+    MemoryMapping& GetMapping (uint32_t resourceIndex) { return *mappings[resourceIndex]; }
 
     virtual void Visit (IResourceVisitor& visitor) override { visitor.Visit (*this); }
 };

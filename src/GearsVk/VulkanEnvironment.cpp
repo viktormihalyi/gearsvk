@@ -93,13 +93,11 @@ void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      severity,
     using namespace TerminalColors;
 
     if (severity > VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-        std::cout << callbackData->pMessage << std::endl
+        std::cout << RED << "validation layer: "
+                  << YELLOW << callbackData->pMessageIdName << ": "
+                  << RESET << callbackData->pMessage
+                  << std::endl
                   << std::endl;
-        //std::cout << RED << "validation layer: "
-        //          << YELLOW << callbackData->pMessageIdName << ": "
-        //          << RESET << callbackData->pMessage
-        //          << std::endl
-        //          << std::endl;
     }
 }
 

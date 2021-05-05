@@ -54,7 +54,7 @@ public:
 
     virtual void OnRandomTextureDrawn (GVK::RG::ImageResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) override
     {
-        GVK::ImageData imgasd (device, *randomTexture.GetImages (resourceIndex)[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        GVK::ImageData imgasd (device, *randomTexture.GetImages (resourceIndex)[0], 0 /*, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL*/);
 
         std::vector<uint32_t> as32BitUint;
 

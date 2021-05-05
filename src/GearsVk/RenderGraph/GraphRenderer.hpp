@@ -95,7 +95,7 @@ private:
     // number of images in Swapchain
     const uint32_t imageCount;
 
-    uint32_t currentFrameIndex;
+    uint32_t currentResourceIndex;
 
     // size is framesInFlight
     // synchronization objects for each frame in flight

@@ -3,7 +3,8 @@
 
 namespace TerminalColors {
 
-// TODO doesnt work with powershell
+// for Powershell:
+// regedit [HKEY_CURRENT_USER\Console], create or set the VirtualTerminalLevel DWORD value to 1
 
 constexpr const char* RESET       = "\033[0m";
 constexpr const char* BLACK       = "\033[30m";

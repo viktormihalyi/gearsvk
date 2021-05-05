@@ -37,17 +37,17 @@ std::vector<VkAttachmentReference> RenderOperation::GetAttachmentReferences (con
 }
 
 
-std::vector<VkImageView> RenderOperation::GetOutputImageViews (const ConnectionSet& conncetionSet, uint32_t frameIndex) const
+std::vector<VkImageView> RenderOperation::GetOutputImageViews (const ConnectionSet& conncetionSet, uint32_t resourceIndex) const
 {
     std::vector<VkImageView> result;
 
     IResourceVisitorFn outputGatherer ([] (ReadOnlyImageResource&) {},
                                        [&] (WritableImageResource& res) {
-        for (auto& imgView : res.images[frameIndex]->imageViews) {
+        for (auto& imgView : res.images[resourceIndex]->imageViews) {
             result.push_back (*imgView);
         } },
                                        [&] (SwapchainImageResource& res) {
-                                           result.push_back (*res.imageViews[frameIndex]);
+                                           result.push_back (*res.imageViews[resourceIndex]);
                                        },
                                        [] (GPUBufferResource&) {},
                                        [] (CPUBufferResource&) {});
@@ -89,11 +89,11 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     if (s > 0) {
         compileResult.descriptorPool = std::make_unique<DescriptorPool> (graphSettings.GetDevice (), s, s, graphSettings.framesInFlight);
 
-        for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
+        for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
             std::unique_ptr<DescriptorSet> descriptorSet = std::make_unique<DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
             graphSettings.connectionSet.ProcessInputBindingsOf (this, [&] (const IConnectionBinding& binding) {
-                binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, frameIndex);
+                binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, resourceIndex);
             });
 
             compileResult.descriptorSets.push_back (std::move (descriptorSet));
@@ -105,8 +105,8 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 
     if constexpr (IsDebugBuild) {
         GVK_ASSERT (attachmentReferences.size () == attachmentDescriptions.size ());
-        for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-            const auto outputImageView = GetOutputImageViews (graphSettings.connectionSet, frameIndex);
+        for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
+            const auto outputImageView = GetOutputImageViews (graphSettings.connectionSet, resourceIndex);
             GVK_ASSERT (attachmentReferences.size () == outputImageView.size ());
         }
     }
@@ -122,8 +122,8 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 
     compileSettings.pipeline->Compile (pipelineSettigns);
 
-    for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-        compileResult.framebuffers.push_back (std::make_unique<Framebuffer> (graphSettings.GetDevice (), *compileSettings.pipeline->compileResult.renderPass, GetOutputImageViews (graphSettings.connectionSet, frameIndex), width, height));
+    for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
+        compileResult.framebuffers.push_back (std::make_unique<Framebuffer> (graphSettings.GetDevice (), *compileSettings.pipeline->compileResult.renderPass, GetOutputImageViews (graphSettings.connectionSet, resourceIndex), width, height));
     }
 
     compileResult.width  = width;
@@ -131,7 +131,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 }
 
 
-void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t frameIndex, CommandBuffer& commandBuffer)
+void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, CommandBuffer& commandBuffer)
 {
     uint32_t outputCount = 0;
 
@@ -154,7 +154,7 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t frame
     VkRenderPassBeginInfo renderPassBeginInfo = {};
     renderPassBeginInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassBeginInfo.renderPass            = *compileSettings.pipeline->compileResult.renderPass;
-    renderPassBeginInfo.framebuffer           = *compileResult.framebuffers[frameIndex];
+    renderPassBeginInfo.framebuffer           = *compileResult.framebuffers[resourceIndex];
     renderPassBeginInfo.renderArea.offset     = { 0, 0 };
     renderPassBeginInfo.renderArea.extent     = { compileResult.width, compileResult.height };
     renderPassBeginInfo.clearValueCount       = static_cast<uint32_t> (clearValues.size ());
@@ -178,7 +178,7 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t frame
     commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdBindPipeline (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipeline); });
 
     if (!compileResult.descriptorSets.empty ()) {
-        VkDescriptorSet dsHandle = *compileResult.descriptorSets[frameIndex];
+        VkDescriptorSet dsHandle = *compileResult.descriptorSets[resourceIndex];
 
         commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
             vkCmdBindDescriptorSets (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipelineLayout, 0,
