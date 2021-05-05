@@ -4,6 +4,7 @@
 #include "RenderGraph.hpp"
 #include "SequenceAdapter.hpp"
 #include "VulkanEnvironment.hpp"
+#include "StimulusAdapterForPresentable.hpp"
 
 #include "BuildType.hpp"
 #include "CommandLineFlag.hpp"
@@ -11,8 +12,6 @@
 
 int main (int argc, char** argv)
 {
-    Utils::CommandLineFlag::MatchAll (argc, argv, false);
-
     if (argc < 2) {
         std::cout << "Fist argument must be an absolute path of a sequence .pyx file." << std::endl;
         return EXIT_FAILURE;
@@ -22,6 +21,8 @@ int main (int argc, char** argv)
         std::cout << "Press enter to start." << std::endl;
         std::cin.ignore ();
     }
+
+    Utils::CommandLineFlag::MatchAll (argc, argv, false);
 
     const std::string           sequencePathStr (argv[1]);
     const std::filesystem::path sequencePath (sequencePathStr);

@@ -6,6 +6,7 @@
 #include "core/Stimulus.h"
 
 // from GearsVkUtils
+#include "CommandLineFlag.hpp"
 #include "Assert.hpp"
 
 // from GearsVk
@@ -21,6 +22,8 @@
 // from std
 #include <random>
 #include <string>
+#include <cstring>
+#include <fstream>
 
 
 constexpr bool LogDebugInfo = false;
@@ -29,7 +32,8 @@ constexpr bool LogDebugInfo = false;
 StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanEnvironment&          environment,
                                                               std::shared_ptr<GVK::Presentable>&     presentable,
                                                               const std::shared_ptr<Stimulus const>& stimulus)
-    : presentable (presentable)
+    : environment { environment }
+    , presentable { presentable }
 {
     renderGraph = std::make_unique<GVK::RG::RenderGraph> ();
 
@@ -105,7 +109,7 @@ StimulusAdapterForPresentable::StimulusAdapterForPresentable (const GVK::VulkanE
 
     // TODO 0 means viewport size
     if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0 && randomBinding.has_value ()) {
-        std::shared_ptr<GVK::RG::WritableImageResource> randomTexture = std::make_unique<GVK::RG::WritableImageResource> (
+        randomTexture = std::make_unique<GVK::RG::WritableImageResource> (
             VK_FILTER_NEAREST,
             stimulus->sequence->maxRandomGridWidth,
             stimulus->sequence->maxRandomGridHeight,
@@ -221,7 +225,8 @@ void StimulusAdapterForPresentable::SetUniforms (const GVK::UUID& renderOperatio
 void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer&                     renderer,
                                                       const std::shared_ptr<Stimulus const>& stimulus,
                                                       const uint32_t                         frameIndex,
-                                                      GVK::RG::IFrameDisplayObserver&        frameDisplayObserver)
+                                                      GVK::RG::IFrameDisplayObserver&        frameDisplayObserver,
+                                                      IRandomExporter&                       randomExporter)
 {
     const uint32_t stimulusStartingFrame = stimulus->getStartingFrame ();
     const uint32_t stimulusEndingFrame   = stimulus->getStartingFrame () + stimulus->getDuration ();
@@ -264,7 +269,14 @@ void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer&        
     GVK_ASSERT (presentObservers.count (frameIndex) == 0);
     presentObservers[frameIndex] = std::move (presentObs);
 
-    renderer.RenderNextFrame (*renderGraph, frameDisplayObserver);
+    const uint32_t resFrameIndex = renderer.RenderNextFrame (*renderGraph, frameDisplayObserver);
+
+    if (randomExporter.IsEnabled ()) {
+        if (randomTexture != nullptr) {
+            environment.Wait ();
+            randomExporter.OnRandomTextureDrawn (*randomTexture, resFrameIndex, frameIndex);
+        }
+    }
 
     for (uint32_t presentedNotified : presentedEventDeleteQueue) {
         presentObservers.erase (presentedNotified);

@@ -6,9 +6,9 @@
 #include "GraphRenderer.hpp"
 #include "Noncopyable.hpp"
 #include "Time.hpp"
-#include <memory>
 
 // from std
+#include <memory>
 #include <map>
 #include <vector>
 
@@ -26,6 +26,8 @@ class UniformReflection;
 class Operation;
 class SynchronizedSwapchainGraphRenderer;
 class Renderer;
+class ImageResource;
+class WritableImageResource;
 } // namespace RG
 class Presentable;
 class IFrameDisplayObserver;
@@ -33,8 +35,19 @@ class VulkanEnvironment;
 } // namespace GVK
 
 
+class IRandomExporter {
+public:
+    virtual ~IRandomExporter () = default;
+
+    virtual bool IsEnabled () = 0;
+    virtual void OnRandomTextureDrawn (GVK::RG::ImageResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) = 0;
+};
+
+
 class StimulusAdapterForPresentable : public Noncopyable {
 private:
+    const GVK::VulkanEnvironment&           environment;
+
     const std::shared_ptr<Stimulus const>   stimulus;
     const std::shared_ptr<GVK::Presentable> presentable;
 
@@ -45,6 +58,7 @@ private:
 
     std::unordered_map<uint32_t, std::unique_ptr<GVK::SingleEventObserver>> presentObservers;
     std::vector<uint32_t>                                                   presentedEventDeleteQueue;
+    std::shared_ptr<GVK::RG::WritableImageResource>                         randomTexture;
 
 public:
     StimulusAdapterForPresentable (const GVK::VulkanEnvironment& environment, std::shared_ptr<GVK::Presentable>& presentable, const std::shared_ptr<Stimulus const>& stimulus);
@@ -52,7 +66,8 @@ public:
     void RenderFrameIndex (GVK::RG::Renderer&                     renderer,
                            const std::shared_ptr<Stimulus const>& stimulus,
                            const uint32_t                         frameIndex,
-                           GVK::RG::IFrameDisplayObserver&        frameDisplayObserver);
+                           GVK::RG::IFrameDisplayObserver&        frameDisplayObserver,
+                           IRandomExporter&                       randomExporter);
 
     void Wait ();
 

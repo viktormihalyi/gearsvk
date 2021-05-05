@@ -62,5 +62,5 @@
             "name": "Build_x64-linux-debug",
             "configurePreset": "x64-linux-debug"
         }
-    ]
+    ],
 }

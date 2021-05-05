@@ -5,6 +5,9 @@
 
 #include <string>
 #include <vector>
+#include <optional>
+#include <sstream>
+#include <tuple>
 
 namespace Utils {
 
@@ -29,12 +32,12 @@ public:
     static void MatchAll (int argc, char** argv, bool printUnusedWarning = true);
 
 protected:
-    static bool MatchOne (int argc, char** argv, Matcher& matcher, const std::string& flag);
+    static std::optional<size_t> MatchOne (int argc, char** argv, Matcher& matcher, const std::string& flag);
 };
 
 
-class GVK_UTILS_API CommandLineOnOffFlag : Utils::CommandLineFlag {
-private:
+class GVK_UTILS_API CommandLineOnOffFlag : public CommandLineFlag {
+protected:
     bool                           on;
     const std::vector<std::string> flags;
     const std::string              helpText;
@@ -49,7 +52,60 @@ public:
 
 private:
     void Match (int argc, char** argv, Utils::Matcher& matcher);
+    virtual void MatchParameters (int argc, char** argv, Utils::Matcher& matcher, size_t matched) {}
 };
+
+
+inline std::istringstream& get_istringstream ()
+{
+    static thread_local std::istringstream stream;
+    stream.str ("");
+    return stream;
+}
+
+
+template<typename T>
+inline T from_string (const std::string& s)
+{
+    auto& iss (get_istringstream ());
+    iss.str (s);
+    T result;
+    iss >> result;
+    return result;
+}
+
+/*
+template<typename... Parameters>
+class GVK_UTILS_API CommandLineFlagWithNumberParameter : public CommandLineOnOffFlag {
+private:
+    std::tuple<Parameters...> values;
+    int64_t number;
+
+public:
+    CommandLineFlagWithNumberParameter (const std::string& flag, const std::string& helpText = "")
+        : CommandLineOnOffFlag { std::vector<std::string> { flag }, helpText }
+        , number { 0 }
+    {
+    }
+
+    int64_t GetValue () { return number; }
+
+private:
+    // virtual void MatchParameters (int argc, char** argv, Utils::Matcher& matcher, size_t matched) override;
+
+    virtual void MatchParameters (int argc, char** argv, Utils::Matcher& matcher, size_t matched) override
+    {
+
+        if (GVK_VERIFY (matched + 1 < argc)) {
+            for (int i = 0; i < std::tuple_size<decltype (values)> {}; ++i) {
+                std::get<i> (values) = from_string (argv[matched+i]);
+            }
+            number = std::stoi (argv[matched + 1]);
+            matcher.SignMatch (matched + 1);
+        }
+    }
+};
+*/
 
 
 } // namespace Utils

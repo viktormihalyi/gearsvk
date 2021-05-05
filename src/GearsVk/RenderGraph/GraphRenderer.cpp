@@ -63,7 +63,7 @@ BlockingGraphRenderer::BlockingGraphRenderer (const DeviceExtra& device, Swapcha
 }
 
 
-void BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver&)
+uint32_t BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver&)
 {
     const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*s);
     swapchainImageAcquiredEvent.Notify (currentImageIndex);
@@ -83,6 +83,8 @@ void BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph, IFra
         vkQueueWaitIdle (graph.device->GetGraphicsQueue ());
         vkDeviceWaitIdle (*graph.device);
     }
+
+    return currentImageIndex;
 }
 
 
@@ -139,10 +141,10 @@ void RecreatableGraphRenderer::Recreate (RenderGraph& graph)
 }
 
 
-void RecreatableGraphRenderer::RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer)
+uint32_t RecreatableGraphRenderer::RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer)
 {
     try {
-        RenderNextRecreatableFrame (graph, observer);
+        return RenderNextRecreatableFrame (graph, observer);
     } catch (OutOfDateSwapchain&) {
         throw;
         //Recreate (graph);
@@ -175,7 +177,7 @@ public:
 DeltaTimer t;
 
 
-void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& frameDisplayObserver)
+uint32_t SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& frameDisplayObserver)
 {
     if constexpr (LOG_RENDERING)
         std::cout << "RenderNextRecreatable called " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
@@ -246,9 +248,13 @@ void SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph
     if constexpr (LOG_RENDERING)
         std::cout << "presented " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
 
+    const uint32_t usedFrameIndex = currentFrameIndex;
+
     currentFrameIndex = (currentFrameIndex + 1) % framesInFlight;
     if constexpr (LOG_RENDERING)
         std::cout << "RenderNextRecreatable ended " << t.GetDeltaToLast ().AsMilliseconds () << std::endl;
+
+    return usedFrameIndex;
 }
 
 

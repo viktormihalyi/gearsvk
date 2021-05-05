@@ -10,6 +10,7 @@
 
 // from Gears
 #include "SequenceAdapter.hpp"
+#include "StimulusAdapterForPresentable.hpp"
 #include "core/Sequence.h"
 
 // from pybind11

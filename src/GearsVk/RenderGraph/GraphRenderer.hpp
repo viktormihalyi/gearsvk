@@ -48,7 +48,7 @@ public:
 
     virtual ~Renderer () = default;
 
-    virtual void RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) = 0;
+    virtual uint32_t RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) = 0;
 
     Window::DrawCallback GetInfiniteDrawCallback (const std::function<RenderGraph&()>& graphProvider);
 
@@ -68,8 +68,8 @@ public:
 
     void Recreate (RenderGraph& graph);
 
-    void         RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
-    virtual void RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) = 0;
+    uint32_t         RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
+    virtual uint32_t RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) = 0;
 };
 
 
@@ -81,7 +81,7 @@ private:
 public:
     BlockingGraphRenderer (const DeviceExtra& device, Swapchain& swapchain);
 
-    void RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
+    uint32_t RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
 };
 
 
@@ -120,7 +120,7 @@ public:
 
     void Wait ();
 
-    void RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
+    uint32_t RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
 };
 
 } // namespace RG

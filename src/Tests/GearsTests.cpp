@@ -9,6 +9,7 @@
 #include "UniformReflection.hpp"
 #include "VulkanEnvironment.hpp"
 #include "VulkanWrapper.hpp"
+#include "StimulusAdapterForPresentable.hpp"
 
 #include "StaticInit.hpp"
 #include "glmlib.hpp"

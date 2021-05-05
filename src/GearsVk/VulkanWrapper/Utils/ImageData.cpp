@@ -29,6 +29,7 @@ ImageData::ImageData (size_t                      components,
 
 ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout)
     : components (4)
+    , componentByteSize (GetCompontentCountFromFormat (image.GetFormat ()))
 {
     width  = image.GetWidth ();
     height = image.GetHeight ();
@@ -69,17 +70,18 @@ ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t la
     if (currentLayout)
         TransitionImageLayout (device, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, *currentLayout);
 
-    data.resize (width * height * components);
+    data.resize (width * height * components * componentByteSize);
 
     {
         MemoryMapping mapping (device.GetAllocator (), dst);
-        memcpy (data.data (), mapping.Get (), width * height * components);
+        memcpy (data.data (), mapping.Get (), width * height * components * componentByteSize);
     }
 }
 
 
 ImageData::ImageData (const std::filesystem::path& path, const uint32_t components)
     : components (components)
+    , componentByteSize (1)
 {
     int            w, h, readComponents;
     unsigned char* stbiData = stbi_load (path.u8string ().c_str (), &w, &h, &readComponents, components);
@@ -111,6 +113,7 @@ ImageData ImageData::FromDataUint (const std::vector<uint8_t>& data, uint32_t wi
     result.width      = width;
     result.height     = height;
     result.components = components;
+    result.componentByteSize = 1;
     return result;
 }
 

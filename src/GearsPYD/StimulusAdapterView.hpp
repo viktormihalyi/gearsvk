@@ -12,6 +12,7 @@
 
 class StimulusAdapterForPresentable;
 class Stimulus;
+class IRandomExporter;
 
 namespace GVK {
 class VulkanEnvironment;
@@ -39,7 +40,8 @@ public:
                            std::shared_ptr<GVK::Presentable>&     presentable,
                            const std::shared_ptr<Stimulus const>& stimulus,
                            const uint32_t                         frameIndex,
-                           GVK::RG::IFrameDisplayObserver&        frameDisplayObserver);
+                           GVK::RG::IFrameDisplayObserver&        frameDisplayObserver,
+                           IRandomExporter&                       randomExporter);
 };
 
 #endif

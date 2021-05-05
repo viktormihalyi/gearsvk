@@ -23,6 +23,7 @@ class Presentable;
 class StimulusAdapterView;
 class Stimulus;
 class Sequence;
+class IRandomExporter;
 
 namespace GVK {
 namespace RG {
@@ -115,6 +116,8 @@ private:
     uint64_t firstFrameMs;
 
     SequenceTiming timings;
+
+    std::unique_ptr<IRandomExporter> randomExporter;
 
 
 public:

@@ -36,6 +36,8 @@ bool AreImagesEqual (const DeviceExtra& device, const Image& image, const std::f
 GVK_RENDERER_API
 std::thread SaveImageToFileAsync (const DeviceExtra& device, const Image& image, const std::filesystem::path& filePath, uint32_t layerIndex = 0);
 
+GVK_RENDERER_API
+uint32_t GetCompontentCountFromFormat (VkFormat format);
 
 namespace ShaderTypes {
 

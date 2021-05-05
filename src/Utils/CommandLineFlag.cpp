@@ -107,15 +107,15 @@ static std::string ASCIIToLower (const std::string& input)
 }
 
 
-bool CommandLineFlag::MatchOne (int argc, char** argv, Matcher& matcher, const std::string& flag)
+std::optional<size_t> CommandLineFlag::MatchOne (int argc, char** argv, Matcher& matcher, const std::string& flag)
 {
     for (int i = 0; i < argc; ++i) {
         if (ASCIIToLower (std::string (argv[i])) == ASCIIToLower (flag)) {
             matcher.SignMatch (i);
-            return true;
+            return i;
         }
     }
-    return false;
+    return std::nullopt;
 }
 
 
@@ -163,7 +163,15 @@ void CommandLineOnOffFlag::Match (int argc, char** argv, Utils::Matcher& matcher
     bool   found     = false;
     size_t nextIndex = 0;
     while (!found && nextIndex < flags.size ()) {
-        found = MatchOne (argc, argv, matcher, flags.at (nextIndex++));
+        const std::optional<size_t> matchIdx = MatchOne (argc, argv, matcher, flags.at (nextIndex));
+
+        found = matchIdx.has_value ();
+
+        if (found) {
+            MatchParameters (argc, argv, matcher, *matchIdx);
+        }
+
+        nextIndex++;
     }
 
     if (found) {
@@ -172,9 +180,11 @@ void CommandLineOnOffFlag::Match (int argc, char** argv, Utils::Matcher& matcher
 }
 
 
+
+
 namespace {
 
-class CommandLineHelpFlag : CommandLineFlag {
+class CommandLineHelpFlag : public CommandLineFlag {
 public:
     virtual void Match (int argc, char** argv, Matcher& matcher)
     {

@@ -5,8 +5,12 @@
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
 #include "StimulusAdapterView.hpp"
+#include "StimulusAdapterForPresentable.hpp"
 #include "Surface.hpp"
 #include "VulkanEnvironment.hpp"
+#include "CommandLineFlag.hpp"
+#include "ImageData.hpp"
+#include "Resource.hpp"
 
 // from Gears
 #include "core/Pass.h"
@@ -16,7 +20,115 @@
 // from std
 #include <algorithm>
 #include <iomanip>
+#include <fstream>
 #include <map>
+
+
+
+class RandomExporter : public IRandomExporter {
+private:
+    GVK::DeviceExtra& device;
+
+    size_t randomValueLimit;
+    size_t histogramBins;
+
+    std::vector<uint32_t> values;
+    std::vector<uint32_t> histogram;
+
+public:
+    RandomExporter (GVK::DeviceExtra& device, size_t randomValueLimit, size_t histogramBins)
+        : device { device }
+        , randomValueLimit { randomValueLimit }
+        , histogramBins { histogramBins }
+    {
+        values.reserve (randomValueLimit);
+        histogram.resize (histogramBins, 0);
+    }
+
+    virtual ~RandomExporter () override = default;
+
+    virtual bool IsEnabled () override
+    {
+        return values.size () < randomValueLimit;
+    }
+
+    virtual void OnRandomTextureDrawn (GVK::RG::ImageResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) override
+    {
+        GVK::ImageData imgasd (device, *randomTexture.GetImages (resourceIndex)[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+        std::vector<uint32_t> as32BitUint;
+
+        as32BitUint.resize (imgasd.width * imgasd.height * imgasd.componentByteSize / 4);
+        memcpy (as32BitUint.data (), imgasd.data.data (), as32BitUint.size () * sizeof (uint32_t));
+
+        const int64_t overshoot = values.size () + as32BitUint.size () - randomValueLimit;
+        if (overshoot > 0) {
+            as32BitUint.resize (as32BitUint.size () - overshoot);
+        }
+        
+        values.insert (values.end (), as32BitUint.begin (), as32BitUint.end ());
+
+        constexpr size_t limit = std::numeric_limits<uint32_t>::max ();
+        for (uint32_t rndval : as32BitUint) {
+            histogram[std::floor (static_cast<double> (rndval) / limit * histogramBins)]++;
+        }
+
+        if (!IsEnabled ()) {
+            Export ();
+        }
+    }
+
+    void Export ()
+    {
+        std::cout << "Exporting randoms..." << std::endl;
+
+        const std::filesystem::path dir = std::filesystem::temp_directory_path () / "GearsVk" / "RandomExport";
+
+        {
+            const std::filesystem::path valuesFilePath = dir / "values.txt";
+            Utils::EnsureParentFolderExists (valuesFilePath);
+            std::ofstream valuesFile { valuesFilePath.string (), std::fstream::out };
+            if (GVK_VERIFY (valuesFile.is_open ())) {
+                for (uint32_t rndval : values) {
+                    valuesFile << rndval << std::endl;
+                }
+            }
+        }
+
+        {
+            std::ofstream histogramFile { (dir / "histogram.txt").string (), std::fstream::out };
+            if (GVK_VERIFY (histogramFile.is_open ())) {
+                for (size_t i = 0; i < histogram.size (); ++i) {
+                    histogramFile << i << " " << histogram[i] << std::endl;
+                }
+            }
+        }
+
+        std::cout << "Done!" << std::endl;
+    }
+};
+
+
+class NoRandomExporter : public IRandomExporter {
+public:
+    virtual ~NoRandomExporter () override = default;
+    virtual bool IsEnabled () override { return false; }
+    virtual void OnRandomTextureDrawn (GVK::RG::ImageResource&, uint32_t, uint32_t) override {}
+};
+
+
+Utils::CommandLineOnOffFlag saveRandomsFlag { "--saveRandoms", "Saves random textures to %temp%/GearsVk/" };
+
+
+static std::unique_ptr<IRandomExporter> GetRandomExporterImpl (GVK::DeviceExtra& device)
+{
+    if (saveRandomsFlag.IsFlagOn ()) {
+        return std::make_unique<RandomExporter> (device, 500'000, 20);
+    }
+
+    return std::make_unique<NoRandomExporter> ();
+}
+
 
 
 static bool IsEquivalentStimulus (const Stimulus& left, const Stimulus& right)
@@ -88,12 +200,12 @@ static bool IsEquivalentStimulus (const Stimulus& left, const Stimulus& right)
 
 
 SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const Sequence::P& sequence)
-    : sequence (sequence)
-    , environment (environment)
+    : sequence { sequence }
+    , environment { environment }
     , timings { 0 }
+    , randomExporter { GetRandomExporterImpl (*environment.deviceExtra) }
 {
     StimulusAdapterViews ();
-
 
     firstFrameMs = 0;
     lastNs       = GVK::TimePoint::SinceApplicationStart ().AsMilliseconds ();
@@ -176,6 +288,7 @@ void SequenceTiming::OnImageAcquisitionEnded (uint32_t frameIndex)
 }
 
 
+
 void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
 {
     if (GVK_ERROR (renderer == nullptr)) {
@@ -195,7 +308,7 @@ void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
         Stimulus::CP stim = sequence->getStimulusAtFrame (frameIndex);
         if (GVK_VERIFY (stim != nullptr)) {
             timings.currentFrameIndex = frameIndex;
-            views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex, timings);
+            views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex, timings, *randomExporter);
             lastRenderedFrameIndex = frameIndex;
         }
     } catch (GVK::OutOfDateSwapchain& ex) {
