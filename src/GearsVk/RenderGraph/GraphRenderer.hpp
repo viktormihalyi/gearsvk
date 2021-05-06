@@ -48,6 +48,7 @@ public:
 
     virtual ~Renderer () = default;
 
+    virtual uint32_t GetNextRenderResourceIndex () = 0;
     virtual uint32_t RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) = 0;
 
     Window::DrawCallback GetInfiniteDrawCallback (const std::function<RenderGraph&()>& graphProvider);
@@ -81,7 +82,8 @@ private:
 public:
     BlockingGraphRenderer (const DeviceExtra& device, Swapchain& swapchain);
 
-    uint32_t RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
+    virtual uint32_t GetNextRenderResourceIndex () override { return 0; }
+    uint32_t         RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
 };
 
 
@@ -120,7 +122,10 @@ public:
 
     void Wait ();
 
-    uint32_t RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
+    virtual uint32_t GetNextRenderResourceIndex () override { return currentResourceIndex; }
+    uint32_t         GetFramesInFlight () { return framesInFlight; }
+
+    uint32_t         RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
 };
 
 } // namespace RG

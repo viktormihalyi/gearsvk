@@ -94,7 +94,7 @@ SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (const De
     , imageCount { swapchain.GetImageCount () }
     , currentResourceIndex { 0 }
     , swapchain { swapchain }
-    , presentationEngineFence { std::make_unique<Fence> (device) }
+    , presentationEngineFence { std::make_unique<Fence> (device, false) }
 {
     presentationEngineFence->SetName ("presentationEngineFence");
     

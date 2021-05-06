@@ -39,6 +39,10 @@ std::thread SaveImageToFileAsync (const DeviceExtra& device, const Image& image,
 GVK_RENDERER_API
 uint32_t GetCompontentCountFromFormat (VkFormat format);
 
+GVK_RENDERER_API
+uint32_t GetEachCompontentSizeFromFormat (VkFormat format);
+
+
 namespace ShaderTypes {
 
 static constexpr VkFormat Float = VK_FORMAT_R32_SFLOAT;

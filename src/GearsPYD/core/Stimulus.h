@@ -246,4 +246,6 @@ public:
     bool doesErfToneMapping () const;
 
     std::string getDynamicToneShaderSource () const;
+
+    bool IsEquivalent (const Stimulus& other) const;
 };

@@ -6,18 +6,18 @@
 #include <iostream>
 
 
-constexpr bool LOG_WAITS = true;
+constexpr bool LOG_WAITS = false;
 
 
 namespace GVK {
 
-Fence::Fence (VkDevice device)
+Fence::Fence (VkDevice device, bool signaled)
     : device (device)
     , handle (VK_NULL_HANDLE)
 {
     VkFenceCreateInfo fenceInfo = {};
     fenceInfo.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fenceInfo.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
+    fenceInfo.flags             = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
     if (GVK_ERROR (vkCreateFence (device, &fenceInfo, nullptr, &handle) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create fence");
     }

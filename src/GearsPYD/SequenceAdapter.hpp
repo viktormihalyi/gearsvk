@@ -73,9 +73,12 @@ public:
 
     std::vector<TimeData> timeData;
 
+    size_t lastDisplayedFrameIndex;
+
 public:
     SequenceTiming (uint64_t currentFrameIndex)
         : currentFrameIndex (currentFrameIndex)
+        , lastDisplayedFrameIndex { 0 }
     {
     }
 
@@ -86,7 +89,7 @@ public:
     virtual void OnImageFenceWaitEnded (uint32_t frameIndex) override;
 
     virtual void OnImageAcquisitionStarted () override {}
-    virtual void OnImageAcquisitionReturned (uint32_t) override;
+    virtual void OnImageAcquisitionFenceSignaled (uint32_t) override {}
 
     virtual void OnImageAcquisitionEnded (uint32_t frameIndex) override;
 
@@ -95,7 +98,7 @@ public:
 };
 
 
-class GEARS_API_TEST SequenceAdapter {
+class GEARS_API_TEST SequenceAdapter : public GVK::RG::IFrameDisplayObserver {
 private:
     const std::shared_ptr<Sequence> sequence;
 
@@ -117,11 +120,16 @@ private:
 
     SequenceTiming timings;
 
+    size_t lastDisplayedFrame;
+
     std::unique_ptr<IRandomExporter> randomExporter;
 
+    std::vector<size_t> f;
 
 public:
     SequenceAdapter (GVK::VulkanEnvironment& environment, const std::shared_ptr<Sequence>& sequence);
+
+    virtual ~SequenceAdapter () = default;
 
     void RenderFrameIndex (const uint32_t frameIndex);
 
@@ -133,8 +141,11 @@ public:
 
     void RenderFullOnExternalWindow ();
 
+    // GVK::RG::IFrameDisplayObserver
+    virtual void OnImageAcquisitionFenceSignaled (uint32_t) override;
+
 private:
-    void StimulusAdapterViews ();
+    void CreateStimulusAdapterViews ();
 };
 
 

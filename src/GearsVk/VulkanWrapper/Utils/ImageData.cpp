@@ -29,7 +29,7 @@ ImageData::ImageData (size_t                      components,
 
 ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout)
     : components (4)
-    , componentByteSize (GetCompontentCountFromFormat (image.GetFormat ()))
+    , componentByteSize (GetEachCompontentSizeFromFormat (image.GetFormat ()))
 {
     width  = image.GetWidth ();
     height = image.GetHeight ();

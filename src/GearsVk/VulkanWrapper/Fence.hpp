@@ -16,7 +16,7 @@ private:
     GVK::MovablePtr<VkFence> handle;
 
 public:
-    Fence (VkDevice device);
+    Fence (VkDevice device, bool signaled = true);
 
     virtual ~Fence () override;
 

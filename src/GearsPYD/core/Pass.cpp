@@ -321,29 +321,15 @@ void Pass::registerTemporalFunction (std::string functionName, std::string displ
 
 std::string Pass::getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode mode) const
 {
-    if (mode == Pass::RasterizationMode::fullscreen) {
-        std::string s (R"GLSLCODE(
-#version 450
-
-layout (binding = 0) uniform PatternSizeOnRetina {
-	vec2 patternSizeOnRetina;
-};
-
-layout (location = 0) out vec2 pos;
-layout (location = 1) out vec2 fTexCoord;
-
-void main (void)
-{
-   gl_Position	= vec4(float(gl_VertexIndex / 2)*2.0-1.0, 1.0-float(gl_VertexIndex % 2)*2.0, 0.5, 1.0);
-   vec2 texCoord = vec2(float(gl_VertexIndex / 2), float(gl_VertexIndex % 2));
-   fTexCoord = texCoord;
-   fTexCoord.y = -fTexCoord.y;
-   fTexCoord.y += 1;
-   pos = (texCoord - vec2(0.5, 0.5)) * patternSizeOnRetina;
-}
-			)GLSLCODE");
-        return s;
+    if (GVK_VERIFY (mode == Pass::RasterizationMode::fullscreen)) {
+        const std::optional<std::string> quadVert = Utils::ReadTextFile (PROJECT_ROOT / "Project" / "Shaders" / "quad.vert");
+        if (GVK_VERIFY (quadVert.has_value ())) {
+            return *quadVert;
+        } else {
+            return "";
+        }
     }
+
     if (mode == Pass::RasterizationMode::triangles) {
         std::string s (R"GLSLCODE(
 			#version 450
@@ -478,15 +464,7 @@ std::string Pass::getStimulusGeneratorGeometryShaderSource (Pass::RasterizationM
 }
 
 
-static std::string GenerateUniformBlock (uint32_t& binding, const std::string& type, const std::string& name)
-{
-    std::stringstream ss;
-    ss << "layout (binding = " << binding << ") uniform ubo_" << name << " { " << type << " " << name << "; };" << std::endl;
-    binding++;
-    return ss.str ();
-}
-
-static std::string GenerateUniformBlock (uint32_t& binding, const std::string& uboName, const std::vector<std::pair<std::string, std::string>>& typeNamePairs)
+static std::string GenerateUniformBlock (const uint32_t binding, const std::string& uboName, const std::vector<std::pair<std::string, std::string>>& typeNamePairs)
 {
     std::stringstream ss;
     ss << "layout (binding = " << binding << ") uniform " << uboName << " { " << std::endl;;
@@ -494,11 +472,11 @@ static std::string GenerateUniformBlock (uint32_t& binding, const std::string& u
        ss << "    " << type << " " << name << ";" << std::endl;
     }
        ss << "};" << std::endl;
-    binding++;
     return ss.str ();
 }
 
 
+/*
 static void ReplaceAll (std::string& str, const std::string& from, const std::string& to)
 {
     if (from.empty ()) {
@@ -511,17 +489,21 @@ static void ReplaceAll (std::string& str, const std::string& from, const std::st
         start_pos += to.length (); // In case 'to' contains 'from', like replacing 'x' with 'yx'
     }
 }
+*/
 
 
 std::string Pass::getStimulusGeneratorShaderSource () const
 {
-    std::string s ("#version 450\n");
+    static const char* GLSL_VERSION = "#version 450";
+    static const char* NEWLINE = "\n";
 
-    uint32_t lastUniformBinding = 1;
+    std::string shaderSource;
+    shaderSource.reserve (1024);
+
+    shaderSource += GLSL_VERSION;
+    shaderSource += NEWLINE;
 
     std::vector<std::pair<std::string, std::string>> commonBlock;
-
-    const std::vector<std::string> uniforms = { "patternSizeOnRetina", "swizzleForFft", "frame" };
 
     commonBlock.emplace_back ("vec2", "patternSizeOnRetina");
     commonBlock.emplace_back ("int", "swizzleForFft");
@@ -538,17 +520,24 @@ std::string Pass::getStimulusGeneratorShaderSource () const
         commonBlock.emplace_back ("float", svar.first);
     }
 
-    s += GenerateUniformBlock (lastUniformBinding, "commonUniformBlock", commonBlock);
+    shaderSource += GenerateUniformBlock (1, "commonUniformBlock", commonBlock);
 
-    for (std::string sfunc : shaderFunctionOrder) {
+    for (const std::string& sfunc : shaderFunctionOrder) {
         std::string funcSource = shaderFunctions.find (sfunc)->second;
-        for (auto& u : uniforms) {
+/*
+        const std::vector<std::string> uniforms = { "patternSizeOnRetina", "swizzleForFft", "frame" };
+        const std::string before     = funcSource;
+        for (const std::string& u : uniforms) {
             ReplaceAll (funcSource, u, u + "");
         }
-        s += funcSource;
-        s += "\n";
+        const std::string after = funcSource;
+        GVK_ASSERT (after == before);
+*/
+        shaderSource += funcSource;
+        shaderSource += "\n";
     }
-    return s + stimulusGeneratorShaderSource;
+
+    return shaderSource + stimulusGeneratorShaderSource;
 }
 
 

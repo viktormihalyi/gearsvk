@@ -997,3 +997,71 @@ bool Stimulus::doesErfToneMapping () const
 {
     return toneMappingMode == ToneMappingMode::ERF;
 }
+
+
+bool Stimulus::IsEquivalent (const Stimulus& other) const
+{
+    if (passes.size () != other.passes.size ()) {
+        return false;
+    }
+
+    for (size_t i = 0; i < passes.size (); ++i) {
+        const Pass& leftPass  = *passes[i];
+        const Pass& rightPass = *other.passes[i];
+
+        if (leftPass.rasterizationMode != rightPass.rasterizationMode) {
+            return false;
+        }
+
+        const std::string leftVert = leftPass.getStimulusGeneratorVertexShaderSource (leftPass.rasterizationMode);
+        const std::string leftGeom = leftPass.getStimulusGeneratorGeometryShaderSource (leftPass.rasterizationMode);
+        const std::string leftFrag = leftPass.getStimulusGeneratorShaderSource ();
+
+        const std::string rightVert = rightPass.getStimulusGeneratorVertexShaderSource (rightPass.rasterizationMode);
+        const std::string rightGeom = rightPass.getStimulusGeneratorGeometryShaderSource (rightPass.rasterizationMode);
+        const std::string rightFrag = rightPass.getStimulusGeneratorShaderSource ();
+
+        if (leftVert != rightVert) {
+            return false;
+        }
+        if (leftGeom != rightGeom) {
+            return false;
+        }
+        if (leftFrag != rightFrag) {
+            return false;
+        }
+
+        if (leftPass.shaderColors != rightPass.shaderColors) {
+            return false;
+        }
+        if (leftPass.shaderVariables != rightPass.shaderVariables) {
+            return false;
+        }
+        if (leftPass.shaderVectors != rightPass.shaderVectors) {
+            return false;
+        }
+    }
+
+    return sequence->maxRandomGridWidth == other.sequence->maxRandomGridWidth &&
+           sequence->maxRandomGridHeight == other.sequence->maxRandomGridHeight &&
+           requiresClearing == other.requiresClearing &&
+           clearColor == other.clearColor &&
+           usesForwardRendering == other.usesForwardRendering &&
+           randomGridWidth == other.randomGridWidth &&
+           randomGridHeight == other.randomGridHeight &&
+
+           toneMappingMode == other.toneMappingMode &&
+           toneRangeMin == other.toneRangeMin &&
+           toneRangeMax == other.toneRangeMax &&
+           toneRangeMean == other.toneRangeMean &&
+           toneRangeVar == other.toneRangeVar &&
+
+           mono == other.mono &&
+           sequence->fieldWidth_um == other.sequence->fieldWidth_um &&
+           sequence->fieldHeight_um == other.sequence->fieldHeight_um &&
+           doesDynamicToneMapping == other.doesDynamicToneMapping &&
+           gammaSamplesCount == other.gammaSamplesCount &&
+           memcmp (gamma, other.gamma, gammaSamplesCount) == 0 &&
+           memcmp (temporalWeights, other.temporalWeights, 64) == 0 &&
+           getRandomGeneratorShaderSource () == other.getRandomGeneratorShaderSource ();
+}

@@ -54,7 +54,7 @@ public:
 
     virtual void OnRandomTextureDrawn (GVK::RG::ImageResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) override
     {
-        GVK::ImageData imgasd (device, *randomTexture.GetImages (resourceIndex)[0], 0 /*, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL*/);
+        GVK::ImageData imgasd (device, *randomTexture.GetImages (resourceIndex)[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
         std::vector<uint32_t> as32BitUint;
 
@@ -119,7 +119,6 @@ public:
 
 Utils::CommandLineOnOffFlag saveRandomsFlag { "--saveRandoms", "Saves random textures to %temp%/GearsVk/" };
 
-
 static std::unique_ptr<IRandomExporter> GetRandomExporterImpl (GVK::DeviceExtra& device)
 {
     if (saveRandomsFlag.IsFlagOn ()) {
@@ -130,82 +129,16 @@ static std::unique_ptr<IRandomExporter> GetRandomExporterImpl (GVK::DeviceExtra&
 }
 
 
-
-static bool IsEquivalentStimulus (const Stimulus& left, const Stimulus& right)
-{
-    if (left.passes.size () != right.passes.size ()) {
-        return false;
-    }
-
-    for (size_t i = 0; i < left.passes.size (); ++i) {
-        const Pass& leftPass  = *left.passes[i];
-        const Pass& rightPass = *right.passes[i];
-
-        if (leftPass.rasterizationMode != rightPass.rasterizationMode) {
-            return false;
-        }
-
-        const std::string leftVert = leftPass.getStimulusGeneratorVertexShaderSource (leftPass.rasterizationMode);
-        const std::string leftGeom = leftPass.getStimulusGeneratorGeometryShaderSource (leftPass.rasterizationMode);
-        const std::string leftFrag = leftPass.getStimulusGeneratorShaderSource ();
-
-        const std::string rightVert = rightPass.getStimulusGeneratorVertexShaderSource (rightPass.rasterizationMode);
-        const std::string rightGeom = rightPass.getStimulusGeneratorGeometryShaderSource (rightPass.rasterizationMode);
-        const std::string rightFrag = rightPass.getStimulusGeneratorShaderSource ();
-
-        if (leftVert != rightVert) {
-            return false;
-        }
-        if (leftGeom != rightGeom) {
-            return false;
-        }
-        if (leftFrag != rightFrag) {
-            return false;
-        }
-
-        if (leftPass.shaderColors != rightPass.shaderColors) {
-            return false;
-        }
-        if (leftPass.shaderVariables != rightPass.shaderVariables) {
-            return false;
-        }
-        if (leftPass.shaderVectors != rightPass.shaderVectors) {
-            return false;
-        }
-    }
-
-    return left.sequence->maxRandomGridWidth == right.sequence->maxRandomGridWidth &&
-           left.sequence->maxRandomGridHeight == right.sequence->maxRandomGridHeight &&
-           left.requiresClearing == right.requiresClearing &&
-           left.clearColor == right.clearColor &&
-           left.usesForwardRendering == right.usesForwardRendering &&
-           left.randomGridWidth == right.randomGridWidth &&
-           left.randomGridHeight == right.randomGridHeight &&
-
-           left.toneMappingMode == right.toneMappingMode &&
-           left.toneRangeMin == right.toneRangeMin &&
-           left.toneRangeMax == right.toneRangeMax &&
-           left.toneRangeMean == right.toneRangeMean &&
-           left.toneRangeVar == right.toneRangeVar &&
-
-           left.mono == right.mono &&
-           left.sequence->fieldWidth_um == right.sequence->fieldWidth_um &&
-           left.sequence->fieldHeight_um == right.sequence->fieldHeight_um &&
-           left.doesDynamicToneMapping == right.doesDynamicToneMapping &&
-           left.gammaSamplesCount == right.gammaSamplesCount &&
-           memcmp (left.gamma, right.gamma, left.gammaSamplesCount) == 0 &&
-           memcmp (left.temporalWeights, right.temporalWeights, 64) == 0 &&
-           left.getRandomGeneratorShaderSource () == right.getRandomGeneratorShaderSource ();
-}
-
+Utils::CommandLineOnOffFlag printSignalsFlag { "--printSignals", "Prints signals to stdout." };
 
 SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const Sequence::P& sequence)
     : sequence { sequence }
     , environment { environment }
     , timings { 0 }
     , randomExporter { GetRandomExporterImpl (*environment.deviceExtra) }
+    , lastDisplayedFrame { 0 }
 {
-    StimulusAdapterViews ();
+    CreateStimulusAdapterViews ();
 
     firstFrameMs = 0;
     lastNs       = GVK::TimePoint::SinceApplicationStart ().AsMilliseconds ();
@@ -217,10 +150,32 @@ SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const Seq
         std::cout << "frame index shown: " << idx << " (ns: " << nowNs << ", delta ns: " << (nowNs - lastNs) << ", delta from expected: " << ((idx * frameDisplayRateMs) - nowNs) << ")" << std::endl;
         lastNs = nowNs;
     });
+
+    if (printSignalsFlag.IsFlagOn ()) {
+        std::cout << "======= Sequence signals =======" << std::endl;
+        for (auto& signal : sequence->getSignals ()) {
+            const size_t      frameIndex  = signal.first;
+            const bool        clear       = signal.second.clear;
+            const std::string channelName = signal.second.channel;
+            const std::string channelPort = sequence->getChannels ().find (channelName)->second.portName;
+            std::cout << "Signal at frame index " << frameIndex << " on channel: " << channelName << ", port: " << channelPort << ", clear: " << std::boolalpha << clear << std::endl; 
+        }
+        for (auto& stimulus : sequence->getStimuli ()) {
+            std::cout << "======= Stimulus signals - \"" << stimulus.second->name << "\" (starting frame: " << stimulus.second->getStartingFrame () << ", duration: " << stimulus.second->getDuration () << ") =======" << std::endl;
+            for (auto& signal : stimulus.second->getSignals ()) {
+                const size_t      frameIndex  = signal.first;
+                const bool        clear       = signal.second.clear;
+                const std::string channelName = signal.second.channel;
+                const std::string channelPort = sequence->getChannels ().find (channelName)->second.portName;
+                std::cout << "Signal at frame index " << frameIndex << " (global: " << frameIndex + stimulus.second->getStartingFrame () << ") on channel: \"" << channelName << "\", port: \"" << channelPort << "\", clear: " << std::boolalpha << clear << std::endl; 
+            }
+        }
+        std::cout << "======= Signals end =======" << std::endl;
+    }
 }
 
 
-void SequenceAdapter::StimulusAdapterViews ()
+void SequenceAdapter::CreateStimulusAdapterViews ()
 {
     std::map<std::shared_ptr<Stimulus const>, std::shared_ptr<StimulusAdapterView>> created;
 
@@ -229,7 +184,7 @@ void SequenceAdapter::StimulusAdapterViews ()
     for (auto& [_, stim] : sequence->getStimuli ()) {
         std::shared_ptr<StimulusAdapterView> equivalentAdapter;
         for (const auto& [mappedStimulus, adapter] : created) {
-            if (IsEquivalentStimulus (*mappedStimulus, *stim)) {
+            if (mappedStimulus->IsEquivalent (*stim)) {
                 equivalentAdapter = adapter;
                 break;
             }
@@ -247,10 +202,39 @@ void SequenceAdapter::StimulusAdapterViews ()
 }
 
 
-// render finished for PREVIOUS frame
-void SequenceTiming::OnImageAcquisitionReturned (uint32_t)
+static int32_t PositiveModulo (int32_t i, int32_t n)
 {
+    return (i % n + n) % n;
 }
+
+
+// render finished for PREVIOUS frame
+void SequenceAdapter::OnImageAcquisitionFenceSignaled (uint32_t resourceIndex)
+{
+    const uint32_t previousResourceIndex = PositiveModulo (static_cast<int32_t> (resourceIndex) - 1, renderer->GetFramesInFlight ());
+    //std::cout << "fence signaled for resource index: " << resourceIndex << std::endl;
+    //std::cout << "that means previous resource index finished preseting: " << previousResourceIndex << std::endl;;
+    const size_t finishedFrameIndex = f[previousResourceIndex];
+    //std::cout << "which is frame idx: " << finishedFrameIndex << std::endl;
+    const auto& signals = sequence->getSignals ();
+    auto        signalForThisFrame = signals.equal_range (finishedFrameIndex);
+    for (auto it = signalForThisFrame.first; it != signalForThisFrame.second; ++it) {
+        auto channel = sequence->getChannels ().find (it->second.channel);
+        if (GVK_VERIFY (channel != sequence->getChannels ().end ())) {
+            std::cout << "[SEQUENCE SIGNAL] Channel: " << it->second.channel << " (" << channel->second.portName << "), clear: " << std::boolalpha << it->second.clear << std::endl;
+        }
+    }
+    
+    auto s = sequence->getStimulusAtFrame (finishedFrameIndex);
+    auto signalForCurrentSequence = s->getSignals ().equal_range (finishedFrameIndex - s->getStartingFrame ());
+    for (auto it = signalForCurrentSequence.first; it != signalForCurrentSequence.second; ++it) {
+        auto channel = sequence->getChannels ().find (it->second.channel);
+        if (GVK_VERIFY (channel != sequence->getChannels ().end ())) {
+            std::cout << "[STIMULUS TICK SIGNAL] Channel: " << it->second.channel << " (" << channel->second.portName << "), clear: " << std::boolalpha << it->second.clear << std::endl;
+        }
+    }
+}
+
 
 // render finished for PREVIOUS frame
 void SequenceTiming::OnImageFenceWaitEnded (uint32_t frameIndex)
@@ -308,7 +292,9 @@ void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
         Stimulus::CP stim = sequence->getStimulusAtFrame (frameIndex);
         if (GVK_VERIFY (stim != nullptr)) {
             timings.currentFrameIndex = frameIndex;
-            views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex, timings, *randomExporter);
+            const size_t nextResourceIndex = renderer->GetNextRenderResourceIndex ();
+            f[nextResourceIndex] = frameIndex;
+            views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex, *this, *randomExporter);
             lastRenderedFrameIndex = frameIndex;
         }
     } catch (GVK::OutOfDateSwapchain& ex) {
@@ -318,7 +304,7 @@ void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
         environment.Wait ();
         views.clear ();
         currentPresentable->GetSwapchain ().Recreate ();
-        StimulusAdapterViews ();
+        CreateStimulusAdapterViews ();
         SetCurrentPresentable (currentPresentable);
     }
 }
@@ -341,6 +327,9 @@ void SequenceAdapter::SetCurrentPresentable (std::shared_ptr<GVK::Presentable> p
     }
 
     renderer = std::make_unique<GVK::RG::SynchronizedSwapchainGraphRenderer> (*environment.deviceExtra, presentable->GetSwapchain ());
+
+    f.clear ();
+    f.resize (renderer->GetFramesInFlight (), 0);
 }
 
 
