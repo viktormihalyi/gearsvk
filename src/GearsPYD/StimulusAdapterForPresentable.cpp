@@ -262,13 +262,6 @@ void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer&        
         reflection->Flush (swapchainImageIndex);
     });
 
-    std::unique_ptr<GVK::SingleEventObserver> presentObs = std::make_unique<GVK::SingleEventObserver> ();
-    presentObs->Observe (renderer.presentedEvent, [&, frameIndex] () {
-        presentedEventDeleteQueue.push_back (frameIndex);
-    });
-    GVK_ASSERT (presentObservers.count (frameIndex) == 0);
-    presentObservers[frameIndex] = std::move (presentObs);
-
     const uint32_t resFrameIndex = renderer.RenderNextFrame (*renderGraph, frameDisplayObserver);
 
     if (randomExporter.IsEnabled ()) {
@@ -277,9 +270,4 @@ void StimulusAdapterForPresentable::RenderFrameIndex (GVK::RG::Renderer&        
             randomExporter.OnRandomTextureDrawn (*randomTexture, resFrameIndex, frameIndex);
         }
     }
-
-    for (uint32_t presentedNotified : presentedEventDeleteQueue) {
-        presentObservers.erase (presentedNotified);
-    }
-    presentedEventDeleteQueue.clear ();
 }

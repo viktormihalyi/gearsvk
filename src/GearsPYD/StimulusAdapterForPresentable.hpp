@@ -56,9 +56,7 @@ private:
     std::map<std::shared_ptr<Pass>, std::shared_ptr<GVK::RG::Operation>> passToOperation;
     std::shared_ptr<GVK::RG::Operation>                                  randomGeneratorOperation;
 
-    std::unordered_map<uint32_t, std::unique_ptr<GVK::SingleEventObserver>> presentObservers;
-    std::vector<uint32_t>                                                   presentedEventDeleteQueue;
-    std::shared_ptr<GVK::RG::WritableImageResource>                         randomTexture;
+    std::shared_ptr<GVK::RG::WritableImageResource> randomTexture;
 
 public:
     StimulusAdapterForPresentable (const GVK::VulkanEnvironment& environment, std::shared_ptr<GVK::Presentable>& presentable, const std::shared_ptr<Stimulus const>& stimulus);
