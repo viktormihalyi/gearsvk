@@ -5,7 +5,7 @@
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
 #include "StimulusAdapterView.hpp"
-#include "StimulusAdapterForPresentable.hpp"
+#include "StimulusAdapter.hpp"
 #include "Surface.hpp"
 #include "VulkanEnvironment.hpp"
 #include "CommandLineFlag.hpp"
@@ -247,7 +247,7 @@ void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
             resourceIndexToRenderedFrameMapping[nextResourceIndex] = frameIndex;
             views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex, *this, *randomExporter);
         }
-    } catch (GVK::OutOfDateSwapchain& ex) {
+    } catch (GVK::OutOfDateSwapchain&) {
         if (currentPresentable->GetWindow ().GetWidth () == 0 && currentPresentable->GetWindow ().GetHeight () == 0) {
             return;
         }

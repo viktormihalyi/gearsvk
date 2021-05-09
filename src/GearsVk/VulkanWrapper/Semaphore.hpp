@@ -34,6 +34,9 @@ public:
     {
     }
 
+    Semaphore (Semaphore&&) = default;
+    Semaphore& operator= (Semaphore&&) = default;
+
     ~Semaphore ()
     {
         vkDestroySemaphore (device, handle, nullptr);

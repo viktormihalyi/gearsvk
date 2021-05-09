@@ -2,6 +2,8 @@
 
 #include "Assert.hpp"
 
+#include "spdlog/spdlog.h"
+
 namespace GVK {
 
 Image::Image (VkImage handle, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
@@ -62,8 +64,11 @@ Image::Image (VmaAllocator      allocator,
     }
 
     if (GVK_ERROR (vmaCreateImage (allocator, &imageInfo, &allocInfo, &handle, &allocationHandle, nullptr) != VK_SUCCESS)) {
+        spdlog::critical ("VkImage creation failed.");
         throw std::runtime_error ("failed to create image!");
     }
+
+    spdlog::debug ("VkImage created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 

@@ -5,7 +5,6 @@
 
 #include <unordered_map>
 
-#include "Assert.hpp"
 #include "DeviceExtra.hpp"
 #include "MovablePtr.hpp"
 #include "Utils.hpp"
@@ -27,82 +26,29 @@ public:
 
 class GVK_RENDERER_API CommandBuffer : public VulkanObject {
 private:
-    VkDevice                         device;
-    VkCommandPool                    commandPool;
+    GVK::MovablePtr<VkDevice>        device;
+    GVK::MovablePtr<VkCommandPool>   commandPool;
     GVK::MovablePtr<VkCommandBuffer> handle;
 
-    std::unordered_map<const Image*, std::vector<std::pair<VkImageLayout, VkImageLayout>>> layouts;
-
-public:
     bool                                  canRecordCommands;
     std::vector<std::unique_ptr<Command>> recordedAbstractCommands;
 
 public:
-    CommandBuffer (VkDevice device, VkCommandPool commandPool)
-        : device (device)
-        , commandPool (commandPool)
-        , handle (VK_NULL_HANDLE)
-        , canRecordCommands (false)
-    {
-        VkCommandBufferAllocateInfo commandBufferAllocInfo = {};
-        commandBufferAllocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        commandBufferAllocInfo.commandPool                 = commandPool;
-        commandBufferAllocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        commandBufferAllocInfo.commandBufferCount          = 1;
+    CommandBuffer (VkDevice device, VkCommandPool commandPool);
+    CommandBuffer (const DeviceExtra& device);
 
-        if (GVK_ERROR (vkAllocateCommandBuffers (device, &commandBufferAllocInfo, &handle) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to allocate command buffer");
-        }
-    }
+    CommandBuffer (CommandBuffer&&) = default;
+    CommandBuffer& operator= (CommandBuffer&&) = default;
 
-    CommandBuffer (const DeviceExtra& device)
-        : CommandBuffer (device, device.GetCommandPool ())
-    {
-    }
+    virtual ~CommandBuffer () override;
 
-    virtual ~CommandBuffer () override
-    {
-        vkFreeCommandBuffers (device, commandPool, 1, &handle);
-        handle = nullptr;
-    }
+    void Begin (VkCommandBufferUsageFlags flags = 0);
 
-    void Begin (VkCommandBufferUsageFlags flags = 0)
-    {
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags                    = flags;
-        beginInfo.pInheritanceInfo         = nullptr;
+    void End ();
 
-        if (GVK_ERROR (vkBeginCommandBuffer (handle, &beginInfo) != VK_SUCCESS)) {
-            throw std::runtime_error ("commandbuffer begin failed");
-        }
+    void Reset (bool releaseResources = true);
 
-        canRecordCommands = true;
-    }
-
-    void End ()
-    {
-        if (GVK_ERROR (vkEndCommandBuffer (handle) != VK_SUCCESS)) {
-            throw std::runtime_error ("commandbuffer end failed");
-        }
-
-        canRecordCommands = false;
-    }
-
-    void Reset (bool releaseResources = true)
-    {
-        if (GVK_ERROR (vkResetCommandBuffer (handle, (releaseResources) ? VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT : 0) != VK_SUCCESS)) {
-            throw std::runtime_error ("commandbuffer reset failed");
-        }
-
-        canRecordCommands = false;
-    }
-
-    void Record (std::unique_ptr<Command>&& command)
-    {
-        command->Record (*this);
-        recordedAbstractCommands.push_back (std::move (command));
-    }
+    void Record (std::unique_ptr<Command>&& command);
 
     template<typename CommandType, typename... CommandParameters>
     void RecordT (CommandParameters&&... parameters)
@@ -110,10 +56,7 @@ public:
         Record (std::make_unique<CommandType> (std::forward<CommandParameters> (parameters)...));
     }
 
-    VkCommandBuffer GetHandle () const
-    {
-        return handle;
-    }
+    VkCommandBuffer GetHandle () const { return handle; }
 };
 
 

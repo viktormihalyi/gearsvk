@@ -45,7 +45,10 @@ public:
 
     DebugUtilsMessenger (VkInstance instance, const Callback& callback, const Settings& settings = defaultSettings);
 
-    ~DebugUtilsMessenger ();
+    DebugUtilsMessenger (DebugUtilsMessenger&&) = default;
+    DebugUtilsMessenger& operator= (DebugUtilsMessenger&&) = default;
+
+    virtual ~DebugUtilsMessenger () override;
 
     operator VkDebugUtilsMessengerEXT () const { return handle; }
 };

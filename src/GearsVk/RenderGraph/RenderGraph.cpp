@@ -174,16 +174,16 @@ void RenderGraph::Compile (GraphSettings&& settings)
     c.clear ();
     const std::unordered_map<Image*, VkImageLayout> layoutMapStart;
     for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
-        c.push_back (std::make_unique<CommandBuffer> (settings.GetDevice ()));
+        c.push_back (std::move (CommandBuffer { settings.GetDevice () }));
 
-        c[frameIndex]->Begin ();
+        c[frameIndex].Begin ();
 
         for (Pass& p : passes) {
             for (auto res : p.inputs) {
-                res->OnGraphExecutionStarted (frameIndex, *c[frameIndex]);
+                res->OnGraphExecutionStarted (frameIndex, c[frameIndex]);
             }
             for (auto res : p.outputs) {
-                res->OnGraphExecutionStarted (frameIndex, *c[frameIndex]);
+                res->OnGraphExecutionStarted (frameIndex, c[frameIndex]);
             }
         }
 
@@ -193,11 +193,11 @@ void RenderGraph::Compile (GraphSettings&& settings)
                 auto outputs = settings.connectionSet.GetPointingTo<Resource> (op);
 
                 for (auto res : inputs) {
-                    res->OnPreRead (frameIndex, *c[frameIndex]);
+                    res->OnPreRead (frameIndex, c[frameIndex]);
                 }
 
                 for (auto res : outputs) {
-                    res->OnPreWrite (frameIndex, *c[frameIndex]);
+                    res->OnPreWrite (frameIndex, c[frameIndex]);
                 }
 
                 std::vector<VkImageMemoryBarrier> imgBarriers;
@@ -229,7 +229,7 @@ void RenderGraph::Compile (GraphSettings&& settings)
                     img.dstAccessMask = 0;
                 }
 
-                c[frameIndex]->RecordT<CommandPipelineBarrier> (
+                c[frameIndex].RecordT<CommandPipelineBarrier> (
                     VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                     VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                     std::vector<VkMemoryBarrier> {},
@@ -250,14 +250,14 @@ void RenderGraph::Compile (GraphSettings&& settings)
             }
 
             for (auto op : p.operations) {
-                op->Record (settings.connectionSet, frameIndex, *c[frameIndex]);
+                op->Record (settings.connectionSet, frameIndex, c[frameIndex]);
             }
 
             for (auto op : p.operations) {
                 auto inputs  = settings.connectionSet.GetPointingHere<Resource> (op);
                 auto outputs = settings.connectionSet.GetPointingTo<Resource> (op);
                 for (auto res : p.outputs) {
-                    res->OnPostWrite (frameIndex, *c[frameIndex]);
+                    res->OnPostWrite (frameIndex, c[frameIndex]);
                 }
             }
         }
@@ -279,7 +279,7 @@ void RenderGraph::Compile (GraphSettings&& settings)
             img.dstAccessMask = 0;
         }
 
-        c[frameIndex]->RecordT<CommandPipelineBarrier> (
+        c[frameIndex].RecordT<CommandPipelineBarrier> (
             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
             std::vector<VkMemoryBarrier> {},
@@ -288,14 +288,14 @@ void RenderGraph::Compile (GraphSettings&& settings)
 
         for (Pass& p : passes) {
             for (auto res : p.inputs) {
-                res->OnGraphExecutionEnded (frameIndex, *c[frameIndex]);
+                res->OnGraphExecutionEnded (frameIndex, c[frameIndex]);
             }
             for (auto res : p.outputs) {
-                res->OnGraphExecutionEnded (frameIndex, *c[frameIndex]);
+                res->OnGraphExecutionEnded (frameIndex, c[frameIndex]);
             }
         }
 
-        c[frameIndex]->End ();
+        c[frameIndex].End ();
     }
 
     graphSettings = std::move (settings);
@@ -320,9 +320,9 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
     // TODO
     std::vector<VkPipelineStageFlags> waitDstStageMasks (waitSemaphores.size (), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
-    std::unique_ptr<CommandBuffer>& cmd = c[frameIndex];
+    CommandBuffer& cmd = c[frameIndex];
 
-    device->GetGraphicsQueue ().Submit (waitSemaphores, waitDstStageMasks, { cmd.get () }, signalSemaphores, fenceToSignal);
+    device->GetGraphicsQueue ().Submit (waitSemaphores, waitDstStageMasks, { &cmd }, signalSemaphores, fenceToSignal);
 }
 
 

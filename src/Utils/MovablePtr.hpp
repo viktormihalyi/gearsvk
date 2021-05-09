@@ -31,6 +31,7 @@ public:
     MovablePtr (MovablePtr&& other) noexcept
         : ptr { other.ptr }
     {
+        other.ptr = nullptr;
     }
 
     MovablePtr& operator= (MovablePtr&& other) noexcept

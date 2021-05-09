@@ -43,6 +43,9 @@ public:
     {
     }
 
+    PipelineLayout (PipelineLayout&&) = default;
+    PipelineLayout& operator= (PipelineLayout&&) = default;
+
     ~PipelineLayout ()
     {
         vkDestroyPipelineLayout (device, handle, nullptr);

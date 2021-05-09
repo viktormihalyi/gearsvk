@@ -116,6 +116,9 @@ public:
                   const std::string&           sourceCode,
                   ShaderPreprocessor&          preprocessor);
 
+    ShaderModule (ShaderModule&&) = default;
+    ShaderModule& operator= (ShaderModule&&) = default;
+
 public:
     static std::unique_ptr<ShaderModule> CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, ShaderPreprocessor& preprocessor = emptyPreprocessor);
     static std::unique_ptr<ShaderModule> CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation, ShaderPreprocessor& preprocessor = emptyPreprocessor);

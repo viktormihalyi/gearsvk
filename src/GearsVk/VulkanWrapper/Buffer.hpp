@@ -25,6 +25,8 @@ public:
     };
 
     Buffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc);
+    Buffer (Buffer&&) = default;
+    Buffer& operator= (Buffer&&) = default;
 
     virtual ~Buffer () override;
 

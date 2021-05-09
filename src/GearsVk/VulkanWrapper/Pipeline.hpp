@@ -28,6 +28,9 @@ public:
               VkPrimitiveTopology                                   topology,
               bool                                                  blendEnabled = true);
 
+    Pipeline (Pipeline&&) = default;
+    Pipeline& operator= (Pipeline&&) = default;
+
     ~Pipeline ()
     {
         vkDestroyPipeline (device, handle, nullptr);

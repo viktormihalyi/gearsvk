@@ -40,7 +40,7 @@ private:
 
     std::vector<Pass> passes;
 
-    std::vector<std::unique_ptr<CommandBuffer>> c;
+    std::vector<CommandBuffer> c;
 
 public:
     Event<> compileEvent;

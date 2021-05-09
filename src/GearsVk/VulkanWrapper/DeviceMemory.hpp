@@ -24,6 +24,9 @@ private:
 public:
     DeviceMemory (VkDevice device, const size_t allocationSize, const uint32_t memoryTypeIndex);
 
+    DeviceMemory (DeviceMemory&&) = default;
+    DeviceMemory& operator= (DeviceMemory&&) = default;
+
     virtual ~DeviceMemory () override;
 
     operator VkDeviceMemory () const { return handle; }

@@ -4,6 +4,7 @@
 #include "GearsVkAPI.hpp"
 
 #include "Assert.hpp"
+#include "VulkanObject.hpp"
 #include "Framebuffer.hpp"
 #include "ImageView.hpp"
 #include "MovablePtr.hpp"
@@ -73,7 +74,7 @@ public:
     }
 };
 
-class GVK_RENDERER_API RealSwapchain : public Swapchain {
+class GVK_RENDERER_API RealSwapchain : public Swapchain, public VulkanObject {
 public:
     static const VkImageUsageFlags ImageUsage;
 
@@ -132,6 +133,9 @@ private:
 public:
     RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface, SwapchainSettingsProvider& settings = defaultSwapchainSettings);
     RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, SwapchainSettingsProvider& settings = defaultSwapchainSettings);
+
+    RealSwapchain (RealSwapchain&&) = default;
+    RealSwapchain& operator= (RealSwapchain&&) = default;
 
     virtual void Recreate () override;
 

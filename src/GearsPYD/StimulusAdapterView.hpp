@@ -10,7 +10,7 @@
 #include <map>
 
 
-class StimulusAdapterForPresentable;
+class StimulusAdapter;
 class Stimulus;
 class IRandomExporter;
 
@@ -29,12 +29,14 @@ private:
     GVK::VulkanEnvironment&               environment;
     const std::shared_ptr<Stimulus const> stimulus;
 
-    std::map<std::shared_ptr<GVK::Presentable>, std::shared_ptr<StimulusAdapterForPresentable>> compiledAdapters;
+    std::map<std::shared_ptr<GVK::Presentable>, std::shared_ptr<StimulusAdapter>> compiledAdapters;
 
 public:
     StimulusAdapterView (GVK::VulkanEnvironment& environment, const std::shared_ptr<Stimulus const>& stimulus);
 
     void CreateForPresentable (std::shared_ptr<GVK::Presentable>& presentable);
+
+    void DestroyForPresentable (const std::shared_ptr<GVK::Presentable>& presentable);
 
     void RenderFrameIndex (GVK::RG::Renderer&                     renderer,
                            std::shared_ptr<GVK::Presentable>&     presentable,

@@ -23,6 +23,9 @@ public:
 
     Surface (PlatformSpecificSelector, VkInstance instance, void* handle);
 
+    Surface (Surface&&) = default;
+    Surface& operator= (Surface&&) = default;
+
     virtual ~Surface () override;
 
     operator VkSurfaceKHR () const { return handle; }

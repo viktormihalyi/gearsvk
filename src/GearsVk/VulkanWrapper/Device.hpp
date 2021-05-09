@@ -72,6 +72,9 @@ public:
         }
     }
 
+    DeviceObject (DeviceObject&&) = default;
+    DeviceObject& operator= (DeviceObject&&) = default;
+
     virtual ~DeviceObject () override
     {
         vkDeviceWaitIdle (handle);

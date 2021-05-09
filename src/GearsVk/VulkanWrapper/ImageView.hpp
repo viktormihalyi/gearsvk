@@ -50,6 +50,9 @@ public:
     {
     }
 
+    ImageViewBase (ImageViewBase&&) = default;
+    ImageViewBase& operator= (ImageViewBase&&) = default;
+
     virtual ~ImageViewBase ()
     {
         vkDestroyImageView (device, handle, nullptr);

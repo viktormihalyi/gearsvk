@@ -13,6 +13,8 @@ private:
 
 protected:
     VulkanObject ();
+    VulkanObject (const VulkanObject&) = default;
+    VulkanObject (VulkanObject&&)      = default;
 
 public:
     virtual ~VulkanObject ();

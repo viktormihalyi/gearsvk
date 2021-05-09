@@ -5,6 +5,7 @@
 
 #include <iostream>
 
+#include "spdlog/spdlog.h"
 
 constexpr bool LOG_WAITS = false;
 
@@ -18,9 +19,13 @@ Fence::Fence (VkDevice device, bool signaled)
     VkFenceCreateInfo fenceInfo = {};
     fenceInfo.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags             = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
+
     if (GVK_ERROR (vkCreateFence (device, &fenceInfo, nullptr, &handle) != VK_SUCCESS)) {
+        spdlog::critical ("VkFence creation failed.");
         throw std::runtime_error ("failed to create fence");
     }
+
+    spdlog::debug ("VkFence created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 

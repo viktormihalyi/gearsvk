@@ -41,6 +41,9 @@ public:
         }
     }
 
+    DescriptorPool (DescriptorPool&&) = default;
+    DescriptorPool& operator= (DescriptorPool&&) = default;
+
     ~DescriptorPool ()
     {
         vkDestroyDescriptorPool (device, handle, nullptr);

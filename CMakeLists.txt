@@ -41,6 +41,8 @@ include (${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 
 conan_basic_setup ()
 
+message ("CONAN_LIBS = " ${CONAN_LIBS})
+
 find_package (Vulkan REQUIRED)
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 
@@ -132,6 +134,7 @@ add_library (${TARGET_GVKRENDERER} SHARED
     src/GearsVk/VulkanWrapper/Utils/BufferTransferable.cpp
     src/GearsVk/VulkanWrapper/Utils/ImageData.cpp
     src/GearsVk/VulkanWrapper/Utils/STBImpl.cpp
+    src/GearsVk/VulkanWrapper/Allocator.cpp
     src/GearsVk/VulkanWrapper/DebugUtilsMessenger.cpp
     src/GearsVk/VulkanWrapper/ShaderModule.cpp
     src/GearsVk/VulkanWrapper/Swapchain.cpp
@@ -167,6 +170,7 @@ add_library (${TARGET_GVKRENDERER} SHARED
     src/GearsVk/VulkanMemoryAllocatorImpl.cpp
     src/GearsVk/Font.cpp
     src/GearsVk/UniformView.cpp
+    src/GearsVk/SpdlogInitializer.cpp
 
     external/msdfgen/ext/import-font.cpp)
     
@@ -206,7 +210,7 @@ set (GEARSMODULE_COMMON_SOURCES
     src/GearsPYD/gpu/Texture.cpp
     src/GearsPYD/gpu/TextureQueue.cpp
     src/GearsPYD/GearsAPIv2.cpp
-    src/GearsPYD/StimulusAdapterForPresentable.cpp
+    src/GearsPYD/StimulusAdapter.cpp
     src/GearsPYD/StimulusAdapterView.cpp
     src/GearsPYD/SequenceAdapter.cpp
 )

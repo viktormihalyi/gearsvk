@@ -1,40 +1,23 @@
 #ifndef ALLOCATOR_HPP
 #define ALLOCATOR_HPP
 
-#include "Assert.hpp"
-#include "Noncopyable.hpp"
-#include <memory>
-
-#include <stdexcept>
-
-#include <vulkan/vulkan.h>
+#include "MovablePtr.hpp"
+#include "VulkanObject.hpp"
 
 #include "vk_mem_alloc.h"
 
 namespace GVK {
 
-class Allocator : public Noncopyable {
+class Allocator : public VulkanObject {
 private:
-    VmaAllocator handle;
+    GVK::MovablePtr<VmaAllocator> handle;
 
 public:
-    Allocator (VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device)
-    {
-        VmaAllocatorCreateInfo allocatorInfo = {};
-        allocatorInfo.physicalDevice         = physicalDevice;
-        allocatorInfo.device                 = device;
-        allocatorInfo.instance               = instance;
+    Allocator (VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device);
+    Allocator (Allocator&&) = default;
+    Allocator& operator= (Allocator&&) = default;
 
-        if (GVK_ERROR (vmaCreateAllocator (&allocatorInfo, &handle) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to create vma allocator");
-        }
-    }
-
-    ~Allocator ()
-    {
-        vmaDestroyAllocator (handle);
-        handle = nullptr;
-    }
+    virtual ~Allocator () override;
 
     operator VmaAllocator () const { return handle; }
 };

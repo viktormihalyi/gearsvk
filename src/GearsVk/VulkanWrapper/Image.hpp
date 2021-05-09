@@ -60,6 +60,9 @@ public:
 
     Image (ImageBuilder&);
 
+    Image (Image&&) = default;
+    Image& operator= (Image&&) = default;
+
     virtual ~Image () override;
 
     VkFormat GetFormat () const { return format; }

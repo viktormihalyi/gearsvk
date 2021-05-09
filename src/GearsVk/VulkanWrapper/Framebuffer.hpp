@@ -47,6 +47,9 @@ public:
         }
     }
 
+    Framebuffer (Framebuffer&&) = default;
+    Framebuffer& operator= (Framebuffer&&) = default;
+
     virtual ~Framebuffer () override
     {
         vkDestroyFramebuffer (device, handle, nullptr);

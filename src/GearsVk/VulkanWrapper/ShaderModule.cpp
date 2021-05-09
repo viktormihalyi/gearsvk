@@ -17,6 +17,9 @@
 // from glslang
 #include <SPIRV/GlslangToSpv.h>
 
+// from spdlog
+#include "spdlog/spdlog.h"
+
 
 static Utils::CommandLineOnOffFlag disableShaderCacheFlag ("--disableShaderCache");
 
@@ -308,7 +311,7 @@ static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSou
 }
 
 
-static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<uint32_t>& binary)
+static VkShaderModule CreateShaderModuleImpl (VkDevice device, const std::vector<uint32_t>& binary)
 {
     VkShaderModuleCreateInfo createInfo = {};
     createInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -317,14 +320,15 @@ static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<uin
 
     VkShaderModule result = VK_NULL_HANDLE;
     if (GVK_ERROR (vkCreateShaderModule (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
+        spdlog::critical ("VkShaderModule creation failed.");
         throw std::runtime_error ("failed to create shader module");
     }
-
+    
     return result;
 }
 
 
-static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<char>& binary)
+static VkShaderModule CreateShaderModuleImpl (VkDevice device, const std::vector<char>& binary)
 {
     VkShaderModuleCreateInfo createInfo = {};
     createInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -333,6 +337,7 @@ static VkShaderModule CreateShaderModule (VkDevice device, const std::vector<cha
 
     VkShaderModule result = VK_NULL_HANDLE;
     if (GVK_ERROR (vkCreateShaderModule (device, &createInfo, nullptr, &result) != VK_SUCCESS)) {
+        spdlog::critical ("VkShaderModule creation failed.");
         throw std::runtime_error ("failed to create shader module");
     }
 
@@ -358,6 +363,7 @@ ShaderModule::ShaderModule (ShaderKind                   shaderKind,
     , sourceCode (sourceCode)
     , preprocessor (preprocessor)
 {
+    spdlog::debug ("VkShaderModule created: {}, uuid: {}.", this->handle, GetUUID ().GetValue ());
 }
 
 
@@ -372,7 +378,7 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromSPVFile (VkDevice device, 
     code.resize (binaryC->size () / sizeof (uint32_t));
     memcpy (code.data (), binaryC->data (), binaryC->size ());
 
-    VkShaderModule handle = CreateShaderModule (device, *binaryC);
+    VkShaderModule handle = CreateShaderModuleImpl (device, *binaryC);
 
     return std::make_unique<ShaderModule> (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, "", emptyPreprocessor);
 }
@@ -390,8 +396,8 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
         throw std::runtime_error ("failed to compile shader");
     }
 
-    VkShaderModule handle = CreateShaderModule (device, *binary);
-
+    VkShaderModule handle = CreateShaderModuleImpl (device, *binary);
+    
     return std::make_unique<ShaderModule> (
         ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind,
         ReadMode::GLSLFilePath,
@@ -408,8 +414,8 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice devic
 {
     std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind), preprocessor);
 
-    VkShaderModule handle = CreateShaderModule (device, binary);
-
+    VkShaderModule handle = CreateShaderModuleImpl (device, binary);
+    
     return std::make_unique<ShaderModule> (
         shaderKind,
         ReadMode::GLSLString,
@@ -630,7 +636,7 @@ void ShaderModule::Reload ()
             throw std::runtime_error ("failed to compile shader");
         }
 
-        handle = CreateShaderModule (device, *newBinary);
+        handle = CreateShaderModuleImpl (device, *newBinary);
 
         binary = *newBinary;
 
@@ -650,7 +656,7 @@ void ShaderModule::Reload ()
         code.resize (binaryC->size () / sizeof (uint32_t));
         memcpy (code.data (), binaryC->data (), binaryC->size ());
 
-        handle = CreateShaderModule (device, *binaryC);
+        handle = CreateShaderModuleImpl (device, *binaryC);
 
         reflection = Reflection (shaderKind, binary);
 

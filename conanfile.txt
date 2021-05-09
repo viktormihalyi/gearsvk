@@ -9,6 +9,7 @@ spirv-cross/20210115
 spirv-tools/v2020.5
 glslang/8.13.3559
 vulkan-memory-allocator/2.3.0
+spdlog/1.8.5
 
 [generators]
 cmake

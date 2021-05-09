@@ -1,5 +1,7 @@
 #include "Pipeline.hpp"
 
+#include "spdlog/spdlog.h"
+
 namespace GVK {
 
 Pipeline::Pipeline (VkDevice                                              device,
@@ -135,8 +137,11 @@ Pipeline::Pipeline (VkDevice                                              device
     pipelineInfo.basePipelineIndex            = -1;             // Optional
 
     if (GVK_ERROR (vkCreateGraphicsPipelines (device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &handle) != VK_SUCCESS)) {
+        spdlog::critical ("VkPipeline creation failed.");
         throw std::runtime_error ("failed to create pipeline");
     }
+
+    spdlog::debug ("VkPipeline created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 }

@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "spdlog/spdlog.h"
+
 namespace GVK {
 
 DefaultSwapchainSettings            defaultSwapchainSettings;
@@ -136,6 +138,7 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
     createInfo.oldSwapchain   = VK_NULL_HANDLE;
 
     if (GVK_ERROR (vkCreateSwapchainKHR (createSettings.device, &createInfo, nullptr, &createResult.handle) != VK_SUCCESS)) {
+        spdlog::critical ("VkSwapchainKHR creation failed.");
         throw std::runtime_error ("failed to create swapchain");
     }
 
@@ -170,6 +173,8 @@ void RealSwapchain::Recreate ()
         vkDestroySwapchainKHR (createSettings.device, createResult.handle, nullptr);
     }
     createResult = CreateForResult (createSettings);
+
+    spdlog::debug ("VkSwapchainKHR created: {}, uuid: {}.", createResult.handle, GetUUID ().GetValue ());
 }
 
 
@@ -189,8 +194,10 @@ bool RealSwapchain::IsEqualSettings (const Swapchain& other)
 
 RealSwapchain::~RealSwapchain ()
 {
-    vkDestroySwapchainKHR (createSettings.device, createResult.handle, nullptr);
-    createResult.Clear ();
+    if (createResult.handle != VK_NULL_HANDLE) {
+        vkDestroySwapchainKHR (createSettings.device, createResult.handle, nullptr);
+        createResult.Clear ();
+    }
 }
 
 
@@ -218,7 +225,7 @@ uint32_t RealSwapchain::GetNextImageIndex (VkSemaphore signalSemaphore, VkFence 
 
     VkResult err = vkAcquireNextImageKHR (createSettings.device, createResult.handle, UINT64_MAX, signalSemaphore, fenceToSignal, &result);
     if (GVK_ERROR (err != VK_SUCCESS && err != VK_ERROR_OUT_OF_DATE_KHR && err != VK_SUBOPTIMAL_KHR)) {
-        throw std::runtime_error ("bro");
+        throw std::runtime_error ("err");
     }
 
     if (err == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -249,6 +256,8 @@ void RealSwapchain::Present (VkQueue queue, uint32_t imageIndex, const std::vect
     if (err == VK_SUBOPTIMAL_KHR || err == VK_ERROR_OUT_OF_DATE_KHR) {
         throw OutOfDateSwapchain { *this };
     }
+
+    spdlog::debug ("VkSwapchain: Presenting on swapchain {}.", createResult.handle);
 }
 
 

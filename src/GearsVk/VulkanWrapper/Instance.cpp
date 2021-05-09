@@ -5,6 +5,8 @@
 #include "Utils.hpp"
 #include "VulkanUtils.hpp"
 
+#include "spdlog/spdlog.h"
+
 #include <sstream>
 
 namespace GVK {
@@ -35,6 +37,7 @@ static VkInstance CreateInstance (const std::vector<const char*>& instanceExtens
     {
         const std::set<std::string> unsupportedExtensionSet = Utils::SetDiff (requiredExtensionSet, supportedExtensionSet);
         if (GVK_ERROR (!unsupportedExtensionSet.empty ())) {
+            spdlog::critical ("VkIntance: not all instance extensions are supported.");
             throw std::runtime_error ("not all instance extensions are supported");
         }
     }
@@ -58,6 +61,7 @@ static VkInstance CreateInstance (const std::vector<const char*>& instanceExtens
     {
         const std::set<std::string> unsupportedValidationLayerSet = Utils::SetDiff (requiredValidationLayerSet, supportedValidationLayerSet);
         if (GVK_ERROR (!unsupportedValidationLayerSet.empty ())) {
+            spdlog::critical ("VkIntance: not all validation layers are supported.");
             throw std::runtime_error ("not all validation layers are supported");
         }
     }
@@ -82,6 +86,7 @@ static VkInstance CreateInstance (const std::vector<const char*>& instanceExtens
     VkInstance instance = VK_NULL_HANDLE;
     VkResult   result   = vkCreateInstance (&createInfo, nullptr, &instance);
     if (GVK_ERROR (result != VK_SUCCESS)) {
+        spdlog::critical ("VkInstance creation failed.");
         throw std::runtime_error ("failed to create vulkan instance");
     }
 
@@ -92,12 +97,14 @@ static VkInstance CreateInstance (const std::vector<const char*>& instanceExtens
 Instance::Instance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers)
     : handle (CreateInstance (instanceExtensions, instanceLayers))
 {
+    spdlog::debug ("VkInstance created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 
 Instance::Instance (const InstanceSettings& settings)
     : handle (CreateInstance (settings.extensions, settings.layers))
 {
+    spdlog::debug ("VkInstance created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 

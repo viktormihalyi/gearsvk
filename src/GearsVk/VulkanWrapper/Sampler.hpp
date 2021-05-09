@@ -19,6 +19,9 @@ private:
 public:
     Sampler (VkDevice device, VkFilter filter, VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER);
 
+    Sampler (Sampler&&) = default;
+    Sampler& operator= (Sampler&&) = default;
+
     ~Sampler ();
 
     operator VkSampler () const { return handle; }

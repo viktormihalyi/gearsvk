@@ -6,7 +6,7 @@
 #include "VulkanEnvironment.hpp"
 
 // from Gears
-#include "StimulusAdapterForPresentable.hpp"
+#include "StimulusAdapter.hpp"
 #include "core/Stimulus.h"
 
 
@@ -24,7 +24,19 @@ void StimulusAdapterView::CreateForPresentable (std::shared_ptr<GVK::Presentable
         return;
     }
 
-    compiledAdapters[presentable] = std::make_unique<StimulusAdapterForPresentable> (environment, presentable, stimulus);
+    compiledAdapters[presentable] = std::make_unique<StimulusAdapter> (environment, presentable, stimulus);
+}
+
+
+void StimulusAdapterView::DestroyForPresentable (const std::shared_ptr<GVK::Presentable>& presentable)
+{
+    // TODO use
+    auto adapter = std::find_if (compiledAdapters.begin (), compiledAdapters.end (), [&] (const auto& x) { return x.first == presentable; });
+    if (GVK_ERROR (adapter != compiledAdapters.end ())) {
+        return;
+    }
+
+    compiledAdapters.erase (adapter);
 }
 
 

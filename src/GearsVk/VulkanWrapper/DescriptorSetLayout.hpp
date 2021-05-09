@@ -41,6 +41,9 @@ public:
         }
     }
 
+    DescriptorSetLayout (DescriptorSetLayout&&) = default;
+    DescriptorSetLayout& operator= (DescriptorSetLayout&&) = default;
+
     virtual ~DescriptorSetLayout () override
     {
         vkDestroyDescriptorSetLayout (device, handle, nullptr);

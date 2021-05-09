@@ -36,6 +36,9 @@ public:
         }
     }
 
+    RenderPass (RenderPass&&) = default;
+    RenderPass& operator= (RenderPass&&) = default;
+
     virtual ~RenderPass () override
     {
         vkDestroyRenderPass (device, handle, nullptr);

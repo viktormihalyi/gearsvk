@@ -17,6 +17,8 @@ private:
 
 public:
     Fence (VkDevice device, bool signaled = true);
+    Fence (Fence&&) = default;
+    Fence& operator= (Fence&&) = default;
 
     virtual ~Fence () override;
 

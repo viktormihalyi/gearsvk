@@ -4,7 +4,7 @@
 #include "RenderGraph.hpp"
 #include "SequenceAdapter.hpp"
 #include "VulkanEnvironment.hpp"
-#include "StimulusAdapterForPresentable.hpp"
+#include "StimulusAdapter.hpp"
 
 #include "BuildType.hpp"
 #include "CommandLineFlag.hpp"

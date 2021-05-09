@@ -1,46 +1,10 @@
 #include "Buffer.hpp"
 
+#include "spdlog/spdlog.h"
+
+
 namespace GVK {
 
-template<typename T>
-class VulkanObjectHandleHolder final {
-private:
-    T handle;
-
-public:
-    VulkanObjectHandleHolder ()
-        : handle (VK_NULL_HANDLE)
-    {
-    }
-
-    VulkanObjectHandleHolder (T handle)
-        : handle (handle)
-    {
-    }
-
-    ~VulkanObjectHandleHolder ()
-    {
-        handle = nullptr;
-    }
-
-    VulkanObjectHandleHolder (const VulkanObjectHandleHolder&) = delete;
-    VulkanObjectHandleHolder& operator= (VulkanObjectHandleHolder&) = delete;
-
-    VulkanObjectHandleHolder (VulkanObjectHandleHolder&& other)
-    {
-        handle       = other.handle;
-        other.handle = nullptr;
-    }
-
-    VulkanObjectHandleHolder& operator= (VulkanObjectHandleHolder&& other)
-    {
-        handle = nullptr;
-        std::swap (handle, other.handle);
-        return *this;
-    }
-
-    operator T () { return handle; }
-};
 
 Buffer::Buffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
     : allocator (allocator)
@@ -60,8 +24,11 @@ Buffer::Buffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags us
     }
 
     if (GVK_ERROR (vmaCreateBuffer (allocator, &bufferInfo, &allocInfo, &handle, &allocationHandle, nullptr) != VK_SUCCESS)) {
+        spdlog::critical ("VkBuffer creation failed.");
         throw std::runtime_error ("failed to create vma buffer");
     }
+
+    spdlog::debug ("VkBuffer created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 

@@ -35,6 +35,9 @@ public:
         }
     }
 
+    DescriptorSet (DescriptorSet&&) = default;
+    DescriptorSet& operator= (DescriptorSet&&) = default;
+
     DescriptorSet (VkDevice device, const DescriptorPool& descriptorPool, const DescriptorSetLayout& layout)
         : DescriptorSet (device, descriptorPool.operator VkDescriptorPool (), layout)
     {

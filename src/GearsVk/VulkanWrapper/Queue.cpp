@@ -3,6 +3,9 @@
 #include "CommandBuffer.hpp"
 #include <iostream>
 
+#include "spdlog/spdlog.h"
+
+
 namespace GVK {
 
 Queue dummyQueue (VK_NULL_HANDLE);
@@ -14,16 +17,6 @@ void Queue::Submit (const std::vector<VkSemaphore>&          waitSemaphores,
                     const std::vector<VkSemaphore>&          signalSemaphores,
                     VkFence                                  fenceToSignal) const
 {
-#if 0
-    std::cout << "submitting:" << std::endl;
-    for (CommandBuffer* cmd : commandBuffers) {
-        std::cout << "    " << cmd->GetUUID ().GetValue () << std::endl;
-        for (CommandBuffer::CommandType cmdType : cmd->recordedCommands) {
-            std::cout << "        " << CommandBuffer::CommandTypeToString (cmdType) << std::endl;
-        }
-    }
-#endif
-
     std::vector<VkCommandBuffer> submittedCmdBufferHandles;
     submittedCmdBufferHandles.reserve (commandBuffers.size ());
 
@@ -43,6 +36,18 @@ void Queue::Submit (const std::vector<VkSemaphore>&          waitSemaphores,
     result.pSignalSemaphores    = signalSemaphores.data ();
 
     vkQueueSubmit (handle, 1, &result, fenceToSignal);
+
+    if (spdlog::get_level () > spdlog::level::debug) {
+        std::string ss;
+        for (CommandBuffer* cmd : commandBuffers) {
+            ss += fmt::format ("{}", static_cast<void*> (cmd->GetHandle ()));
+            const bool isLast = cmd == commandBuffers.back ();
+            if (!isLast) {
+                ss += ", ";
+            }
+        }
+        spdlog::debug ("VkQueue: Submitted command buffers: {}.", ss);
+    }
 }
 
 }

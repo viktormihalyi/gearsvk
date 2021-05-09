@@ -29,6 +29,9 @@ public:
         }
     }
 
+    CommandPool (CommandPool&&) = default;
+    CommandPool& operator= (CommandPool&&) = default;
+
     ~CommandPool ()
     {
         vkDestroyCommandPool (device, handle, nullptr);

@@ -308,7 +308,7 @@ layout (location = 0) out vec2 textureCoords;
 
         FAIL () << "expected ShaderCompileException";
 
-    } catch (GVK::ShaderCompileException& e) {
+    } catch (GVK::ShaderCompileException&) {
         // good
     } catch (...) {
         FAIL () << "expected ShaderCompileException";
