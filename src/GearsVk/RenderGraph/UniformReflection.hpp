@@ -14,6 +14,7 @@
 
 #include <tuple>
 #include <unordered_map>
+#include <map>
 #include <vector>
 
 namespace GVK {
@@ -52,10 +53,10 @@ class GVK_RENDERER_API UniformReflection final : public EventObserver {
 private:
     class GVK_RENDERER_API UboSelector {
     private:
-        std::unordered_map<std::string, std::shared_ptr<GVK::SR::IUData>> udatas;
+        std::map<std::string, std::shared_ptr<GVK::SR::IUData>, std::less<>> udatas;
 
     public:
-        GVK::SR::IUData& operator[] (const std::string& uboName)
+        GVK::SR::IUData& operator[] (std::string_view uboName)
         {
             auto it = udatas.find (uboName);
             if (it != udatas.end ()) {
@@ -71,7 +72,7 @@ private:
             udatas[uboName] = uboData;
         }
 
-        bool Contains (const std::string& uboName) const
+        bool Contains (std::string_view uboName) const
         {
             return udatas.find (uboName) != udatas.end ();
         }
