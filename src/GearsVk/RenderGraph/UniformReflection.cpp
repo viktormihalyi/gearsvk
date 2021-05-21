@@ -42,8 +42,12 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
                 }
 
                 std::shared_ptr<RG::InputBufferBindableResource> uboRes = resourceCreator (renderOp, shaderModule, ubo);
+
                 // graph.AddResource (uboRes);
                 GVK_ASSERT (uboRes != nullptr);
+
+                uboRes->SetName (ubo->name);
+                uboRes->SetDescription ("Made by UniformReflection.");
 
                 std::shared_ptr<SR::UDataInternal> uboData = std::make_unique<SR::UDataInternal> (ubo);
                 ubosel.Set (ubo->name, uboData);
@@ -170,6 +174,9 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
                 if (GVK_ERROR (imgRes == nullptr)) {
                     continue;
                 }
+
+                imgRes->SetName (sampler.name);
+                imgRes->SetDescription ("Made by ImageMap.");
 
                 result.Put (sampler, imgRes);
 

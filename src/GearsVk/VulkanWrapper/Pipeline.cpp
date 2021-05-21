@@ -50,6 +50,8 @@ Pipeline::Pipeline (VkDevice                                              device
 
     VkPipelineRasterizationStateCreateInfo rasterizer = {};
     rasterizer.sType                                  = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizer.flags                                  = 0;
+    rasterizer.pNext                                  = nullptr;
     rasterizer.depthClampEnable                       = VK_FALSE;
     rasterizer.rasterizerDiscardEnable                = VK_FALSE;
     rasterizer.polygonMode                            = VK_POLYGON_MODE_FILL;
@@ -81,12 +83,12 @@ Pipeline::Pipeline (VkDevice                                              device
     colorBlendAttachment.alphaBlendOp                        = VK_BLEND_OP_ADD;
 
     // new
-    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;  // Optional
     colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
-    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+    colorBlendAttachment.colorBlendOp        = VK_BLEND_OP_ADD;      // Optional
+    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;  // Optional
     colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+    colorBlendAttachment.alphaBlendOp        = VK_BLEND_OP_ADD;      // Optional
 
     std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments (attachmentCount, colorBlendAttachment);
 
@@ -141,7 +143,7 @@ Pipeline::Pipeline (VkDevice                                              device
         throw std::runtime_error ("failed to create pipeline");
     }
 
-    spdlog::debug ("VkPipeline created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
+    spdlog::trace ("VkPipeline created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 }

@@ -13,7 +13,7 @@ namespace GVK {
 
 class CommandBuffer;
 
-class GVK_RENDERER_API Queue {
+class GVK_RENDERER_API Queue : public Noncopyable {
 private:
     GVK::MovablePtr<VkQueue> handle;
 

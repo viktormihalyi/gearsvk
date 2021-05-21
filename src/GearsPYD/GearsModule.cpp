@@ -1,6 +1,6 @@
 #include "GearsModuleCommon.hpp"
 
-#ifndef NDEBUG 
+#if NDEBUG
 PYBIND11_MODULE (GearsModule, m)
 #else
 PYBIND11_MODULE (GearsModule_d, m)

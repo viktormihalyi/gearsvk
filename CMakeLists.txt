@@ -150,7 +150,10 @@ add_library (${TARGET_GVKRENDERER} SHARED
     src/GearsVk/VulkanWrapper/Fence.cpp
     src/GearsVk/VulkanWrapper/Surface.cpp
     src/GearsVk/VulkanWrapper/Image.cpp
+    src/GearsVk/VulkanWrapper/ImageView.cpp
+    src/GearsVk/VulkanWrapper/Framebuffer.cpp
     src/GearsVk/VulkanWrapper/CommandBuffer.cpp
+    src/GearsVk/VulkanWrapper/Device.cpp
 
     src/GearsVk/Camera/Frustum.cpp
     src/GearsVk/Camera/Camera.cpp
@@ -296,8 +299,6 @@ add_custom_command (
 )
 
 
-if (DEFINED CREATE_INSTALLER)
-
 if (${CMAKE_BUILD_TYPE} MATCHES Debug)
     message ("Build type is Debug, will rename ${TARGET_DLL}")
     set (PYTHON_MODULE_POSTFIX d)
@@ -326,6 +327,8 @@ add_custom_command (
     COMMENT "Copying ${TARGET_DLL}..."
 )
 endif ()
+
+if (DEFINED CREATE_INSTALLER)
 
 add_custom_command (
     TARGET ${TARGET_DLL}

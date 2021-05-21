@@ -14,12 +14,15 @@ const VkImageUsageFlags RealSwapchain::ImageUsage = VK_IMAGE_USAGE_COLOR_ATTACHM
 
 VkSurfaceFormatKHR DefaultSwapchainSettings::SelectSurfaceFormat (const std::vector<VkSurfaceFormatKHR>& formats)
 {
+    const VkSurfaceFormatKHR preferred { VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+
     for (const VkSurfaceFormatKHR& availableFormat : formats) {
-        if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+        if (availableFormat.format == preferred.format && availableFormat.colorSpace == preferred.colorSpace) {
             return availableFormat;
         }
     }
 
+    spdlog::error ("VkSwapchainKHR: Failed to choose swapchain surface format ({} format and {} color space is not available).", preferred.format, preferred.colorSpace);
     throw std::runtime_error ("failed to choose swapchain surface format");
 }
 
@@ -32,6 +35,7 @@ VkPresentModeKHR DefaultSwapchainSettings::SelectPresentMode (const std::vector<
         }
     }
 
+    spdlog::error ("VkSwapchainKHR: Failed to choose swapchain present mode.");
     throw std::runtime_error ("failed to choose swapchain present mode");
 }
 
@@ -41,6 +45,7 @@ VkExtent2D DefaultSwapchainSettings::SelectExtent (const VkSurfaceCapabilitiesKH
     if (capabilities.currentExtent.width != UINT32_MAX) {
         return capabilities.currentExtent;
     } else {
+        spdlog::info ("VkSwapchainKHR: Trying to choose 800x600 resolution.");
         // TODO
         VkExtent2D actualExtent = { 800, 600 };
         actualExtent.width      = std::clamp (capabilities.minImageExtent.width, capabilities.maxImageExtent.width, actualExtent.width);
@@ -83,6 +88,7 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
         VkBool32 yes;
         VkResult yesyes = vkGetPhysicalDeviceSurfaceSupportKHR (createSettings.physicalDevice, *createSettings.queueFamilyIndices.presentation, createSettings.surface, &yes);
         if (GVK_ERROR (yesyes != VK_SUCCESS || yes != VK_TRUE)) {
+            spdlog::error ("VkSwapchainKHR: Cannot create swapchain for this surface on this physical device.");
             throw std::runtime_error ("cannot create swapchain on this physicald device queue");
         }
     }
@@ -174,7 +180,7 @@ void RealSwapchain::Recreate ()
     }
     createResult = CreateForResult (createSettings);
 
-    spdlog::debug ("VkSwapchainKHR created: {}, uuid: {}.", createResult.handle, GetUUID ().GetValue ());
+    spdlog::trace ("VkSwapchainKHR created: {}, uuid: {}.", createResult.handle, GetUUID ().GetValue ());
 }
 
 
@@ -225,11 +231,12 @@ uint32_t RealSwapchain::GetNextImageIndex (VkSemaphore signalSemaphore, VkFence 
 
     VkResult err = vkAcquireNextImageKHR (createSettings.device, createResult.handle, UINT64_MAX, signalSemaphore, fenceToSignal, &result);
     if (GVK_ERROR (err != VK_SUCCESS && err != VK_ERROR_OUT_OF_DATE_KHR && err != VK_SUBOPTIMAL_KHR)) {
+        spdlog::error ("VkSwapchain: vkAcquireNextImageKHR failed.");
         throw std::runtime_error ("err");
     }
 
     if (err == VK_ERROR_OUT_OF_DATE_KHR) {
-        std::cout << "out of date swapchain detected" << std::endl;
+        spdlog::debug ("VkSwapchain: Out of date swaphchain detected.");
         throw OutOfDateSwapchain { *this };
     }
 
@@ -250,14 +257,16 @@ void RealSwapchain::Present (VkQueue queue, uint32_t imageIndex, const std::vect
 
     const VkResult err = vkQueuePresentKHR (queue, &presentInfo);
     if (GVK_ERROR (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR && err != VK_ERROR_OUT_OF_DATE_KHR)) {
+        spdlog::error ("VkSwapchain: Presentation failed.");
         throw std::runtime_error ("failed to present");
     }
 
     if (err == VK_SUBOPTIMAL_KHR || err == VK_ERROR_OUT_OF_DATE_KHR) {
+        spdlog::debug ("VkSwapchain: Out of date swaphchain detected.");
         throw OutOfDateSwapchain { *this };
     }
 
-    spdlog::debug ("VkSwapchain: Presenting on swapchain {}.", createResult.handle);
+    spdlog::trace ("VkSwapchain: Presenting on swapchain {}.", createResult.handle);
 }
 
 

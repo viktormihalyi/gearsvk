@@ -10,7 +10,7 @@
 
 namespace GVK {
 
-class GVK_RENDERER_API PipelineLayout : public Noncopyable {
+class GVK_RENDERER_API PipelineLayout : public VulkanObject {
 private:
     VkDevice                          device;
     GVK::MovablePtr<VkPipelineLayout> handle;
@@ -46,7 +46,7 @@ public:
     PipelineLayout (PipelineLayout&&) = default;
     PipelineLayout& operator= (PipelineLayout&&) = default;
 
-    ~PipelineLayout ()
+    virtual ~PipelineLayout () override
     {
         vkDestroyPipelineLayout (device, handle, nullptr);
         handle = nullptr;

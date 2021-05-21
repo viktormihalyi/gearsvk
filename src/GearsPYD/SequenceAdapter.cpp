@@ -23,6 +23,7 @@
 #include <fstream>
 #include <map>
 
+#include "spdlog/spdlog.h"
 
 
 class RandomExporter : public IRandomExporter {
@@ -54,12 +55,11 @@ public:
 
     virtual void OnRandomTextureDrawn (GVK::RG::ImageResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) override
     {
-        GVK::ImageData imgasd (device, *randomTexture.GetImages (resourceIndex)[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        GVK::ImageData randomImage (device, *randomTexture.GetImages (resourceIndex)[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
         std::vector<uint32_t> as32BitUint;
-
-        as32BitUint.resize (imgasd.width * imgasd.height * imgasd.componentByteSize / 4);
-        memcpy (as32BitUint.data (), imgasd.data.data (), as32BitUint.size () * sizeof (uint32_t));
+        as32BitUint.resize (randomImage.width * randomImage.height * randomImage.componentByteSize / 4);
+        memcpy (as32BitUint.data (), randomImage.data.data (), as32BitUint.size () * sizeof (uint32_t));
 
         const int64_t overshoot = values.size () + as32BitUint.size () - randomValueLimit;
         if (overshoot > 0) {
@@ -195,9 +195,15 @@ static int32_t PositiveModulo (int32_t i, int32_t n)
 }
 
 
-static void SignalImpl (std::string_view type, std::string_view channelName, std::string_view channelPort, bool clear)
+static void SignalImplCout (std::string_view type, std::string_view channelName, std::string_view channelPort, bool clear)
 {
     std::cout << "[" << type << "] Channel: " << channelName << " (" << channelPort << "), clear: " << std::boolalpha << clear << std::endl;
+}
+
+
+static void SignalImpl (std::string_view type, std::string_view channelName, std::string_view channelPort, bool clear)
+{
+    spdlog::info ("[{}] Channel: {} ({}), clear: {}", type, channelName, channelPort, clear);
 }
 
 
@@ -207,6 +213,8 @@ void SequenceAdapter::OnImageAcquisitionFenceSignaled (uint32_t resourceIndex)
     const uint32_t previousResourceIndex = PositiveModulo (static_cast<int32_t> (resourceIndex) - 1, renderer->GetFramesInFlight ());
     
     const size_t finishedFrameIndex = resourceIndexToRenderedFrameMapping[previousResourceIndex];
+
+    resourceIndexToRenderedFrameMapping[previousResourceIndex] = 0;
     
     // TODO check if signal's frame index and finishedFrameIndex are the same
 

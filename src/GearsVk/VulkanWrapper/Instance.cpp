@@ -97,14 +97,14 @@ static VkInstance CreateInstance (const std::vector<const char*>& instanceExtens
 Instance::Instance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers)
     : handle (CreateInstance (instanceExtensions, instanceLayers))
 {
-    spdlog::debug ("VkInstance created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
+    spdlog::trace ("VkInstance created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 
 Instance::Instance (const InstanceSettings& settings)
     : handle (CreateInstance (settings.extensions, settings.layers))
 {
-    spdlog::debug ("VkInstance created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
+    spdlog::trace ("VkInstance created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 

@@ -1,12 +1,6 @@
 import GearsModule as gears
 from .. import * 
 
-try:
-  from OpenGL.GL import *
-  from OpenGL.GLU import *
-except:
-  print ('ERROR: PyOpenGL not installed properly.')
-
 import random
 
 def box() :

@@ -42,4 +42,4 @@ try:
 except Exception as e:
     gears.DestroyEnvironment()
     print("EXCEPTION")
-    print(e)
+    print(repr(e))

@@ -28,7 +28,7 @@ Buffer::Buffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags us
         throw std::runtime_error ("failed to create vma buffer");
     }
 
-    spdlog::debug ("VkBuffer created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
+    spdlog::trace ("VkBuffer created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 

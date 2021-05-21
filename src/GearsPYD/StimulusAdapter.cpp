@@ -41,11 +41,15 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
 
     std::shared_ptr<GVK::RG::SwapchainImageResource> presented = std::make_unique<GVK::RG::SwapchainImageResource> (*presentable);
 
-    const std::vector<Pass::P> passes = stimulus->getPasses ();
+    presented->SetName ("Swapchain");
+    presented->SetDescription ("Made by StimulusAdapter.");
+
+    std::vector<Pass::P> passes = stimulus->getPasses ();
 
     GVK_ASSERT (passes.size () == 1);
 
     bool firstPass = true;
+    
     for (const Pass::P& pass : passes) {
         if constexpr (LogDebugInfo) {
             std::cout << pass->ToDebugString () << std::endl;
@@ -68,6 +72,9 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         std::shared_ptr<GVK::RG::RenderOperation> passOperation = std::make_unique<GVK::RG::RenderOperation> (
             std::make_unique<GVK::DrawRecordableInfo> (1, 4), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
+        passOperation->SetName (pass->name);
+        passOperation->SetDescription (pass->brief);
+
         if (stimulus->requiresClearing) {
             passOperation->compileSettings.clearColor = { stimulus->clearColor, 1.0 };
         }
@@ -85,7 +92,7 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
                              std::make_unique<GVK::RG::OutputBinding> (0,
                                                                        presented->GetFormatProvider (),
                                                                        presented->GetFinalLayout (),
-                                                                       VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                                       firstPass ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,
                                                                        VK_ATTACHMENT_STORE_OP_STORE));
 
         passToOperation[pass] = passOperation;
@@ -115,6 +122,9 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
             stimulus->sequence->maxRandomGridHeight,
             1,
             VK_FORMAT_R32G32B32A32_UINT);
+
+        randomTexture->SetName ("RandomTexture");
+        randomTexture->SetDescription ("Made by StimulusAdapter.");
 
         std::unique_ptr<GVK::RG::ShaderPipeline> randoSeqPipeline = std::make_unique<GVK::RG::ShaderPipeline> (*environment.device);
         randoSeqPipeline->SetVertexShaderFromString (*Utils::ReadTextFile (PROJECT_ROOT / "Project" / "Shaders" / "quad.vert"));

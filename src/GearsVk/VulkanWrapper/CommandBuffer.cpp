@@ -26,7 +26,7 @@ CommandBuffer::CommandBuffer (VkDevice device, VkCommandPool commandPool)
         throw std::runtime_error ("failed to allocate command buffer");
     }
 
-    spdlog::debug ("VkCommandBuffer created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
+    spdlog::trace ("VkCommandBuffer created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 

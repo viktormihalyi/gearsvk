@@ -3,6 +3,9 @@
 #include "GraphSettings.hpp"
 #include "Operation.hpp"
 #include "Resource.hpp"
+#include "CommandLineFlag.hpp"
+
+#include "spdlog/spdlog.h"
 
 namespace GVK {
 
@@ -113,6 +116,45 @@ std::vector<RenderGraph::Pass> RenderGraph::GetPasses (const ConnectionSet& conn
 }
 
 
+
+void RenderGraph::SeparatePasses (const ConnectionSet& connectionSet)
+{
+    std::vector<Pass> newPasses;
+    
+    const std::vector<Pass> oldPasses { passes };
+    for (const Pass& p : oldPasses) {
+        std::unordered_map<std::shared_ptr<Resource>, std::vector<Operation*>> operationOutputs;
+        for (Operation* o : p.operations) {
+            for (auto& res : connectionSet.GetPointingTo<Resource> (o)) {
+                operationOutputs[res].push_back (o);
+            }
+        }
+        for (auto& [res, op] : operationOutputs) {
+            if (op.size () > 1) {
+                for (Operation* sepOp : op) {
+                    Pass newSep;
+                    newSep.operations.insert (sepOp);
+                    for (auto inp : connectionSet.GetPointingHere<Resource> (sepOp)) {
+                        newSep.inputs.insert (inp.get ());
+                    }
+                    for (auto out : connectionSet.GetPointingTo<Resource> (sepOp)) {
+                        newSep.outputs.insert (out.get ());
+                    }
+                    newPasses.push_back (newSep);
+                }
+            } else {
+                newPasses.push_back (p);
+            }
+        }
+    }
+
+    passes = newPasses;
+}
+
+
+Utils::CommandLineOnOffFlag printRenderGraphFlag { "--printRenderGraph", "Prints render graph passes, operatins, resources." };
+
+
 void RenderGraph::Compile (GraphSettings&& settings)
 {
     device         = settings.device;
@@ -122,6 +164,33 @@ void RenderGraph::Compile (GraphSettings&& settings)
     vkQueueWaitIdle (settings.GetDevice ().GetGraphicsQueue ());
 
     passes = GetPasses (settings.connectionSet);
+
+    SeparatePasses (settings.connectionSet);
+
+    if (printRenderGraphFlag.IsFlagOn ()) {
+        std::stringstream logString;
+        for (size_t i = 0; i < passes.size (); ++i) {
+            const Pass& pass = passes[i];
+            logString << "Pass " << i << std::endl;
+            for (const Operation* op : pass.operations) {
+                logString << "\tOperation \"" << op->GetName () << "\" (desc: \"" << op->GetDescription () << "\", " << op->GetUUID ().GetValue () << ")" << std::endl;
+                logString << "\tInputs:" << std::endl;
+                auto resinp = settings.connectionSet.GetPointingHere<Resource> (op);
+                for (auto res : resinp) {
+                    logString << "\t\tInput Resource \"" << res->GetName () << "\" (desc: \"" << res->GetDescription () << "\", id: " << res->GetUUID ().GetValue () << ")" << std::endl;
+                }
+                logString << "\tOutputs:" << std::endl;
+                auto resout = settings.connectionSet.GetPointingTo<Resource> (op);
+                for (auto res : resout) {
+                    logString << "\t\tOutput Resource \"" << res->GetName () << "\" (desc: \"" << res->GetDescription () << "\", id: " << res->GetUUID ().GetValue () << ")" << std::endl;
+                }
+            }
+        } 
+
+        std::cout << "======= Render graph begin =======" << std::endl;
+        std::cout << logString.str () << std::endl;
+        std::cout << "======= Render graph end =========" << std::endl;
+    }
 
     CompileResources (settings);
 

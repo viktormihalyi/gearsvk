@@ -21,10 +21,11 @@ Allocator::Allocator (VkInstance instance, VkPhysicalDevice physicalDevice, VkDe
     allocatorInfo.instance               = instance;
 
     if (GVK_ERROR (vmaCreateAllocator (&allocatorInfo, &handle) != VK_SUCCESS)) {
+        spdlog::critical ("VmaAllocator creation failed.");
         throw std::runtime_error ("failed to create vma allocator");
     }
 
-    spdlog::debug ("VmaAllocator created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
+    spdlog::trace ("VmaAllocator created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 

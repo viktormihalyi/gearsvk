@@ -68,7 +68,7 @@ Image::Image (VmaAllocator      allocator,
         throw std::runtime_error ("failed to create image!");
     }
 
-    spdlog::debug ("VkImage created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
+    spdlog::trace ("VkImage created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 

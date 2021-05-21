@@ -240,27 +240,24 @@ ShaderCache releaseShaderCache ("Release");
 
 static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind)
 {
-    using namespace glslang;
-
     static bool init = false;
     if (!init) {
         init = true;
-        InitializeProcess ();
+        glslang::InitializeProcess ();
     }
 
-    const char* const              sourceCstr                  = sourceCode.c_str ();
-    const int                      ClientInputSemanticsVersion = 100;
-    const EShTargetClientVersion   VulkanClientVersion         = EShTargetVulkan_1_0;
-    const EShTargetLanguageVersion TargetVersion               = EShTargetSpv_1_0;
-    const EShMessages              messages                    = (EShMessages) (EShMsgSpvRules | EShMsgVulkanRules);
-    const TBuiltInResource         resources                   = DefaultResourceLimits; // TODO use DefaultTBuiltInResource ?
+    const char* const                       sourceCstr                  = sourceCode.c_str ();
+    const int                               ClientInputSemanticsVersion = 100;
+    const glslang::EShTargetClientVersion   VulkanClientVersion         = glslang::EShTargetVulkan_1_0;
+    const glslang::EShTargetLanguageVersion TargetVersion               = glslang::EShTargetSpv_1_0;
+    const EShMessages                       messages                    = (EShMessages) (EShMsgSpvRules | EShMsgVulkanRules);
+    const TBuiltInResource                  resources                   = DefaultResourceLimits; // TODO use DefaultTBuiltInResource ?
 
-
-    TShader shader (shaderKind.esh);
+    glslang::TShader shader (shaderKind.esh);
     shader.setStrings (&sourceCstr, 1);
-    shader.setEnvInput (EShSourceGlsl, shaderKind.esh, EShClientVulkan, ClientInputSemanticsVersion);
-    shader.setEnvClient (EShClientVulkan, VulkanClientVersion);
-    shader.setEnvTarget (EShTargetSpv, TargetVersion);
+    shader.setEnvInput (glslang::EShSourceGlsl, shaderKind.esh, glslang::EShClientVulkan, ClientInputSemanticsVersion);
+    shader.setEnvClient (glslang::EShClientVulkan, VulkanClientVersion);
+    shader.setEnvTarget (glslang::EShTargetSpv, TargetVersion);
 
     if (!shader.parse (&resources, 100, false, messages)) {
         throw ShaderCompileException ("Failed to parse " + shaderKind.displayName + ":\n"
@@ -269,7 +266,8 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
                                      + "================================== GLSL CODE END ====================================\n"
                                      + shader.getInfoLog ());
     }
-    TProgram program;
+
+    glslang::TProgram program;
     program.addShader (&shader);
 
     if (!program.link (EShMsgDefault)) {
@@ -282,9 +280,16 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 
     spv::SpvBuildLogger logger;
     glslang::SpvOptions spvOptions;
+    spvOptions.disableOptimizer = false;
+    spvOptions.validate         = true;
 
     std::vector<uint32_t> spirvBinary;
     glslang::GlslangToSpv (*program.getIntermediate (shaderKind.esh), spirvBinary, &logger, &spvOptions);
+
+    const std::string loggerMessages = logger.getAllMessages ();
+    if (GVK_ERROR (!loggerMessages.empty ()))
+        std::cout << loggerMessages << std::endl;
+
     return spirvBinary;
 }
 
@@ -363,7 +368,7 @@ ShaderModule::ShaderModule (ShaderKind                   shaderKind,
     , sourceCode (sourceCode)
     , preprocessor (preprocessor)
 {
-    spdlog::debug ("VkShaderModule created: {}, uuid: {}.", this->handle, GetUUID ().GetValue ());
+    spdlog::trace ("VkShaderModule created: {}, uuid: {}.", this->handle, GetUUID ().GetValue ());
 }
 
 

@@ -25,7 +25,7 @@ Fence::Fence (VkDevice device, bool signaled)
         throw std::runtime_error ("failed to create fence");
     }
 
-    spdlog::debug ("VkFence created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
+    spdlog::trace ("VkFence created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 

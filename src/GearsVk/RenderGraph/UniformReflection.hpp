@@ -42,6 +42,7 @@ public:
 using CreateParams                 = std::tuple<glm::uvec3, VkFormat, VkFilter>;
 using ExtentProviderForImageCreate = std::function<std::optional<CreateParams> (const GVK::SR::Sampler& sampler)>;
 
+
 GVK_RENDERER_API
 ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet);
 
@@ -56,26 +57,9 @@ private:
         std::map<std::string, std::shared_ptr<GVK::SR::IUData>, std::less<>> udatas;
 
     public:
-        GVK::SR::IUData& operator[] (std::string_view uboName)
-        {
-            auto it = udatas.find (uboName);
-            if (it != udatas.end ()) {
-                return *it->second;
-            }
-
-            GVK_ASSERT (false);
-            return GVK::SR::dummyUData;
-        }
-
-        void Set (const std::string& uboName, const std::shared_ptr<GVK::SR::IUData>& uboData)
-        {
-            udatas[uboName] = uboData;
-        }
-
-        bool Contains (std::string_view uboName) const
-        {
-            return udatas.find (uboName) != udatas.end ();
-        }
+        GVK::SR::IUData& operator[] (std::string_view uboName);
+        void             Set (const std::string& uboName, const std::shared_ptr<GVK::SR::IUData>& uboData);
+        bool             Contains (std::string_view uboName) const;
 
         friend class UniformReflection;
     };
@@ -85,21 +69,8 @@ private:
         std::unordered_map<ShaderKind, UboSelector> uboSelectors;
 
     public:
-        UboSelector& operator[] (ShaderKind shaderKind)
-        {
-            auto it = uboSelectors.find (shaderKind);
-            if (it != uboSelectors.end ()) {
-                return it->second;
-            }
-
-            GVK_ASSERT (false);
-            throw std::runtime_error ("no such shaderkind");
-        }
-
-        void Set (ShaderKind shaderKind, UboSelector&& uboSel)
-        {
-            uboSelectors[shaderKind] = std::move (uboSel);
-        }
+        UboSelector& operator[] (ShaderKind shaderKind);
+        void         Set (ShaderKind shaderKind, UboSelector&& uboSel);
 
         friend class UniformReflection;
     };
@@ -158,6 +129,48 @@ private:
 public:
     void PrintDebugInfo ();
 };
+
+
+inline GVK::SR::IUData& UniformReflection::UboSelector::operator[] (std::string_view uboName)
+{
+    auto it = udatas.find (uboName);
+    if (it != udatas.end ()) {
+        return *it->second;
+    }
+
+    GVK_ASSERT (false);
+    return GVK::SR::dummyUData;
+}
+
+
+inline void UniformReflection::UboSelector::Set (const std::string& uboName, const std::shared_ptr<GVK::SR::IUData>& uboData)
+{
+    udatas[uboName] = uboData;
+}
+
+
+inline bool UniformReflection::UboSelector::Contains (std::string_view uboName) const
+{
+    return udatas.find (uboName) != udatas.end ();
+}
+
+
+inline UniformReflection::UboSelector& UniformReflection::ShaderKindSelector::operator[] (ShaderKind shaderKind)
+{
+    auto it = uboSelectors.find (shaderKind);
+    if (it != uboSelectors.end ()) {
+        return it->second;
+    }
+
+    GVK_ASSERT (false);
+    throw std::runtime_error ("no such shaderkind");
+}
+
+
+inline void UniformReflection::ShaderKindSelector::Set (ShaderKind shaderKind, UniformReflection::UboSelector&& uboSel)
+{
+    uboSelectors[shaderKind] = std::move (uboSel);
+}
 
 
 inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (const GVK::UUID& renderOpId)

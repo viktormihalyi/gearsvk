@@ -59,6 +59,7 @@ private:
     Pass              GetNextPass (const ConnectionSet& connectionSet, const Pass& lastPass) const;
     Pass              GetFirstPass (const ConnectionSet& connectionSet) const;
     std::vector<Pass> GetPasses (const ConnectionSet& connectionSet) const;
+    void              SeparatePasses (const ConnectionSet& connectionSet);
 };
 
 

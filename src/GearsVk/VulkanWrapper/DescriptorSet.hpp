@@ -12,7 +12,7 @@
 
 namespace GVK {
 
-class GVK_RENDERER_API DescriptorSet : public Noncopyable {
+class GVK_RENDERER_API DescriptorSet : public VulkanObject {
 private:
     VkDevice                         device;
     VkDescriptorPool                 descriptorPool;
@@ -30,7 +30,7 @@ public:
         allocInfo.descriptorSetCount          = 1;
         allocInfo.pSetLayouts                 = &layout;
 
-        if (vkAllocateDescriptorSets (device, &allocInfo, &handle) != VK_SUCCESS) {
+        if (GVK_ERROR (vkAllocateDescriptorSets (device, &allocInfo, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to allocate descriptor sets!");
         }
     }
@@ -43,7 +43,7 @@ public:
     {
     }
 
-    ~DescriptorSet ()
+    virtual ~DescriptorSet () override
     {
         // only free for VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
         // vkFreeDescriptorSets (device, descriptorPool, 1, &handle);

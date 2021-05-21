@@ -172,7 +172,7 @@ bool AreImagesEqual (const DeviceExtra& device, const Image& image, const std::f
 
 std::thread SaveImageToFileAsync (const DeviceExtra& device, const Image& image, const std::filesystem::path& filePath, uint32_t layerIndex)
 {
-    return std::thread ([=, &image] () {
+    return std::thread ([=, &device, &image] () {
         ImageData (device, image, layerIndex).SaveTo (filePath);
     });
 };

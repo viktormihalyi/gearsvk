@@ -56,6 +56,7 @@ GraphSettings::GraphSettings ()
 
 const DeviceExtra& GraphSettings::GetDevice () const
 {
+    GVK_ASSERT (device != nullptr);
     return *device;
 }
 

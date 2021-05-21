@@ -37,7 +37,7 @@ void Queue::Submit (const std::vector<VkSemaphore>&          waitSemaphores,
 
     vkQueueSubmit (handle, 1, &result, fenceToSignal);
 
-    if (spdlog::get_level () > spdlog::level::debug) {
+    if (spdlog::get_level () <= spdlog::level::trace) {
         std::string ss;
         for (CommandBuffer* cmd : commandBuffers) {
             ss += fmt::format ("{}", static_cast<void*> (cmd->GetHandle ()));
@@ -46,7 +46,7 @@ void Queue::Submit (const std::vector<VkSemaphore>&          waitSemaphores,
                 ss += ", ";
             }
         }
-        spdlog::debug ("VkQueue: Submitted command buffers: {}.", ss);
+        spdlog::trace ("VkQueue: Submitted command buffers: {}.", ss);
     }
 }
 

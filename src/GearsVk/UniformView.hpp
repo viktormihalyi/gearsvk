@@ -11,6 +11,8 @@
 #include <cstring>
 #include <vector>
 
+#include "spdlog/spdlog.h"
+
 namespace GVK {
 
 class ShaderModule;
@@ -67,12 +69,14 @@ public:
         GVK_ASSERT (type == Type::Variable);
         GVK_ASSERT (sizeof (T) == size);
 
-#if 0
-        std::cout << "setting uniform \"" << currentField->name << "\" (type: " << SR::FieldTypeToString (currentField->type)
-                  << ", size: " << currentField->size
-                  << ", offset: " << offset << ")"
-                  << " with " << sizeof (T) << " bytes of data (type: " << typeid (other).name () << ")" << std::endl;
-#endif
+        spdlog::trace ("Setting uniform \"{}\" (type: {}, size: {}, offset: {}) with {} bytes of data (type: {}).",
+                       currentField->name,
+                       SR::FieldTypeToString (currentField->type),
+                       currentField->size,
+                       offset,
+                       sizeof (T),
+                       typeid (other).name ());
+
         memcpy (data + offset, &other, size);
     }
 

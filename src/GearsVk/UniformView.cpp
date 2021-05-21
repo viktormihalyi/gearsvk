@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+#include "spdlog/spdlog.h"
+
 namespace GVK {
 
 namespace SR {
@@ -74,6 +76,8 @@ UView UView::operator[] (std::string_view str)
             }
         }
     }
+
+    spdlog::error ("No \"{}\" uniform named on \"{}\".", str, currentField->name);
 
     GVK_ASSERT (false);
     return invalidUview;
