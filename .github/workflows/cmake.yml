@@ -28,7 +28,10 @@ jobs:
       run: python3 -m pip install conan 
       
     - name: Create conan profile
-      run: conan profile new default --detect --force 
+      run: conan profile new default --detect --force
+      
+    - name: C++11 ABI
+      run: conan profile update settings.compiler.libcxx=libstdc++11 default
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
