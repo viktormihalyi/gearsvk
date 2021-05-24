@@ -1,3 +1,6 @@
+#ifndef PORTHANDLER_H
+#define PORTHANDLER_H
+
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
@@ -23,3 +26,5 @@ public:
         close ();
     }
 };
+
+#endif
