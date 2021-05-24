@@ -20,6 +20,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+  
+    - name: Vulkan SDK key
+      run: wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+      
+    - name: Vulkan SDK
+      run: sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-bionic.list http://packages.lunarg.com/vulkan/lunarg-vulkan-bionic.list
+      
+    - name: apt update
+      run: sudo apt update
     
     - name: Install wheel
       run: python3 -m pip install wheel 
@@ -35,12 +44,6 @@ jobs:
 
     - name: System dependencies
       run: sudo apt install python3-setuptools python3-venv libgl1-mesa-dev xorg-dev libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-xinerama0-dev
-  
-    - name: Vulkan SDK key
-      run: wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
-      
-    - name: Vulkan SDK
-      run: sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-bionic.list http://packages.lunarg.com/vulkan/lunarg-vulkan-bionic.list
   
     - name: Vulkan SDK install
       run: sudo apt install vulkan-sdk
