@@ -69,14 +69,6 @@ public:
         GVK_ASSERT (type == Type::Variable);
         GVK_ASSERT (sizeof (T) == size);
 
-        spdlog::trace ("Setting uniform \"{}\" (type: {}, size: {}, offset: {}) with {} bytes of data (type: {}).",
-                       currentField->name,
-                       SR::FieldTypeToString (currentField->type),
-                       currentField->size,
-                       offset,
-                       sizeof (T),
-                       typeid (other).name ());
-
         memcpy (data + offset, &other, size);
     }
 
@@ -241,3 +233,4 @@ public:
 
 
 #endif
+
