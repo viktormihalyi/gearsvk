@@ -11,11 +11,11 @@ namespace GVK {
 
 namespace SR {
 
-static const std::vector<std::unique_ptr<SR::Field>> emptyFieldVector;
+static const std::vector<std::unique_ptr<Field>> emptyFieldVector;
 
 class EmptyFieldContainer : public FieldContainer {
 public:
-    virtual const std::vector<std::unique_ptr<SR::Field>>& GetFields () const { return emptyFieldVector; }
+    virtual const std::vector<std::unique_ptr<Field>>& GetFields () const { return emptyFieldVector; }
 } emptyFields;
 
 const UView UView::invalidUview (UView::Type::Variable, nullptr, 0, 0, emptyFields, nullptr);
@@ -27,8 +27,8 @@ UView::UView (Type                              type,
               uint8_t*                          data,
               uint32_t                          offset,
               uint32_t                          size,
-              const SR::FieldContainer&         parentContainer,
-              const std::unique_ptr<SR::Field>& currentField)
+              const FieldContainer&         parentContainer,
+              const std::unique_ptr<Field>& currentField)
     : type (type)
     , data (data)
     , offset (offset)
@@ -39,7 +39,7 @@ UView::UView (Type                              type,
 }
 
 
-UView::UView (const std::shared_ptr<SR::UBO>& root, uint8_t* data)
+UView::UView (const std::shared_ptr<UBO>& root, uint8_t* data)
     : UView (Type::Variable, data, 0, root->GetFullSize (), *root, nullptr)
 {
 }
@@ -67,7 +67,7 @@ UView UView::operator[] (std::string_view str)
 
     GVK_ASSERT (type != Type::Array);
 
-    for (const std::unique_ptr<SR::Field>& f : parentContainer.GetFields ()) {
+    for (const std::unique_ptr<Field>& f : parentContainer.GetFields ()) {
         if (str == f->name) {
             if (f->IsArray ()) {
                 return UView (Type::Array, data, offset + f->offset, f->size, *f, f);
@@ -109,7 +109,7 @@ std::vector<std::string> UView::GetFieldNames () const
 }
 
 
-UDataInternal::UDataInternal (const std::shared_ptr<SR::UBO>& ubo)
+UDataInternal::UDataInternal (const std::shared_ptr<UBO>& ubo)
     : bytes (ubo->GetFullSize (), 0)
     , root (ubo, bytes.data ())
 {
@@ -137,7 +137,7 @@ uint32_t UDataInternal::GetSize () const
     return bytes.size ();
 }
 
-UDataExternal::UDataExternal (const std::shared_ptr<SR::UBO>& ubo, uint8_t* bytes, uint32_t size)
+UDataExternal::UDataExternal (const std::shared_ptr<UBO>& ubo, uint8_t* bytes, uint32_t size)
     : root (ubo, bytes)
     , bytes (bytes)
     , size (size)
@@ -167,7 +167,7 @@ uint32_t UDataExternal::GetSize () const
 }
 
 
-ShaderUData::ShaderUData (const std::vector<std::shared_ptr<SR::UBO>>& ubos)
+ShaderUData::ShaderUData (const std::vector<std::shared_ptr<UBO>>& ubos)
     : ubos (ubos)
 {
     for (auto& a : ubos) {
@@ -177,7 +177,7 @@ ShaderUData::ShaderUData (const std::vector<std::shared_ptr<SR::UBO>>& ubos)
 }
 
 ShaderUData::ShaderUData (const std::vector<uint32_t>& shaderBinary)
-    : ShaderUData (SR::GetUBOsFromBinary (shaderBinary))
+    : ShaderUData (GetUBOsFromBinary (shaderBinary))
 {
 }
 
@@ -197,7 +197,7 @@ IUData& ShaderUData::operator[] (std::string_view str)
     return *udatas[index];
 }
 
-std::shared_ptr<SR::UBO> ShaderUData::GetUbo (std::string_view str)
+std::shared_ptr<UBO> ShaderUData::GetUbo (std::string_view str)
 {
     const uint32_t index = std::distance (uboNames.begin (), std::find (uboNames.begin (), uboNames.end (), str));
     return ubos[index];

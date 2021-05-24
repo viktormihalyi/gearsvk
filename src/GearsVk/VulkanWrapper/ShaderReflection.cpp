@@ -55,7 +55,7 @@ uint32_t Field::GetSize () const
 }
 
 
-const std::vector<std::unique_ptr<SR::Field>>& Field::GetFields () const
+const std::vector<std::unique_ptr<Field>>& Field::GetFields () const
 {
     return structFields;
 }
@@ -72,7 +72,7 @@ uint32_t UBO::GetFullSize () const
 }
 
 
-const std::vector<std::unique_ptr<SR::Field>>& UBO::GetFields () const
+const std::vector<std::unique_ptr<Field>>& UBO::GetFields () const
 {
     return fields;
 }

@@ -63,7 +63,7 @@ class FieldContainer {
 public:
     virtual ~FieldContainer () = default;
 
-    virtual const std::vector<std::unique_ptr<SR::Field>>& GetFields () const = 0;
+    virtual const std::vector<std::unique_ptr<Field>>& GetFields () const = 0;
 };
 
 
@@ -93,7 +93,7 @@ public:
 
     uint32_t GetSize () const;
 
-    virtual const std::vector<std::unique_ptr<SR::Field>>& GetFields () const override;
+    virtual const std::vector<std::unique_ptr<Field>>& GetFields () const override;
 };
 
 
@@ -106,7 +106,7 @@ public:
 
     uint32_t GetFullSize () const;
 
-    virtual const std::vector<std::unique_ptr<SR::Field>>& GetFields () const override;
+    virtual const std::vector<std::unique_ptr<Field>>& GetFields () const override;
 };
 
 
@@ -131,7 +131,7 @@ class GVK_RENDERER_API Output {
 public:
     std::string   name;
     uint32_t      location;
-    SR::FieldType type;
+    FieldType type;
     uint32_t      arraySize; // 0 for non-arrays
 };
 
@@ -140,7 +140,7 @@ class GVK_RENDERER_API Input {
 public:
     std::string   name;
     uint32_t      location;
-    SR::FieldType type;
+    FieldType type;
     uint32_t      arraySize; // 0 for non-arrays
     uint32_t      sizeInBytes;
 };

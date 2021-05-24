@@ -42,18 +42,18 @@ private:
     uint8_t*                          data;
     const uint32_t                    offset;
     const uint32_t                    size;
-    const SR::FieldContainer&         parentContainer;
-    const std::unique_ptr<SR::Field>& currentField;
+    const FieldContainer&         parentContainer;
+    const std::unique_ptr<Field>& currentField;
 
 public:
     UView (Type                              type,
            uint8_t*                          data,
            uint32_t                          offset,
            uint32_t                          size,
-           const SR::FieldContainer&         parentContainer,
-           const std::unique_ptr<SR::Field>& currentField = nullptr);
+           const FieldContainer&         parentContainer,
+           const std::unique_ptr<Field>& currentField = nullptr);
 
-    UView (const std::shared_ptr<SR::UBO>& root, uint8_t* data);
+    UView (const std::shared_ptr<UBO>& root, uint8_t* data);
 
     UView (const UView&);
 
@@ -176,7 +176,7 @@ private:
     uint32_t size;
 
 public:
-    UDataExternal (const std::shared_ptr<SR::UBO>& ubo, uint8_t* bytes, uint32_t size);
+    UDataExternal (const std::shared_ptr<UBO>& ubo, uint8_t* bytes, uint32_t size);
 
     virtual UView operator[] (std::string_view str) override;
 
@@ -194,7 +194,7 @@ private:
     UView                root;
 
 public:
-    UDataInternal (const std::shared_ptr<SR::UBO>& ubo);
+    UDataInternal (const std::shared_ptr<UBO>& ubo);
 
     virtual UView operator[] (std::string_view str) override;
 
@@ -213,17 +213,17 @@ class GVK_RENDERER_API ShaderUData final : public Noncopyable {
 private:
     std::vector<std::unique_ptr<IUData>>  udatas;
     std::vector<std::string>              uboNames;
-    std::vector<std::shared_ptr<SR::UBO>> ubos;
+    std::vector<std::shared_ptr<UBO>> ubos;
 
 public:
-    ShaderUData (const std::vector<std::shared_ptr<SR::UBO>>& ubos);
+    ShaderUData (const std::vector<std::shared_ptr<UBO>>& ubos);
     ShaderUData (const std::vector<uint32_t>& shaderBinary);
     ShaderUData (const std::unique_ptr<ShaderModule>& shaderModule);
     ShaderUData (const ShaderModule& shaderModule);
 
     IUData& operator[] (std::string_view str);
 
-    std::shared_ptr<SR::UBO> GetUbo (std::string_view str);
+    std::shared_ptr<UBO> GetUbo (std::string_view str);
 };
 
 
