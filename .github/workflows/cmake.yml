@@ -40,7 +40,7 @@ jobs:
       run: |
         export CC=gcc-11
         export CXX=g++-11
-        cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}} -DCREATE_INSTALLER=1
+        cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}}
       
     - name: Build
       run: |
