@@ -21,27 +21,26 @@ jobs:
       run: |
         wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
         sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-bionic.list http://packages.lunarg.com/vulkan/lunarg-vulkan-bionic.list
-      
-    - name: apt update
-      run: sudo apt update
+        sudo apt-get update
     
     - name: Install wheel from pip
-      run: python3 -m pip install wheel 
-      
-    - name: Install conan from pip
-      run: python3 -m pip install conan 
+      run: |
+        python3 -m pip install wheel 
+        python3 -m pip install conan 
       
     - name: Create default conan profile
-      run: conan profile new default --detect --force
-      
-    - name: Set conan to use C++11 ABI
-      run: conan profile update settings.compiler.libcxx=libstdc++11 default
+      run: |
+        conan profile new default --detect --force
+        conan profile update settings.compiler.libcxx=libstdc++11 default
 
-    - name: System dependencies
-      run: sudo apt install vulkan-sdk ninja-build python3-setuptools python3-venv libgl1-mesa-dev xorg-dev libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-xinerama0-dev
+    - name: Install system dependencies
+      run: sudo apt-get install vulkan-sdk ninja-build python3-setuptools python3-venv libgl1-mesa-dev xorg-dev libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-xinerama0-dev
   
     - name: Configure CMake
-      run: cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}}
+      run: |
+        export CC=gcc-11
+        export CXX=g++-11
+        cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}}
       
     - name: Build
       run: |
