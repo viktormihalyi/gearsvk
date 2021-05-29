@@ -12,4 +12,5 @@ vulkan-memory-allocator/2.3.0
 spdlog/1.8.5
 
 [generators]
-cmake
+cmake_find_package
+cmake_paths
