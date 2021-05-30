@@ -170,3 +170,7 @@ target_link_libraries (GVKRenderer
     PUBLIC ${spirv-cross_LIBRARIES}
     PUBLIC Utils
 )
+
+install (TARGETS GVKRenderer
+         RUNTIME DESTINATION bin)
+install (FILES $<TARGET_PDB_FILE:GVKRenderer> DESTINATION bin OPTIONAL)

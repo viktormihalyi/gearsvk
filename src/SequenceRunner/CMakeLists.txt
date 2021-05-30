@@ -28,3 +28,7 @@ target_link_libraries (SequenceRunner
     PUBLIC GVKRenderer
     PUBLIC GearsModuleEmbedded
 )
+
+install (TARGETS SequenceRunner
+         RUNTIME DESTINATION bin)
+install (FILES $<TARGET_PDB_FILE:SequenceRunner> DESTINATION bin OPTIONAL)

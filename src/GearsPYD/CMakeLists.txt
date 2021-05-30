@@ -111,3 +111,15 @@ target_link_libraries (GearsModuleEmbedded
     PUBLIC ${Python3_LIBRARIES}
            ${pybind11_LIBRARIES}
 )
+
+install (TARGETS GearsModule
+         RUNTIME DESTINATION bin)
+
+install (FILES $<TARGET_PDB_FILE:GearsModule> DESTINATION bin OPTIONAL)
+
+install (TARGETS GearsModuleEmbedded
+         RUNTIME DESTINATION bin)
+
+install (FILES $<TARGET_PDB_FILE:GearsModuleEmbedded> DESTINATION bin OPTIONAL)
+
+

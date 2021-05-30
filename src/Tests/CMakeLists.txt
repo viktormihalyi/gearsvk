@@ -2,12 +2,12 @@
 set (SourcesPath ${CMAKE_SOURCE_DIR}/src/Tests/Sources)
 set (Sources
     #${SourcesPath}/FontRenderingTests.cpp
-    ${SourcesPath}/GearsTests.cpp
+    ${SourcesPath}/TestMain.cpp
     ${SourcesPath}/GoogleTestEnvironment.hpp
     ${SourcesPath}/GoogleTestEnvironment.cpp
     ${SourcesPath}/RenderGraphTests.cpp
-    ${SourcesPath}/TestMain.cpp
     ${SourcesPath}/VizHFTests.cpp
+    ${SourcesPath}/GearsTests.cpp
 )
 
 add_executable (GVKTest ${Headers} ${Sources})
@@ -39,3 +39,8 @@ target_link_libraries (GVKTest
     PUBLIC GearsModuleEmbedded
     PUBLIC ${GTest_LIBRARIES}
 )
+
+install (TARGETS GVKTest
+         RUNTIME DESTINATION bin)
+install (DIRECTORY ${CMAKE_SOURCE_DIR}/src/Tests/Sources/TestData DESTINATION bin)
+install (FILES $<TARGET_PDB_FILE:GVKTest> DESTINATION bin OPTIONAL)
