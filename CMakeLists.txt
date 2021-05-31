@@ -8,6 +8,10 @@ set (GearsVk_VERSION_MAJOR 1 CACHE STRING "major version" FORCE)
 set (GearsVk_VERSION_MINOR 0 CACHE STRING "minor version" FORCE)
 set (GearsVk_VERSION ${GearsVk_VERSION_MAJOR}.${GearsVk_VERSION_MINOR} CACHE STRING "version" FORCE)
 
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 execute_process (COMMAND
     conan install ${CMAKE_SOURCE_DIR}/conanfile.txt
         --install-folder=${CMAKE_BINARY_DIR}

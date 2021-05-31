@@ -40,6 +40,15 @@ target_link_libraries (GVKTest
     PUBLIC ${GTest_LIBRARIES}
 )
 
+target_link_directories (GVKTest
+    PUBLIC ${CMAKE_BINARY_DIR}/src/Utils
+    PUBLIC ${CMAKE_BINARY_DIR}/src/GearsVk
+    PUBLIC ${CMAKE_BINARY_DIR}/src/GearsPYD
+)
+
+file (COPY ${CMAKE_SOURCE_DIR}/src/Tests/Sources/TestData
+      DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
 install (TARGETS GVKTest
          RUNTIME DESTINATION bin)
 install (DIRECTORY ${CMAKE_SOURCE_DIR}/src/Tests/Sources/TestData DESTINATION bin)

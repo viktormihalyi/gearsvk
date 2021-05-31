@@ -103,6 +103,7 @@ set (Sources
     ${SourcesPath}/VulkanWrapper/PhysicalDevice.cpp
     ${SourcesPath}/VulkanWrapper/Pipeline.cpp
     ${SourcesPath}/VulkanWrapper/Queue.cpp
+    ${SourcesPath}/VulkanWrapper/ResourceLimits.cpp
     ${SourcesPath}/VulkanWrapper/Sampler.cpp
     ${SourcesPath}/VulkanWrapper/ShaderModule.cpp
     ${SourcesPath}/VulkanWrapper/ShaderReflection.cpp

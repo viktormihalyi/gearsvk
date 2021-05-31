@@ -251,7 +251,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
     const glslang::EShTargetClientVersion   VulkanClientVersion         = glslang::EShTargetVulkan_1_0;
     const glslang::EShTargetLanguageVersion TargetVersion               = glslang::EShTargetSpv_1_0;
     const EShMessages                       messages                    = (EShMessages) (EShMsgSpvRules | EShMsgVulkanRules);
-    const TBuiltInResource                  resources                   = DefaultResourceLimits; // TODO use DefaultTBuiltInResource ?
+    const TBuiltInResource                  resources                   = GetDefaultResourceLimits (); // TODO use DefaultTBuiltInResource ?
 
     glslang::TShader shader (shaderKind.esh);
     shader.setStrings (&sourceCstr, 1);
