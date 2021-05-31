@@ -43,4 +43,7 @@ target_link_libraries (GVKTest
 install (TARGETS GVKTest
          RUNTIME DESTINATION bin)
 install (DIRECTORY ${CMAKE_SOURCE_DIR}/src/Tests/Sources/TestData DESTINATION bin)
-install (FILES $<TARGET_PDB_FILE:GVKTest> DESTINATION bin OPTIONAL)
+
+if (MSVC)
+    install (FILES $<TARGET_PDB_FILE:GVKTest> DESTINATION bin OPTIONAL)
+endif ()

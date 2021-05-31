@@ -55,4 +55,6 @@ target_link_libraries (Utils PUBLIC ${UUID_LIB})
 install (TARGETS Utils
          RUNTIME DESTINATION bin)
 
-install (FILES $<TARGET_PDB_FILE:Utils> DESTINATION bin OPTIONAL)
+if (MSVC)
+    install (FILES $<TARGET_PDB_FILE:Utils> DESTINATION bin OPTIONAL)
+endif ()

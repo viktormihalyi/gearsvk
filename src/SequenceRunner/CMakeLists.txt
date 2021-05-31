@@ -31,4 +31,7 @@ target_link_libraries (SequenceRunner
 
 install (TARGETS SequenceRunner
          RUNTIME DESTINATION bin)
-install (FILES $<TARGET_PDB_FILE:SequenceRunner> DESTINATION bin OPTIONAL)
+
+if (MSVC)
+    install (FILES $<TARGET_PDB_FILE:SequenceRunner> DESTINATION bin OPTIONAL)
+endif ()

@@ -115,11 +115,14 @@ target_link_libraries (GearsModuleEmbedded
 install (TARGETS GearsModule
          RUNTIME DESTINATION bin)
 
-install (FILES $<TARGET_PDB_FILE:GearsModule> DESTINATION bin OPTIONAL)
+if (MSVC)
+    install (FILES $<TARGET_PDB_FILE:GearsModule> DESTINATION bin OPTIONAL)
+endif ()
 
 install (TARGETS GearsModuleEmbedded
          RUNTIME DESTINATION bin)
 
-install (FILES $<TARGET_PDB_FILE:GearsModuleEmbedded> DESTINATION bin OPTIONAL)
-
+if (MSVC)
+    install (FILES $<TARGET_PDB_FILE:GearsModuleEmbedded> DESTINATION bin OPTIONAL)
+endif ()
 
