@@ -8,7 +8,7 @@
 #define SEQUENCE_API __declspec(dllimport)
 #endif
 #else
-#define GEARS_API
+#define SEQUENCE_API
 #endif
 
 #endif
