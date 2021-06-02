@@ -73,7 +73,7 @@ public:
     Pass ();
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (Pass);
+    GEARS_SHARED_CREATE (Pass);
 
     //! Destructor. Releases dynamically allocated memory.
     virtual ~Pass ();

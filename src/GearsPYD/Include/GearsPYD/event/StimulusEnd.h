@@ -20,7 +20,7 @@ class StimulusEnd : public Base {
     }
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (StimulusEnd);
+    GEARS_SHARED_CREATE (StimulusEnd);
 
     static uint typeId;
 };

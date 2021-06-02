@@ -61,7 +61,7 @@ private:
     Sequence (std::string name);
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (Sequence);
+    GEARS_SHARED_CREATE (Sequence);
 
     std::string name;  //< Unique name.
     std::string brief; //< A short discription of the sequence.
@@ -227,4 +227,7 @@ public:
     bool isMonochrome () const { return mono; }
 
     uint getMonitorIndex () const { return monitorIndex; }
+
+public:
+    virtual void OnStimulusAdded (std::shared_ptr<Stimulus> stimulus) {}
 };

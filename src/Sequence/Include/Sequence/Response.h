@@ -37,7 +37,7 @@ public:
     Response ();
     virtual ~Response () = default;
 
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (Response);
+    GEARS_SHARED_CREATE (Response);
 
     void addButton (std::string label, float x, float y, float w, float h, uint key, bool visible);
 

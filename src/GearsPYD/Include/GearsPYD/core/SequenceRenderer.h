@@ -144,7 +144,7 @@ class SequenceRenderer {
     SequenceRenderer ();
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (SequenceRenderer);
+    GEARS_SHARED_CREATE (SequenceRenderer);
 
     //! Creates GPU resources for the sequence, releasing earlier ones, if any.
     void apply (std::shared_ptr<Sequence> sequence, std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<TextureManager> textureManager, std::shared_ptr<KernelManager> kernelManager);

@@ -30,46 +30,8 @@ using uint = unsigned int;
     using CP = std::shared_ptr<T const>;                   \
     using W  = std::weak_ptr<T>
 
-#define GEARS_SHARED_CREATE_WITH_GETSHAREDPTR_SUB(T)                                     \
-private:                                                                                 \
-    std::weak_ptr<T> weakPtrForGetSharedPtr;                                             \
-                                                                                         \
-protected:                                                                               \
-    void setWeakPtrForGetSharedPtr (std::weak_ptr<T> w)                                  \
-    {                                                                                    \
-        weakPtrForGetSharedPtr = w;                                                      \
-        __super::setWeakPtrForGetSharedPtr (w);                                          \
-    }                                                                                    \
-                                                                                         \
-public:                                                                                  \
-    template<typename... Args>                                                           \
-    inline static std::shared_ptr<T> create (Args... args)                               \
-    {                                                                                    \
-        std::shared_ptr<T> p (new T (args...));                                          \
-        p->setWeakPtrForGetSharedPtr (p);                                                \
-        return p;                                                                        \
-    }                                                                                    \
-    inline std::shared_ptr<T> getSharedPtr () { return weakPtrForGetSharedPtr.lock (); } \
-    using P  = std::shared_ptr<T>;                                                       \
-    using CP = std::shared_ptr<T const>;                                                 \
+#define GEARS_SHARED_CREATE_ABSTRACT(T)                    \
+    using P  = std::shared_ptr<T>;                         \
+    using CP = std::shared_ptr<T const>;                   \
     using W  = std::weak_ptr<T>
 
-#define GEARS_SHARED_CREATE_WITH_GETSHAREDPTR(T)                                         \
-private:                                                                                 \
-    std::weak_ptr<T> weakPtrForGetSharedPtr;                                             \
-                                                                                         \
-protected:                                                                               \
-    void setWeakPtrForGetSharedPtr (std::weak_ptr<T> w) { weakPtrForGetSharedPtr = w; }  \
-                                                                                         \
-public:                                                                                  \
-    template<typename... Args>                                                           \
-    inline static std::shared_ptr<T> create (Args... args)                               \
-    {                                                                                    \
-        std::shared_ptr<T> p (new T (args...));                                          \
-        p->setWeakPtrForGetSharedPtr (p);                                                \
-        return p;                                                                        \
-    }                                                                                    \
-    inline std::shared_ptr<T> getSharedPtr () { return weakPtrForGetSharedPtr.lock (); } \
-    using P  = std::shared_ptr<T>;                                                       \
-    using CP = std::shared_ptr<T const>;                                                 \
-    using W  = std::weak_ptr<T>;

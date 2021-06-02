@@ -16,7 +16,7 @@ namespace Gears {
 				_text = ss.str();
 			}
 		public:
-			GEARS_SHARED_CREATE_WITH_GETSHAREDPTR(KeyReleased);
+			GEARS_SHARED_CREATE (KeyReleased);
 
 		public:
 			std::string _text;

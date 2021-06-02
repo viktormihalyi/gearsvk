@@ -18,7 +18,7 @@ private:
     using Sequence::Sequence;
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (PySequence);
+    GEARS_SHARED_CREATE (PySequence);
 
     pybind11::object set (pybind11::object settings);
 
@@ -29,4 +29,6 @@ public:
     pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);
     pybind11::object getPythonObject ();
+
+    virtual void OnStimulusAdded (std::shared_ptr<Stimulus> stimulus) override;
 };

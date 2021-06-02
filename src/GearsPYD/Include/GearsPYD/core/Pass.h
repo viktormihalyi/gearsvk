@@ -30,7 +30,7 @@ public:
 
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (PyPass);
+    GEARS_SHARED_CREATE (PyPass);
 
     pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);

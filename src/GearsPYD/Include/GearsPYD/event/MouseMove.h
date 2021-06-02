@@ -26,7 +26,7 @@ class MouseMove : public Base {
     }
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (MouseMove);
+    GEARS_SHARED_CREATE (MouseMove);
 
     uint  x;
     uint  y;

@@ -22,7 +22,7 @@ class PyResponse : public Response {
 public:
     using Response::Response;
     
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (PyResponse);
+    GEARS_SHARED_CREATE (PyResponse);
 
     pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);

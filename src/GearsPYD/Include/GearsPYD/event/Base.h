@@ -22,7 +22,7 @@ protected:
     }
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (Base);
+    GEARS_SHARED_CREATE (Base);
 
 public:
     uint message;

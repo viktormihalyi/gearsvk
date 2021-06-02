@@ -71,7 +71,7 @@ class StimulusWindow {
     void postRender ();
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (StimulusWindow);
+    GEARS_SHARED_CREATE (StimulusWindow);
     static std::shared_ptr<StimulusWindow> instanceCreated;
     void                       createWindow (bool windowed, uint width, uint height);
     void                       run ();

@@ -24,7 +24,7 @@ class Frame : public Base {
     }
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (Frame);
+    GEARS_SHARED_CREATE (Frame);
 
     float       time;
     uint        iFrame;

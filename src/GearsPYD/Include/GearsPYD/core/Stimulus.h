@@ -23,7 +23,7 @@ class PyStimulus : public Stimulus {
 public:
     using Stimulus::Stimulus;
 
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (PyStimulus);
+    GEARS_SHARED_CREATE (PyStimulus);
     
     pybind11::object joiner;
     pybind11::object setJoiner (pybind11::object joiner);
@@ -78,4 +78,6 @@ public:
                                                     float            measuredMean,
                                                     float            measuredVariance,
                                                     pybind11::object histogramList) const;
+
+    virtual void OnPassAdded (std::shared_ptr<Pass> pass) override;
 };

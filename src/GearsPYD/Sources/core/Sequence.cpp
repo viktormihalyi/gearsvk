@@ -7,6 +7,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "Assert.hpp"
+
 
 pybind11::object PySequence::set (pybind11::object settings)
 {
@@ -37,19 +39,19 @@ PySequence::P PySequence::setAgenda (pybind11::object agenda)
 {
     using namespace pybind11;
     list                     l = agenda.cast<list> ();
-    std::vector<Stimulus::P> stimsUnderConstruction;
+    std::vector<PyStimulus::P> stimsUnderConstruction;
     for (int i = 0; i < len (l); i++) {
         {
-            extract<Response::P> s (l[i]);
+            extract<PyResponse::P> s (l[i]);
             if (s.check ()) {
                 addResponse (s ());
                 continue;
             }
         }
         {
-            extract<Stimulus::P> s (l[i]);
+            extract<PyStimulus::P> s (l[i]);
             if (s.check ()) {
-                Stimulus::P sp = s ();
+                PyStimulus::P sp = s ();
                 stimsUnderConstruction.push_back (sp);
                 addStimulus (sp);
                 continue;
@@ -121,7 +123,7 @@ PySequence::P PySequence::setAgenda (pybind11::object agenda)
             suc->onSequenceComplete ();
     }
 
-    return getSharedPtr ();
+    return std::dynamic_pointer_cast<PySequence> (shared_from_this ());
 }
 
 
@@ -142,4 +144,13 @@ pybind11::object PySequence::setPythonObject (pybind11::object o)
 pybind11::object PySequence::getPythonObject ()
 {
     return pythonObject;
+}
+
+
+void PySequence::OnStimulusAdded (std::shared_ptr<Stimulus> stimulus)
+{
+    PyStimulus* pyStim = dynamic_cast<PyStimulus*> (stimulus.get ());
+    if (GVK_VERIFY (pyStim != nullptr)) {
+        pyStim->joiner ();
+    }
 }

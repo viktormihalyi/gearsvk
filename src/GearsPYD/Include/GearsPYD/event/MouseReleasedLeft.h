@@ -26,7 +26,7 @@ class MouseReleasedLeft : public Base {
     }
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (MouseReleasedLeft);
+    GEARS_SHARED_CREATE (MouseReleasedLeft);
 
     uint  x;
     uint  y;

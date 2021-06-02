@@ -2,6 +2,7 @@
 
 #include "core/PythonDict.h"
 #include "stdafx.h"
+#include "Assert.hpp"
 
 #include "core/Pass.h"
 #include "core/Sequence.h"
@@ -384,3 +385,11 @@ pybind11::object PyStimulus::setLtiImpulseResponse (pybind11::object mList, uint
     return mList;
 }
 
+
+void PyStimulus::OnPassAdded (std::shared_ptr<Pass> pass)
+{
+    PyPass* pyPass = dynamic_cast<PyPass*> (pass.get ());
+    if (GVK_VERIFY (pyPass != nullptr)) {
+        pyPass->joiner ();
+    }
+}

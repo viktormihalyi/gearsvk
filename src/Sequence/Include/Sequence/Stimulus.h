@@ -120,7 +120,7 @@ public:
     Stimulus ();
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (Stimulus);
+    GEARS_SHARED_CREATE (Stimulus);
 
     //! Destructor. Releases dynamically allocated memory.
     virtual ~Stimulus ();
@@ -196,4 +196,6 @@ public:
     std::string getDynamicToneShaderSource () const;
 
     bool IsEquivalent (const Stimulus& other) const;
+
+    virtual void OnPassAdded (std::shared_ptr<Pass> pass) {}
 };

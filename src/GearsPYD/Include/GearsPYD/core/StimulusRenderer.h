@@ -47,7 +47,7 @@ class StimulusRenderer {
     StimulusRenderer (std::shared_ptr<SequenceRenderer> sequenceRenderer, std::shared_ptr<Stimulus const> stimulus, std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<TextureManager> textureManager, std::shared_ptr<KernelManager> kernelManager);
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (StimulusRenderer);
+    GEARS_SHARED_CREATE (StimulusRenderer);
     ~StimulusRenderer ();
     void apply (std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<TextureManager> textureManager);
 

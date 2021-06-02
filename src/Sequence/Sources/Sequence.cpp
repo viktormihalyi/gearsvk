@@ -22,7 +22,7 @@ Sequence::~Sequence ()
 void Sequence::addResponse (Response::P response)
 {
     if (!temp_r) {
-        response->setSequence (getSharedPtr ());
+        response->setSequence (shared_from_this ());
         //response->joiner ();
         temp_r = response;
 
@@ -36,8 +36,10 @@ void Sequence::addResponse (Response::P response)
 
 void Sequence::addStimulus (Stimulus::P stimulus)
 {
-    stimulus->setSequence (getSharedPtr ());
-    //stimulus->joiner ();
+    stimulus->setSequence (shared_from_this ());
+    
+    OnStimulusAdded (stimulus);
+
     mono                     = mono && stimulus->mono;
     shortestStimulusDuration = std::min (shortestStimulusDuration, stimulus->getDuration ());
     duration += stimulus->setStartingFrame (duration + 1);

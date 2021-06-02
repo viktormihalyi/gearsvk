@@ -390,8 +390,8 @@ const std::vector<std::shared_ptr<Pass>>& Stimulus::getPasses () const { return 
 
 void Stimulus::addPass (std::shared_ptr<Pass> pass)
 {
-    pass->setStimulus (getSharedPtr ());
-    //pass->joiner ();
+    pass->setStimulus (shared_from_this ());
+    OnPassAdded (pass);
     mono = mono && pass->mono;
     passes.push_back (pass);
 }

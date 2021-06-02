@@ -24,7 +24,7 @@ class MousePressedMiddle : public Base {
     }
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (MousePressedMiddle);
+    GEARS_SHARED_CREATE (MousePressedMiddle);
 
     uint x;
     uint y;

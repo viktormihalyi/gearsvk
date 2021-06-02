@@ -33,7 +33,7 @@ class Wheel : public Base {
     }
 
 public:
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (Wheel);
+    GEARS_SHARED_CREATE (Wheel);
 
     uint x;
     uint y;
