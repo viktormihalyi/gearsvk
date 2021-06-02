@@ -924,8 +924,10 @@ void SequenceRenderer::reset ()
         }
     }
 
-    if (sequence->resetCallback)
-        sequence->resetCallback ();
+    const PySequence* seq = dynamic_cast<const PySequence*> (sequence.get ());
+
+    if (seq->resetCallback)
+        seq->resetCallback ();
 }
 
 void SequenceRenderer::cleanup ()
@@ -1545,7 +1547,9 @@ pybind11::object SequenceRenderer::renderSample (uint sFrame, int left, int top,
         return pybind11::object ();
     }
     iStimulusRenderer->second->renderSample (sFrame - iStimulusRenderer->second->getStimulus ()->getStartingFrame (), left, top, width, height);
-    return iStimulusRenderer->second->getStimulus ()->getPythonObject ();
+
+    const PyStimulus* stim = dynamic_cast<const PyStimulus*> (iStimulusRenderer->second->getStimulus ().get ());
+    return stim->getPythonObject (); // TODO
 }
 
 bool SequenceRenderer::isShowingCursor ()

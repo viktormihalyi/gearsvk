@@ -174,7 +174,3 @@ target_link_libraries (GVKRenderer
 
 install (TARGETS GVKRenderer
          RUNTIME DESTINATION bin)
-
-if (MSVC)
-    install (FILES $<TARGET_PDB_FILE:GVKRenderer> DESTINATION bin OPTIONAL)
-endif ()

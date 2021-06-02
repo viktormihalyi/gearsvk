@@ -179,7 +179,7 @@ std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironme
 
         pybind11::object sequence = sequenceCreator.attr ("create") (pybind11::none ());
 
-        Sequence::P sequenceCpp = sequence.cast<Sequence::P> ();
+        PySequence::P sequenceCpp = sequence.cast<PySequence::P> ();
 
         return std::make_unique<SequenceAdapter> (environment, sequenceCpp);
 

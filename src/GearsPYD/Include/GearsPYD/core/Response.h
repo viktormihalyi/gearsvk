@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Sequence/Response.h"
+
 #include "stdafx.h"
 #include <memory>
 
@@ -16,26 +18,11 @@ class Sequence;
 class SpatialFilter;
 
 //! A structure that contains all stimulus parameters.
-class Response : public std::enable_shared_from_this<Response> {
+class PyResponse : public Response {
 public:
-    std::string question;
-    bool        loop;
-
-    struct Button {
-        std::string label;
-        float       xcoord, ycoord, width, height;
-        uint        key;
-        bool        visible;
-    };
-    std::vector<Button> buttons;
-    unsigned int        duration; //frames
-    unsigned int        startingFrame;
-
-    std::shared_ptr<Sequence> sequence; //< Part of this sequence.
-
-
-    Response ();
-    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (Response);
+    using Response::Response;
+    
+    GEARS_SHARED_CREATE_WITH_GETSHAREDPTR (PyResponse);
 
     pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);
@@ -64,13 +51,4 @@ public:
         return handled;
     }
 #endif
-
-    void addButton (std::string label, float x, float y, float w, float h, uint key, bool visible);
-
-    void setSequence (std::shared_ptr<Sequence> sequence)
-    {
-        this->sequence = sequence;
-    }
-
-    std::shared_ptr<Sequence> getSequence () { return sequence; }
 };

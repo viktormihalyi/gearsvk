@@ -52,7 +52,3 @@ file (COPY ${CMAKE_SOURCE_DIR}/src/Tests/Sources/TestData
 install (TARGETS GVKTest
          RUNTIME DESTINATION bin)
 install (DIRECTORY ${CMAKE_SOURCE_DIR}/src/Tests/Sources/TestData DESTINATION bin)
-
-if (MSVC)
-    install (FILES $<TARGET_PDB_FILE:GVKTest> DESTINATION bin OPTIONAL)
-endif ()

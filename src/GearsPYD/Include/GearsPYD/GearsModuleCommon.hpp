@@ -4,14 +4,9 @@
 #include "core/Pass.h"
 #include "core/PythonDict.h"
 #include "core/Response.h"
+#include "core/Stimulus.h"
 #include "core/Sequence.h"
-#include "core/SequenceRenderer.h"
-#include "core/ShaderManager.h"
-#include "core/TextureManager.h"
-#include "core/Ticker.h"
-#include "core/filter/KernelManager.h"
-#include "core/filter/SpatialFilter.h"
-#include "core/filter/fft/openCLFFT.h"
+#include "Sequence/SpatialFilter.h"
 #include "event/events.h"
 #include "stdafx.h"
 
@@ -34,17 +29,20 @@
 // extension module. This is where we build the module contents.
 
 
-Sequence::P         sequence         = nullptr;
+PySequence::P         sequence         = nullptr;
+
+/*
 SequenceRenderer::P sequenceRenderer = nullptr;
 ShaderManager::P    shaderManager    = nullptr;
 TextureManager::P   textureManager   = nullptr;
 KernelManager::P    kernelManager    = nullptr;
+*/
 //StimulusWindow::P   stimulusWindow   = nullptr;
 
 
 std::string createStimulusWindow ()
 {
-    sequenceRenderer = SequenceRenderer::create ();
+    //sequenceRenderer = SequenceRenderer::create ();
 
     //StimulusWindow::registerClass ();
     //stimulusWindow = StimulusWindow::create ();
@@ -52,9 +50,9 @@ std::string createStimulusWindow ()
     //
     ////stimulusWindow->setSequenceRenderer (sequenceRenderer);
 
-    shaderManager  = ShaderManager::create ();
-    textureManager = TextureManager::create ();
-    kernelManager  = KernelManager::create (sequenceRenderer, shaderManager);
+    //shaderManager  = ShaderManager::create ();
+    //textureManager = TextureManager::create ();
+    //kernelManager  = KernelManager::create (sequenceRenderer, shaderManager);
     // OPENCLFFT::staticInit ();
     return "";
     //return stimulusWindow->getSpecs ();
@@ -75,7 +73,7 @@ void showText ()
 {
     if (::sequence == nullptr)
         return;
-    sequenceRenderer->showText ();
+    //sequenceRenderer->showText ();
 }
 
 
@@ -83,7 +81,7 @@ void setText (std::string tag, std::string text)
 {
     if (::sequence == nullptr)
         return;
-    sequenceRenderer->setText (tag, text);
+    //sequenceRenderer->setText (tag, text);
 }
 
 
@@ -92,7 +90,7 @@ void drawSequenceTimeline (int x, int y, int w, int h)
     if (::sequence == nullptr)
         return;
     //glViewport (x, y, w, h);
-    sequenceRenderer->renderTimeline ();
+    //sequenceRenderer->renderTimeline ();
 }
 
 
@@ -101,7 +99,7 @@ void drawStimulusTimeline (int x, int y, int w, int h)
     if (::sequence == nullptr)
         return;
     //glViewport (x, y, w, h);
-    sequenceRenderer->renderSelectedStimulusTimeline ();
+    //sequenceRenderer->renderSelectedStimulusTimeline ();
 }
 
 
@@ -109,7 +107,7 @@ void drawSpatialKernel (float min, float max, float width, float height)
 {
     if (::sequence == nullptr)
         return;
-    sequenceRenderer->renderSelectedStimulusSpatialKernel (min, max, width, height);
+    //sequenceRenderer->renderSelectedStimulusSpatialKernel (min, max, width, height);
 }
 
 
@@ -117,7 +115,7 @@ void drawTemporalKernel ()
 {
     if (::sequence == nullptr)
         return;
-    sequenceRenderer->renderSelectedStimulusTemporalKernel ();
+    //sequenceRenderer->renderSelectedStimulusTemporalKernel ();
 }
 
 
@@ -125,7 +123,7 @@ void toggleChannelsOrPreview ()
 {
     if (::sequence == nullptr)
         return;
-    sequenceRenderer->toggleChannelsOrPreview ();
+    //sequenceRenderer->toggleChannelsOrPreview ();
 }
 
 
@@ -133,7 +131,7 @@ void drawSpatialProfile (float min, float max, float width, float height)
 {
     if (::sequence == nullptr)
         return;
-    sequenceRenderer->renderSelectedStimulusSpatialProfile (min, max, width, height);
+    //sequenceRenderer->renderSelectedStimulusSpatialProfile (min, max, width, height);
 }
 
 
@@ -141,7 +139,7 @@ void updateSpatialKernel ()
 {
     if (::sequence == nullptr)
         return;
-    sequenceRenderer->updateSpatialKernel (kernelManager);
+    //sequenceRenderer->updateSpatialKernel (kernelManager);
 }
 
 
@@ -149,25 +147,26 @@ double getTime ()
 {
     if (::sequence == nullptr)
         return 0.0;
-    return sequenceRenderer->getTime ();
+    return 0.0;
+    //return sequenceRenderer->getTime ();
 }
 
 
-Sequence::P createSequence (std::string name)
+PySequence::P createPySequence (std::string name)
 {
-    ::sequence = Sequence::create (name);
+    ::sequence = PySequence::create (name);
     return ::sequence;
 }
 
 
-Sequence::P setSequence (Sequence::P sequence)
+PySequence::P setSequence (PySequence::P sequence)
 {
     ::sequence = sequence;
 
-    textureManager->clear ();
-    shaderManager->clear ();
-    kernelManager->clear ();
-    sequenceRenderer->apply (::sequence, shaderManager, textureManager, kernelManager);
+    //textureManager->clear ();
+    //shaderManager->clear ();
+    //kernelManager->clear ();
+    //sequenceRenderer->apply (::sequence, shaderManager, textureManager, kernelManager);
 
     Gears::SetRenderGraphFromSequence (sequence);
 
@@ -175,7 +174,7 @@ Sequence::P setSequence (Sequence::P sequence)
 }
 
 
-Sequence::P getSequence ()
+PySequence::P getSequence ()
 {
     return ::sequence;
 }
@@ -183,39 +182,45 @@ Sequence::P getSequence ()
 
 void pickStimulus (double x, double y)
 {
-    if (sequenceRenderer == nullptr)
-        return;
-    sequenceRenderer->pickStimulus (x, y);
+    //if (sequenceRenderer == nullptr)
+    //    return;
+    //sequenceRenderer->pickStimulus (x, y);
 }
 
 
+/*
 Stimulus::CP getSelectedStimulus ()
 {
-    return sequenceRenderer->getSelectedStimulus ();
+    return nullptr;
+    // return sequenceRenderer->getSelectedStimulus ();
 }
+*/
 
 
 void reset ()
 {
-    sequenceRenderer->reset ();
+    //sequenceRenderer->reset ();
 }
 
 
 void skip (int skipCount)
 {
-    sequenceRenderer->skip (skipCount);
+    //sequenceRenderer->skip (skipCount);
 }
 
 
+/*
 Stimulus::CP getCurrentStimulus ()
 {
-    return sequenceRenderer->getCurrentStimulus ();
+    return nullptr;
+    //return sequenceRenderer->getCurrentStimulus ();
 }
+*/
 
 
 void cleanup ()
 {
-    sequenceRenderer->cleanup ();
+    //sequenceRenderer->cleanup ();
     //OpenCLCore::Destroy ();
     //	textureManager->clear();
     //	shaderManager->clear();
@@ -241,92 +246,98 @@ void setMousePointerLocation (float x, float y)
 
 void instantlyRaiseSignal (std::string c)
 {
-    sequenceRenderer->raiseSignal (c);
+    //sequenceRenderer->raiseSignal (c);
 }
 
 
 void instantlyClearSignal (std::string c)
 {
-    sequenceRenderer->clearSignal (c);
+    //sequenceRenderer->clearSignal (c);
 }
 
 
 int getSkippedFrameCount ()
 {
-    return sequenceRenderer->getSkippedFrameCount ();
+    return 0;
+    //return sequenceRenderer->getSkippedFrameCount ();
 }
 
 
 std::string getSequenceTimingReport ()
 {
-    return sequenceRenderer->getSequenceTimingReport ();
+    return "";
+    //return sequenceRenderer->getSequenceTimingReport ();
 }
 
-
+/*
 Ticker::P startTicker ()
 {
-    return sequenceRenderer->startTicker ();
+    return nullptr;
+    //return sequenceRenderer->startTicker ();
 }
+*/
 
 
 void enableExport (std::string path)
 {
-    sequenceRenderer->enableExport (path);
+    //sequenceRenderer->enableExport (path);
 }
 
 
 void enableVideoExport (const char* path, int fr, int w, int h)
 {
-    sequenceRenderer->enableVideoExport (path, fr, w, h);
+    //sequenceRenderer->enableVideoExport (path, fr, w, h);
 }
 
 
 void enableCalibration (uint startingFrame, uint duration, float histogramMin, float histogramMax)
 {
-    sequenceRenderer->enableCalibration (startingFrame, duration, histogramMin, histogramMax);
+    //sequenceRenderer->enableCalibration (startingFrame, duration, histogramMin, histogramMax);
 }
 
 
 void setSequenceTimelineZoom (uint nFrames)
 {
-    sequenceRenderer->setSequenceTimelineZoom (nFrames);
+    //sequenceRenderer->setSequenceTimelineZoom (nFrames);
 }
 
 
 void setSequenceTimelineStart (uint iStartFrame)
 {
-    sequenceRenderer->setSequenceTimelineStart (iStartFrame);
+    //sequenceRenderer->setSequenceTimelineStart (iStartFrame);
 }
 
 
 void setStimulusTimelineZoom (uint nFrames)
 {
-    sequenceRenderer->setStimulusTimelineZoom (nFrames);
+    //sequenceRenderer->setStimulusTimelineZoom (nFrames);
 }
 
 
 void setStimulusTimelineStart (uint iStartFrame)
 {
-    sequenceRenderer->setStimulusTimelineStart (iStartFrame);
+    //sequenceRenderer->setStimulusTimelineStart (iStartFrame);
 }
 
 
 void pauseRender ()
 {
-    sequenceRenderer->pause ();
+    //sequenceRenderer->pause ();
 }
 
 
 void setResponded ()
 {
-    sequenceRenderer->setResponded ();
+    //sequenceRenderer->setResponded ();
 }
 
 
+/*
 pybind11::object renderSample (uint iFrame, uint x, uint y, uint w, uint h)
 {
     return sequenceRenderer->renderSample (iFrame, x, y, w, h);
 }
+*/
 
 
 void makePath (std::string path)
@@ -363,18 +374,18 @@ void run ()
 
 int loadTexture (std::string filename)
 {
-    if (textureManager)
-        return textureManager->loadTexture (filename)->getTextureHandle ();
+    //if (textureManager)
+    //    return textureManager->loadTexture (filename)->getTextureHandle ();
 
     return -1;
 }
 
 void bindTexture (std::string filename)
 {
-    if (textureManager) {
-        Texture2D* tex = textureManager->loadTexture (filename);
-        //glBindTexture (GL_TEXTURE_2D, tex->getTextureHandle ());
-    }
+    //if (textureManager) {
+    //    Texture2D* tex = textureManager->loadTexture (filename);
+    //    //glBindTexture (GL_TEXTURE_2D, tex->getTextureHandle ());
+    //}
 }
 
 
@@ -463,6 +474,7 @@ void FillModule (pybind11::module_& m)
     m.def ("drawSpatialKernel", drawSpatialKernel);
     m.def ("drawSpatialProfile", drawSpatialProfile);
 
+    
     class_<SpatialFilter, SpatialFilter::P> (m, "SpatialFilter")
         .def (init<> (&SpatialFilter::create<>))
         .def ("setShaderFunction", &SpatialFilter::setShaderFunction, arg ("name"), arg ("src"))
@@ -481,9 +493,10 @@ void FillModule (pybind11::module_& m)
         .def_readwrite ("kernelGivenInFrequencyDomain", &SpatialFilter::kernelGivenInFrequencyDomain, "If True, the kernel function gives the kernel directly in the frquency domain.")
         .def_readwrite ("showFft", &SpatialFilter::showFft, "If true, the result of frequency domain spatial processing is not trnasformed back to the spatial domain.")
         .def_readwrite ("stimulusGivenInFrequencyDomain", &SpatialFilter::stimulusGivenInFrequencyDomain, "If true, the stimulus is assumed to be already in frequency domain and not transformed before frequency domain processing.");
+    
 
     //	class_<StimulusWindow>("StimulusWindow", no_init)
-    //		.def( "__init__", make_constructor( &Stimulus::create<>) )
+    //		.def( "__init__", make_constructor( &PyStimulus::create<>) )
     //		.def( "makeCurrent", &StimulusWindow::makeCurrent, "Set the OpenGL context of the stimulus window as the current OpenGL context. " )
     //		;
 
@@ -491,116 +504,116 @@ void FillModule (pybind11::module_& m)
         .def_readonly ("portName", &Sequence::Channel::portName, "Name of the port the channel is associated to.")
         .def_readonly ("raiseFunc", &Sequence::Channel::raiseFunc, "ID of the signal the channel is associated to.");
 
-    class_<Pass, Pass::P> (m, "Pass")
-        .def (init<> (&Pass::create<>))
-        //.def( "set", &Stimulus::set)
-        .def ("getDuration", &Pass::getDuration)
-        .def ("getDuration_s", &Pass::getDuration_s)
-        .def ("getStartingFrame", &Pass::getStartingFrame)
-        .def ("getStimulus", &Pass::getStimulus)
-        .def ("getSequence", &Pass::getSequence)
-        .def_readwrite ("name", &Pass::name, "Stimulus name.")
-        .def_readwrite ("stimulusGeneratorShaderSource", &Pass::stimulusGeneratorShaderSource, "Sets GLSL source for stimulus generator shader.")
-        .def_readwrite ("timelineVertexShaderSource", &Pass::timelineVertexShaderSource, "Sets GLSL source for timeline shader.")
-        .def_readwrite ("timelineFragmentShaderSource", &Pass::timelineFragmentShaderSource, "Sets GLSL source for timeline shader.")
-        .def_readwrite ("transparent", &Pass::transparent, "If True, the alpha mask is used for blending. Otherwise intensities are just added.")
-        .def ("setShaderImage", &Pass::setShaderImage, arg ("name"), arg ("file"))
-        .def ("setShaderFunction", &Pass::setShaderFunction, arg ("name"), arg ("src"))
-        .def ("setGeomShaderFunction", &Pass::setGeomShaderFunction, arg ("name"), arg ("src"))
-        .def ("setShaderVector", &Pass::setShaderVector, arg ("name"), arg ("x") = 0, arg ("y") = 0)
-        .def ("setShaderColor", &Pass::setShaderColor, arg ("name"), arg ("all") = -2, arg ("red") = 0, arg ("green") = 0, arg ("blue") = 0)
-        .def ("setShaderVariable", &Pass::setShaderVariable, arg ("name"), arg ("value"))
-        .def ("setJoiner", &Pass::setJoiner)
-        .def ("setVideo", &Pass::setVideo)
-        .def ("setPythonObject", &Pass::setPythonObject)
-        .def ("getPythonObject", &Pass::getPythonObject)
-        .def ("registerTemporalFunction", &Pass::registerTemporalFunction)
-        .def ("setPolygonMask", &Pass::setPolygonMask)
-        .def ("setMotionTransformFunction", &Pass::setMotionTransformFunction)
-        .def ("enableColorMode", &Pass::enableColorMode)
-        .def_property ("duration", &Pass::getDuration, &Pass::setDuration, "Pass duration in frames.");
+    class_<PyPass, PyPass::P> (m, "Pass")
+        .def (init<> (&PyPass::create<>))
+        //.def( "set", &PyStimulus::set)
+        .def ("getDuration", &PyPass::getDuration)
+        .def ("getDuration_s", &PyPass::getDuration_s)
+        .def ("getStartingFrame", &PyPass::getStartingFrame)
+        .def ("getStimulus", &PyPass::getStimulus)
+        .def ("getSequence", &PyPass::getSequence)
+        .def_readwrite ("name", &PyPass::name, "PyStimulus name.")
+        .def_readwrite ("stimulusGeneratorShaderSource", &PyPass::stimulusGeneratorShaderSource, "Sets GLSL source for stimulus generator shader.")
+        .def_readwrite ("timelineVertexShaderSource", &PyPass::timelineVertexShaderSource, "Sets GLSL source for timeline shader.")
+        .def_readwrite ("timelineFragmentShaderSource", &PyPass::timelineFragmentShaderSource, "Sets GLSL source for timeline shader.")
+        .def_readwrite ("transparent", &PyPass::transparent, "If True, the alpha mask is used for blending. Otherwise intensities are just added.")
+        .def ("setShaderImage", &PyPass::setShaderImage, arg ("name"), arg ("file"))
+        .def ("setShaderFunction", &PyPass::setShaderFunction, arg ("name"), arg ("src"))
+        .def ("setGeomShaderFunction", &PyPass::setGeomShaderFunction, arg ("name"), arg ("src"))
+        .def ("setShaderVector", &PyPass::setShaderVector, arg ("name"), arg ("x") = 0, arg ("y") = 0)
+        .def ("setShaderColor", &PyPass::setShaderColor, arg ("name"), arg ("all") = -2, arg ("red") = 0, arg ("green") = 0, arg ("blue") = 0)
+        .def ("setShaderVariable", &PyPass::setShaderVariable, arg ("name"), arg ("value"))
+        .def ("setJoiner", &PyPass::setJoiner)
+        .def ("setVideo", &PyPass::setVideo)
+        .def ("setPythonObject", &PyPass::setPythonObject)
+        .def ("getPythonObject", &PyPass::getPythonObject)
+        .def ("registerTemporalFunction", &PyPass::registerTemporalFunction)
+        .def ("setPolygonMask", &PyPass::setPolygonMask)
+        .def ("setMotionTransformFunction", &PyPass::setMotionTransformFunction)
+        .def ("enableColorMode", &PyPass::enableColorMode)
+        .def_property ("duration", &PyPass::getDuration, &PyPass::setDuration, "Pass duration in frames.");
 
-    class_<Response, Response::P> (m, "Response")
-        .def (init<> (&Response::create<>))
-        .def_readwrite ("question", &Response::question)
-        .def_readwrite ("loop", &Response::loop)
-        .def ("setPythonObject", &Response::setPythonObject)
-        .def ("setJoiner", &Response::setJoiner)
-        .def ("registerCallback", &Response::registerCallback)
-        .def ("addButton", &Response::addButton)
-        .def ("getSequence", &Response::getSequence);
+    class_<PyResponse, PyResponse::P> (m, "Response")
+        .def (init<> (&PyResponse::create<>))
+        .def_readwrite ("question", &PyResponse::question)
+        .def_readwrite ("loop", &PyResponse::loop)
+        .def ("setPythonObject", &PyResponse::setPythonObject)
+        .def ("setJoiner", &PyResponse::setJoiner)
+        .def ("registerCallback", &PyResponse::registerCallback)
+        .def ("addButton", &PyResponse::addButton)
+        .def ("getSequence", &PyResponse::getSequence);
 
-    class_<Stimulus, Stimulus::P> (m, "Stimulus")
-        .def (init<> (&Stimulus::create<>))
-        //.def( "set", &Stimulus::set)
-        .def ("addPass", &Stimulus::addPass)
-        .def ("getDuration", &Stimulus::getDuration)
-        .def ("getDuration_s", &Stimulus::getDuration_s)
-        .def ("getStartingFrame", &Stimulus::getStartingFrame)
-        .def ("getSequence", &Stimulus::getSequence)
-        .def_readwrite ("name", &Stimulus::name, "Stimulus name.")
-        //.def_readwrite(	"stimulusGeneratorShaderSource"	, &Stimulus::stimulusGeneratorShaderSource	, "Sets GLSL source for stimulus generator shader.")
-        //.def_readwrite(	"timelineVertexShaderSource"	, &Stimulus::timelineVertexShaderSource		, "Sets GLSL source for timeline shader.")
-        //.def_readwrite(	"timelineFragmentShaderSource"	, &Stimulus::timelineFragmentShaderSource	, "Sets GLSL source for timeline shader.")
-        .def_readwrite ("randomGeneratorShaderSource", &Stimulus::randomGeneratorShaderSource, "Sets GLSL source for random generator shader.")
-        .def_readwrite ("randomGridHeight", &Stimulus::randomGridHeight, "Chessboard height [fields].")
-        .def_readwrite ("randomGridWidth", &Stimulus::randomGridWidth, "Chessboard width [fields].")
-        .def_readwrite ("randomSeed", &Stimulus::randomSeed, "Random seed.")
-        .def_readwrite ("freezeRandomsAfterFrame", &Stimulus::randomSeed, "Stop generating new randoms after this many frames of the stimulus.")
-        .def_readwrite ("particleShaderSource", &Stimulus::particleShaderSource, "Sets GLSL source for particle system shader.")
-        .def_readwrite ("particleGridHeight", &Stimulus::particleGridHeight, "Particle grid height.")
-        .def_readwrite ("particleGridWidth", &Stimulus::particleGridWidth, "Particle grid  width.")
-        .def_readwrite ("requiresClearing", &Stimulus::requiresClearing, "If True, the screen is cleared before rendering the stimulus. Useful for multi-pass or instanced rendering. The default is False.")
-        .def_readonly ("measuredToneRangeVar", &Stimulus::measuredVariance, "Measured variance.")
-        .def_readonly ("measuredToneRangeMean", &Stimulus::measuredMean, "Measured mean.")
-        .def_readonly ("measuredToneRangeMin", &Stimulus::measuredToneRangeMin, "Measured min.")
-        .def_readonly ("measuredToneRangeMax", &Stimulus::measuredToneRangeMax, "Measured max.")
-        .def_readwrite ("toneRangeVar", &Stimulus::toneRangeVar, "Scale applied in sigmoidal tone mapping.")
-        .def_readwrite ("toneRangeMean", &Stimulus::toneRangeMean, "Offset applied in sigmoidal tone mapping.")
-        .def_readwrite ("toneRangeMin", &Stimulus::toneRangeMin, "Linear tone mapping tone mapped to zero.")
-        .def_readwrite ("toneRangeMax", &Stimulus::toneRangeMax, "Linear tone mapping tone mapped to one.")
-        .def ("setMeasuredDynamics", &Stimulus::setMeasuredDynamicsFromPython)
-        .def ("getMeasuredHistogramAsPythonList", &Stimulus::getMeasuredHistogramAsPythonList)
-        .def ("setToneMappingErf", &Stimulus::setToneMappingErf)
-        .def ("setToneMappingLinear", &Stimulus::setToneMappingLinear)
-        .def ("setToneMappingEqualized", &Stimulus::setToneMappingEqualized)
-        //.def( "setShaderImage", &Stimulus::setShaderImage, ( arg("name"), arg("file")) )
-        //.def( "setShaderFunction", &Stimulus::setShaderFunction, ( arg("name"), arg("src")) )
-        //.def( "setShaderVector"		, &Stimulus::setShaderVector, ( arg("name"), arg("x")=0, arg("y")=0 ) )
-        //.def( "setShaderColor", &Stimulus::setShaderColor, ( arg("name"), arg("all")=-2, arg("red")=0, arg("green")=0, arg("blue")=0) )
-        //.def( "setShaderVariable", &Stimulus::setShaderVariable, ( arg("name"), arg("value")) )
-        .def ("setClearColor", &Stimulus::setClearColor, arg ("all") = -2, arg ("red") = 0, arg ("green") = 0, arg ("blue") = 0)
-        .def ("setSpatialFilter", &Stimulus::setSpatialFilter)
-        .def ("getSpatialFilter", &Stimulus::getSpatialFilter)
-        .def ("getSpatialPlotMin", &Stimulus::getSpatialPlotMin)
-        .def ("getSpatialPlotMax", &Stimulus::getSpatialPlotMax)
-        .def ("getSpatialPlotWidth", &Stimulus::getSpatialPlotWidth)
-        .def ("getSpatialPlotHeight", &Stimulus::getSpatialPlotHeight)
-        .def ("raiseSignalOnTick", &Stimulus::raiseSignalOnTick)
-        .def ("clearSignalOnTick", &Stimulus::clearSignalOnTick)
-        .def ("overrideTickSignals", &Stimulus::overrideTickSignals)
-        .def ("setTemporalWeights", &Stimulus::setTemporalWeights)
-        .def ("setTemporalWeightingFunction", &Stimulus::setTemporalWeightingFunction)
-        .def ("setLtiMatrix", &Stimulus::setLtiMatrix)
-        .def ("setLtiImpulseResponse", &Stimulus::setLtiImpulseResponse)
-        .def ("hasSpatialFiltering", &Stimulus::hasSpatialFiltering)
-        .def ("hasTemporalFiltering", &Stimulus::hasTemporalFiltering)
-        .def ("doesErfToneMapping", &Stimulus::doesErfToneMapping)
-        //.def("onStart", &Stimulus::onStart )
-        //.def("onFrame", &Stimulus::onFrame )
-        //.def("onFinish", &Stimulus::onFinish )
-        .def ("registerCallback", &Stimulus::registerCallback)
-        //.def("executeCallbacks", &Stimulus::executeCallbacks )
-        .def ("setJoiner", &Stimulus::setJoiner)
-        .def ("setForwardRenderingCallback", &Stimulus::setForwardRenderingCallback)
-        .def ("setGamma", &Stimulus::setGamma, arg ("gammaList"), arg ("invert") = false)
-        .def ("setPythonObject", &Stimulus::setPythonObject)
-        .def ("getPythonObject", &Stimulus::getPythonObject)
-        .def ("usesChannel", &Stimulus::usesChannel)
-        .def ("getChannelCount", &Stimulus::getChannelCount)
-        .def ("enableColorMode", &Stimulus::enableColorMode)
-        .def_property ("duration", &Stimulus::getDuration, &Stimulus::setDuration, "Stimulus duration in frames.")
-        .def ("addTag", &Stimulus::addTag);
+    class_<PyStimulus, PyStimulus::P> (m, "Stimulus")
+        .def (init<> (&PyStimulus::create<>))
+        //.def( "set", &PyStimulus::set)
+        .def ("addPass", &PyStimulus::addPass)
+        .def ("getDuration", &PyStimulus::getDuration)
+        .def ("getDuration_s", &PyStimulus::getDuration_s)
+        .def ("getStartingFrame", &PyStimulus::getStartingFrame)
+        .def ("getSequence", &PyStimulus::getSequence)
+        .def_readwrite ("name", &PyStimulus::name, "PyStimulus name.")
+        //.def_readwrite(	"stimulusGeneratorShaderSource"	, &PyStimulus::stimulusGeneratorShaderSource	, "Sets GLSL source for stimulus generator shader.")
+        //.def_readwrite(	"timelineVertexShaderSource"	, &PyStimulus::timelineVertexShaderSource		, "Sets GLSL source for timeline shader.")
+        //.def_readwrite(	"timelineFragmentShaderSource"	, &PyStimulus::timelineFragmentShaderSource	, "Sets GLSL source for timeline shader.")
+        .def_readwrite ("randomGeneratorShaderSource", &PyStimulus::randomGeneratorShaderSource, "Sets GLSL source for random generator shader.")
+        .def_readwrite ("randomGridHeight", &PyStimulus::randomGridHeight, "Chessboard height [fields].")
+        .def_readwrite ("randomGridWidth", &PyStimulus::randomGridWidth, "Chessboard width [fields].")
+        .def_readwrite ("randomSeed", &PyStimulus::randomSeed, "Random seed.")
+        .def_readwrite ("freezeRandomsAfterFrame", &PyStimulus::randomSeed, "Stop generating new randoms after this many frames of the stimulus.")
+        .def_readwrite ("particleShaderSource", &PyStimulus::particleShaderSource, "Sets GLSL source for particle system shader.")
+        .def_readwrite ("particleGridHeight", &PyStimulus::particleGridHeight, "Particle grid height.")
+        .def_readwrite ("particleGridWidth", &PyStimulus::particleGridWidth, "Particle grid  width.")
+        .def_readwrite ("requiresClearing", &PyStimulus::requiresClearing, "If True, the screen is cleared before rendering the stimulus. Useful for multi-pass or instanced rendering. The default is False.")
+        .def_readonly ("measuredToneRangeVar", &PyStimulus::measuredVariance, "Measured variance.")
+        .def_readonly ("measuredToneRangeMean", &PyStimulus::measuredMean, "Measured mean.")
+        .def_readonly ("measuredToneRangeMin", &PyStimulus::measuredToneRangeMin, "Measured min.")
+        .def_readonly ("measuredToneRangeMax", &PyStimulus::measuredToneRangeMax, "Measured max.")
+        .def_readwrite ("toneRangeVar", &PyStimulus::toneRangeVar, "Scale applied in sigmoidal tone mapping.")
+        .def_readwrite ("toneRangeMean", &PyStimulus::toneRangeMean, "Offset applied in sigmoidal tone mapping.")
+        .def_readwrite ("toneRangeMin", &PyStimulus::toneRangeMin, "Linear tone mapping tone mapped to zero.")
+        .def_readwrite ("toneRangeMax", &PyStimulus::toneRangeMax, "Linear tone mapping tone mapped to one.")
+        .def ("setMeasuredDynamics", &PyStimulus::setMeasuredDynamicsFromPython)
+        .def ("getMeasuredHistogramAsPythonList", &PyStimulus::getMeasuredHistogramAsPythonList)
+        .def ("setToneMappingErf", &PyStimulus::setToneMappingErf)
+        .def ("setToneMappingLinear", &PyStimulus::setToneMappingLinear)
+        .def ("setToneMappingEqualized", &PyStimulus::setToneMappingEqualized)
+        //.def( "setShaderImage", &PyStimulus::setShaderImage, ( arg("name"), arg("file")) )
+        //.def( "setShaderFunction", &PyStimulus::setShaderFunction, ( arg("name"), arg("src")) )
+        //.def( "setShaderVector"		, &PyStimulus::setShaderVector, ( arg("name"), arg("x")=0, arg("y")=0 ) )
+        //.def( "setShaderColor", &PyStimulus::setShaderColor, ( arg("name"), arg("all")=-2, arg("red")=0, arg("green")=0, arg("blue")=0) )
+        //.def( "setShaderVariable", &PyStimulus::setShaderVariable, ( arg("name"), arg("value")) )
+        .def ("setClearColor", &PyStimulus::setClearColor, arg ("all") = -2, arg ("red") = 0, arg ("green") = 0, arg ("blue") = 0)
+        .def ("setSpatialFilter", &PyStimulus::setSpatialFilter)
+        .def ("getSpatialFilter", &PyStimulus::getSpatialFilter)
+        .def ("getSpatialPlotMin", &PyStimulus::getSpatialPlotMin)
+        .def ("getSpatialPlotMax", &PyStimulus::getSpatialPlotMax)
+        .def ("getSpatialPlotWidth", &PyStimulus::getSpatialPlotWidth)
+        .def ("getSpatialPlotHeight", &PyStimulus::getSpatialPlotHeight)
+        .def ("raiseSignalOnTick", &PyStimulus::raiseSignalOnTick)
+        .def ("clearSignalOnTick", &PyStimulus::clearSignalOnTick)
+        .def ("overrideTickSignals", &PyStimulus::overrideTickSignals)
+        .def ("setTemporalWeights", &PyStimulus::setTemporalWeights)
+        .def ("setTemporalWeightingFunction", &PyStimulus::setTemporalWeightingFunction)
+        .def ("setLtiMatrix", &PyStimulus::setLtiMatrix)
+        .def ("setLtiImpulseResponse", &PyStimulus::setLtiImpulseResponse)
+        .def ("hasSpatialFiltering", &PyStimulus::hasSpatialFiltering)
+        .def ("hasTemporalFiltering", &PyStimulus::hasTemporalFiltering)
+        .def ("doesErfToneMapping", &PyStimulus::doesErfToneMapping)
+        //.def("onStart", &PyStimulus::onStart )
+        //.def("onFrame", &PyStimulus::onFrame )
+        //.def("onFinish", &PyStimulus::onFinish )
+        .def ("registerCallback", &PyStimulus::registerCallback)
+        //.def("executeCallbacks", &PyStimulus::executeCallbacks )
+        .def ("setJoiner", &PyStimulus::setJoiner)
+        .def ("setForwardRenderingCallback", &PyStimulus::setForwardRenderingCallback)
+        .def ("setGamma", &PyStimulus::setGamma, arg ("gammaList"), arg ("invert") = false)
+        .def ("setPythonObject", &PyStimulus::setPythonObject)
+        .def ("getPythonObject", &PyStimulus::getPythonObject)
+        .def ("usesChannel", &PyStimulus::usesChannel)
+        .def ("getChannelCount", &PyStimulus::getChannelCount)
+        .def ("enableColorMode", &PyStimulus::enableColorMode)
+        .def_property ("duration", &PyStimulus::getDuration, &PyStimulus::setDuration, "PyStimulus duration in frames.")
+        .def ("addTag", &PyStimulus::addTag);
 
     class_<Sequence::RaiseSignal, Sequence::RaiseSignal::P> (m, "RaiseSignal")
         .def (init<> (&Sequence::RaiseSignal::create<std::string>));
@@ -618,67 +631,67 @@ void FillModule (pybind11::module_& m)
         .def (init<> (&Sequence::EndMeasurement::create<std::string, std::string, uint>), arg ("sequenceSyncSignal") = "Exp sync", arg ("sequenceStopSignal") = "Msr stop", arg ("holdFrameCount") = 1);
 
 
-    class_<Sequence, Sequence::P> (m, "Sequence")
-        .def (init<> (&Sequence::create<std::string>))
-        .def ("set", &Sequence::set)
-        .def ("getDuration", &Sequence::getDuration)
-        .def ("addStimulus", &Sequence::addStimulus)
-        .def ("getShortestStimulusDuration", &Sequence::getShortestStimulusDuration)
-        .def ("setAgenda", &Sequence::setAgenda)
-        .def ("addChannel", &Sequence::addChannel)
-        .def ("getChannels", &Sequence::getChannels)
-        .def ("getChannelCount", &Sequence::getChannelCount)
-        .def ("raiseSignal", &Sequence::raiseSignal)
-        .def ("clearSignal", &Sequence::clearSignal)
-        .def ("raiseAndClearSignal", &Sequence::raiseAndClearSignal)
-        .def ("getFrameInterval_s", &Sequence::getFrameInterval_s)
-        .def ("usesRandoms", &Sequence::usesRandoms)
-        .def ("onReset", &Sequence::onReset)
-        .def ("setPythonObject", &Sequence::setPythonObject)
-        .def ("getPythonObject", &Sequence::getPythonObject)
-        .def ("getStimulusAtFrame", &Sequence::getStimulusAtFrame)
-        .def ("getStimuli", &Sequence::getStimuli)
-        .def ("setBusyWaitingTickInterval", &Sequence::setBusyWaitingTickInterval)
-        .def ("getUsesBusyWaitingThreadForSingals", &Sequence::getUsesBusyWaitingThreadForSingals)
-        .def ("getSpatialFilteredFieldWidth_um", &Sequence::getSpatialFilteredFieldWidth_um)
-        .def ("getSpatialFilteredFieldHeight_um", &Sequence::getSpatialFilteredFieldHeight_um)
-        .def_readwrite ("name", &Sequence::name, "Sequence name.")
-        .def_readwrite ("useHighFreqRender", &Sequence::useHighFreqRender, "Use high frequence device.")
-        .def_readwrite ("useOpenCL", &Sequence::useOpenCL, "Use OpenCL for FFT.")
-        .def_readwrite ("field_width_um", &Sequence::fieldWidth_um, "The horizontal extent of the light pattern appearing on the retina [um].")
-        .def_readwrite ("field_height_um", &Sequence::fieldHeight_um, "The vertical extent of the light pattern appearing on the retina [um].")
-        .def_readwrite ("field_width_px", &Sequence::fieldWidth_px, "The size of the light pattern in display device pixels.")
-        .def_readwrite ("field_height_px", &Sequence::fieldHeight_px, "The size of the light pattern in display device pixels.")
-        .def_readwrite ("field_left_px", &Sequence::fieldLeft_px, "The horizontal position of the light pattern in pixels.")
-        .def_readwrite ("field_bottom_px", &Sequence::fieldBottom_px, "The vertical position of the light pattern in pixels.")
-        .def_readwrite ("fft_width_px", &Sequence::fftWidth_px, "The horizontal resolution used for frequency domain filtering [pixels].")
-        .def_readwrite ("fft_height_px", &Sequence::fftHeight_px, "The vertical resolution used for frequency domain filtering [pixels].")
-        .def_readwrite ("monitorIndex", &Sequence::monitorIndex, "Index of the display device to be used for stimulus projection.")
-        .def_readwrite ("deviceFrameRate", &Sequence::deviceFrameRate, "VSYNC frequency of projector device. [1/s].")
-        .def_readwrite ("frameRateDivisor", &Sequence::frameRateDivisor, "VSYNC cycles per frame rendered. [1].")
-        .def_readwrite ("exportRandomsWithHashmarkComments", &Sequence::exportRandomsWithHashmark, "True if comments (denoted with #) should be included in the random numbers file.")
-        .def_readwrite ("exportRandomsChannelCount", &Sequence::exportRandomsChannelCount, "Number of randoms to export for a grid cell [1-4].")
-        .def_readwrite ("exportRandomsAsReal", &Sequence::exportRandomsAsReal, "True if randoms should be exported as floating point numbers.")
-        .def_readwrite ("exportRandomsAsBinary", &Sequence::exportRandomsAsBinary, "True if randoms should be exported as fair 0/1 values.")
-        .def_readwrite ("greyscale", &Sequence::greyscale, "Setting this to true allows faster filtering, but no colors.");
+    class_<PySequence, PySequence::P> (m, "Sequence")
+        .def (init<> (&PySequence::create<std::string>))
+        .def ("set", &PySequence::set)
+        .def ("getDuration", &PySequence::getDuration)
+        .def ("addStimulus", &PySequence::addStimulus)
+        .def ("getShortestStimulusDuration", &PySequence::getShortestStimulusDuration)
+        .def ("setAgenda", &PySequence::setAgenda)
+        .def ("addChannel", &PySequence::addChannel)
+        .def ("getChannels", &PySequence::getChannels)
+        .def ("getChannelCount", &PySequence::getChannelCount)
+        .def ("raiseSignal", &PySequence::raiseSignal)
+        .def ("clearSignal", &PySequence::clearSignal)
+        .def ("raiseAndClearSignal", &PySequence::raiseAndClearSignal)
+        .def ("getFrameInterval_s", &PySequence::getFrameInterval_s)
+        .def ("usesRandoms", &PySequence::usesRandoms)
+        .def ("onReset", &PySequence::onReset)
+        .def ("setPythonObject", &PySequence::setPythonObject)
+        .def ("getPythonObject", &PySequence::getPythonObject)
+        .def ("getStimulusAtFrame", &PySequence::getStimulusAtFrame)
+        .def ("getStimuli", &PySequence::getStimuli)
+        .def ("setBusyWaitingTickInterval", &PySequence::setBusyWaitingTickInterval)
+        .def ("getUsesBusyWaitingThreadForSingals", &PySequence::getUsesBusyWaitingThreadForSingals)
+        .def ("getSpatialFilteredFieldWidth_um", &PySequence::getSpatialFilteredFieldWidth_um)
+        .def ("getSpatialFilteredFieldHeight_um", &PySequence::getSpatialFilteredFieldHeight_um)
+        .def_readwrite ("name", &PySequence::name, "PySequence name.")
+        .def_readwrite ("useHighFreqRender", &PySequence::useHighFreqRender, "Use high frequence device.")
+        .def_readwrite ("useOpenCL", &PySequence::useOpenCL, "Use OpenCL for FFT.")
+        .def_readwrite ("field_width_um", &PySequence::fieldWidth_um, "The horizontal extent of the light pattern appearing on the retina [um].")
+        .def_readwrite ("field_height_um", &PySequence::fieldHeight_um, "The vertical extent of the light pattern appearing on the retina [um].")
+        .def_readwrite ("field_width_px", &PySequence::fieldWidth_px, "The size of the light pattern in display device pixels.")
+        .def_readwrite ("field_height_px", &PySequence::fieldHeight_px, "The size of the light pattern in display device pixels.")
+        .def_readwrite ("field_left_px", &PySequence::fieldLeft_px, "The horizontal position of the light pattern in pixels.")
+        .def_readwrite ("field_bottom_px", &PySequence::fieldBottom_px, "The vertical position of the light pattern in pixels.")
+        .def_readwrite ("fft_width_px", &PySequence::fftWidth_px, "The horizontal resolution used for frequency domain filtering [pixels].")
+        .def_readwrite ("fft_height_px", &PySequence::fftHeight_px, "The vertical resolution used for frequency domain filtering [pixels].")
+        .def_readwrite ("monitorIndex", &PySequence::monitorIndex, "Index of the display device to be used for stimulus projection.")
+        .def_readwrite ("deviceFrameRate", &PySequence::deviceFrameRate, "VSYNC frequency of projector device. [1/s].")
+        .def_readwrite ("frameRateDivisor", &PySequence::frameRateDivisor, "VSYNC cycles per frame rendered. [1].")
+        .def_readwrite ("exportRandomsWithHashmarkComments", &PySequence::exportRandomsWithHashmark, "True if comments (denoted with #) should be included in the random numbers file.")
+        .def_readwrite ("exportRandomsChannelCount", &PySequence::exportRandomsChannelCount, "Number of randoms to export for a grid cell [1-4].")
+        .def_readwrite ("exportRandomsAsReal", &PySequence::exportRandomsAsReal, "True if randoms should be exported as floating point numbers.")
+        .def_readwrite ("exportRandomsAsBinary", &PySequence::exportRandomsAsBinary, "True if randoms should be exported as fair 0/1 values.")
+        .def_readwrite ("greyscale", &PySequence::greyscale, "Setting this to true allows faster filtering, but no colors.");
 
-    class_<Ticker, Ticker::P> (m, "Ticker")
-        .def (init<> (&Ticker::create<SequenceRenderer::P>))
-        .def ("stop", &Ticker::stop)
-        .def ("onBufferSwap", &Ticker::onBufferSwap);
+    //class_<Ticker, Ticker::P> (m, "Ticker")
+    //    .def (init<> (&Ticker::create<SequenceRenderer::P>))
+    //    .def ("stop", &Ticker::stop)
+    //    .def ("onBufferSwap", &Ticker::onBufferSwap);
 
     m.def ("setSequence", setSequence /*, return_value_policy<reference_existing_object>()*/);
     m.def ("getSequence", getSequence /*, return_value_policy<reference_existing_object>()*/);
     m.def ("pickStimulus", pickStimulus);
-    m.def ("getSelectedStimulus", getSelectedStimulus);
+    //m.def ("getSelectedStimulus", getSelectedStimulus);
     m.def ("reset", reset);
     m.def ("cleanup", cleanup);
     m.def ("enableExport", enableExport);
     m.def ("enableVideoExport", enableVideoExport);
     m.def ("enableCalibration", enableCalibration);
-    m.def ("startTicker", startTicker);
+    //m.def ("startTicker", startTicker);
     m.def ("skip", skip);
-    m.def ("getCurrentStimulus", getCurrentStimulus);
+    // m.def ("getCurrentStimulus", getCurrentStimulus);
     //	def("setSwapInterval", setSwapInterval );
     m.def ("makePath", makePath);
     m.def ("instantlyRaiseSignal", instantlyRaiseSignal);

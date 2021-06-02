@@ -11,41 +11,32 @@
 #include <limits>
 #include <sstream>
 
-Response::Response ()
-    : question ("Pizza?"), loop (false), duration (1), startingFrame (0)
-{
-}
 
 
-pybind11::object Response::setPythonObject (pybind11::object o)
+pybind11::object PyResponse::setPythonObject (pybind11::object o)
 {
     pythonObject = o;
     return pythonObject;
 }
 
-pybind11::object Response::getPythonObject () const
+
+pybind11::object PyResponse::getPythonObject () const
 {
     return pythonObject;
 }
 
 
-pybind11::object Response::setJoiner (pybind11::object joiner)
+pybind11::object PyResponse::setJoiner (pybind11::object joiner)
 {
     this->joiner = joiner;
     return this->joiner;
 }
 
-void Response::registerCallback (uint msg, pybind11::object callback)
+
+void PyResponse::registerCallback (uint msg, pybind11::object callback)
 {
     for (auto& o : callbacks[msg])
         if (o == callback)
             return;
     callbacks[msg].push_back (callback);
-}
-
-
-void Response::addButton (std::string label, float x, float y, float w, float h, uint key, bool visible)
-{
-    Button b = {label, x, y, w, h, key, visible};
-    buttons.push_back (b);
 }

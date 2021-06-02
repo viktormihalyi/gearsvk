@@ -1,10 +1,11 @@
-﻿#include "core/filter/SpatialFilter.h"
+﻿#include "SpatialFilter.h"
 
 #include <ctime>
 #include <fstream>
 #include <limits>
 #include <sstream>
 #include <stdafx.h>
+
 
 SpatialFilter::SpatialFilter ()
     : width_um (500), height_um (500), useFft (true), separable (false), horizontalSampleCount (16), verticalSampleCount (16), kernelGivenInFrequencyDomain (false), showFft (false), stimulusGivenInFrequencyDomain (false), uniqueId (0), fftSwizzleMask (0)
