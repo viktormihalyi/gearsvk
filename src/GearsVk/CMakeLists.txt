@@ -133,7 +133,7 @@ find_package (stb REQUIRED)
 find_package (glslang REQUIRED)
 find_package (spirv-cross REQUIRED)
 
-target_compile_definitions (RenderGraph PRIVATE SPDLOG_FMT_EXTERNAL)
+target_compile_definitions (RenderGraph PRIVATE RenderGraph_EXPORTS SPDLOG_FMT_EXTERNAL)
 
 target_precompile_headers (RenderGraph PRIVATE [["PCH.hpp"]])
 

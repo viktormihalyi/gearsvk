@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <memory>
 
 class Sequence;
 class Stimulus;
