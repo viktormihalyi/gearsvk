@@ -16,17 +16,16 @@ class Response;
 //! A structure that contains all sequence parameters.
 class PySequence : public Sequence {
 private:
-    struct Impl;
-    std::unique_ptr<Impl> impl;
+    using Sequence::Sequence;
 
 public:
-    PySequence (std::string name);
-
     pybind11::object set (pybind11::object settings);
 
-    pybind11::object            onReset (pybind11::object cb);
+    pybind11::object          resetCallback;
+    pybind11::object          onReset (pybind11::object cb);
     std::shared_ptr<PySequence> setAgenda (pybind11::object agenda);
 
+    pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);
     pybind11::object getPythonObject ();
 

@@ -15,19 +15,6 @@
     throw ::std::runtime_error (::Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ())
 
 
-struct PySequence::Impl {
-    pybind11::object resetCallback;
-    pybind11::object pythonObject;
-};
-
-
-PySequence::PySequence (std::string name)
-    : Sequence { name }
-    , impl { std::make_unique<Impl> () }
-{
-}
-
-
 pybind11::object PySequence::set (pybind11::object settings)
 {
     throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
@@ -147,21 +134,21 @@ std::shared_ptr<PySequence> PySequence::setAgenda (pybind11::object agenda)
 
 pybind11::object PySequence::onReset (pybind11::object cb)
 {
-    impl->resetCallback = cb;
-    return impl->resetCallback;
+    resetCallback = cb;
+    return resetCallback;
 }
 
 
 pybind11::object PySequence::setPythonObject (pybind11::object o)
 {
-    impl->pythonObject = o;
-    return impl->pythonObject;
+    pythonObject = o;
+    return pythonObject;
 }
 
 
 pybind11::object PySequence::getPythonObject ()
 {
-    return impl->pythonObject;
+    return pythonObject;
 }
 
 
@@ -169,6 +156,6 @@ void PySequence::OnStimulusAdded (std::shared_ptr<Stimulus> stimulus)
 {
     PyStimulus* pyStim = dynamic_cast<PyStimulus*> (stimulus.get ());
     if (GVK_VERIFY (pyStim != nullptr)) {
-        pyStim->getJoiner () ();
+        pyStim->joiner ();
     }
 }

@@ -15,41 +15,23 @@
 #include "Utils/Assert.hpp"
 
 
-struct PyPass::Impl {
-    pybind11::object joiner;
-    pybind11::object pythonObject;
-};
-
-
-PyPass::PyPass ()
-    : impl { std::make_unique<Impl> () }
-{
-}
-
-
 pybind11::object PyPass::setJoiner (pybind11::object joiner)
 {
-    impl->joiner = joiner;
-    return impl->joiner;
-}
-
-
-pybind11::object PyPass::getJoiner ()
-{
-    return impl->joiner;
+    this->joiner = joiner;
+    return this->joiner;
 }
 
 
 pybind11::object PyPass::setPythonObject (pybind11::object o)
 {
-    impl->pythonObject = o;
-    return impl->pythonObject;
+    pythonObject = o;
+    return pythonObject;
 }
 
 
 pybind11::object PyPass::getPythonObject ()
 {
-    return impl->pythonObject;
+    return pythonObject;
 }
 
 

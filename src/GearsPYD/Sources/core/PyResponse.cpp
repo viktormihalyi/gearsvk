@@ -9,43 +9,32 @@
 #include <limits>
 #include <sstream>
 
-struct PyResponse::Impl {
-    pybind11::object pythonObject;
-    pybind11::object joiner;
-    std::map<uint32_t, std::vector<pybind11::object>> callbacks;
-};
-
-
-PyResponse::PyResponse ()
-    : impl { std::make_unique<Impl> () }
-{
-}
 
 
 pybind11::object PyResponse::setPythonObject (pybind11::object o)
 {
-    impl->pythonObject = o;
-    return impl->pythonObject;
+    pythonObject = o;
+    return pythonObject;
 }
 
 
 pybind11::object PyResponse::getPythonObject () const
 {
-    return impl->pythonObject;
+    return pythonObject;
 }
 
 
 pybind11::object PyResponse::setJoiner (pybind11::object joiner)
 {
-    impl->joiner = joiner;
-    return impl->joiner;
+    this->joiner = joiner;
+    return this->joiner;
 }
 
 
 void PyResponse::registerCallback (uint32_t msg, pybind11::object callback)
 {
-    for (auto& o : impl->callbacks[msg])
+    for (auto& o : callbacks[msg])
         if (o.is (callback))
             return;
-    impl->callbacks[msg].push_back (callback);
+    callbacks[msg].push_back (callback);
 }

@@ -20,19 +20,19 @@ class SpatialFilter;
 
 //! A structure that contains all stimulus parameters.
 class PyResponse : public Response {
-private:
-    struct Impl;
-    std::unique_ptr<Impl> impl;
-
 public:
-    PyResponse ();
+    using Response::Response;
     
+    pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);
     pybind11::object getPythonObject () const;
 
+    pybind11::object joiner;
     pybind11::object setJoiner (pybind11::object joiner);
 
-    void registerCallback (uint32_t msg, pybind11::object callback);
+
+    std::map<uint32_t, std::vector<pybind11::object>> callbacks;
+    void                                          registerCallback (uint32_t msg, pybind11::object callback);
 
 #if 0
     template<typename T>

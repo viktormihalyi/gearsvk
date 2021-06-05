@@ -16,21 +16,6 @@
 //#include "Eigen/Dense"
 //#include "Eigen/SVD"
 
-struct PyStimulus::Impl {
-    pybind11::object                                  joiner;
-    pybind11::object                                  forwardRenderingCallback;
-    std::map<uint32_t, std::vector<pybind11::object>> callbacks;
-    pybind11::object                                  startCallback;
-    pybind11::object                                  frameCallback;
-    pybind11::object                                  finishCallback;
-    pybind11::object                                  pythonObject;
-};
-
-PyStimulus::PyStimulus ()
-    : impl { std::make_unique<Impl> () }
-{
-}
-
 
 pybind11::object PyStimulus::setGamma (pybind11::object gammaList, bool invert)
 {
@@ -131,48 +116,42 @@ pybind11::object PyStimulus::setTemporalWeights (pybind11::object twList, bool f
 
 pybind11::object PyStimulus::onStart (pybind11::object callback)
 {
-    impl->startCallback = callback;
-    return impl->startCallback;
+    startCallback = callback;
+    return startCallback;
 }
 
 
 pybind11::object PyStimulus::onFrame (pybind11::object callback)
 {
-    impl->frameCallback = callback;
-    return impl->frameCallback;
+    frameCallback = callback;
+    return frameCallback;
 }
 
 
 pybind11::object PyStimulus::onFinish (pybind11::object callback)
 {
-    impl->finishCallback = callback;
-    return impl->finishCallback;
+    finishCallback = callback;
+    return finishCallback;
 }
 
 
 pybind11::object PyStimulus::setJoiner (pybind11::object joiner)
 {
-    impl->joiner = joiner;
-    return impl->joiner;
-}
-
-
-pybind11::object PyStimulus::getJoiner ()
-{
-    return impl->joiner;
+    this->joiner = joiner;
+    return this->joiner;
 }
 
 
 pybind11::object PyStimulus::setPythonObject (pybind11::object o)
 {
-    impl->pythonObject = o;
-    return impl->pythonObject;
+    pythonObject = o;
+    return pythonObject;
 }
 
 
 pybind11::object PyStimulus::getPythonObject () const
 {
-    return impl->pythonObject;
+    return pythonObject;
 }
 
 
@@ -206,8 +185,8 @@ pybind11::object PyStimulus::setMeasuredDynamicsFromPython (float            mea
 pybind11::object PyStimulus::setForwardRenderingCallback (pybind11::object cb)
 {
     usesForwardRendering           = true;
-    impl->forwardRenderingCallback = cb;
-    return impl->forwardRenderingCallback;
+    this->forwardRenderingCallback = cb;
+    return this->forwardRenderingCallback;
 }
 
 
@@ -226,10 +205,10 @@ pybind11::object PyStimulus::setTemporalWeightingFunction (std::string func, int
 
 void PyStimulus::registerCallback (uint32_t msg, pybind11::object callback)
 {
-    for (auto& o : impl->callbacks[msg])
+    for (auto& o : callbacks[msg])
         if (o.is (callback))
             return;
-    impl->callbacks[msg].push_back (callback);
+    callbacks[msg].push_back (callback);
 }
 
 
@@ -410,6 +389,6 @@ void PyStimulus::OnPassAdded (std::shared_ptr<Pass> pass)
 {
     PyPass* pyPass = dynamic_cast<PyPass*> (pass.get ());
     if (GVK_VERIFY (pyPass != nullptr)) {
-        pyPass->getJoiner () ();
+        pyPass->joiner ();
     }
 }
