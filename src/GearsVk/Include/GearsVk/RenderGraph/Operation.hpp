@@ -86,14 +86,15 @@ public:
 
     virtual ~RenderOperation () = default;
 
+    virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) override;
+    virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, CommandBuffer& commandBuffer) override;
+    virtual bool IsActive () override { return true; }
+
+private:
     virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&) override;
     virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&) override;
     virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) override;
     virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&) override;
-
-    virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) override;
-    virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, CommandBuffer& commandBuffer) override;
-    virtual bool IsActive () override { return true; }
 
 private:
     // helper functions

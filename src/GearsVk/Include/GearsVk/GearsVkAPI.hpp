@@ -2,7 +2,7 @@
 #define GEARSVK_API_HPP
 
 #ifdef _WIN32
-#ifdef GVK_RENDERER_EXPORTS
+#ifdef RenderGraph_EXPORTS
 #define GVK_RENDERER_API __declspec(dllexport)
 #else
 #define GVK_RENDERER_API __declspec(dllimport)

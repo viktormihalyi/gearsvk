@@ -35,7 +35,7 @@ target_include_directories (GVKTest
 
 target_link_libraries (GVKTest
     PUBLIC Utils
-    PUBLIC GVKRenderer
+    PUBLIC RenderGraph
     PUBLIC GearsModuleEmbedded
     PUBLIC ${GTest_LIBRARIES}
 )

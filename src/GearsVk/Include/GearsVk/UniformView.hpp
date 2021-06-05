@@ -11,7 +11,6 @@
 #include <cstring>
 #include <vector>
 
-#include "spdlog/spdlog.h"
 
 namespace GVK {
 

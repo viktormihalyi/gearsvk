@@ -50,7 +50,7 @@ target_include_directories (Sequence
 
 target_link_libraries (Sequence
     PUBLIC Utils
-    PUBLIC GVKRenderer
+    PUBLIC RenderGraph
 )
 
 install (TARGETS Sequence

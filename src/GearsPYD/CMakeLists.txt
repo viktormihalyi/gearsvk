@@ -65,6 +65,10 @@ set (IncludeDirectoriesPublic
     ${pybind11_INCLUDE_DIRS}
 )
 
+target_precompile_headers (GearsModule PRIVATE [["PCH.hpp"]])
+target_precompile_headers (GearsModuleEmbedded PRIVATE [["PCH.hpp"]])
+
+
 target_include_directories (GearsModule
     PRIVATE ${IncludeDirectoriesPrivate}
     PUBLIC ${IncludeDirectoriesPublic}
@@ -77,7 +81,7 @@ target_include_directories (GearsModuleEmbedded
 
 target_link_libraries (GearsModule
     PUBLIC Utils
-    PUBLIC GVKRenderer
+    PUBLIC RenderGraph
     PUBLIC Sequence
     PUBLIC ${Python3_LIBRARIES}
            ${pybind11_LIBRARIES}
@@ -85,7 +89,7 @@ target_link_libraries (GearsModule
 
 target_link_libraries (GearsModuleEmbedded
     PUBLIC Utils
-    PUBLIC GVKRenderer
+    PUBLIC RenderGraph
     PUBLIC Sequence
     PUBLIC ${Python3_LIBRARIES}
            ${pybind11_LIBRARIES}

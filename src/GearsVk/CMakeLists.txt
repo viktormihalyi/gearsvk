@@ -121,7 +121,7 @@ set (Sources
     ${SourcesPath}/VulkanMemoryAllocatorImpl.cpp
 )
 
-add_library (GVKRenderer SHARED ${Headers} ${Sources})
+add_library (RenderGraph SHARED ${Headers} ${Sources})
 
 find_package (Vulkan REQUIRED)
 find_package (glfw3 REQUIRED)
@@ -133,9 +133,11 @@ find_package (stb REQUIRED)
 find_package (glslang REQUIRED)
 find_package (spirv-cross REQUIRED)
 
-target_compile_definitions (GVKRenderer PRIVATE SPDLOG_FMT_EXTERNAL GVK_RENDERER_EXPORTS)
+target_compile_definitions (RenderGraph PRIVATE SPDLOG_FMT_EXTERNAL)
 
-target_include_directories (GVKRenderer
+target_precompile_headers (RenderGraph PRIVATE [["PCH.hpp"]])
+
+target_include_directories (RenderGraph
     PRIVATE ${HeadersPath}
     PRIVATE ${HeadersPath}/Camera
     PRIVATE ${HeadersPath}/RenderGraph
@@ -159,7 +161,7 @@ target_include_directories (GVKRenderer
     PUBLIC  ${spirv-cross_INCLUDE_DIRS}
 )
 
-target_link_libraries (GVKRenderer
+target_link_libraries (RenderGraph
     PUBLIC ${Vulkan_LIBRARIES}
     PUBLIC ${glm_LIBRARIES}
     PUBLIC ${glfw_LIBRARIES}
@@ -172,5 +174,5 @@ target_link_libraries (GVKRenderer
     PUBLIC Utils
 )
 
-install (TARGETS GVKRenderer
+install (TARGETS RenderGraph
          RUNTIME DESTINATION bin)

@@ -19,7 +19,7 @@ target_include_directories (SequenceRunner
 
 target_link_libraries (SequenceRunner
     PUBLIC Utils
-    PUBLIC GVKRenderer
+    PUBLIC RenderGraph
     PUBLIC GearsModuleEmbedded
 )
 
