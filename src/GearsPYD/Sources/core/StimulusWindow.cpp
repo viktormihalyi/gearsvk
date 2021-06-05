@@ -1,5 +1,4 @@
 ﻿#include "StimulusWindow.h"
-#include "stdafx.h"
 #include <chrono>
 #include <ctime>
 

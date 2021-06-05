@@ -1,6 +1,5 @@
 #include "clSpatialFilterRenderer.h"
 #include <chrono>
-#include <stdafx.h>
 
 CLSpatialFilterRenderer::CLSpatialFilterRenderer (std::shared_ptr<SequenceRenderer> sequenceRenderer, ShaderManager::P shaderManager, KernelManager::P _kernelManager, SpatialFilter::P _spatialFilter, unsigned int width, unsigned int height, FFTChannelMode channelMode)
     : SpatialFilterRenderer (sequenceRenderer, shaderManager, _kernelManager, _spatialFilter)

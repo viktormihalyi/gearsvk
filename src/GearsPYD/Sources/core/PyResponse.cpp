@@ -1,9 +1,7 @@
 #include "PythonDict.h"
-#include "stdafx.h"
 
-#include "core/Response.h"
-#include "core/Sequence.h"
-#include "core/filter/SpatialFilter.h"
+#include "core/PyResponse.h"
+#include "core/PySequence.h"
 #include <algorithm>
 #include <ctime>
 #include <fstream>
@@ -33,10 +31,10 @@ pybind11::object PyResponse::setJoiner (pybind11::object joiner)
 }
 
 
-void PyResponse::registerCallback (uint msg, pybind11::object callback)
+void PyResponse::registerCallback (uint32_t msg, pybind11::object callback)
 {
     for (auto& o : callbacks[msg])
-        if (o == callback)
+        if (o.is (callback))
             return;
     callbacks[msg].push_back (callback);
 }

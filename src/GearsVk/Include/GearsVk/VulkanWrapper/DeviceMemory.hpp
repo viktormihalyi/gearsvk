@@ -3,10 +3,10 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
 #include "Device.hpp"
-#include "MovablePtr.hpp"
-#include "Utils.hpp"
+#include "Utils/MovablePtr.hpp"
+#include "Utils/Utils.hpp"
 
 namespace GVK {
 

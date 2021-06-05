@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "VideoFrame.h"
 #include <string.h>
 #include <assert.h>

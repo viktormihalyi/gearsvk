@@ -1,7 +1,7 @@
 #include "Fence.hpp"
 
-#include "Assert.hpp"
-#include "Time.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/Time.hpp"
 
 #include <iostream>
 

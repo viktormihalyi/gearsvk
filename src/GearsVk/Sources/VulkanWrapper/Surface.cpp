@@ -1,6 +1,6 @@
 #include "Surface.hpp"
 
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
 
 #include <stdexcept>
 

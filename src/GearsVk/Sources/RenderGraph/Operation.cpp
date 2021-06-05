@@ -3,6 +3,7 @@
 #include "GraphSettings.hpp"
 #include "Resource.hpp"
 #include "ShaderPipeline.hpp"
+#include "DrawRecordable.hpp"
 #include <memory>
 
 namespace GVK {

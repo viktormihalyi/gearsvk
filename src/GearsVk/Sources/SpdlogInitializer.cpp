@@ -1,4 +1,4 @@
-#include "StaticInit.hpp"
+#include "Utils/StaticInit.hpp"
 
 #include "spdlog/spdlog.h"
 

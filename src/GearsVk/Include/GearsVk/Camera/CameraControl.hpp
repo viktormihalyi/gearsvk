@@ -2,7 +2,7 @@
 #define CAMERACONTROL_HPP
 
 #include "Camera.hpp"
-#include "Event.hpp"
+#include "Utils/Event.hpp"
 #include "InputState.hpp"
 #include "Window.hpp"
 

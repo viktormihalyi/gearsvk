@@ -1,6 +1,4 @@
-﻿#include "stdafx.h"
-
-#ifdef _WIN32
+﻿#ifdef _WIN32
 #include "StimulusWindow.h"
 
 #include "Event/events.h"
@@ -28,7 +26,7 @@ BOOL CALLBACK MonitorEnumProc (
     return true;
 }
 
-void StimulusWindow::createWindow (bool windowed, uint width, uint height)
+void StimulusWindow::createWindow (bool windowed, uint32_t width, uint32_t height)
 {
     throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
 #if 0
@@ -314,7 +312,7 @@ LRESULT StimulusWindow::winProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         }
         case WM_KEYDOWN: {
             bool         handled  = false;
-            Stimulus::CP stimulus = sequenceRenderer->getCurrentStimulus ();
+            std::shared_ptr<const Stimulus> stimulus = sequenceRenderer->getCurrentStimulus ();
             handled               = handled || stimulus->executeCallbacks<Gears::Event::KeyPressed> (Gears::Event::KeyPressed::create (uMsg, wParam, lParam));
             Response::CP response = sequenceRenderer->getCurrentResponse ();
             if (response)
@@ -367,19 +365,19 @@ LRESULT StimulusWindow::winProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             break;
         }
         case WM_MOUSEMOVE: {
-            Stimulus::CP stimulus = sequenceRenderer->getCurrentStimulus ();
+            std::shared_ptr<const Stimulus> stimulus = sequenceRenderer->getCurrentStimulus ();
             stimulus->executeCallbacks<Gears::Event::MouseMove> (Gears::Event::MouseMove::create (uMsg, wParam, lParam, screenw, screenh));
             //Response::CP response = sequenceRenderer->getCurrentResponse();
             //response->executeCallbacks<Gears::Event::MouseMove>(Gears::Event::MouseMove::create(uMsg, wParam, lParam, screenw, screenh));
             break;
         }
         case WM_MOUSEWHEEL: {
-            Stimulus::CP stimulus = sequenceRenderer->getCurrentStimulus ();
+            std::shared_ptr<const Stimulus> stimulus = sequenceRenderer->getCurrentStimulus ();
             stimulus->executeCallbacks<Gears::Event::Wheel> (Gears::Event::Wheel::create (uMsg, wParam, lParam));
             break;
         }
         case WM_KEYUP: {
-            Stimulus::CP stimulus = sequenceRenderer->getCurrentStimulus ();
+            std::shared_ptr<const Stimulus> stimulus = sequenceRenderer->getCurrentStimulus ();
             stimulus->executeCallbacks<Gears::Event::KeyReleased> (Gears::Event::KeyReleased::create (uMsg, wParam, lParam));
             Response::CP Response = sequenceRenderer->getCurrentResponse ();
             if (Response)

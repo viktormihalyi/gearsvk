@@ -1,7 +1,7 @@
 #include "ImageData.hpp"
 
 #include "DeviceExtra.hpp"
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
 
 #pragma warning(push, 0)
 #include "stb_image.h"

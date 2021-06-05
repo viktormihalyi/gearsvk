@@ -3,10 +3,10 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "Assert.hpp"
-#include "MovablePtr.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/MovablePtr.hpp"
 #include "ShaderReflection.hpp"
-#include "Utils.hpp"
+#include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"
 
 #include <filesystem>

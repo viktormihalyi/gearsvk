@@ -2,8 +2,9 @@
 
 #include "GraphSettings.hpp"
 #include "Operation.hpp"
+#include "DrawRecordable.hpp"
 #include "Resource.hpp"
-#include "CommandLineFlag.hpp"
+#include "Utils/CommandLineFlag.hpp"
 
 #include "spdlog/spdlog.h"
 
@@ -241,7 +242,6 @@ void RenderGraph::Compile (GraphSettings&& settings)
     }
 
     c.clear ();
-    const std::unordered_map<Image*, VkImageLayout> layoutMapStart;
     for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
         c.push_back (std::move (CommandBuffer { settings.GetDevice () }));
 

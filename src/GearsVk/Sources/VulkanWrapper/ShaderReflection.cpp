@@ -1,6 +1,6 @@
 #include "ShaderReflection.hpp"
 
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
 
 #include <optional>
 #include <sstream>

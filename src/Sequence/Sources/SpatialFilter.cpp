@@ -4,7 +4,6 @@
 #include <fstream>
 #include <limits>
 #include <sstream>
-#include <stdafx.h>
 
 
 SpatialFilter::SpatialFilter ()

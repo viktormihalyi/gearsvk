@@ -3,10 +3,10 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Assert.hpp"
-#include "MovablePtr.hpp"
-#include "Noncopyable.hpp"
-#include "Utils.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/MovablePtr.hpp"
+#include "Utils/Noncopyable.hpp"
+#include "Utils/Utils.hpp"
 
 #include "vk_mem_alloc.h"
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GearsVk/glmlib.hpp"
-#include "stdafx.h"
 #include "SequenceAPI.hpp"
 #include <memory>
 
@@ -15,14 +14,13 @@ class Sequence;
 class SEQUENCE_API SpatialFilter : public std::enable_shared_from_this<SpatialFilter> {
 public:
     SpatialFilter ();
-    GEARS_SHARED_CREATE (SpatialFilter);
 
     std::string kernelFuncSource;
     std::string kernelProfileVertexSource;
     std::string kernelProfileFragmentSource;
     std::string spatialDomainConvolutionShaderSource;
 
-    uint uniqueId;
+    uint32_t uniqueId;
 
     float width_um;
     float height_um;
@@ -34,10 +32,10 @@ public:
     bool kernelGivenInFrequencyDomain;
     bool showFft;
     bool stimulusGivenInFrequencyDomain;
-    uint fftSwizzleMask;
+    uint32_t fftSwizzleMask;
 
-    uint horizontalSampleCount;
-    uint verticalSampleCount;
+    uint32_t horizontalSampleCount;
+    uint32_t verticalSampleCount;
 
     using ShaderVariableMap = std::map<std::string, float>;
     ShaderVariableMap shaderVariables;

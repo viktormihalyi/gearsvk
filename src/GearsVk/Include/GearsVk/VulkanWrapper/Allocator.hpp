@@ -1,7 +1,7 @@
 #ifndef ALLOCATOR_HPP
 #define ALLOCATOR_HPP
 
-#include "MovablePtr.hpp"
+#include "Utils/MovablePtr.hpp"
 #include "VulkanObject.hpp"
 
 #include "vk_mem_alloc.h"

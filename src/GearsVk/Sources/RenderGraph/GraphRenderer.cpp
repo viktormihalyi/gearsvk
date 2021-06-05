@@ -6,6 +6,7 @@
 
 #include "GraphSettings.hpp"
 #include "Operation.hpp"
+#include "DrawRecordable.hpp"
 #include "RenderGraph.hpp"
 #include "Resource.hpp"
 

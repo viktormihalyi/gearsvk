@@ -1,10 +1,9 @@
 #include "Stimulus.h"
 
-#include "stdafx.h"
-
 #include "Pass.h"
 #include "Sequence.h"
 #include "SpatialFilter.h"
+#include "Utils/Assert.hpp"
 
 #include <algorithm>
 #include <ctime>
@@ -303,7 +302,7 @@ float Stimulus::getSpatialPlotHeight ()
 }
 
 
-void Stimulus::raiseSignalOnTick (uint iTick, std::string channel)
+void Stimulus::raiseSignalOnTick (uint32_t iTick, std::string channel)
 {
     SignalEvent e;
     e.clear   = false;
@@ -313,7 +312,7 @@ void Stimulus::raiseSignalOnTick (uint iTick, std::string channel)
 }
 
 
-void Stimulus::clearSignalOnTick (uint iTick, std::string channel)
+void Stimulus::clearSignalOnTick (uint32_t iTick, std::string channel)
 {
     SignalEvent e;
     e.clear   = true;
@@ -352,7 +351,7 @@ void Stimulus::setMeasuredDynamics (float  measuredToneRangeMin,
                                     float  measuredMean,
                                     float  measuredVariance,
                                     float* histi,
-                                    uint   histogramResolution) const
+                                    uint32_t   histogramResolution) const
 {
     const_cast<Stimulus*> (this)->measuredToneRangeMin = measuredToneRangeMin;
     const_cast<Stimulus*> (this)->measuredToneRangeMax = measuredToneRangeMax;
@@ -398,7 +397,7 @@ void Stimulus::addPass (std::shared_ptr<Pass> pass)
 
 void Stimulus::finishLtiSettings ()
 {
-    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
+    GVK_ASSERT (false);
 #if 0
     if (temporalProcessingStateCount == 3) {
         temporalMemoryLength = 64;
@@ -471,7 +470,7 @@ unsigned int Stimulus::setStartingFrame (unsigned int offset)
 }
 
 
-uint Stimulus::getDuration () const
+uint32_t Stimulus::getDuration () const
 {
     return duration;
 }
@@ -559,7 +558,7 @@ std::shared_ptr<const SpatialFilter> Stimulus::getSpatialFilter () const
 }
 
 
-uint Stimulus::getStartingFrame () const
+uint32_t Stimulus::getStartingFrame () const
 {
     return startingFrame;
 }
@@ -589,7 +588,7 @@ bool Stimulus::usesChannel (std::string channel)
 }
 
 
-uint Stimulus::getChannelCount ()
+uint32_t Stimulus::getChannelCount ()
 {
     return stimulusChannels.size ();
 }

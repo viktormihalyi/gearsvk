@@ -1,7 +1,7 @@
 #ifndef INPUTSTATE_HPP
 #define INPUTSTATE_HPP
 
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
 #include <memory>
 
 #include <array>

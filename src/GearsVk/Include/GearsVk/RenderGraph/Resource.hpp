@@ -3,9 +3,9 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "Event.hpp"
+#include "Utils/Event.hpp"
 #include "ShaderPipeline.hpp"
-#include "Timer.hpp"
+#include "Utils/Timer.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 

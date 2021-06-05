@@ -3,9 +3,9 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Assert.hpp"
-#include "MovablePtr.hpp"
-#include "Utils.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/MovablePtr.hpp"
+#include "Utils/Utils.hpp"
 
 #include "DescriptorPool.hpp"
 #include "DescriptorSetLayout.hpp"

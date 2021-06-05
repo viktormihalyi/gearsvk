@@ -1,7 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
-
 #include "gpu/Framebuffer.hpp"
 #include "gpu/Pointgrid.hpp"
 #include "gpu/Quad.hpp"

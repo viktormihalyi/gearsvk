@@ -9,25 +9,22 @@
 #define WM_USER 0
 #endif
 
-#include "stdafx.h"
+#include <cstdint>
 
 namespace Gears {
 namespace Event {
 
 class Base {
 protected:
-    Base (uint message, uint wParam, uint lParam)
+    Base (uint32_t message, uint32_t wParam, uint32_t lParam)
         : message (message), wParam (wParam), lParam (lParam)
     {
     }
 
 public:
-    GEARS_SHARED_CREATE (Base);
-
-public:
-    uint message;
-    uint wParam;
-    uint lParam;
+    uint32_t message;
+    uint32_t wParam;
+    uint32_t lParam;
 };
 
 } // namespace Event

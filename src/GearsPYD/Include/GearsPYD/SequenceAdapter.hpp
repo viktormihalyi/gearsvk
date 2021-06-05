@@ -2,9 +2,9 @@
 #define SEQUENCEADAPTER_HPP
 
 // from GearsVk
-#include "Event.hpp"
+#include "Utils/Event.hpp"
 #include "GraphRenderer.hpp"
-#include "Time.hpp"
+#include "Utils/Time.hpp"
 #include <memory>
 
 // from Gears

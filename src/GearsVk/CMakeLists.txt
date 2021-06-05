@@ -137,26 +137,26 @@ target_compile_definitions (GVKRenderer PRIVATE SPDLOG_FMT_EXTERNAL GVK_RENDERER
 
 target_include_directories (GVKRenderer
     PRIVATE ${HeadersPath}
-            ${HeadersPath}/Camera
-            ${HeadersPath}/RenderGraph
-            ${HeadersPath}/RenderGraph/DrawRecordable
-            ${HeadersPath}/VulkanWrapper
-            ${HeadersPath}/VulkanWrapper/Utils
-            ${HeadersPath}/Window
+    PRIVATE ${HeadersPath}/Camera
+    PRIVATE ${HeadersPath}/RenderGraph
+    PRIVATE ${HeadersPath}/RenderGraph/DrawRecordable
+    PRIVATE ${HeadersPath}/VulkanWrapper
+    PRIVATE ${HeadersPath}/VulkanWrapper/Utils
+    PRIVATE ${HeadersPath}/Window
     
     PUBLIC  ${IncludePath}
 
-    PUBLIC  ${CMAKE_SOURCE_DIR}/src/Utils/Include/Utils
+    PUBLIC  ${CMAKE_SOURCE_DIR}/src/Utils/Include
     
     PUBLIC  ${Vulkan_INCLUDE_DIRS}
-            ${glm_INCLUDE_DIRS}
-            ${glfw_INCLUDE_DIRS}
-            ${vulkan-memory-allocator_INCLUDE_DIRS}
-            ${fmt_INCLUDE_DIRS}
-            ${spdlog_INCLUDE_DIRS}
-            ${stb_INCLUDE_DIRS}
-            ${glslang_INCLUDE_DIRS}
-            ${spirv-cross_INCLUDE_DIRS}
+    PUBLIC  ${glm_INCLUDE_DIRS}
+    PUBLIC  ${glfw_INCLUDE_DIRS}
+    PUBLIC  ${vulkan-memory-allocator_INCLUDE_DIRS}
+    PUBLIC  ${fmt_INCLUDE_DIRS}
+    PUBLIC  ${spdlog_INCLUDE_DIRS}
+    PUBLIC  ${stb_INCLUDE_DIRS}
+    PUBLIC  ${glslang_INCLUDE_DIRS}
+    PUBLIC  ${spirv-cross_INCLUDE_DIRS}
 )
 
 target_link_libraries (GVKRenderer

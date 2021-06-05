@@ -3,12 +3,11 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "Timer.hpp"
+#include "Utils/Timer.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 
 #include "Connections.hpp"
-#include "DrawRecordable.hpp"
 #include "Node.hpp"
 
 #include "glmlib.hpp"
@@ -17,6 +16,11 @@
 
 
 namespace GVK {
+
+class DrawRecordable;
+class DrawRecordableInfo;
+class PureDrawRecordable;
+class VertexAttributeProvider;
 
 namespace RG {
 

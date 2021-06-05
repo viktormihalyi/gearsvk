@@ -38,7 +38,7 @@ TEST_F (FontRenderingTests, MSDFGEN)
     RG::GraphSettings s (device, 3);
     RG::RenderGraph   graph;
 
-    constexpr uint32_t glyphWidthHeight = 16;
+    constexpr uint glyphWidthHeight = 16;
 
     auto sp = std::make_unique<ShaderPipeline> (device);
 
@@ -149,7 +149,7 @@ void main ()
 
     struct InstVert {
         glm::vec2 glyphPos;
-        uint32_t  glyphIndex;
+        uint  glyphIndex;
     };
 
     FontManager fm ("C:\\Windows\\Fonts\\arialbd.ttf", glyphWidthHeight, glyphWidthHeight, FontManager::Type::SDF);
@@ -170,9 +170,9 @@ void main ()
 
     RG::UniformReflection refl (graph);
 
-    refl[renderOp][ShaderKind::Vertex]["GlyphData"]["fontSizePx"] = static_cast<uint32_t> (24);
+    refl[renderOp][ShaderKind::Vertex]["GlyphData"]["fontSizePx"] = static_cast<uint> (24);
 
-    fm.glyphLoaded += [&] (uint32_t unicode) {
+    fm.glyphLoaded += [&] (uint unicode) {
         GlyphData gdata                                                                  = fm.GetGlyph (unicode);
         refl[renderOp][ShaderKind::Vertex]["GlyphData"]["glyph"][unicode]["translation"] = gdata.translation;
         refl[renderOp][ShaderKind::Vertex]["GlyphData"]["glyph"][unicode]["scale"]       = gdata.scale;
@@ -181,7 +181,7 @@ void main ()
 
     refl[renderOp][ShaderKind::Vertex]["Screen"]["screenWidth"]  = GetWindow ().GetWidth ();
     refl[renderOp][ShaderKind::Vertex]["Screen"]["screenHeight"] = GetWindow ().GetHeight ();
-    GetWindow ().events.resized += [&] (uint32_t newWidth, uint32_t newHeight) {
+    GetWindow ().events.resized += [&] (uint newWidth, uint newHeight) {
         refl[renderOp][ShaderKind::Vertex]["Screen"]["screenWidth"]  = newWidth;
         refl[renderOp][ShaderKind::Vertex]["Screen"]["screenHeight"] = newHeight;
     };
@@ -200,10 +200,10 @@ void main ()
     instanceBuffer->Flush ();
 
 
-    for (uint32_t unicode = 'A'; unicode < 'Z'; ++unicode) {
+    for (uint unicode = 'A'; unicode < 'Z'; ++unicode) {
         glyphs->CopyLayer (fm.GetGlyph (unicode).data, unicode);
     }
-    for (uint32_t unicode = 'a'; unicode < 'z'; ++unicode) {
+    for (uint unicode = 'a'; unicode < 'z'; ++unicode) {
         glyphs->CopyLayer (fm.GetGlyph (unicode).data, unicode);
     }
     glyphs->CopyLayer (fm.GetGlyph ('!').data, '!');

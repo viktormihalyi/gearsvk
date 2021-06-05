@@ -44,13 +44,13 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
     presented->SetName ("Swapchain");
     presented->SetDescription ("Made by StimulusAdapter.");
 
-    std::vector<Pass::P> passes = stimulus->getPasses ();
+    std::vector<std::shared_ptr<Pass>> passes = stimulus->getPasses ();
 
     GVK_ASSERT (passes.size () == 1);
 
     bool firstPass = true;
     
-    for (const Pass::P& pass : passes) {
+    for (const std::shared_ptr<Pass>& pass : passes) {
         if constexpr (LogDebugInfo) {
             std::cout << pass->ToDebugString () << std::endl;
         }

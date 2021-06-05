@@ -1,8 +1,8 @@
-#include "stdafx.h"
+#include "core/PyPass.h"
+#include "core/PySequence.h"
+#include "core/PyStimulus.h"
 
-#include "core/Pass.h"
-#include "core/Sequence.h"
-#include "core/Stimulus.h"
+#include "PyExtract.hpp"
 
 #include <algorithm>
 #include <ctime>
@@ -11,8 +11,8 @@
 #include <limits>
 #include <sstream>
 
-#include "Utils.hpp"
-#include "Assert.hpp"
+#include "Utils/Utils.hpp"
+#include "Utils/Assert.hpp"
 
 
 pybind11::object PyPass::setJoiner (pybind11::object joiner)
@@ -47,7 +47,7 @@ void PyPass::setPolygonMask (std::string mode, pybind11::object o)
     } else if (mode == "triangles") {
         list exl = o.cast<list> ();
         if (!exl.check ()) {
-            extract<std::string> exs (o);
+            PyExtract<std::string> exs (o);
             if (!exs.check ()) {
                 std::stringstream ss;
                 ss << "In 'triangle' mode, polygonMask must a list of float2 dicts! e.g. [{'x':1, 'y':1},{'x':0,'y':1},{'x':0,'y':0}]";
@@ -62,7 +62,7 @@ void PyPass::setPolygonMask (std::string mode, pybind11::object o)
 
             for (int i = 0; i < len (l); i++) {
                 {
-                    extract<dict> pd (l[i]);
+                    PyExtract<dict> pd (l[i]);
                     if (!pd.check ()) {
                         std::stringstream ss;
                         ss << "In 'triangle' mode, polygonMask must be a list of float2 dicts! e.g. [{'x':1, 'y':1},{'x':0,'y':1},{'x':0,'y':0}]";
@@ -75,9 +75,9 @@ void PyPass::setPolygonMask (std::string mode, pybind11::object o)
             }
         }
     } else if (mode == "quads") {
-        extract<list> exl (o);
+        PyExtract<list> exl (o);
         if (!exl.check ()) {
-            extract<std::string> exs (o);
+            PyExtract<std::string> exs (o);
             if (!exs.check ()) {
                 std::stringstream ss;
                 ss << "In quads mode, polygonMask must be a list of quad dicts! e.g. [{'x':1, 'y':1, 'width':50, 'height':50, 'pif':0}]";
@@ -92,7 +92,7 @@ void PyPass::setPolygonMask (std::string mode, pybind11::object o)
 
             for (int i = 0; i < len (l); i++) {
                 {
-                    extract<dict> pd (l[i]);
+                    PyExtract<dict> pd (l[i]);
                     if (!pd.check ()) {
                         std::stringstream ss;
                         ss << "In quads mode, polygonMask must be a list of quad dicts! e.g. [{'x':1, 'y':1, 'width':50, 'height':50, 'pif':0}]";

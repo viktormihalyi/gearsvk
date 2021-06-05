@@ -3,7 +3,7 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "Event.hpp"
+#include "Utils/Event.hpp"
 #include "VulkanUtils.hpp"
 #include "VulkanWrapper.hpp"
 #include <memory>

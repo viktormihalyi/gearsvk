@@ -3,7 +3,6 @@
 #include <map>
 #include <string>
 
-#include "stdafx.h"
 #include <memory>
 
 class SequenceRenderer;

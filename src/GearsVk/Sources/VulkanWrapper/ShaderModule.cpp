@@ -1,10 +1,10 @@
 #include "ShaderModule.hpp"
 
 // from Utils
-#include "Assert.hpp"
-#include "BuildType.hpp"
-#include "CommandLineFlag.hpp"
-#include "Utils.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/BuildType.hpp"
+#include "Utils/CommandLineFlag.hpp"
+#include "Utils/Utils.hpp"
 
 // from VulkanWrapper
 #include "ResourceLimits.hpp"

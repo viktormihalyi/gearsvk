@@ -2,7 +2,6 @@
 #include "Response.h"
 #include "Stimulus.h"
 #include "SpatialFilter.h"
-#include "stdafx.h"
 #include <algorithm>
 #include <iostream>
 #include <sstream>
@@ -19,7 +18,7 @@ Sequence::~Sequence ()
     responses.clear ();
 }
 
-void Sequence::addResponse (Response::P response)
+void Sequence::addResponse (std::shared_ptr<Response> response)
 {
     if (!temp_r) {
         response->setSequence (shared_from_this ());
@@ -34,7 +33,7 @@ void Sequence::addResponse (Response::P response)
     }
 }
 
-void Sequence::addStimulus (Stimulus::P stimulus)
+void Sequence::addStimulus (std::shared_ptr<Stimulus> stimulus)
 {
     stimulus->setSequence (shared_from_this ());
     
@@ -122,7 +121,7 @@ void Sequence::clearSignal (std::string channel)
     signals.insert (std::pair<unsigned int, SignalEvent> (duration + 1, e));
 }
 
-void Sequence::raiseAndClearSignal (std::string channel, uint holdFor)
+void Sequence::raiseAndClearSignal (std::string channel, uint32_t holdFor)
 {
     SignalEvent e;
     e.clear   = false;
@@ -151,7 +150,7 @@ float Sequence::getTimeForFrame (unsigned int frame)
 }
 
 
-Response::CP Sequence::getResponseAtFrame (uint iFrame) const
+std::shared_ptr<const Response> Sequence::getResponseAtFrame (uint32_t iFrame) const
 {
     auto i = responses.lower_bound (iFrame);
     if (i == responses.end ()) {
@@ -163,7 +162,7 @@ Response::CP Sequence::getResponseAtFrame (uint iFrame) const
 
 #include <sstream>
 
-Stimulus::CP Sequence::getStimulusAtFrame (uint iFrame)
+std::shared_ptr<const Stimulus> Sequence::getStimulusAtFrame (uint32_t iFrame)
 {
     auto i = stimuli.lower_bound (iFrame);
     if (i == stimuli.end ()) {

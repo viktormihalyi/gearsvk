@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "openCLCore.h"
 
 const char* multiplyFFTMonoProgram = R"(

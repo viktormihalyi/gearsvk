@@ -6,8 +6,8 @@
 #include "DeviceExtra.hpp"
 #include "Semaphore.hpp"
 
-#include "Event.hpp"
-#include "Time.hpp"
+#include "Utils/Event.hpp"
+#include "Utils/Time.hpp"
 #include "Window.hpp"
 #include <memory>
 

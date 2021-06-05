@@ -11,7 +11,7 @@
 // from Gears
 #include "SequenceAdapter.hpp"
 #include "StimulusAdapter.hpp"
-#include "core/Sequence.h"
+#include "core/PySequence.h"
 
 // from pybind11
 #include <pybind11/embed.h>
@@ -41,7 +41,7 @@ void DestroyEnvironment ()
 }
 
 
-void SetRenderGraphFromSequence (Sequence::P seq)
+void SetRenderGraphFromSequence (std::shared_ptr<Sequence> seq)
 {
     currentSeq = std::make_unique<SequenceAdapter> (GetVkEnvironment (), seq);
 }
@@ -179,7 +179,7 @@ std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironme
 
         pybind11::object sequence = sequenceCreator.attr ("create") (pybind11::none ());
 
-        PySequence::P sequenceCpp = sequence.cast<PySequence::P> ();
+        std::shared_ptr<PySequence> sequenceCpp = sequence.cast<std::shared_ptr<PySequence>> ();
 
         return std::make_unique<SequenceAdapter> (environment, sequenceCpp);
 

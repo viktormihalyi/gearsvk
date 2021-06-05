@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Ticker.h"
 #include "SequenceRenderer.h"
 #include <iostream>
@@ -71,7 +70,7 @@ void Ticker::run()
 		else if(dt > tickInterval)
 		{
 			previousTickTimePoint += tickInterval;
-			uint iTick = 1;
+			uint32_t iTick = 1;
 			auto& signals = sequenceRenderer->tick(iTick);
 
 			//for(auto& signal : signals)

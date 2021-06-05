@@ -1,7 +1,6 @@
 #pragma once
 
 #include "OpenGLProxy.hpp"
-#include "stdafx.h"
 #include <memory>
 
 #include "core/PortHandler.h"
@@ -86,8 +85,8 @@ class SequenceRenderer {
     FontManager fontManager;
 #endif
     bool           exportingToVideo;
-    uint           videoExportImageWidth;
-    uint           videoExportImageHeight;
+    uint32_t           videoExportImageWidth;
+    uint32_t           videoExportImageHeight;
     FramebufferGL* videoExportImage;
     FramebufferGL* videoExportImageY;
     FramebufferGL* videoExportImageU;
@@ -105,18 +104,18 @@ class SequenceRenderer {
     Shader* showVideoFrame;
 
     bool  calibrating;
-    uint  calibrationFrameCount;
+    uint32_t  calibrationFrameCount;
     float histogramMin;
     float histogramMax;
     float histogramScale;
-    uint  histogramResolution;
-    uint  calibrationImageWidth;
-    uint  calibrationImageHeight;
-    uint  calibrationHorizontalSampleCount;
-    uint  calibrationVerticalSampleCount;
+    uint32_t  histogramResolution;
+    uint32_t  calibrationImageWidth;
+    uint32_t  calibrationImageHeight;
+    uint32_t  calibrationHorizontalSampleCount;
+    uint32_t  calibrationVerticalSampleCount;
 
-    uint screenWidth;
-    uint screenHeight;
+    uint32_t screenWidth;
+    uint32_t screenHeight;
 
     FramebufferGL* forwardRenderedImage;
 
@@ -140,11 +139,9 @@ class SequenceRenderer {
     GLboolean _greenMaskByIndex[3] = { GL_FALSE, GL_TRUE, GL_FALSE };
     GLboolean _blueMaskByIndex[3]  = { GL_FALSE, GL_FALSE, GL_TRUE };
 
-    //! Constructor. Sets some parameters to zero, but the sequence remains invalid until apply is called.
-    SequenceRenderer ();
 
 public:
-    GEARS_SHARED_CREATE (SequenceRenderer);
+    SequenceRenderer ();
 
     //! Creates GPU resources for the sequence, releasing earlier ones, if any.
     void apply (std::shared_ptr<Sequence> sequence, std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<TextureManager> textureManager, std::shared_ptr<KernelManager> kernelManager);
@@ -156,15 +153,15 @@ public:
     //! Computes next stimulus and displays it on screen. Return true if not in a black phase between bar or spot stimuli.
     bool renderFrame (GLuint defaultFrameBuffer, unsigned channelId);
 
-    void renderRandoms (Shader* randomGeneratorShader, uint iStimulusFrame, uint randomSeed, uint freezeRandomsAfterFrame);
-    void renderParticles (Shader* particleShader, uint iStimulusFrame, float time);
+    void renderRandoms (Shader* randomGeneratorShader, uint32_t iStimulusFrame, uint32_t randomSeed, uint32_t freezeRandomsAfterFrame);
+    void renderParticles (Shader* particleShader, uint32_t iStimulusFrame, float time);
     void renderTimeline ();
     void renderSelectedStimulusTimeline ();
     void renderSelectedStimulusTemporalKernel ();
     void renderSelectedStimulusSpatialKernel (float min, float max, float width, float height);
     void renderSelectedStimulusSpatialProfile (float min, float max, float width, float height);
 
-    pybind11::object renderSample (uint sFrame, int left, int top, int width, int height);
+    pybind11::object renderSample (uint32_t sFrame, int left, int top, int width, int height);
 
     std::shared_ptr<Stimulus const> getSelectedStimulus ();
 
@@ -185,38 +182,38 @@ public:
     void clearSignal (std::string channel);
 
     std::shared_ptr<Ticker>    startTicker ();
-    const Stimulus::SignalMap& tick (uint& iTick);
+    const Stimulus::SignalMap& tick (uint32_t& iTick);
 
     void skip (int skipCount);
 
     void enableExport (std::string path);
     bool exporting () const;
 
-    uint calibrationStartingFrame;
-    uint calibrationDuration;
+    uint32_t calibrationStartingFrame;
+    uint32_t calibrationDuration;
 
-    void enableCalibration (uint startingFrame, uint duration, float histogramMin, float histogramMax);
+    void enableCalibration (uint32_t startingFrame, uint32_t duration, float histogramMin, float histogramMax);
     void enableVideoExport (const char*, int fr, int w, int h);
 
 
-    uint sequenceTimelineStartFrame;
-    uint sequenceTimelineFrameCount;
-    void setSequenceTimelineZoom (uint nFrames)
+    uint32_t sequenceTimelineStartFrame;
+    uint32_t sequenceTimelineFrameCount;
+    void setSequenceTimelineZoom (uint32_t nFrames)
     {
         sequenceTimelineFrameCount = nFrames;
     }
-    void setSequenceTimelineStart (uint iStartFrame)
+    void setSequenceTimelineStart (uint32_t iStartFrame)
     {
         sequenceTimelineStartFrame = iStartFrame;
     }
 
-    uint stimulusTimelineStartFrame;
-    uint stimulusTimelineFrameCount;
-    void setStimulusTimelineZoom (uint nFrames)
+    uint32_t stimulusTimelineStartFrame;
+    uint32_t stimulusTimelineFrameCount;
+    void setStimulusTimelineZoom (uint32_t nFrames)
     {
         stimulusTimelineFrameCount = nFrames;
     }
-    void setStimulusTimelineStart (uint iStartFrame)
+    void setStimulusTimelineStart (uint32_t iStartFrame)
     {
         stimulusTimelineStartFrame = iStartFrame;
     }
@@ -254,7 +251,7 @@ public:
     bool isShowingCursor ();
     void setResponded ();
 
-    void setScreenResolution (uint screenWidth, uint screenHeight)
+    void setScreenResolution (uint32_t screenWidth, uint32_t screenHeight)
     {
         this->screenWidth  = screenWidth;
         this->screenHeight = screenHeight;

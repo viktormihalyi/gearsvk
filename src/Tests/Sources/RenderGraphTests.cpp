@@ -1,6 +1,6 @@
 
 // from GearsVk
-#include "FullscreenQuad.hpp"
+#include "GearsVk/RenderGraph/DrawRecordable/FullscreenQuad.hpp"
 #include "GraphRenderer.hpp"
 #include "GraphSettings.hpp"
 #include "ImageData.hpp"
@@ -26,9 +26,9 @@
 #include "GoogleTestEnvironment.hpp"
 
 // from Utils
-#include "SourceLocation.hpp"
-#include "Timer.hpp"
-#include "Utils.hpp"
+#include "Utils/SourceLocation.hpp"
+#include "Utils/Timer.hpp"
+#include "Utils/Utils.hpp"
 
 // from vulkan
 #include <vulkan/vulkan.h>

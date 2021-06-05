@@ -1,12 +1,11 @@
-#include "core/Stimulus.h"
+#include "core/PyStimulus.h"
 
 #include "core/PythonDict.h"
-#include "stdafx.h"
-#include "Assert.hpp"
+#include "PyExtract.hpp"
+#include "Utils/Assert.hpp"
 
-#include "core/Pass.h"
-#include "core/Sequence.h"
-#include "filter/SpatialFilter.h"
+#include "core/PyPass.h"
+#include "core/PySequence.h"
 #include <algorithm>
 #include <ctime>
 #include <fstream>
@@ -21,14 +20,14 @@
 pybind11::object PyStimulus::setGamma (pybind11::object gammaList, bool invert)
 {
     using namespace pybind11;
-    list l            = extract<list> (gammaList) ();
+    list l            = PyExtract<list> (gammaList) ();
     gammaSamplesCount = len (l);
     if (gammaSamplesCount > 101) {
         gammaSamplesCount = 101;
         PyErr_WarnEx (PyExc_UserWarning, "Only the first 101 gamma samples are used!", 2);
     }
     for (int i = 0; i < gammaSamplesCount; i++) {
-        gamma[i] = extract<float> (l[i]) ();
+        gamma[i] = PyExtract<float> (l[i]) ();
     }
 
     if (invert) {
@@ -56,8 +55,8 @@ pybind11::object PyStimulus::setTemporalWeights (pybind11::object twList, bool f
 #if 0
     fullScreenTemporalFiltering = fullScreen;
     using namespace boost::python;
-    list l      = extract<list> (twList);
-    uint length = len (l);
+    list l      = PyExtract<list> (twList);
+    uint32_t length = len (l);
     if (length > 1)
         doesToneMappingInStimulusGenerator = false;
     if (length > 64) {
@@ -83,20 +82,20 @@ pybind11::object PyStimulus::setTemporalWeights (pybind11::object twList, bool f
 //pybind11::object PyStimulus::set(pybind11::object settings)
 //{
 //	using namespace boost::python;
-//	dict d = extract<dict>(settings);
+//	dict d = PyExtract<dict>(settings);
 //	Gears::PythonDict pd(d);
 //	pd.process( [&](std::string key) {
 //		if(		key == "duration"			)	duration = pd.getFloat(key);
 //		else if(key == "shaderVariables"	) {
 //			pd.forEach(key, [&](object element) {
-//				dict dd = extract<dict>(element);
+//				dict dd = PyExtract<dict>(element);
 //				Gears::PythonDict funcDict(dd);
 //				setShaderVariable( funcDict.getString("name"), funcDict.getFloat("value"));
 //			});
 //		}
 //		else if(key == "shaderColors"	) {
 //			pd.forEach(key, [&](object element) {
-//				dict dd = extract<dict>(element);
+//				dict dd = PyExtract<dict>(element);
 //				Gears::PythonDict funcDict(dd);
 //				glm::vec3 v = funcDict.getFloat3("value");
 //				setShaderColor( funcDict.getString("name"), -2, v.x, v.y, v.z);
@@ -104,7 +103,7 @@ pybind11::object PyStimulus::setTemporalWeights (pybind11::object twList, bool f
 //		}
 //		else if(key == "shaderFunctions"	) {
 //			pd.forEach(key, [&](object element) {
-//				dict dd = extract<dict>(element);
+//				dict dd = PyExtract<dict>(element);
 //				Gears::PythonDict funcDict(dd);
 //				setShaderFunction( funcDict.getString("name"), funcDict.getString("src"));
 //			});
@@ -204,10 +203,10 @@ pybind11::object PyStimulus::setTemporalWeightingFunction (std::string func, int
 }
 
 
-void PyStimulus::registerCallback (uint msg, pybind11::object callback)
+void PyStimulus::registerCallback (uint32_t msg, pybind11::object callback)
 {
     for (auto& o : callbacks[msg])
-        if (o == callback)
+        if (o.is (callback))
             return;
     callbacks[msg].push_back (callback);
 }
@@ -219,41 +218,41 @@ pybind11::object PyStimulus::setLtiMatrix (pybind11::object mList)
 #if 0
     fullScreenTemporalFiltering = true;
     using namespace boost::python;
-    list l      = extract<list> (mList);
-    uint length = len (l);
+    list l      = PyExtract<list> (mList);
+    uint32_t length = len (l);
     if (length > 1)
         doesToneMappingInStimulusGenerator = false;
 
     if (length == 16) {
         temporalProcessingStateTransitionMatrix[0] = glm::mat4 (
-            extract<float> (l[0]), extract<float> (l[1]), extract<float> (l[2]), extract<float> (l[3]),
-            extract<float> (l[4]), extract<float> (l[5]), extract<float> (l[6]), extract<float> (l[7]),
-            extract<float> (l[8]), extract<float> (l[9]), extract<float> (l[10]), extract<float> (l[11]),
-            extract<float> (l[12]), extract<float> (l[13]), extract<float> (l[14]), extract<float> (l[15]));
+            PyExtract<float> (l[0]), PyExtract<float> (l[1]), PyExtract<float> (l[2]), PyExtract<float> (l[3]),
+            PyExtract<float> (l[4]), PyExtract<float> (l[5]), PyExtract<float> (l[6]), PyExtract<float> (l[7]),
+            PyExtract<float> (l[8]), PyExtract<float> (l[9]), PyExtract<float> (l[10]), PyExtract<float> (l[11]),
+            PyExtract<float> (l[12]), PyExtract<float> (l[13]), PyExtract<float> (l[14]), PyExtract<float> (l[15]));
 
         temporalProcessingStateCount = 3;
         finishLtiSettings ();
     } else if (length = 64) {
         temporalProcessingStateTransitionMatrix[0] = glm::mat4 (
-            extract<float> (l[0]), extract<float> (l[1]), extract<float> (l[2]), extract<float> (l[3]),
-            extract<float> (l[8]), extract<float> (l[9]), extract<float> (l[10]), extract<float> (l[11]),
-            extract<float> (l[16]), extract<float> (l[17]), extract<float> (l[18]), extract<float> (l[19]),
-            extract<float> (l[24]), extract<float> (l[25]), extract<float> (l[26]), extract<float> (l[27]));
+            PyExtract<float> (l[0]), PyExtract<float> (l[1]), PyExtract<float> (l[2]), PyExtract<float> (l[3]),
+            PyExtract<float> (l[8]), PyExtract<float> (l[9]), PyExtract<float> (l[10]), PyExtract<float> (l[11]),
+            PyExtract<float> (l[16]), PyExtract<float> (l[17]), PyExtract<float> (l[18]), PyExtract<float> (l[19]),
+            PyExtract<float> (l[24]), PyExtract<float> (l[25]), PyExtract<float> (l[26]), PyExtract<float> (l[27]));
         temporalProcessingStateTransitionMatrix[1] = glm::mat4 (
-            extract<float> (l[4]), extract<float> (l[5]), extract<float> (l[6]), extract<float> (l[7]),
-            extract<float> (l[12]), extract<float> (l[13]), extract<float> (l[14]), extract<float> (l[15]),
-            extract<float> (l[20]), extract<float> (l[21]), extract<float> (l[22]), extract<float> (l[23]),
-            extract<float> (l[28]), extract<float> (l[29]), extract<float> (l[30]), extract<float> (l[31]));
+            PyExtract<float> (l[4]), PyExtract<float> (l[5]), PyExtract<float> (l[6]), PyExtract<float> (l[7]),
+            PyExtract<float> (l[12]), PyExtract<float> (l[13]), PyExtract<float> (l[14]), PyExtract<float> (l[15]),
+            PyExtract<float> (l[20]), PyExtract<float> (l[21]), PyExtract<float> (l[22]), PyExtract<float> (l[23]),
+            PyExtract<float> (l[28]), PyExtract<float> (l[29]), PyExtract<float> (l[30]), PyExtract<float> (l[31]));
         temporalProcessingStateTransitionMatrix[2] = glm::mat4 (
-            extract<float> (l[32]), extract<float> (l[33]), extract<float> (l[34]), extract<float> (l[35]),
-            extract<float> (l[40]), extract<float> (l[41]), extract<float> (l[42]), extract<float> (l[43]),
-            extract<float> (l[48]), extract<float> (l[49]), extract<float> (l[50]), extract<float> (l[51]),
-            extract<float> (l[56]), extract<float> (l[57]), extract<float> (l[58]), extract<float> (l[59]));
+            PyExtract<float> (l[32]), PyExtract<float> (l[33]), PyExtract<float> (l[34]), PyExtract<float> (l[35]),
+            PyExtract<float> (l[40]), PyExtract<float> (l[41]), PyExtract<float> (l[42]), PyExtract<float> (l[43]),
+            PyExtract<float> (l[48]), PyExtract<float> (l[49]), PyExtract<float> (l[50]), PyExtract<float> (l[51]),
+            PyExtract<float> (l[56]), PyExtract<float> (l[57]), PyExtract<float> (l[58]), PyExtract<float> (l[59]));
         temporalProcessingStateTransitionMatrix[3] = glm::mat4 (
-            extract<float> (l[36]), extract<float> (l[37]), extract<float> (l[38]), extract<float> (l[39]),
-            extract<float> (l[44]), extract<float> (l[45]), extract<float> (l[46]), extract<float> (l[47]),
-            extract<float> (l[52]), extract<float> (l[53]), extract<float> (l[54]), extract<float> (l[55]),
-            extract<float> (l[60]), extract<float> (l[61]), extract<float> (l[62]), extract<float> (l[63]));
+            PyExtract<float> (l[36]), PyExtract<float> (l[37]), PyExtract<float> (l[38]), PyExtract<float> (l[39]),
+            PyExtract<float> (l[44]), PyExtract<float> (l[45]), PyExtract<float> (l[46]), PyExtract<float> (l[47]),
+            PyExtract<float> (l[52]), PyExtract<float> (l[53]), PyExtract<float> (l[54]), PyExtract<float> (l[55]),
+            PyExtract<float> (l[60]), PyExtract<float> (l[61]), PyExtract<float> (l[62]), PyExtract<float> (l[63]));
 
         temporalProcessingStateCount = 7;
         finishLtiSettings ();
@@ -267,7 +266,7 @@ pybind11::object PyStimulus::setLtiMatrix (pybind11::object mList)
 }
 
 
-pybind11::object PyStimulus::setLtiImpulseResponse (pybind11::object mList, uint nStates)
+pybind11::object PyStimulus::setLtiImpulseResponse (pybind11::object mList, uint32_t nStates)
 {
     throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
@@ -283,7 +282,7 @@ pybind11::object PyStimulus::setLtiImpulseResponse (pybind11::object mList, uint
     else
         nStates = 3;
     using namespace boost::python;
-    list l = extract<list> (mList);
+    list l = PyExtract<list> (mList);
 
     using Eigen::JacobiSVD;
     using Eigen::MatrixXd;
@@ -292,7 +291,7 @@ pybind11::object PyStimulus::setLtiImpulseResponse (pybind11::object mList, uint
     int      nOutputs = len (l);
     VectorXd g (nOutputs);
     for (int i = 0; i < nOutputs; i++)
-        g (i) = extract<float> (l[i]);
+        g (i) = PyExtract<float> (l[i]);
 
     MatrixXd h (nOutputs / 2, nOutputs / 2);
     MatrixXd hshift (nOutputs / 2, nOutputs / 2);

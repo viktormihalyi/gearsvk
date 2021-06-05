@@ -3,8 +3,8 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "Noncopyable.hpp"
-#include "UUID.hpp"
+#include "Utils/Noncopyable.hpp"
+#include "Utils/UUID.hpp"
 #include <memory>
 #include <string>
 

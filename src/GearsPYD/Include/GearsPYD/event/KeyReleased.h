@@ -8,20 +8,18 @@ namespace Gears {
 
 		class KeyReleased : public Base
 		{
-			KeyReleased(uint message, uint wParam, uint lParam)
+			KeyReleased(uint32_t message, uint32_t wParam, uint32_t lParam)
 				:Base(message, wParam, lParam)
 			{
 				std::stringstream ss;
 				ss << (char)wParam;
 				_text = ss.str();
 			}
-		public:
-			GEARS_SHARED_CREATE (KeyReleased);
 
 		public:
 			std::string _text;
 
-			uint key()
+			uint32_t key()
 			{
 				return wParam;
 			}
@@ -29,7 +27,7 @@ namespace Gears {
 			{
 				return _text;
 			}
-			static uint typeId;
+			static uint32_t typeId;
 		};
 
 	}

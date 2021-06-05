@@ -9,16 +9,10 @@ add_executable (SequenceRunner ${Headers} ${Sources})
 target_compile_definitions (SequenceRunner PRIVATE SPDLOG_FMT_EXTERNAL)
 
 target_include_directories (SequenceRunner
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/Utils/Include/Utils
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/Camera
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/RenderGraph
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/RenderGraph/DrawRecordable
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/VulkanWrapper
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/VulkanWrapper/Utils
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/Window
 
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsPYD/Include/GearsPYD
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/Utils/Include
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsPYD/Include
 
     PUBLIC ${SourcesPath}
 )

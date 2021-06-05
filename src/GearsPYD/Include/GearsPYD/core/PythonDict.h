@@ -1,5 +1,6 @@
 #if 0
 #pragma once
+#include "PyExtract.hpp"
 #include <functional>
 #include <glm/glm.hpp>
 #include <pybind11/pybind11.h>
@@ -29,13 +30,13 @@ public:
     pybind11::dict getSubDict (const std::string& key)
     {
         using namespace pybind11;
-        return extract<dict> (dictionary[key.c_str ()])();
+        return PyExtract<dict> (dictionary[key.c_str ()])();
     }
 
     pybind11::dict getSubDict (uint32_t index)
     {
         using namespace pybind11;
-        return extract<dict> (dictionary[index])();
+        return PyExtract<dict> (dictionary[index])();
     }
 
     std::string getString (const std::string& key, const std::string& defaultValue)
@@ -50,7 +51,7 @@ public:
     std::string getString (const std::string& key, const char* defaultValue = NULL)
     {
         using namespace pybind11;
-        extract<std::string> gs (dictionary[key.c_str()]);
+        PyExtract<std::string> gs (dictionary[key.c_str()]);
         if (!gs.check ()) {
             if (defaultValue == NULL) {
                 throwError (std::string ("Required parameter '") + key + "' not found.");
@@ -70,7 +71,7 @@ public:
         if (!dictionary.contains (key.c_str ()))
             return defaultValue;
         object        a = dictionary[key.c_str ()];
-        extract<bool> gs (a);
+        PyExtract<bool> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
             ss << "Conversion of '" << key << "' value to bool failed.";
@@ -89,7 +90,7 @@ public:
         if (!dictionary.contains (key.c_str ()))
             return defaultValue;
         object       a = dictionary[key.c_str ()];
-        extract<int> gs (a);
+        PyExtract<int> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
             ss << "Conversion of '" << key << "' value to int failed.";
@@ -102,16 +103,16 @@ public:
     /// @param key the name of the field
     /// @param defaultValue the value that should be returned if the specified field does not exit
     /// @return the value of the table field
-    uint getUint (const std::string& key, uint defaultValue = 0)
+    uint32_t getUint (const std::string& key, uint32_t defaultValue = 0)
     {
         using namespace pybind11;
         if (!dictionary.contains (key.c_str ()))
             return defaultValue;
         object        a = dictionary[key.c_str ()];
-        extract<uint> gs (a);
+        PyExtract<uint32_t> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
-            ss << "Conversion of '" << key << "' value to uint failed.";
+            ss << "Conversion of '" << key << "' value to uint32_t failed.";
             throwError (ss.str ());
         }
         return gs ();
@@ -127,7 +128,7 @@ public:
         if (!dictionary.has_key (key))
             return defaultValue;
         object        a = dictionary[key];
-        extract<dict> gs (a);
+        PyExtract<dict> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
             ss << "Dict expected for int3 parameter '" << key << "'.";
@@ -157,7 +158,7 @@ public:
         if (!dictionary.has_key (key))
             return defaultValue;
         object        a = dictionary[key];
-        extract<dict> gs (a);
+        PyExtract<dict> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
             ss << "Dict expected for int4 parameter '" << key << "'.";
@@ -205,7 +206,7 @@ public:
         if (!dictionary.has_key (key))
             return defaultValue;
         object         a = dictionary[key];
-        extract<float> gs (a);
+        PyExtract<float> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
             ss << "Conversion of '" << key << "' value to float failed.";
@@ -224,7 +225,7 @@ public:
         if (!dictionary.has_key (key))
             return defaultValue;
         object        a = dictionary[key];
-        extract<dict> gs (a);
+        PyExtract<dict> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
             ss << "Dict expected for float3 parameter '" << key << "'.";
@@ -254,7 +255,7 @@ public:
         if (!dictionary.has_key (key))
             return defaultValue;
         object        a = dictionary[key];
-        extract<dict> gs (a);
+        PyExtract<dict> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
             ss << "Dict expected for float4 parameter '" << key << "'.";
@@ -287,7 +288,7 @@ public:
         if (!dictionary.has_key (key))
             return defaultValue;
         object                      a = dictionary[key];
-        extract<std::shared_ptr<T>> gs (a);
+        PyExtract<std::shared_ptr<T>> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
             ss << "Conversion of '" << key << "' value to reference failed.";
@@ -303,7 +304,7 @@ public:
         if (!dictionary.has_key (key))
             throwError (std::string (": Required lua table entry '") + key + "' not found or is 'None'.");
         object                      a = dictionary[key];
-        extract<std::shared_ptr<T>> gs (a);
+        PyExtract<std::shared_ptr<T>> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
             ss << "Conversion of '" << key << "' value to reference failed.";
@@ -316,9 +317,9 @@ public:
     {
         using namespace pybind11;
         list keys      = dictionary.keys ();
-        uint nSettings = len (keys);
+        uint32_t nSettings = len (keys);
         for (unsigned int c = 0; c < nSettings; c++) {
-            std::string key = extract<std::string> (keys[c]);
+            std::string key = PyExtract<std::string> (keys[c]);
             f (key);
         }
     }
@@ -329,14 +330,14 @@ public:
         if (!dictionary.has_key (key))
             throwError (std::string ("Required lua table entry '") + key + "' not found or is 'None'.");
         object        a = dictionary[key];
-        extract<list> gs (a);
+        PyExtract<list> gs (a);
         if (!gs.check ()) {
             std::stringstream ss;
             ss << "Conversion of '" << key << "' value to list failed.";
             throwError (ss.str ());
         }
         list l         = gs ();
-        uint nElements = len (l);
+        uint32_t nElements = len (l);
         for (unsigned int c = 0; c < nElements; c++) {
             f (l[c]);
         }

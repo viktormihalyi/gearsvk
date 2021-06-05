@@ -3,11 +3,11 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Assert.hpp"
-#include "MovablePtr.hpp"
-#include "Utils.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/MovablePtr.hpp"
+#include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"
-#include "Noncopyable.hpp"
+#include "Utils/Noncopyable.hpp"
 
 namespace GVK {
 

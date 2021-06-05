@@ -10,7 +10,7 @@ namespace Gears {
 namespace Event {
 
 class MouseMove : public Base {
-    MouseMove (uint message, uint wParam, uint lParam, uint screenw, uint screenh)
+    MouseMove (uint32_t message, uint32_t wParam, uint32_t lParam, uint32_t screenw, uint32_t screenh)
         : Base (message, wParam, lParam)
     {
 #ifdef _WIN32
@@ -25,21 +25,19 @@ class MouseMove : public Base {
         yPercent = (float)y / screenh;
     }
 
-public:
-    GEARS_SHARED_CREATE (MouseMove);
 
-    uint  x;
-    uint  y;
+    uint32_t  x;
+    uint32_t  y;
     float xPercent;
     float yPercent;
 
 public:
-    uint  globalX () { return x; }
-    uint  globalY () { return y; }
+    uint32_t  globalX () { return x; }
+    uint32_t  globalY () { return y; }
     float globalPercentX () { return xPercent; }
     float globalPercentY () { return yPercent; }
 
-    static uint typeId;
+    static uint32_t typeId;
 };
 
 } // namespace Event

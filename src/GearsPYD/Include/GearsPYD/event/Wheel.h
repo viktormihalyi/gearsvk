@@ -15,7 +15,7 @@ namespace Gears {
 namespace Event {
 
 class Wheel : public Base {
-    Wheel (uint message, uint wParam, uint lParam)
+    Wheel (uint32_t message, uint32_t wParam, uint32_t lParam)
         : Base (message, wParam, lParam)
     {
 #ifdef _WIN32
@@ -32,23 +32,20 @@ class Wheel : public Base {
 #endif
     }
 
-public:
-    GEARS_SHARED_CREATE (Wheel);
-
-    uint x;
-    uint y;
+    uint32_t x;
+    uint32_t y;
     int  dX;
     int  dY;
 
 
 public:
-    uint globalX () { return x; }
-    uint globalY () { return y; }
+    uint32_t globalX () { return x; }
+    uint32_t globalY () { return y; }
     int  deltaX () { return dX; }
     int  deltaY () { return dY; }
 
 
-    static uint typeId;
+    static uint32_t typeId;
 };
 
 } // namespace Event

@@ -2,10 +2,10 @@
 #define STIMULUSADAPTERFORPRESENTABLE_HPP
 
 // from GearsVk
-#include "Event.hpp"
+#include "Utils/Event.hpp"
 #include "GearsVk/RenderGraph/GraphRenderer.hpp"
-#include "Noncopyable.hpp"
-#include "Time.hpp"
+#include "Utils/Noncopyable.hpp"
+#include "Utils/Time.hpp"
 
 // from Sequence
 #include "SequenceAPI.hpp"

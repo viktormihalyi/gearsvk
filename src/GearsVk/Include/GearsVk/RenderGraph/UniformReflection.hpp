@@ -6,9 +6,9 @@
 #include "Resource.hpp"
 #include "ShaderReflection.hpp"
 
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
 #include "GearsVkAPI.hpp"
-#include "UUID.hpp"
+#include "Utils/UUID.hpp"
 #include "UniformView.hpp"
 #include "glmlib.hpp"
 

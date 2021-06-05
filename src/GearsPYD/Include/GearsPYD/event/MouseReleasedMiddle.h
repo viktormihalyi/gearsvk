@@ -10,7 +10,7 @@ namespace Gears {
 namespace Event {
 
 class MouseReleasedMiddle : public Base {
-    MouseReleasedMiddle (uint message, uint wParam, uint lParam)
+    MouseReleasedMiddle (uint32_t message, uint32_t wParam, uint32_t lParam)
         : Base (message, wParam, lParam)
     {
 #ifdef _WIN32
@@ -23,17 +23,15 @@ class MouseReleasedMiddle : public Base {
 #endif
     }
 
-public:
-    GEARS_SHARED_CREATE (MouseReleasedMiddle);
 
-    uint x;
-    uint y;
+    uint32_t x;
+    uint32_t y;
 
 public:
-    uint globalX () { return x; }
-    uint globalY () { return y; }
+    uint32_t globalX () { return x; }
+    uint32_t globalY () { return y; }
 
-    static uint typeId;
+    static uint32_t typeId;
 };
 
 } // namespace Event

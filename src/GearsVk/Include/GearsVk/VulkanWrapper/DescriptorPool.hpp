@@ -3,9 +3,9 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Assert.hpp"
-#include "Noncopyable.hpp"
-#include "Utils.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/Noncopyable.hpp"
+#include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"
 
 namespace GVK {

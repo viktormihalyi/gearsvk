@@ -1,8 +1,8 @@
 #ifndef RENDERGRAPH_CONNECTIONS_HPP
 #define RENDERGRAPH_CONNECTIONS_HPP
 
-#include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/Noncopyable.hpp"
 
 #include "InputBindable.hpp"
 

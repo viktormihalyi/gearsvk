@@ -1,6 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
 #include "SequenceAPI.hpp"
 
 #include <algorithm>
@@ -69,13 +68,10 @@ public:
     bool        mono;
     bool        transparent;
 
-    //! Constructor.
-    Pass ();
 
 public:
-    GEARS_SHARED_CREATE (Pass);
+    Pass ();
 
-    //! Destructor. Releases dynamically allocated memory.
     virtual ~Pass ();
 
     void setStimulus (std::shared_ptr<Stimulus> stimulus);
@@ -135,7 +131,7 @@ public:
     void setStimulusGeneratorShaderSource (const std::string& src);
 
     void setDuration (unsigned int duration) { this->duration = duration; }
-    uint getDuration () const { return duration; }
+    uint32_t getDuration () const { return duration; }
 
     void setTimelineVertexShaderSource (const std::string& src)
     {
@@ -213,7 +209,7 @@ public:
     std::string getStimulusGeneratorGeometryShaderSource (Pass::RasterizationMode mode) const;
     std::string getStimulusGeneratorShaderSource () const;
 
-    uint getStartingFrame () const
+    uint32_t getStartingFrame () const
     {
         return startingFrame;
     }

@@ -14,7 +14,6 @@
 // Code written by Jeppe Revall Frisvad, 2009
 // Copyright (c) DTU Informatics 2009
 
-#include "stdafx.h"
 #include <iostream>
 #include <cmath>    
 #include <GL/glew.h>

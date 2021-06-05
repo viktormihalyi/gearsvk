@@ -1,6 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
 #include "SequenceAPI.hpp"
 
 #include <memory>
@@ -59,9 +58,9 @@ public:
     std::string temporalFilterShaderSource;
     std::string temporalFilterFuncSource;
     float       temporalWeights[64];
-    uint        temporalMemoryLength;
+    uint32_t        temporalMemoryLength;
     bool        mono;
-    uint        temporalProcessingStateCount;
+    uint32_t        temporalProcessingStateCount;
     bool        fullScreenTemporalFiltering;
     float       temporalWeightMax;
     float       temporalWeightMin;
@@ -71,14 +70,14 @@ public:
     std::shared_ptr<SpatialFilter> spatialFilter;
 
     std::string randomGeneratorShaderSource; //< Prng.
-    uint        randomGridWidth;             //<	Number of cells per row in 2D random grid array for random number generation.
-    uint        randomGridHeight;            //<	Number of cells per column in of 2D random grid array for random number generation.
-    uint        randomSeed;                  //< Initial number for random number generation. The same seed always produces the same randoms.
-    uint        freezeRandomsAfterFrame;
+    uint32_t        randomGridWidth;             //<	Number of cells per row in 2D random grid array for random number generation.
+    uint32_t        randomGridHeight;            //<	Number of cells per column in of 2D random grid array for random number generation.
+    uint32_t        randomSeed;                  //< Initial number for random number generation. The same seed always produces the same randoms.
+    uint32_t        freezeRandomsAfterFrame;
 
     std::string particleShaderSource; //< Particle system.
-    uint        particleGridWidth;    //<	Number of cells per row in 2D grid array.
-    uint        particleGridHeight;   //<	Number of cells per column in of 2D grid array.
+    uint32_t        particleGridWidth;    //<	Number of cells per row in 2D grid array.
+    uint32_t        particleGridHeight;   //<	Number of cells per column in of 2D grid array.
 
     // tone dynamics
     float gamma[101];        //< The 'gamma correction' curve of the display device, from 0 to 1 in 0.01 resolution
@@ -109,20 +108,15 @@ public:
     std::set<std::string> interactives;
 
     void overrideTickSignals ();
-    void raiseSignalOnTick (uint iTick, std::string channel);
-    void clearSignalOnTick (uint iTick, std::string channel);
+    void raiseSignalOnTick (uint32_t iTick, std::string channel);
+    void clearSignalOnTick (uint32_t iTick, std::string channel);
 
     void finishLtiSettings ();
 
     unsigned int roundForHighFrequency (unsigned int);
 
-    //! Constructor.
-    Stimulus ();
-
 public:
-    GEARS_SHARED_CREATE (Stimulus);
-
-    //! Destructor. Releases dynamically allocated memory.
+    Stimulus ();
     virtual ~Stimulus ();
 
     void setSequence (std::shared_ptr<Sequence> sequence);
@@ -134,7 +128,7 @@ public:
     void saveConfig (const std::string& expName);
 
     void setDuration (unsigned int duration);
-    uint getDuration () const;
+    uint32_t getDuration () const;
 
     std::string getRandomGeneratorShaderSource () const;
 
@@ -155,7 +149,7 @@ public:
     float getSpatialPlotWidth ();
     float getSpatialPlotHeight ();
 
-    uint getStartingFrame () const;
+    uint32_t getStartingFrame () const;
 
     bool hasSpatialFiltering () const;
 
@@ -166,14 +160,14 @@ public:
     float getDuration_s () const;
 
     bool usesChannel (std::string channel);
-    uint getChannelCount ();
+    uint32_t getChannelCount ();
 
     void setMeasuredDynamics (float  measuredToneRangeMin,
                               float  measuredToneRangeMax,
                               float  measuredMean,
                               float  measuredVariance,
                               float* histi,
-                              uint   histogramResolution) const;
+                              uint32_t   histogramResolution) const;
 
     void setToneMappingLinear (float min, float max, bool dynamic) const;
     void setToneMappingErf (float mean, float var, bool dynamic) const;

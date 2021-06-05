@@ -1,7 +1,7 @@
 #include "Framebuffer.hpp"
 
-#include "Utils.hpp"
-#include "Assert.hpp"
+#include "Utils/Utils.hpp"
+#include "Utils/Assert.hpp"
 
 namespace GVK {
 

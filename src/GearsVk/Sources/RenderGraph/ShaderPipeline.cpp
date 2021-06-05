@@ -1,8 +1,8 @@
 #include "ShaderPipeline.hpp"
 
-#include "MultithreadedFunction.hpp"
-#include "Timer.hpp"
-#include "BuildType.hpp"
+#include "Utils/MultithreadedFunction.hpp"
+#include "Utils/Timer.hpp"
+#include "Utils/BuildType.hpp"
 
 namespace GVK {
 

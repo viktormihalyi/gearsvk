@@ -4,7 +4,6 @@
 #include <string>
 
 #include "OpenGLProxy.hpp"
-#include "stdafx.h"
 #include <memory>
 
 class ShaderManager;
@@ -53,8 +52,8 @@ public:
 
     void preRender ();
     void renderStimulus (GLuint defaultFrameBuffer, int skippedFrames);
-    void renderSample (uint sFrame, int left, int top, int width, int height);
-    void renderTimeline (bool* signals, uint startFrame, uint frameCount);
+    void renderSample (uint32_t sFrame, int left, int top, int width, int height);
+    void renderTimeline (bool* signals, uint32_t startFrame, uint32_t frameCount);
     void renderSpatialKernel (float min, float max, float width, float height);
     void renderSpatialProfile (float min, float max, float width, float height);
     void renderTemporalKernel ();
@@ -65,7 +64,7 @@ public:
     std::shared_ptr<Stimulus const> getStimulus () const { return stimulus; }
 
     void reset ();
-    void skipFrames (uint nFramesToSkip);
+    void skipFrames (uint32_t nFramesToSkip);
 
     bool                              hasSpatialFilter () const;
     std::shared_ptr<SequenceRenderer> getSequenceRenderer () const;

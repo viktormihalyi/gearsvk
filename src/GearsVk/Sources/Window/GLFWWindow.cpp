@@ -5,8 +5,8 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include "Assert.hpp"
-#include "Timer.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/Timer.hpp"
 #include <iostream>
 
 namespace GVK {

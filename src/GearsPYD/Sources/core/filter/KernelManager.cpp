@@ -1,4 +1,3 @@
-#include "stdafx.h"
 
 #include "core/Sequence.h"
 #include "core/SequenceRenderer.h"
@@ -26,7 +25,7 @@ KernelManager::KernelManager (SequenceRenderer::P sequenceRenderer, ShaderManage
 {
 }
 
-uint KernelManager::getKernel (SpatialFilter::CP spatialFilter)
+uint32_t KernelManager::getKernel (SpatialFilter::CP spatialFilter)
 {
     std::string         slongid = spatialFilter->getKernelGeneratorShaderSourceWithParameters ();
     KernelMap::iterator i       = kernels.find (slongid);
@@ -40,7 +39,7 @@ uint KernelManager::getKernel (SpatialFilter::CP spatialFilter)
     std::string fragmentShaderSource = spatialFilter->getKernelGeneratorShaderSource ();
 
     Shader*      kernelShader = shaderManager->loadShader (fragmentShaderSource);
-    Sequence::CP sequence     = sequenceRenderer->getSequence ();
+    std::shared_ptr<const Sequence> sequence     = sequenceRenderer->getSequence ();
 
     if (spatialFilter->useFft) {
 #if 0
@@ -75,7 +74,7 @@ bool KernelManager::getKernelChannels (SpatialFilter::CP spatialFilter, cl_mem& 
 }
 #endif
 
-uint KernelManager::update (SpatialFilter::CP spatialFilter)
+uint32_t KernelManager::update (SpatialFilter::CP spatialFilter)
 {
 #if 0
     if (spatialFilter == nullptr) //TODO this is a bit of a hack. update will be called when the component's update method executes initially. Then the current stimulus may be anything and may not have a spatial filter.
@@ -91,7 +90,7 @@ uint KernelManager::update (SpatialFilter::CP spatialFilter)
     }
     Shader* kernelShader = i->second.kernelShader;
 
-    Sequence::CP sequence = sequenceRenderer->getSequence ();
+    std::shared_ptr<const Sequence> sequence = sequenceRenderer->getSequence ();
 
     auto renderKernelLambda =
         [&] (int) {

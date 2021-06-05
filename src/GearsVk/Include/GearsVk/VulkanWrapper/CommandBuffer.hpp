@@ -6,8 +6,8 @@
 #include <unordered_map>
 
 #include "DeviceExtra.hpp"
-#include "MovablePtr.hpp"
-#include "Utils.hpp"
+#include "Utils/MovablePtr.hpp"
+#include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"
 
 namespace GVK {

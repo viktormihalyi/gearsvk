@@ -1,6 +1,6 @@
 #include "PhysicalDevice.hpp"
 
-#include "BuildType.hpp"
+#include "Utils/BuildType.hpp"
 
 
 namespace GVK {

@@ -2,8 +2,8 @@
 #define IMAGE_HPP
 
 #include "CommandBuffer.hpp"
-#include "MovablePtr.hpp"
-#include "Utils.hpp"
+#include "Utils/MovablePtr.hpp"
+#include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"
 
 #include "vk_mem_alloc.h"

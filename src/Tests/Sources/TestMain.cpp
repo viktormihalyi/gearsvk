@@ -1,6 +1,6 @@
 ﻿#include "gtest/gtest.h"
 
-#include "CommandLineFlag.hpp"
+#include "Utils/CommandLineFlag.hpp"
 
 
 int main (int argc, char** argv)

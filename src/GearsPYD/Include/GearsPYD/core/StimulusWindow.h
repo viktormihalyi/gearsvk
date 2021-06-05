@@ -40,7 +40,7 @@ class StimulusWindow {
         RECT     rcMonitor;
     };
     std::vector<Monitor> monitors;
-    uint                 currentMonitor;
+    uint32_t                 currentMonitor;
 #elif __linux__
     Display*                         display;
     Window                           wnd;
@@ -73,7 +73,7 @@ class StimulusWindow {
 public:
     GEARS_SHARED_CREATE (StimulusWindow);
     static std::shared_ptr<StimulusWindow> instanceCreated;
-    void                       createWindow (bool windowed, uint width, uint height);
+    void                       createWindow (bool windowed, uint32_t width, uint32_t height);
     void                       run ();
     void                       closeWindow ();
     ~StimulusWindow () {}

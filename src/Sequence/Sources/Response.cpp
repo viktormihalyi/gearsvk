@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "Response.h"
 #include "Sequence.h"
 
@@ -17,7 +15,7 @@ Response::Response ()
 }
 
 
-void Response::addButton (std::string label, float x, float y, float w, float h, uint key, bool visible)
+void Response::addButton (std::string label, float x, float y, float w, float h, uint32_t key, bool visible)
 {
     Button b = {label, x, y, w, h, key, visible};
     buttons.push_back (b);

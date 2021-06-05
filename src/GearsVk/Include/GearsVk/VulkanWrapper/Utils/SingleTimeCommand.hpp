@@ -1,11 +1,11 @@
 #ifndef SINGLETIMECOMMAND_HPP
 #define SINGLETIMECOMMAND_HPP
 
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
 #include "CommandBuffer.hpp"
 #include "DeviceExtra.hpp"
-#include "Noncopyable.hpp"
-#include "Utils.hpp"
+#include "Utils/Noncopyable.hpp"
+#include "Utils/Utils.hpp"
 
 #include <vulkan/vulkan.h>
 

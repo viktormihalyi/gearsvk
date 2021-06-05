@@ -5,9 +5,10 @@
 #include <map>
 #include <string>
 
-#include "stdafx.h"
 #include <memory>
 #include <string>
+
+#include "pybind11/pybind11.h"
 
 class Stimulus;
 class Response;
@@ -18,8 +19,6 @@ private:
     using Sequence::Sequence;
 
 public:
-    GEARS_SHARED_CREATE (PySequence);
-
     pybind11::object set (pybind11::object settings);
 
     pybind11::object          resetCallback;

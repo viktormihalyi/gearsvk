@@ -1,6 +1,6 @@
 #include "GoogleTestEnvironment.hpp"
 
-#include "DrawRecordableInfo.hpp"
+#include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include "Font.hpp"
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
@@ -11,7 +11,7 @@
 #include "VulkanWrapper.hpp"
 #include "StimulusAdapter.hpp"
 
-#include "StaticInit.hpp"
+#include "Utils/StaticInit.hpp"
 #include "glmlib.hpp"
 
 #include "GearsAPIv2.hpp"

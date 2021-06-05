@@ -3,9 +3,9 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "Event.hpp"
+#include "Utils/Event.hpp"
 #include "Frustum.hpp"
-#include "Lazy.hpp"
+#include "Utils/Lazy.hpp"
 
 #include "glmlib.hpp"
 

@@ -131,7 +131,7 @@ static std::unique_ptr<IRandomExporter> GetRandomExporterImpl (GVK::DeviceExtra&
 
 Utils::CommandLineOnOffFlag printSignalsFlag { "--printSignals", "Prints signals to stdout." };
 
-SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const Sequence::P& sequence)
+SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const std::shared_ptr<Sequence>& sequence)
     : sequence { sequence }
     , environment { environment }
     , randomExporter { GetRandomExporterImpl (*environment.deviceExtra) }
@@ -249,7 +249,7 @@ void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
     }
 
     try {
-        Stimulus::CP stim = sequence->getStimulusAtFrame (frameIndex);
+        std::shared_ptr<const Stimulus> stim = sequence->getStimulusAtFrame (frameIndex);
         if (GVK_VERIFY (stim != nullptr)) {
             const size_t nextResourceIndex = renderer->GetNextRenderResourceIndex ();
             resourceIndexToRenderedFrameMapping[nextResourceIndex] = frameIndex;

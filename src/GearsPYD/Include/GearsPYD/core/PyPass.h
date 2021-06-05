@@ -2,8 +2,6 @@
 
 #include "Sequence/Pass.h"
 
-#include "stdafx.h"
-
 #include <algorithm>
 #include <glm/glm.hpp>
 
@@ -14,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include <pybind11/pybind11.h>
+#include "pybind11/pybind11.h"
 
 class Sequence;
 class Stimulus;
@@ -27,10 +25,6 @@ public:
 
     pybind11::object joiner;
     pybind11::object setJoiner (pybind11::object joiner);
-
-
-public:
-    GEARS_SHARED_CREATE (PyPass);
 
     pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);

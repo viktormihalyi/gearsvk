@@ -24,7 +24,6 @@
 #include "filter/SpatialFilterRenderer.h"
 #include "filter/clSpatialFilterRenderer.h"
 #include "filter/glSpatialFilterRenderer.h"
-#include "stdafx.h"
 #include <chrono>
 #include <ctime>
 #include <fstream>
@@ -430,7 +429,7 @@ void StimulusRenderer::renderStimulus (GLuint defaultFrameBuffer, int skippedFra
 #endif
 }
 
-void StimulusRenderer::renderSample (uint sFrame, int left, int top, int width, int height)
+void StimulusRenderer::renderSample (uint32_t sFrame, int left, int top, int width, int height)
 {
     throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
     /*
@@ -477,7 +476,7 @@ void StimulusRenderer::renderSample (uint sFrame, int left, int top, int width, 
     */
 }
 
-void StimulusRenderer::renderTimeline (bool* signals, uint startFrame, uint frameCount)
+void StimulusRenderer::renderTimeline (bool* signals, uint32_t startFrame, uint32_t frameCount)
 {
     throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
     /*
@@ -701,7 +700,7 @@ void StimulusRenderer::renderTemporalKernel ()
     */
 }
 
-void StimulusRenderer::skipFrames (uint nFramesToSkip)
+void StimulusRenderer::skipFrames (uint32_t nFramesToSkip)
 {
     iFrame += nFramesToSkip;
 }

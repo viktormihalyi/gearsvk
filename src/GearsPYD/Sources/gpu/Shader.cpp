@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "Shader.hpp"
-#include "stdafx.h"
 
 #include "GearsAPIv2.hpp"
 

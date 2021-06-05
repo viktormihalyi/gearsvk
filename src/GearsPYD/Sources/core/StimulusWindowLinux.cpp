@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #if 0
 #ifdef __linux__
 
@@ -30,7 +28,7 @@ StimulusWindow::StimulusWindow()
 	bestFbc = nullptr;
 }
 
-void StimulusWindow::createWindow(bool windowed, uint width, uint height)
+void StimulusWindow::createWindow(bool windowed, uint32_t width, uint32_t height)
 {
 	// Create display
 	display = XOpenDisplay(0);
@@ -433,8 +431,8 @@ void StimulusWindow::shareCurrent( unsigned int winId )
 
 void StimulusWindow::setCursorPos()
   {
-    uint screenw = DefaultScreenOfDisplay(display)->width;
-	uint screenh = DefaultScreenOfDisplay(display)->height;
+    uint32_t screenw = DefaultScreenOfDisplay(display)->width;
+	uint32_t screenh = DefaultScreenOfDisplay(display)->height;
     XWarpPointer(display, None, wnd, 0, 0, 0, 0, screenw, screenh);
 
     XFlush(display);

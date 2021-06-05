@@ -1,6 +1,6 @@
 #include "Sampler.hpp"
 
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
 
 namespace GVK {
 

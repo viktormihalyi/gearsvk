@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "Pass.h"
 #include "Sequence.h"
 #include "Stimulus.h"
@@ -11,8 +9,8 @@
 #include <limits>
 #include <sstream>
 
-#include "Utils.hpp"
-#include "Assert.hpp"
+#include "Utils/Utils.hpp"
+#include "Utils/Assert.hpp"
 
 
 Pass::Pass ()

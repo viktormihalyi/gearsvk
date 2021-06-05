@@ -2,8 +2,8 @@
 #define SAMPLER_HPP
 
 #include "GearsVkAPI.hpp"
-#include "MovablePtr.hpp"
-#include "Utils.hpp"
+#include "Utils/MovablePtr.hpp"
+#include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"
 
 #include <vulkan/vulkan.h>

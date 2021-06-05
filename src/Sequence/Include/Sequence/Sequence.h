@@ -3,7 +3,6 @@
 #include <map>
 #include <string>
 
-#include "stdafx.h"
 #include "SequenceAPI.hpp"
 #include <memory>
 
@@ -37,8 +36,8 @@ private:
     float maxKernelWidth_um;  //< The maximum horizontal extent of the spatial kernels used, measured on the retina [um].
     float maxKernelHeight_um; //< The maximum vertical extent of the spatial kernels used, measured on the retina [um].
 
-    uint maxMemoryLength;
-    uint maxTemporalProcessingStateCount;
+    uint32_t maxMemoryLength;
+    uint32_t maxTemporalProcessingStateCount;
     bool mono;
 
     bool usesDynamicToneMapping;
@@ -47,7 +46,7 @@ private:
 
     unsigned int duration; //< Total sequence duration, including any (black) stimuli before and after measurement start and endpoint [frames]
 
-    uint shortestStimulusDuration;
+    uint32_t shortestStimulusDuration;
 
     unsigned int measurementStartOffset; //< Measurement starts in this frame [frame]
     unsigned int measurementEndOffset;   //< Stop in this frame [frame]
@@ -56,12 +55,8 @@ protected:
     bool setMeasurementStart ();
     bool setMeasurementEnd ();
 
-private:
-    //! Constructor. Sets some defaults.
-    Sequence (std::string name);
-
 public:
-    GEARS_SHARED_CREATE (Sequence);
+    Sequence (std::string name);
 
     std::string name;  //< Unique name.
     std::string brief; //< A short discription of the sequence.
@@ -73,15 +68,15 @@ public:
     bool useHighFreqRender = false;
 
     // random generation
-    uint maxRandomGridWidth;        //<	Number of cells per row in 2D random grid array for random number generation.
-    uint maxRandomGridHeight;       //<	Number of cells per column in of 2D random grid array for random number generation.
+    uint32_t maxRandomGridWidth;        //<	Number of cells per row in 2D random grid array for random number generation.
+    uint32_t maxRandomGridHeight;       //<	Number of cells per column in of 2D random grid array for random number generation.
     bool exportRandomsWithHashmark; //< Use Python-style comments when exporting random numbers.
-    uint exportRandomsChannelCount; //<	How many randoms to export per cell of 2D random grid array.
+    uint32_t exportRandomsChannelCount; //<	How many randoms to export per cell of 2D random grid array.
     bool exportRandomsAsReal;       //<	If true, export random numbers as floating point numbers, mapped to [0, 1]. If false, and exportRandomsAsBinary is also false, export them as integers.
     bool exportRandomsAsBinary;     //< If true, export random numbers as 0 or 1. If false, and exportRandomsAsReal is also false, export them as integers.
 
-    uint maxParticleGridWidth;  //<	Number of cells per row in 2D random grid array for random number generation.
-    uint maxParticleGridHeight; //<	Number of cells per column in of 2D random grid array for random number generation.
+    uint32_t maxParticleGridWidth;  //<	Number of cells per row in 2D random grid array for random number generation.
+    uint32_t maxParticleGridHeight; //<	Number of cells per column in of 2D random grid array for random number generation.
 
     // measurement config (geometry & electronics)
     float        fieldWidth_um;  //< The size of the light pattern appearing on the retina [um].
@@ -103,11 +98,11 @@ public:
     unsigned int fftHeight_px; //<	Vertical resolution of Fast Fourier Transform for spatial filtering.
 
 
-    uint               getDuration () const { return duration; }
+    uint32_t               getDuration () const { return duration; }
     float              getTimeForFrame (unsigned int frame);
     const StimulusMap& getStimuli () const { return stimuli; }
     const ChannelMap&  getChannels () const { return channels; }
-    uint               getChannelCount () const { return channels.size (); }
+    uint32_t               getChannelCount () const { return channels.size (); }
     const SignalMap&   getSignals () const { return signals; }
 
     //! Destructor. Deletes stimuli.
@@ -137,62 +132,61 @@ public:
 
     void raiseSignal (std::string channel);
     void clearSignal (std::string channel);
-    void raiseAndClearSignal (std::string channel, uint holdFor);
+    void raiseAndClearSignal (std::string channel, uint32_t holdFor);
 
     class RaiseSignal : public std::enable_shared_from_this<RaiseSignal> {
         std::string channel;
+
+    public:
         RaiseSignal (std::string channel)
             : channel (channel) {}
 
-    public:
-        GEARS_SHARED_CREATE (RaiseSignal);
         std::string getChannel () const { return channel; }
     };
     class ClearSignal : public std::enable_shared_from_this<ClearSignal> {
         std::string channel;
+
+    public:
         ClearSignal (std::string channel)
             : channel (channel) {}
 
-    public:
-        GEARS_SHARED_CREATE (ClearSignal);
         std::string getChannel () const { return channel; }
     };
     class RaiseAndClearSignal : public std::enable_shared_from_this<RaiseAndClearSignal> {
         std::string channel;
-        uint        holdFor;
-        RaiseAndClearSignal (std::string channel, uint holdFor)
-            : channel (channel), holdFor (holdFor) {}
+        uint32_t        holdFor;
 
     public:
-        GEARS_SHARED_CREATE (RaiseAndClearSignal);
+        RaiseAndClearSignal (std::string channel, uint32_t holdFor)
+            : channel (channel), holdFor (holdFor) {}
+
         std::string getChannel () const { return channel; }
-        uint        getHoldFrameCount () const { return holdFor; }
+        uint32_t        getHoldFrameCount () const { return holdFor; }
     };
     class StartMeasurement : public std::enable_shared_from_this<StartMeasurement> {
         std::string expSyncChannel;
-        StartMeasurement (std::string expSyncChannel)
-            : expSyncChannel (expSyncChannel) {}
 
     public:
-        GEARS_SHARED_CREATE (StartMeasurement);
+        StartMeasurement (std::string expSyncChannel)
+            : expSyncChannel (expSyncChannel) {}
         std::string getExpSyncChannel () const { return expSyncChannel; }
     };
     class EndMeasurement : public std::enable_shared_from_this<EndMeasurement> {
         std::string expSyncChannel;
         std::string measurementStopChannel;
-        uint        holdStopFrameCount;
-        EndMeasurement (std::string expSyncChannel, std::string measurementStopChannel, uint holdStopFrameCount)
-            : expSyncChannel (expSyncChannel), measurementStopChannel (measurementStopChannel), holdStopFrameCount (holdStopFrameCount) {}
+        uint32_t        holdStopFrameCount;
 
     public:
-        GEARS_SHARED_CREATE (EndMeasurement);
+        EndMeasurement (std::string expSyncChannel, std::string measurementStopChannel, uint32_t holdStopFrameCount)
+            : expSyncChannel (expSyncChannel), measurementStopChannel (measurementStopChannel), holdStopFrameCount (holdStopFrameCount) {}
+
         std::string getExpSyncChannel () const { return expSyncChannel; }
         std::string getMeasurementStopChannel () const { return measurementStopChannel; }
-        uint        getHoldStopFrameCount () { return holdStopFrameCount; }
+        uint32_t        getHoldStopFrameCount () { return holdStopFrameCount; }
     };
 
-    uint getMeasurementStart () const { return measurementStartOffset; }
-    uint getMeasurementEnd () const { return measurementEndOffset; }
+    uint32_t getMeasurementStart () const { return measurementStartOffset; }
+    uint32_t getMeasurementEnd () const { return measurementEndOffset; }
 
     float getMaxKernelWidth_um () const { return maxKernelWidth_um; }
     float getMaxKernelHeight_um () const { return maxKernelHeight_um; }
@@ -213,20 +207,20 @@ public:
     bool hasFft;
     bool hasSpatialDomainConvolution;
 
-    uint getShortestStimulusDuration () { return shortestStimulusDuration; }
+    uint32_t getShortestStimulusDuration () { return shortestStimulusDuration; }
 
-    std::shared_ptr<Stimulus const> getStimulusAtFrame (uint iFrame);
-    std::shared_ptr<Response const> getResponseAtFrame (uint iFrame) const;
+    std::shared_ptr<Stimulus const> getStimulusAtFrame (uint32_t iFrame);
+    std::shared_ptr<Response const> getResponseAtFrame (uint32_t iFrame) const;
 
-    uint getMaxMemoryLength () const { return maxMemoryLength; }
-    uint getMaxTemporalProcessingStateCount () const { return maxTemporalProcessingStateCount; }
+    uint32_t getMaxMemoryLength () const { return maxMemoryLength; }
+    uint32_t getMaxTemporalProcessingStateCount () const { return maxTemporalProcessingStateCount; }
 
     void setBusyWaitingTickInterval (float tickInterval);
     bool getUsesBusyWaitingThreadForSingals () const { return usesBusyWaitingThreadForSingals; }
 
     bool isMonochrome () const { return mono; }
 
-    uint getMonitorIndex () const { return monitorIndex; }
+    uint32_t getMonitorIndex () const { return monitorIndex; }
 
 public:
     virtual void OnStimulusAdded (std::shared_ptr<Stimulus> stimulus) {}

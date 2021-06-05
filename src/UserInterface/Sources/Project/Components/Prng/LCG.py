@@ -40,8 +40,8 @@ class LCG(Component):
             
             void main ()
             {
-                uint32_t gridWidth  = gridSizeX;
-                uint32_t gridHeight = gridSizeY;
+                uint gridWidth  = gridSizeX;
+                uint gridHeight = gridSizeY;
                 
                 const uint64_t frameOffset = gridWidth * gridHeight * 4 * frameIndex;
                 const uint64_t pxOffset = uint (fTexCoord.y * gridWidth * gridHeight + fTexCoord.x * gridHeight) * 4;

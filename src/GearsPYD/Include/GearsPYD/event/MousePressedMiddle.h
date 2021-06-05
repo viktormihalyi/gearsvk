@@ -10,7 +10,7 @@ namespace Gears {
 namespace Event {
 
 class MousePressedMiddle : public Base {
-    MousePressedMiddle (uint message, uint wParam, uint lParam)
+    MousePressedMiddle (uint32_t message, uint32_t wParam, uint32_t lParam)
         : Base (message, wParam, lParam)
     {
 #ifdef _WIN32
@@ -23,18 +23,16 @@ class MousePressedMiddle : public Base {
 #endif
     }
 
-public:
-    GEARS_SHARED_CREATE (MousePressedMiddle);
 
-    uint x;
-    uint y;
+    uint32_t x;
+    uint32_t y;
 
 
 public:
-    uint globalX () { return x; }
-    uint globalY () { return y; }
+    uint32_t globalX () { return x; }
+    uint32_t globalY () { return y; }
 
-    static uint typeId;
+    static uint32_t typeId;
 };
 
 } // namespace Event

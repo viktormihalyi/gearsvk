@@ -2,7 +2,7 @@
 #define SURFACE_HPP
 
 #include "GearsVkAPI.hpp"
-#include "MovablePtr.hpp"
+#include "Utils/MovablePtr.hpp"
 #include "VulkanObject.hpp"
 
 #include <vulkan/vulkan.h>

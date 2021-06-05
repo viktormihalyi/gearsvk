@@ -1,4 +1,3 @@
-#include "stdafx.h"
 
 #ifdef _WIN32
 #include "PortHandler.h"

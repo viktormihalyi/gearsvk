@@ -1,5 +1,4 @@
 #include "glSpatialFilterRenderer.h"
-#include <stdafx.h>
 
 GLSpatialFilterRenderer::GLSpatialFilterRenderer (std::shared_ptr<SequenceRenderer> sequenceRenderer, ShaderManager::P shaderManager, KernelManager::P _kernelManager, SpatialFilter::P _spatialFilter, unsigned int width, unsigned int height)
     : SpatialFilterRenderer (sequenceRenderer, shaderManager, _kernelManager, _spatialFilter)

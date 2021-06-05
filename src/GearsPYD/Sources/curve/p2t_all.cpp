@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #pragma warning(disable: 4018 4715)
 
 #include "common/shapes.cc"

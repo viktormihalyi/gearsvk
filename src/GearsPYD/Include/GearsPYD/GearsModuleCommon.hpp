@@ -1,14 +1,13 @@
 
 // from Gears
 #include "GearsAPIv2.hpp"
-#include "core/Pass.h"
+#include "core/PyPass.h"
 #include "core/PythonDict.h"
-#include "core/Response.h"
-#include "core/Stimulus.h"
-#include "core/Sequence.h"
+#include "core/PyResponse.h"
+#include "core/PyStimulus.h"
+#include "core/PySequence.h"
 #include "Sequence/SpatialFilter.h"
 #include "event/events.h"
-#include "stdafx.h"
 
 // from std
 #include <filesystem>
@@ -29,15 +28,15 @@
 // extension module. This is where we build the module contents.
 
 
-PySequence::P         sequence         = nullptr;
+std::shared_ptr<PySequence> sequence;
 
 /*
-SequenceRenderer::P sequenceRenderer = nullptr;
-ShaderManager::P    shaderManager    = nullptr;
-TextureManager::P   textureManager   = nullptr;
-KernelManager::P    kernelManager    = nullptr;
+std::shared_ptr<SequenceRenderer> sequenceRenderer = nullptr;
+std::shared_ptr<ShaderManager>    shaderManager    = nullptr;
+std::shared_ptr<TextureManager>   textureManager   = nullptr;
+std::shared_ptr<KernelManager>    kernelManager    = nullptr;
 */
-//StimulusWindow::P   stimulusWindow   = nullptr;
+//std::shared_ptr<StimulusWindow>   stimulusWindow   = nullptr;
 
 
 std::string createStimulusWindow ()
@@ -152,14 +151,14 @@ double getTime ()
 }
 
 
-PySequence::P createPySequence (std::string name)
+std::shared_ptr<PySequence> createPySequence (std::string name)
 {
-    ::sequence = PySequence::create (name);
+    ::sequence = std::make_shared<PySequence> (name);
     return ::sequence;
 }
 
 
-PySequence::P setSequence (PySequence::P sequence)
+std::shared_ptr<PySequence> setSequence (std::shared_ptr<PySequence> sequence)
 {
     ::sequence = sequence;
 
@@ -174,7 +173,7 @@ PySequence::P setSequence (PySequence::P sequence)
 }
 
 
-PySequence::P getSequence ()
+std::shared_ptr<PySequence> getSequence ()
 {
     return ::sequence;
 }
@@ -189,7 +188,7 @@ void pickStimulus (double x, double y)
 
 
 /*
-Stimulus::CP getSelectedStimulus ()
+std::shared_ptr<const Stimulus> getSelectedStimulus ()
 {
     return nullptr;
     // return sequenceRenderer->getSelectedStimulus ();
@@ -210,7 +209,7 @@ void skip (int skipCount)
 
 
 /*
-Stimulus::CP getCurrentStimulus ()
+std::shared_ptr<const Stimulus> getCurrentStimulus ()
 {
     return nullptr;
     //return sequenceRenderer->getCurrentStimulus ();
@@ -233,8 +232,8 @@ void setMousePointerLocation (float x, float y)
     throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
 #ifdef _WIN32
-    uint screenw = GetSystemMetrics (SM_CXSCREEN);
-    uint screenh = GetSystemMetrics (SM_CYSCREEN);
+    uint32_t screenw = GetSystemMetrics (SM_CXSCREEN);
+    uint32_t screenh = GetSystemMetrics (SM_CYSCREEN);
     SetCursorPos ((int)(screenw * x), (int)(screenh * y));
 #elif __linux__
     if (stimulusWindow)
@@ -270,7 +269,7 @@ std::string getSequenceTimingReport ()
 }
 
 /*
-Ticker::P startTicker ()
+std::shared_ptr<Ticker> startTicker ()
 {
     return nullptr;
     //return sequenceRenderer->startTicker ();
@@ -290,31 +289,31 @@ void enableVideoExport (const char* path, int fr, int w, int h)
 }
 
 
-void enableCalibration (uint startingFrame, uint duration, float histogramMin, float histogramMax)
+void enableCalibration (uint32_t startingFrame, uint32_t duration, float histogramMin, float histogramMax)
 {
     //sequenceRenderer->enableCalibration (startingFrame, duration, histogramMin, histogramMax);
 }
 
 
-void setSequenceTimelineZoom (uint nFrames)
+void setSequenceTimelineZoom (uint32_t nFrames)
 {
     //sequenceRenderer->setSequenceTimelineZoom (nFrames);
 }
 
 
-void setSequenceTimelineStart (uint iStartFrame)
+void setSequenceTimelineStart (uint32_t iStartFrame)
 {
     //sequenceRenderer->setSequenceTimelineStart (iStartFrame);
 }
 
 
-void setStimulusTimelineZoom (uint nFrames)
+void setStimulusTimelineZoom (uint32_t nFrames)
 {
     //sequenceRenderer->setStimulusTimelineZoom (nFrames);
 }
 
 
-void setStimulusTimelineStart (uint iStartFrame)
+void setStimulusTimelineStart (uint32_t iStartFrame)
 {
     //sequenceRenderer->setStimulusTimelineStart (iStartFrame);
 }
@@ -333,7 +332,7 @@ void setResponded ()
 
 
 /*
-pybind11::object renderSample (uint iFrame, uint x, uint y, uint w, uint h)
+pybind11::object renderSample (uint32_t iFrame, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
     return sequenceRenderer->renderSample (iFrame, x, y, w, h);
 }
@@ -398,7 +397,7 @@ void FillModule (pybind11::module_& m)
     //	.def_readonly(	"wParam"	, &Gears::Event::Base::wParam	, "Windows message wParam.")
     //	.def_readonly(	"lParam"	, &Gears::Event::Base::lParam	, "Windows message lParam.")
     //	;
-    //register_ptr_to_python<Gears::Event::Base::P>();
+    //register_ptr_to_python<Gears::Event::std::shared_ptr<Base>>();
 
     class_<Gears::Event::MouseMove> (m, "MouseMoveEvent")
         .def ("globalX", &Gears::Event::MouseMove::globalX)
@@ -475,8 +474,8 @@ void FillModule (pybind11::module_& m)
     m.def ("drawSpatialProfile", drawSpatialProfile);
 
     
-    class_<SpatialFilter, SpatialFilter::P> (m, "SpatialFilter")
-        .def (init<> (&SpatialFilter::create<>))
+    class_<SpatialFilter, std::shared_ptr<SpatialFilter>> (m, "SpatialFilter")
+        .def (init<> (&std::make_shared<SpatialFilter>))
         .def ("setShaderFunction", &SpatialFilter::setShaderFunction, arg ("name"), arg ("src"))
         .def ("setShaderColor", &SpatialFilter::setShaderColor, arg ("name"), arg ("all") = -2, arg ("red") = 0, arg ("green") = 0, arg ("blue") = 0)
         .def ("setShaderVector", &SpatialFilter::setShaderVector, arg ("name"), arg ("x") = 0, arg ("y") = 0)
@@ -504,8 +503,8 @@ void FillModule (pybind11::module_& m)
         .def_readonly ("portName", &Sequence::Channel::portName, "Name of the port the channel is associated to.")
         .def_readonly ("raiseFunc", &Sequence::Channel::raiseFunc, "ID of the signal the channel is associated to.");
 
-    class_<Pass, Pass::P> passBase (m, "PassBase");
-    passBase.def (init<> (&Pass::create<>))
+    class_<Pass, std::shared_ptr<Pass>> passBase (m, "PassBase");
+    passBase.def (init<> (&std::make_shared<Pass>))
         //.def( "set", &PyStimulus::set)
         .def ("getDuration", &Pass::getDuration)
         .def ("getDuration_s", &Pass::getDuration_s)
@@ -529,28 +528,28 @@ void FillModule (pybind11::module_& m)
         .def ("enableColorMode", &Pass::enableColorMode)
         .def_property ("duration", &Pass::getDuration, &Pass::setDuration, "Pass duration in frames.");
 
-    class_<PyPass, PyPass::P> (m, "Pass", passBase)
-        .def (init<> (&PyPass::create<>))
+    class_<PyPass, std::shared_ptr<PyPass>> (m, "Pass", passBase)
+        .def (init<> (&std::make_shared<PyPass>))
         .def ("setJoiner", &PyPass::setJoiner)
         .def ("setPythonObject", &PyPass::setPythonObject)
         .def ("getPythonObject", &PyPass::getPythonObject)
         .def ("setPolygonMask", &PyPass::setPolygonMask);
 
-    class_<Response, Response::P> responseBase (m, "ResponseBase");
-    responseBase.def (init<> (&Response::create<>))
+    class_<Response, std::shared_ptr<Response>> responseBase (m, "ResponseBase");
+    responseBase.def (init<> (&std::make_shared<Response>))
         .def_readwrite ("question", &Response::question)
         .def_readwrite ("loop", &Response::loop)
         .def ("addButton", &Response::addButton)
         .def ("getSequence", &Response::getSequence);
 
-    class_<PyResponse, PyResponse::P> (m, "Response", responseBase)
-        .def (init<> (&PyResponse::create<>))
+    class_<PyResponse, std::shared_ptr<PyResponse>> (m, "Response", responseBase)
+        .def (init<> (&std::make_shared<PyResponse>))
         .def ("setPythonObject", &PyResponse::setPythonObject)
         .def ("setJoiner", &PyResponse::setJoiner)
         .def ("registerCallback", &PyResponse::registerCallback);
 
-    class_<Stimulus, Stimulus::P> stimulusBase (m, "StimulusBase");
-    stimulusBase.def (init<> (&Stimulus::create<>))
+    class_<Stimulus, std::shared_ptr<Stimulus>> stimulusBase (m, "StimulusBase");
+    stimulusBase.def (init<> (&std::make_shared<Stimulus>))
         //.def( "set", &Stimulus::set)
         .def ("addPass", &Stimulus::addPass)
         .def ("getDuration", &Stimulus::getDuration)
@@ -608,8 +607,8 @@ void FillModule (pybind11::module_& m)
         //.def("onFrame", &Stimulus::onFrame )
         //.def("onFinish", &Stimulus::onFinish )
 
-    class_<PyStimulus, PyStimulus::P> (m, "Stimulus", stimulusBase)
-        .def (init<> (&PyStimulus::create<>))
+    class_<PyStimulus, std::shared_ptr<PyStimulus>> (m, "Stimulus", stimulusBase)
+        .def (init<> (&std::make_shared<PyStimulus>))
         .def ("registerCallback", &PyStimulus::registerCallback)
         //.def("executeCallbacks", &Stimulus::executeCallbacks )
         .def ("setJoiner", &PyStimulus::setJoiner)
@@ -624,23 +623,23 @@ void FillModule (pybind11::module_& m)
         .def ("setMeasuredDynamics", &PyStimulus::setMeasuredDynamicsFromPython)
         .def ("getMeasuredHistogramAsPythonList", &PyStimulus::getMeasuredHistogramAsPythonList);
 
-    class_<Sequence::RaiseSignal, Sequence::RaiseSignal::P> (m, "RaiseSignal")
-        .def (init<> (&Sequence::RaiseSignal::create<std::string>));
+    class_<Sequence::RaiseSignal, std::shared_ptr<Sequence::RaiseSignal>> (m, "RaiseSignal")
+        .def (init<> (&std::make_shared<Sequence::RaiseSignal, std::string>));
 
-    class_<Sequence::ClearSignal, Sequence::ClearSignal::P> (m, "ClearSignal")
-        .def (init<> (&Sequence::ClearSignal::create<std::string>));
+    class_<Sequence::ClearSignal, std::shared_ptr<Sequence::ClearSignal>> (m, "ClearSignal")
+        .def (init<> (&std::make_shared<Sequence::ClearSignal, std::string>));
 
-    class_<Sequence::RaiseAndClearSignal, Sequence::RaiseAndClearSignal::P> (m, "RaiseAndClearSignal")
-        .def (init<> (&Sequence::RaiseAndClearSignal::create<std::string, uint>));
+    class_<Sequence::RaiseAndClearSignal, std::shared_ptr<Sequence::RaiseAndClearSignal>> (m, "RaiseAndClearSignal")
+        .def (init<> (&std::make_shared<Sequence::RaiseAndClearSignal, std::string, uint32_t>));
 
-    class_<Sequence::StartMeasurement, Sequence::StartMeasurement::P> (m, "StartMeasurement")
-        .def (init<> (&Sequence::StartMeasurement::create<std::string>), arg ("sequenceSyncSignal") = "Exp sync");
+    class_<Sequence::StartMeasurement, std::shared_ptr<Sequence::StartMeasurement>> (m, "StartMeasurement")
+        .def (init<> (&std::make_shared<Sequence::StartMeasurement, std::string>), arg ("sequenceSyncSignal") = "Exp sync");
 
-    class_<Sequence::EndMeasurement, Sequence::EndMeasurement::P> (m, "EndMeasurement")
-        .def (init<> (&Sequence::EndMeasurement::create<std::string, std::string, uint>), arg ("sequenceSyncSignal") = "Exp sync", arg ("sequenceStopSignal") = "Msr stop", arg ("holdFrameCount") = 1);
+    class_<Sequence::EndMeasurement, std::shared_ptr<Sequence::EndMeasurement>> (m, "EndMeasurement")
+        .def (init<> (&std::make_shared<Sequence::EndMeasurement, std::string, std::string, uint32_t>), arg ("sequenceSyncSignal") = "Exp sync", arg ("sequenceStopSignal") = "Msr stop", arg ("holdFrameCount") = 1);
 
-    class_<Sequence, Sequence::P> sequenceBase (m, "SequenceBase");
-    sequenceBase.def (init<> (&Sequence::create<std::string>))
+    class_<Sequence, std::shared_ptr<Sequence>> sequenceBase (m, "SequenceBase");
+    sequenceBase.def (init<> (&std::make_shared<Sequence, std::string>))
         .def ("getDuration", &Sequence::getDuration)
         .def ("addStimulus", &Sequence::addStimulus)
         .def ("getShortestStimulusDuration", &Sequence::getShortestStimulusDuration)
@@ -678,16 +677,16 @@ void FillModule (pybind11::module_& m)
         .def_readwrite ("exportRandomsAsBinary", &Sequence::exportRandomsAsBinary, "True if randoms should be exported as fair 0/1 values.")
         .def_readwrite ("greyscale", &Sequence::greyscale, "Setting this to true allows faster filtering, but no colors.");
     
-    class_<PySequence, PySequence::P> (m, "Sequence", sequenceBase)
-        .def (init<> (&PySequence::create<std::string>))
+    class_<PySequence, std::shared_ptr<PySequence>> (m, "Sequence", sequenceBase)
+        .def (init<> (&std::make_shared<PySequence, std::string>))
         .def ("set", &PySequence::set)
         .def ("setAgenda", &PySequence::setAgenda)
         .def ("onReset", &PySequence::onReset)
         .def ("setPythonObject", &PySequence::setPythonObject)
         .def ("getPythonObject", &PySequence::getPythonObject);
 
-    //class_<Ticker, Ticker::P> (m, "Ticker")
-    //    .def (init<> (&Ticker::create<SequenceRenderer::P>))
+    //class_<Ticker, std::shared_ptr<Ticker>> (m, "Ticker")
+    //    .def (init<> (&Ticker::create<std::shared_ptr<SequenceRenderer>>))
     //    .def ("stop", &Ticker::stop)
     //    .def ("onBufferSwap", &Ticker::onBufferSwap);
 
@@ -744,12 +743,12 @@ void FillModule (pybind11::module_& m)
     m.def ("GetGLSLResourcesForRandoms", Gears::GetGLSLResourcesForRandoms);
 
 #if 0
-    class_<p2t::Poly2TriWrapper> (m, "CDT",
+    class_<std::shared_ptr<p2t>oly2TriWrapper> (m, "CDT",
                                   "This is poly2tri CDT class python version"
                                   "Poly2Tri Copyright (c) 2009-2010, Poly2Tri Contributors"
                                   "http://code.google.com/p/poly2tri/")
         .def (init<list> (), arg ("polyline"))
-        .def ("triangulate", &p2t::Poly2TriWrapper::Triangulate)
-        .def ("get_triangles", &p2t::Poly2TriWrapper::GetTriangles);
+        .def ("triangulate", &std::shared_ptr<p2t>oly2TriWrapper::Triangulate)
+        .def ("get_triangles", &std::shared_ptr<p2t>oly2TriWrapper::GetTriangles);
 #endif
 }

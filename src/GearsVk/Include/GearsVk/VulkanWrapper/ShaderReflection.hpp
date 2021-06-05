@@ -2,7 +2,7 @@
 #define SHADERREFLECTION_HPP
 
 #include "GearsVkAPI.hpp"
-#include "Noncopyable.hpp"
+#include "Utils/Noncopyable.hpp"
 #include <memory>
 
 #include <cstdint>

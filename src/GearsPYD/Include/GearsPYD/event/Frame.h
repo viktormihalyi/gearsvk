@@ -14,7 +14,7 @@ namespace Gears {
 namespace Event {
 
 class Frame : public Base {
-    Frame (uint iFrame, float time)
+    Frame (uint32_t iFrame, float time)
 #if _WIN32
         : Base (WM_USER, 0, 0), iFrame (iFrame), time (time)
 #else
@@ -24,11 +24,10 @@ class Frame : public Base {
     }
 
 public:
-    GEARS_SHARED_CREATE (Frame);
 
     float       time;
-    uint        iFrame;
-    static uint typeId;
+    uint32_t        iFrame;
+    static uint32_t typeId;
 };
 
 } // namespace Event

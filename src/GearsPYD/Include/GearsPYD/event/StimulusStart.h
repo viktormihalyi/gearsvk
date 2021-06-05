@@ -14,15 +14,13 @@ namespace Gears {
 namespace Event {
 
 class StimulusStart : public Base {
+public:
     StimulusStart ()
         : Base (WM_USER, 0, 0)
     {
     }
 
-public:
-    GEARS_SHARED_CREATE (StimulusStart);
-
-    static uint typeId;
+    static uint32_t typeId;
 };
 
 } // namespace Event

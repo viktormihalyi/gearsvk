@@ -2,8 +2,8 @@
 #define STIMULUSADAPTERVIEW_HPP
 
 // from GearsVk
-#include "Event.hpp"
-#include "Noncopyable.hpp"
+#include "Utils/Event.hpp"
+#include "Utils/Noncopyable.hpp"
 #include <memory>
 
 // from Sequence

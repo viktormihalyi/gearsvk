@@ -3,7 +3,7 @@
 #include "GLFWWindow.hpp"
 #include "ImageData.hpp"
 #include "Surface.hpp"
-#include "TerminalColors.hpp"
+#include "Utils/TerminalColors.hpp"
 #include "VulkanEnvironment.hpp"
 #include "VulkanWrapper.hpp"
 

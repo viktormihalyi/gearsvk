@@ -1,6 +1,5 @@
 ﻿#include "SequenceRenderer.h"
 #include "core/pythonerr.h"
-#include "stdafx.h"
 
 #include "core/Response.h"
 #include "core/Sequence.h"
@@ -128,7 +127,7 @@ SequenceRenderer::SequenceRenderer ()
     cFrame               = 1;
 }
 
-void SequenceRenderer::apply (Sequence::P sequence, ShaderManager::P shaderManager, TextureManager::P textureManager, KernelManager::P kernelManager)
+void SequenceRenderer::apply (std::shared_ptr<Sequence> sequence, ShaderManager::P shaderManager, TextureManager::P textureManager, KernelManager::P kernelManager)
 {
     this->sequence  = sequence;
     iFrame          = 1;
@@ -336,7 +335,7 @@ bool SequenceRenderer::renderFrame (GLuint defaultFrameBuffer, unsigned channelI
                 skippedFrames.push_back (-(int)iFrame);
             }
             totalFramesSkipped += nSkippedFrames;
-            for (uint q = iFrame; q < iFrame + nSkippedFrames; q++)
+            for (uint32_t q = iFrame; q < iFrame + nSkippedFrames; q++)
                 skippedFrames.push_back (q);
             iFrame += nSkippedFrames;
             cFrame += vSyncPeriodsSinceLastFrame;
@@ -388,7 +387,7 @@ bool SequenceRenderer::renderFrame (GLuint defaultFrameBuffer, unsigned channelI
     StimulusRenderer::P stimulusRenderer = iStimulusRenderer->second;
     if (calibrating && iFrame == calibrationStartingFrame)
         histogramBuffer->clear ();
-    Stimulus::CP stimulus = stimulusRenderer->getStimulus ();
+    std::shared_ptr<const Stimulus> stimulus = stimulusRenderer->getStimulus ();
     if (stimulus->doesDynamicToneMapping) {
         if (iFrame == stimulus->startingFrame) {
             histogramBuffer->clear ();
@@ -441,7 +440,7 @@ bool SequenceRenderer::renderFrame (GLuint defaultFrameBuffer, unsigned channelI
         glScaled (0.002, 0.002, 0.002);
         bool first = true;
 
-        Stimulus::CP          stim = this->getCurrentStimulus ();
+        std::shared_ptr<const Stimulus>          stim = this->getCurrentStimulus ();
         std::set<std::string> tags = stim->getTags ();
 
 
@@ -695,14 +694,14 @@ void SequenceRenderer::renderTimeline ()
     bool signalLevels[] = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
     for (auto stim : stimulusRenderers) {
         glPushMatrix ();
-        uint stimStartFrame = stim.second->getStimulus ()->getStartingFrame ();
+        uint32_t stimStartFrame = stim.second->getStimulus ()->getStartingFrame ();
         glTranslated (stimStartFrame, 0.0, 0.0);
 
-        uint fromf = 0;
+        uint32_t fromf = 0;
         if (sequenceTimelineStartFrame > stimStartFrame)
             fromf = sequenceTimelineStartFrame - stimStartFrame;
-        uint dur = stim.second->getStimulus ()->getDuration ();
-        uint tof = 0;
+        uint32_t dur = stim.second->getStimulus ()->getDuration ();
+        uint32_t tof = 0;
         if (sequenceTimelineStartFrame + sequenceTimelineFrameCount > stimStartFrame)
             tof = sequenceTimelineStartFrame + sequenceTimelineFrameCount - stimStartFrame;
         if (tof > dur)
@@ -741,13 +740,13 @@ void SequenceRenderer::renderTimeline ()
         glVertex2d (1, 1);
         glVertex2d (1, -1);
         glColor3d (0, 0, 0);
-        for (uint i = 0; i < 64; i++) {
+        for (uint32_t i = 0; i < 64; i++) {
             glVertex2d ((i + 0.5) / 32.0 - 1 + -0.004, -0.95 + -0.02);
             glVertex2d ((i + 0.5) / 32.0 - 1 + -0.004, -0.95 + 0.02);
             glVertex2d ((i + 0.5) / 32.0 - 1 + 0.004, -0.95 + 0.02);
             glVertex2d ((i + 0.5) / 32.0 - 1 + 0.004, -0.95 + -0.02);
         }
-        for (uint i = 0; i < 64; i++) {
+        for (uint32_t i = 0; i < 64; i++) {
             glVertex2d ((i + 0.5) / 32.0 - 1 + -0.004, 0.95 + -0.02);
             glVertex2d ((i + 0.5) / 32.0 - 1 + -0.004, 0.95 + 0.02);
             glVertex2d ((i + 0.5) / 32.0 - 1 + 0.004, 0.95 + 0.02);
@@ -756,9 +755,9 @@ void SequenceRenderer::renderTimeline ()
         glEnd ();
         glPopMatrix ();
 
-        uint iPic = 0;
-        for (uint iSampleFrame = 0; iSampleFrame < sequenceTimelineFrameCount; iSampleFrame += (sequenceTimelineFrameCount - 1) / 3 + 1) {
-            uint                          iFrameFrame       = sequenceTimelineStartFrame + iSampleFrame;
+        uint32_t iPic = 0;
+        for (uint32_t iSampleFrame = 0; iSampleFrame < sequenceTimelineFrameCount; iSampleFrame += (sequenceTimelineFrameCount - 1) / 3 + 1) {
+            uint32_t                          iFrameFrame       = sequenceTimelineStartFrame + iSampleFrame;
             StimulusRendererMap::iterator iStimulusRenderer = stimulusRenderers.lower_bound (iFrameFrame);
             if (iStimulusRenderer != stimulusRenderers.end ()) {
                 iStimulusRenderer->second->renderSample (
@@ -852,7 +851,7 @@ void SequenceRenderer::abort ()
 
 void SequenceRenderer::pickStimulus (double x, double y)
 {
-    uint iPickedFrame        = (int)(x * sequence->getDuration ());
+    uint32_t iPickedFrame        = (int)(x * sequence->getDuration ());
     selectedStimulusRenderer = stimulusRenderers.lower_bound (iPickedFrame);
     if (selectedStimulusRenderer == stimulusRenderers.end ())
         selectedStimulusRenderer = stimulusRenderers.begin ();
@@ -961,7 +960,7 @@ void SequenceRenderer::cleanup ()
     }
 }
 
-void SequenceRenderer::renderParticles (Shader* particleShader, uint iStimulusFrame, float time)
+void SequenceRenderer::renderParticles (Shader* particleShader, uint32_t iStimulusFrame, float time)
 {
     particleBuffers[1]->setRenderTarget ();
     particleShader->enable ();
@@ -976,7 +975,7 @@ void SequenceRenderer::renderParticles (Shader* particleShader, uint iStimulusFr
     std::swap (particleBuffers[0], particleBuffers[1]);
 }
 
-void SequenceRenderer::renderRandoms (Shader* randomGeneratorShader, uint iStimulusFrame, uint randomSeed, uint freezeRandomsAfterFrame)
+void SequenceRenderer::renderRandoms (Shader* randomGeneratorShader, uint32_t iStimulusFrame, uint32_t randomSeed, uint32_t freezeRandomsAfterFrame)
 {
     throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 
@@ -1013,7 +1012,7 @@ void SequenceRenderer::renderRandoms (Shader* randomGeneratorShader, uint iStimu
     if (randomExportStream.is_open ()) {
         glBindTexture (GL_TEXTURE_2D, randomSequenceBuffers[0]->getColorBuffer ());
 
-        uint* randoms = new uint[sequence->maxRandomGridWidth * sequence->maxRandomGridHeight * 4];
+        uint32_t* randoms = new uint32_t[sequence->maxRandomGridWidth * sequence->maxRandomGridHeight * 4];
         glGetTexImage (GL_TEXTURE_2D, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, (void*)randoms);
 
         if (sequence->exportRandomsWithHashmark) {
@@ -1028,10 +1027,10 @@ void SequenceRenderer::renderRandoms (Shader* randomGeneratorShader, uint iStimu
             else
                 randomExportStream << "#Values are unsigned 32-bit integers";
         }
-        uint i = 0;
-        for (uint iRow = 0; iRow < sequence->maxRandomGridHeight; iRow++) {
-            for (uint iPix = 0; iPix < sequence->maxRandomGridWidth; iPix++) {
-                for (uint iColor = 0; iColor < sequence->exportRandomsChannelCount; iColor++, i++) {
+        uint32_t i = 0;
+        for (uint32_t iRow = 0; iRow < sequence->maxRandomGridHeight; iRow++) {
+            for (uint32_t iPix = 0; iPix < sequence->maxRandomGridWidth; iPix++) {
+                for (uint32_t iColor = 0; iColor < sequence->exportRandomsChannelCount; iColor++, i++) {
                     if (sequence->exportRandomsAsReal)
                         randomExportStream << ((double)randoms[i] / 0xffffffff) << "\t";
                     else if (sequence->exportRandomsAsBinary)
@@ -1093,7 +1092,7 @@ Ticker::P SequenceRenderer::startTicker ()
 }
 
 
-const Stimulus::SignalMap& SequenceRenderer::tick (uint& iTick)
+const Stimulus::SignalMap& SequenceRenderer::tick (uint32_t& iTick)
 {
     if (iFrame == 1)
         return noTickSignal;
@@ -1140,7 +1139,7 @@ bool SequenceRenderer::exporting () const
     return randomExportStream.is_open ();
 }
 
-void SequenceRenderer::beginCalibrationFrame (Stimulus::CP stimulus)
+void SequenceRenderer::beginCalibrationFrame (std::shared_ptr<const Stimulus> stimulus)
 {
     throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
@@ -1250,7 +1249,7 @@ void SequenceRenderer::endVideoExportFrame ()
 }
 
 
-void SequenceRenderer::endCalibrationFrame (Stimulus::CP stimulus)
+void SequenceRenderer::endCalibrationFrame (std::shared_ptr<const Stimulus> stimulus)
 {
     throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 
@@ -1394,7 +1393,7 @@ void SequenceRenderer::enableVideoExport (const char* path, int fr, int w, int h
 #endif
 }
 
-void SequenceRenderer::enableCalibration (uint startingFrame, uint duration, float histogramMin, float histogramMax)
+void SequenceRenderer::enableCalibration (uint32_t startingFrame, uint32_t duration, float histogramMin, float histogramMax)
 {
     calibrating              = true;
     calibrationStartingFrame = startingFrame;
@@ -1427,25 +1426,25 @@ void SequenceRenderer::readCalibrationResults ()
     glGetTexImage (GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, (void*)ohisti);
 
     float runningVal = 0.f;
-    for (uint e = 0; e < histogramResolution; e++) {
+    for (uint32_t e = 0; e < histogramResolution; e++) {
         float temp   = ohisti[e * 4] - runningVal;
         runningVal   = ohisti[e * 4];
         histi[e * 4] = temp;
     }
     runningVal = 0.f;
-    for (uint e = 0; e < histogramResolution; e++) {
+    for (uint32_t e = 0; e < histogramResolution; e++) {
         float temp       = ohisti[e * 4 + 1] - runningVal;
         runningVal       = ohisti[e * 4 + 1];
         histi[e * 4 + 1] = temp;
     }
     runningVal = 0.f;
-    for (uint e = 0; e < histogramResolution; e++) {
+    for (uint32_t e = 0; e < histogramResolution; e++) {
         float temp       = ohisti[e * 4 + 2] - runningVal;
         runningVal       = ohisti[e * 4 + 2];
         histi[e * 4 + 2] = temp;
     }
     runningVal = 0.f;
-    for (uint e = 0; e < histogramResolution; e++) {
+    for (uint32_t e = 0; e < histogramResolution; e++) {
         float temp       = ohisti[e * 4 + 3] - runningVal;
         runningVal       = ohisti[e * 4 + 3];
         histi[e * 4 + 3] = temp;
@@ -1454,7 +1453,7 @@ void SequenceRenderer::readCalibrationResults ()
     float  histogramTop = 0;
     double m            = 0;
     double w            = 0;
-    for (uint e = 0; e < histogramResolution; e++) {
+    for (uint32_t e = 0; e < histogramResolution; e++) {
         double y = histi[e * 4] + histi[e * 4 + 1] + histi[e * 4 + 2];
         w += y;
         m += y * (e / (float)histogramResolution * (histogramMax - histogramMin) + histogramMin);
@@ -1464,19 +1463,19 @@ void SequenceRenderer::readCalibrationResults ()
     histogramScale = histogramTop / (float)(iFrame - calibrationStartingFrame) * 1000.4f;
 
     double vari2 = 0;
-    for (uint e = 0; e < histogramResolution; e++) {
+    for (uint32_t e = 0; e < histogramResolution; e++) {
         double d = e / (float)histogramResolution * (histogramMax - histogramMin) + histogramMin - measuredMean;
         vari2 += (histi[e * 4] + histi[e * 4 + 1] + histi[e * 4 + 2]) * d * d;
     }
     measuredVariance = (float)sqrt (vari2 / w);
 
-    for (uint e = 0; e < histogramResolution; e++) {
+    for (uint32_t e = 0; e < histogramResolution; e++) {
         if (histi[e * 4] + histi[e * 4 + 1] + histi[e * 4 + 2] > 10.5) {
             measuredToneRangeMin = e / (float)histogramResolution * (histogramMax - histogramMin) + histogramMin;
             break;
         }
     }
-    for (uint e = 0; e < histogramResolution - 1; e++) {
+    for (uint32_t e = 0; e < histogramResolution - 1; e++) {
         if (histi[(histogramResolution - 1 - e) * 4] + histi[(histogramResolution - 1 - e) * 4 + 1] + histi[(histogramResolution - 1 - e) * 4 + 2] > 10.5) {
             measuredToneRangeMax = (histogramResolution - e) / (float)histogramResolution * (histogramMax - histogramMin) + histogramMin;
             break;
@@ -1495,7 +1494,7 @@ void SequenceRenderer::readCalibrationResults ()
 #endif
 }
 
-Stimulus::CP SequenceRenderer::getCurrentStimulus ()
+std::shared_ptr<const Stimulus> SequenceRenderer::getCurrentStimulus ()
 {
     StimulusRendererMap::iterator iStimulusRenderer = stimulusRenderers.lower_bound (iFrame);
     if (iStimulusRenderer == stimulusRenderers.end ())
@@ -1540,7 +1539,7 @@ double SequenceRenderer::getTime ()
 }
 
 
-pybind11::object SequenceRenderer::renderSample (uint sFrame, int left, int top, int width, int height)
+pybind11::object SequenceRenderer::renderSample (uint32_t sFrame, int left, int top, int width, int height)
 {
     StimulusRendererMap::iterator iStimulusRenderer = stimulusRenderers.lower_bound (sFrame);
     if (iStimulusRenderer == stimulusRenderers.end ()) {

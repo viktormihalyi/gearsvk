@@ -1,8 +1,6 @@
 #ifndef OPENGLPROXY_HPP
 #define OPENGLPROXY_HPP
 
-#include "stdafx.h"
-
 #include <cstdint>
 #include <exception>
 #include <stdexcept>

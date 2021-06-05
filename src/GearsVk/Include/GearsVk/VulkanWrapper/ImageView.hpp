@@ -1,10 +1,10 @@
 #ifndef IMAGEVIEW_HPP
 #define IMAGEVIEW_HPP
 
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
 #include "Image.hpp"
-#include "MovablePtr.hpp"
-#include "Utils.hpp"
+#include "Utils/MovablePtr.hpp"
+#include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"
 
 #include <vulkan/vulkan.h>

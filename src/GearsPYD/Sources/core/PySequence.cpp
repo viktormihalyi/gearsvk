@@ -1,13 +1,18 @@
-#include "core/Sequence.h"
+#include "core/PySequence.h"
 #include "PythonDict.h"
-#include "core/Response.h"
-#include "core/Stimulus.h"
-#include "stdafx.h"
+#include "core/PyResponse.h"
+#include "core/PyStimulus.h"
+#include "PyExtract.hpp"
 #include <algorithm>
 #include <iostream>
 #include <sstream>
 
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
+
+#include "Utils/SourceLocation.hpp"
+
+#define THROW_LOC() \
+    throw ::std::runtime_error (::Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ())
 
 
 pybind11::object PySequence::set (pybind11::object settings)
@@ -15,11 +20,11 @@ pybind11::object PySequence::set (pybind11::object settings)
     throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
 	using namespace boost::python;
-	dict d = extract<dict>(settings);
-	Gears::PythonDict pd(d);
+	dict d = PyExtract<dict>(settings);
+	std::shared_ptr<GearsythonDict> pd(d);
 	pd.process( [&](std::string key) {
 		if(key == "geometry") {
-			Gears::PythonDict geomSettings = pd.getSubDict(key);
+			std::shared_ptr<GearsythonDict> geomSettings = pd.getSubDict(key);
 			geomSettings.process( [&](std::string key) {
 				if(		key == "fieldWidth_um")		fieldWidth_um	= geomSettings.getFloat(key);
 				else if(key == "fieldHeight_um")	fieldHeight_um	= geomSettings.getFloat(key);
@@ -35,56 +40,56 @@ pybind11::object PySequence::set (pybind11::object settings)
 }
 
 
-PySequence::P PySequence::setAgenda (pybind11::object agenda)
+std::shared_ptr<PySequence> PySequence::setAgenda (pybind11::object agenda)
 {
     using namespace pybind11;
     list                     l = agenda.cast<list> ();
-    std::vector<PyStimulus::P> stimsUnderConstruction;
+    std::vector<std::shared_ptr<PyStimulus>> stimsUnderConstruction;
     for (int i = 0; i < len (l); i++) {
         {
-            extract<PyResponse::P> s (l[i]);
+            PyExtract<std::shared_ptr<PyResponse>> s (l[i]);
             if (s.check ()) {
                 addResponse (s ());
                 continue;
             }
         }
         {
-            extract<PyStimulus::P> s (l[i]);
+            PyExtract<std::shared_ptr<PyStimulus>> s (l[i]);
             if (s.check ()) {
-                PyStimulus::P sp = s ();
+                std::shared_ptr<PyStimulus> sp = s ();
                 stimsUnderConstruction.push_back (sp);
                 addStimulus (sp);
                 continue;
             }
         }
         {
-            extract<RaiseSignal::P> s (l[i]);
+            PyExtract<std::shared_ptr<RaiseSignal>> s (l[i]);
             if (s.check ()) {
-                RaiseSignal::P p = s ();
+                std::shared_ptr<RaiseSignal> p = s ();
                 raiseSignal (p->getChannel ());
                 continue;
             }
         }
         {
-            extract<ClearSignal::P> s (l[i]);
+            PyExtract<std::shared_ptr<ClearSignal>> s (l[i]);
             if (s.check ()) {
-                ClearSignal::P p = s ();
+                std::shared_ptr<ClearSignal> p = s ();
                 clearSignal (p->getChannel ());
                 continue;
             }
         }
         {
-            extract<RaiseAndClearSignal::P> s (l[i]);
+            PyExtract<std::shared_ptr<RaiseAndClearSignal>> s (l[i]);
             if (s.check ()) {
-                RaiseAndClearSignal::P p = s ();
+                std::shared_ptr<RaiseAndClearSignal> p = s ();
                 raiseAndClearSignal (p->getChannel (), p->getHoldFrameCount ());
                 continue;
             }
         }
         {
-            extract<StartMeasurement::P> s (l[i]);
+            PyExtract<std::shared_ptr<StartMeasurement>> s (l[i]);
             if (s.check ()) {
-                StartMeasurement::P p = s ();
+                std::shared_ptr<StartMeasurement> p = s ();
                 raiseSignal (p->getExpSyncChannel ());
                 if (!setMeasurementStart ()) {
                     std::stringstream ss;
@@ -97,9 +102,9 @@ PySequence::P PySequence::setAgenda (pybind11::object agenda)
             }
         }
         {
-            extract<EndMeasurement::P> s (l[i]);
+            PyExtract<std::shared_ptr<EndMeasurement>> s (l[i]);
             if (s.check ()) {
-                EndMeasurement::P p = s ();
+                std::shared_ptr<EndMeasurement> p = s ();
                 clearSignal (p->getExpSyncChannel ());
                 raiseAndClearSignal (p->getMeasurementStopChannel (), p->getHoldStopFrameCount ());
                 if (!setMeasurementEnd ()) {

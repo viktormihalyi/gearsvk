@@ -1,8 +1,8 @@
 #include "Instance.hpp"
 
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
 
-#include "Utils.hpp"
+#include "Utils/Utils.hpp"
 #include "VulkanUtils.hpp"
 
 #include "spdlog/spdlog.h"

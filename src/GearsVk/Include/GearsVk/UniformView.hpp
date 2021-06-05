@@ -1,8 +1,8 @@
 ﻿#ifndef UNIFORM_VIEW_HPP
 #define UNIFORM_VIEW_HPP
 
-#include "Assert.hpp"
-#include "Noncopyable.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/Noncopyable.hpp"
 #include <memory>
 
 #include "GearsVkAPI.hpp"

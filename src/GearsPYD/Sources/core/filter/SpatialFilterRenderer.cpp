@@ -7,7 +7,6 @@
 #include "gpu/StimulusGrid.hpp"
 #include "gpu/Texture.hpp"
 #include "gpu/TextureQueue.hpp"
-#include "stdafx.h"
 
 #include "core/Sequence.h"
 #include "core/filter/KernelManager.h"

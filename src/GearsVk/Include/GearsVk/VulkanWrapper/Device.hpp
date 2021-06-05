@@ -1,9 +1,9 @@
 #ifndef DEVICE_HPP
 #define DEVICE_HPP
 
-#include "Assert.hpp"
-#include "MovablePtr.hpp"
-#include "Utils.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/MovablePtr.hpp"
+#include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"
 
 #include <vulkan/vulkan.h>

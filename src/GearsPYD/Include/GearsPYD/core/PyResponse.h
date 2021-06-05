@@ -2,7 +2,6 @@
 
 #include "Sequence/Response.h"
 
-#include "stdafx.h"
 #include <memory>
 
 #include <algorithm>
@@ -14,6 +13,8 @@
 #include <string>
 #include <vector>
 
+#include "pybind11/pybind11.h"
+
 class Sequence;
 class SpatialFilter;
 
@@ -22,8 +23,6 @@ class PyResponse : public Response {
 public:
     using Response::Response;
     
-    GEARS_SHARED_CREATE (PyResponse);
-
     pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);
     pybind11::object getPythonObject () const;
@@ -32,8 +31,8 @@ public:
     pybind11::object setJoiner (pybind11::object joiner);
 
 
-    std::map<uint, std::vector<pybind11::object>> callbacks;
-    void                                          registerCallback (uint msg, pybind11::object callback);
+    std::map<uint32_t, std::vector<pybind11::object>> callbacks;
+    void                                          registerCallback (uint32_t msg, pybind11::object callback);
 
 #if 0
     template<typename T>

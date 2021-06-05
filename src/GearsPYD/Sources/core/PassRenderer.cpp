@@ -8,7 +8,6 @@
 #include "core/StimulusRenderer.h"
 #include "filter/SpatialFilter.h"
 #include "gpu/Nothing.hpp"
-#include "stdafx.h"
 #include <chrono>
 #include <ctime>
 #include <fstream>
@@ -104,7 +103,7 @@ PassRenderer::~PassRenderer ()
         delete videoFrameV;
 }
 
-void PassRenderer::_renderPass (float time, uint& slot)
+void PassRenderer::_renderPass (float time, uint32_t& slot)
 {
     auto stimulus         = pass->getStimulus ();
     auto sequenceRenderer = stimulusRenderer->getSequenceRenderer ();
@@ -187,7 +186,7 @@ void PassRenderer::renderPass (int skippedFrames, int offset)
 
     stimulusGeneratorShader->enable ();
 
-    uint slot = 0;
+    uint32_t slot = 0;
     _renderPass (time, slot);
 
     if (pass->hasVideo () && videoFrameY != nullptr) {
@@ -231,9 +230,9 @@ void PassRenderer::renderPass (int skippedFrames, int offset)
     }
 }
 
-void PassRenderer::renderSample (uint sFrame)
+void PassRenderer::renderSample (uint32_t sFrame)
 {
-    uint cFrame       = iFrame;
+    uint32_t cFrame       = iFrame;
     auto cVideoFrameY = videoFrameY;
     videoFrameY       = nullptr;
     iFrame            = sFrame;
@@ -242,7 +241,7 @@ void PassRenderer::renderSample (uint sFrame)
     videoFrameY = cVideoFrameY;
 }
 
-void PassRenderer::renderTimeline (uint startFrame, uint frameCount)
+void PassRenderer::renderTimeline (uint32_t startFrame, uint32_t frameCount)
 {
     throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
 #if 0
@@ -264,7 +263,7 @@ void PassRenderer::renderTimeline (uint startFrame, uint frameCount)
     glEnd ();
     timelineShader->enable ();
     timelineShader->bindUniformFloat ("frameInterval", stimulus->sequence->getFrameInterval_s ());
-    uint stride = frameCount / 4000 + 1;
+    uint32_t stride = frameCount / 4000 + 1;
     timelineShader->bindUniformInt ("startFrame", startFrame);
     timelineShader->bindUniformInt ("stride", stride);
     for (auto& setting : pass->shaderVariables) {
@@ -317,7 +316,7 @@ void PassRenderer::reset ()
     iFrame = 1;
 }
 
-void PassRenderer::skipFrames (uint nFramesToSkip)
+void PassRenderer::skipFrames (uint32_t nFramesToSkip)
 {
     iFrame += nFramesToSkip;
 }

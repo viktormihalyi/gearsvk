@@ -1,6 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
 #include "SequenceAPI.hpp"
 #include <memory>
 
@@ -24,7 +23,7 @@ public:
     struct Button {
         std::string label;
         float       xcoord, ycoord, width, height;
-        uint        key;
+        uint32_t        key;
         bool        visible;
     };
     std::vector<Button> buttons;
@@ -37,9 +36,7 @@ public:
     Response ();
     virtual ~Response () = default;
 
-    GEARS_SHARED_CREATE (Response);
-
-    void addButton (std::string label, float x, float y, float w, float h, uint key, bool visible);
+    void addButton (std::string label, float x, float y, float w, float h, uint32_t key, bool visible);
 
     void setSequence (std::shared_ptr<Sequence> sequence)
     {

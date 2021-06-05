@@ -1,5 +1,4 @@
 #include "Poly2TriWrapper.h"
-#include "stdafx.h"
 
 #include <stdexcept>
 

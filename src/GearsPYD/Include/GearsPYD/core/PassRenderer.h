@@ -1,6 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
 #include <memory>
 
 #include "glmlib.hpp"
@@ -40,20 +39,20 @@ class PassRenderer {
     //VideoFrame   videoFrame;
     glm::vec2 videoClipFactorY;
     glm::vec2 videoClipFactorUV;
-    void      _renderPass (float time, uint& slot);
+    void      _renderPass (float time, uint32_t& slot);
 
 public:
     GEARS_SHARED_CREATE (PassRenderer);
     ~PassRenderer ();
 
     void renderPass (int skippedFrames, int offset = 0);
-    void renderSample (uint sFrame);
-    void renderTimeline (uint startFrame, uint frameCount);
+    void renderSample (uint32_t sFrame);
+    void renderTimeline (uint32_t startFrame, uint32_t frameCount);
 
     unsigned int getCurrentFrame () { return iFrame; }
 
     std::shared_ptr<Pass const> getPass () const { return pass; }
 
     void reset ();
-    void skipFrames (uint nFramesToSkip);
+    void skipFrames (uint32_t nFramesToSkip);
 };

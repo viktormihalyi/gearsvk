@@ -1,13 +1,13 @@
 #include "GLFWWindow.hpp"
-#include "GearsAPIv2.hpp"
+#include "GearsPYD/GearsAPIv2.hpp"
 #include "GraphRenderer.hpp"
 #include "RenderGraph.hpp"
 #include "SequenceAdapter.hpp"
 #include "VulkanEnvironment.hpp"
 #include "StimulusAdapter.hpp"
 
-#include "BuildType.hpp"
-#include "CommandLineFlag.hpp"
+#include "Utils/BuildType.hpp"
+#include "Utils/CommandLineFlag.hpp"
 
 
 int main (int argc, char** argv)

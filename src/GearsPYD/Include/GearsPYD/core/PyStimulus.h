@@ -2,7 +2,6 @@
 
 #include "Sequence/Stimulus.h"
 
-#include "stdafx.h"
 #include <memory>
 
 #include <algorithm>
@@ -16,6 +15,8 @@
 
 #include <glm/glm.hpp>
 
+#include "pybind11/pybind11.h"
+
 class Pass;
 class Sequence;
 
@@ -23,8 +24,6 @@ class PyStimulus : public Stimulus {
 public:
     using Stimulus::Stimulus;
 
-    GEARS_SHARED_CREATE (PyStimulus);
-    
     pybind11::object joiner;
     pybind11::object setJoiner (pybind11::object joiner);
 
@@ -37,11 +36,11 @@ public:
     pybind11::object setTemporalWeights (pybind11::object twList, bool fullScreen);
     pybind11::object setTemporalWeightingFunction (std::string func, int memoryLength, bool fullscreen, float minPlot, float maxPlot);
     pybind11::object setLtiMatrix (pybind11::object mList);
-    pybind11::object setLtiImpulseResponse (pybind11::object mList, uint nStates);
+    pybind11::object setLtiImpulseResponse (pybind11::object mList, uint32_t nStates);
 
-    std::map<uint, std::vector<pybind11::object>> callbacks;
+    std::map<uint32_t, std::vector<pybind11::object>> callbacks;
 
-    void registerCallback (uint msg, pybind11::object callback);
+    void registerCallback (uint32_t msg, pybind11::object callback);
 
 #if 0
     template<typename T>

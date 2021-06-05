@@ -2,7 +2,7 @@
 #define VULKANOBJECT_HPP
 
 #include "GearsVkAPI.hpp"
-#include "UUID.hpp"
+#include "Utils/UUID.hpp"
 
 namespace GVK {
 

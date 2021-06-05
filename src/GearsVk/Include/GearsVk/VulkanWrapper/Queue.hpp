@@ -5,9 +5,9 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "Assert.hpp"
-#include "MovablePtr.hpp"
-#include "Utils.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/MovablePtr.hpp"
+#include "Utils/Utils.hpp"
 
 namespace GVK {
 

@@ -1,19 +1,20 @@
-#include "Assert.hpp"
+#include "Utils/Assert.hpp"
 #include "Camera.hpp"
-#include "FullscreenQuad.hpp"
+#include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
+#include "GearsVk/RenderGraph/DrawRecordable/FullscreenQuad.hpp"
 #include "GLFWWindow.hpp"
 #include "GraphRenderer.hpp"
 #include "GraphSettings.hpp"
 #include "ImageData.hpp"
-#include "MultithreadedFunction.hpp"
-#include "Noncopyable.hpp"
+#include "Utils/MultithreadedFunction.hpp"
+#include "Utils/Noncopyable.hpp"
 #include "Operation.hpp"
 #include "RenderGraph.hpp"
 #include "Resource.hpp"
 #include "SDLWindow.hpp"
-#include "Time.hpp"
-#include "Timer.hpp"
-#include "Utils.hpp"
+#include "Utils/Time.hpp"
+#include "Utils/Timer.hpp"
+#include "Utils/Utils.hpp"
 #include "VulkanEnvironment.hpp"
 
 // from VulkanWrapper
@@ -37,7 +38,7 @@
 #include <vector>
 
 #include "GoogleTestEnvironment.hpp"
-#include "UUID.hpp"
+#include "Utils/UUID.hpp"
 #include "UniformView.hpp"
 
 #include "glmlib.hpp"

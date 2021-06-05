@@ -1,4 +1,5 @@
 #pragma once
+#include "PyExtract.hpp"
 
 inline std::string pythonerrAsString ()
 {
@@ -20,6 +21,6 @@ inline std::string pythonerrAsString ()
         formatted_list = format_exception(hexc,hval,htb);
     }
     formatted = str("\n").join(formatted_list);
-    return extract<std::string>(formatted);
+    return PyExtract<std::string>(formatted);
 #endif
 }

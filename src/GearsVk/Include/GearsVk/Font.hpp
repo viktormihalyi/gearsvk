@@ -6,10 +6,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Assert.hpp"
-#include "Event.hpp"
+#include "Utils/Assert.hpp"
+#include "Utils/Event.hpp"
 #include "GearsVkAPI.hpp"
-#include "Noncopyable.hpp"
+#include "Utils/Noncopyable.hpp"
 #include <memory>
 
 #include "glmlib.hpp"

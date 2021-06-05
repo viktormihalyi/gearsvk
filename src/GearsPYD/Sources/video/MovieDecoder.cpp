@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "MovieDecoder.h"
 #include "VideoFrame.h"
 

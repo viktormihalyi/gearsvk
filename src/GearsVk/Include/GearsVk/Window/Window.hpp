@@ -3,8 +3,8 @@
 
 #include "GearsVkAPI.hpp"
 
-#include "Event.hpp"
-#include "Noncopyable.hpp"
+#include "Utils/Event.hpp"
+#include "Utils/Noncopyable.hpp"
 #include <memory>
 
 #include <functional>

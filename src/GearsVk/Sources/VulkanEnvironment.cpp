@@ -1,12 +1,12 @@
 #include "VulkanEnvironment.hpp"
 
-#include "BuildType.hpp"
-#include "CommandLineFlag.hpp"
-#include "StaticInit.hpp"
-#include "TerminalColors.hpp"
-#include "Timer.hpp"
-#include "Window.hpp"
+#include "Utils/BuildType.hpp"
+#include "Utils/CommandLineFlag.hpp"
+#include "Utils/StaticInit.hpp"
+#include "Utils/TerminalColors.hpp"
+#include "Utils/Timer.hpp"
 
+#include "Window.hpp"
 #include "Allocator.hpp"
 #include "DebugUtilsMessenger.hpp"
 #include "DeviceExtra.hpp"

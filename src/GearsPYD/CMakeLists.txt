@@ -3,9 +3,11 @@ set (IncludePath ${CMAKE_SOURCE_DIR}/src/GearsPYD/Include)
 set (HeadersPath ${CMAKE_SOURCE_DIR}/src/GearsPYD/Include/GearsPYD)
 set (Headers
     ${HeadersPath}/core/PythonDict.h
-    ${HeadersPath}/core/Pass.h
-    ${HeadersPath}/core/Stimulus.h
-    ${HeadersPath}/core/Sequence.h
+    ${HeadersPath}/core/PyPass.h
+    ${HeadersPath}/core/PyStimulus.h
+    ${HeadersPath}/core/PySequence.h
+    ${HeadersPath}/core/PyResponse.h
+    ${HeadersPath}/PyExtract.hpp
 
     ${HeadersPath}/GearsAPIv2.hpp
 )
@@ -14,10 +16,10 @@ set (SourcesPath ${CMAKE_SOURCE_DIR}/src/GearsPYD/Sources)
 set (Sources
     ${SourcesPath}/event/events.cpp
 
-    ${SourcesPath}/core/Pass.cpp
-    ${SourcesPath}/core/Stimulus.cpp
-    ${SourcesPath}/core/Sequence.cpp
-    ${SourcesPath}/core/Response.cpp
+    ${SourcesPath}/core/PyPass.cpp
+    ${SourcesPath}/core/PyStimulus.cpp
+    ${SourcesPath}/core/PySequence.cpp
+    ${SourcesPath}/core/PyResponse.cpp
 
     ${SourcesPath}/GearsAPIv2.cpp
 
@@ -48,12 +50,11 @@ set (IncludeDirectoriesPrivate
 set (IncludeDirectoriesPublic
     ${IncludePath}
 
-    ${CMAKE_SOURCE_DIR}/src/Utils/Include/Utils
+    ${CMAKE_SOURCE_DIR}/src/Utils/Include
 
     ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk
     ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/Camera
     ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/RenderGraph
-    ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/RenderGraph/DrawRecordable
     ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/VulkanWrapper
     ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/VulkanWrapper/Utils
     ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/Window
