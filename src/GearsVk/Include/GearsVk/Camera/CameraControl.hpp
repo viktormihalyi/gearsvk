@@ -3,8 +3,8 @@
 
 #include "Camera.hpp"
 #include "Utils/Event.hpp"
-#include "InputState.hpp"
-#include "Window.hpp"
+#include "GearsVk/InputState.hpp"
+#include "GearsVk/Window/Window.hpp"
 
 namespace GVK {
 

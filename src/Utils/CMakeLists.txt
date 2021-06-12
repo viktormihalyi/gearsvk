@@ -1,6 +1,6 @@
 
-set (IncludePath ${CMAKE_SOURCE_DIR}/src/Utils/Include)
-set (HeadersPath ${CMAKE_SOURCE_DIR}/src/Utils/Include/Utils)
+set (IncludePath ${CMAKE_CURRENT_SOURCE_DIR}/Include)
+set (HeadersPath ${CMAKE_CURRENT_SOURCE_DIR}/Include/Utils)
 set (Headers
     ${HeadersPath}/Assert.hpp
     ${HeadersPath}/BuildType.hpp
@@ -24,7 +24,7 @@ set (Headers
     ${HeadersPath}/UUID.hpp
 )
 
-set (SourcesPath ${CMAKE_SOURCE_DIR}/src/Utils/Sources)
+set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
     ${SourcesPath}/Assert.cpp
     ${SourcesPath}/CommandLineFlag.cpp
@@ -41,8 +41,6 @@ target_include_directories (Utils
     PRIVATE ${HeadersPath}
     PUBLIC  ${IncludePath}
 )
-
-target_compile_definitions (Utils PRIVATE GVK_UTILS_EXPORTS)
 
 if (WIN32)
     set (UUID_LIB rpcrt4)

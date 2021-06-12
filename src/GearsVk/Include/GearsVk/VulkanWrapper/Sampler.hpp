@@ -1,7 +1,7 @@
 #ifndef SAMPLER_HPP
 #define SAMPLER_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 #include "Utils/MovablePtr.hpp"
 #include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"

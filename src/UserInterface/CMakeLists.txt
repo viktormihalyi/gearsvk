@@ -1,5 +1,5 @@
 
-file (COPY ${CMAKE_SOURCE_DIR}/src/UserInterface/Sources/
+file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/Sources/
       DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
-install (DIRECTORY ${CMAKE_SOURCE_DIR}/src/UserInterface/Sources/Project DESTINATION bin)
+install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Sources/Project DESTINATION bin)

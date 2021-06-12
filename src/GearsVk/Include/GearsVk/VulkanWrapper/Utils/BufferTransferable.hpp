@@ -1,16 +1,16 @@
 #ifndef BUFFER_TRANSFERABLE_HPP
 #define BUFFER_TRANSFERABLE_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
-#include "Buffer.hpp"
-#include "CommandBuffer.hpp"
-#include "Device.hpp"
-#include "DeviceMemory.hpp"
-#include "Image.hpp"
-#include "MemoryMapping.hpp"
-#include "SingleTimeCommand.hpp"
-#include "VulkanUtils.hpp"
+#include "GearsVk/VulkanWrapper/Buffer.hpp"
+#include "GearsVk/VulkanWrapper/CommandBuffer.hpp"
+#include "GearsVk/VulkanWrapper/Device.hpp"
+#include "GearsVk/VulkanWrapper/DeviceMemory.hpp"
+#include "GearsVk/VulkanWrapper/Image.hpp"
+#include "GearsVk/VulkanWrapper/Utils/MemoryMapping.hpp"
+#include "GearsVk/VulkanWrapper/Utils/SingleTimeCommand.hpp"
+#include "GearsVk/VulkanWrapper/Utils/VulkanUtils.hpp"
 #include <memory>
 
 #include <cstring>

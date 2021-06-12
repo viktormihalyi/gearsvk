@@ -1,4 +1,5 @@
 #include "PhysicalDevice.hpp"
+#include "VulkanUtils.hpp"
 
 #include "Utils/BuildType.hpp"
 

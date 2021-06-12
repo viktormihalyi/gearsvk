@@ -1,12 +1,11 @@
 #ifndef PHYSICALDEVICE_HPP
 #define PHYSICALDEVICE_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
 #include "Utils/Assert.hpp"
 #include "Utils/MovablePtr.hpp"
 #include "Utils/Utils.hpp"
-#include "VulkanUtils.hpp"
 
 #include <vulkan/vulkan.h>
 

@@ -1,14 +1,14 @@
 #ifndef RENDERGRAPH_HPP
 #define RENDERGRAPH_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
 #include "Utils/Event.hpp"
-#include "VulkanUtils.hpp"
-#include "VulkanWrapper.hpp"
+#include "GearsVk/VulkanWrapper/Utils/VulkanUtils.hpp"
+#include "GearsVk/VulkanWrapper/VulkanWrapper.hpp"
 #include <memory>
 
-#include "GraphSettings.hpp"
+#include "GearsVk/RenderGraph/GraphSettings.hpp"
 
 #include <set>
 

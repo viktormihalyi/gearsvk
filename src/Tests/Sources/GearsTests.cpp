@@ -1,21 +1,21 @@
 #include "GoogleTestEnvironment.hpp"
 
 #include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
-#include "Font.hpp"
-#include "GLFWWindow.hpp"
-#include "GraphRenderer.hpp"
-#include "ImageData.hpp"
-#include "RenderGraph.hpp"
-#include "UniformReflection.hpp"
-#include "VulkanEnvironment.hpp"
-#include "VulkanWrapper.hpp"
-#include "StimulusAdapter.hpp"
+#include "GearsVk/Font.hpp"
+#include "GearsVk/Window/GLFWWindow.hpp"
+#include "GearsVk/RenderGraph/GraphRenderer.hpp"
+#include "GearsVk/VulkanWrapper/Utils/ImageData.hpp"
+#include "GearsVk/RenderGraph/RenderGraph.hpp"
+#include "GearsVk/RenderGraph/UniformReflection.hpp"
+#include "GearsVk/VulkanEnvironment.hpp"
+#include "GearsVk/VulkanWrapper/VulkanWrapper.hpp"
+#include "Sequence/StimulusAdapter.hpp"
 
 #include "Utils/StaticInit.hpp"
-#include "glmlib.hpp"
+#include "GearsVk/glmlib.hpp"
 
-#include "GearsAPIv2.hpp"
-#include "SequenceAdapter.hpp"
+#include "GearsPYD/GearsAPIv2.hpp"
+#include "Sequence/SequenceAdapter.hpp"
 
 
 using namespace GVK;

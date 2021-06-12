@@ -8,7 +8,7 @@
 
 #include "Utils/Assert.hpp"
 #include "Utils/Event.hpp"
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 #include "Utils/Noncopyable.hpp"
 #include <memory>
 

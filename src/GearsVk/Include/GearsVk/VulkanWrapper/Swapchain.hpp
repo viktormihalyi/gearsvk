@@ -1,7 +1,7 @@
 #ifndef SWAPCHAIN_HPP
 #define SWAPCHAIN_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
 #include "Utils/Assert.hpp"
 #include "VulkanObject.hpp"

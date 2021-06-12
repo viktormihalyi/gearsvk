@@ -2,8 +2,8 @@
 #define SINGLETIMECOMMAND_HPP
 
 #include "Utils/Assert.hpp"
-#include "CommandBuffer.hpp"
-#include "DeviceExtra.hpp"
+#include "GearsVk/VulkanWrapper/CommandBuffer.hpp"
+#include "GearsVk/VulkanWrapper/DeviceExtra.hpp"
 #include "Utils/Noncopyable.hpp"
 #include "Utils/Utils.hpp"
 

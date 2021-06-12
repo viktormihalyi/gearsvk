@@ -1,6 +1,6 @@
 
-set (IncludePath ${CMAKE_SOURCE_DIR}/src/GearsPYD/Include)
-set (HeadersPath ${CMAKE_SOURCE_DIR}/src/GearsPYD/Include/GearsPYD)
+set (IncludePath ${CMAKE_CURRENT_SOURCE_DIR}/Include)
+set (HeadersPath ${CMAKE_CURRENT_SOURCE_DIR}/Include/GearsPYD)
 set (Headers
     ${HeadersPath}/core/PythonDict.h
     ${HeadersPath}/core/PyPass.h
@@ -12,7 +12,7 @@ set (Headers
     ${HeadersPath}/GearsAPIv2.hpp
 )
 
-set (SourcesPath ${CMAKE_SOURCE_DIR}/src/GearsPYD/Sources)
+set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
     ${SourcesPath}/event/events.cpp
 
@@ -22,8 +22,6 @@ set (Sources
     ${SourcesPath}/core/PyResponse.cpp
 
     ${SourcesPath}/GearsAPIv2.cpp
-
-    ${CMAKE_SOURCE_DIR}/src/GearsVk/Sources/VulkanMemoryAllocatorImpl.cpp #???
 )
 
 add_library (GearsModule SHARED ${Headers} ${Sources} ${SourcesPath}/GearsModule.cpp)
@@ -31,9 +29,6 @@ add_library (GearsModuleEmbedded SHARED ${Headers} ${Sources} ${SourcesPath}/Gea
 
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 find_package (pybind11 REQUIRED)
-
-target_compile_definitions (GearsModule PRIVATE GEARS_EXPORTS SPDLOG_FMT_EXTERNAL)
-target_compile_definitions (GearsModuleEmbedded PRIVATE GEARS_EMBEDDED_EXPORTS SPDLOG_FMT_EXTERNAL)
 
 set (IncludeDirectoriesPrivate
     ${HeadersPath}
@@ -50,23 +45,16 @@ set (IncludeDirectoriesPrivate
 set (IncludeDirectoriesPublic
     ${IncludePath}
 
-    ${CMAKE_SOURCE_DIR}/src/Utils/Include
-
-    ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk
-    ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/Camera
-    ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/RenderGraph
-    ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/VulkanWrapper
-    ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/VulkanWrapper/Utils
-    ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/Window
-    
-    ${CMAKE_SOURCE_DIR}/src/Sequence/Include/Sequence
+    $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Sequence,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
 
     ${Python3_INCLUDE_DIRS}
     ${pybind11_INCLUDE_DIRS}
 )
 
-target_precompile_headers (GearsModule PRIVATE [["PCH.hpp"]])
-target_precompile_headers (GearsModuleEmbedded PRIVATE [["PCH.hpp"]])
+target_precompile_headers (GearsModule PRIVATE ${SourcesPath}/PCH.hpp)
+target_precompile_headers (GearsModuleEmbedded PRIVATE ${SourcesPath}/PCH.hpp)
 
 
 target_include_directories (GearsModule
@@ -84,7 +72,7 @@ target_link_libraries (GearsModule
     PUBLIC RenderGraph
     PUBLIC Sequence
     PUBLIC ${Python3_LIBRARIES}
-           ${pybind11_LIBRARIES}
+    PUBLIC ${pybind11_LIBRARIES}
 )
 
 target_link_libraries (GearsModuleEmbedded
@@ -92,7 +80,7 @@ target_link_libraries (GearsModuleEmbedded
     PUBLIC RenderGraph
     PUBLIC Sequence
     PUBLIC ${Python3_LIBRARIES}
-           ${pybind11_LIBRARIES}
+    PUBLIC ${pybind11_LIBRARIES}
 )
 
 install (TARGETS GearsModule

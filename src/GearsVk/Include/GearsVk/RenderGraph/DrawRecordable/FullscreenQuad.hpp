@@ -1,10 +1,10 @@
 #ifndef DR_FULLSCREENQUAD_HPP
 #define DR_FULLSCREENQUAD_HPP
 
-#include "DeviceExtra.hpp"
-#include "DrawRecordableInfo.hpp"
+#include "GearsVk/VulkanWrapper/DeviceExtra.hpp"
+#include "GearsVk/RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
 
-#include "glmlib.hpp"
+#include "GearsVk/glmlib.hpp"
 
 namespace GVK {
 

@@ -1,7 +1,7 @@
 #ifndef RESOURCELIMITS_HPP
 #define RESOURCELIMITS_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
 #include <glslang/Public/ShaderLang.h>
 

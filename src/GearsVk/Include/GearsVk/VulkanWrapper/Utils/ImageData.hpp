@@ -7,8 +7,8 @@
 #include <vector>
 #include <memory>
 
-#include "DeviceExtra.hpp"
-#include "Image.hpp"
+#include "GearsVk/VulkanWrapper/DeviceExtra.hpp"
+#include "GearsVk/VulkanWrapper/Image.hpp"
 
 namespace GVK {
 

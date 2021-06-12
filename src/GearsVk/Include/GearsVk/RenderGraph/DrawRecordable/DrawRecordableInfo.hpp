@@ -1,12 +1,12 @@
 #ifndef DRAWRECORDABLEINFO_HPP
 #define DRAWRECORDABLEINFO_HPP
 
-#include "DrawRecordable.hpp"
+#include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include <memory>
 
 #include <vulkan/vulkan.h>
 
-#include "BufferTransferable.hpp"
+#include "GearsVk/VulkanWrapper/Utils/BufferTransferable.hpp"
 
 namespace GVK {
 

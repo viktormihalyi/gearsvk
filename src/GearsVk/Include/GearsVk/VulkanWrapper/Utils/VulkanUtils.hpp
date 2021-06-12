@@ -1,16 +1,16 @@
 #ifndef VULKANWRAPPER_VULKANUTILS_HPP
 #define VULKANWRAPPER_VULKANUTILS_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
-#include "Buffer.hpp"
-#include "CommandBuffer.hpp"
-#include "Device.hpp"
-#include "DeviceExtra.hpp"
-#include "DeviceMemory.hpp"
-#include "Image.hpp"
-#include "MemoryMapping.hpp"
-#include "SingleTimeCommand.hpp"
+#include "GearsVk/VulkanWrapper/Buffer.hpp"
+#include "GearsVk/VulkanWrapper/CommandBuffer.hpp"
+#include "GearsVk/VulkanWrapper/Device.hpp"
+#include "GearsVk/VulkanWrapper/DeviceExtra.hpp"
+#include "GearsVk/VulkanWrapper/DeviceMemory.hpp"
+#include "GearsVk/VulkanWrapper/Image.hpp"
+#include "GearsVk/VulkanWrapper/Utils/MemoryMapping.hpp"
+#include "GearsVk/VulkanWrapper/Utils/SingleTimeCommand.hpp"
 
 
 #include <array>

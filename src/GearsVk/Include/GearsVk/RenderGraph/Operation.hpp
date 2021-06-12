@@ -1,16 +1,16 @@
 #ifndef OPERATION_HPP
 #define OPERATION_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
 #include "Utils/Timer.hpp"
-#include "VulkanUtils.hpp"
-#include "VulkanWrapper.hpp"
+#include "GearsVk/VulkanWrapper/Utils/VulkanUtils.hpp"
+#include "GearsVk/VulkanWrapper/VulkanWrapper.hpp"
 
-#include "Connections.hpp"
-#include "Node.hpp"
+#include "GearsVk/RenderGraph/Connections.hpp"
+#include "GearsVk/RenderGraph/Node.hpp"
 
-#include "glmlib.hpp"
+#include "GearsVk/glmlib.hpp"
 
 #include <vector>
 

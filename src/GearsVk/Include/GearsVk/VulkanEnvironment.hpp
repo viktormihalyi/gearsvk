@@ -1,11 +1,11 @@
 #ifndef VULKANTESTENVIRONMENT_HPP
 #define VULKANTESTENVIRONMENT_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
-#include "DebugUtilsMessenger.hpp"
-#include "Swapchain.hpp"
-#include "Surface.hpp"
+#include "GearsVk/VulkanWrapper/DebugUtilsMessenger.hpp"
+#include "GearsVk/VulkanWrapper/Swapchain.hpp"
+#include "GearsVk/VulkanWrapper/Surface.hpp"
 
 #include <memory>
 

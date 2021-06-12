@@ -2,7 +2,7 @@
 #define GEARS_API_HPP
 
 #ifdef _WIN32
-#ifdef GEARS_EXPORTS
+#ifdef GearsModule_EXPORTS
 #define GEARS_API __declspec(dllexport)
 #else
 #define GEARS_API __declspec(dllimport)
@@ -12,7 +12,7 @@
 #endif
 
 #ifdef _WIN32
-#if defined(GEARS_EXPORTS) || defined(GEARS_EMBEDDED_EXPORTS)
+#if defined(GearsModule_EXPORTS) || defined(GearsModuleEmbedded_EXPORTS)
 #define GEARS_API_TEST __declspec(dllexport)
 #else
 #define GEARS_API_TEST __declspec(dllimport)

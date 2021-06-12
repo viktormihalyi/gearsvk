@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "glmlib.hpp"
+#include "GearsVk/glmlib.hpp"
 
 namespace GVK {
 

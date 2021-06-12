@@ -1,11 +1,11 @@
 #include "GoogleTestEnvironment.hpp"
 
-#include "GLFWWindow.hpp"
-#include "ImageData.hpp"
-#include "Surface.hpp"
+#include "GearsVk/Window/GLFWWindow.hpp"
+#include "GearsVk/VulkanWrapper/Utils/ImageData.hpp"
+#include "GearsVk/VulkanWrapper/Surface.hpp"
 #include "Utils/TerminalColors.hpp"
-#include "VulkanEnvironment.hpp"
-#include "VulkanWrapper.hpp"
+#include "GearsVk/VulkanEnvironment.hpp"
+#include "GearsVk/VulkanWrapper/VulkanWrapper.hpp"
 
 using namespace GVK;
 

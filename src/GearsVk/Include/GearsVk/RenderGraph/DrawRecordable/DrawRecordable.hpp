@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "CommandBuffer.hpp"
+#include "GearsVk/VulkanWrapper/CommandBuffer.hpp"
 #include <memory>
 
 namespace GVK {

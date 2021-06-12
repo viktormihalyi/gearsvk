@@ -1,30 +1,30 @@
 #include "Utils/Assert.hpp"
-#include "Camera.hpp"
+#include "Gearsvk/Camera/Camera.hpp"
 #include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include "GearsVk/RenderGraph/DrawRecordable/FullscreenQuad.hpp"
-#include "GLFWWindow.hpp"
-#include "GraphRenderer.hpp"
-#include "GraphSettings.hpp"
-#include "ImageData.hpp"
+#include "GearsVk/Window/GLFWWindow.hpp"
+#include "GearsVk/RenderGraph/GraphRenderer.hpp"
+#include "GearsVk/RenderGraph/GraphSettings.hpp"
+#include "GearsVk/VulkanWrapper/Utils/ImageData.hpp"
 #include "Utils/MultithreadedFunction.hpp"
 #include "Utils/Noncopyable.hpp"
-#include "Operation.hpp"
-#include "RenderGraph.hpp"
-#include "Resource.hpp"
-#include "SDLWindow.hpp"
+#include "GearsVk/RenderGraph/Operation.hpp"
+#include "GearsVk/RenderGraph/RenderGraph.hpp"
+#include "GearsVk/RenderGraph/Resource.hpp"
+#include "GearsVk/Window/SDLWindow.hpp"
 #include "Utils/Time.hpp"
 #include "Utils/Timer.hpp"
 #include "Utils/Utils.hpp"
-#include "VulkanEnvironment.hpp"
+#include "GearsVk/VulkanEnvironment.hpp"
 
 // from VulkanWrapper
-#include "VulkanWrapper.hpp"
+#include "GearsVk/VulkanWrapper/VulkanWrapper.hpp"
 
-#include "DeviceExtra.hpp"
-#include "ShaderReflection.hpp"
+#include "GearsVk/VulkanWrapper/DeviceExtra.hpp"
+#include "GearsVk/VulkanWrapper/ShaderReflection.hpp"
 
-#include "CameraControl.hpp"
-#include "UniformReflection.hpp"
+#include "GearsVk/Camera/CameraControl.hpp"
+#include "GearsVk/RenderGraph/UniformReflection.hpp"
 
 #include <array>
 #include <cstdint>
@@ -39,9 +39,9 @@
 
 #include "GoogleTestEnvironment.hpp"
 #include "Utils/UUID.hpp"
-#include "UniformView.hpp"
+#include "GearsVk/UniformView.hpp"
 
-#include "glmlib.hpp"
+#include "GearsVk/glmlib.hpp"
 
 #include <unordered_map>
 

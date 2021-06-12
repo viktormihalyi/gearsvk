@@ -1,11 +1,12 @@
 #ifndef GRAPHSETTINGS_HPP
 #define GRAPHSETTINGS_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
-#include "Connections.hpp"
-#include "DeviceExtra.hpp"
-#include "Node.hpp"
+#include "GearsVk/RenderGraph/Connections.hpp"
+#include "GearsVk/RenderGraph/Node.hpp"
+#include "GearsVk/VulkanWrapper/DeviceExtra.hpp"
+
 #include <memory>
 #include <vulkan/vulkan.h>
 

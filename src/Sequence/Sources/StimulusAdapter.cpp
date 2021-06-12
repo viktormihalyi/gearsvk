@@ -12,13 +12,13 @@
 // from GearsVk
 #include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include "GearsVk/RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
-#include "GraphRenderer.hpp"
-#include "GraphSettings.hpp"
-#include "Operation.hpp"
-#include "RenderGraph.hpp"
-#include "Resource.hpp"
-#include "UniformReflection.hpp"
-#include "VulkanEnvironment.hpp"
+#include "GearsVk/RenderGraph/GraphRenderer.hpp"
+#include "GearsVk/RenderGraph/GraphSettings.hpp"
+#include "GearsVk/RenderGraph/Operation.hpp"
+#include "GearsVk/RenderGraph/RenderGraph.hpp"
+#include "GearsVk/RenderGraph/Resource.hpp"
+#include "GearsVk/RenderGraph/UniformReflection.hpp"
+#include "GearsVk/VulkanEnvironment.hpp"
 
 // from std
 #include <random>

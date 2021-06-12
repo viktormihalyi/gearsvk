@@ -22,7 +22,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 
-#include "GraphRenderer.hpp"
+#include "GearsVk/RenderGraph/GraphRenderer.hpp"
 
 // Python requires an exported function called init<module-name> in every
 // extension module. This is where we build the module contents.

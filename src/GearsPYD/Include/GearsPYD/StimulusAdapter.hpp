@@ -3,7 +3,7 @@
 
 // from GearsVk
 #include "Utils/Event.hpp"
-#include "GraphRenderer.hpp"
+#include "GearsVk/RenderGraph/GraphRenderer.hpp"
 #include "Utils/Noncopyable.hpp"
 #include "Utils/Time.hpp"
 

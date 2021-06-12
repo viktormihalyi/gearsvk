@@ -1,7 +1,7 @@
 #ifndef RG_NODE_HPP
 #define RG_NODE_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
 #include "Utils/Noncopyable.hpp"
 #include "Utils/UUID.hpp"

@@ -1,7 +1,7 @@
 #ifndef WINDOWB_HPP
 #define WINDOWB_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
 #include "Utils/Event.hpp"
 #include "Utils/Noncopyable.hpp"

@@ -2,15 +2,17 @@
 
 // from GearsVk
 #include "Utils/Assert.hpp"
-#include "GLFWWindow.hpp"
-#include "GraphRenderer.hpp"
-#include "StimulusAdapterView.hpp"
-#include "StimulusAdapter.hpp"
-#include "Surface.hpp"
-#include "VulkanEnvironment.hpp"
 #include "Utils/CommandLineFlag.hpp"
-#include "ImageData.hpp"
-#include "Resource.hpp"
+
+#include "StimulusAdapter.hpp"
+#include "StimulusAdapterView.hpp"
+
+#include "GearsVk/Window/GLFWWindow.hpp"
+#include "GearsVk/RenderGraph/GraphRenderer.hpp"
+#include "GearsVk/VulkanWrapper/Surface.hpp"
+#include "GearsVk/VulkanEnvironment.hpp"
+#include "GearsVk/VulkanWrapper/Utils/ImageData.hpp"
+#include "GearsVk/RenderGraph/Resource.hpp"
 
 // from Gears
 #include "Pass.h"

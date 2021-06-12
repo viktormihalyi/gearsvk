@@ -1,6 +1,6 @@
 
-set (IncludePath ${CMAKE_SOURCE_DIR}/src/Sequence/Include)
-set (HeadersPath ${CMAKE_SOURCE_DIR}/src/Sequence/Include/Sequence)
+set (IncludePath ${CMAKE_CURRENT_SOURCE_DIR}/Include)
+set (HeadersPath ${CMAKE_CURRENT_SOURCE_DIR}/Include/Sequence)
 set (Headers
     ${HeadersPath}/Pass.h
     ${HeadersPath}/Response.h
@@ -13,7 +13,7 @@ set (Headers
     ${HeadersPath}/StimulusAdapterView.hpp
 )
 
-set (SourcesPath ${CMAKE_SOURCE_DIR}/src/Sequence/Sources)
+set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
     ${SourcesPath}/Pass.cpp
     ${SourcesPath}/Response.cpp
@@ -23,29 +23,16 @@ set (Sources
     ${SourcesPath}/Stimulus.cpp
     ${SourcesPath}/StimulusAdapter.cpp
     ${SourcesPath}/StimulusAdapterView.cpp
-
-    ${CMAKE_SOURCE_DIR}/src/GearsVk/Sources/VulkanMemoryAllocatorImpl.cpp #???
 )
 
 add_library (Sequence SHARED ${Headers} ${Sources})
-
-target_compile_definitions (Sequence PRIVATE Sequence_EXPORTS SPDLOG_FMT_EXTERNAL)
 
 target_include_directories (Sequence
     PRIVATE ${HeadersPath}
     PUBLIC ${IncludePath}
 
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk
-
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/Utils/Include
-
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/Camera
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/RenderGraph
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/VulkanWrapper
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/VulkanWrapper/Utils
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk/Window
+    PUBLIC $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
+    PUBLIC $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries (Sequence

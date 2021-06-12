@@ -5,7 +5,7 @@
 #include "Utils/Noncopyable.hpp"
 #include <memory>
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
 #include <cstdint>
 #include <cstring>

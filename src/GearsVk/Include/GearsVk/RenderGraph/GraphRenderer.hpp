@@ -1,14 +1,14 @@
 #ifndef GRAPHRENDERER_HPP
 #define GRAPHRENDERER_HPP
 
-#include "GearsVkAPI.hpp"
-
-#include "DeviceExtra.hpp"
-#include "Semaphore.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
+#include "GearsVk/VulkanWrapper/DeviceExtra.hpp"
+#include "GearsVk/VulkanWrapper/Semaphore.hpp"
+#include "GearsVk/Window/Window.hpp"
 
 #include "Utils/Event.hpp"
 #include "Utils/Time.hpp"
-#include "Window.hpp"
+
 #include <memory>
 
 namespace GVK {

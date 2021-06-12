@@ -1,12 +1,12 @@
 #include "GearsAPIv2.hpp"
 
 // from GearsVk
-#include "GraphRenderer.hpp"
-#include "Instance.hpp"
-#include "ShaderModule.hpp"
-#include "Surface.hpp"
-#include "VulkanEnvironment.hpp"
-#include "Window.hpp"
+#include "GearsVk/RenderGraph/GraphRenderer.hpp"
+#include "GearsVk/VulkanWrapper/Instance.hpp"
+#include "GearsVk/VulkanWrapper/ShaderModule.hpp"
+#include "GearsVk/VulkanWrapper/Surface.hpp"
+#include "GearsVk/VulkanEnvironment.hpp"
+#include "GearsVk/Window/Window.hpp"
 
 // from Gears
 #include "SequenceAdapter.hpp"

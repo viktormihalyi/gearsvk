@@ -1,7 +1,7 @@
 #ifndef GLFWWINDOW_HPP
 #define GLFWWINDOW_HPP
 
-#include "GearsVkAPI.hpp"
+#include "GearsVk/GearsVkAPI.hpp"
 
 #include "Window.hpp"
 

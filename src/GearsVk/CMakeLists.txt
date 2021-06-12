@@ -1,6 +1,6 @@
 
-set (IncludePath ${CMAKE_SOURCE_DIR}/src/GearsVk/Include)
-set (HeadersPath ${CMAKE_SOURCE_DIR}/src/GearsVk/Include/GearsVk)
+set (IncludePath ${CMAKE_CURRENT_SOURCE_DIR}/Include)
+set (HeadersPath ${CMAKE_CURRENT_SOURCE_DIR}/Include/GearsVk)
 set (Headers
     ${HeadersPath}/Camera/Camera.hpp
     ${HeadersPath}/Camera/CameraControl.hpp
@@ -71,7 +71,7 @@ set (Headers
     ${HeadersPath}/VulkanEnvironment.hpp
 )
 
-set (SourcesPath ${CMAKE_SOURCE_DIR}/src/GearsVk/Sources)
+set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
     ${SourcesPath}/Camera/Camera.cpp
     ${SourcesPath}/Camera/Frustum.cpp
@@ -133,11 +133,14 @@ find_package (stb REQUIRED)
 find_package (glslang REQUIRED)
 find_package (spirv-cross REQUIRED)
 
-target_compile_definitions (RenderGraph PRIVATE RenderGraph_EXPORTS SPDLOG_FMT_EXTERNAL)
+target_compile_definitions (RenderGraph
+    PUBLIC SPDLOG_FMT_EXTERNAL
+)
 
-target_precompile_headers (RenderGraph PRIVATE [["PCH.hpp"]])
+target_precompile_headers (RenderGraph PRIVATE ${SourcesPath}/PCH.hpp)
 
 target_include_directories (RenderGraph
+    PRIVATE ${IncludePath}
     PRIVATE ${HeadersPath}
     PRIVATE ${HeadersPath}/Camera
     PRIVATE ${HeadersPath}/RenderGraph
@@ -146,31 +149,30 @@ target_include_directories (RenderGraph
     PRIVATE ${HeadersPath}/VulkanWrapper/Utils
     PRIVATE ${HeadersPath}/Window
     
-    PUBLIC  ${IncludePath}
-
-    PUBLIC  ${CMAKE_SOURCE_DIR}/src/Utils/Include
+    PUBLIC ${IncludePath}
+    PUBLIC $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
     
-    PUBLIC  ${Vulkan_INCLUDE_DIRS}
-    PUBLIC  ${glm_INCLUDE_DIRS}
-    PUBLIC  ${glfw_INCLUDE_DIRS}
-    PUBLIC  ${vulkan-memory-allocator_INCLUDE_DIRS}
-    PUBLIC  ${fmt_INCLUDE_DIRS}
-    PUBLIC  ${spdlog_INCLUDE_DIRS}
-    PUBLIC  ${stb_INCLUDE_DIRS}
-    PUBLIC  ${glslang_INCLUDE_DIRS}
-    PUBLIC  ${spirv-cross_INCLUDE_DIRS}
+    PUBLIC ${Vulkan_INCLUDE_DIRS}
+    PUBLIC ${glm_INCLUDE_DIRS}
+    PRIVATE ${glfw_INCLUDE_DIRS}
+    PUBLIC ${vulkan-memory-allocator_INCLUDE_DIRS}
+    PUBLIC ${fmt_INCLUDE_DIRS}
+    PUBLIC ${spdlog_INCLUDE_DIRS}
+    PRIVATE ${stb_INCLUDE_DIRS}
+    PRIVATE ${glslang_INCLUDE_DIRS}
+    PRIVATE ${spirv-cross_INCLUDE_DIRS}
 )
 
 target_link_libraries (RenderGraph
     PUBLIC ${Vulkan_LIBRARIES}
     PUBLIC ${glm_LIBRARIES}
-    PUBLIC ${glfw_LIBRARIES}
+    PRIVATE ${glfw_LIBRARIES}
     PUBLIC ${vulkan-memory-allocator_LIBRARIES}
     PUBLIC ${fmt_LIBRARIES}
     PUBLIC ${spdlog_LIBRARIES}
-    PUBLIC ${stb_LIBRARIES}
-    PUBLIC ${glslang_LIBRARIES}
-    PUBLIC ${spirv-cross_LIBRARIES}
+    PRIVATE ${stb_LIBRARIES}
+    PRIVATE ${glslang_LIBRARIES}
+    PRIVATE ${spirv-cross_LIBRARIES}
     PUBLIC Utils
 )
 
