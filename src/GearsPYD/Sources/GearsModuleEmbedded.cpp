@@ -5,7 +5,6 @@
 //
 // tests use this embedded module
 
-
 PYBIND11_EMBEDDED_MODULE (GearsModule, m)
 {
     FillModule (m);
