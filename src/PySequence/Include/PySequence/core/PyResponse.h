@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PySequence/PySequenceAPI.hpp"
+
 #include "Sequence/Response.h"
 
 #include <memory>
@@ -19,7 +21,7 @@ class Sequence;
 class SpatialFilter;
 
 //! A structure that contains all stimulus parameters.
-class PyResponse : public Response {
+class PYSEQUENCE_API PyResponse : public Response {
 public:
     using Response::Response;
     

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "event/Base.h"
+#include "PySequence/event/Base.h"
 #if defined(_WIN32)
 #define NOMINMAX
 #include <windowsx.h>
@@ -9,7 +9,7 @@
 namespace Gears {
 namespace Event {
 
-class MouseMove : public Base {
+class PYSEQUENCE_API MouseMove : public Base {
     MouseMove (uint32_t message, uint32_t wParam, uint32_t lParam, uint32_t screenw, uint32_t screenh)
         : Base (message, wParam, lParam)
     {

@@ -39,6 +39,3 @@ target_link_libraries (Sequence
     PUBLIC Utils
     PUBLIC RenderGraph
 )
-
-install (TARGETS Sequence
-         RUNTIME DESTINATION bin)

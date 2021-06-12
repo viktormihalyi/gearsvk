@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PySequence/PySequenceAPI.hpp"
+
 #include "Sequence/Stimulus.h"
 
 #include <memory>
@@ -20,7 +22,7 @@
 class Pass;
 class Sequence;
 
-class PyStimulus : public Stimulus {
+class PYSEQUENCE_API PyStimulus : public Stimulus {
 public:
     using Stimulus::Stimulus;
 

@@ -1,13 +1,12 @@
 
 // from Gears
 #include "GearsAPIv2.hpp"
-#include "core/PyPass.h"
-#include "core/PythonDict.h"
-#include "core/PyResponse.h"
-#include "core/PyStimulus.h"
-#include "core/PySequence.h"
+#include "PySequence/core/PyPass.h"
+#include "PySequence/core/PyResponse.h"
+#include "PySequence/core/PyStimulus.h"
+#include "PySequence/core/PySequence.h"
 #include "Sequence/SpatialFilter.h"
-#include "event/events.h"
+#include "PySequence/event/events.h"
 
 // from std
 #include <filesystem>

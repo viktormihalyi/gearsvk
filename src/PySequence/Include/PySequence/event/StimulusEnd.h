@@ -1,10 +1,10 @@
 #pragma once
 
-#include "event/Base.h"
+#include "PySequence/event/Base.h"
 
 #pragma once
 
-#include "event/Base.h"
+#include "PySequence/event/Base.h"
 #if defined(_WIN32)
 #define NOMINMAX
 #include <windowsx.h>
@@ -13,9 +13,9 @@
 namespace Gears {
 namespace Event {
 
-class StimulusStart : public Base {
+class PYSEQUENCE_API StimulusEnd : public Base {
 public:
-    StimulusStart ()
+    StimulusEnd ()
         : Base (WM_USER, 0, 0)
     {
     }

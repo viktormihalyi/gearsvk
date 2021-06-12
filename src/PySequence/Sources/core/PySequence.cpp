@@ -1,5 +1,4 @@
 #include "core/PySequence.h"
-#include "PythonDict.h"
 #include "core/PyResponse.h"
 #include "core/PyStimulus.h"
 #include "PyExtract.hpp"

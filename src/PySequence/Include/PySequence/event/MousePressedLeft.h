@@ -1,11 +1,11 @@
 #pragma once
 
-#include "event/Base.h"
+#include "PySequence/event/Base.h"
 
 namespace Gears {
 namespace Event {
 
-class MousePressedLeft : public Base {
+class PYSEQUENCE_API MousePressedLeft : public Base {
     MousePressedLeft (uint32_t message, uint32_t wParam, uint32_t lParam)
         : Base (message, wParam, lParam)
     {

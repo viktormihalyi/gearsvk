@@ -1,5 +1,3 @@
-#include "PythonDict.h"
-
 #include "core/PyResponse.h"
 #include "core/PySequence.h"
 #include <algorithm>

@@ -1,6 +1,5 @@
 #include "core/PyStimulus.h"
 
-#include "core/PythonDict.h"
 #include "PyExtract.hpp"
 #include "Utils/Assert.hpp"
 

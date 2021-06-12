@@ -9,9 +9,9 @@
 #include "GearsVk/Window/Window.hpp"
 
 // from Gears
-#include "SequenceAdapter.hpp"
-#include "StimulusAdapter.hpp"
-#include "core/PySequence.h"
+#include "Sequence/SequenceAdapter.hpp"
+#include "Sequence/StimulusAdapter.hpp"
+#include "PySequence/core/PySequence.h"
 
 // from pybind11
 #include <pybind11/embed.h>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "event/Base.h"
+#include "PySequence/event/Base.h"
 #if defined(_WIN32)
 #define NOMINMAX
 #include <windowsx.h>
@@ -9,8 +9,8 @@
 namespace Gears {
 namespace Event {
 
-class MouseReleasedLeft : public Base {
-    MouseReleasedLeft (uint32_t message, uint32_t wParam, uint32_t lParam, uint32_t screenw, uint32_t screenh)
+class PYSEQUENCE_API MousePressedRight : public Base {
+    MousePressedRight (uint32_t message, uint32_t wParam, uint32_t lParam)
         : Base (message, wParam, lParam)
     {
 #ifdef _WIN32
@@ -21,22 +21,15 @@ class MouseReleasedLeft : public Base {
         x = lParam;
         y = lParam;
 #endif
-        xPercent = (float)x / screenw;
-        yPercent = (float)y / screenh;
     }
 
 
-    uint32_t  x;
-    uint32_t  y;
-    float xPercent;
-    float yPercent;
+    uint32_t x;
+    uint32_t y;
 
 public:
     uint32_t globalX () { return x; }
     uint32_t globalY () { return y; }
-
-    float globalPercentX () { return xPercent; }
-    float globalPercentY () { return yPercent; }
 
     static uint32_t typeId;
 };

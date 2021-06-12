@@ -1,14 +1,14 @@
 #pragma once
 
-#include "event/Base.h"
+#include "PySequence/event/Base.h"
 #include <sstream>
 
 namespace Gears {
 	namespace Event {
 
-		class KeyReleased : public Base
+		class PYSEQUENCE_API KeyPressed : public Base
 		{
-			KeyReleased(uint32_t message, uint32_t wParam, uint32_t lParam)
+			KeyPressed(uint32_t message, uint32_t wParam, uint32_t lParam)
 				:Base(message, wParam, lParam)
 			{
 				std::stringstream ss;
@@ -25,7 +25,7 @@ namespace Gears {
 			}
 			std::string text()
 			{
-				return _text;
+ 				return _text;
 			}
 			static uint32_t typeId;
 		};

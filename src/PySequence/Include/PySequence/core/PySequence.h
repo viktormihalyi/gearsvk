@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PySequence/PySequenceAPI.hpp"
+
 #include "Sequence/Sequence.h"
 
 #include <map>
@@ -14,7 +16,7 @@ class Stimulus;
 class Response;
 
 //! A structure that contains all sequence parameters.
-class PySequence : public Sequence {
+class PYSEQUENCE_API PySequence : public Sequence {
 private:
     using Sequence::Sequence;
 

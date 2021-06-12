@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PySequence/PySequenceAPI.hpp"
+
 #include "Sequence/Pass.h"
 
 #include <algorithm>
@@ -18,7 +20,7 @@ class Sequence;
 class Stimulus;
 
 //! A structure that specifies a shape in a stimulus.
-class PyPass : public Pass {
+class PYSEQUENCE_API PyPass : public Pass {
 public:
 
     using Pass::Pass;

@@ -10,13 +10,15 @@ set (Sources
     ${SourcesPath}/GearsTests.cpp
 )
 
-add_executable (GVKTest ${Headers} ${Sources})
+add_executable (GVKTest ${Sources})
 
 find_package (GTest REQUIRED)
 
 target_include_directories (GVKTest
     PRIVATE $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
     PRIVATE $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
+    PRIVATE $<TARGET_PROPERTY:Sequence,INTERFACE_INCLUDE_DIRECTORIES>
+    PRIVATE $<TARGET_PROPERTY:PySequence,INTERFACE_INCLUDE_DIRECTORIES>
     PRIVATE $<TARGET_PROPERTY:GearsModuleEmbedded,INTERFACE_INCLUDE_DIRECTORIES>
 
     PRIVATE ${SourcesPath}
@@ -27,13 +29,11 @@ target_include_directories (GVKTest
 target_link_libraries (GVKTest
     PRIVATE Utils
     PRIVATE RenderGraph
+    PRIVATE Sequence
+    PRIVATE PySequence
     PRIVATE GearsModuleEmbedded
     PRIVATE ${GTest_LIBRARIES}
 )
 
 file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/Sources/TestData
       DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-
-install (TARGETS GVKTest
-         RUNTIME DESTINATION bin)
-install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Sources/TestData DESTINATION bin)

@@ -175,6 +175,3 @@ target_link_libraries (RenderGraph
     PRIVATE ${spirv-cross_LIBRARIES}
     PUBLIC Utils
 )
-
-install (TARGETS RenderGraph
-         RUNTIME DESTINATION bin)
