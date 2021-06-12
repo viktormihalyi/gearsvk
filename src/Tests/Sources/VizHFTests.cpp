@@ -1,5 +1,5 @@
 #include "Utils/Assert.hpp"
-#include "Gearsvk/Camera/Camera.hpp"
+#include "GearsVk/Camera/Camera.hpp"
 #include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include "GearsVk/RenderGraph/DrawRecordable/FullscreenQuad.hpp"
 #include "GearsVk/Window/GLFWWindow.hpp"
