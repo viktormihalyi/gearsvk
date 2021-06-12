@@ -38,15 +38,15 @@ target_include_directories (GearsModuleEmbedded
 )
 
 target_link_libraries (GearsModule
-    PUBLIC Utils
-    PUBLIC RenderGraph
-    PUBLIC Sequence
     PUBLIC PySequence
+    PUBLIC Sequence
+    PUBLIC RenderGraph
+    PUBLIC Utils
 )
 
 target_link_libraries (GearsModuleEmbedded
-    PUBLIC Utils
-    PUBLIC RenderGraph
-    PUBLIC Sequence
     PUBLIC PySequence
+    PUBLIC Sequence
+    PUBLIC RenderGraph
+    PUBLIC Utils
 )

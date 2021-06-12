@@ -31,11 +31,11 @@ target_include_directories (Sequence
     PRIVATE ${HeadersPath}
     PUBLIC ${IncludePath}
 
-    PUBLIC $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
     PUBLIC $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
+    PUBLIC $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries (Sequence
-    PUBLIC Utils
     PUBLIC RenderGraph
+    PUBLIC Utils
 )

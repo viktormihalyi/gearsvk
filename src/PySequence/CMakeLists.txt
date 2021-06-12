@@ -35,18 +35,18 @@ target_include_directories (PySequence
     PUBLIC
         ${IncludePath}
 
-        $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:Sequence,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
-
         ${Python3_INCLUDE_DIRS}
         ${pybind11_INCLUDE_DIRS}
+
+        $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Sequence,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries (PySequence
-    PUBLIC Utils
-    PUBLIC RenderGraph
-    PUBLIC Sequence
     PUBLIC ${Python3_LIBRARIES}
     PUBLIC ${pybind11_LIBRARIES}
+    PUBLIC Sequence
+    PUBLIC RenderGraph
+    PUBLIC Utils
 )
