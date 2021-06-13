@@ -128,7 +128,7 @@ std::vector<DestinationType> ConvertToHandles (const std::vector<std::reference_
 
 
 template<typename CastedType, typename Processor, typename Container>
-void ForEach (Container& container, const Processor& processor)
+void ForEach (Container&& container, const Processor& processor)
 {
     for (auto& elem : container) {
         if (auto castedElem = dynamic_cast<CastedType> (elem)) {
