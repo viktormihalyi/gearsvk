@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PYSEQUENCE_HPP
+#define PYSEQUENCE_HPP
 
 #include "PySequence/PySequenceAPI.hpp"
 
@@ -33,3 +34,5 @@ public:
 
     virtual void OnStimulusAdded (std::shared_ptr<Stimulus> stimulus) override;
 };
+
+#endif

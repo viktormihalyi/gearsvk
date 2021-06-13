@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PYPASS_HPP
+#define PYPASS_HPP
 
 #include "PySequence/PySequenceAPI.hpp"
 
@@ -34,3 +35,5 @@ public:
 
     void setPolygonMask (std::string mode, pybind11::object o);
 };
+
+#endif

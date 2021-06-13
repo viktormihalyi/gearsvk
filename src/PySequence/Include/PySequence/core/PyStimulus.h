@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PYSTIMULUS_HPP
+#define PYSTIMULUS_HPP
 
 #include "PySequence/PySequenceAPI.hpp"
 
@@ -82,3 +83,5 @@ public:
 
     virtual void OnPassAdded (std::shared_ptr<Pass> pass) override;
 };
+
+#endif

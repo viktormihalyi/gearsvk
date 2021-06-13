@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PYRESPONSE_HPP
+#define PYRESPONSE_HPP
 
 #include "PySequence/PySequenceAPI.hpp"
 
@@ -53,3 +54,5 @@ public:
     }
 #endif
 };
+
+#endif
