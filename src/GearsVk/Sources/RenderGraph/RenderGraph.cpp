@@ -46,22 +46,22 @@ RenderGraph::Pass RenderGraph::GetNextPass (const ConnectionSet& connectionSet, 
 {
     RenderGraph::Pass result;
 
-    for (Operation* op : lastPass.operations) {
+    for (Operation* op : lastPass.GetAllOperations ()) {
         for (const std::shared_ptr<Resource>& res : connectionSet.GetPointingTo<Resource> (op)) {
             for (const std::shared_ptr<Operation>& nextOp : connectionSet.GetPointingTo<Operation> (res.get ())) {
-                result.operations.insert (nextOp.get ());
+                result.AddInput (nextOp.get (), res.get ());
             }
         }
     }
 
-    for (auto& op : result.operations) {
-        std::vector<std::shared_ptr<Resource>> inputs  = connectionSet.GetPointingHere<Resource> (op);
-        std::vector<std::shared_ptr<Resource>> outputs = connectionSet.GetPointingTo<Resource> (op);
-        for (std::shared_ptr<Resource> input : inputs) {
-            result.inputs.insert (input.get ());
+    for (auto& op : result.GetAllOperations ()) {
+        std::vector<std::shared_ptr<Resource>> allInputs  = connectionSet.GetPointingHere<Resource> (op);
+        std::vector<std::shared_ptr<Resource>> allOutputs = connectionSet.GetPointingTo<Resource> (op);
+        for (std::shared_ptr<Resource> input : allInputs) {
+            result.AddInput (op, input.get ());
         }
-        for (std::shared_ptr<Resource> output : outputs) {
-            result.outputs.insert (output.get ());
+        for (std::shared_ptr<Resource> output : allOutputs) {
+            result.AddOutput (op, output.get ());
         }
     }
 
@@ -71,7 +71,7 @@ RenderGraph::Pass RenderGraph::GetNextPass (const ConnectionSet& connectionSet, 
 
 RenderGraph::Pass RenderGraph::GetFirstPass (const ConnectionSet& connectionSet) const
 {
-    std::set<Operation*> result;
+    std::set<Operation*> allOp;
 
     Utils::ForEachP<Operation> (connectionSet.nodes, [&] (const std::shared_ptr<Operation>& op) {
         const std::vector<std::shared_ptr<Resource>> opInputs = connectionSet.GetPointingHere<Resource> (op.get ());
@@ -81,21 +81,20 @@ RenderGraph::Pass RenderGraph::GetFirstPass (const ConnectionSet& connectionSet)
         });
 
         if (allInputsAreFirstWrittenByThisOp || opInputs.empty ()) {
-            result.insert (op.get ());
+            allOp.insert (op.get ());
         }
     });
 
     RenderGraph::Pass actualResult;
-    actualResult.operations = result;
 
-    for (auto& op : actualResult.operations) {
-        std::vector<std::shared_ptr<Resource>> inputs  = connectionSet.GetPointingHere<Resource> (op);
-        std::vector<std::shared_ptr<Resource>> outputs = connectionSet.GetPointingTo<Resource> (op);
-        for (std::shared_ptr<Resource> input : inputs) {
-            actualResult.inputs.insert (input.get ());
+    for (Operation* op : allOp) {
+        std::vector<std::shared_ptr<Resource>> allInputs  = connectionSet.GetPointingHere<Resource> (op);
+        std::vector<std::shared_ptr<Resource>> allOutputs = connectionSet.GetPointingTo<Resource> (op);
+        for (std::shared_ptr<Resource> input : allInputs) {
+            actualResult.AddInput (op, input.get ());
         }
-        for (std::shared_ptr<Resource> output : outputs) {
-            actualResult.outputs.insert (output.get ());
+        for (std::shared_ptr<Resource> output : allOutputs) {
+            actualResult.AddOutput (op, output.get ());
         }
     }
 
@@ -111,7 +110,7 @@ std::vector<RenderGraph::Pass> RenderGraph::GetPasses (const ConnectionSet& conn
     do {
         result.push_back (nextPass);
         nextPass = GetNextPass (connectionSet, nextPass);
-    } while (!nextPass.operations.empty ());
+    } while (!nextPass.GetAllOperations ().empty ());
 
     return result;
 }
@@ -125,7 +124,7 @@ void RenderGraph::SeparatePasses (const ConnectionSet& connectionSet)
     const std::vector<Pass> oldPasses { passes };
     for (const Pass& p : oldPasses) {
         std::unordered_map<std::shared_ptr<Resource>, std::vector<Operation*>> operationOutputs;
-        for (Operation* o : p.operations) {
+        for (Operation* o : p.GetAllOperations ()) {
             for (auto& res : connectionSet.GetPointingTo<Resource> (o)) {
                 operationOutputs[res].push_back (o);
             }
@@ -134,12 +133,11 @@ void RenderGraph::SeparatePasses (const ConnectionSet& connectionSet)
             if (op.size () > 1) {
                 for (Operation* sepOp : op) {
                     Pass newSep;
-                    newSep.operations.insert (sepOp);
                     for (auto inp : connectionSet.GetPointingHere<Resource> (sepOp)) {
-                        newSep.inputs.insert (inp.get ());
+                        newSep.AddInput (sepOp, inp.get ());
                     }
                     for (auto out : connectionSet.GetPointingTo<Resource> (sepOp)) {
-                        newSep.outputs.insert (out.get ());
+                        newSep.AddOutput (sepOp, out.get ());
                     }
                     newPasses.push_back (newSep);
                 }
@@ -166,14 +164,15 @@ void RenderGraph::Compile (GraphSettings&& settings)
 
     passes = GetPasses (settings.connectionSet);
 
-    SeparatePasses (settings.connectionSet);
+    if constexpr (false)
+        SeparatePasses (settings.connectionSet);
 
     if (printRenderGraphFlag.IsFlagOn ()) {
         std::stringstream logString;
         for (size_t i = 0; i < passes.size (); ++i) {
             const Pass& pass = passes[i];
             logString << "Pass " << i << std::endl;
-            for (const Operation* op : pass.operations) {
+            for (const Operation* op : pass.GetAllOperations ()) {
                 logString << "\tOperation \"" << op->GetName () << "\" (desc: \"" << op->GetDescription () << "\", " << op->GetUUID ().GetValue () << ")" << std::endl;
                 logString << "\tInputs:" << std::endl;
                 auto resinp = settings.connectionSet.GetPointingHere<Resource> (op);
@@ -197,10 +196,10 @@ void RenderGraph::Compile (GraphSettings&& settings)
 
 
     for (Pass& pass : passes) {
-        for (Operation* op : pass.operations) {
+        for (Operation* op : pass.GetAllOperations ()) {
             ImageResource* firstImgRes = nullptr;
 
-            for (Resource* res : pass.outputs) {
+            for (Resource* res : pass.GetAllOutputs ()) {
                 if (ImageResource* imgres = dynamic_cast<ImageResource*> (res)) {
                     if (firstImgRes == nullptr) {
                         firstImgRes = imgres;
@@ -229,12 +228,12 @@ void RenderGraph::Compile (GraphSettings&& settings)
     std::unordered_map<Image*, VkImageLayout> layoutMap;
 
     for (Pass& p : passes) {
-        Utils::ForEach<ImageResource*> (p.inputs, [&] (ImageResource* img) {
+        Utils::ForEach<ImageResource*> (p.GetAllInputs (), [&] (ImageResource* img) {
             for (auto i : img->GetImages ()) {
                 layoutMap[i] = img->GetInitialLayout ();
             }
         });
-        Utils::ForEach<ImageResource*> (p.outputs, [&] (ImageResource* img) {
+        Utils::ForEach<ImageResource*> (p.GetAllOutputs (), [&] (ImageResource* img) {
             for (auto i : img->GetImages ()) {
                 layoutMap[i] = img->GetInitialLayout ();
             }
@@ -248,30 +247,30 @@ void RenderGraph::Compile (GraphSettings&& settings)
         c[frameIndex].Begin ();
 
         for (Pass& p : passes) {
-            for (auto res : p.inputs) {
+            for (auto res : p.GetAllInputs ()) {
                 res->OnGraphExecutionStarted (frameIndex, c[frameIndex]);
             }
-            for (auto res : p.outputs) {
+            for (auto res : p.GetAllOutputs ()) {
                 res->OnGraphExecutionStarted (frameIndex, c[frameIndex]);
             }
         }
 
         for (Pass& p : passes) {
-            for (auto op : p.operations) {
-                auto inputs  = settings.connectionSet.GetPointingHere<Resource> (op);
-                auto outputs = settings.connectionSet.GetPointingTo<Resource> (op);
+            for (auto op : p.GetAllOperations ()) {
+                auto allInputs  = settings.connectionSet.GetPointingHere<Resource> (op);
+                auto allOutputs = settings.connectionSet.GetPointingTo<Resource> (op);
 
-                for (auto res : inputs) {
+                for (auto res : allInputs) {
                     res->OnPreRead (frameIndex, c[frameIndex]);
                 }
 
-                for (auto res : outputs) {
+                for (auto res : allOutputs) {
                     res->OnPreWrite (frameIndex, c[frameIndex]);
                 }
 
                 std::vector<VkImageMemoryBarrier> imgBarriers;
 
-                Utils::ForEachP<ImageResource> (inputs, [&] (const std::shared_ptr<ImageResource>& img) {
+                Utils::ForEachP<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = layoutMap[imgbase];
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForInputs (*img);
@@ -282,7 +281,7 @@ void RenderGraph::Compile (GraphSettings&& settings)
                     }
                 });
 
-                Utils::ForEachP<ImageResource> (outputs, [&] (const std::shared_ptr<ImageResource>& img) {
+                Utils::ForEachP<ImageResource> (allOutputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = layoutMap[imgbase];
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForOutputs (*img);
@@ -305,27 +304,27 @@ void RenderGraph::Compile (GraphSettings&& settings)
                     std::vector<VkBufferMemoryBarrier> {},
                     imgBarriers);
 
-                Utils::ForEachP<ImageResource> (inputs, [&] (const std::shared_ptr<ImageResource>& img) {
+                Utils::ForEachP<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         layoutMap[imgbase] = op->GetImageLayoutAtEndForInputs (*img);
                     }
                 });
 
-                Utils::ForEachP<ImageResource> (outputs, [&] (const std::shared_ptr<ImageResource>& img) {
+                Utils::ForEachP<ImageResource> (allOutputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
                         layoutMap[imgbase] = op->GetImageLayoutAtEndForOutputs (*img);
                     }
                 });
             }
 
-            for (auto op : p.operations) {
+            for (auto op : p.GetAllOperations ()) {
                 op->Record (settings.connectionSet, frameIndex, c[frameIndex]);
             }
 
-            for (auto op : p.operations) {
-                auto inputs  = settings.connectionSet.GetPointingHere<Resource> (op);
-                auto outputs = settings.connectionSet.GetPointingTo<Resource> (op);
-                for (auto res : p.outputs) {
+            for (auto op : p.GetAllOperations ()) {
+                auto allInputs  = settings.connectionSet.GetPointingHere<Resource> (op);
+                auto allOutputs = settings.connectionSet.GetPointingTo<Resource> (op);
+                for (auto res : p.GetAllOutputs ()) {
                     res->OnPostWrite (frameIndex, c[frameIndex]);
                 }
             }
@@ -333,7 +332,7 @@ void RenderGraph::Compile (GraphSettings&& settings)
 
         std::vector<VkImageMemoryBarrier> transitionToInitial;
         for (Pass& p : passes) {
-            Utils::ForEach<ImageResource*> (p.inputs, [&] (ImageResource* img) {
+            Utils::ForEach<ImageResource*> (p.GetAllInputs (), [&] (ImageResource* img) {
                 for (auto imgbase : img->GetImages (frameIndex)) {
                     const VkImageLayout currentLayout = layoutMap[imgbase];
                     if (currentLayout != img->GetInitialLayout ()) {
@@ -356,10 +355,10 @@ void RenderGraph::Compile (GraphSettings&& settings)
             transitionToInitial);
 
         for (Pass& p : passes) {
-            for (auto res : p.inputs) {
+            for (auto res : p.GetAllInputs ()) {
                 res->OnGraphExecutionEnded (frameIndex, c[frameIndex]);
             }
-            for (auto res : p.outputs) {
+            for (auto res : p.GetAllOutputs ()) {
                 res->OnGraphExecutionEnded (frameIndex, c[frameIndex]);
             }
         }

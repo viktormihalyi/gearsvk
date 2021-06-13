@@ -37,6 +37,252 @@
 const std::filesystem::path ShadersFolder = PROJECT_ROOT / "TestData" / "shaders";
 
 
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleOutput)
+{
+    using namespace GVK::RG;
+
+    Operation* op1  = reinterpret_cast<Operation*> (1);
+    Resource*  res1 = reinterpret_cast<Resource*> (2);
+
+    RenderGraph::Pass p;
+    p.AddOutput (op1, res1);
+
+    EXPECT_EQ (0, p.GetAllInputs ().size ());
+    EXPECT_EQ (1, p.GetAllOutputs ().size ());
+    EXPECT_EQ (1, p.GetAllOperations ().size ());
+
+    EXPECT_EQ (res1, p.GetResourceIO (res1)->res);
+    EXPECT_EQ (op1, p.GetOperationIO (op1)->op);
+    EXPECT_EQ (1, p.GetOperationIO (op1)->outputs.size ());
+    EXPECT_EQ (0, p.GetOperationIO (op1)->inputs.size ());
+    
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleInput)
+{
+    using namespace GVK::RG;
+
+    Operation* op1  = reinterpret_cast<Operation*> (1);
+    Resource*  res1 = reinterpret_cast<Resource*> (2);
+
+    RenderGraph::Pass p;
+    p.AddInput (op1, res1);
+
+    EXPECT_EQ (1, p.GetAllInputs ().size ());
+    EXPECT_EQ (0, p.GetAllOutputs ().size ());
+    EXPECT_EQ (1, p.GetAllOperations ().size ());
+
+    EXPECT_EQ (res1, p.GetResourceIO (res1)->res);
+    EXPECT_EQ (op1, p.GetOperationIO (op1)->op);
+    EXPECT_EQ (0, p.GetOperationIO (op1)->outputs.size ());
+    EXPECT_EQ (1, p.GetOperationIO (op1)->inputs.size ());
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleOutput_Remove)
+{
+    using namespace GVK::RG;
+
+    Operation* op1  = reinterpret_cast<Operation*> (1);
+    Resource*  res1 = reinterpret_cast<Resource*> (2);
+
+    RenderGraph::Pass p;
+    p.AddOutput (op1, res1);
+    p.RemoveOutput (op1, res1);
+
+    EXPECT_EQ (0, p.GetAllInputs ().size ());
+    EXPECT_EQ (0, p.GetAllOutputs ().size ());
+    EXPECT_EQ (0, p.GetAllOperations ().size ());
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleInput_Remove)
+{
+    using namespace GVK::RG;
+
+    Operation* op1  = reinterpret_cast<Operation*> (1);
+    Resource*  res1 = reinterpret_cast<Resource*> (2);
+
+    RenderGraph::Pass p;
+    p.AddInput (op1, res1);
+    p.RemoveInput (op1, res1);
+
+    EXPECT_EQ (0, p.GetAllInputs ().size ());
+    EXPECT_EQ (0, p.GetAllOutputs ().size ());
+    EXPECT_EQ (0, p.GetAllOperations ().size ());
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput)
+{
+    using namespace GVK::RG;
+
+    Operation* op1  = reinterpret_cast<Operation*> (1);
+    Resource*  res1 = reinterpret_cast<Resource*> (2);
+    Resource*  res2 = reinterpret_cast<Resource*> (3);
+
+    RenderGraph::Pass p;
+    p.AddInput (op1, res1);
+    p.AddInput (op1, res2);
+
+    EXPECT_EQ (2, p.GetAllInputs ().size ());
+    EXPECT_EQ (0, p.GetAllOutputs ().size ());
+    EXPECT_EQ (1, p.GetAllOperations ().size ());
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput_RemoveOne)
+{
+    using namespace GVK::RG;
+
+    Operation* op1  = reinterpret_cast<Operation*> (1);
+    Resource*  res1 = reinterpret_cast<Resource*> (2);
+    Resource*  res2 = reinterpret_cast<Resource*> (3);
+
+    RenderGraph::Pass p;
+    p.AddInput (op1, res1);
+    p.AddInput (op1, res2);
+    p.RemoveInput (op1, res2);
+
+    EXPECT_EQ (1, p.GetAllInputs ().size ());
+    EXPECT_EQ (0, p.GetAllOutputs ().size ());
+    EXPECT_EQ (1, p.GetAllOperations ().size ());
+
+    EXPECT_EQ (res1, p.GetResourceIO (res1)->res);
+    EXPECT_EQ (op1, p.GetOperationIO (op1)->op);
+    EXPECT_EQ (0, p.GetOperationIO (op1)->outputs.size ());
+    EXPECT_EQ (1, p.GetOperationIO (op1)->inputs.size ());
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput_RemoveAll)
+{
+    using namespace GVK::RG;
+
+    Operation* op1  = reinterpret_cast<Operation*> (1);
+    Resource*  res1 = reinterpret_cast<Resource*> (2);
+    Resource*  res2 = reinterpret_cast<Resource*> (3);
+    Resource*  res3 = reinterpret_cast<Resource*> (4);
+
+    RenderGraph::Pass p;
+    p.AddInput (op1, res1);
+    p.AddInput (op1, res2);
+    p.AddInput (op1, res3);
+    p.RemoveInput (op1, res2);
+    p.RemoveInput (op1, res1);
+    p.RemoveInput (op1, res3);
+
+    EXPECT_EQ (0, p.GetAllInputs ().size ());
+    EXPECT_EQ (0, p.GetAllOutputs ().size ());
+    EXPECT_EQ (0, p.GetAllOperations ().size ());
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput)
+{
+    using namespace GVK::RG;
+
+    Operation* op1  = reinterpret_cast<Operation*> (1);
+    Resource*  res1 = reinterpret_cast<Resource*> (2);
+    Resource*  res2 = reinterpret_cast<Resource*> (3);
+
+    RenderGraph::Pass p;
+    p.AddOutput (op1, res1);
+    p.AddOutput (op1, res2);
+
+    EXPECT_EQ (2, p.GetAllOutputs ().size ());
+    EXPECT_EQ (0, p.GetAllInputs ().size ());
+    EXPECT_EQ (1, p.GetAllOperations ().size ());
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput_RemoveOne)
+{
+    using namespace GVK::RG;
+
+    Operation* op1  = reinterpret_cast<Operation*> (1);
+    Resource*  res1 = reinterpret_cast<Resource*> (2);
+    Resource*  res2 = reinterpret_cast<Resource*> (3);
+
+    RenderGraph::Pass p;
+    p.AddOutput (op1, res1);
+    p.AddOutput (op1, res2);
+    p.RemoveOutput (op1, res2);
+
+    EXPECT_EQ (1, p.GetAllOutputs ().size ());
+    EXPECT_EQ (0, p.GetAllInputs ().size ());
+    EXPECT_EQ (1, p.GetAllOperations ().size ());
+
+    EXPECT_EQ (res1, p.GetResourceIO (res1)->res);
+    EXPECT_EQ (op1, p.GetOperationIO (op1)->op);
+    EXPECT_EQ (1, p.GetOperationIO (op1)->outputs.size ());
+    EXPECT_EQ (0, p.GetOperationIO (op1)->inputs.size ());
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput_RemoveAll)
+{
+    using namespace GVK::RG;
+
+    Operation* op1  = reinterpret_cast<Operation*> (1);
+    Resource*  res1 = reinterpret_cast<Resource*> (2);
+    Resource*  res2 = reinterpret_cast<Resource*> (3);
+    Resource*  res3 = reinterpret_cast<Resource*> (4);
+
+    RenderGraph::Pass p;
+    p.AddOutput (op1, res1);
+    p.AddOutput (op1, res2);
+    p.AddOutput (op1, res3);
+    p.RemoveOutput (op1, res2);
+    p.RemoveOutput (op1, res1);
+    p.RemoveOutput (op1, res3);
+
+    EXPECT_EQ (0, p.GetAllOutputs ().size ());
+    EXPECT_EQ (0, p.GetAllInputs ().size ());
+    EXPECT_EQ (0, p.GetAllOperations ().size ());
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleIO)
+{
+    using namespace GVK::RG;
+
+    Operation* op1  = reinterpret_cast<Operation*> (1);
+    Resource*  res1 = reinterpret_cast<Resource*> (2);
+    Resource*  res2 = reinterpret_cast<Resource*> (3);
+    Resource*  res3 = reinterpret_cast<Resource*> (4);
+
+    RenderGraph::Pass p;
+    p.AddInput (op1, res1);
+    p.AddInput (op1, res2);
+    p.AddOutput (op1, res3);
+
+    EXPECT_EQ (1, p.GetAllOutputs ().size ());
+    EXPECT_EQ (2, p.GetAllInputs ().size ());
+    EXPECT_EQ (1, p.GetAllOperations ().size ());
+
+    p.RemoveOutput (op1, res3);
+
+    EXPECT_EQ (0, p.GetAllOutputs ().size ());
+    EXPECT_EQ (2, p.GetAllInputs ().size ());
+    EXPECT_EQ (1, p.GetAllOperations ().size ());
+
+    p.RemoveInput (op1, res2);
+
+    EXPECT_EQ (0, p.GetAllOutputs ().size ());
+    EXPECT_EQ (1, p.GetAllInputs ().size ());
+    EXPECT_EQ (1, p.GetAllOperations ().size ());
+
+    p.RemoveInput (op1, res1);
+
+    EXPECT_EQ (0, p.GetAllOutputs ().size ());
+    EXPECT_EQ (0, p.GetAllInputs ().size ());
+    EXPECT_EQ (0, p.GetAllOperations ().size ());
+}
+
+
+
 uint64_t Forrest_G (const uint64_t k, const uint64_t seed, const uint64_t g, const uint64_t m)
 {
     uint64_t G = seed % m;
@@ -610,6 +856,11 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     std::shared_ptr<GVK::RG::WritableImageResource> red       = std::make_unique<GVK::RG::WritableImageResource> (512, 512);
     std::shared_ptr<GVK::RG::WritableImageResource> finalImg  = std::make_unique<GVK::RG::WritableImageResource> (512, 512);
 
+
+    /*
+        green -> dummyPass -> presented -> secondPass -> finalImg
+                           -> red
+    */
 
     std::shared_ptr<GVK::RG::RenderOperation> dummyPass = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 3),
                                                                                                       std::make_unique<GVK::RG::ShaderPipeline> (device, std::vector<std::filesystem::path> {

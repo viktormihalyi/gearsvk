@@ -13,7 +13,7 @@ class Gradient(Base) :
                                 = 'white',
             color2              : '"dark" pattern color, or Interactive.*'
                                 = 'black',
-            direction           : "<BR>The pattern direction in radians, <\BR><BR> or 'east', 'northeast', 'north', 'northwest', 'west', 'southwest', 'south', or 'southeast'<\BR><BR> or Interactive.*<\BR>"
+            direction           : "The pattern direction in radians, or 'east', 'northeast', 'north', 'northwest', 'west', 'southwest', 'south', or 'southeast' or Interactive.*"
                                 = 'east',
             start               : 'Distance from field center where gradient starts [um], or "edge" to start at the edge or corner.'
                                 = 'edge',
