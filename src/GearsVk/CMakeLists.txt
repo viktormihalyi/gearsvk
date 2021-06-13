@@ -17,6 +17,7 @@ set (Headers
     ${HeadersPath}/RenderGraph/Node.hpp
     ${HeadersPath}/RenderGraph/Operation.hpp
     ${HeadersPath}/RenderGraph/RenderGraph.hpp
+    ${HeadersPath}/RenderGraph/RenderGraphPass.hpp
     ${HeadersPath}/RenderGraph/Resource.hpp
     ${HeadersPath}/RenderGraph/ShaderPipeline.hpp
     ${HeadersPath}/RenderGraph/UniformReflection.hpp
@@ -80,6 +81,7 @@ set (Sources
     ${SourcesPath}/RenderGraph/GraphSettings.cpp
     ${SourcesPath}/RenderGraph/Operation.cpp
     ${SourcesPath}/RenderGraph/RenderGraph.cpp
+    ${SourcesPath}/RenderGraph/RenderGraphPass.cpp
     ${SourcesPath}/RenderGraph/Resource.cpp
     ${SourcesPath}/RenderGraph/ShaderPipeline.cpp
     ${SourcesPath}/RenderGraph/UniformReflection.cpp

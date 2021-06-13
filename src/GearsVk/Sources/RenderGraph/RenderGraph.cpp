@@ -42,9 +42,9 @@ void RenderGraph::CompileResources (const GraphSettings& settings)
 }
 
 
-RenderGraph::Pass RenderGraph::GetNextPass (const ConnectionSet& connectionSet, const Pass& lastPass) const
+Pass RenderGraph::GetNextPass (const ConnectionSet& connectionSet, const Pass& lastPass) const
 {
-    RenderGraph::Pass result;
+    Pass result;
 
     for (Operation* op : lastPass.GetAllOperations ()) {
         for (const std::shared_ptr<Resource>& res : connectionSet.GetPointingTo<Resource> (op)) {
@@ -69,7 +69,7 @@ RenderGraph::Pass RenderGraph::GetNextPass (const ConnectionSet& connectionSet, 
 }
 
 
-RenderGraph::Pass RenderGraph::GetFirstPass (const ConnectionSet& connectionSet) const
+Pass RenderGraph::GetFirstPass (const ConnectionSet& connectionSet) const
 {
     std::set<Operation*> allOp;
 
@@ -85,7 +85,7 @@ RenderGraph::Pass RenderGraph::GetFirstPass (const ConnectionSet& connectionSet)
         }
     });
 
-    RenderGraph::Pass actualResult;
+    Pass actualResult;
 
     for (Operation* op : allOp) {
         std::vector<std::shared_ptr<Resource>> allInputs  = connectionSet.GetPointingHere<Resource> (op);
@@ -102,7 +102,7 @@ RenderGraph::Pass RenderGraph::GetFirstPass (const ConnectionSet& connectionSet)
 }
 
 
-std::vector<RenderGraph::Pass> RenderGraph::GetPasses (const ConnectionSet& connectionSet) const
+std::vector<Pass> RenderGraph::GetPasses (const ConnectionSet& connectionSet) const
 {
     std::vector<Pass> result;
 

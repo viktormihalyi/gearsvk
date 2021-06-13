@@ -44,7 +44,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleOutput)
     Operation* op1  = reinterpret_cast<Operation*> (1);
     Resource*  res1 = reinterpret_cast<Resource*> (2);
 
-    RenderGraph::Pass p;
+    GVK::RG::Pass p;
     p.AddOutput (op1, res1);
 
     EXPECT_EQ (0, p.GetAllInputs ().size ());
@@ -66,7 +66,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleInput)
     Operation* op1  = reinterpret_cast<Operation*> (1);
     Resource*  res1 = reinterpret_cast<Resource*> (2);
 
-    RenderGraph::Pass p;
+    GVK::RG::Pass p;
     p.AddInput (op1, res1);
 
     EXPECT_EQ (1, p.GetAllInputs ().size ());
@@ -87,7 +87,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleOutput_Remove)
     Operation* op1  = reinterpret_cast<Operation*> (1);
     Resource*  res1 = reinterpret_cast<Resource*> (2);
 
-    RenderGraph::Pass p;
+    GVK::RG::Pass p;
     p.AddOutput (op1, res1);
     p.RemoveOutput (op1, res1);
 
@@ -104,7 +104,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleInput_Remove)
     Operation* op1  = reinterpret_cast<Operation*> (1);
     Resource*  res1 = reinterpret_cast<Resource*> (2);
 
-    RenderGraph::Pass p;
+    GVK::RG::Pass p;
     p.AddInput (op1, res1);
     p.RemoveInput (op1, res1);
 
@@ -122,7 +122,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput)
     Resource*  res1 = reinterpret_cast<Resource*> (2);
     Resource*  res2 = reinterpret_cast<Resource*> (3);
 
-    RenderGraph::Pass p;
+    GVK::RG::Pass p;
     p.AddInput (op1, res1);
     p.AddInput (op1, res2);
 
@@ -140,7 +140,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput_RemoveO
     Resource*  res1 = reinterpret_cast<Resource*> (2);
     Resource*  res2 = reinterpret_cast<Resource*> (3);
 
-    RenderGraph::Pass p;
+    GVK::RG::Pass p;
     p.AddInput (op1, res1);
     p.AddInput (op1, res2);
     p.RemoveInput (op1, res2);
@@ -165,7 +165,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput_RemoveA
     Resource*  res2 = reinterpret_cast<Resource*> (3);
     Resource*  res3 = reinterpret_cast<Resource*> (4);
 
-    RenderGraph::Pass p;
+    GVK::RG::Pass p;
     p.AddInput (op1, res1);
     p.AddInput (op1, res2);
     p.AddInput (op1, res3);
@@ -187,7 +187,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput)
     Resource*  res1 = reinterpret_cast<Resource*> (2);
     Resource*  res2 = reinterpret_cast<Resource*> (3);
 
-    RenderGraph::Pass p;
+    GVK::RG::Pass p;
     p.AddOutput (op1, res1);
     p.AddOutput (op1, res2);
 
@@ -205,7 +205,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput_Remove
     Resource*  res1 = reinterpret_cast<Resource*> (2);
     Resource*  res2 = reinterpret_cast<Resource*> (3);
 
-    RenderGraph::Pass p;
+    GVK::RG::Pass p;
     p.AddOutput (op1, res1);
     p.AddOutput (op1, res2);
     p.RemoveOutput (op1, res2);
@@ -230,7 +230,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput_Remove
     Resource*  res2 = reinterpret_cast<Resource*> (3);
     Resource*  res3 = reinterpret_cast<Resource*> (4);
 
-    RenderGraph::Pass p;
+    GVK::RG::Pass p;
     p.AddOutput (op1, res1);
     p.AddOutput (op1, res2);
     p.AddOutput (op1, res3);
@@ -253,7 +253,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleIO)
     Resource*  res2 = reinterpret_cast<Resource*> (3);
     Resource*  res3 = reinterpret_cast<Resource*> (4);
 
-    RenderGraph::Pass p;
+    GVK::RG::Pass p;
     p.AddInput (op1, res1);
     p.AddInput (op1, res2);
     p.AddOutput (op1, res3);
