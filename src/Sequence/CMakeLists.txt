@@ -27,15 +27,20 @@ set (Sources
 
 add_library (Sequence SHARED ${Headers} ${Sources})
 
+find_package (cereal REQUIRED)
+
 target_include_directories (Sequence
     PRIVATE ${HeadersPath}
     PUBLIC ${IncludePath}
 
     PUBLIC $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
     PUBLIC $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
+ 
+    PUBLIC ${cereal_INCLUDE_DIRS}
 )
 
 target_link_libraries (Sequence
+    PUBLIC ${cereal_LIBRARIES}
     PUBLIC RenderGraph
     PUBLIC Utils
 )
