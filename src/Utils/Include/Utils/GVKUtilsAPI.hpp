@@ -8,7 +8,11 @@
 #define GVK_UTILS_API __declspec(dllimport)
 #endif
 #else
+#ifdef Utils_EXPORTS
+#define GVK_UTILS_API __attribute__ ((__visibility__ ("default")))
+#else
 #define GVK_UTILS_API
+#endif
 #endif
 
 

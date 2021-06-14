@@ -8,7 +8,11 @@
 #define PYSEQUENCE_API __declspec(dllimport)
 #endif
 #else
+#ifdef PySequence_EXPORTS
+#define PYSEQUENCE_API __attribute__ ((__visibility__ ("default")))
+#else
 #define PYSEQUENCE_API
+#endif
 #endif
 
 

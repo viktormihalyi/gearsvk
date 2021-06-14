@@ -8,7 +8,11 @@
 #define SEQUENCE_API __declspec(dllimport)
 #endif
 #else
+#ifdef Sequence_EXPORTS
+#define SEQUENCE_API __attribute__ ((__visibility__ ("default")))
+#else
 #define SEQUENCE_API
+#endif
 #endif
 
 #endif

@@ -8,7 +8,11 @@
 #define GEARS_API __declspec(dllimport)
 #endif
 #else
+#ifdef GearsModule_EXPORTS
+#define GEARS_API __attribute__ ((__visibility__ ("default")))
+#else
 #define GEARS_API
+#endif
 #endif
 
 #ifdef _WIN32
@@ -18,7 +22,11 @@
 #define GEARS_API_TEST __declspec(dllimport)
 #endif
 #else
+#ifdef defined(GearsModule_EXPORTS) || defined(GearsModuleEmbedded_EXPORTS)
+#define GEARS_API_TEST __attribute__ ((__visibility__ ("default")))
+#else
 #define GEARS_API_TEST
+#endif
 #endif
 
 
