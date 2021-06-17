@@ -20,10 +20,6 @@ execute_process (COMMAND
 
 include (${CMAKE_BINARY_DIR}/conan_paths.cmake)
 
-if (MSVC)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251 /wd4267 /wd4275")
-endif ()
-
 add_subdirectory (src/Utils)
 add_subdirectory (src/GearsVk)
 add_subdirectory (src/Sequence)

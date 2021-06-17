@@ -652,7 +652,7 @@ void main () {
         GVK_ASSERT (textureArray != nullptr);
         std::vector<float> pixelData (32 * 32);
         std::generate_n (pixelData.begin (), 32 * 32, [] () {
-            return 0.3;
+            return 0.3f;
         });
         textureArray->CopyTransitionTransfer (pixelData);
     }
@@ -1068,7 +1068,7 @@ void main () {
     ib.data = { 0, 1, 2, 0, 3, 2 };
     ib.Flush ();
 
-    std::shared_ptr<GVK::RG::RenderOperation> redFillOperation = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, vbb.data.size (), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, ib.data.size (), ib.buffer.GetBufferToBind ()),
+    std::shared_ptr<GVK::RG::RenderOperation> redFillOperation = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, static_cast<uint32_t> (vbb.data.size ()), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, static_cast<uint32_t> (ib.data.size ()), ib.buffer.GetBufferToBind ()),
                                                                                                              std::move (sp));
 
     std::shared_ptr<GVK::RG::WritableImageResource>  presentedCopy = std::make_unique<GVK::RG::WritableImageResource> (800, 600);

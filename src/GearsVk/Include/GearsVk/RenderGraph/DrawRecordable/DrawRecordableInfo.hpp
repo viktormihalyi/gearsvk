@@ -153,7 +153,7 @@ public:
     {
         if (!vertexBuffer.empty ()) {
             std::vector<VkDeviceSize> offsets (vertexBuffer.size (), 0);
-            commandBuffer.RecordT<CommandBindVertexBuffers> (0, vertexBuffer.size (), vertexBuffer, offsets);
+            commandBuffer.RecordT<CommandBindVertexBuffers> (0, static_cast<uint32_t> (vertexBuffer.size ()), vertexBuffer, offsets);
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {
