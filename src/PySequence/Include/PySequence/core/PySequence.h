@@ -20,15 +20,19 @@ class Response;
 class PYSEQUENCE_API PySequence : public Sequence {
 private:
     using Sequence::Sequence;
+    
+    struct Impl;
+    std::unique_ptr<Impl> impl;
 
 public:
+    PySequence (std::string name);
+    virtual ~PySequence ();
+
     pybind11::object set (pybind11::object settings);
 
-    pybind11::object          resetCallback;
     pybind11::object          onReset (pybind11::object cb);
     std::shared_ptr<PySequence> setAgenda (pybind11::object agenda);
 
-    pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);
     pybind11::object getPythonObject ();
 

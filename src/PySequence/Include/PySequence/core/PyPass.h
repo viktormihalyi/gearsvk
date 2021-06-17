@@ -22,14 +22,19 @@ class Stimulus;
 
 //! A structure that specifies a shape in a stimulus.
 class PYSEQUENCE_API PyPass : public Pass {
+private:
+
+    struct Impl;
+    std::unique_ptr<Impl> impl;
+
 public:
 
-    using Pass::Pass;
+    PyPass ();
+    virtual ~PyPass ();
 
-    pybind11::object joiner;
     pybind11::object setJoiner (pybind11::object joiner);
+    pybind11::object getJoiner ();
 
-    pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);
     pybind11::object getPythonObject ();
 

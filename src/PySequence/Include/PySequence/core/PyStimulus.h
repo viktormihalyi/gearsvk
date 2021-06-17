@@ -24,13 +24,18 @@ class Pass;
 class Sequence;
 
 class PYSEQUENCE_API PyStimulus : public Stimulus {
+private:
+
+    struct Impl;
+    std::unique_ptr<Impl> impl;
+
 public:
-    using Stimulus::Stimulus;
+    PyStimulus ();
+    virtual ~PyStimulus ();
 
-    pybind11::object joiner;
     pybind11::object setJoiner (pybind11::object joiner);
+    pybind11::object getJoiner ();
 
-    pybind11::object forwardRenderingCallback;
     pybind11::object setForwardRenderingCallback (pybind11::object cb);
 
     pybind11::object set (pybind11::object settings);
@@ -41,7 +46,6 @@ public:
     pybind11::object setLtiMatrix (pybind11::object mList);
     pybind11::object setLtiImpulseResponse (pybind11::object mList, uint32_t nStates);
 
-    std::map<uint32_t, std::vector<pybind11::object>> callbacks;
 
     void registerCallback (uint32_t msg, pybind11::object callback);
 
@@ -62,14 +66,10 @@ public:
     }
 #endif
 
-    pybind11::object startCallback;
-    pybind11::object frameCallback;
-    pybind11::object finishCallback;
     pybind11::object onStart (pybind11::object callback);
     pybind11::object onFrame (pybind11::object callback);
     pybind11::object onFinish (pybind11::object callback);
 
-    pybind11::object pythonObject;
     pybind11::object setPythonObject (pybind11::object o);
     pybind11::object getPythonObject () const;
 
