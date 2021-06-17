@@ -3,6 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include "GearsVk/GearsVkAPI.hpp"
+
 #include "Utils/Assert.hpp"
 #include "Utils/MovablePtr.hpp"
 #include "Utils/Noncopyable.hpp"
@@ -13,6 +15,8 @@
 #include <cstring>
 
 namespace GVK {
+
+class DeviceMemory;
 
 class GVK_RENDERER_API MemoryMapping {
 private:
@@ -28,52 +32,11 @@ private:
     GVK::MovablePtr<void*> mappedMemory;
 
 public:
-    MemoryMapping (VkDevice device, VkDeviceMemory memory, size_t offset, size_t size)
-        : device (device)
-        , allocator (VK_NULL_HANDLE)
-        , allocationHandle (VK_NULL_HANDLE)
-        , memory (memory)
-        , offset (offset)
-        , size (size)
-        , mappedMemory (nullptr)
-    {
-        if (GVK_ERROR (vkMapMemory (device, memory, offset, size, 0, &mappedMemory) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to map memory");
-        }
-    }
+    MemoryMapping (VkDevice device, VkDeviceMemory memory, size_t offset, size_t size);
+    MemoryMapping (VkDevice device, const DeviceMemory& memory);
+    MemoryMapping (VmaAllocator allocator, VmaAllocation allocationHandle);
 
-    MemoryMapping (VkDevice device, const DeviceMemory& memory)
-        : MemoryMapping (device, memory, 0, memory.GetSize ())
-    {
-    }
-
-    MemoryMapping (VmaAllocator allocator, VmaAllocation allocationHandle)
-        : device (VK_NULL_HANDLE)
-        , memory (VK_NULL_HANDLE)
-        , allocator (allocator)
-        , allocationHandle (allocationHandle)
-        , offset (0)
-        , size (0)
-        , mappedMemory (nullptr)
-    {
-        VmaAllocationInfo allocInfo = {};
-        vmaGetAllocationInfo (allocator, allocationHandle, &allocInfo);
-        size = allocInfo.size;
-
-        if (GVK_ERROR (vmaMapMemory (allocator, allocationHandle, &mappedMemory) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to map memory");
-        }
-    }
-
-    ~MemoryMapping ()
-    {
-        if (device != VK_NULL_HANDLE) {
-            vkUnmapMemory (device, memory);
-        } else if (allocator != VK_NULL_HANDLE) {
-            vmaUnmapMemory (allocator, allocationHandle);
-        }
-        mappedMemory = nullptr;
-    }
+    ~MemoryMapping ();
 
     template<typename T>
     void Copy (const std::vector<T>& obj) const
@@ -91,14 +54,7 @@ public:
         memcpy (mappedMemory, &obj, size);
     }
 
-    void Copy (const void* data, size_t copiedSize) const
-    {
-        if (GVK_ERROR (copiedSize > size)) {
-            throw std::runtime_error ("overflow");
-        }
-
-        memcpy (mappedMemory, reinterpret_cast<const uint8_t*> (data), copiedSize);
-    }
+    void Copy (const void* data, size_t copiedSize) const;
 
     void*    Get () const { return mappedMemory; }
     uint32_t GetSize () { return size; }

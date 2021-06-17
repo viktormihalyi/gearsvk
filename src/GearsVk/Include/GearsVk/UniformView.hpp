@@ -165,7 +165,7 @@ public:
 };
 
 
-extern DummyUData dummyUData;
+extern GVK_RENDERER_API DummyUData dummyUData;
 
 
 class GVK_RENDERER_API UDataExternal final : public IUData, public Noncopyable {

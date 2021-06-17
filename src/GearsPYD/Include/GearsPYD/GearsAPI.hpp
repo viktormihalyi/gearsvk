@@ -22,7 +22,7 @@
 #define GEARS_API_TEST __declspec(dllimport)
 #endif
 #else
-#ifdef defined(GearsModule_EXPORTS) || defined(GearsModuleEmbedded_EXPORTS)
+#if defined(GearsModule_EXPORTS) || defined(GearsModuleEmbedded_EXPORTS)
 #define GEARS_API_TEST __attribute__ ((__visibility__ ("default")))
 #else
 #define GEARS_API_TEST

@@ -46,6 +46,8 @@ public:
     GVK_UTILS_API CommandLineOnOffFlag (const std::string& flag, const std::string& helpText = "");
     GVK_UTILS_API CommandLineOnOffFlag (const std::vector<std::string>& flags, const std::string& helpText = "");
 
+    virtual GVK_UTILS_API ~CommandLineOnOffFlag () override = default;
+
     bool GVK_UTILS_API IsFlagOn () const;
 
     virtual std::string GVK_UTILS_API GetHelpText () override;
@@ -56,6 +58,7 @@ private:
 };
 
 
+/*
 inline std::istringstream& get_istringstream ()
 {
     static thread_local std::istringstream stream;
@@ -74,7 +77,6 @@ inline T from_string (const std::string& s)
     return result;
 }
 
-/*
 template<typename... Parameters>
 class GVK_UTILS_API CommandLineFlagWithNumberParameter : public CommandLineOnOffFlag {
 private:

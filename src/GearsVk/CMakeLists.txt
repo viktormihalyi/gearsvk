@@ -88,6 +88,7 @@ set (Sources
     
     ${SourcesPath}/VulkanWrapper/Utils/BufferTransferable.cpp
     ${SourcesPath}/VulkanWrapper/Utils/ImageData.cpp
+    ${SourcesPath}/VulkanWrapper/Utils/MemoryMapping.cpp
     ${SourcesPath}/VulkanWrapper/Utils/STBImpl.cpp
     ${SourcesPath}/VulkanWrapper/Utils/VulkanUtils.cpp
 
