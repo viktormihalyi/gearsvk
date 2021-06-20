@@ -123,9 +123,9 @@ void ShaderPipeline::SetFragmentShaderFromString (const std::string& source, Sha
 void ShaderPipeline::SetShaderFromSourceFile (const std::filesystem::path& shaderPath)
 {
     // assert on overwriting shader
-    GVK_ASSERT (GetShaderByExtension (shaderPath.extension ().u8string ()) == nullptr);
+    GVK_ASSERT (GetShaderByExtension (shaderPath.extension ().string ()) == nullptr);
 
-    GetShaderByExtension (shaderPath.extension ().u8string ()) = ShaderModule::CreateFromGLSLFile (device, shaderPath);
+    GetShaderByExtension (shaderPath.extension ().string ()) = ShaderModule::CreateFromGLSLFile (device, shaderPath);
 }
 
 

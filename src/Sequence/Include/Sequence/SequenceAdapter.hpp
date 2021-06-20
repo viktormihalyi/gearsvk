@@ -67,6 +67,8 @@ public:
     // GVK::RG::IFrameDisplayObserver
     virtual void OnImageAcquisitionFenceSignaled (uint32_t) override;
 
+    std::shared_ptr<Sequence> GetSequence () { return sequence; }
+
 private:
     void CreateStimulusAdapterViews ();
 };

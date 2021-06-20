@@ -6,6 +6,9 @@
 #include "SequenceAPI.hpp"
 #include <memory>
 
+#include <cereal/cereal.hpp>
+#include <cereal/types/polymorphic.hpp>
+
 class Stimulus;
 class Response;
 
@@ -18,11 +21,27 @@ public:
         std::string  portName;
         unsigned int raiseFunc;
         unsigned int clearFunc;
+
+        template <typename Archive>
+        void serialize (Archive& ar)
+        {
+            ar (CEREAL_NVP (portName));
+            ar (CEREAL_NVP (raiseFunc));
+            ar (CEREAL_NVP (clearFunc));
+        }
+
     };
     using ChannelMap = std::map<std::string, Channel>;
     struct SignalEvent {
         bool        clear;
         std::string channel;
+
+        template <typename Archive>
+        void serialize (Archive& ar)
+        {
+            ar (CEREAL_NVP (clear));
+            ar (CEREAL_NVP (channel));
+        }
     };
     using SignalMap = std::multimap<unsigned int, SignalEvent>;
 
@@ -56,7 +75,10 @@ protected:
     bool setMeasurementEnd ();
 
 public:
+    Sequence ();
     Sequence (std::string name);
+
+    virtual ~Sequence ();
 
     std::string name;  //< Unique name.
     std::string brief; //< A short discription of the sequence.
@@ -104,9 +126,6 @@ public:
     const ChannelMap&  getChannels () const { return channels; }
     uint32_t               getChannelCount () const { return channels.size (); }
     const SignalMap&   getSignals () const { return signals; }
-
-    //! Destructor. Deletes stimuli.
-    virtual ~Sequence ();
 
     void setupGeometry (
         float        fieldWidth_um,
@@ -224,4 +243,61 @@ public:
 
 public:
     virtual void OnStimulusAdded (std::shared_ptr<Stimulus> stimulus) {}
+
+public:
+
+    template <typename Archive>
+    void serialize (Archive& ar)
+    {
+        ar (CEREAL_NVP (stimuli));
+        ar (CEREAL_NVP (channels));
+        ar (CEREAL_NVP (signals));
+        ar (CEREAL_NVP (responses));
+        ar (CEREAL_NVP (temp_r));
+        ar (CEREAL_NVP (maxKernelWidth_um));
+        ar (CEREAL_NVP (maxKernelHeight_um));
+        ar (CEREAL_NVP (maxMemoryLength));
+        ar (CEREAL_NVP (maxTemporalProcessingStateCount));
+        ar (CEREAL_NVP (mono));
+        ar (CEREAL_NVP (usesDynamicToneMapping));
+        ar (CEREAL_NVP (usesForwardRendering));
+        ar (CEREAL_NVP (usesBusyWaitingThreadForSingals));
+        ar (CEREAL_NVP (duration));
+        ar (CEREAL_NVP (shortestStimulusDuration));
+        ar (CEREAL_NVP (measurementStartOffset));
+        ar (CEREAL_NVP (measurementEndOffset));
+        ar (CEREAL_NVP (name));
+        ar (CEREAL_NVP (brief));
+        ar (CEREAL_NVP (greyscale));
+        ar (CEREAL_NVP (useOpenCL));
+        ar (CEREAL_NVP (useHighFreqRender));
+        ar (CEREAL_NVP (maxRandomGridWidth));
+        ar (CEREAL_NVP (maxRandomGridHeight));
+        ar (CEREAL_NVP (exportRandomsWithHashmark));
+        ar (CEREAL_NVP (exportRandomsChannelCount));
+        ar (CEREAL_NVP (exportRandomsAsReal));
+        ar (CEREAL_NVP (exportRandomsAsBinary));
+        ar (CEREAL_NVP (maxParticleGridWidth));
+        ar (CEREAL_NVP (maxParticleGridHeight));
+        ar (CEREAL_NVP (fieldWidth_um));
+        ar (CEREAL_NVP (fieldHeight_um));
+        ar (CEREAL_NVP (fieldLeft_px));
+        ar (CEREAL_NVP (fieldBottom_px));
+        ar (CEREAL_NVP (fieldWidth_px));
+        ar (CEREAL_NVP (fieldHeight_px));
+        ar (CEREAL_NVP (queueWidth_px));
+        ar (CEREAL_NVP (queueHeight_px));
+        ar (CEREAL_NVP (deviceFrameRate));
+        ar (CEREAL_NVP (frameRateDivisor));
+        ar (CEREAL_NVP (monitorIndex));
+        ar (CEREAL_NVP (tickInterval));
+        ar (CEREAL_NVP (fftWidth_px));
+        ar (CEREAL_NVP (fftHeight_px));
+        ar (CEREAL_NVP (hasFft));
+        ar (CEREAL_NVP (hasSpatialDomainConvolution));
+
+    }
 };
+
+
+CEREAL_REGISTER_TYPE (Sequence)

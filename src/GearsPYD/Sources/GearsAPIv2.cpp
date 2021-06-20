@@ -151,7 +151,7 @@ std::string GetGLSLResourcesForRandoms ()
 }
 
 
-std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment& environment, const std::filesystem::path& filePath)
+std::shared_ptr<Sequence> GetSequenceFromPyx (const std::filesystem::path& filePath)
 {
     if (GVK_ERROR (!std::filesystem::exists (filePath))) {
         return nullptr;
@@ -164,30 +164,37 @@ std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironme
     try {
         pybind11::module sys = pybind11::module::import ("sys");
 
-        sys.attr ("path").attr ("insert") (0, (PROJECT_ROOT).u8string ());
+        sys.attr ("path").attr ("insert") (0, (PROJECT_ROOT).string ());
 
         pybind11::module::import ("AppData").attr ("initConfigParams") ();
 
         pybind11::module sequenceLoader = pybind11::module::import ("SequenceLoaderCore");
 
-        sequenceLoader.attr ("loadParents") (filePath.parent_path ().u8string (), (PROJECT_ROOT / "Project").u8string ());
+        sequenceLoader.attr ("loadParents") (filePath.parent_path ().string (), (PROJECT_ROOT / "Project").string ());
 
         pybind11::module machinery        = pybind11::module::import ("importlib.machinery");
         pybind11::object sourceFileLoader = machinery.attr ("SourceFileLoader");
 
-        pybind11::object sequenceCreator = sourceFileLoader ("my_module", filePath.u8string ()).attr ("load_module") ();
+        pybind11::object sequenceCreator = sourceFileLoader ("my_module", filePath.string ()).attr ("load_module") ();
 
         pybind11::object sequence = sequenceCreator.attr ("create") (pybind11::none ());
 
         std::shared_ptr<PySequence> sequenceCpp = sequence.cast<std::shared_ptr<PySequence>> ();
 
-        return std::make_unique<SequenceAdapter> (environment, sequenceCpp);
+        return sequenceCpp;
 
     } catch (std::exception& e) {
         GVK_BREAK ("Failed to load sequence.");
         std::cout << e.what () << std::endl;
         return nullptr;
     }
+}
+
+
+std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment& environment, const std::filesystem::path& filePath)
+{
+    std::shared_ptr<Sequence> sequence = GetSequenceFromPyx (filePath);
+    return std::make_unique<SequenceAdapter> (environment, sequence);
 }
 
 

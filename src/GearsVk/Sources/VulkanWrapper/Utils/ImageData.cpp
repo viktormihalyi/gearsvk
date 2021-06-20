@@ -84,7 +84,7 @@ ImageData::ImageData (const std::filesystem::path& path, const uint32_t componen
     , componentByteSize (1)
 {
     int            w, h, readComponents;
-    unsigned char* stbiData = stbi_load (path.u8string ().c_str (), &w, &h, &readComponents, components);
+    unsigned char* stbiData = stbi_load (path.string ().c_str (), &w, &h, &readComponents, components);
 
     if (GVK_ERROR (stbiData == nullptr)) {
         width  = 0;
@@ -234,7 +234,7 @@ void ImageData::SaveTo (const std::filesystem::path& path) const
     Utils::EnsureParentFolderExists (path);
     GVK_ASSERT (width * height * components == data.size ());
 
-    const int result = stbi_write_png (path.u8string ().c_str (), width, height, components, data.data (), width * components);
+    const int result = stbi_write_png (path.string ().c_str (), width, height, components, data.data (), width * components);
 
     GVK_ASSERT (result == 1);
 }

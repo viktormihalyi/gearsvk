@@ -12,6 +12,10 @@
 #include <string>
 #include <vector>
 
+#include <cereal/cereal.hpp>
+#include <cereal/types/polymorphic.hpp>
+
+
 class Sequence;
 
 //! A structure that contains all stimulus parameters.
@@ -25,6 +29,18 @@ public:
         float       xcoord, ycoord, width, height;
         uint32_t        key;
         bool        visible;
+        
+        template <class Archive>
+        void serialize (Archive& ar)
+        {
+            ar (CEREAL_NVP (label));
+            ar (CEREAL_NVP (xcoord));
+            ar (CEREAL_NVP (ycoord));
+            ar (CEREAL_NVP (width));
+            ar (CEREAL_NVP (height));
+            ar (CEREAL_NVP (key));
+            ar (CEREAL_NVP (visible));
+        }
     };
     std::vector<Button> buttons;
     unsigned int        duration; //frames
@@ -44,4 +60,15 @@ public:
     }
 
     std::shared_ptr<Sequence> getSequence () { return sequence; }
+
+    template <class Archive>
+    void serialize (Archive& ar)
+    {
+        ar (CEREAL_NVP (question));
+        ar (CEREAL_NVP (loop));
+        ar (CEREAL_NVP (buttons));
+        ar (CEREAL_NVP (duration));
+        ar (CEREAL_NVP (startingFrame));
+        ar (CEREAL_NVP (sequence));
+    }
 };

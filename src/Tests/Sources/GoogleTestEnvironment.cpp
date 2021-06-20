@@ -84,7 +84,7 @@ void GoogleTestEnvironmentBase::CompareImages (const std::string& imageName, con
 
     if (!imagesMatch) {
         const std::filesystem::path outPath = TempFolder / (imageName + "_actual.png");
-        std::cout << "Saving " << outPath.u8string () << "..." << std::endl;
+        std::cout << "Saving " << outPath.string () << "..." << std::endl;
         SaveImageToFileAsync (GetDeviceExtra (), image, outPath).join ();
     }
 }
@@ -100,16 +100,16 @@ void GoogleTestEnvironmentBase::CompareImages (const std::string& name, const Im
 
     if (!comparison.equal) {
         const std::filesystem::path outPathRef = TempFolder / (name + "_Reference.png");
-        std::cout << "Saving " << outPathRef.u8string () << "..." << std::endl;
+        std::cout << "Saving " << outPathRef.string () << "..." << std::endl;
         referenceImage.SaveTo (outPathRef);
 
         const std::filesystem::path outPath = TempFolder / (name + "_Actual.png");
-        std::cout << "Saving " << outPath.u8string () << "..." << std::endl;
+        std::cout << "Saving " << outPath.string () << "..." << std::endl;
         actualImage.SaveTo (outPath);
 
         if (GVK_VERIFY (comparison.diffImage != nullptr)) {
             const std::filesystem::path outPathDiff = TempFolder / (name + "_Diff.png");
-            std::cout << "Saving " << outPathDiff.u8string () << "..." << std::endl;
+            std::cout << "Saving " << outPathDiff.string () << "..." << std::endl;
             comparison.diffImage->SaveTo (outPathDiff);
         }
     }

@@ -7,15 +7,6 @@
 
 #include <memory>
 
-#include <algorithm>
-
-#include <iomanip>
-#include <list>
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
-
 #include "pybind11/pybind11.h"
 
 class Sequence;

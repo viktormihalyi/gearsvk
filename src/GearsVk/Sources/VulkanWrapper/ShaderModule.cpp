@@ -31,11 +31,11 @@ EmptyPreprocessor emptyPreprocessor;
 
 class ShaderKindInfo final {
 public:
-    const std::string           extension;
-    const VkShaderStageFlagBits vkflag;
-    const ShaderKind            shaderKind;
-    const EShLanguage           esh;
-    const std::string           displayName;
+    const char*           extension;
+    VkShaderStageFlagBits vkflag;
+    ShaderKind            shaderKind;
+    EShLanguage           esh;
+    const char*           displayName;
 
 private:
     ShaderKindInfo () = default;
@@ -58,7 +58,7 @@ const ShaderKindInfo ShaderKindInfo::vert {
     VK_SHADER_STAGE_VERTEX_BIT,
     ShaderKind::Vertex,
     EShLangVertex,
-    "Vertex Shader",
+    "Vertex Shader"
 };
 
 const ShaderKindInfo ShaderKindInfo::tesc {
@@ -66,7 +66,7 @@ const ShaderKindInfo ShaderKindInfo::tesc {
     VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
     ShaderKind::TessellationControl,
     EShLangTessControl,
-    "Tessellation Control Shader",
+    "Tessellation Control Shader"
 };
 
 const ShaderKindInfo ShaderKindInfo::tese {
@@ -74,7 +74,7 @@ const ShaderKindInfo ShaderKindInfo::tese {
     VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
     ShaderKind::TessellationEvaluation,
     EShLangTessEvaluation,
-    "Tessellation Evaluation Shader",
+    "Tessellation Evaluation Shader"
 };
 
 const ShaderKindInfo ShaderKindInfo::geom {
@@ -82,7 +82,7 @@ const ShaderKindInfo ShaderKindInfo::geom {
     VK_SHADER_STAGE_GEOMETRY_BIT,
     ShaderKind::Geometry,
     EShLangGeometry,
-    "Geometry Shader",
+    "Geometry Shader"
 };
 
 const ShaderKindInfo ShaderKindInfo::frag {
@@ -90,7 +90,7 @@ const ShaderKindInfo ShaderKindInfo::frag {
     VK_SHADER_STAGE_FRAGMENT_BIT,
     ShaderKind::Fragment,
     EShLangFragment,
-    "Fragment Shader",
+    "Fragment Shader"
 };
 
 const ShaderKindInfo ShaderKindInfo::comp {
@@ -98,7 +98,7 @@ const ShaderKindInfo ShaderKindInfo::comp {
     VK_SHADER_STAGE_COMPUTE_BIT,
     ShaderKind::Compute,
     EShLangCompute,
-    "Compute Shader",
+    "Compute Shader"
 };
 
 
@@ -260,7 +260,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
     shader.setEnvTarget (glslang::EShTargetSpv, TargetVersion);
 
     if (!shader.parse (&resources, 100, false, messages)) {
-        throw ShaderCompileException ("Failed to parse " + shaderKind.displayName + ":\n"
+        throw ShaderCompileException (std::string { "Failed to parse " } + shaderKind.displayName + ":\n"
                                      + "================================== GLSL CODE BEGIN ==================================\n"
                                      + sourceCode + "\n"
                                      + "================================== GLSL CODE END ====================================\n"
@@ -271,7 +271,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
     program.addShader (&shader);
 
     if (!program.link (EShMsgDefault)) {
-        throw ShaderCompileException ("Failed to link " + shaderKind.displayName + ":\n"
+        throw ShaderCompileException (std::string { "Failed to link " } + shaderKind.displayName + ":\n"
                                      + "================================== GLSL CODE BEGIN ==================================\n"
                                      + sourceCode + "\n"
                                      + "================================== GLSL CODE END ====================================\n"
@@ -396,7 +396,7 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
         throw std::runtime_error ("failed to read shader");
     }
 
-    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()), preprocessor);
+    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().string ()), preprocessor);
     if (GVK_ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }
@@ -404,7 +404,7 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
     VkShaderModule handle = CreateShaderModuleImpl (device, *binary);
     
     return std::make_unique<ShaderModule> (
-        ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()).shaderKind,
+        ShaderKindInfo::FromExtension (fileLocation.extension ().string ()).shaderKind,
         ReadMode::GLSLFilePath,
         device,
         handle,
@@ -636,7 +636,7 @@ void ShaderModule::Reload ()
             throw std::runtime_error ("failed to read shader");
         }
 
-        std::optional<std::vector<uint32_t>> newBinary = CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().u8string ()), preprocessor);
+        std::optional<std::vector<uint32_t>> newBinary = CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().string ()), preprocessor);
         if (GVK_ERROR (!newBinary.has_value ())) {
             throw std::runtime_error ("failed to compile shader");
         }

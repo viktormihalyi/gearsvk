@@ -5,9 +5,6 @@
 
 #include "Sequence/Sequence.h"
 
-#include <map>
-#include <string>
-
 #include <memory>
 #include <string>
 
@@ -19,8 +16,7 @@ class Response;
 //! A structure that contains all sequence parameters.
 class PYSEQUENCE_API PySequence : public Sequence {
 private:
-    using Sequence::Sequence;
-    
+
     struct Impl;
     std::unique_ptr<Impl> impl;
 

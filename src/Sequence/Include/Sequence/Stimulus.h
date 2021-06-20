@@ -15,6 +15,10 @@
 
 #include <glm/glm.hpp>
 
+#include <cereal/cereal.hpp>
+#include <cereal/types/polymorphic.hpp>
+
+
 class Pass;
 class Sequence;
 class SpatialFilter;
@@ -36,6 +40,13 @@ public:
     struct SignalEvent {
         bool        clear;
         std::string channel;
+            
+        template <typename Archive>
+        void serialize (Archive& ar)
+        {
+            ar (CEREAL_NVP (clear));
+            ar (CEREAL_NVP (channel));
+        }
     };
     using SignalMap = std::multimap<unsigned int, SignalEvent>;
     SignalMap             tickSignals;
@@ -192,4 +203,68 @@ public:
     bool IsEquivalent (const Stimulus& other) const;
 
     virtual void OnPassAdded (std::shared_ptr<Pass> pass) {}
+
+    template <typename Archive>
+    void serialize (Archive& ar)
+    {
+        ar (CEREAL_NVP (duration));
+        ar (CEREAL_NVP (name));
+        ar (CEREAL_NVP (brief));
+        ar (CEREAL_NVP (sequence));
+        ar (CEREAL_NVP (passes));
+        ar (CEREAL_NVP (startingFrame));
+        ar (CEREAL_NVP (tickSignals));
+        ar (CEREAL_NVP (stimulusChannels));
+        ar (CEREAL_NVP (requiresClearing));
+        ar (CEREAL_NVP (clearColor));
+        ar (CEREAL_NVP (usesForwardRendering));
+        ar (CEREAL_NVP (spikeVertexShaderSource));
+        ar (CEREAL_NVP (spikeFragmentShaderSource));
+        ar (CEREAL_NVP (temporalFilterPlotVertexShaderSource));
+        ar (CEREAL_NVP (temporalFilterPlotFragmentShaderSource));
+        ar (CEREAL_NVP (linearDynamicToneShaderSource));
+        ar (CEREAL_NVP (erfDynamicToneShaderSource));
+        ar (CEREAL_NVP (equalizedDynamicToneShaderSource));
+        ar (CEREAL_NVP (temporalFilterShaderSource));
+        ar (CEREAL_NVP (temporalFilterFuncSource));
+        ar (CEREAL_NVP (temporalWeights));
+        ar (CEREAL_NVP (temporalMemoryLength));
+        ar (CEREAL_NVP (mono));
+        ar (CEREAL_NVP (temporalProcessingStateCount));
+        ar (CEREAL_NVP (fullScreenTemporalFiltering));
+        ar (CEREAL_NVP (temporalWeightMax));
+        ar (CEREAL_NVP (temporalWeightMin));
+        ar (CEREAL_NVP (temporalProcessingStateTransitionMatrix));
+        ar (CEREAL_NVP (spatialFilter));
+        ar (CEREAL_NVP (randomGeneratorShaderSource));
+        ar (CEREAL_NVP (randomGridWidth));
+        ar (CEREAL_NVP (randomGridHeight));
+        ar (CEREAL_NVP (randomSeed));
+        ar (CEREAL_NVP (freezeRandomsAfterFrame));
+        ar (CEREAL_NVP (particleShaderSource));
+        ar (CEREAL_NVP (particleGridWidth));
+        ar (CEREAL_NVP (particleGridHeight));
+        ar (CEREAL_NVP (gamma));
+        ar (CEREAL_NVP (gammaSamplesCount));
+        ar (CEREAL_NVP (doesToneMappingInStimulusGenerator));
+        ar (CEREAL_NVP (toneMappingMode));
+        ar (CEREAL_NVP (doesDynamicToneMapping));
+        ar (CEREAL_NVP (histogramMeasurementImpedance));
+        ar (CEREAL_NVP (computesFullAverageForHistogram));
+        ar (CEREAL_NVP (stretchFactor));
+        ar (CEREAL_NVP (meanOffset));
+        ar (CEREAL_NVP (toneRangeMin));
+        ar (CEREAL_NVP (toneRangeMax));
+        ar (CEREAL_NVP (toneRangeMean));
+        ar (CEREAL_NVP (toneRangeVar));
+        ar (CEREAL_NVP (measuredHistogram));
+        ar (CEREAL_NVP (measuredToneRangeMin));
+        ar (CEREAL_NVP (measuredToneRangeMax));
+        ar (CEREAL_NVP (measuredMean));
+        ar (CEREAL_NVP (measuredVariance));
+        ar (CEREAL_NVP (interactives));
+
+    }
 };
+
+CEREAL_REGISTER_TYPE (Stimulus)

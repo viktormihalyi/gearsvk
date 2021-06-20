@@ -26,18 +26,18 @@ static msdfgen::FontHandle* GetFont (const std::filesystem::path& fontFile)
         throw std::runtime_error ("failed to initialize freetype");
     }
 
-    const std::string file = fontFile.u8string ();
+    const std::string file = fontFile.string ();
 
     if (loadedFonts.find (file) != loadedFonts.end ()) {
         return loadedFonts[file];
     }
 
-    msdfgen::FontHandle* font = msdfgen::loadFont (ft, fontFile.u8string ().c_str ());
+    msdfgen::FontHandle* font = msdfgen::loadFont (ft, fontFile.string ().c_str ());
     if (GVK_ERROR (font == nullptr)) {
         throw std::runtime_error ("failed to load font");
     }
 
-    loadedFonts[fontFile.u8string ()] = font;
+    loadedFonts[fontFile.string ()] = font;
 
     return font;
 }

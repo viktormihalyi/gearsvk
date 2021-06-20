@@ -8,6 +8,9 @@
 #include <map>
 #include <string>
 
+#include <cereal/cereal.hpp>
+#include <cereal/types/polymorphic.hpp>
+
 class Sequence;
 
 //! Structure describing a spatial filter logic.
@@ -196,4 +199,37 @@ public:
     }
 
     void makeUnique ();
+
+    
+    template <typename Archive>
+    void serialize (Archive& ar)
+    {
+        ar (CEREAL_NVP (kernelFuncSource));
+        ar (CEREAL_NVP (kernelProfileVertexSource));
+        ar (CEREAL_NVP (kernelProfileFragmentSource));
+        ar (CEREAL_NVP (spatialDomainConvolutionShaderSource));
+
+        ar (CEREAL_NVP (uniqueId));
+
+        ar (CEREAL_NVP (width_um));
+        ar (CEREAL_NVP (height_um));
+        ar (CEREAL_NVP (minimum));
+        ar (CEREAL_NVP (maximum));
+
+        ar (CEREAL_NVP (useFft));
+        ar (CEREAL_NVP (separable));
+        ar (CEREAL_NVP (kernelGivenInFrequencyDomain));
+        ar (CEREAL_NVP (showFft));
+        ar (CEREAL_NVP (stimulusGivenInFrequencyDomain));
+        ar (CEREAL_NVP (fftSwizzleMask));
+
+        ar (CEREAL_NVP (horizontalSampleCount));
+        ar (CEREAL_NVP (verticalSampleCount));
+
+        ar (CEREAL_NVP (shaderVariables));
+        ar (CEREAL_NVP (shaderColors));
+        ar (CEREAL_NVP (shaderVectors));
+        ar (CEREAL_NVP (shaderFunctions));
+        ar (CEREAL_NVP (shaderFunctionOrder));
+    }
 };

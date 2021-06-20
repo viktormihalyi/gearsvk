@@ -13,6 +13,10 @@
 #include <vector>
 #include <memory>
 
+#include <cereal/cereal.hpp>
+#include <cereal/types/polymorphic.hpp>
+
+
 class Sequence;
 class Stimulus;
 
@@ -56,6 +60,17 @@ public:
         float halfheight;
         float pif;
         float motion;
+        
+        template <class Archive>
+        void serialize (Archive& ar)
+        {
+            ar (CEREAL_NVP (x));
+            ar (CEREAL_NVP (y));
+            ar (CEREAL_NVP (halfwidth));
+            ar (CEREAL_NVP (halfheight));
+            ar (CEREAL_NVP (pif));
+            ar (CEREAL_NVP (motion));
+        }
     };
     std::vector<QuadData> quads;
     enum class RasterizationMode {
@@ -232,4 +247,36 @@ public:
     void enableColorMode () { mono = false; }
 
     std::string ToDebugString () const;
+
+    template <class Archive>
+    void serialize (Archive& ar)
+    {
+        ar (CEREAL_NVP (name));
+        ar (CEREAL_NVP (brief));
+        ar (CEREAL_NVP (stimulus));
+        ar (CEREAL_NVP (duration));
+        ar (CEREAL_NVP (startingFrame));
+        ar (CEREAL_NVP (stimulusGeneratorShaderSource));
+        ar (CEREAL_NVP (stimulusGeneratorGeometryShaderMotionTransformFunction));
+        ar (CEREAL_NVP (timelineVertexShaderSource));
+        ar (CEREAL_NVP (timelineFragmentShaderSource));
+        ar (CEREAL_NVP (shaderVariables));
+        ar (CEREAL_NVP (shaderColors));
+        ar (CEREAL_NVP (shaderVectors));
+        ar (CEREAL_NVP (shaderFunctions));
+        ar (CEREAL_NVP (geomShaderFunctions));
+        ar (CEREAL_NVP (shaderFunctionOrder));
+        ar (CEREAL_NVP (temporalShaderFunctions));
+        ar (CEREAL_NVP (shaderImages));
+        ar (CEREAL_NVP (polygonMask));
+        ar (CEREAL_NVP (quads));
+        ar (CEREAL_NVP (rasterizationMode));
+        ar (CEREAL_NVP (videoFileName));
+        ar (CEREAL_NVP (loop));
+        ar (CEREAL_NVP (mono));
+        ar (CEREAL_NVP (transparent));
+    }
 };
+
+
+CEREAL_REGISTER_TYPE (Pass)

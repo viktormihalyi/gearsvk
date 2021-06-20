@@ -12,11 +12,15 @@ Sequence::Sequence (std::string name)
 {
 }
 
-Sequence::~Sequence ()
+
+Sequence::Sequence ()
+    : Sequence ("<no name>")
 {
-    stimuli.clear ();
-    responses.clear ();
 }
+
+
+Sequence::~Sequence () = default;
+
 
 void Sequence::addResponse (std::shared_ptr<Response> response)
 {

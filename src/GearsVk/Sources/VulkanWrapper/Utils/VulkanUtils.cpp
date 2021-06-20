@@ -118,7 +118,7 @@ std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t 
 {
     int width, height, readComponents;
 
-    unsigned char* imageData = stbi_load (filePath.u8string ().c_str (), &width, &height, &readComponents, components);
+    unsigned char* imageData = stbi_load (filePath.string ().c_str (), &width, &height, &readComponents, components);
 
     if (GVK_ERROR (imageData == nullptr)) {
         throw std::runtime_error ("failed to load image");
@@ -152,9 +152,9 @@ bool AreImagesEqual (const DeviceExtra& device, const Image& image, const std::f
 
     std::vector<std::array<uint8_t, 4>> expected (pixelCount);
     int                                 expectedWidth, expectedHeight, expectedComponents;
-    unsigned char*                      exepctedData = stbi_load (expectedImage.u8string ().c_str (), &expectedWidth, &expectedHeight, &expectedComponents, STBI_rgb_alpha);
+    unsigned char*                      exepctedData = stbi_load (expectedImage.string ().c_str (), &expectedWidth, &expectedHeight, &expectedComponents, STBI_rgb_alpha);
     if (GVK_ERROR (exepctedData == nullptr)) {
-        std::cout << "Failed to load " << expectedImage.u8string () << std::endl;
+        std::cout << "Failed to load " << expectedImage.string () << std::endl;
         return false;
     }
 

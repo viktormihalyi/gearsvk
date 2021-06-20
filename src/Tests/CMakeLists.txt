@@ -1,3 +1,4 @@
+enable_testing ()
 
 set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
@@ -28,7 +29,7 @@ target_include_directories (GVKTest
 )
 
 target_link_libraries (GVKTest
-    PRIVATE ${GTest_LIBRARIES}
+    PUBLIC ${GTest_LIBRARIES}
     PRIVATE Sequence
     PRIVATE GearsModuleEmbedded
     PRIVATE PySequence
@@ -36,5 +37,11 @@ target_link_libraries (GVKTest
     PRIVATE Utils
 )
 
+add_test (NAME GVKTest
+          COMMAND GVKTest
+          WORKING_DIRECTORY bin)
+
 file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/Sources/TestData
       DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+

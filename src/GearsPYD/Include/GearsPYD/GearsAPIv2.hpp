@@ -44,4 +44,7 @@ void SetCurrentPresentable (std::shared_ptr<GVK::Presentable>&);
 GEARS_API_TEST
 std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment&, const std::filesystem::path&);
 
+GEARS_API_TEST
+std::shared_ptr<Sequence> GetSequenceFromPyx (const std::filesystem::path&);
+
 } // namespace Gears

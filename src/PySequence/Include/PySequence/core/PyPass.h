@@ -5,15 +5,7 @@
 
 #include "Sequence/Pass.h"
 
-#include <algorithm>
-#include <glm/glm.hpp>
-
-#include <iomanip>
-#include <list>
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
+#include <memory>
 
 #include "pybind11/pybind11.h"
 
