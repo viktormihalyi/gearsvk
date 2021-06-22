@@ -2,10 +2,6 @@
 set (IncludePath ${CMAKE_CURRENT_SOURCE_DIR}/Include)
 set (HeadersPath ${CMAKE_CURRENT_SOURCE_DIR}/Include/GearsVk)
 set (Headers
-    ${HeadersPath}/Camera/Camera.hpp
-    ${HeadersPath}/Camera/CameraControl.hpp
-    ${HeadersPath}/Camera/Frustum.hpp
-
     ${HeadersPath}/RenderGraph/DrawRecordable/DrawRecordable.hpp
     ${HeadersPath}/RenderGraph/DrawRecordable/DrawRecordableInfo.hpp
     ${HeadersPath}/RenderGraph/DrawRecordable/FullscreenQuad.hpp
@@ -36,9 +32,6 @@ set (Headers
 
 set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
-    ${SourcesPath}/Camera/Camera.cpp
-    ${SourcesPath}/Camera/Frustum.cpp
-
     ${SourcesPath}/RenderGraph/GraphRenderer.cpp
     ${SourcesPath}/RenderGraph/GraphSettings.cpp
     ${SourcesPath}/RenderGraph/Operation.cpp

@@ -1,6 +1,6 @@
 #include "Frustum.hpp"
 
-#include "glmlib.hpp"
+#include "GearsVk/glmlib.hpp"
 
 namespace GVK {
 

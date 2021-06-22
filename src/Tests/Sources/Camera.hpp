@@ -4,14 +4,14 @@
 #include "GearsVk/GearsVkAPI.hpp"
 
 #include "Utils/Event.hpp"
-#include "GearsVk/Camera/Frustum.hpp"
+#include "Frustum.hpp"
 #include "Utils/Lazy.hpp"
 
 #include "GearsVk/glmlib.hpp"
 
 namespace GVK {
 
-class GVK_RENDERER_API Camera {
+class Camera {
 public:
     glm::vec3 position;
     glm::vec3 ahead;

@@ -8,6 +8,8 @@ set (Sources
     ${SourcesPath}/GoogleTestEnvironment.cpp
     ${SourcesPath}/RenderGraphTests.cpp
     ${SourcesPath}/VizHFTests.cpp
+    ${SourcesPath}/Camera.cpp
+    ${SourcesPath}/Frustum.cpp
     ${SourcesPath}/GearsTests.cpp
 )
 

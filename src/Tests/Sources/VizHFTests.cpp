@@ -1,5 +1,5 @@
 #include "Utils/Assert.hpp"
-#include "GearsVk/Camera/Camera.hpp"
+#include "Camera.hpp"
 #include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include "GearsVk/RenderGraph/DrawRecordable/FullscreenQuad.hpp"
 #include "GearsVk/Window/GLFWWindow.hpp"
@@ -23,7 +23,7 @@
 #include "VulkanWrapper/DeviceExtra.hpp"
 #include "VulkanWrapper/ShaderReflection.hpp"
 
-#include "GearsVk/Camera/CameraControl.hpp"
+#include "CameraControl.hpp"
 #include "GearsVk/RenderGraph/UniformReflection.hpp"
 
 #include <array>

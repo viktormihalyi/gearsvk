@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "glmlib.hpp"
+#include "GearsVk/glmlib.hpp"
 
 namespace GVK {
 
