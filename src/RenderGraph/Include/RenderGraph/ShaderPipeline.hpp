@@ -1,7 +1,7 @@
 #ifndef SHADERPIPELINE2_HPP
 #define SHADERPIPELINE2_HPP
 
-#include "GearsVk/GearsVkAPI.hpp"
+#include "RenderGraph/RenderGraphAPI.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
 
 #include <thread>

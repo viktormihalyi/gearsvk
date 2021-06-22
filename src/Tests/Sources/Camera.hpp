@@ -1,13 +1,13 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
-#include "GearsVk/GearsVkAPI.hpp"
+#include "RenderGraph/RenderGraphAPI.hpp"
 
 #include "Utils/Event.hpp"
 #include "Frustum.hpp"
 #include "Utils/Lazy.hpp"
 
-#include "GearsVk/glmlib.hpp"
+#include "RenderGraph/glmlib.hpp"
 
 namespace GVK {
 

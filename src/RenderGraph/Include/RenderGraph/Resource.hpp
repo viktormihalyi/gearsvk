@@ -1,13 +1,13 @@
 #ifndef RESOURCE_HPP
 #define RESOURCE_HPP
 
-#include "GearsVk/GearsVkAPI.hpp"
+#include "RenderGraph/RenderGraphAPI.hpp"
 
 #include "Utils/Event.hpp"
 #include "Utils/Timer.hpp"
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
-#include "GearsVk/RenderGraph/ShaderPipeline.hpp"
+#include "RenderGraph/ShaderPipeline.hpp"
 
 #include "Connections.hpp"
 #include "GraphSettings.hpp"

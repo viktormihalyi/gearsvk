@@ -1,7 +1,7 @@
 #ifndef SDLWINDOW_HPP
 #define SDLWINDOW_HPP
 
-#include "GearsVk/GearsVkAPI.hpp"
+#include "RenderGraph/RenderGraphAPI.hpp"
 
 #include "Window.hpp"
 

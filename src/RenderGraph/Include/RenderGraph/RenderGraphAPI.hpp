@@ -1,5 +1,5 @@
-#ifndef GEARSVK_API_HPP
-#define GEARSVK_API_HPP
+#ifndef RENDERGRAPH_API_HPP
+#define RENDERGRAPH_API_HPP
 
 #ifdef _WIN32
 #ifdef RenderGraph_EXPORTS

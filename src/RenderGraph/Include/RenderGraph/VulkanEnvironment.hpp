@@ -1,7 +1,7 @@
 #ifndef VULKANTESTENVIRONMENT_HPP
 #define VULKANTESTENVIRONMENT_HPP
 
-#include "GearsVk/GearsVkAPI.hpp"
+#include "RenderGraph/RenderGraphAPI.hpp"
 
 #include "VulkanWrapper/DebugUtilsMessenger.hpp"
 #include "VulkanWrapper/Swapchain.hpp"

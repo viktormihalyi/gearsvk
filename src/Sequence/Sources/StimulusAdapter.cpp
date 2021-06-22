@@ -9,16 +9,16 @@
 #include "Utils/CommandLineFlag.hpp"
 #include "Utils/Assert.hpp"
 
-// from GearsVk
-#include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
-#include "GearsVk/RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
-#include "GearsVk/RenderGraph/GraphRenderer.hpp"
-#include "GearsVk/RenderGraph/GraphSettings.hpp"
-#include "GearsVk/RenderGraph/Operation.hpp"
-#include "GearsVk/RenderGraph/RenderGraph.hpp"
-#include "GearsVk/RenderGraph/Resource.hpp"
-#include "GearsVk/RenderGraph/UniformReflection.hpp"
-#include "GearsVk/VulkanEnvironment.hpp"
+// from RenderGraph
+#include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
+#include "RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
+#include "RenderGraph/GraphRenderer.hpp"
+#include "RenderGraph/GraphSettings.hpp"
+#include "RenderGraph/Operation.hpp"
+#include "RenderGraph/RenderGraph.hpp"
+#include "RenderGraph/Resource.hpp"
+#include "RenderGraph/UniformReflection.hpp"
+#include "RenderGraph/VulkanEnvironment.hpp"
 
 // from std
 #include <random>

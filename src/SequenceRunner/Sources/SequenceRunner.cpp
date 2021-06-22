@@ -1,8 +1,8 @@
-#include "GearsVk/Window/GLFWWindow.hpp"
+#include "RenderGraph/Window/GLFWWindow.hpp"
 #include "GearsPYD/GearsAPIv2.hpp"
-#include "GearsVk/RenderGraph/GraphRenderer.hpp"
-#include "GearsVk/RenderGraph/RenderGraph.hpp"
-#include "GearsVk/VulkanEnvironment.hpp"
+#include "RenderGraph/GraphRenderer.hpp"
+#include "RenderGraph/RenderGraph.hpp"
+#include "RenderGraph/VulkanEnvironment.hpp"
 #include "Sequence/SequenceAdapter.hpp"
 #include "Sequence/StimulusAdapter.hpp"
 

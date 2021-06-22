@@ -1,18 +1,18 @@
 #include "GoogleTestEnvironment.hpp"
 
-#include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
-#include "GearsVk/Font.hpp"
-#include "GearsVk/Window/GLFWWindow.hpp"
-#include "GearsVk/RenderGraph/GraphRenderer.hpp"
+#include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
+#include "RenderGraph/Font.hpp"
+#include "RenderGraph/Window/GLFWWindow.hpp"
+#include "RenderGraph/GraphRenderer.hpp"
 #include "VulkanWrapper/Utils/ImageData.hpp"
-#include "GearsVk/RenderGraph/RenderGraph.hpp"
-#include "GearsVk/RenderGraph/UniformReflection.hpp"
-#include "GearsVk/VulkanEnvironment.hpp"
+#include "RenderGraph/RenderGraph.hpp"
+#include "RenderGraph/UniformReflection.hpp"
+#include "RenderGraph/VulkanEnvironment.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
 #include "Sequence/StimulusAdapter.hpp"
 
 #include "Utils/StaticInit.hpp"
-#include "GearsVk/glmlib.hpp"
+#include "RenderGraph/glmlib.hpp"
 
 #define CEREAL_THREAD_SAFE 1 // doesnt compile otherwise
 

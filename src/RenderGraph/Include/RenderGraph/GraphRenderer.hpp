@@ -1,10 +1,10 @@
 #ifndef GRAPHRENDERER_HPP
 #define GRAPHRENDERER_HPP
 
-#include "GearsVk/GearsVkAPI.hpp"
+#include "RenderGraph/RenderGraphAPI.hpp"
 #include "VulkanWrapper/DeviceExtra.hpp"
 #include "VulkanWrapper/Semaphore.hpp"
-#include "GearsVk/Window/Window.hpp"
+#include "RenderGraph/Window/Window.hpp"
 
 #include "Utils/Event.hpp"
 #include "Utils/Time.hpp"

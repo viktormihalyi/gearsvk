@@ -1,7 +1,7 @@
 #ifndef DRAWRECORDABLEINFO_HPP
 #define DRAWRECORDABLEINFO_HPP
 
-#include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
+#include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include <memory>
 
 #include <vulkan/vulkan.h>

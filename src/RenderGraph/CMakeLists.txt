@@ -1,45 +1,44 @@
 
 set (IncludePath ${CMAKE_CURRENT_SOURCE_DIR}/Include)
-set (HeadersPath ${CMAKE_CURRENT_SOURCE_DIR}/Include/GearsVk)
+set (HeadersPath ${CMAKE_CURRENT_SOURCE_DIR}/Include/RenderGraph)
 set (Headers
-    ${HeadersPath}/RenderGraph/DrawRecordable/DrawRecordable.hpp
-    ${HeadersPath}/RenderGraph/DrawRecordable/DrawRecordableInfo.hpp
-    ${HeadersPath}/RenderGraph/DrawRecordable/FullscreenQuad.hpp
+    ${HeadersPath}/DrawRecordable/DrawRecordable.hpp
+    ${HeadersPath}/DrawRecordable/DrawRecordableInfo.hpp
+    ${HeadersPath}/DrawRecordable/FullscreenQuad.hpp
 
-    ${HeadersPath}/RenderGraph/Connections.hpp
-    ${HeadersPath}/RenderGraph/GraphRenderer.hpp
-    ${HeadersPath}/RenderGraph/GraphSettings.hpp
-    ${HeadersPath}/RenderGraph/InputBindable.hpp
-    ${HeadersPath}/RenderGraph/Node.hpp
-    ${HeadersPath}/RenderGraph/Operation.hpp
-    ${HeadersPath}/RenderGraph/RenderGraph.hpp
-    ${HeadersPath}/RenderGraph/RenderGraphPass.hpp
-    ${HeadersPath}/RenderGraph/Resource.hpp
-    ${HeadersPath}/RenderGraph/ShaderPipeline.hpp
-    ${HeadersPath}/RenderGraph/UniformReflection.hpp
+    ${HeadersPath}/Connections.hpp
+    ${HeadersPath}/GraphRenderer.hpp
+    ${HeadersPath}/GraphSettings.hpp
+    ${HeadersPath}/InputBindable.hpp
+    ${HeadersPath}/Node.hpp
+    ${HeadersPath}/Operation.hpp
+    ${HeadersPath}/RenderGraph.hpp
+    ${HeadersPath}/RenderGraphPass.hpp
+    ${HeadersPath}/Resource.hpp
+    ${HeadersPath}/ShaderPipeline.hpp
+    ${HeadersPath}/UniformReflection.hpp
     
     ${HeadersPath}/Window/GLFWWindow.hpp
     ${HeadersPath}/Window/SDLWindow.hpp
     ${HeadersPath}/Window/Window.hpp
 
     ${HeadersPath}/Font.hpp
-    ${HeadersPath}/GearsVkAPI.hpp
+    ${HeadersPath}/RenderGraphAPI.hpp
     ${HeadersPath}/glmlib.hpp
-    ${HeadersPath}/InputState.hpp
     ${HeadersPath}/UniformView.hpp
     ${HeadersPath}/VulkanEnvironment.hpp
 )
 
 set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
-    ${SourcesPath}/RenderGraph/GraphRenderer.cpp
-    ${SourcesPath}/RenderGraph/GraphSettings.cpp
-    ${SourcesPath}/RenderGraph/Operation.cpp
-    ${SourcesPath}/RenderGraph/RenderGraph.cpp
-    ${SourcesPath}/RenderGraph/RenderGraphPass.cpp
-    ${SourcesPath}/RenderGraph/Resource.cpp
-    ${SourcesPath}/RenderGraph/ShaderPipeline.cpp
-    ${SourcesPath}/RenderGraph/UniformReflection.cpp
+    ${SourcesPath}/GraphRenderer.cpp
+    ${SourcesPath}/GraphSettings.cpp
+    ${SourcesPath}/Operation.cpp
+    ${SourcesPath}/RenderGraph.cpp
+    ${SourcesPath}/RenderGraphPass.cpp
+    ${SourcesPath}/Resource.cpp
+    ${SourcesPath}/ShaderPipeline.cpp
+    ${SourcesPath}/UniformReflection.cpp
 
     ${SourcesPath}/Window/GLFWWindow.cpp
     ${SourcesPath}/Window/SDLWindow.cpp
@@ -71,11 +70,7 @@ target_precompile_headers (RenderGraph PRIVATE ${SourcesPath}/PCH.hpp)
 target_include_directories (RenderGraph
     PRIVATE ${IncludePath}
     PRIVATE ${HeadersPath}
-    PRIVATE ${HeadersPath}/Camera
-    PRIVATE ${HeadersPath}/RenderGraph
-    PRIVATE ${HeadersPath}/RenderGraph/DrawRecordable
-    PRIVATE ${HeadersPath}/VulkanWrapper
-    PRIVATE ${HeadersPath}/VulkanWrapper/Utils
+    PRIVATE ${HeadersPath}/DrawRecordable
     PRIVATE ${HeadersPath}/Window
     
     PUBLIC ${IncludePath}

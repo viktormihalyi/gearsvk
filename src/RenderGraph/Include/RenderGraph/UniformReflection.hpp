@@ -1,17 +1,17 @@
 #ifndef RENDERGRAPH_UNIFORM_REFLECTION_HPP
 #define RENDERGRAPH_UNIFORM_REFLECTION_HPP
 
-#include "GearsVk/RenderGraph/Operation.hpp"
-#include "GearsVk/RenderGraph/RenderGraph.hpp"
-#include "GearsVk/RenderGraph/Resource.hpp"
+#include "RenderGraph/Operation.hpp"
+#include "RenderGraph/RenderGraph.hpp"
+#include "RenderGraph/Resource.hpp"
 #include "VulkanWrapper/ShaderReflection.hpp"
 
 #include "Utils/Assert.hpp"
 #include "Utils/UUID.hpp"
 
-#include "GearsVk/GearsVkAPI.hpp"
-#include "GearsVk/UniformView.hpp"
-#include "GearsVk/glmlib.hpp"
+#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/UniformView.hpp"
+#include "RenderGraph/glmlib.hpp"
 
 #include <tuple>
 #include <unordered_map>

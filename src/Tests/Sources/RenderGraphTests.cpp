@@ -1,19 +1,19 @@
 
-// from GearsVk
-#include "GearsVk/RenderGraph/DrawRecordable/FullscreenQuad.hpp"
-#include "GearsVk/RenderGraph/GraphRenderer.hpp"
-#include "GearsVk/RenderGraph/GraphSettings.hpp"
+// from RenderGraph
+#include "RenderGraph/DrawRecordable/FullscreenQuad.hpp"
+#include "RenderGraph/GraphRenderer.hpp"
+#include "RenderGraph/GraphSettings.hpp"
 #include "VulkanWrapper/Utils/ImageData.hpp"
-#include "GearsVk/RenderGraph/Operation.hpp"
-#include "GearsVk/RenderGraph/RenderGraph.hpp"
-#include "GearsVk/RenderGraph/Resource.hpp"
-#include "GearsVk/RenderGraph/ShaderPipeline.hpp"
-#include "GearsVk/RenderGraph/UniformReflection.hpp"
-#include "GearsVk/UniformView.hpp"
-#include "GearsVk/VulkanEnvironment.hpp"
+#include "RenderGraph/Operation.hpp"
+#include "RenderGraph/RenderGraph.hpp"
+#include "RenderGraph/Resource.hpp"
+#include "RenderGraph/ShaderPipeline.hpp"
+#include "RenderGraph/UniformReflection.hpp"
+#include "RenderGraph/UniformView.hpp"
+#include "RenderGraph/VulkanEnvironment.hpp"
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
-#include "GearsVk/glmlib.hpp"
+#include "RenderGraph/glmlib.hpp"
 
 // from std
 #include <iostream>

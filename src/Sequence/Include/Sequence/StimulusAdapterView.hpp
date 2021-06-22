@@ -1,7 +1,7 @@
 #ifndef STIMULUSADAPTERVIEW_HPP
 #define STIMULUSADAPTERVIEW_HPP
 
-// from GearsVk
+// from RenderGraph
 #include "Utils/Event.hpp"
 #include "Utils/Noncopyable.hpp"
 #include <memory>

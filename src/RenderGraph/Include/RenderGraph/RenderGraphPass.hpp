@@ -1,7 +1,7 @@
 #ifndef RG_RENDERGRAPHPASS_HPP
 #define RG_RENDERGRAPHPASS_HPP
 
-#include "GearsVk/GearsVkAPI.hpp"
+#include "RenderGraph/RenderGraphAPI.hpp"
 
 #include <vector>
 #include <set>

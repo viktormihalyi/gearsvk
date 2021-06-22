@@ -1,18 +1,18 @@
 #include "SequenceAdapter.hpp"
 
-// from GearsVk
+// from RenderGraph
 #include "Utils/Assert.hpp"
 #include "Utils/CommandLineFlag.hpp"
 
 #include "StimulusAdapter.hpp"
 #include "StimulusAdapterView.hpp"
 
-#include "GearsVk/Window/GLFWWindow.hpp"
-#include "GearsVk/RenderGraph/GraphRenderer.hpp"
+#include "RenderGraph/Window/GLFWWindow.hpp"
+#include "RenderGraph/GraphRenderer.hpp"
 #include "VulkanWrapper/Surface.hpp"
-#include "GearsVk/VulkanEnvironment.hpp"
+#include "RenderGraph/VulkanEnvironment.hpp"
 #include "VulkanWrapper/Utils/ImageData.hpp"
-#include "GearsVk/RenderGraph/Resource.hpp"
+#include "RenderGraph/Resource.hpp"
 
 // from Gears
 #include "Pass.h"

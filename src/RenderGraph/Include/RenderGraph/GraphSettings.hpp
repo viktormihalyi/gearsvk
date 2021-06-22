@@ -1,10 +1,10 @@
 #ifndef GRAPHSETTINGS_HPP
 #define GRAPHSETTINGS_HPP
 
-#include "GearsVk/GearsVkAPI.hpp"
+#include "RenderGraph/RenderGraphAPI.hpp"
 
-#include "GearsVk/RenderGraph/Connections.hpp"
-#include "GearsVk/RenderGraph/Node.hpp"
+#include "RenderGraph/Connections.hpp"
+#include "RenderGraph/Node.hpp"
 #include "VulkanWrapper/DeviceExtra.hpp"
 
 #include <memory>

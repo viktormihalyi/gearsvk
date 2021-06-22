@@ -2,9 +2,9 @@
 #define DR_FULLSCREENQUAD_HPP
 
 #include "VulkanWrapper/DeviceExtra.hpp"
-#include "GearsVk/RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
+#include "RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
 
-#include "GearsVk/glmlib.hpp"
+#include "RenderGraph/glmlib.hpp"
 
 namespace GVK {
 

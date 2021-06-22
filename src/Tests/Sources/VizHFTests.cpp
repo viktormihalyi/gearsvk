@@ -1,21 +1,21 @@
 #include "Utils/Assert.hpp"
 #include "Camera.hpp"
-#include "GearsVk/RenderGraph/DrawRecordable/DrawRecordable.hpp"
-#include "GearsVk/RenderGraph/DrawRecordable/FullscreenQuad.hpp"
-#include "GearsVk/Window/GLFWWindow.hpp"
-#include "GearsVk/RenderGraph/GraphRenderer.hpp"
-#include "GearsVk/RenderGraph/GraphSettings.hpp"
+#include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
+#include "RenderGraph/DrawRecordable/FullscreenQuad.hpp"
+#include "RenderGraph/Window/GLFWWindow.hpp"
+#include "RenderGraph/GraphRenderer.hpp"
+#include "RenderGraph/GraphSettings.hpp"
 #include "VulkanWrapper/Utils/ImageData.hpp"
 #include "Utils/MultithreadedFunction.hpp"
 #include "Utils/Noncopyable.hpp"
-#include "GearsVk/RenderGraph/Operation.hpp"
-#include "GearsVk/RenderGraph/RenderGraph.hpp"
-#include "GearsVk/RenderGraph/Resource.hpp"
-#include "GearsVk/Window/SDLWindow.hpp"
+#include "RenderGraph/Operation.hpp"
+#include "RenderGraph/RenderGraph.hpp"
+#include "RenderGraph/Resource.hpp"
+#include "RenderGraph/Window/SDLWindow.hpp"
 #include "Utils/Time.hpp"
 #include "Utils/Timer.hpp"
 #include "Utils/Utils.hpp"
-#include "GearsVk/VulkanEnvironment.hpp"
+#include "RenderGraph/VulkanEnvironment.hpp"
 
 // from VulkanWrapper
 #include "VulkanWrapper/VulkanWrapper.hpp"
@@ -24,7 +24,7 @@
 #include "VulkanWrapper/ShaderReflection.hpp"
 
 #include "CameraControl.hpp"
-#include "GearsVk/RenderGraph/UniformReflection.hpp"
+#include "RenderGraph/UniformReflection.hpp"
 
 #include <array>
 #include <cstdint>
@@ -39,9 +39,9 @@
 
 #include "GoogleTestEnvironment.hpp"
 #include "Utils/UUID.hpp"
-#include "GearsVk/UniformView.hpp"
+#include "RenderGraph/UniformView.hpp"
 
-#include "GearsVk/glmlib.hpp"
+#include "RenderGraph/glmlib.hpp"
 
 #include <unordered_map>
 

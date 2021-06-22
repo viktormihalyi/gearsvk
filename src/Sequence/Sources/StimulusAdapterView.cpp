@@ -1,9 +1,9 @@
 #include "StimulusAdapterView.hpp"
 
-// from GearsVk
+// from RenderGraph
 #include "Utils/Assert.hpp"
-#include "GearsVk/RenderGraph/GraphRenderer.hpp"
-#include "GearsVk/VulkanEnvironment.hpp"
+#include "RenderGraph/GraphRenderer.hpp"
+#include "RenderGraph/VulkanEnvironment.hpp"
 
 // from Gears
 #include "StimulusAdapter.hpp"

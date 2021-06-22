@@ -1,9 +1,9 @@
 #ifndef SEQUENCEADAPTER_HPP
 #define SEQUENCEADAPTER_HPP
 
-// from GearsVk
+// from RenderGraph
 #include "Utils/Event.hpp"
-#include "GearsVk/RenderGraph/GraphRenderer.hpp"
+#include "RenderGraph/GraphRenderer.hpp"
 #include "Utils/Time.hpp"
 #include <memory>
 

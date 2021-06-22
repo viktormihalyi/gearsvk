@@ -1,9 +1,9 @@
 #ifndef STIMULUSADAPTERFORPRESENTABLE_HPP
 #define STIMULUSADAPTERFORPRESENTABLE_HPP
 
-// from GearsVk
+// from RenderGraph
 #include "Utils/Event.hpp"
-#include "GearsVk/RenderGraph/GraphRenderer.hpp"
+#include "RenderGraph/GraphRenderer.hpp"
 #include "Utils/Noncopyable.hpp"
 #include "Utils/Time.hpp"
 
