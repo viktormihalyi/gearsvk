@@ -10,6 +10,10 @@
 
 #include "pybind11/pybind11.h"
 
+#include <cereal/cereal.hpp>
+#include <cereal/types/polymorphic.hpp>
+#include <cereal/types/base_class.hpp>
+
 class Stimulus;
 class Response;
 
@@ -21,6 +25,7 @@ private:
     std::unique_ptr<Impl> impl;
 
 public:
+    PySequence ();
     PySequence (std::string name);
     virtual ~PySequence ();
 
@@ -33,6 +38,15 @@ public:
     pybind11::object getPythonObject ();
 
     virtual void OnStimulusAdded (std::shared_ptr<Stimulus> stimulus) override;
+
+    template<typename Archive>
+    void serialize (Archive& ar)
+    {
+        ar (cereal::base_class<Sequence> (this));
+    }
 };
+
+CEREAL_REGISTER_TYPE (PySequence)
+CEREAL_REGISTER_POLYMORPHIC_RELATION (Sequence, PySequence)
 
 #endif

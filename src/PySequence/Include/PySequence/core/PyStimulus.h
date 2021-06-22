@@ -20,6 +20,10 @@
 
 #include "pybind11/pybind11.h"
 
+#include <cereal/cereal.hpp>
+#include <cereal/types/polymorphic.hpp>
+#include <cereal/types/base_class.hpp>
+
 class Pass;
 class Sequence;
 
@@ -82,6 +86,15 @@ public:
                                                     pybind11::object histogramList) const;
 
     virtual void OnPassAdded (std::shared_ptr<Pass> pass) override;
+
+    template<typename Archive>
+    void serialize (Archive& ar)
+    {
+        ar (cereal::base_class<Stimulus> (this));
+    }
 };
+
+CEREAL_REGISTER_TYPE (PyStimulus)
+CEREAL_REGISTER_POLYMORPHIC_RELATION (Stimulus, PyStimulus)
 
 #endif

@@ -165,10 +165,10 @@ TEST_F (GearsTests, 04_velocity400)
         std::stringstream ss; // any stream can be used
         cereal::JSONOutputArchive oarchive (ss); // Create an output archive
 
-        ::Sequence stimulus;
-        oarchive (stimulus);
+        oarchive (sequenceAdapter->GetSequence ());
 
-        std::cout << ss.str () << std::endl;
+        std::string val = ss.str ();
+        Utils::WriteTextFile (PROJECT_ROOT / "asd.txt", val);
     }
 
 

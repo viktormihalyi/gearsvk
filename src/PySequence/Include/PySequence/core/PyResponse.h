@@ -9,6 +9,10 @@
 
 #include "pybind11/pybind11.h"
 
+#include <cereal/cereal.hpp>
+#include <cereal/types/polymorphic.hpp>
+#include <cereal/types/base_class.hpp>
+
 class Sequence;
 class SpatialFilter;
 
@@ -46,6 +50,15 @@ public:
         return handled;
     }
 #endif
+
+    template<typename Archive>
+    void serialize (Archive& ar)
+    {
+        ar (cereal::base_class<Response> (this));
+    }
 };
+
+CEREAL_REGISTER_TYPE (PyResponse)
+CEREAL_REGISTER_POLYMORPHIC_RELATION (Response, PyResponse)
 
 #endif

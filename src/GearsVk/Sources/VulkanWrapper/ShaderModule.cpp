@@ -29,7 +29,7 @@ namespace GVK {
 EmptyPreprocessor emptyPreprocessor;
 
 
-class ShaderKindInfo final {
+class ShaderKindAdapter final {
 public:
     const char*           extension;
     VkShaderStageFlagBits vkflag;
@@ -38,22 +38,22 @@ public:
     const char*           displayName;
 
 private:
-    ShaderKindInfo () = default;
+    ShaderKindAdapter () = default;
 
 public:
-    static const ShaderKindInfo FromExtension (const std::string&);
-    static const ShaderKindInfo FromVk (VkShaderStageFlagBits);
-    static const ShaderKindInfo FromShaderKind (ShaderKind);
-    static const ShaderKindInfo FromEsh (EShLanguage);
+    static const ShaderKindAdapter FromExtension (const std::string&);
+    static const ShaderKindAdapter FromVk (VkShaderStageFlagBits);
+    static const ShaderKindAdapter FromShaderKind (ShaderKind);
+    static const ShaderKindAdapter FromEsh (EShLanguage);
 
 private:
-    static const ShaderKindInfo Find (const std::function<bool (const ShaderKindInfo&)>&);
-    static const ShaderKindInfo vert, tesc, tese, geom, frag, comp;
+    static const ShaderKindAdapter Find (const std::function<bool (const ShaderKindAdapter&)>&);
+    static const ShaderKindAdapter vert, tesc, tese, geom, frag, comp;
 
-    static const std::array<ShaderKindInfo, 6> allShaderKinds;
+    static const std::array<ShaderKindAdapter, 6> allShaderKinds;
 };
 
-const ShaderKindInfo ShaderKindInfo::vert {
+const ShaderKindAdapter ShaderKindAdapter::vert {
     ".vert",
     VK_SHADER_STAGE_VERTEX_BIT,
     ShaderKind::Vertex,
@@ -61,7 +61,7 @@ const ShaderKindInfo ShaderKindInfo::vert {
     "Vertex Shader"
 };
 
-const ShaderKindInfo ShaderKindInfo::tesc {
+const ShaderKindAdapter ShaderKindAdapter::tesc {
     ".tesc",
     VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
     ShaderKind::TessellationControl,
@@ -69,7 +69,7 @@ const ShaderKindInfo ShaderKindInfo::tesc {
     "Tessellation Control Shader"
 };
 
-const ShaderKindInfo ShaderKindInfo::tese {
+const ShaderKindAdapter ShaderKindAdapter::tese {
     ".tese",
     VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
     ShaderKind::TessellationEvaluation,
@@ -77,7 +77,7 @@ const ShaderKindInfo ShaderKindInfo::tese {
     "Tessellation Evaluation Shader"
 };
 
-const ShaderKindInfo ShaderKindInfo::geom {
+const ShaderKindAdapter ShaderKindAdapter::geom {
     ".geom",
     VK_SHADER_STAGE_GEOMETRY_BIT,
     ShaderKind::Geometry,
@@ -85,7 +85,7 @@ const ShaderKindInfo ShaderKindInfo::geom {
     "Geometry Shader"
 };
 
-const ShaderKindInfo ShaderKindInfo::frag {
+const ShaderKindAdapter ShaderKindAdapter::frag {
     ".frag",
     VK_SHADER_STAGE_FRAGMENT_BIT,
     ShaderKind::Fragment,
@@ -93,7 +93,7 @@ const ShaderKindInfo ShaderKindInfo::frag {
     "Fragment Shader"
 };
 
-const ShaderKindInfo ShaderKindInfo::comp {
+const ShaderKindAdapter ShaderKindAdapter::comp {
     ".comp",
     VK_SHADER_STAGE_COMPUTE_BIT,
     ShaderKind::Compute,
@@ -102,17 +102,17 @@ const ShaderKindInfo ShaderKindInfo::comp {
 };
 
 
-const std::array<ShaderKindInfo, 6> ShaderKindInfo::allShaderKinds ({
-    ShaderKindInfo::vert,
-    ShaderKindInfo::tese,
-    ShaderKindInfo::tesc,
-    ShaderKindInfo::geom,
-    ShaderKindInfo::frag,
-    ShaderKindInfo::comp,
+const std::array<ShaderKindAdapter, 6> ShaderKindAdapter::allShaderKinds ({
+    ShaderKindAdapter::vert,
+    ShaderKindAdapter::tese,
+    ShaderKindAdapter::tesc,
+    ShaderKindAdapter::geom,
+    ShaderKindAdapter::frag,
+    ShaderKindAdapter::comp,
 });
 
 
-const ShaderKindInfo ShaderKindInfo::Find (const std::function<bool (const ShaderKindInfo&)>& callback)
+const ShaderKindAdapter ShaderKindAdapter::Find (const std::function<bool (const ShaderKindAdapter&)>& callback)
 {
     for (auto& s : allShaderKinds) {
         if (callback (s)) {
@@ -122,28 +122,28 @@ const ShaderKindInfo ShaderKindInfo::Find (const std::function<bool (const Shade
     throw std::runtime_error ("couldnt find shader info");
 }
 
-const ShaderKindInfo ShaderKindInfo::FromExtension (const std::string& ext)
+const ShaderKindAdapter ShaderKindAdapter::FromExtension (const std::string& ext)
 {
     return Find ([&] (auto& s) {
         return s.extension == ext;
     });
 }
 
-const ShaderKindInfo ShaderKindInfo::FromVk (VkShaderStageFlagBits flag)
+const ShaderKindAdapter ShaderKindAdapter::FromVk (VkShaderStageFlagBits flag)
 {
     return Find ([&] (auto& s) {
         return s.vkflag == flag;
     });
 }
 
-const ShaderKindInfo ShaderKindInfo::FromShaderKind (ShaderKind sk)
+const ShaderKindAdapter ShaderKindAdapter::FromShaderKind (ShaderKind sk)
 {
     return Find ([&] (auto& s) {
         return s.shaderKind == sk;
     });
 }
 
-const ShaderKindInfo ShaderKindInfo::FromEsh (EShLanguage e)
+const ShaderKindAdapter ShaderKindAdapter::FromEsh (EShLanguage e)
 {
     return Find ([&] (auto& s) {
         return s.esh == e;
@@ -238,7 +238,7 @@ ShaderCache debugShaderCache ("Debug");
 ShaderCache releaseShaderCache ("Release");
 
 
-static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindInfo& shaderKind)
+static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindAdapter& shaderKind)
 {
     static bool init = false;
     if (!init) {
@@ -294,7 +294,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 }
 
 
-static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource_, const ShaderKindInfo& shaderKind, ShaderPreprocessor& preprocessor)
+static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource_, const ShaderKindAdapter& shaderKind, ShaderPreprocessor& preprocessor)
 {
     const std::string shaderSource = preprocessor.Preprocess (shaderSource_);
 
@@ -396,7 +396,7 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
         throw std::runtime_error ("failed to read shader");
     }
 
-    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().string ()), preprocessor);
+    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (*fileContents, ShaderKindAdapter::FromExtension (fileLocation.extension ().string ()), preprocessor);
     if (GVK_ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }
@@ -404,7 +404,7 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
     VkShaderModule handle = CreateShaderModuleImpl (device, *binary);
     
     return std::make_unique<ShaderModule> (
-        ShaderKindInfo::FromExtension (fileLocation.extension ().string ()).shaderKind,
+        ShaderKindAdapter::FromExtension (fileLocation.extension ().string ()).shaderKind,
         ReadMode::GLSLFilePath,
         device,
         handle,
@@ -417,7 +417,7 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
 
 std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, ShaderPreprocessor& preprocessor)
 {
-    std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, ShaderKindInfo::FromShaderKind (shaderKind), preprocessor);
+    std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, ShaderKindAdapter::FromShaderKind (shaderKind), preprocessor);
 
     VkShaderModule handle = CreateShaderModuleImpl (device, binary);
     
@@ -444,7 +444,7 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 {
     VkPipelineShaderStageCreateInfo result = {};
     result.sType                           = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    result.stage                           = ShaderKindInfo::FromShaderKind (shaderKind).vkflag;
+    result.stage                           = ShaderKindAdapter::FromShaderKind (shaderKind).vkflag;
     result.module                          = handle;
     result.pName                           = "main";
     return result;
@@ -636,7 +636,7 @@ void ShaderModule::Reload ()
             throw std::runtime_error ("failed to read shader");
         }
 
-        std::optional<std::vector<uint32_t>> newBinary = CompileFromSourceCode (*fileContents, ShaderKindInfo::FromExtension (fileLocation.extension ().string ()), preprocessor);
+        std::optional<std::vector<uint32_t>> newBinary = CompileFromSourceCode (*fileContents, ShaderKindAdapter::FromExtension (fileLocation.extension ().string ()), preprocessor);
         if (GVK_ERROR (!newBinary.has_value ())) {
             throw std::runtime_error ("failed to compile shader");
         }

@@ -9,6 +9,10 @@
 
 #include "pybind11/pybind11.h"
 
+#include <cereal/cereal.hpp>
+#include <cereal/types/polymorphic.hpp>
+#include <cereal/types/base_class.hpp>
+
 class Sequence;
 class Stimulus;
 
@@ -31,6 +35,16 @@ public:
     pybind11::object getPythonObject ();
 
     void setPolygonMask (std::string mode, pybind11::object o);
+
+    template <typename Archive>
+    void serialize (Archive& ar)
+    {
+        ar (cereal::base_class<Pass> (this));
+    }
 };
+
+CEREAL_REGISTER_TYPE (PyPass)
+CEREAL_REGISTER_POLYMORPHIC_RELATION (Pass, PyPass)
+
 
 #endif

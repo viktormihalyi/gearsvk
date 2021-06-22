@@ -20,6 +20,12 @@ struct PySequence::Impl {
 };
 
 
+PySequence::PySequence ()
+    : PySequence { "<no name>" }
+{
+}
+
+
 PySequence::PySequence (std::string name)
     : Sequence { name }
     , impl { std::make_unique<Impl> () }
