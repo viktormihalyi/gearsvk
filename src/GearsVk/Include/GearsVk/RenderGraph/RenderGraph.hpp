@@ -4,8 +4,8 @@
 #include "GearsVk/GearsVkAPI.hpp"
 
 #include "Utils/Event.hpp"
-#include "GearsVk/VulkanWrapper/Utils/VulkanUtils.hpp"
-#include "GearsVk/VulkanWrapper/VulkanWrapper.hpp"
+#include "VulkanWrapper/Utils/VulkanUtils.hpp"
+#include "VulkanWrapper/VulkanWrapper.hpp"
 #include <memory>
 
 #include "GearsVk/RenderGraph/GraphSettings.hpp"

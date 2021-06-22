@@ -9,9 +9,9 @@
 
 #include "GearsVk/Window/GLFWWindow.hpp"
 #include "GearsVk/RenderGraph/GraphRenderer.hpp"
-#include "GearsVk/VulkanWrapper/Surface.hpp"
+#include "VulkanWrapper/Surface.hpp"
 #include "GearsVk/VulkanEnvironment.hpp"
-#include "GearsVk/VulkanWrapper/Utils/ImageData.hpp"
+#include "VulkanWrapper/Utils/ImageData.hpp"
 #include "GearsVk/RenderGraph/Resource.hpp"
 
 // from Gears

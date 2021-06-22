@@ -1,8 +1,8 @@
 #include "GraphRenderer.hpp"
 
-#include "Fence.hpp"
-#include "Semaphore.hpp"
-#include "Swapchain.hpp"
+#include "VulkanWrapper/Fence.hpp"
+#include "VulkanWrapper/Semaphore.hpp"
+#include "VulkanWrapper/Swapchain.hpp"
 
 #include "GraphSettings.hpp"
 #include "Operation.hpp"

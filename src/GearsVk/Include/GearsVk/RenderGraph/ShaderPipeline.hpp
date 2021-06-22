@@ -2,7 +2,7 @@
 #define SHADERPIPELINE2_HPP
 
 #include "GearsVk/GearsVkAPI.hpp"
-#include "GearsVk/VulkanWrapper/VulkanWrapper.hpp"
+#include "VulkanWrapper/VulkanWrapper.hpp"
 
 #include <thread>
 #include <vector>

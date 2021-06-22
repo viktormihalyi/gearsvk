@@ -4,7 +4,7 @@
 #include "GearsVk/RenderGraph/Operation.hpp"
 #include "GearsVk/RenderGraph/RenderGraph.hpp"
 #include "GearsVk/RenderGraph/Resource.hpp"
-#include "GearsVk/VulkanWrapper/ShaderReflection.hpp"
+#include "VulkanWrapper/ShaderReflection.hpp"
 
 #include "Utils/Assert.hpp"
 #include "Utils/UUID.hpp"

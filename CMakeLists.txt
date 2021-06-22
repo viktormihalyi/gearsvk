@@ -27,6 +27,7 @@ include (${CMAKE_BINARY_DIR}/conan_paths.cmake)
 # ========== MODULES ==========
 
 add_subdirectory (src/Utils)
+add_subdirectory (src/VulkanWrapper)
 add_subdirectory (src/GearsVk)
 add_subdirectory (src/Sequence)
 add_subdirectory (src/PySequence)

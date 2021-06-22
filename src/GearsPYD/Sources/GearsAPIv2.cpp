@@ -2,9 +2,9 @@
 
 // from GearsVk
 #include "GearsVk/RenderGraph/GraphRenderer.hpp"
-#include "GearsVk/VulkanWrapper/Instance.hpp"
-#include "GearsVk/VulkanWrapper/ShaderModule.hpp"
-#include "GearsVk/VulkanWrapper/Surface.hpp"
+#include "VulkanWrapper/Instance.hpp"
+#include "VulkanWrapper/ShaderModule.hpp"
+#include "VulkanWrapper/Surface.hpp"
 #include "GearsVk/VulkanEnvironment.hpp"
 #include "GearsVk/Window/Window.hpp"
 

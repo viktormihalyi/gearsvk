@@ -3,7 +3,7 @@
 #include "GearsVk/RenderGraph/DrawRecordable/FullscreenQuad.hpp"
 #include "GearsVk/RenderGraph/GraphRenderer.hpp"
 #include "GearsVk/RenderGraph/GraphSettings.hpp"
-#include "GearsVk/VulkanWrapper/Utils/ImageData.hpp"
+#include "VulkanWrapper/Utils/ImageData.hpp"
 #include "GearsVk/RenderGraph/Operation.hpp"
 #include "GearsVk/RenderGraph/RenderGraph.hpp"
 #include "GearsVk/RenderGraph/Resource.hpp"
@@ -11,8 +11,8 @@
 #include "GearsVk/RenderGraph/UniformReflection.hpp"
 #include "GearsVk/UniformView.hpp"
 #include "GearsVk/VulkanEnvironment.hpp"
-#include "GearsVk/VulkanWrapper/Utils/VulkanUtils.hpp"
-#include "GearsVk/VulkanWrapper/VulkanWrapper.hpp"
+#include "VulkanWrapper/Utils/VulkanUtils.hpp"
+#include "VulkanWrapper/VulkanWrapper.hpp"
 #include "GearsVk/glmlib.hpp"
 
 // from std

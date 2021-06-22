@@ -5,7 +5,7 @@
 #include "GearsVk/Window/GLFWWindow.hpp"
 #include "GearsVk/RenderGraph/GraphRenderer.hpp"
 #include "GearsVk/RenderGraph/GraphSettings.hpp"
-#include "GearsVk/VulkanWrapper/Utils/ImageData.hpp"
+#include "VulkanWrapper/Utils/ImageData.hpp"
 #include "Utils/MultithreadedFunction.hpp"
 #include "Utils/Noncopyable.hpp"
 #include "GearsVk/RenderGraph/Operation.hpp"
@@ -18,10 +18,10 @@
 #include "GearsVk/VulkanEnvironment.hpp"
 
 // from VulkanWrapper
-#include "GearsVk/VulkanWrapper/VulkanWrapper.hpp"
+#include "VulkanWrapper/VulkanWrapper.hpp"
 
-#include "GearsVk/VulkanWrapper/DeviceExtra.hpp"
-#include "GearsVk/VulkanWrapper/ShaderReflection.hpp"
+#include "VulkanWrapper/DeviceExtra.hpp"
+#include "VulkanWrapper/ShaderReflection.hpp"
 
 #include "GearsVk/Camera/CameraControl.hpp"
 #include "GearsVk/RenderGraph/UniformReflection.hpp"

@@ -6,7 +6,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "GearsVk/VulkanWrapper/Utils/BufferTransferable.hpp"
+#include "VulkanWrapper/Utils/BufferTransferable.hpp"
 
 namespace GVK {
 

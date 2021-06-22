@@ -22,44 +22,6 @@ set (Headers
     ${HeadersPath}/RenderGraph/ShaderPipeline.hpp
     ${HeadersPath}/RenderGraph/UniformReflection.hpp
     
-    ${HeadersPath}/VulkanWrapper/Utils/BufferTransferable.hpp
-    ${HeadersPath}/VulkanWrapper/Utils/ImageData.hpp
-    ${HeadersPath}/VulkanWrapper/Utils/MemoryMapping.hpp
-    ${HeadersPath}/VulkanWrapper/Utils/SingleTimeCommand.hpp
-    ${HeadersPath}/VulkanWrapper/Utils/VulkanUtils.hpp
-
-    ${HeadersPath}/VulkanWrapper/Allocator.hpp
-    ${HeadersPath}/VulkanWrapper/Buffer.hpp
-    ${HeadersPath}/VulkanWrapper/CommandBuffer.hpp
-    ${HeadersPath}/VulkanWrapper/CommandPool.hpp
-    ${HeadersPath}/VulkanWrapper/DebugUtilsMessenger.hpp
-    ${HeadersPath}/VulkanWrapper/DescriptorPool.hpp
-    ${HeadersPath}/VulkanWrapper/DescriptorSet.hpp
-    ${HeadersPath}/VulkanWrapper/DescriptorSetLayout.hpp
-    ${HeadersPath}/VulkanWrapper/Device.hpp
-    ${HeadersPath}/VulkanWrapper/DeviceExtra.hpp
-    ${HeadersPath}/VulkanWrapper/DeviceMemory.hpp
-    ${HeadersPath}/VulkanWrapper/Fence.hpp
-    ${HeadersPath}/VulkanWrapper/Framebuffer.hpp
-    ${HeadersPath}/VulkanWrapper/Image.hpp
-    ${HeadersPath}/VulkanWrapper/ImageView.hpp
-    ${HeadersPath}/VulkanWrapper/Instance.hpp
-    ${HeadersPath}/VulkanWrapper/PhysicalDevice.hpp
-    ${HeadersPath}/VulkanWrapper/Pipeline.hpp
-    ${HeadersPath}/VulkanWrapper/PipelineLayout.hpp
-    ${HeadersPath}/VulkanWrapper/Queue.hpp
-    ${HeadersPath}/VulkanWrapper/RenderPass.hpp
-    ${HeadersPath}/VulkanWrapper/ResourceLimits.hpp
-    ${HeadersPath}/VulkanWrapper/Sampler.hpp
-    ${HeadersPath}/VulkanWrapper/Semaphore.hpp
-    ${HeadersPath}/VulkanWrapper/ShaderModule.hpp
-    ${HeadersPath}/VulkanWrapper/ShaderReflection.hpp
-    ${HeadersPath}/VulkanWrapper/Surface.hpp
-    ${HeadersPath}/VulkanWrapper/Swapchain.hpp
-    ${HeadersPath}/VulkanWrapper/VulkanObject.hpp
-    ${HeadersPath}/VulkanWrapper/VulkanWrapper.hpp
-    ${HeadersPath}/VulkanWrapper/VulkanWrapperFwd.hpp
-
     ${HeadersPath}/Window/GLFWWindow.hpp
     ${HeadersPath}/Window/SDLWindow.hpp
     ${HeadersPath}/Window/Window.hpp
@@ -85,34 +47,6 @@ set (Sources
     ${SourcesPath}/RenderGraph/Resource.cpp
     ${SourcesPath}/RenderGraph/ShaderPipeline.cpp
     ${SourcesPath}/RenderGraph/UniformReflection.cpp
-    
-    ${SourcesPath}/VulkanWrapper/Utils/BufferTransferable.cpp
-    ${SourcesPath}/VulkanWrapper/Utils/ImageData.cpp
-    ${SourcesPath}/VulkanWrapper/Utils/MemoryMapping.cpp
-    ${SourcesPath}/VulkanWrapper/Utils/STBImpl.cpp
-    ${SourcesPath}/VulkanWrapper/Utils/VulkanUtils.cpp
-
-    ${SourcesPath}/VulkanWrapper/Allocator.cpp
-    ${SourcesPath}/VulkanWrapper/Buffer.cpp
-    ${SourcesPath}/VulkanWrapper/CommandBuffer.cpp
-    ${SourcesPath}/VulkanWrapper/DebugUtilsMessenger.cpp
-    ${SourcesPath}/VulkanWrapper/Device.cpp
-    ${SourcesPath}/VulkanWrapper/DeviceMemory.cpp
-    ${SourcesPath}/VulkanWrapper/Fence.cpp
-    ${SourcesPath}/VulkanWrapper/Framebuffer.cpp
-    ${SourcesPath}/VulkanWrapper/Image.cpp
-    ${SourcesPath}/VulkanWrapper/ImageView.cpp
-    ${SourcesPath}/VulkanWrapper/Instance.cpp
-    ${SourcesPath}/VulkanWrapper/PhysicalDevice.cpp
-    ${SourcesPath}/VulkanWrapper/Pipeline.cpp
-    ${SourcesPath}/VulkanWrapper/Queue.cpp
-    ${SourcesPath}/VulkanWrapper/ResourceLimits.cpp
-    ${SourcesPath}/VulkanWrapper/Sampler.cpp
-    ${SourcesPath}/VulkanWrapper/ShaderModule.cpp
-    ${SourcesPath}/VulkanWrapper/ShaderReflection.cpp
-    ${SourcesPath}/VulkanWrapper/Surface.cpp
-    ${SourcesPath}/VulkanWrapper/Swapchain.cpp
-    ${SourcesPath}/VulkanWrapper/VulkanObject.cpp
 
     ${SourcesPath}/Window/GLFWWindow.cpp
     ${SourcesPath}/Window/SDLWindow.cpp
@@ -121,7 +55,6 @@ set (Sources
     ${SourcesPath}/SpdlogInitializer.cpp
     ${SourcesPath}/UniformView.cpp
     ${SourcesPath}/VulkanEnvironment.cpp
-    ${SourcesPath}/VulkanMemoryAllocatorImpl.cpp
 )
 
 add_library (RenderGraph SHARED ${Headers} ${Sources})
@@ -154,6 +87,7 @@ target_include_directories (RenderGraph
     
     PUBLIC ${IncludePath}
     PUBLIC $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
+    PUBLIC $<TARGET_PROPERTY:VulkanWrapper,INTERFACE_INCLUDE_DIRECTORIES>
     
     PUBLIC ${Vulkan_INCLUDE_DIRS}
     PUBLIC ${glm_INCLUDE_DIRS}
@@ -177,4 +111,5 @@ target_link_libraries (RenderGraph
     PRIVATE ${glslang_LIBRARIES}
     PRIVATE ${spirv-cross_LIBRARIES}
     PUBLIC Utils
+    PUBLIC VulkanWrapper
 )

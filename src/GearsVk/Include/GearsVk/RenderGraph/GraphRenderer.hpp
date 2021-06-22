@@ -2,8 +2,8 @@
 #define GRAPHRENDERER_HPP
 
 #include "GearsVk/GearsVkAPI.hpp"
-#include "GearsVk/VulkanWrapper/DeviceExtra.hpp"
-#include "GearsVk/VulkanWrapper/Semaphore.hpp"
+#include "VulkanWrapper/DeviceExtra.hpp"
+#include "VulkanWrapper/Semaphore.hpp"
 #include "GearsVk/Window/Window.hpp"
 
 #include "Utils/Event.hpp"

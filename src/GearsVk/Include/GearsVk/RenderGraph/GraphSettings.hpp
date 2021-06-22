@@ -5,7 +5,7 @@
 
 #include "GearsVk/RenderGraph/Connections.hpp"
 #include "GearsVk/RenderGraph/Node.hpp"
-#include "GearsVk/VulkanWrapper/DeviceExtra.hpp"
+#include "VulkanWrapper/DeviceExtra.hpp"
 
 #include <memory>
 #include <vulkan/vulkan.h>

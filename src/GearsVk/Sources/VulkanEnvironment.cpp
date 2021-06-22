@@ -7,13 +7,14 @@
 #include "Utils/Timer.hpp"
 
 #include "Window.hpp"
-#include "Allocator.hpp"
-#include "DebugUtilsMessenger.hpp"
-#include "DeviceExtra.hpp"
-#include "Instance.hpp"
-#include "Surface.hpp"
-#include "VulkanUtils.hpp"
-#include "VulkanWrapper.hpp"
+
+#include "VulkanWrapper/Allocator.hpp"
+#include "VulkanWrapper/DebugUtilsMessenger.hpp"
+#include "VulkanWrapper/DeviceExtra.hpp"
+#include "VulkanWrapper/Instance.hpp"
+#include "VulkanWrapper/Surface.hpp"
+#include "VulkanWrapper/Utils/VulkanUtils.hpp"
+#include "VulkanWrapper/VulkanWrapper.hpp"
 
 
 #include <iomanip>

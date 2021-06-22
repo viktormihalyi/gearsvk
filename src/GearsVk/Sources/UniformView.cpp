@@ -1,7 +1,7 @@
 #include "UniformView.hpp"
 
-#include "ShaderModule.hpp"
-#include "ShaderReflection.hpp"
+#include "VulkanWrapper/ShaderModule.hpp"
+#include "VulkanWrapper/ShaderReflection.hpp"
 
 #include <algorithm>
 

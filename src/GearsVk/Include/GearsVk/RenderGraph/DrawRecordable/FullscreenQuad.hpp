@@ -1,7 +1,7 @@
 #ifndef DR_FULLSCREENQUAD_HPP
 #define DR_FULLSCREENQUAD_HPP
 
-#include "GearsVk/VulkanWrapper/DeviceExtra.hpp"
+#include "VulkanWrapper/DeviceExtra.hpp"
 #include "GearsVk/RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
 
 #include "GearsVk/glmlib.hpp"

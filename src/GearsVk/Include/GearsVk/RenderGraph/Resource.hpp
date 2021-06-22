@@ -5,8 +5,8 @@
 
 #include "Utils/Event.hpp"
 #include "Utils/Timer.hpp"
-#include "GearsVk/VulkanWrapper/Utils/VulkanUtils.hpp"
-#include "GearsVk/VulkanWrapper/VulkanWrapper.hpp"
+#include "VulkanWrapper/Utils/VulkanUtils.hpp"
+#include "VulkanWrapper/VulkanWrapper.hpp"
 #include "GearsVk/RenderGraph/ShaderPipeline.hpp"
 
 #include "Connections.hpp"

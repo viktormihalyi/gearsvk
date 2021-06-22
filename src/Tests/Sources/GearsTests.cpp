@@ -4,11 +4,11 @@
 #include "GearsVk/Font.hpp"
 #include "GearsVk/Window/GLFWWindow.hpp"
 #include "GearsVk/RenderGraph/GraphRenderer.hpp"
-#include "GearsVk/VulkanWrapper/Utils/ImageData.hpp"
+#include "VulkanWrapper/Utils/ImageData.hpp"
 #include "GearsVk/RenderGraph/RenderGraph.hpp"
 #include "GearsVk/RenderGraph/UniformReflection.hpp"
 #include "GearsVk/VulkanEnvironment.hpp"
-#include "GearsVk/VulkanWrapper/VulkanWrapper.hpp"
+#include "VulkanWrapper/VulkanWrapper.hpp"
 #include "Sequence/StimulusAdapter.hpp"
 
 #include "Utils/StaticInit.hpp"

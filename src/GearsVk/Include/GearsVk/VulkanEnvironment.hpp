@@ -3,9 +3,9 @@
 
 #include "GearsVk/GearsVkAPI.hpp"
 
-#include "GearsVk/VulkanWrapper/DebugUtilsMessenger.hpp"
-#include "GearsVk/VulkanWrapper/Swapchain.hpp"
-#include "GearsVk/VulkanWrapper/Surface.hpp"
+#include "VulkanWrapper/DebugUtilsMessenger.hpp"
+#include "VulkanWrapper/Swapchain.hpp"
+#include "VulkanWrapper/Surface.hpp"
 
 #include <memory>
 
