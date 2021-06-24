@@ -998,7 +998,11 @@ void main () {
     graph.Compile (std::move (s));
 
     GVK::RG::BlockingGraphRenderer renderer (device, swapchain);
-    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> GVK::RG::RenderGraph& { return graph; }, 10));
+    uint32_t count = 0;
+    auto cb = renderer.GetConditionalDrawCallback ([&] () -> GVK::RG::RenderGraph& { return graph; }, [&] () -> bool {
+        return ++count > 10;
+    });
+    window->DoEventLoop (cb);
 }
 
 
@@ -1092,7 +1096,11 @@ void main () {
     graph.Compile (std::move (s));
 
     GVK::RG::BlockingGraphRenderer renderer (device, swapchain);
-    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> GVK::RG::RenderGraph& { return graph; }, 10));
+    uint32_t count = 0;
+    auto cb = renderer.GetConditionalDrawCallback ([&] () -> GVK::RG::RenderGraph& { return graph; }, [&] () -> bool {
+      return ++count > 10;
+    });
+    window->DoEventLoop (cb);
 
     CompareImages ("uv", *presentedCopy->images[0]->image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
@@ -1207,7 +1215,11 @@ void main () {
         unif->GetMapping (frameIndex).Copy (time);
     });
 
-    window->DoEventLoop (renderer.GetCountLimitedDrawCallback ([&] () -> GVK::RG::RenderGraph& { return graph; }, 10));
+    uint32_t count = 0;
+    auto cb = renderer.GetConditionalDrawCallback ([&] () -> GVK::RG::RenderGraph& { return graph; }, [&] () -> bool {
+      return ++count > 10;
+    });
+    window->DoEventLoop (cb);
 
     CompareImages ("uvoffset", *presentedCopy->images[0]->image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }

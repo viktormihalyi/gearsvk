@@ -54,8 +54,6 @@ public:
     Window::DrawCallback GetInfiniteDrawCallback (const std::function<RenderGraph&()>& graphProvider);
 
     Window::DrawCallback GetConditionalDrawCallback (const std::function<RenderGraph&()>& graphProvider, const std::function<bool ()>& shouldStop);
-
-    Window::DrawCallback GetCountLimitedDrawCallback (const std::function<RenderGraph&()>& graphProvider, uint64_t limit);
 };
 
 
