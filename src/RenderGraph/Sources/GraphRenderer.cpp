@@ -36,20 +36,6 @@ Window::DrawCallback Renderer::GetConditionalDrawCallback (const std::function<R
 }
 
 
-Window::DrawCallback Renderer::GetCountLimitedDrawCallback (const std::function<RenderGraph&()>& graphProvider, uint64_t limit)
-{
-    uint64_t drawCount = 0;
-    return [&] (bool& stopFlag) -> void {
-        RenderNextFrame (graphProvider ());
-
-        ++drawCount;
-        if (drawCount >= limit) {
-            stopFlag = true;
-        }
-    };
-}
-
-
 RecreatableGraphRenderer::RecreatableGraphRenderer (Swapchain& swapchain)
     : swapchain (swapchain)
 {
