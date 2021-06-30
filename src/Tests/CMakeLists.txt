@@ -6,6 +6,7 @@ set (Sources
     ${SourcesPath}/TestMain.cpp
     ${SourcesPath}/GoogleTestEnvironment.hpp
     ${SourcesPath}/GoogleTestEnvironment.cpp
+    ${SourcesPath}/FontRenderingTests.cpp
     ${SourcesPath}/RenderGraphTests.cpp
     ${SourcesPath}/VizHFTests.cpp
     ${SourcesPath}/Camera.cpp
@@ -16,11 +17,13 @@ set (Sources
 add_executable (GVKTest ${Sources})
 
 find_package (GTest REQUIRED)
+find_package (stb REQUIRED)
 
 target_include_directories (GVKTest
     PRIVATE ${SourcesPath}
 
     PRIVATE ${GTest_INCLUDE_DIRS}
+    PRIVATE ${stb_INCLUDE_DIRS}
 
     PRIVATE $<TARGET_PROPERTY:GearsModuleEmbedded,INTERFACE_INCLUDE_DIRECTORIES>
     PRIVATE $<TARGET_PROPERTY:PySequence,INTERFACE_INCLUDE_DIRECTORIES>

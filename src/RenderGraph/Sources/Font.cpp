@@ -1,16 +1,17 @@
 #include "Font.hpp"
 
 #pragma warning(push, 0)
-#include "msdfgen-ext.h"
-#include "msdfgen.h"
+#include "msdfgen/msdfgen-ext.h"
+#include "msdfgen/msdfgen.h"
 #pragma warning(pop)
 
-#include "Assert.hpp"
-#include "ImageData.hpp"
+#include "Utils/Assert.hpp"
+#include "VulkanWrapper/Utils/ImageData.hpp"
 
 #include <cstring>
 #include <functional>
 #include <map>
+
 
 namespace GVK {
 
@@ -83,6 +84,7 @@ static msdfgen::Shape LoadShape (msdfgen::FontHandle* font, uint32_t unicode)
     msdfgen::Shape shape;
     GVK_ASSERT (msdfgen::loadGlyph (shape, font, unicode));
 
+    shape.inverseYAxis = true;
     shape.normalize ();
 
     msdfgen::edgeColoringSimple (shape, 3.0);
@@ -128,7 +130,7 @@ static std::vector<T> BitmapToVector (const msdfgen::Bitmap<T, N>& bitmap)
 }
 
 
-// from https://github.com/Chlumsky/msdfgen/blob/master/main.cpp#L739
+// from https://github.com/Chlumsky/msdfgen/blob/master/main.cpp#L893
 static void GetAutoFrame (const uint32_t emSize, const msdfgen::Shape::Bounds& bounds, uint32_t width, uint32_t height,
                           msdfgen::Vector2& scale, msdfgen::Vector2& translate, msdfgen::Vector2& aspectRatio, msdfgen::Vector2& actScale)
 {
@@ -188,11 +190,11 @@ static GlyphData GetGlyph (msdfgen::FontHandle*                 fontHandle,
 {
     msdfgen::Shape shape = LoadShape (fontHandle, unicode);
 
-    msdfgen::Vector2 translate (0, 0);
-    msdfgen::Vector2 scale (0.5, 0.5);
+    msdfgen::Vector2 translate (0.0, 0.0);
+    msdfgen::Vector2 scale (1.0, 1.0);
     msdfgen::Vector2 asp (0.5, 0.5);
     msdfgen::Vector2 actScale (0.5, 0.5);
-    GetAutoFrame (emSize, shape.getBounds (), width, height, scale, translate, asp, actScale);
+    //GetAutoFrame (emSize, shape.getBounds (), width, height, scale, translate, asp, actScale);
 
     msdfgen::Bitmap<float, Components> bitmapData (width, height);
 
@@ -208,7 +210,7 @@ static GlyphData GetGlyph (msdfgen::FontHandle*                 fontHandle,
     result.height      = height;
     result.aspectRatio = glm::vec2 { asp.x, asp.y };
 
-    ImageData::FromDataFloat (result.data, width, height, Components).SaveTo (PROJECT_ROOT / "temp" / (std::to_string (unicode) + ".png"));
+    ImageData::FromDataFloat (result.data, width, height, Components).SaveTo (std::filesystem::current_path () / "temp" / (std::to_string (unicode) + ".png"));
 
     return result;
 }
@@ -221,7 +223,7 @@ GlyphData Font::GetGlyphSDF (uint32_t width, uint32_t height, uint32_t unicode) 
                          double                              range,
                          const msdfgen::Vector2&             scale,
                          const msdfgen::Vector2&             translate) {
-        msdfgen::generateSDF (output, shape, range, scale, translate);
+        msdfgen::generateSDF (output, shape, msdfgen::Projection { scale, translate }, range);
     };
 
     return GetGlyph<1> (impl->fontHandle, width, height, emSize, unicode, generator);

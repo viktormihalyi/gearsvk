@@ -10,8 +10,8 @@
 using namespace GVK;
 
 
-const std::filesystem::path ReferenceImagesFolder = PROJECT_ROOT / "TestData" / "ReferenceImages";
-const std::filesystem::path TempFolder            = PROJECT_ROOT / "temp";
+const std::filesystem::path ReferenceImagesFolder = std::filesystem::current_path () / "TestData" / "ReferenceImages";
+const std::filesystem::path TempFolder            = std::filesystem::current_path () / "temp";
 
 
 void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,

@@ -2,13 +2,10 @@
 
 #include "SequenceAPI.hpp"
 
-#include <algorithm>
 #include <glm/glm.hpp>
 
-#include <iomanip>
 #include <list>
 #include <map>
-#include <set>
 #include <string>
 #include <vector>
 #include <memory>
@@ -92,55 +89,21 @@ public:
 
     void setStimulus (std::shared_ptr<Stimulus> stimulus);
 
-    void setShaderImage (std::string varName, std::string file)
-    {
-        shaderImages[varName] = file;
-    }
+    void setShaderImage (std::string varName, std::string file);
 
-    void setShaderVariable (std::string varName, float value)
-    {
-        shaderVariables[varName] = value;
-    }
+    void setShaderVariable (std::string varName, float value);
 
-    void setShaderColor (std::string varName, float all, float r, float g, float b)
-    {
-        if (all >= -1)
-            shaderColors[varName] = glm::vec3 (all, all, all);
-        else
-            shaderColors[varName] = glm::vec3 (r, g, b);
-    }
+    void setShaderColor (std::string varName, float all, float r, float g, float b);
 
-    void setShaderVector (std::string varName, float x, float y)
-    {
-        shaderVectors[varName] = glm::vec2 (x, y);
-    }
+    void setShaderVector (std::string varName, float x, float y);
 
-    void setMotionTransformFunction (std::string src)
-    {
-        stimulusGeneratorGeometryShaderMotionTransformFunction = src;
-    }
+    void setMotionTransformFunction (std::string src);
 
-    void setShaderFunction (std::string name, std::string src)
-    {
-        //		std::stringstream ss;
-        //		ss << std::setfill('0') << std::setw(5) << shaderFunctions.size() << "_" << name;
-        auto i = shaderFunctions.find (name);
-        if (i == shaderFunctions.end ()) {
-            shaderFunctionOrder.push_back (name);
-        }
-        shaderFunctions[name] = src;
-    }
+    void setShaderFunction (std::string name, std::string src);
 
-    void setGeomShaderFunction (std::string name, std::string src)
-    {
-        geomShaderFunctions[name] = src;
-    }
+    void setGeomShaderFunction (std::string name, std::string src);
 
-    unsigned int setStartingFrame (unsigned int offset)
-    {
-        this->startingFrame = offset;
-        return duration;
-    }
+    unsigned int setStartingFrame (unsigned int offset);
 
     void saveConfig (const std::string& expName);
 

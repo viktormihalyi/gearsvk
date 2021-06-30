@@ -12,6 +12,7 @@
 #include "Utils/Utils.hpp"
 #include "Utils/Assert.hpp"
 
+#include "spdlog/spdlog.h"
 
 Pass::Pass ()
     : name ("N/A")
@@ -224,7 +225,7 @@ void Pass::registerTemporalFunction (std::string functionName, std::string displ
 std::string Pass::getStimulusGeneratorVertexShaderSource (Pass::RasterizationMode mode) const
 {
     if (GVK_VERIFY (mode == Pass::RasterizationMode::fullscreen)) {
-        const std::optional<std::string> quadVert = Utils::ReadTextFile (PROJECT_ROOT / "Project" / "Shaders" / "quad.vert");
+        const std::optional<std::string> quadVert = Utils::ReadTextFile (std::filesystem::current_path () / "Project" / "Shaders" / "quad.vert");
         if (GVK_VERIFY (quadVert.has_value ())) {
             return *quadVert;
         } else {
@@ -479,4 +480,62 @@ std::string Pass::ToDebugString () const
         ss << "Fragment shader:" << std::endl << frag << std::endl;
 
     return ss.str ();
+}
+
+
+void Pass::setShaderImage (std::string varName, std::string file)
+{
+    shaderImages[varName] = file;
+}
+
+
+void Pass::setShaderVariable (std::string varName, float value)
+{
+    shaderVariables[varName] = value;
+}
+
+
+void Pass::setShaderColor (std::string varName, float all, float r, float g, float b)
+{
+    if (all >= -1)
+        shaderColors[varName] = glm::vec3 (all, all, all);
+    else
+        shaderColors[varName] = glm::vec3 (r, g, b);
+}
+
+
+void Pass::setShaderVector (std::string varName, float x, float y)
+{
+    shaderVectors[varName] = glm::vec2 (x, y);
+}
+
+
+void Pass::setMotionTransformFunction (std::string src)
+{
+    stimulusGeneratorGeometryShaderMotionTransformFunction = src;
+}
+
+
+void Pass::setShaderFunction (std::string name, std::string src)
+{
+    //		std::stringstream ss;
+    //		ss << std::setfill('0') << std::setw(5) << shaderFunctions.size() << "_" << name;
+    auto i = shaderFunctions.find (name);
+    if (i == shaderFunctions.end ()) {
+        shaderFunctionOrder.push_back (name);
+    }
+    shaderFunctions[name] = src;
+}
+
+
+void Pass::setGeomShaderFunction (std::string name, std::string src)
+{
+    geomShaderFunctions[name] = src;
+}
+
+
+unsigned int Pass::setStartingFrame (unsigned int offset)
+{
+    this->startingFrame = offset;
+    return duration;
 }

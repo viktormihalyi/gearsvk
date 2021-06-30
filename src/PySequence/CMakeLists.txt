@@ -44,7 +44,7 @@ target_include_directories (PySequence
 )
 
 target_link_libraries (PySequence
-    PUBLIC ${Python3_LIBRARIES}
+    PUBLIC ${Python3_LIBRARY_RELEASE}
     PUBLIC ${pybind11_LIBRARIES}
     PUBLIC Sequence
     PUBLIC RenderGraph

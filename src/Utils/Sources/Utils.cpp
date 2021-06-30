@@ -8,33 +8,6 @@
 #include <string>
 
 
-#ifdef WIN32
-
-#include <windows.h>
-
-std::filesystem::path Utils::GetProjectRoot ()
-{
-    char buff[MAX_PATH] = {};
-    GetModuleFileName (NULL, buff, (sizeof (buff)));
-    return std::filesystem::path (buff).parent_path ();
-}
-
-#else
-
-#include <limits.h>
-#include <unistd.h>
-
-std::filesystem::path Utils::GetProjectRoot ()
-{
-    char    buff[PATH_MAX];
-    ssize_t len = ::readlink ("/proc/self/exe", buff, sizeof (buff) - 1);
-    GVK_ASSERT (len != -1);
-    buff[len] = '\0';
-    return std::filesystem::path (buff).parent_path ();
-}
-
-#endif
-
 namespace Utils {
 
 

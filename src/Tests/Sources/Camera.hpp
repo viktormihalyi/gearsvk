@@ -7,7 +7,7 @@
 #include "Frustum.hpp"
 #include "Utils/Lazy.hpp"
 
-#include "RenderGraph/glmlib.hpp"
+#include <glm/glm.hpp>
 
 namespace GVK {
 

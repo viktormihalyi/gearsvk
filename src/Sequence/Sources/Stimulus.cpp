@@ -307,7 +307,7 @@ void Stimulus::raiseSignalOnTick (uint32_t iTick, std::string channel)
     SignalEvent e;
     e.clear   = false;
     e.channel = channel;
-    tickSignals.insert (std::pair<unsigned int, SignalEvent> (iTick, e));
+    tickSignals.emplace (iTick, e);
     stimulusChannels.insert (channel);
 }
 
@@ -317,7 +317,7 @@ void Stimulus::clearSignalOnTick (uint32_t iTick, std::string channel)
     SignalEvent e;
     e.clear   = true;
     e.channel = channel;
-    tickSignals.insert (std::pair<unsigned int, SignalEvent> (iTick, e));
+    tickSignals.emplace (iTick, e);
     stimulusChannels.insert (channel);
 }
 

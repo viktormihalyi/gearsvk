@@ -41,7 +41,9 @@
 #include "Utils/UUID.hpp"
 #include "RenderGraph/UniformView.hpp"
 
-#include "RenderGraph/glmlib.hpp"
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <unordered_map>
 
@@ -377,9 +379,9 @@ void main ()
 
     graph.Compile (std::move (s));
 
-    matcap->CopyTransitionTransfer (ImageData (PROJECT_ROOT / "TestData" / "VizHF" / "matcap.jpg").data);
+    matcap->CopyTransitionTransfer (ImageData (std::filesystem::current_path () / "TestData" / "VizHF" / "matcap.jpg").data);
 
-    std::vector<uint8_t> rawBrainData = ImageData (PROJECT_ROOT / "TestData" / "VizHF" / "brain.jpg", 1).data;
+    std::vector<uint8_t> rawBrainData = ImageData (std::filesystem::current_path () / "TestData" / "VizHF" / "brain.jpg", 1).data;
 
     std::vector<uint8_t> transformedBrainData (256 * 256 * 256);
 

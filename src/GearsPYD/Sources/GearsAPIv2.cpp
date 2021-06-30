@@ -35,6 +35,7 @@ void InitializeEnvironment ()
 
 void DestroyEnvironment ()
 {
+    GetVkEnvironment ().Wait ();
     createdSurfaces.clear ();
     currentSeq.reset ();
     DestroyVkEnvironment ();
@@ -158,19 +159,19 @@ std::shared_ptr<Sequence> GetSequenceFromPyx (const std::filesystem::path& fileP
     }
 
 
-    // working directory will be the same as PROJECT_ROOT
+    // working directory will be the same as std::filesystem::current_path ()
 
     pybind11::scoped_interpreter guard;
     try {
         pybind11::module sys = pybind11::module::import ("sys");
 
-        sys.attr ("path").attr ("insert") (0, (PROJECT_ROOT).string ());
+        sys.attr ("path").attr ("insert") (0, (std::filesystem::current_path ()).string ());
 
         pybind11::module::import ("AppData").attr ("initConfigParams") ();
 
         pybind11::module sequenceLoader = pybind11::module::import ("SequenceLoaderCore");
 
-        sequenceLoader.attr ("loadParents") (filePath.parent_path ().string (), (PROJECT_ROOT / "Project").string ());
+        sequenceLoader.attr ("loadParents") (filePath.parent_path ().string (), (std::filesystem::current_path () / "Project").string ());
 
         pybind11::module machinery        = pybind11::module::import ("importlib.machinery");
         pybind11::object sourceFileLoader = machinery.attr ("SourceFileLoader");

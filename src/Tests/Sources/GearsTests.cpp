@@ -12,7 +12,7 @@
 #include "Sequence/StimulusAdapter.hpp"
 
 #include "Utils/StaticInit.hpp"
-#include "RenderGraph/glmlib.hpp"
+#include <glm/glm.hpp>
 
 #define CEREAL_THREAD_SAFE 1 // doesnt compile otherwise
 
@@ -76,7 +76,7 @@ namespace glm
 using namespace GVK;
 using namespace GVK::RG;
 
-static const std::filesystem::path SequencesFolder = PROJECT_ROOT / "Project" / "Sequences";
+static const std::filesystem::path SequencesFolder = std::filesystem::current_path () / "Project" / "Sequences";
 
 
 StaticInit nosync ([] () {
@@ -168,7 +168,7 @@ TEST_F (GearsTests, 04_velocity400)
         oarchive (sequenceAdapter->GetSequence ());
 
         std::string val = ss.str ();
-        Utils::WriteTextFile (PROJECT_ROOT / "asd.txt", val);
+        Utils::WriteTextFile (std::filesystem::current_path () / "asd.txt", val);
     }
 
 

@@ -186,13 +186,13 @@ void pickStimulus (double x, double y)
 }
 
 
-/*
+
 std::shared_ptr<const Stimulus> getSelectedStimulus ()
 {
     return nullptr;
     // return sequenceRenderer->getSelectedStimulus ();
 }
-*/
+
 
 
 void reset ()
@@ -692,7 +692,7 @@ void FillModule (pybind11::module_& m)
     m.def ("setSequence", setSequence /*, return_value_policy<reference_existing_object>()*/);
     m.def ("getSequence", getSequence /*, return_value_policy<reference_existing_object>()*/);
     m.def ("pickStimulus", pickStimulus);
-    //m.def ("getSelectedStimulus", getSelectedStimulus);
+    m.def ("getSelectedStimulus", getSelectedStimulus);
     m.def ("reset", reset);
     m.def ("cleanup", cleanup);
     m.def ("enableExport", enableExport);

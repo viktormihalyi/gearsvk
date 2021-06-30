@@ -51,9 +51,9 @@ public:
     virtual uint32_t GetNextRenderResourceIndex () = 0;
     virtual uint32_t RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) = 0;
 
-    Window::DrawCallback GetInfiniteDrawCallback (const std::function<RenderGraph&()>& graphProvider);
+    Window::DrawCallback GetInfiniteDrawCallback (std::function<RenderGraph&()> graphProvider);
 
-    Window::DrawCallback GetConditionalDrawCallback (const std::function<RenderGraph&()>& graphProvider, const std::function<bool ()>& shouldStop);
+    Window::DrawCallback GetConditionalDrawCallback (std::function<RenderGraph&()> graphProvider, std::function<bool ()> shouldStop);
 };
 
 

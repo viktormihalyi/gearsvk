@@ -1,6 +1,8 @@
 #include "Frustum.hpp"
 
-#include "RenderGraph/glmlib.hpp"
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace GVK {
 

@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "glmlib.hpp"
+#include <glm/glm.hpp>
 
 #include <map>
 #include <string>

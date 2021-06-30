@@ -4,7 +4,7 @@
 #include "VulkanWrapper/DeviceExtra.hpp"
 #include "RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
 
-#include "RenderGraph/glmlib.hpp"
+#include <glm/glm.hpp>
 
 namespace GVK {
 

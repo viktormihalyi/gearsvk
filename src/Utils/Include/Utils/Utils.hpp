@@ -19,13 +19,7 @@
 #include <vector>
 
 
-#define PROJECT_ROOT ::Utils::GetProjectRoot ()
-
-
 namespace Utils {
-
-GVK_UTILS_API
-std::filesystem::path GetProjectRoot ();
 
 GVK_UTILS_API
 std::optional<std::string> ReadTextFile (const std::filesystem::path& filePath);

@@ -13,7 +13,7 @@
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
-#include "RenderGraph/glmlib.hpp"
+#include <glm/glm.hpp>
 
 // from std
 #include <iostream>
@@ -34,7 +34,7 @@
 #include <vulkan/vulkan.h>
 
 
-const std::filesystem::path ShadersFolder = PROJECT_ROOT / "TestData" / "shaders";
+const std::filesystem::path ShadersFolder = std::filesystem::current_path () / "TestData" / "shaders";
 
 
 TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleOutput)

@@ -43,7 +43,8 @@ void Sequence::addStimulus (std::shared_ptr<Stimulus> stimulus)
     
     OnStimulusAdded (stimulus);
 
-    mono                     = mono && stimulus->mono;
+    mono = mono && stimulus->mono;
+
     shortestStimulusDuration = std::min (shortestStimulusDuration, stimulus->getDuration ());
     duration += stimulus->setStartingFrame (duration + 1);
     stimuli[duration] = stimulus;

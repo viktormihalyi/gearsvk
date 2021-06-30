@@ -18,17 +18,17 @@ namespace RG {
 
 IFrameDisplayObserver noOpFrameDisplayObserver;
 
-Window::DrawCallback Renderer::GetInfiniteDrawCallback (const std::function<RenderGraph&()>& graphProvider)
+Window::DrawCallback Renderer::GetInfiniteDrawCallback (std::function<RenderGraph&()> graphProvider)
 {
-    return [&] (bool&) -> void {
+    return [=] (bool&) -> void {
         RenderNextFrame (graphProvider ());
     };
 }
 
 
-Window::DrawCallback Renderer::GetConditionalDrawCallback (const std::function<RenderGraph&()>& graphProvider, const std::function<bool ()>& shouldStop)
+Window::DrawCallback Renderer::GetConditionalDrawCallback (std::function<RenderGraph&()> graphProvider, std::function<bool ()> shouldStop)
 {
-    return [&] (bool& stopFlag) -> void {
+    return [=] (bool& stopFlag) -> void {
         stopFlag = shouldStop ();
 
         RenderNextFrame (graphProvider ());

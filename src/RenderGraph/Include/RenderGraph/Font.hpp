@@ -12,7 +12,30 @@
 #include "Utils/Noncopyable.hpp"
 #include <memory>
 
-#include "glmlib.hpp"
+#include <glm/glm.hpp>
+#include <iostream>
+
+
+inline std::ostream& operator<< (std::ostream& os, const glm::vec2& vec)
+{
+    os << "("
+       << vec.x << ", "
+       << vec.y << ", "
+       << ")";
+    return os;
+}
+
+
+inline std::ostream& operator<< (std::ostream& os, const glm::vec3& vec)
+{
+    os << "("
+       << vec.x << ", "
+       << vec.y << ", "
+       << vec.z << ", "
+       << ")";
+    return os;
+}
+
 
 namespace GVK {
 

@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "RenderGraph/glmlib.hpp"
+#include <glm/glm.hpp>
 
 namespace GVK {
 

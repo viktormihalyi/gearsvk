@@ -50,3 +50,12 @@ target_link_libraries (GearsModuleEmbedded
     PUBLIC RenderGraph
     PUBLIC Utils
 )
+
+
+if (WIN32)
+add_custom_command (TARGET GearsModule POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:GearsModule>
+        $<TARGET_FILE_DIR:GearsModule>/$<TARGET_FILE_BASE_NAME:GearsModule>.pyd
+)
+endif ()

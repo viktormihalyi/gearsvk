@@ -11,7 +11,7 @@
 
 #include "RenderGraph/RenderGraphAPI.hpp"
 #include "RenderGraph/UniformView.hpp"
-#include "RenderGraph/glmlib.hpp"
+#include <glm/glm.hpp>
 
 #include <tuple>
 #include <unordered_map>

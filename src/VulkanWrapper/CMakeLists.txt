@@ -79,8 +79,6 @@ set (Sources
 add_library (VulkanWrapper SHARED ${Headers} ${Sources})
 
 find_package (Vulkan REQUIRED)
-find_package (glfw3 REQUIRED)
-find_package (glm REQUIRED)
 find_package (vulkan-memory-allocator REQUIRED)
 find_package (fmt REQUIRED)
 find_package (spdlog REQUIRED)
@@ -103,11 +101,9 @@ target_include_directories (VulkanWrapper
     PUBLIC $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
     
     PUBLIC ${Vulkan_INCLUDE_DIRS}
-    PUBLIC ${glm_INCLUDE_DIRS}
-    PRIVATE ${glfw_INCLUDE_DIRS}
     PUBLIC ${vulkan-memory-allocator_INCLUDE_DIRS}
-    PUBLIC ${fmt_INCLUDE_DIRS}
-    PUBLIC ${spdlog_INCLUDE_DIRS}
+    PRIVATE ${fmt_INCLUDE_DIRS}
+    PRIVATE ${spdlog_INCLUDE_DIRS}
     PRIVATE ${stb_INCLUDE_DIRS}
     PRIVATE ${glslang_INCLUDE_DIRS}
     PRIVATE ${spirv-cross_INCLUDE_DIRS}
@@ -115,11 +111,9 @@ target_include_directories (VulkanWrapper
 
 target_link_libraries (VulkanWrapper
     PUBLIC ${Vulkan_LIBRARIES}
-    PUBLIC ${glm_LIBRARIES}
-    PRIVATE ${glfw_LIBRARIES}
     PUBLIC ${vulkan-memory-allocator_LIBRARIES}
-    PUBLIC ${fmt_LIBRARIES}
-    PUBLIC ${spdlog_LIBRARIES}
+    PRIVATE ${fmt_LIBRARIES}
+    PRIVATE ${spdlog_LIBRARIES}
     PRIVATE ${stb_LIBRARIES}
     PRIVATE ${glslang_LIBRARIES}
     PRIVATE ${spirv-cross_LIBRARIES}

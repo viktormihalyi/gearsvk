@@ -24,7 +24,6 @@ set (Headers
 
     ${HeadersPath}/Font.hpp
     ${HeadersPath}/RenderGraphAPI.hpp
-    ${HeadersPath}/glmlib.hpp
     ${HeadersPath}/UniformView.hpp
     ${HeadersPath}/VulkanEnvironment.hpp
 )
@@ -43,7 +42,7 @@ set (Sources
     ${SourcesPath}/Window/GLFWWindow.cpp
     ${SourcesPath}/Window/SDLWindow.cpp
 
-    #${SourcesPath}/Font.cpp
+    ${SourcesPath}/Font.cpp
     ${SourcesPath}/SpdlogInitializer.cpp
     ${SourcesPath}/UniformView.cpp
     ${SourcesPath}/VulkanEnvironment.cpp
@@ -60,9 +59,12 @@ find_package (spdlog REQUIRED)
 find_package (stb REQUIRED)
 find_package (glslang REQUIRED)
 find_package (spirv-cross REQUIRED)
+find_package (msdfgen REQUIRED)
 
 target_compile_definitions (RenderGraph
     PUBLIC SPDLOG_FMT_EXTERNAL
+    PUBLIC GLM_FORCE_RADIANS
+    PUBLIC GLM_FORCE_DEPTH_ZERO_TO_ONE
 )
 
 target_precompile_headers (RenderGraph PRIVATE ${SourcesPath}/PCH.hpp)
@@ -86,6 +88,7 @@ target_include_directories (RenderGraph
     PRIVATE ${stb_INCLUDE_DIRS}
     PRIVATE ${glslang_INCLUDE_DIRS}
     PRIVATE ${spirv-cross_INCLUDE_DIRS}
+    PRIVATE ${msdfgen_INCLUDE_DIRS}
 )
 
 target_link_libraries (RenderGraph
@@ -98,6 +101,7 @@ target_link_libraries (RenderGraph
     PRIVATE ${stb_LIBRARIES}
     PRIVATE ${glslang_LIBRARIES}
     PRIVATE ${spirv-cross_LIBRARIES}
+    PRIVATE ${msdfgen_LIBRARIES}
     PUBLIC Utils
     PUBLIC VulkanWrapper
 )

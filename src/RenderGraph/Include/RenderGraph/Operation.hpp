@@ -10,7 +10,7 @@
 #include "RenderGraph/Connections.hpp"
 #include "RenderGraph/Node.hpp"
 
-#include "RenderGraph/glmlib.hpp"
+#include <glm/glm.hpp>
 
 #include <vector>
 

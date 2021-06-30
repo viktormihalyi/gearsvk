@@ -128,7 +128,7 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         randomTexture->SetDescription ("Made by StimulusAdapter.");
 
         std::unique_ptr<GVK::RG::ShaderPipeline> randoSeqPipeline = std::make_unique<GVK::RG::ShaderPipeline> (*environment.device);
-        randoSeqPipeline->SetVertexShaderFromString (*Utils::ReadTextFile (PROJECT_ROOT / "Project" / "Shaders" / "quad.vert"));
+        randoSeqPipeline->SetVertexShaderFromString (*Utils::ReadTextFile (std::filesystem::current_path () / "Project" / "Shaders" / "quad.vert"));
         randoSeqPipeline->SetFragmentShaderFromString (stimulus->getRandomGeneratorShaderSource ());
 
         randomGeneratorOperation = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
