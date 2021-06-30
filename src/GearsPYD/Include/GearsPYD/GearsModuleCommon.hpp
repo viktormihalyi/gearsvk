@@ -189,7 +189,7 @@ void pickStimulus (double x, double y)
 
 std::shared_ptr<const Stimulus> getSelectedStimulus ()
 {
-    return nullptr;
+    return sequence->getStimuli ().rbegin ()->second;
     // return sequenceRenderer->getSelectedStimulus ();
 }
 
