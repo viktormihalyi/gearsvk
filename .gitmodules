@@ -1,3 +1,0 @@
-[submodule "external/msdfgen"]
-	path = external/msdfgen
-	url = https://github.com/viktormihalyi/msdfgen
