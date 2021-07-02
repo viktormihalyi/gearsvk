@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.20)
+cmake_minimum_required (VERSION 3.16)
 project (GearsVk)
 
 set (CMAKE_CXX_STANDARD 17)
@@ -16,11 +16,31 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # ========== CONAN ==========
 
-execute_process (COMMAND
-    conan install ${CMAKE_SOURCE_DIR}/conanfile.txt
-        --install-folder=${CMAKE_BINARY_DIR}
-        --build=missing
-        --settings build_type=${CMAKE_BUILD_TYPE})
+# Only run conan install when conanfile.txt changes
+
+execute_process (
+    COMMAND ${CMAKE_COMMAND} -E sha512sum ${CMAKE_SOURCE_DIR}/conanfile.txt
+    OUTPUT_VARIABLE ConanfileChecksumCurrent
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    
+set (CONANFILE_CHECKSUM_LAST_PATH ${CMAKE_BINARY_DIR}/ConanfileChecksumLast.txt)
+if (EXISTS ${CONANFILE_CHECKSUM_LAST_PATH})
+    file (STRINGS ${CONANFILE_CHECKSUM_LAST_PATH} ConanfileChecksumLast)
+endif ()
+
+if (NOT "${ConanfileChecksumCurrent}" STREQUAL "${ConanfileChecksumLast}")
+    message (NOTICE "[CONANFILE_CHECKSUM] Current: ${ConanfileChecksumCurrent}")
+    message (NOTICE "[CONANFILE_CHECKSUM] Last:    ${ConanfileChecksumLast}")
+    message (NOTICE "Running conan install...")
+    execute_process (COMMAND
+        conan install ${CMAKE_SOURCE_DIR}/conanfile.txt
+            --install-folder=${CMAKE_BINARY_DIR}
+            --build=missing
+            --settings build_type=${CMAKE_BUILD_TYPE})
+    file (WRITE ${CMAKE_BINARY_DIR}/ConanfileChecksumLast.txt "${ConanfileChecksumCurrent}")
+else ()
+    message (NOTICE "NOT Running conan install.")
+endif ()
 
 include (${CMAKE_BINARY_DIR}/conan_paths.cmake)
 
