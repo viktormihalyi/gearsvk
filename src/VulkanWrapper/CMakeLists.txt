@@ -12,6 +12,7 @@ set (Headers
     ${HeadersPath}/Buffer.hpp
     ${HeadersPath}/CommandBuffer.hpp
     ${HeadersPath}/CommandPool.hpp
+    ${HeadersPath}/DebugReportCallback.hpp
     ${HeadersPath}/DebugUtilsMessenger.hpp
     ${HeadersPath}/DescriptorPool.hpp
     ${HeadersPath}/DescriptorSet.hpp
@@ -54,6 +55,7 @@ set (Sources
     ${SourcesPath}/Allocator.cpp
     ${SourcesPath}/Buffer.cpp
     ${SourcesPath}/CommandBuffer.cpp
+    ${SourcesPath}/DebugReportCallback.cpp
     ${SourcesPath}/DebugUtilsMessenger.cpp
     ${SourcesPath}/Device.cpp
     ${SourcesPath}/DeviceMemory.cpp

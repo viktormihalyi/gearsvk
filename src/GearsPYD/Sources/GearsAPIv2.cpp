@@ -158,9 +158,6 @@ std::shared_ptr<Sequence> GetSequenceFromPyx (const std::filesystem::path& fileP
         return nullptr;
     }
 
-
-    // working directory will be the same as std::filesystem::current_path ()
-
     pybind11::scoped_interpreter guard;
     try {
         pybind11::module sys = pybind11::module::import ("sys");

@@ -26,28 +26,15 @@ const DebugUtilsMessenger::Settings DebugUtilsMessenger::noPerformance {
 };
 
 
-static VkResult CreateDebugUtilsMessengerEXT (VkInstance                                instance,
-                                              const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-                                              const VkAllocationCallbacks*              pAllocator,
-                                              VkDebugUtilsMessengerEXT*                 pDebugMessenger)
+template<typename FunctionType>
+FunctionType GetVulkanFunction (VkInstance instance, const char* functionName)
 {
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr (instance, "vkCreateDebugUtilsMessengerEXT");
-    if (GVK_VERIFY (func)) {
-        return func (instance, pCreateInfo, pAllocator, pDebugMessenger);
-    } else {
-        return VK_ERROR_EXTENSION_NOT_PRESENT;
-    }
-}
+    FunctionType func = reinterpret_cast<FunctionType> (vkGetInstanceProcAddr (instance, functionName));
 
+    if (GVK_ERROR (func == nullptr))
+        throw std::runtime_error ("Function not loaded.");
 
-static void DestroyDebugUtilsMessengerEXT (VkInstance                   instance,
-                                           VkDebugUtilsMessengerEXT     debugMessenger,
-                                           const VkAllocationCallbacks* pAllocator)
-{
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr (instance, "vkDestroyDebugUtilsMessengerEXT");
-    if (GVK_VERIFY (func != nullptr)) {
-        func (instance, debugMessenger, pAllocator);
-    }
+    return func;
 }
 
 
@@ -69,8 +56,12 @@ DebugUtilsMessenger::DebugUtilsMessenger (VkInstance instance, const Callback& c
     , handle (VK_NULL_HANDLE)
     , callback (callback)
 {
+
     VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
-    createInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+
+    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    
+    createInfo.flags = 0;
 
     createInfo.messageSeverity =
         ((settings.verbose) ? VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT : 0) |
@@ -86,7 +77,7 @@ DebugUtilsMessenger::DebugUtilsMessenger (VkInstance instance, const Callback& c
     createInfo.pfnUserCallback = debugCallback;
     createInfo.pUserData       = this;
 
-    VkResult result = CreateDebugUtilsMessengerEXT (instance, &createInfo, nullptr, &handle);
+    VkResult result = GetVulkanFunction<PFN_vkCreateDebugUtilsMessengerEXT> (instance, "vkCreateDebugUtilsMessengerEXT") (instance, &createInfo, nullptr, &handle);
     if (GVK_ERROR (result != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create debug utils messenger");
     }
@@ -95,7 +86,7 @@ DebugUtilsMessenger::DebugUtilsMessenger (VkInstance instance, const Callback& c
 
 DebugUtilsMessenger::~DebugUtilsMessenger ()
 {
-    DestroyDebugUtilsMessengerEXT (instance, handle, nullptr);
+    GetVulkanFunction<PFN_vkDestroyDebugUtilsMessengerEXT> (instance, "vkDestroyDebugUtilsMessengerEXT") (instance, handle, nullptr);
     handle = nullptr;
 }
 

@@ -37,7 +37,9 @@
 const std::filesystem::path ShadersFolder = std::filesystem::current_path () / "TestData" / "shaders";
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleOutput)
+using Empty = ::testing::Test;
+
+TEST_F (Empty, RenderGraphPassTest_SingleOutput)
 {
     using namespace GVK::RG;
 
@@ -59,7 +61,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleOutput)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleInput)
+TEST_F (Empty, RenderGraphPassTest_SingleInput)
 {
     using namespace GVK::RG;
 
@@ -80,7 +82,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleInput)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleOutput_Remove)
+TEST_F (Empty, RenderGraphPassTest_SingleOutput_Remove)
 {
     using namespace GVK::RG;
 
@@ -97,7 +99,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleOutput_Remove)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleInput_Remove)
+TEST_F (Empty, RenderGraphPassTest_SingleInput_Remove)
 {
     using namespace GVK::RG;
 
@@ -114,7 +116,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_SingleInput_Remove)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput)
+TEST_F (Empty, RenderGraphPassTest_MultipleInput)
 {
     using namespace GVK::RG;
 
@@ -132,7 +134,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput_RemoveOne)
+TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveOne)
 {
     using namespace GVK::RG;
 
@@ -156,7 +158,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput_RemoveO
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput_RemoveAll)
+TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveAll)
 {
     using namespace GVK::RG;
 
@@ -179,7 +181,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleInput_RemoveA
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput)
+TEST_F (Empty, RenderGraphPassTest_MultipleOutput)
 {
     using namespace GVK::RG;
 
@@ -197,7 +199,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput_RemoveOne)
+TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveOne)
 {
     using namespace GVK::RG;
 
@@ -221,7 +223,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput_Remove
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput_RemoveAll)
+TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveAll)
 {
     using namespace GVK::RG;
 
@@ -244,7 +246,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleOutput_Remove
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleIO)
+TEST_F (Empty, RenderGraphPassTest_MultipleIO)
 {
     using namespace GVK::RG;
 
@@ -280,7 +282,6 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphPassTest_MultipleIO)
     EXPECT_EQ (0, p.GetAllInputs ().size ());
     EXPECT_EQ (0, p.GetAllOperations ().size ());
 }
-
 
 
 uint64_t Forrest_G (const uint64_t k, const uint64_t seed, const uint64_t g, const uint64_t m)
@@ -321,7 +322,7 @@ uint64_t Forrest_C (const uint64_t k, const uint64_t seed, const uint64_t g, con
     return C;
 }
 
-TEST_F (HeadlessGoogleTestEnvironment, rng)
+TEST_F (Empty, rng)
 {
     double   sum     = 0.0;
     int      count   = 0;
@@ -915,6 +916,142 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     GVK::ImageData (device, *finalImg->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "final.png");
 
     ASSERT_TRUE (GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == GVK::ImageData (ReferenceImagesFolder / "black.png"));
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest_TwoOperationsRenderingToOutput)
+{
+    GVK::DeviceExtra& device        = GetDeviceExtra ();
+    GVK::CommandPool& commandPool   = GetCommandPool ();
+    GVK::Queue&       graphicsQueue = GetGraphicsQueue ();
+
+    GVK::RG::GraphSettings s (device, 1);
+    GVK::RG::RenderGraph   graph;
+
+    std::shared_ptr<GVK::RG::WritableImageResource> presented = std::make_unique<GVK::RG::WritableImageResource> (VK_FILTER_LINEAR, 512, 512, 1, VK_FORMAT_R8G8B8A8_SRGB);
+
+
+    /*
+        firstPass  ---> presented
+        secondPass  _/ 
+    */
+
+    // will turn into
+
+    /*
+        firstPass ---> presented ---> secondPass ---> presented
+    */
+    
+    const char* vertSrc = R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec2 textureCoords;
+
+vec2 uvs[6] = vec2[] (
+    vec2 (0.f, 0.f),
+    vec2 (0.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (0.f, 0.f),
+    vec2 (1.f, 0.f)
+);
+
+vec2 positions[6] = vec2[] (
+    vec2 (-1.f, -1.f),
+    vec2 (-1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (-1.f, -1.f),
+    vec2 (+1.f, -1.f)
+);
+
+
+void main() {
+    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
+    textureCoords = uvs[gl_VertexIndex];
+}
+    )";
+
+    auto sp = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    sp->SetVertexShaderFromString (vertSrc);
+    sp->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (1, 0, 0, 0.5);
+}
+    )");
+
+    auto sp2 = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    sp2->SetVertexShaderFromString (vertSrc);
+    sp2->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (0, 0, 1, 0.5);
+}
+    )");
+
+    std::shared_ptr<GVK::RG::RenderOperation> firstPass  = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp));
+
+    firstPass->compileSettings.blendEnabled = false;
+
+    std::shared_ptr<GVK::RG::RenderOperation> secondPass = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp2));
+
+    secondPass->compileSettings.blendEnabled = true;
+
+    s.connectionSet.Add (firstPass, presented,
+                       std::make_unique<GVK::RG::OutputBinding> (0,
+                                                                   presented->GetFormatProvider (),
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   presented->GetFinalLayout (),
+                                                                   1,
+                                                                   VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+
+    s.connectionSet.Add (secondPass, presented,
+                         std::make_unique<GVK::RG::OutputBinding> (0,
+                                                                   presented->GetFormatProvider (),
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   presented->GetFinalLayout (),
+                                                                   1,
+                                                                   VK_ATTACHMENT_LOAD_OP_LOAD,
+                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+
+
+    graph.Compile (std::move (s));
+
+    ASSERT_EQ (2, graph.GetPassCount ());
+
+    GVK::ImageData referenceImage (ReferenceImagesFolder / "pink.png");
+
+    const size_t renderCount = 1;
+    size_t matchCount = 0;
+
+    for (size_t i = 0; i < renderCount; ++i) {
+        std::this_thread::sleep_for (std::chrono::milliseconds (200));
+
+        graph.Submit (0);
+
+        vkQueueWaitIdle (graphicsQueue);
+        vkDeviceWaitIdle (device);
+
+        GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presentedTwo.png");
+ 
+        if (GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == referenceImage) {
+            ++matchCount;
+        }
+    }
+
+    EXPECT_EQ (renderCount, matchCount);
+
 }
 
 

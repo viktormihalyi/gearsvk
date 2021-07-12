@@ -46,7 +46,8 @@ add_test (NAME GVKTest
           COMMAND GVKTest
           WORKING_DIRECTORY bin)
 
-file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/Sources/TestData
-      DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-
-
+add_custom_target (CopyTestFiles ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/Sources/TestData
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TestData
+)

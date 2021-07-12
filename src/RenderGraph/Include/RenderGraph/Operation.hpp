@@ -100,6 +100,7 @@ private:
     // helper functions
 
     std::vector<VkImageView>             GetOutputImageViews (const ConnectionSet& conncetionSet, uint32_t resourceIndex) const;
+    std::vector<ImageView2D>             CreateOutputImageViews (const DeviceExtra& device, const ConnectionSet& conncetionSet, uint32_t resourceIndex) const;
     std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const ConnectionSet& conncetionSet) const;
     std::vector<VkAttachmentReference>   GetAttachmentReferences (const ConnectionSet& conncetionSet) const;
 };

@@ -77,6 +77,7 @@ public:
     VkBufferImageCopy GetFullBufferImageCopy () const;
 
     VkImageMemoryBarrier GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout) const;
+    VkImageMemoryBarrier GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask) const;
 
     void CmdPipelineBarrier (CommandBuffer& commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const;
 

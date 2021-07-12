@@ -10,6 +10,8 @@
 
 #include "VulkanUtils.hpp"
 
+#include <iostream>
+
 namespace GVK {
 
 const ImageData ImageData::Empty { 4, 0, 0, {} };
@@ -58,13 +60,10 @@ ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t la
         imageCopyRegion.extent.height                 = image.GetHeight ();
         imageCopyRegion.extent.depth                  = 1;
 
-        single.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
-            vkCmdCopyImage (commandBuffer,
-                            image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                            dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                            1,
-                            &imageCopyRegion);
-        });
+        single.RecordT<CommandCopyImage> (
+            image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            std::vector<VkImageCopy> { imageCopyRegion });
     }
 
     if (currentLayout)
@@ -236,7 +235,9 @@ void ImageData::SaveTo (const std::filesystem::path& path) const
 
     const int result = stbi_write_png (path.string ().c_str (), width, height, components, data.data (), width * components);
 
-    GVK_ASSERT (result == 1);
+    if (GVK_VERIFY (result == 1)) {
+        std::cout << "Saved image to " << path.string () << std::endl;
+    }
 }
 
 

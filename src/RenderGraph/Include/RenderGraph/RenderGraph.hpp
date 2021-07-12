@@ -25,33 +25,28 @@ class GraphSettings;
 
 class GVK_RENDERER_API RenderGraph final : public Noncopyable {
 private:
-    bool compiled;
+    bool                       compiled;
+    std::vector<Pass>          passes;
+    std::vector<CommandBuffer> commandBuffers;
+    
+    std::unordered_map<Image*, std::vector<VkImageLayout>> imageLayoutSequence;
 
 public:
     GraphSettings graphSettings;
 
-    const DeviceExtra* device;
-    uint32_t           framesInFlight;
-
-private:
-    std::vector<Pass> passes;
-
-    std::vector<CommandBuffer> c;
-
-public:
-    Event<> compileEvent;
-
 public:
     RenderGraph ();
 
-    void CompileResources (const GraphSettings& settings);
     void Compile (GraphSettings&& settings);
 
     void Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& waitSemaphores = {}, const std::vector<VkSemaphore>& signalSemaphores = {}, VkFence fence = VK_NULL_HANDLE);
     void Present (uint32_t imageIndex, Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores = {});
 
+    uint32_t GetPassCount () const;
+
 private:
     // utility functions for compilation
+    void              CompileResources (const GraphSettings& settings);
     Pass              GetNextPass (const ConnectionSet& connectionSet, const Pass& lastPass) const;
     Pass              GetFirstPass (const ConnectionSet& connectionSet) const;
     std::vector<Pass> GetPasses (const ConnectionSet& connectionSet) const;

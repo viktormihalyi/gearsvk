@@ -105,10 +105,11 @@ void CommandBuffer::Reset (bool releaseResources)
 }
 
 
-void CommandBuffer::Record (std::unique_ptr<Command>&& command)
+Command& CommandBuffer::Record (std::unique_ptr<Command>&& command)
 {
     command->Record (*this);
     recordedAbstractCommands.push_back (std::move (command));
+    return *recordedAbstractCommands.back ();
 }
 
 }

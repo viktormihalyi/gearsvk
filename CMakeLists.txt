@@ -32,12 +32,17 @@ if (NOT "${ConanfileChecksumCurrent}" STREQUAL "${ConanfileChecksumLast}")
     message (NOTICE "[CONANFILE_CHECKSUM] Current: ${ConanfileChecksumCurrent}")
     message (NOTICE "[CONANFILE_CHECKSUM] Last:    ${ConanfileChecksumLast}")
     message (NOTICE "Running conan install...")
-    execute_process (COMMAND
-        conan install ${CMAKE_SOURCE_DIR}/conanfile.txt
-            --install-folder=${CMAKE_BINARY_DIR}
-            --build=missing
-            --settings build_type=${CMAKE_BUILD_TYPE})
-    file (WRITE ${CMAKE_BINARY_DIR}/ConanfileChecksumLast.txt "${ConanfileChecksumCurrent}")
+    execute_process (
+        COMMAND conan install ${CMAKE_SOURCE_DIR}/conanfile.txt
+                    --install-folder=${CMAKE_BINARY_DIR}
+                    --build=missing
+                    --settings build_type=${CMAKE_BUILD_TYPE}
+        OUTPUT_VARIABLE ret)
+    if (ret EQUAL "1")
+        file (WRITE ${CMAKE_BINARY_DIR}/ConanfileChecksumLast.txt "${ConanfileChecksumCurrent}")
+    else ()
+        message (NOTICE "Conan install failed.")
+    endif ()
 else ()
     message (NOTICE "NOT Running conan install.")
 endif ()

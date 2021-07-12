@@ -30,6 +30,8 @@ std::unique_ptr<ShaderModule>& ShaderPipeline::GetShaderByExtension (const std::
         return vertexShader;
     } else if (extension == ".frag") {
         return fragmentShader;
+    } else if (extension == ".geom") {
+        return geometryShader;
     } else if (extension == ".tese") {
         return tessellationEvaluationShader;
     } else if (extension == ".tesc") {
@@ -79,6 +81,7 @@ ShaderPipeline::ShaderPipeline (VkDevice device, const std::vector<std::pair<Sha
         GetShaderByKind (kind) = ShaderModule::CreateFromGLSLString (device, kind, source);
     }
 }
+
 
 std::vector<VkPipelineShaderStageCreateInfo> ShaderPipeline::GetShaderStages () const
 {
@@ -152,15 +155,17 @@ void ShaderPipeline::Compile (const CompileSettings& settings)
     subpass.colorAttachmentCount = static_cast<uint32_t> (settings.attachmentReferences.size ());
     subpass.pColorAttachments    = settings.attachmentReferences.data ();
 
-    //VkSubpassDependency dependency = {};
-    //dependency.srcSubpass          = 0;
-    //dependency.dstSubpass          = 0;
-    //dependency.srcStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    //dependency.srcAccessMask       = 0;
-    //dependency.dstStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    //dependency.dstAccessMask       = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    VkSubpassDependency dependency = {};
+    dependency.srcSubpass          = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass          = 0;
+    dependency.dependencyFlags     = 0;
+    dependency.srcStageMask        = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+    dependency.dstStageMask        = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+    dependency.srcAccessMask       = VK_ACCESS_SHADER_WRITE_BIT |
+                               VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependency.dstAccessMask = 0;
 
-    compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, { subpass }, { /* dependency */ }));
+    compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, { subpass }, {  dependency  }));
     compileResult.pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, { settings.layout }));
     compileResult.pipeline       = std::unique_ptr<Pipeline> (new Pipeline (
         device,

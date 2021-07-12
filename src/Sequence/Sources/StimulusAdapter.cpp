@@ -31,8 +31,8 @@ constexpr bool LogDebugInfo = false;
 
 
 StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environment,
-                                                              std::shared_ptr<GVK::Presentable>&     presentable,
-                                                              const std::shared_ptr<Stimulus const>& stimulus)
+                                  std::shared_ptr<GVK::Presentable>&     presentable,
+                                  const std::shared_ptr<Stimulus const>& stimulus)
     : environment { environment }
     , presentable { presentable }
 {
@@ -49,9 +49,12 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
 
     GVK_ASSERT (passes.size () == 1);
 
-    bool firstPass = true;
-    
-    for (const std::shared_ptr<Pass>& pass : passes) {
+    for (size_t i = 0; i < passes.size (); ++i) {
+        const std::shared_ptr<Pass>& pass = passes[i];
+        
+        const bool firstPass = i == 0;
+        const bool lastPass = i == passes.size () - 1;
+
         if constexpr (LogDebugInfo) {
             std::cout << pass->ToDebugString () << std::endl;
         }
@@ -76,15 +79,15 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         passOperation->SetName (pass->name);
         passOperation->SetDescription (pass->brief);
 
-        if (stimulus->requiresClearing) {
-            passOperation->compileSettings.clearColor = { stimulus->clearColor, 1.0 };
-        }
+        //if (stimulus->requiresClearing) {
+        //    passOperation->compileSettings.clearColor = { stimulus->clearColor, 1.0 };
+        //}
+        //
+        //if (!firstPass) {
+        //    passOperation->compileSettings.clearColor = std::nullopt;
+        //}
 
-        if (!firstPass) {
-            passOperation->compileSettings.clearColor = std::nullopt;
-        }
-
-        passOperation->compileSettings.blendEnabled = false; //passes.size () > 1;
+        passOperation->compileSettings.blendEnabled = !firstPass;
 
         GVK_ASSERT (!stimulus->usesForwardRendering);
         GVK_ASSERT (stimulus->mono);
@@ -92,12 +95,13 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         s.connectionSet.Add (passOperation, presented,
                              std::make_unique<GVK::RG::OutputBinding> (0,
                                                                        presented->GetFormatProvider (),
+                                                                       firstPass ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                                                                        presented->GetFinalLayout (),
-                                                                       firstPass ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,
+                                                                       1,
+                                                                       firstPass ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : VK_ATTACHMENT_LOAD_OP_LOAD,
                                                                        VK_ATTACHMENT_STORE_OP_STORE));
 
         passToOperation[pass] = passOperation;
-        firstPass             = false;
     }
 
     std::optional<uint32_t> randomBinding;

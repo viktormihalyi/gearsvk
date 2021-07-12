@@ -61,6 +61,30 @@ std::vector<VkImageView> RenderOperation::GetOutputImageViews (const ConnectionS
 }
 
 
+std::vector<ImageView2D> RenderOperation::CreateOutputImageViews (const DeviceExtra& device, const ConnectionSet& conncetionSet, uint32_t resourceIndex) const
+{
+    std::vector<ImageView2D> result;
+
+    IResourceVisitorFn outputGatherer ([] (ReadOnlyImageResource&) {},
+                                       [&] (WritableImageResource& res) {
+        for (auto&& imgView : res.images[resourceIndex]->CreateImageViews (device)) {
+            result.push_back (std::move (imgView));
+        }},
+                                       [&] (SwapchainImageResource& res) {
+        for (auto&& imgView : res.CreateImageViews (device)) {
+            result.push_back (std::move (imgView));
+        }},
+                                       [] (GPUBufferResource&) {},
+                                       [] (CPUBufferResource&) {});
+
+
+    conncetionSet.VisitOutputsOf (this, outputGatherer);
+
+
+    return result;
+}
+
+
 RenderOperation::RenderOperation (std::unique_ptr<DrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
     : compileSettings ({ std::move (drawRecordable), std::move (drawRecordable), std::move (shaderPipeline), topology })
 {
@@ -126,7 +150,8 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
         compileResult.framebuffers.push_back (std::make_unique<Framebuffer> (graphSettings.GetDevice (),
                                                                              *compileSettings.pipeline->compileResult.renderPass,
-                                                                             GetOutputImageViews (graphSettings.connectionSet, resourceIndex),
+                                                                             //GetOutputImageViews (graphSettings.connectionSet, resourceIndex),
+                                                                             CreateOutputImageViews (graphSettings.GetDevice (), graphSettings.connectionSet, resourceIndex),
                                                                              width,
                                                                              height));
     }
@@ -178,23 +203,24 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
     // inputs:  undef/color_attachment_optimal ?? -> shader_read_only_optimal
     // outputs: undef ?? -> color_attachment_optimal
 
-    commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdBeginRenderPass (commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE); });
+    commandBuffer.RecordT<CommandBeginRenderPass> (renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE).SetName ("Operation - Renderpass Begin");
 
-    commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdBindPipeline (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipeline); });
+    commandBuffer.RecordT<CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipeline).SetName ("Operation - Bind");
 
     if (!compileResult.descriptorSets.empty ()) {
         VkDescriptorSet dsHandle = *compileResult.descriptorSets[resourceIndex];
 
-        commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
-            vkCmdBindDescriptorSets (commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipelineLayout, 0,
-                                     1, &dsHandle,
-                                     0, nullptr);
-        });
+        commandBuffer.RecordT<CommandBindDescriptorSets> (
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            *compileSettings.pipeline->compileResult.pipelineLayout,
+            0,
+            std::vector<VkDescriptorSet> { dsHandle },
+            std::vector<uint32_t> {}).SetName ("Operation - DescriptionSet");
     }
 
     compileSettings.drawRecordable->Record (commandBuffer);
 
-    commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) { vkCmdEndRenderPass (commandBuffer); });
+    commandBuffer.RecordT<CommandEndRenderPass> ().SetName ("Operation - Renderpass End");
 }
 
 
@@ -297,13 +323,10 @@ void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t ima
             imageCopyRegion.extent.height                 = fromVkImage->GetHeight ();
             imageCopyRegion.extent.depth                  = fromVkImage->GetDepth ();
 
-            commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
-                vkCmdCopyImage (
-                    commandBuffer,
+            commandBuffer.RecordT<CommandCopyImage> (
                     *fromVkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                     *toVkImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                    1, &imageCopyRegion);
-            });
+                    std::vector<VkImageCopy> { imageCopyRegion});
             return;
         }
     }

@@ -14,8 +14,6 @@ namespace RG {
 
 RenderGraph::RenderGraph ()
     : compiled (false)
-    , device (nullptr)
-    , framesInFlight (0)
 {
 }
 
@@ -115,57 +113,106 @@ std::vector<Pass> RenderGraph::GetPasses (const ConnectionSet& connectionSet) co
     return result;
 }
 
+struct OutputHitCount {
+    std::unordered_map<Resource*, std::vector<Operation*>> hitCount;
+    std::vector<Resource*> insertionOrder;
+};
 
-
-void RenderGraph::SeparatePasses (const ConnectionSet& connectionSet)
+static OutputHitCount GetOutputHitCount (Pass pass)
 {
-    std::vector<Pass> newPasses;
-    
-    const std::vector<Pass> oldPasses { passes };
-    for (const Pass& p : oldPasses) {
-        std::unordered_map<std::shared_ptr<Resource>, std::vector<Operation*>> operationOutputs;
-        for (Operation* o : p.GetAllOperations ()) {
-            for (auto& res : connectionSet.GetPointingTo<Resource> (o)) {
-                operationOutputs[res].push_back (o);
-            }
-        }
-        for (auto& [res, op] : operationOutputs) {
-            if (op.size () > 1) {
-                for (Operation* sepOp : op) {
-                    Pass newSep;
-                    for (auto inp : connectionSet.GetPointingHere<Resource> (sepOp)) {
-                        newSep.AddInput (sepOp, inp.get ());
-                    }
-                    for (auto out : connectionSet.GetPointingTo<Resource> (sepOp)) {
-                        newSep.AddOutput (sepOp, out.get ());
-                    }
-                    newPasses.push_back (newSep);
-                }
-            } else {
-                newPasses.push_back (p);
+    const auto operations = pass.GetAllOperations ();
+
+    OutputHitCount result;
+
+    for (const auto op : operations) {
+        const auto opIO = pass.GetOperationIO (op);
+        for (Resource* output : opIO->outputs) {
+            const bool contains = result.hitCount.find (output) != result.hitCount.end ();
+            result.hitCount[output].push_back (op);
+            if (!contains) {
+                result.insertionOrder.push_back (output);
             }
         }
     }
 
+    return result;
+}
+
+
+static bool HasMultipleOperationsToOneOutput (Pass pass)
+{
+    const OutputHitCount  outputCount = GetOutputHitCount (pass);
+    
+    for (const auto& oc : outputCount.hitCount) {
+        if (oc.second.size () > 1) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+void RenderGraph::SeparatePasses (const ConnectionSet& connectionSet)
+{
+    std::vector<Pass> newPasses { passes };
+    
+    bool seperationHappened = false;
+
+    for (size_t i = 0; i < newPasses.size (); ++i) {
+
+        const bool needsSeperation = HasMultipleOperationsToOneOutput (newPasses[i]);
+        if (needsSeperation) {
+            const OutputHitCount hitCount = GetOutputHitCount (newPasses[i]);
+
+            if (i == newPasses.size () - 1) {
+                newPasses.emplace_back ();
+            }
+
+            Resource* firstResourceToSplitOn = hitCount.insertionOrder[0];
+            std::vector<Operation*> operationsToSplit = hitCount.hitCount.find (firstResourceToSplitOn)->second;
+
+            Operation* firstOperation = operationsToSplit[0];
+            Operation* secondOperation = operationsToSplit[1];
+            
+            Pass::OperationIO* toMove = newPasses[i].GetOperationIO (secondOperation);
+
+            newPasses[i + 1].AddOperationIO (toMove);
+            newPasses[i].RemoveOperationIO (toMove);
+
+            seperationHappened = true;
+            break;
+        }
+    }
+    
     passes = newPasses;
+
+
+    if (seperationHappened)
+        SeparatePasses (connectionSet);
 }
 
 
 Utils::CommandLineOnOffFlag printRenderGraphFlag { "--printRenderGraph", "Prints render graph passes, operatins, resources." };
 
 
+class ImageResourceLayoutState {
+private:
+    std::shared_ptr<Resource>    resource;
+    std::optional<VkImageLayout> layout;
+
+public:
+};
+
+
 void RenderGraph::Compile (GraphSettings&& settings)
 {
-    device         = settings.device;
-    framesInFlight = settings.framesInFlight;
-
     settings.GetDevice ().Wait ();
     vkQueueWaitIdle (settings.GetDevice ().GetGraphicsQueue ());
 
     passes = GetPasses (settings.connectionSet);
 
-    if constexpr (false)
-        SeparatePasses (settings.connectionSet);
+    SeparatePasses (settings.connectionSet);
 
     if (printRenderGraphFlag.IsFlagOn ()) {
         std::stringstream logString;
@@ -225,33 +272,64 @@ void RenderGraph::Compile (GraphSettings&& settings)
         }
     }
 
-    std::unordered_map<Image*, VkImageLayout> layoutMap;
+    imageLayoutSequence.clear ();
 
     for (Pass& p : passes) {
         Utils::ForEach<ImageResource*> (p.GetAllInputs (), [&] (ImageResource* img) {
             for (auto i : img->GetImages ()) {
-                layoutMap[i] = img->GetInitialLayout ();
+                imageLayoutSequence[i].push_back (img->GetInitialLayout ());
             }
         });
         Utils::ForEach<ImageResource*> (p.GetAllOutputs (), [&] (ImageResource* img) {
             for (auto i : img->GetImages ()) {
-                layoutMap[i] = img->GetInitialLayout ();
+                imageLayoutSequence[i].push_back (img->GetInitialLayout ());
             }
         });
     }
 
-    c.clear ();
-    for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
-        c.push_back (std::move (CommandBuffer { settings.GetDevice () }));
+    VkMemoryBarrier flushAllMemory = {};
+    flushAllMemory.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    flushAllMemory.srcAccessMask   = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
+                                   VK_ACCESS_INDEX_READ_BIT |
+                                   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
+                                   VK_ACCESS_UNIFORM_READ_BIT |
+                                   VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_SHADER_READ_BIT |
+                                   VK_ACCESS_SHADER_WRITE_BIT |
+                                   VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+                                   VK_ACCESS_TRANSFER_READ_BIT |
+                                   VK_ACCESS_TRANSFER_WRITE_BIT;
+    flushAllMemory.dstAccessMask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
+                                   VK_ACCESS_INDEX_READ_BIT |
+                                   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
+                                   VK_ACCESS_UNIFORM_READ_BIT |
+                                   VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_SHADER_READ_BIT |
+                                   VK_ACCESS_SHADER_WRITE_BIT |
+                                   VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+                                   VK_ACCESS_TRANSFER_READ_BIT |
+                                   VK_ACCESS_TRANSFER_WRITE_BIT;
 
-        c[frameIndex].Begin ();
+    commandBuffers.clear ();
+    for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
+        commandBuffers.emplace_back (settings.GetDevice ());
+
+        CommandBuffer& currentCmdbuffer = commandBuffers[frameIndex];
+
+        currentCmdbuffer.Begin ();
 
         for (Pass& p : passes) {
             for (auto res : p.GetAllInputs ()) {
-                res->OnGraphExecutionStarted (frameIndex, c[frameIndex]);
+                res->OnGraphExecutionStarted (frameIndex, currentCmdbuffer);
             }
             for (auto res : p.GetAllOutputs ()) {
-                res->OnGraphExecutionStarted (frameIndex, c[frameIndex]);
+                res->OnGraphExecutionStarted (frameIndex, currentCmdbuffer);
             }
         }
 
@@ -261,71 +339,72 @@ void RenderGraph::Compile (GraphSettings&& settings)
                 auto allOutputs = settings.connectionSet.GetPointingTo<Resource> (op);
 
                 for (auto res : allInputs) {
-                    res->OnPreRead (frameIndex, c[frameIndex]);
+                    res->OnPreRead (frameIndex, currentCmdbuffer);
                 }
 
                 for (auto res : allOutputs) {
-                    res->OnPreWrite (frameIndex, c[frameIndex]);
+                    res->OnPreWrite (frameIndex, currentCmdbuffer);
                 }
 
                 std::vector<VkImageMemoryBarrier> imgBarriers;
 
                 Utils::ForEachP<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
-                        const VkImageLayout currentLayout = layoutMap[imgbase];
+                        const VkImageLayout currentLayout = imageLayoutSequence[imgbase].back ();
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForInputs (*img);
-                        if (newLayout != currentLayout) {
-                            imgBarriers.push_back (imgbase->GetBarrier (currentLayout, newLayout));
-                            layoutMap[imgbase] = newLayout;
-                        }
+                        //if (newLayout != currentLayout) {
+                        imgBarriers.push_back (imgbase->GetBarrier (currentLayout, newLayout, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT));
+                        imageLayoutSequence[imgbase].push_back (newLayout);
+                        //}
                     }
                 });
 
                 Utils::ForEachP<ImageResource> (allOutputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
-                        const VkImageLayout currentLayout = layoutMap[imgbase];
+                        const VkImageLayout currentLayout = imageLayoutSequence[imgbase].back ();
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForOutputs (*img);
-                        if (newLayout != currentLayout) {
-                            imgBarriers.push_back (imgbase->GetBarrier (currentLayout, newLayout));
-                            layoutMap[imgbase] = newLayout;
-                        }
+                        //if (newLayout != currentLayout) {
+                        imgBarriers.push_back (imgbase->GetBarrier (currentLayout, newLayout, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT));
+                        imageLayoutSequence[imgbase].push_back (newLayout);
+                        // }
                     }
                 });
 
                 for (auto& img : imgBarriers) {
-                    img.srcAccessMask = 0;
-                    img.dstAccessMask = 0;
+                    img.srcAccessMask = flushAllMemory.srcAccessMask;
+                    img.dstAccessMask = flushAllMemory.dstAccessMask;
                 }
 
-                c[frameIndex].RecordT<CommandPipelineBarrier> (
-                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                    std::vector<VkMemoryBarrier> {},
-                    std::vector<VkBufferMemoryBarrier> {},
-                    imgBarriers);
+                currentCmdbuffer.RecordT<CommandPipelineBarrier> (
+                                    VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                    VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                    std::vector<VkMemoryBarrier> { flushAllMemory },
+                                    std::vector<VkBufferMemoryBarrier> {},
+                                    imgBarriers)
+                    .SetName ("Transition for next Pass");
 
                 Utils::ForEachP<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
-                        layoutMap[imgbase] = op->GetImageLayoutAtEndForInputs (*img);
+                        imageLayoutSequence[imgbase].push_back (op->GetImageLayoutAtEndForInputs (*img));
                     }
                 });
 
                 Utils::ForEachP<ImageResource> (allOutputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (auto imgbase : img->GetImages (frameIndex)) {
-                        layoutMap[imgbase] = op->GetImageLayoutAtEndForOutputs (*img);
+                        imageLayoutSequence[imgbase].push_back (op->GetImageLayoutAtEndForOutputs (*img));
                     }
                 });
             }
 
             for (auto op : p.GetAllOperations ()) {
-                op->Record (settings.connectionSet, frameIndex, c[frameIndex]);
+                op->Record (settings.connectionSet, frameIndex, currentCmdbuffer);
             }
 
             for (auto op : p.GetAllOperations ()) {
                 auto allInputs  = settings.connectionSet.GetPointingHere<Resource> (op);
                 auto allOutputs = settings.connectionSet.GetPointingTo<Resource> (op);
                 for (auto res : p.GetAllOutputs ()) {
-                    res->OnPostWrite (frameIndex, c[frameIndex]);
+                    res->OnPostWrite (frameIndex, currentCmdbuffer);
                 }
             }
         }
@@ -334,43 +413,41 @@ void RenderGraph::Compile (GraphSettings&& settings)
         for (Pass& p : passes) {
             Utils::ForEach<ImageResource*> (p.GetAllInputs (), [&] (ImageResource* img) {
                 for (auto imgbase : img->GetImages (frameIndex)) {
-                    const VkImageLayout currentLayout = layoutMap[imgbase];
-                    if (currentLayout != img->GetInitialLayout ()) {
-                        transitionToInitial.push_back (imgbase->GetBarrier (currentLayout, img->GetInitialLayout ()));
-                    }
+                    const VkImageLayout currentLayout = imageLayoutSequence[imgbase].back ();
+                    //if (currentLayout != img->GetInitialLayout ()) {
+                        transitionToInitial.push_back (imgbase->GetBarrier (currentLayout, img->GetInitialLayout (), VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT));
+                    //}
                 }
             });
         }
 
         for (auto& img : transitionToInitial) {
-            img.srcAccessMask = 0;
-            img.dstAccessMask = 0;
+            img.srcAccessMask = flushAllMemory.srcAccessMask;
+            img.dstAccessMask = flushAllMemory.dstAccessMask;
         }
 
-        c[frameIndex].RecordT<CommandPipelineBarrier> (
-            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-            std::vector<VkMemoryBarrier> {},
+        currentCmdbuffer.RecordT<CommandPipelineBarrier> (
+                            VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                            VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+            std::vector<VkMemoryBarrier> { flushAllMemory},
             std::vector<VkBufferMemoryBarrier> {},
-            transitionToInitial);
+            transitionToInitial).SetName ("Transition to initial layout");
 
         for (Pass& p : passes) {
             for (auto res : p.GetAllInputs ()) {
-                res->OnGraphExecutionEnded (frameIndex, c[frameIndex]);
+                res->OnGraphExecutionEnded (frameIndex, currentCmdbuffer);
             }
             for (auto res : p.GetAllOutputs ()) {
-                res->OnGraphExecutionEnded (frameIndex, c[frameIndex]);
+                res->OnGraphExecutionEnded (frameIndex, currentCmdbuffer);
             }
         }
 
-        c[frameIndex].End ();
+        currentCmdbuffer.End ();
     }
 
     graphSettings = std::move (settings);
 
     compiled = true;
-
-    compileEvent ();
 }
 
 
@@ -380,7 +457,7 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
         return;
     }
 
-    if (GVK_ERROR (frameIndex >= framesInFlight)) {
+    if (GVK_ERROR (frameIndex >= graphSettings.framesInFlight)) {
         return;
     }
 
@@ -388,9 +465,9 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
     // TODO
     std::vector<VkPipelineStageFlags> waitDstStageMasks (waitSemaphores.size (), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
-    CommandBuffer& cmd = c[frameIndex];
+    CommandBuffer& cmd = commandBuffers[frameIndex];
 
-    device->GetGraphicsQueue ().Submit (waitSemaphores, waitDstStageMasks, { &cmd }, signalSemaphores, fenceToSignal);
+    graphSettings.device->GetGraphicsQueue ().Submit (waitSemaphores, waitDstStageMasks, { &cmd }, signalSemaphores, fenceToSignal);
 }
 
 
@@ -399,7 +476,15 @@ void RenderGraph::Present (uint32_t imageIndex, Swapchain& swapchain, const std:
     GVK_ASSERT (swapchain.SupportsPresenting ());
 
     // TODO itt present queue kene
-    swapchain.Present (device->GetGraphicsQueue (), imageIndex, waitSemaphores);
+    swapchain.Present (graphSettings.device->GetGraphicsQueue (), imageIndex, waitSemaphores);
+}
+
+
+uint32_t RenderGraph::GetPassCount () const
+{
+    GVK_VERIFY (compiled);
+
+    return passes.size ();
 }
 
 } // namespace RG

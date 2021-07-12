@@ -177,6 +177,15 @@ protected:
                 image->CmdPipelineBarrier (s, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
             }
         }
+
+        std::vector<ImageView2D> CreateImageViews (const DeviceExtra& device) const
+        {
+            std::vector<ImageView2D> result;
+            for (uint32_t layerIndex = 0; layerIndex < image->GetArrayLayers (); ++layerIndex) {
+                result.emplace_back (device, *image, layerIndex);
+            }
+            return result;
+        }
     };
 
 public:
@@ -502,8 +511,19 @@ public:
         }
     }
 
+    std::vector<ImageView2D> CreateImageViews (const DeviceExtra& device) const
+    {
+        const std::vector<VkImage> swapChainImages = swapchainProv.GetSwapchain ().GetImages ();
+
+        std::vector<ImageView2D> result;
+        for (size_t i = 0; i < swapChainImages.size (); ++i) {
+            result.emplace_back (device, swapChainImages[i], swapchainProv.GetSwapchain ().GetImageFormat ());
+        }
+        return result;
+    }
+
     // overriding ImageResource
-    virtual VkImageLayout GetInitialLayout () const override { return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; }
+    virtual VkImageLayout GetInitialLayout () const override { return VK_IMAGE_LAYOUT_UNDEFINED; }
     virtual VkImageLayout GetFinalLayout () const override { return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; }
     virtual VkFormat      GetFormat () const override { return swapchainProv.GetSwapchain ().GetImageFormat (); }
     virtual uint32_t      GetLayerCount () const override { return 1; }

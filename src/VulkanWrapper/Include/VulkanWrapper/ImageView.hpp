@@ -43,6 +43,9 @@ class VULKANWRAPPER_API ImageView2D : public ImageViewBase {
 public:
     ImageView2D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0, uint32_t layerCount = 1);
     ImageView2D (VkDevice device, const Image& image, uint32_t layerIndex = 0, uint32_t layerCount = 1);
+
+    ImageView2D (ImageView2D&&) = default;
+    ImageView2D& operator= (ImageView2D&&) = default;
 };
 
 class VULKANWRAPPER_API ImageView2DArray : public ImageViewBase {

@@ -45,6 +45,11 @@ public:
     ResourceIO*  GetResourceIO (Resource* res);
     OperationIO* GetOperationIO (Operation* op);
 
+    bool RemoveOperationIO (OperationIO*);
+    bool AddOperationIO (OperationIO*);
+
+    bool IsEmpty () const;
+
 private:
     bool RemoveIfEmpty (Operation* op);
     bool RemoveIfEmpty (Resource* res);

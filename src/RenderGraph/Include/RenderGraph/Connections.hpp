@@ -219,6 +219,7 @@ class OutputBinding : public IConnectionBinding {
 public:
     const uint32_t             binding;
     std::function<VkFormat ()> formatProvider;
+    const VkImageLayout        initialLayout;
     const VkImageLayout        finalLayout;
     const uint32_t             layerCount;
     const VkAttachmentLoadOp   loadOp;
@@ -229,7 +230,7 @@ public:
                    VkImageLayout              finalLayout,
                    VkAttachmentLoadOp         loadOp,
                    VkAttachmentStoreOp        storeOp)
-        : OutputBinding (binding, formatProvider, finalLayout, 1, loadOp, storeOp)
+        : OutputBinding (binding, formatProvider, VK_IMAGE_LAYOUT_UNDEFINED, finalLayout, 1, loadOp, storeOp)
     {
     }
 
@@ -239,13 +240,27 @@ public:
                    uint32_t                   layerCount,
                    VkAttachmentLoadOp         loadOp,
                    VkAttachmentStoreOp        storeOp)
+        : OutputBinding (binding, formatProvider, VK_IMAGE_LAYOUT_UNDEFINED, finalLayout, layerCount, loadOp, storeOp)
+    {
+    }
+
+    OutputBinding (uint32_t                   binding,
+                   std::function<VkFormat ()> formatProvider,
+                   VkImageLayout              initialLayout,
+                   VkImageLayout              finalLayout,
+                   uint32_t                   layerCount,
+                   VkAttachmentLoadOp         loadOp,
+                   VkAttachmentStoreOp        storeOp)
         : binding (binding)
         , formatProvider (formatProvider)
+        , initialLayout (initialLayout)
         , finalLayout (finalLayout)
         , layerCount (layerCount)
         , loadOp (loadOp)
         , storeOp (storeOp)
     {
+        GVK_ASSERT (layerCount > 0 && layerCount < 1024);
+        GVK_ERROR (loadOp == VK_ATTACHMENT_LOAD_OP_LOAD && initialLayout == VK_IMAGE_LAYOUT_UNDEFINED);
     }
 
     virtual uint32_t GetLayerCount () const override { return layerCount; }
@@ -266,7 +281,9 @@ public:
 
     virtual std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const override
     {
+        
         VkAttachmentDescription attachmentDescription = {};
+        attachmentDescription.flags                   = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
         attachmentDescription.format                  = formatProvider ();
         attachmentDescription.samples                 = VK_SAMPLE_COUNT_1_BIT;
         attachmentDescription.loadOp                  = loadOp;
@@ -275,7 +292,7 @@ public:
         attachmentDescription.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
         // initialLayout is the layout the attachment image subresource will be in when a render pass instance begins.
-        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // TODO why not color attachment ???
+        attachmentDescription.initialLayout = initialLayout; // TODO why not color attachment ???
 
         // finalLayout is the layout the attachment image subresource will be transitioned to when a render pass instance ends.
         // automatic!!!

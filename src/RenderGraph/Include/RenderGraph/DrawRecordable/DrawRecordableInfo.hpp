@@ -153,17 +153,17 @@ public:
     {
         if (!vertexBuffer.empty ()) {
             std::vector<VkDeviceSize> offsets (vertexBuffer.size (), 0);
-            commandBuffer.RecordT<CommandBindVertexBuffers> (0, static_cast<uint32_t> (vertexBuffer.size ()), vertexBuffer, offsets);
+            commandBuffer.RecordT<CommandBindVertexBuffers> (0, static_cast<uint32_t> (vertexBuffer.size ()), vertexBuffer, offsets).SetName ("DrawRecordableInfo");
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {
-            commandBuffer.RecordT<CommandGeneric> ([=] (VkCommandBuffer commandBuffer) { vkCmdBindIndexBuffer (commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16); });
+            commandBuffer.RecordT<CommandBindIndexBuffer> (indexBuffer, 0, VK_INDEX_TYPE_UINT16).SetName ("DrawRecordableInfo");
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {
-            commandBuffer.RecordT<CommandGeneric> ([=] (VkCommandBuffer commandBuffer) { vkCmdDrawIndexed (commandBuffer, indexCount, instanceCount, 0, 0, 0); });
+            commandBuffer.RecordT<CommandDrawIndexed> (indexCount, instanceCount, 0, 0, 0).SetName ("DrawRecordableInfo");
         } else {
-            commandBuffer.RecordT<CommandGeneric> ([=] (VkCommandBuffer commandBuffer) { vkCmdDraw (commandBuffer, vertexCount, instanceCount, 0, 0); });
+            commandBuffer.RecordT<CommandDraw> (vertexCount, instanceCount, 0, 0).SetName ("DrawRecordableInfo");
         }
     }
 

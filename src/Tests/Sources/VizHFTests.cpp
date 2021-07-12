@@ -864,8 +864,8 @@ void main ()
         }
         if (key == 'R') {
             std::cout << "waiting for device... " << std::endl;
-            vkDeviceWaitIdle (*graph.device);
-            vkQueueWaitIdle (graph.device->GetGraphicsQueue ());
+            vkDeviceWaitIdle (*graph.graphSettings.device);
+            vkQueueWaitIdle (graph.graphSettings.device->GetGraphicsQueue ());
             sp->Reload ();
             renderer.Recreate (graph);
         }

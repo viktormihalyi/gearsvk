@@ -42,9 +42,6 @@ extern GVK_RENDERER_API IFrameDisplayObserver noOpFrameDisplayObserver;
 class GVK_RENDERER_API Renderer {
 public:
     Event<RenderGraph&, uint32_t, uint64_t> preSubmitEvent;
-    Event<>                                 recreateEvent;
-    Event<uint32_t>                         swapchainImageAcquiredEvent;
-    Event<>                                 presentedEvent;
 
     virtual ~Renderer () = default;
 

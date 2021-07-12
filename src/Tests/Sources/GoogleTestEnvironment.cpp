@@ -25,7 +25,7 @@ void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeve
                   << RESET << callbackData->pMessage
                   << std::endl
                   << std::endl;
-        FAIL ();
+        EXPECT_TRUE (false);
     }
 }
 

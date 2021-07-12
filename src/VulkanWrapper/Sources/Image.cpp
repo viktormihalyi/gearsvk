@@ -125,9 +125,10 @@ static VkAccessFlags GetDstAccessMask (VkImageLayout newLayout)
 }
 
 
-VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout) const
+VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask) const
 {
-    VkImageMemoryBarrier barrier            = {};
+    VkImageMemoryBarrier barrier = {};
+
     barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.oldLayout                       = oldLayout;
     barrier.newLayout                       = newLayout;
@@ -139,10 +140,16 @@ VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout n
     barrier.subresourceRange.levelCount     = 1;
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.layerCount     = arrayLayers;
-    barrier.srcAccessMask                   = GetSrcAccessMask (oldLayout);
-    barrier.dstAccessMask                   = GetDstAccessMask (newLayout);
+    barrier.srcAccessMask                   = srcAccessMask;
+    barrier.dstAccessMask                   = dstAccessMask;
 
     return barrier;
+}
+
+
+VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout) const
+{
+    return GetBarrier (oldLayout, newLayout, GetSrcAccessMask (oldLayout), GetDstAccessMask (newLayout));
 }
 
 
@@ -214,15 +221,11 @@ VkBufferImageCopy Image::GetFullBufferImageCopy () const
 void Image::CmdCopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer) const
 {
     VkBufferImageCopy region = GetFullBufferImageCopy ();
-    commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
-        vkCmdCopyBufferToImage (
-            commandBuffer,
-            buffer,
-            handle,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1,
-            &region);
-    });
+    commandBuffer.RecordT<CommandCopyBufferToImage> (
+        buffer,
+        handle,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        std::vector<VkBufferImageCopy> { region });
 }
 
 

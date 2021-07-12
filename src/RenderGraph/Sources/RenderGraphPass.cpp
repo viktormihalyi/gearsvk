@@ -2,6 +2,8 @@
 
 #include "Utils/Assert.hpp"
 
+#include <optional>
+
 namespace GVK {
 
 namespace RG {
@@ -126,6 +128,62 @@ Pass::OperationIO* Pass::GetOperationIO (Operation* op)
         }
     }
     return nullptr;
+}
+
+
+bool Pass::RemoveOperationIO (OperationIO* op)
+{
+    bool found = false;
+
+    for (size_t i = 0; i < operationIOs.size (); ++i) {
+        if (&operationIOs[i] == op) {
+            found = true;
+        }
+    }
+
+    if (GVK_ERROR (!found))
+        return false;
+
+    const std::set<Resource*> opOutputs = op->outputs;
+    const std::set<Resource*> opInputs  = op->inputs;
+
+    for (auto output : opOutputs)
+        RemoveOutput (op->op, output);
+
+    for (auto input : opInputs)
+        RemoveInput (op->op, input);
+
+    return true;
+}
+
+
+bool Pass::AddOperationIO (OperationIO* op)
+{
+    bool found = false;
+
+    for (size_t i = 0; i < operationIOs.size (); ++i) {
+        if (&operationIOs[i] == op) {
+            found = true;
+        }
+    }
+
+    if (GVK_ERROR (found))
+        return false;
+
+    for (auto output : op->outputs)
+        AddOutput (op->op, output);
+
+    for (auto input : op->inputs)
+        AddInput (op->op, input);
+
+    return true;
+}
+
+
+
+bool Pass::IsEmpty () const
+{
+    return operationIOs.empty () && resourceIOs.empty ();
 }
 
 

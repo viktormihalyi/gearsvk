@@ -52,7 +52,6 @@ BlockingGraphRenderer::BlockingGraphRenderer (const DeviceExtra& device, Swapcha
 uint32_t BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver&)
 {
     const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*s);
-    swapchainImageAcquiredEvent.Notify (currentImageIndex);
 
     {
         const TimePoint currentTime = TimePoint::SinceApplicationStart ();
@@ -61,13 +60,13 @@ uint32_t BlockingGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph, 
     }
 
     graph.Submit (currentImageIndex);
-    vkQueueWaitIdle (graph.device->GetGraphicsQueue ());
-    vkDeviceWaitIdle (graph.device->GetDevice ());
+    vkQueueWaitIdle (graph.graphSettings.device->GetGraphicsQueue ());
+    vkDeviceWaitIdle (graph.graphSettings.device->GetDevice ());
 
     if (swapchain.SupportsPresenting ()) {
         graph.Present (currentImageIndex, swapchain, { *s });
-        vkQueueWaitIdle (graph.device->GetGraphicsQueue ());
-        vkDeviceWaitIdle (*graph.device);
+        vkQueueWaitIdle (graph.graphSettings.device->GetGraphicsQueue ());
+        vkDeviceWaitIdle (*graph.graphSettings.device);
     }
 
     return currentImageIndex;
@@ -110,11 +109,9 @@ void RecreatableGraphRenderer::Recreate (RenderGraph& graph)
 
     settings.framesInFlight = swapchain.GetImageCount ();
 
-    graph.CompileResources (settings);
+    //graph.CompileResources (settings);
 
     graph.Compile (std::move (settings));
-
-    recreateEvent.Notify ();
 }
 
 
@@ -145,8 +142,6 @@ uint32_t SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderG
     frameDisplayObserver.OnImageAcquisitionFenceSignaled (currentResourceIndex);
     presentationEngineFence->Reset ();
 
-    swapchainImageAcquiredEvent.Notify (currentImageIndex);
-
     // the image was last drawn by this frame, wait for its fence
     const uint32_t previousFrameIndex = imageToFrameMapping[currentImageIndex];
     if (previousFrameIndex != UINT32_MAX) {
@@ -154,10 +149,6 @@ uint32_t SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderG
     }
 
     frameDisplayObserver.OnImageAcquisitionEnded (currentResourceIndex);
-
-    // SIGNAL HERE
-    presentedEvent.Notify ();
-
 
     // update mapping
     imageToFrameMapping[currentImageIndex] = currentResourceIndex;

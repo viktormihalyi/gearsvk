@@ -128,6 +128,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
 
     if (IsDebugBuild && callback.has_value () && !disableValidationLayersFlag.IsFlagOn ()) {
         messenger = std::make_unique<DebugUtilsMessenger> (*instance, *callback, DebugUtilsMessenger::noPerformance);
+        debugReportCallback = std::make_unique<DebugReportCallback> (*instance);
     }
 
     VkSurfaceKHR physicalDeviceSurfaceHandle = VK_NULL_HANDLE;
