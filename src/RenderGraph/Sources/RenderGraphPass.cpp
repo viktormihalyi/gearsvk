@@ -68,8 +68,8 @@ static void InsertIfNotContains (std::vector<T>& vec, const T& value)
 }
 
 
-template<typename T>
-static void Remove (std::vector<T>& vec, const T& value)
+template<typename Container, typename Type>
+static void Remove (Container& vec, Type& value)
 {
     vec.erase (std::remove (vec.begin (), vec.end (), value), vec.end ());
 }
