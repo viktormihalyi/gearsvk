@@ -32,7 +32,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
 {
     // GVK_ASSERT (!graph.operations.empty ());
 
-    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
+    Utils::ForEachP<RG::RenderOperation> (connectionSet.insertionOrder, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
         ShaderKindSelector newsel;
 
         renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
@@ -138,7 +138,7 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 {
     ImageMap result;
 
-    Utils::ForEachP<RG::RenderOperation> (connectionSet.nodes, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
+    Utils::ForEachP<RG::RenderOperation> (connectionSet.insertionOrder, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
         renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
             for (const SR::Sampler& sampler : shaderModule.GetReflection ().samplers) {
                 std::shared_ptr<ReadOnlyImageResource> imgRes;

@@ -25,16 +25,9 @@ bool Contains (const std::vector<T>& vec, const T& value)
 }
 
 
-template<typename T>
-bool Contains (const std::set<T>& vec, const T& value)
-{
-    return std::find (vec.begin (), vec.end (), value) != vec.end ();
-}
-
-
 void RenderGraph::CompileResources (const GraphSettings& settings)
 {
-    Utils::ForEachP<Resource> (settings.connectionSet.nodes, [&] (std::shared_ptr<Resource>& res) {
+    Utils::ForEachP<Resource> (settings.connectionSet.insertionOrder, [&] (std::shared_ptr<Resource>& res) {
         res->Compile (settings);
     });
 }
@@ -69,18 +62,19 @@ Pass RenderGraph::GetNextPass (const ConnectionSet& connectionSet, const Pass& l
 
 Pass RenderGraph::GetFirstPass (const ConnectionSet& connectionSet) const
 {
-    std::set<Operation*> allOp;
+    std::set<Operation*> allOpSet;
+    std::vector<Operation*> allOp;
 
-    Utils::ForEachP<Operation> (connectionSet.nodes, [&] (const std::shared_ptr<Operation>& op) {
+    Utils::ForEachP<Operation> (connectionSet.insertionOrder, [&] (const std::shared_ptr<Operation>& op) {
         const std::vector<std::shared_ptr<Resource>> opInputs = connectionSet.GetPointingHere<Resource> (op.get ());
 
         const bool allInputsAreFirstWrittenByThisOp = std::all_of (opInputs.begin (), opInputs.end (), [&] (const std::shared_ptr<Resource>& res) {
             return connectionSet.GetPointingHere<Node> (res.get ()).empty ();
         });
 
-        if (allInputsAreFirstWrittenByThisOp || opInputs.empty ()) {
-            allOp.insert (op.get ());
-        }
+        if (allInputsAreFirstWrittenByThisOp || opInputs.empty ())
+            if (allOpSet.insert (op.get ()).second)
+                allOp.push_back (op.get ());
     });
 
     Pass actualResult;
@@ -120,7 +114,7 @@ struct OutputHitCount {
 
 static OutputHitCount GetOutputHitCount (Pass pass)
 {
-    const auto operations = pass.GetAllOperations ();
+    const std::vector<Operation*> operations = pass.GetAllOperations ();
 
     OutputHitCount result;
 
@@ -302,28 +296,27 @@ void RenderGraph::Compile (GraphSettings&& settings)
                                    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
                                    VK_ACCESS_TRANSFER_READ_BIT |
                                    VK_ACCESS_TRANSFER_WRITE_BIT;
-    flushAllMemory.dstAccessMask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
-                                   VK_ACCESS_INDEX_READ_BIT |
-                                   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
-                                   VK_ACCESS_UNIFORM_READ_BIT |
-                                   VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
-                                   VK_ACCESS_SHADER_READ_BIT |
-                                   VK_ACCESS_SHADER_WRITE_BIT |
-                                   VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-                                   VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
-                                   VK_ACCESS_TRANSFER_READ_BIT |
-                                   VK_ACCESS_TRANSFER_WRITE_BIT;
+    flushAllMemory.dstAccessMask = flushAllMemory.srcAccessMask;
 
     commandBuffers.clear ();
+    commandBuffers2.clear ();
+
     for (uint32_t frameIndex = 0; frameIndex < settings.framesInFlight; ++frameIndex) {
         commandBuffers.emplace_back (settings.GetDevice ());
+
+        std::vector<CommandBuffer> commandBuffersForPasses;
+        for (size_t i = 0; i < passes.size (); ++i) {
+            commandBuffersForPasses.emplace_back (settings.GetDevice ());
+        }
+        for (size_t i = 0; i < commandBuffersForPasses.size (); ++i) {
+            commandBuffersForPasses[i].Begin ();
+        }
 
         CommandBuffer& currentCmdbuffer = commandBuffers[frameIndex];
 
         currentCmdbuffer.Begin ();
 
+        /*
         for (Pass& p : passes) {
             for (auto res : p.GetAllInputs ()) {
                 res->OnGraphExecutionStarted (frameIndex, currentCmdbuffer);
@@ -332,12 +325,17 @@ void RenderGraph::Compile (GraphSettings&& settings)
                 res->OnGraphExecutionStarted (frameIndex, currentCmdbuffer);
             }
         }
+        */
+
+        size_t currentPass = 0;
 
         for (Pass& p : passes) {
+            CommandBuffer& currentCmdbuffer2 = commandBuffersForPasses[currentPass++];
+
             for (auto op : p.GetAllOperations ()) {
                 auto allInputs  = settings.connectionSet.GetPointingHere<Resource> (op);
                 auto allOutputs = settings.connectionSet.GetPointingTo<Resource> (op);
-
+                /*
                 for (auto res : allInputs) {
                     res->OnPreRead (frameIndex, currentCmdbuffer);
                 }
@@ -345,6 +343,7 @@ void RenderGraph::Compile (GraphSettings&& settings)
                 for (auto res : allOutputs) {
                     res->OnPreWrite (frameIndex, currentCmdbuffer);
                 }
+                */
 
                 std::vector<VkImageMemoryBarrier> imgBarriers;
 
@@ -375,7 +374,15 @@ void RenderGraph::Compile (GraphSettings&& settings)
                     img.dstAccessMask = flushAllMemory.dstAccessMask;
                 }
 
-                currentCmdbuffer.RecordT<CommandPipelineBarrier> (
+                currentCmdbuffer.Record<CommandPipelineBarrier> (
+                                    VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                    VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                    std::vector<VkMemoryBarrier> { flushAllMemory },
+                                    std::vector<VkBufferMemoryBarrier> {},
+                                    imgBarriers)
+                    .SetName ("Transition for next Pass");
+
+                currentCmdbuffer2.Record<CommandPipelineBarrier> (
                                     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
                                     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
                                     std::vector<VkMemoryBarrier> { flushAllMemory },
@@ -401,13 +408,31 @@ void RenderGraph::Compile (GraphSettings&& settings)
             }
 
             for (auto op : p.GetAllOperations ()) {
+                op->Record (settings.connectionSet, frameIndex, currentCmdbuffer2);
+            }
+            /*
+            for (auto op : p.GetAllOperations ()) {
                 auto allInputs  = settings.connectionSet.GetPointingHere<Resource> (op);
                 auto allOutputs = settings.connectionSet.GetPointingTo<Resource> (op);
                 for (auto res : p.GetAllOutputs ()) {
                     res->OnPostWrite (frameIndex, currentCmdbuffer);
                 }
             }
+            */
+
+        currentCmdbuffer2.Record<CommandPipelineBarrier> (
+                                VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                std::vector<VkMemoryBarrier> { flushAllMemory },
+                                std::vector<VkBufferMemoryBarrier> {},
+                                 std::vector<VkImageMemoryBarrier> {})
+                .SetName ("Transition to initial layout");
+
+            currentCmdbuffer2.End ();
+
         }
+
+        commandBuffers2.push_back (std::move (commandBuffersForPasses));
 
         std::vector<VkImageMemoryBarrier> transitionToInitial;
         for (Pass& p : passes) {
@@ -426,13 +451,14 @@ void RenderGraph::Compile (GraphSettings&& settings)
             img.dstAccessMask = flushAllMemory.dstAccessMask;
         }
 
-        currentCmdbuffer.RecordT<CommandPipelineBarrier> (
+        currentCmdbuffer.Record<CommandPipelineBarrier> (
                             VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
                             VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
             std::vector<VkMemoryBarrier> { flushAllMemory},
             std::vector<VkBufferMemoryBarrier> {},
             transitionToInitial).SetName ("Transition to initial layout");
-
+        
+        /*
         for (Pass& p : passes) {
             for (auto res : p.GetAllInputs ()) {
                 res->OnGraphExecutionEnded (frameIndex, currentCmdbuffer);
@@ -441,6 +467,7 @@ void RenderGraph::Compile (GraphSettings&& settings)
                 res->OnGraphExecutionEnded (frameIndex, currentCmdbuffer);
             }
         }
+        */
 
         currentCmdbuffer.End ();
     }
@@ -465,9 +492,7 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
     // TODO
     std::vector<VkPipelineStageFlags> waitDstStageMasks (waitSemaphores.size (), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
-    CommandBuffer& cmd = commandBuffers[frameIndex];
-
-    graphSettings.device->GetGraphicsQueue ().Submit (waitSemaphores, waitDstStageMasks, { &cmd }, signalSemaphores, fenceToSignal);
+    graphSettings.device->GetGraphicsQueue ().Submit (waitSemaphores, waitDstStageMasks, { &commandBuffers[frameIndex] }, signalSemaphores, fenceToSignal);
 }
 
 
@@ -482,7 +507,7 @@ void RenderGraph::Present (uint32_t imageIndex, Swapchain& swapchain, const std:
 
 uint32_t RenderGraph::GetPassCount () const
 {
-    GVK_VERIFY (compiled);
+    GVK_ASSERT (compiled);
 
     return passes.size ();
 }

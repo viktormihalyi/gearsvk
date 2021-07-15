@@ -312,7 +312,7 @@ public:
 
     virtual void OnPreRead (uint32_t resourceIndex, CommandBuffer& commandBuffer) override
     {
-        commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+        commandBuffer.Record<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
             VkEvent handle = *readWriteSync;
             vkCmdWaitEvents (commandBuffer,
                              1,
@@ -327,14 +327,14 @@ public:
 
     virtual void OnPreWrite (uint32_t resourceIndex, CommandBuffer& commandBuffer) override
     {
-        commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+        commandBuffer.Record<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
             vkCmdResetEvent (commandBuffer, *readWriteSync, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
         });
     }
 
     virtual void OnPostWrite (uint32_t resourceIndex, CommandBuffer& commandBuffer) override
     {
-        commandBuffer.RecordT<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+        commandBuffer.Record<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
             vkCmdSetEvent (commandBuffer, *readWriteSync, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
         });
     }

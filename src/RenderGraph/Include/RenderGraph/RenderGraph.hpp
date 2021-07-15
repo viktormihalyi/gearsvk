@@ -24,10 +24,11 @@ class GraphSettings;
 
 
 class GVK_RENDERER_API RenderGraph final : public Noncopyable {
-private:
+public:// TODO
     bool                       compiled;
     std::vector<Pass>          passes;
     std::vector<CommandBuffer> commandBuffers;
+    std::vector<std::vector<CommandBuffer>> commandBuffers2;
     
     std::unordered_map<Image*, std::vector<VkImageLayout>> imageLayoutSequence;
 

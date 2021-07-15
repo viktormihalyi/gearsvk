@@ -31,12 +31,12 @@ public:
 
 public:
     struct CompileSettings {
-        uint32_t                             width;
-        uint32_t                             height;
-        VkDescriptorSetLayout                layout;
-        std::vector<VkAttachmentReference>   attachmentReferences;
-        std::vector<VkAttachmentDescription> attachmentDescriptions;
-        VkPrimitiveTopology                  topology;
+        uint32_t                               width;
+        uint32_t                               height;
+        GVK::MovablePtr<VkDescriptorSetLayout> layout;
+        std::vector<VkAttachmentReference>     attachmentReferences;
+        std::vector<VkAttachmentDescription>   attachmentDescriptions;
+        VkPrimitiveTopology                    topology;
 
         std::optional<bool> blendEnabled;
     };
@@ -71,7 +71,7 @@ public:
     void SetShaderFromSourceFile (const std::filesystem::path& shaderPath);
     void SetShadersFromSourceFiles (const std::vector<std::filesystem::path>& shaderPath);
 
-    void Compile (const CompileSettings& settings);
+    void Compile (CompileSettings&& settings);
 
     void Reload ();
 

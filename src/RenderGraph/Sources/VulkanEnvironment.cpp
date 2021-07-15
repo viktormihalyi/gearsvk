@@ -171,13 +171,13 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
 
     device = std::make_unique<DeviceObject> (*physicalDevice, std::vector<uint32_t> { *physicalDevice->GetQueueFamilies ().graphics }, deviceExtensions);
 
-    alloactor = std::make_unique<Allocator> (*instance, *physicalDevice, *device);
+    allocator = std::make_unique<Allocator> (*instance, *physicalDevice, *device);
 
     graphicsQueue = std::make_unique<Queue> (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
     commandPool = std::make_unique<CommandPool> (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
-    deviceExtra = std::make_unique<DeviceExtra> (*device, *commandPool, *alloactor, *graphicsQueue);
+    deviceExtra = std::make_unique<DeviceExtra> (*device, *commandPool, *allocator, *graphicsQueue);
 
     if (logVulkanVersionFlag.IsFlagOn ()) {
         VkPhysicalDeviceProperties deviceProperties;

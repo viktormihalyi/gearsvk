@@ -3,43 +3,75 @@
 #include "Utils/Assert.hpp"
 
 #include <optional>
+#include <set>
 
 namespace GVK {
 
 namespace RG {
 
 
-std::set<Operation*> Pass::GetAllOperations () const
+std::vector<Operation*> Pass::GetAllOperations () const
 {
-    std::set<Operation*> result;
+    std::vector<Operation*> result;
+    std::set<Operation*> resultSet;
     for (auto& op : operationIOs) {
-        result.insert (op.op);
+        if (resultSet.insert (op.op).second) {
+            result.push_back (op.op);
+        }
     }
     return result;
 }
 
 
-std::set<Resource*> Pass::GetAllInputs () const
+std::vector<Resource*> Pass::GetAllInputs () const
 {
-    std::set<Resource*> result;
+    std::set<Resource*> resultSet;
+    std::vector<Resource*> result;
     for (auto& op : operationIOs) {
         for (Resource* inp : op.inputs) {
-            result.insert (inp);
+            if (resultSet.insert (inp).second) {
+                result.push_back (inp);
+            }
         }
     }
     return result;
 }
 
 
-std::set<Resource*> Pass::GetAllOutputs () const
+std::vector<Resource*> Pass::GetAllOutputs () const
 {
-    std::set<Resource*> result;
+    std::vector<Resource*> result;
+    std::set<Resource*> resultSet;
     for (auto& op : operationIOs) {
-        for (Resource* inp : op.outputs) {
-            result.insert (inp);
+        for (Resource* out : op.outputs) {
+            if (resultSet.insert (out).second) {
+                result.push_back (out);
+            }
         }
     }
     return result;
+}
+
+
+template <typename T>
+static bool Contains (const std::vector<T>& vec, const T& value)
+{
+    return std::find (vec.begin (), vec.end (), value) != vec.end ();
+}
+
+
+template<typename T>
+static void InsertIfNotContains (std::vector<T>& vec, const T& value)
+{
+    if (!Contains (vec, value))
+        vec.push_back (value);
+}
+
+
+template<typename T>
+static void Remove (std::vector<T>& vec, const T& value)
+{
+    vec.erase (std::remove (vec.begin (), vec.end (), value), vec.end ());
 }
 
 
@@ -48,8 +80,8 @@ void Pass::AddOutput (Operation* op, Resource* output)
     OperationIO* oIO = EnsureOperationIO (op);
     ResourceIO*  rIO = EnsureResourceIO (output);
 
-    oIO->outputs.insert (output);
-    rIO->writers.insert (op);
+    InsertIfNotContains (oIO->outputs, output);
+    InsertIfNotContains (rIO->writers, op);
 }
 
 
@@ -58,9 +90,11 @@ void Pass::AddInput (Operation* op, Resource* input)
     OperationIO* oIO = EnsureOperationIO (op);
     ResourceIO*  rIO = EnsureResourceIO (input);
 
-    oIO->inputs.insert (input);
-    rIO->readers.insert (op);
+    InsertIfNotContains (oIO->inputs, input);
+    InsertIfNotContains (rIO->readers, op);
 }
+
+
 
 
 bool Pass::RemoveOutput (Operation* op, Resource* output)
@@ -72,12 +106,12 @@ bool Pass::RemoveOutput (Operation* op, Resource* output)
         return false;
     }
 
-    if (GVK_ERROR (!oIO->outputs.count (output) || !rIO->writers.count (op))) {
+    if (GVK_ERROR (!Contains (oIO->outputs, output) || !Contains (rIO->writers, op))) {
         return false;
     }
 
-    oIO->outputs.erase (output);
-    rIO->writers.erase (op);
+    Remove (oIO->outputs, output);
+    Remove (rIO->writers, op);
 
     RemoveIfEmpty (op);
     RemoveIfEmpty (output);
@@ -95,12 +129,12 @@ bool Pass::RemoveInput (Operation* op, Resource* input)
         return false;
     }
 
-    if (GVK_ERROR (!oIO->inputs.count (input) || !rIO->readers.count (op))) {
+    if (GVK_ERROR (!Contains (oIO->inputs, input) || !Contains (rIO->readers, op))) {
         return false;
     }
 
-    oIO->inputs.erase (input);
-    rIO->readers.erase (op);
+    Remove (oIO->inputs, input);
+    Remove (rIO->readers, op);
 
     RemoveIfEmpty (op);
     RemoveIfEmpty (input);
@@ -144,13 +178,13 @@ bool Pass::RemoveOperationIO (OperationIO* op)
     if (GVK_ERROR (!found))
         return false;
 
-    const std::set<Resource*> opOutputs = op->outputs;
-    const std::set<Resource*> opInputs  = op->inputs;
+    const std::vector<Resource*> opOutputs = op->outputs;
+    const std::vector<Resource*> opInputs  = op->inputs;
 
-    for (auto output : opOutputs)
+    for (Resource* output : opOutputs)
         RemoveOutput (op->op, output);
 
-    for (auto input : opInputs)
+    for (Resource* input : opInputs)
         RemoveInput (op->op, input);
 
     return true;
@@ -170,10 +204,10 @@ bool Pass::AddOperationIO (OperationIO* op)
     if (GVK_ERROR (found))
         return false;
 
-    for (auto output : op->outputs)
+    for (Resource* output : op->outputs)
         AddOutput (op->op, output);
 
-    for (auto input : op->inputs)
+    for (Resource* input : op->inputs)
         AddInput (op->op, input);
 
     return true;

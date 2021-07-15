@@ -13,6 +13,8 @@
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
+#include "VulkanWrapper/Allocator.hpp"
+#include "VulkanWrapper/DeviceExtra.hpp"
 #include <glm/glm.hpp>
 
 // from std
@@ -39,7 +41,7 @@ const std::filesystem::path ShadersFolder = std::filesystem::current_path () / "
 
 using Empty = ::testing::Test;
 
-TEST_F (Empty, RenderGraphPassTest_SingleOutput)
+TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleOutput)
 {
     using namespace GVK::RG;
 
@@ -61,7 +63,7 @@ TEST_F (Empty, RenderGraphPassTest_SingleOutput)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_SingleInput)
+TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleInput)
 {
     using namespace GVK::RG;
 
@@ -82,7 +84,7 @@ TEST_F (Empty, RenderGraphPassTest_SingleInput)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_SingleOutput_Remove)
+TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleOutput_Remove)
 {
     using namespace GVK::RG;
 
@@ -99,7 +101,7 @@ TEST_F (Empty, RenderGraphPassTest_SingleOutput_Remove)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_SingleInput_Remove)
+TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleInput_Remove)
 {
     using namespace GVK::RG;
 
@@ -116,7 +118,7 @@ TEST_F (Empty, RenderGraphPassTest_SingleInput_Remove)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleInput)
+TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleInput)
 {
     using namespace GVK::RG;
 
@@ -134,7 +136,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleInput)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveOne)
+TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleInput_RemoveOne)
 {
     using namespace GVK::RG;
 
@@ -158,7 +160,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveOne)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveAll)
+TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleInput_RemoveAll)
 {
     using namespace GVK::RG;
 
@@ -181,7 +183,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveAll)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleOutput)
+TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleOutput)
 {
     using namespace GVK::RG;
 
@@ -199,7 +201,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleOutput)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveOne)
+TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleOutput_RemoveOne)
 {
     using namespace GVK::RG;
 
@@ -223,7 +225,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveOne)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveAll)
+TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleOutput_RemoveAll)
 {
     using namespace GVK::RG;
 
@@ -246,7 +248,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveAll)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleIO)
+TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleIO)
 {
     using namespace GVK::RG;
 
@@ -322,7 +324,7 @@ uint64_t Forrest_C (const uint64_t k, const uint64_t seed, const uint64_t g, con
     return C;
 }
 
-TEST_F (Empty, rng)
+TEST_F (Empty, DISABLED_rng)
 {
     double   sum     = 0.0;
     int      count   = 0;
@@ -341,6 +343,683 @@ TEST_F (Empty, rng)
 
     std::cout << sum / count << std::endl;
 }
+
+
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_faszom)
+{
+    GVK::DeviceExtra& device = *env->deviceExtra;
+
+    const char* vertSrc = R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec2 textureCoords;
+
+vec2 uvs[6] = vec2[] (
+    vec2 (0.f, 0.f),
+    vec2 (0.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (0.f, 0.f),
+    vec2 (1.f, 0.f)
+);
+
+vec2 positions[6] = vec2[] (
+    vec2 (-1.f, -1.f),
+    vec2 (-1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (-1.f, -1.f),
+    vec2 (+1.f, -1.f)
+);
+
+
+void main() {
+    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
+    textureCoords = uvs[gl_VertexIndex];
+}
+    )";
+
+    auto sp = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    sp->SetVertexShaderFromString (vertSrc);
+    sp->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (1, 0, 0, 0.5);
+}
+    )");
+
+    auto sp2 = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    sp2->SetVertexShaderFromString (vertSrc);
+    sp2->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (0, 0, 1, 0.5);
+}
+    )");
+
+    GVK::Image2D renderTarget (*env->allocator,
+                               GVK::Image2D::MemoryLocation::GPU,
+                               512,
+                               512,
+                               VK_FORMAT_R8G8B8A8_SRGB,
+                               VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                               1);
+
+    GVK::ImageView2D renderTargetView (*env->device, renderTarget, 0, 1);
+    GVK::ImageView2D renderTargetView2 (*env->device, renderTarget, 0, 1);
+
+    GVK::DescriptorPool pool (device, 1024, 1024, 1024);
+    GVK::DescriptorSetLayout setLayout (device, {});
+    GVK::DescriptorSet set (device, pool, setLayout);
+
+    VkAttachmentDescription attDesc1 = {};
+    attDesc1.flags                   = 0;
+    attDesc1.format                  = VK_FORMAT_R8G8B8A8_SRGB;
+    attDesc1.samples                 = VK_SAMPLE_COUNT_1_BIT;
+    attDesc1.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attDesc1.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
+    attDesc1.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attDesc1.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attDesc1.initialLayout           = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    attDesc1.finalLayout             = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentDescription attDesc2 = {};
+    attDesc2.flags                   = 0;
+    attDesc2.format                  = VK_FORMAT_R8G8B8A8_SRGB;
+    attDesc2.samples                 = VK_SAMPLE_COUNT_1_BIT;
+    attDesc2.loadOp                  = VK_ATTACHMENT_LOAD_OP_LOAD;
+    attDesc2.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
+    attDesc2.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attDesc2.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attDesc2.initialLayout           = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    attDesc2.finalLayout             = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference attRef1 = {};
+    attRef1.attachment            = 0;
+    attRef1.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference attRef2 = {};
+    attRef2.attachment            = 0;
+    attRef2.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    GVK::RG::ShaderPipeline::CompileSettings shaderPipelineSettings;
+    shaderPipelineSettings.width                  = 512;
+    shaderPipelineSettings.height                 = 512;
+    shaderPipelineSettings.layout                 = setLayout.operator VkDescriptorSetLayout ();
+    shaderPipelineSettings.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    shaderPipelineSettings.attachmentDescriptions = { attDesc1 };
+    shaderPipelineSettings.attachmentReferences   = { attRef1 };
+    shaderPipelineSettings.blendEnabled           = false;
+
+    GVK::RG::ShaderPipeline::CompileSettings shaderPipelineSettings2;
+    shaderPipelineSettings2.width                  = 512;
+    shaderPipelineSettings2.height                 = 512;
+    shaderPipelineSettings2.layout                 = setLayout.operator VkDescriptorSetLayout ();
+    shaderPipelineSettings2.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    shaderPipelineSettings2.attachmentDescriptions = { attDesc2 };
+    shaderPipelineSettings2.attachmentReferences   = { attRef2 };
+    shaderPipelineSettings2.blendEnabled           = true;
+
+    sp->Compile (std::move (shaderPipelineSettings));
+    sp2->Compile (std::move (shaderPipelineSettings2));
+
+    GVK::Framebuffer fb (*env->device, *sp->compileResult.renderPass, { renderTargetView.operator VkImageView () }, 512, 512);
+    GVK::Framebuffer fb2 (*env->device, *sp2->compileResult.renderPass, { renderTargetView2.operator VkImageView () }, 512, 512);
+
+    VkClearValue clearValue = {};
+    clearValue.color.float32[0] = 0.0f;
+    clearValue.color.float32[1] = 0.0f;
+    clearValue.color.float32[2] = 0.0f;
+    clearValue.color.float32[3] = 1.0f;
+
+    VkMemoryBarrier flushAllMemory = {};
+    flushAllMemory.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    flushAllMemory.srcAccessMask   = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
+                                   VK_ACCESS_INDEX_READ_BIT |
+                                   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
+                                   VK_ACCESS_UNIFORM_READ_BIT |
+                                   VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_SHADER_READ_BIT |
+                                   VK_ACCESS_SHADER_WRITE_BIT |
+                                   VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+                                   VK_ACCESS_TRANSFER_READ_BIT |
+                                   VK_ACCESS_TRANSFER_WRITE_BIT;
+    flushAllMemory.dstAccessMask = flushAllMemory.srcAccessMask;
+
+    std::vector<GVK::CommandBuffer> commandBuffers;
+    
+    VkImageMemoryBarrier transition            = {};
+    transition.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    transition.pNext                           = nullptr;
+    transition.srcAccessMask                   = flushAllMemory.srcAccessMask;
+    transition.dstAccessMask                   = flushAllMemory.srcAccessMask;
+    transition.oldLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    transition.newLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    transition.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+    transition.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+    transition.image                           = renderTarget;
+    transition.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    transition.subresourceRange.baseMipLevel   = 0;
+    transition.subresourceRange.levelCount     = 1;
+    transition.subresourceRange.baseArrayLayer = 0;
+    transition.subresourceRange.layerCount     = 1;
+
+    {
+        GVK::CommandBuffer commandBuffer (*env->device, *env->commandPool);
+
+        commandBuffer.Begin ();
+        commandBuffer.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, std::vector<VkMemoryBarrier> { flushAllMemory }, std::vector<VkBufferMemoryBarrier> {}, std::vector<VkImageMemoryBarrier> { transition });
+        commandBuffer.Record<GVK::CommandBeginRenderPass> (*sp->compileResult.renderPass, fb, VkRect2D { { 0, 0 }, { 512, 512 } }, std::vector<VkClearValue> { clearValue }, VK_SUBPASS_CONTENTS_INLINE);
+        commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *sp->compileResult.pipeline);
+        commandBuffer.Record<GVK::CommandDraw> (6, 1, 0, 0);
+        commandBuffer.Record<GVK::CommandEndRenderPass> ();
+        commandBuffer.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, std::vector<VkMemoryBarrier> { flushAllMemory }, std::vector<VkBufferMemoryBarrier> {}, std::vector<VkImageMemoryBarrier> { transition });
+        commandBuffer.Record<GVK::CommandBeginRenderPass> (*sp2->compileResult.renderPass, fb, VkRect2D { { 0, 0 }, { 512, 512 } }, std::vector<VkClearValue> { clearValue }, VK_SUBPASS_CONTENTS_INLINE);
+        commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *sp2->compileResult.pipeline);
+        commandBuffer.Record<GVK::CommandDraw> (6, 1, 0, 0);
+        commandBuffer.Record<GVK::CommandEndRenderPass> ();
+        commandBuffer.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, std::vector<VkMemoryBarrier> { flushAllMemory }, std::vector<VkBufferMemoryBarrier> {}, std::vector<VkImageMemoryBarrier> { transition });
+        commandBuffer.End ();
+
+        commandBuffers.push_back (std::move (commandBuffer));
+    }
+
+    {
+        GVK::SingleTimeCommand cmd (*env->device, *env->commandPool, *env->graphicsQueue);
+
+        transition.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        transition.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        cmd.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                                 VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                                 std::vector<VkMemoryBarrier> { flushAllMemory },
+                                                 std::vector<VkBufferMemoryBarrier> {},
+                                                 std::vector<VkImageMemoryBarrier> { transition });
+    }
+
+    env->graphicsQueue->Submit ({}, {}, commandBuffers, {}, VK_NULL_HANDLE);
+    env->graphicsQueue->Wait ();
+
+    GVK::ImageData img (device, renderTarget, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    img.SaveTo (ReferenceImagesFolder / "killme.png");
+
+    GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
+
+    EXPECT_TRUE (refimg == img);
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_faszom2)
+{
+    GVK::DeviceExtra& device = *env->deviceExtra;
+
+    const char* vertSrc = R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec2 textureCoords;
+
+vec2 uvs[6] = vec2[] (
+    vec2 (0.f, 0.f),
+    vec2 (0.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (0.f, 0.f),
+    vec2 (1.f, 0.f)
+);
+
+vec2 positions[6] = vec2[] (
+    vec2 (-1.f, -1.f),
+    vec2 (-1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (-1.f, -1.f),
+    vec2 (+1.f, -1.f)
+);
+
+
+void main() {
+    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
+    textureCoords = uvs[gl_VertexIndex];
+}
+    )";
+
+    auto sp = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    sp->SetVertexShaderFromString (vertSrc);
+    sp->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (1, 0, 0, 0.5);
+}
+    )");
+
+    auto sp2 = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    sp2->SetVertexShaderFromString (vertSrc);
+    sp2->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (0, 0, 1, 0.5);
+}
+    )");
+
+    std::shared_ptr<GVK::RG::WritableImageResource> renderTarget = std::make_shared<GVK::RG::WritableImageResource> (VK_FILTER_LINEAR, 512, 512, 1, VK_FORMAT_R8G8B8A8_SRGB);
+
+    GVK::RG::GraphSettings s;
+    s.framesInFlight = 1;
+    s.device         = env->deviceExtra.get ();
+
+    renderTarget->Compile (s);
+
+    std::shared_ptr<GVK::RG::RenderOperation> renderOp  = std::make_shared<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp));
+    std::shared_ptr<GVK::RG::RenderOperation> renderOp2 = std::make_shared<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp2));
+
+    s.connectionSet.Add (renderOp, renderTarget,
+                         std::make_unique<GVK::RG::OutputBinding> (0,
+                                                                   [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   1,
+                                                                   VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+
+    s.connectionSet.Add (renderOp2, renderTarget,
+                         std::make_unique<GVK::RG::OutputBinding> (0,
+                                                                   [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   1,
+                                                                   VK_ATTACHMENT_LOAD_OP_LOAD,
+                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+
+
+    renderOp->Compile (s, 512, 512);
+    renderOp2->Compile (s, 512, 512);
+
+    VkClearValue clearValue = {};
+    clearValue.color.float32[0] = 0.0f;
+    clearValue.color.float32[1] = 0.0f;
+    clearValue.color.float32[2] = 0.0f;
+    clearValue.color.float32[3] = 1.0f;
+
+    VkMemoryBarrier flushAllMemory = {};
+    flushAllMemory.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    flushAllMemory.srcAccessMask   = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
+                                   VK_ACCESS_INDEX_READ_BIT |
+                                   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
+                                   VK_ACCESS_UNIFORM_READ_BIT |
+                                   VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_SHADER_READ_BIT |
+                                   VK_ACCESS_SHADER_WRITE_BIT |
+                                   VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+                                   VK_ACCESS_TRANSFER_READ_BIT |
+                                   VK_ACCESS_TRANSFER_WRITE_BIT;
+    flushAllMemory.dstAccessMask = flushAllMemory.srcAccessMask;
+
+    std::vector<GVK::CommandBuffer> commandBuffers;
+    
+    VkImageMemoryBarrier transition            = {};
+    transition.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    transition.pNext                           = nullptr;
+    transition.srcAccessMask                   = flushAllMemory.srcAccessMask;
+    transition.dstAccessMask                   = flushAllMemory.srcAccessMask;
+    transition.oldLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    transition.newLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    transition.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+    transition.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+    transition.image                           = *renderTarget->images[0]->image;
+    transition.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    transition.subresourceRange.baseMipLevel   = 0;
+    transition.subresourceRange.levelCount     = 1;
+    transition.subresourceRange.baseArrayLayer = 0;
+    transition.subresourceRange.layerCount     = 1;
+
+    {
+        GVK::CommandBuffer commandBuffer (*env->device, *env->commandPool);
+
+        commandBuffer.Begin ();
+        commandBuffer.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, std::vector<VkMemoryBarrier> { flushAllMemory }, std::vector<VkBufferMemoryBarrier> {}, std::vector<VkImageMemoryBarrier> { transition });
+        commandBuffer.Record<GVK::CommandBeginRenderPass> (*renderOp->compileSettings.pipeline->compileResult.renderPass, *renderOp->compileResult.framebuffers[0], VkRect2D { { 0, 0 }, { 512, 512 } }, std::vector<VkClearValue> { clearValue }, VK_SUBPASS_CONTENTS_INLINE);
+        commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *renderOp->compileSettings.pipeline->compileResult.pipeline);
+        commandBuffer.Record<GVK::CommandDraw> (6, 1, 0, 0);
+        commandBuffer.Record<GVK::CommandEndRenderPass> ();
+        commandBuffer.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, std::vector<VkMemoryBarrier> { flushAllMemory }, std::vector<VkBufferMemoryBarrier> {}, std::vector<VkImageMemoryBarrier> { transition });
+        commandBuffer.Record<GVK::CommandBeginRenderPass> (*renderOp2->compileSettings.pipeline->compileResult.renderPass, *renderOp2->compileResult.framebuffers[0], VkRect2D { { 0, 0 }, { 512, 512 } }, std::vector<VkClearValue> { clearValue }, VK_SUBPASS_CONTENTS_INLINE);
+        commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *renderOp2->compileSettings.pipeline->compileResult.pipeline);
+        commandBuffer.Record<GVK::CommandDraw> (6, 1, 0, 0);
+        commandBuffer.Record<GVK::CommandEndRenderPass> ();
+        commandBuffer.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, std::vector<VkMemoryBarrier> { flushAllMemory }, std::vector<VkBufferMemoryBarrier> {}, std::vector<VkImageMemoryBarrier> { transition });
+        commandBuffer.End ();
+
+        commandBuffers.push_back (std::move (commandBuffer));
+    }
+
+    {
+        GVK::SingleTimeCommand cmd (*env->device, *env->commandPool, *env->graphicsQueue);
+
+        transition.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        transition.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        cmd.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                                 VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                                 std::vector<VkMemoryBarrier> { flushAllMemory },
+                                                 std::vector<VkBufferMemoryBarrier> {},
+                                                 std::vector<VkImageMemoryBarrier> { transition });
+    }
+
+    env->graphicsQueue->Submit ({}, {}, commandBuffers, {}, VK_NULL_HANDLE);
+    env->graphicsQueue->Wait ();
+
+    GVK::ImageData img (device, *renderTarget->images[0]->image, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    img.SaveTo (ReferenceImagesFolder / "killme.png");
+
+    GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
+
+    EXPECT_TRUE (refimg == img);
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_faszom3)
+{
+    GVK::DeviceExtra& device = *env->deviceExtra;
+
+    const char* vertSrc = R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec2 textureCoords;
+
+vec2 uvs[6] = vec2[] (
+    vec2 (0.f, 0.f),
+    vec2 (0.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (0.f, 0.f),
+    vec2 (1.f, 0.f)
+);
+
+vec2 positions[6] = vec2[] (
+    vec2 (-1.f, -1.f),
+    vec2 (-1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (-1.f, -1.f),
+    vec2 (+1.f, -1.f)
+);
+
+
+void main() {
+    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
+    textureCoords = uvs[gl_VertexIndex];
+}
+    )";
+
+    auto sp = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    sp->SetVertexShaderFromString (vertSrc);
+    sp->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (1, 0, 0, 0.5);
+}
+    )");
+
+    auto sp2 = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    sp2->SetVertexShaderFromString (vertSrc);
+    sp2->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (0, 0, 1, 0.5);
+}
+    )");
+
+    std::shared_ptr<GVK::RG::WritableImageResource> renderTarget = std::make_shared<GVK::RG::WritableImageResource> (VK_FILTER_LINEAR, 512, 512, 1, VK_FORMAT_R8G8B8A8_SRGB);
+
+    std::shared_ptr<GVK::RG::RenderOperation> renderOp  = std::make_shared<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp));
+    std::shared_ptr<GVK::RG::RenderOperation> renderOp2 = std::make_shared<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp2));
+
+    GVK::RG::GraphSettings s;
+
+    s.framesInFlight = 1;
+    s.device         = env->deviceExtra.get ();
+
+    s.connectionSet.Add (renderOp, renderTarget,
+                         std::make_unique<GVK::RG::OutputBinding> (0,
+                                                                   renderTarget->GetFormatProvider (),
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   renderTarget->GetFinalLayout (),
+                                                                   1,
+                                                                   VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+
+    s.connectionSet.Add (renderOp2, renderTarget,
+                         std::make_unique<GVK::RG::OutputBinding> (0,
+                                                                   renderTarget->GetFormatProvider (),
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   renderTarget->GetFinalLayout (),
+                                                                   1,
+                                                                   VK_ATTACHMENT_LOAD_OP_LOAD,
+                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+
+    
+
+    GVK::RG::RenderGraph rg;
+
+    rg.Compile (std::move (s));
+
+    VkClearValue clearValue = {};
+    clearValue.color.float32[0] = 0.0f;
+    clearValue.color.float32[1] = 0.0f;
+    clearValue.color.float32[2] = 0.0f;
+    clearValue.color.float32[3] = 1.0f;
+
+    VkMemoryBarrier flushAllMemory = {};
+    flushAllMemory.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    flushAllMemory.srcAccessMask   = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
+                                   VK_ACCESS_INDEX_READ_BIT |
+                                   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
+                                   VK_ACCESS_UNIFORM_READ_BIT |
+                                   VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_SHADER_READ_BIT |
+                                   VK_ACCESS_SHADER_WRITE_BIT |
+                                   VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+                                   VK_ACCESS_TRANSFER_READ_BIT |
+                                   VK_ACCESS_TRANSFER_WRITE_BIT;
+    flushAllMemory.dstAccessMask = flushAllMemory.srcAccessMask;
+
+    std::vector<GVK::CommandBuffer> commandBuffers;
+    
+    VkImageMemoryBarrier transition            = {};
+    transition.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    transition.pNext                           = nullptr;
+    transition.srcAccessMask                   = flushAllMemory.srcAccessMask;
+    transition.dstAccessMask                   = flushAllMemory.srcAccessMask;
+    transition.oldLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    transition.newLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    transition.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+    transition.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+    transition.image                           = *renderTarget->images[0]->image;
+    transition.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    transition.subresourceRange.baseMipLevel   = 0;
+    transition.subresourceRange.levelCount     = 1;
+    transition.subresourceRange.baseArrayLayer = 0;
+    transition.subresourceRange.layerCount     = 1;
+
+    {
+        GVK::CommandBuffer commandBuffer (*env->device, *env->commandPool);
+
+        commandBuffer.Begin ();
+        commandBuffer.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, std::vector<VkMemoryBarrier> { flushAllMemory }, std::vector<VkBufferMemoryBarrier> {}, std::vector<VkImageMemoryBarrier> { transition });
+        commandBuffer.Record<GVK::CommandBeginRenderPass> (*renderOp->compileSettings.pipeline->compileResult.renderPass, *renderOp->compileResult.framebuffers[0], VkRect2D { { 0, 0 }, { 512, 512 } }, std::vector<VkClearValue> { clearValue }, VK_SUBPASS_CONTENTS_INLINE);
+        commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *renderOp->compileSettings.pipeline->compileResult.pipeline);
+        commandBuffer.Record<GVK::CommandDraw> (6, 1, 0, 0);
+        commandBuffer.Record<GVK::CommandEndRenderPass> ();
+        commandBuffer.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, std::vector<VkMemoryBarrier> { flushAllMemory }, std::vector<VkBufferMemoryBarrier> {}, std::vector<VkImageMemoryBarrier> { transition });
+        commandBuffer.Record<GVK::CommandBeginRenderPass> (*renderOp2->compileSettings.pipeline->compileResult.renderPass, *renderOp2->compileResult.framebuffers[0], VkRect2D { { 0, 0 }, { 512, 512 } }, std::vector<VkClearValue> { clearValue }, VK_SUBPASS_CONTENTS_INLINE);
+        commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *renderOp2->compileSettings.pipeline->compileResult.pipeline);
+        commandBuffer.Record<GVK::CommandDraw> (6, 1, 0, 0);
+        commandBuffer.Record<GVK::CommandEndRenderPass> ();
+        commandBuffer.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, std::vector<VkMemoryBarrier> { flushAllMemory }, std::vector<VkBufferMemoryBarrier> {}, std::vector<VkImageMemoryBarrier> { });
+        commandBuffer.End ();
+
+        commandBuffers.push_back (std::move (commandBuffer));
+    }
+
+    ASSERT_TRUE (commandBuffers[0].recordedAbstractCommands.size () == rg.commandBuffers[0].recordedAbstractCommands.size ());
+    for (size_t i = 0; i < rg.commandBuffers[0].recordedAbstractCommands.size (); ++i) {
+        EXPECT_TRUE (rg.commandBuffers[0].recordedAbstractCommands[i]->IsEquivalent (*commandBuffers[0].recordedAbstractCommands[i])) << i;
+    }
+
+    //env->graphicsQueue->Submit ({}, {}, commandBuffers, {}, VK_NULL_HANDLE);
+    env->graphicsQueue->Submit ({}, {}, rg.commandBuffers, {}, VK_NULL_HANDLE);
+    
+    env->graphicsQueue->Wait ();
+
+    GVK::ImageData img (device, *renderTarget->images[0]->image, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    img.SaveTo (ReferenceImagesFolder / "killme.png");
+
+    GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
+
+    EXPECT_TRUE (refimg == img);
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_faszom4)
+{
+    GVK::DeviceExtra& device = *env->deviceExtra;
+
+    const char* vertSrc = R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec2 textureCoords;
+
+vec2 uvs[6] = vec2[] (
+    vec2 (0.f, 0.f),
+    vec2 (0.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (1.f, 1.f),
+    vec2 (0.f, 0.f),
+    vec2 (1.f, 0.f)
+);
+
+vec2 positions[6] = vec2[] (
+    vec2 (-1.f, -1.f),
+    vec2 (-1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (+1.f, +1.f),
+    vec2 (-1.f, -1.f),
+    vec2 (+1.f, -1.f)
+);
+
+
+void main() {
+    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
+    textureCoords = uvs[gl_VertexIndex];
+}
+    )";
+
+    auto sp = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    sp->SetVertexShaderFromString (vertSrc);
+    sp->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (1, 0, 0, 0.5);
+}
+    )");
+
+    auto sp2 = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    sp2->SetVertexShaderFromString (vertSrc);
+    sp2->SetFragmentShaderFromString (R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec4 outColor;
+
+void main () {
+    outColor = vec4 (0, 0, 1, 0.5);
+}
+    )");
+
+    std::shared_ptr<GVK::RG::WritableImageResource> renderTarget = std::make_shared<GVK::RG::WritableImageResource> (VK_FILTER_LINEAR, 512, 512, 1, VK_FORMAT_R8G8B8A8_SRGB);
+
+    std::shared_ptr<GVK::RG::RenderOperation> renderOp  = std::make_shared<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp));
+    std::shared_ptr<GVK::RG::RenderOperation> renderOp2 = std::make_shared<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp2));
+
+    GVK::RG::GraphSettings s;
+
+    s.framesInFlight = 1;
+    s.device         = env->deviceExtra.get ();
+
+    s.connectionSet.Add (renderOp, renderTarget,
+                         std::make_unique<GVK::RG::OutputBinding> (0,
+                                                                   [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   1,
+                                                                   VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+
+    s.connectionSet.Add (renderOp2, renderTarget,
+                         std::make_unique<GVK::RG::OutputBinding> (0,
+                                                                   [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                                   1,
+                                                                   VK_ATTACHMENT_LOAD_OP_LOAD,
+                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+
+    
+
+    GVK::RG::RenderGraph rg;
+
+    rg.Compile (std::move (s));
+
+    env->graphicsQueue->Submit ({}, {}, { &rg.commandBuffers[0] }, {}, VK_NULL_HANDLE);
+    env->graphicsQueue->Wait ();
+
+    GVK::ImageData img (device, *renderTarget->images[0]->image, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    img.SaveTo (ReferenceImagesFolder / "killme.png");
+
+    GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
+
+    EXPECT_TRUE (refimg == img);
+}
+
 
 
 TEST_F (HeadlessGoogleTestEnvironment, DISABLED_LCGShader)
@@ -460,7 +1139,7 @@ void main ()
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, Spirvrross2)
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_Spirvrross2)
 {
     std::unique_ptr<GVK::ShaderModule> sm = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Fragment, R"(#version 450
 
@@ -506,7 +1185,7 @@ void main ()
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, CompileTest)
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_CompileTest)
 {
     GVK::DeviceExtra& device = GetDeviceExtra ();
 
@@ -518,7 +1197,7 @@ TEST_F (HeadlessGoogleTestEnvironment, CompileTest)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, ShaderCompileTests)
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_ShaderCompileTests)
 {
     try {
         GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Vertex, R"(
@@ -563,7 +1242,7 @@ layout (location = 0) out vec2 textureCoords;
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, ImageMap_TextureArray)
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_ImageMap_TextureArray)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -675,7 +1354,7 @@ void main () {
     CompareImages ("textureArray", *presented->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_RenderRedImage)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -753,7 +1432,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, TransferOperation)
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_TransferOperation)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -843,7 +1522,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
+TEST_F (HeadlessGoogleTestEnvironment, DISABLED_RenderGraphUseTest)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -1000,10 +1679,11 @@ void main () {
     )");
 
     std::shared_ptr<GVK::RG::RenderOperation> firstPass  = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp));
-
+    firstPass->SetName ("FIRST");
     firstPass->compileSettings.blendEnabled = false;
 
     std::shared_ptr<GVK::RG::RenderOperation> secondPass = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp2));
+    secondPass->SetName ("SECOND");
 
     secondPass->compileSettings.blendEnabled = true;
 
@@ -1055,7 +1735,7 @@ void main () {
 }
 
 
-TEST_F (HiddenWindowGoogleTestEnvironment, SwapchainTest)
+TEST_F (HiddenWindowGoogleTestEnvironment, DISABLED_SwapchainTest)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -1143,7 +1823,7 @@ void main () {
 }
 
 
-TEST_F (HiddenWindowGoogleTestEnvironment, VertexAndIndexBufferTest)
+TEST_F (HiddenWindowGoogleTestEnvironment, DISABLED_VertexAndIndexBufferTest)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -1243,7 +1923,7 @@ void main () {
 }
 
 
-TEST_F (HiddenWindowGoogleTestEnvironment, BasicUniformBufferTest)
+TEST_F (HiddenWindowGoogleTestEnvironment, DISABLED_BasicUniformBufferTest)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();

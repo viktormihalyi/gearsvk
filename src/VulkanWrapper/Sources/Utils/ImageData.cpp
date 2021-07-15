@@ -39,6 +39,21 @@ ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t la
     if (currentLayout)
         TransitionImageLayout (device, image, *currentLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
+    auto dataCopy = data;
+    dataCopy.resize (width * height * components * componentByteSize);
+
+    {
+        Buffer dstBuffer (device.GetAllocator (), width * height * components * componentByteSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT, Buffer::MemoryLocation::CPU);
+        
+        {
+            SingleTimeCommand single (device);
+            image.CmdCopyToBuffer (single, dstBuffer);
+        }
+
+        MemoryMapping mapping (device.GetAllocator (), dstBuffer);
+        memcpy (dataCopy.data (), mapping.Get (), width * height * components * componentByteSize);
+    }
+
     Image2D dst (device.GetAllocator (), Image::MemoryLocation::CPU,
                  image.GetWidth (), image.GetHeight (),
                  image.GetFormat (),
@@ -60,7 +75,7 @@ ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t la
         imageCopyRegion.extent.height                 = image.GetHeight ();
         imageCopyRegion.extent.depth                  = 1;
 
-        single.RecordT<CommandCopyImage> (
+        single.Record<CommandCopyImage> (
             image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
             dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             std::vector<VkImageCopy> { imageCopyRegion });
@@ -75,6 +90,8 @@ ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t la
         MemoryMapping mapping (device.GetAllocator (), dst);
         memcpy (data.data (), mapping.Get (), width * height * components * componentByteSize);
     }
+
+    data = dataCopy;
 }
 
 

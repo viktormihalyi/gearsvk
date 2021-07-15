@@ -63,7 +63,7 @@ public:
     std::unique_ptr<Queue>               presentQueue;
     std::unique_ptr<CommandPool>         commandPool;
     std::unique_ptr<DeviceExtra>         deviceExtra;
-    std::unique_ptr<Allocator>           alloactor;
+    std::unique_ptr<Allocator>           allocator;
 
     VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback);
 

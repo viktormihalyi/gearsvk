@@ -140,9 +140,9 @@ void ShaderPipeline::SetShadersFromSourceFiles (const std::vector<std::filesyste
 }
 
 
-void ShaderPipeline::Compile (const CompileSettings& settings)
+void ShaderPipeline::Compile (CompileSettings&& settings_)
 {
-    compileSettings = settings;
+    compileSettings = std::move (settings_);
     compileResult.Clear ();
 
     const auto instancedVertexProvider = [] (const std::string&) { return false; };
@@ -152,8 +152,8 @@ void ShaderPipeline::Compile (const CompileSettings& settings)
 
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = static_cast<uint32_t> (settings.attachmentReferences.size ());
-    subpass.pColorAttachments    = settings.attachmentReferences.data ();
+    subpass.colorAttachmentCount = static_cast<uint32_t> (compileSettings.attachmentReferences.size ());
+    subpass.pColorAttachments    = compileSettings.attachmentReferences.data ();
 
     VkSubpassDependency dependency = {};
     dependency.srcSubpass          = VK_SUBPASS_EXTERNAL;
@@ -161,23 +161,38 @@ void ShaderPipeline::Compile (const CompileSettings& settings)
     dependency.dependencyFlags     = 0;
     dependency.srcStageMask        = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
     dependency.dstStageMask        = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
-    dependency.srcAccessMask       = VK_ACCESS_SHADER_WRITE_BIT |
-                               VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    dependency.dstAccessMask = 0;
+    dependency.srcAccessMask       = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
+                               VK_ACCESS_INDEX_READ_BIT |
+                               VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
+                               VK_ACCESS_UNIFORM_READ_BIT |
+                               VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
+                               VK_ACCESS_SHADER_READ_BIT |
+                               VK_ACCESS_SHADER_WRITE_BIT |
+                               VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                               VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                               VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                               VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+                               VK_ACCESS_TRANSFER_READ_BIT |
+                               VK_ACCESS_TRANSFER_WRITE_BIT;
+    dependency.dstAccessMask = dependency.srcAccessMask;
 
-    compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, settings.attachmentDescriptions, { subpass }, {  dependency  }));
-    compileResult.pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, { settings.layout }));
+    VkSubpassDependency dependency2 = dependency;
+    dependency.srcSubpass           = 0;
+    dependency.dstSubpass           = VK_SUBPASS_EXTERNAL;
+
+    compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, compileSettings.attachmentDescriptions, { subpass }, { dependency, dependency2 }));
+    compileResult.pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, { compileSettings.layout }));
     compileResult.pipeline       = std::unique_ptr<Pipeline> (new Pipeline (
         device,
-        settings.width,
-        settings.height,
-        static_cast<uint32_t> (settings.attachmentReferences.size ()),
+        compileSettings.width,
+        compileSettings.height,
+        static_cast<uint32_t> (compileSettings.attachmentReferences.size ()),
         *compileResult.pipelineLayout,
         *compileResult.renderPass,
         GetShaderStages (),
         bindings,
         attribs,
-        settings.topology,
+        compileSettings.topology,
         compileSettings.blendEnabled.has_value () ? *compileSettings.blendEnabled : true));
 }
 

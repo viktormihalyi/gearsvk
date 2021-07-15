@@ -4,7 +4,6 @@
 #include "RenderGraph/RenderGraphAPI.hpp"
 
 #include <vector>
-#include <set>
 
 namespace GVK {
 
@@ -17,14 +16,14 @@ class GVK_RENDERER_API Pass {
 public:
     struct OperationIO {
         Operation*          op;
-        std::set<Resource*> inputs;
-        std::set<Resource*> outputs;
+        std::vector<Resource*> inputs;
+        std::vector<Resource*> outputs;
     };
 
     struct ResourceIO {
         Resource*            res;
-        std::set<Operation*> writers;
-        std::set<Operation*> readers;
+        std::vector<Operation*> writers;
+        std::vector<Operation*> readers;
     };
 
 private:
@@ -32,9 +31,9 @@ private:
     std::vector<ResourceIO>  resourceIOs;
 
 public:
-    std::set<Operation*> GetAllOperations () const;
-    std::set<Resource*>  GetAllInputs () const;
-    std::set<Resource*>  GetAllOutputs () const;
+    std::vector<Operation*> GetAllOperations () const;
+    std::vector<Resource*>  GetAllInputs () const;
+    std::vector<Resource*>  GetAllOutputs () const;
 
     void AddOutput (Operation* op, Resource* output);
     void AddInput (Operation* op, Resource* input);

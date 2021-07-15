@@ -81,6 +81,8 @@ public:
 
     void CmdPipelineBarrier (CommandBuffer& commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const;
 
+    void CmdCopyToBuffer (CommandBuffer& commandBuffer, VkBuffer buffer) const;
+
     void CmdCopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer) const;
 
     void CmdCopyBufferPartToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkBufferImageCopy region) const;

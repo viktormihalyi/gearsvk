@@ -51,7 +51,7 @@ void CopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkImage i
     region.imageOffset                     = { 0, 0, 0 };
     region.imageExtent                     = { width, height, depth };
 
-    commandBuffer.RecordT<CommandCopyBufferToImage> (
+    commandBuffer.Record<CommandCopyBufferToImage> (
         buffer,
         image,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -68,7 +68,7 @@ void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuff
     copyRegion.dstOffset    = 0;
     copyRegion.size         = size;
 
-    commandBuffer.RecordT<CommandCopyBuffer> (srcBuffer, dstBuffer, std::vector<VkBufferCopy> { copyRegion });
+    commandBuffer.Record<CommandCopyBuffer> (srcBuffer, dstBuffer, std::vector<VkBufferCopy> { copyRegion });
 }
 
 
@@ -94,7 +94,7 @@ static std::unique_ptr<Image> CreateCopyImageOnCPU (const DeviceExtra& device, c
         imageCopyRegion.extent.height                 = image.GetHeight ();
         imageCopyRegion.extent.depth                  = 1;
 
-        single.RecordT<CommandCopyImage> (
+        single.Record<CommandCopyImage> (
             image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
             *dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             std::vector<VkImageCopy> { imageCopyRegion });

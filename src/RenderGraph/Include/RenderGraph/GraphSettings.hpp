@@ -37,9 +37,11 @@ public:
 
 private:
     std::vector<std::unique_ptr<Connection>> connections;
+    
+    std::set<std::shared_ptr<Node>> nodeSet;
 
 public:
-    std::set<std::shared_ptr<Node>> nodes;
+    std::vector<std::shared_ptr<Node>> insertionOrder;
 
 
 public:
@@ -124,15 +126,17 @@ public:
 
     void Add (const std::shared_ptr<Node>& from, const std::shared_ptr<Node>& to, std::unique_ptr<IConnectionBinding>&& binding)
     {
-        nodes.insert (from);
-        nodes.insert (to);
+        Add (from);
+        Add (to);
+
         connections.push_back (std::make_unique<Connection> (from, to, std::move (binding)));
     }
 
 
     void Add (const std::shared_ptr<Node>& node)
     {
-        nodes.insert (node);
+        if (nodeSet.insert (node).second)
+            insertionOrder.push_back (node);
     }
 };
 

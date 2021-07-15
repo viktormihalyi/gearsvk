@@ -145,7 +145,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 
     pipelineSettigns.blendEnabled = compileSettings.blendEnabled;
 
-    compileSettings.pipeline->Compile (pipelineSettigns);
+    compileSettings.pipeline->Compile (std::move (pipelineSettigns));
 
     for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
         compileResult.framebuffers.push_back (std::make_unique<Framebuffer> (graphSettings.GetDevice (),
@@ -169,8 +169,12 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
         outputCount += binding.GetLayerCount ();
     });
 
-
-    VkClearValue clearColor = compileSettings.clearColor.has_value ()
+    VkClearValue clearColor     = {};
+    clearColor.color.float32[0] = 0.0f;
+    clearColor.color.float32[1] = 0.0f;
+    clearColor.color.float32[2] = 0.0f;
+    clearColor.color.float32[3] = 1.0f;
+    clearColor = compileSettings.clearColor.has_value ()
                                   ? VkClearValue {
                                         compileSettings.clearColor->x,
                                         compileSettings.clearColor->y,
@@ -181,36 +185,19 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
 
     std::vector<VkClearValue> clearValues (outputCount, clearColor);
 
-    VkRenderPassBeginInfo renderPassBeginInfo = {};
-    renderPassBeginInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassBeginInfo.renderPass            = *compileSettings.pipeline->compileResult.renderPass;
-    renderPassBeginInfo.framebuffer           = *compileResult.framebuffers[resourceIndex];
-    renderPassBeginInfo.renderArea.offset     = { 0, 0 };
-    renderPassBeginInfo.renderArea.extent     = { compileResult.width, compileResult.height };
-    renderPassBeginInfo.clearValueCount       = static_cast<uint32_t> (clearValues.size ());
-    renderPassBeginInfo.pClearValues          = clearValues.data ();
+    commandBuffer.Record<CommandBeginRenderPass> (*compileSettings.pipeline->compileResult.renderPass,
+                                                  *compileResult.framebuffers[resourceIndex],
+                                                  VkRect2D { { 0, 0 }, { compileResult.width, compileResult.height } },
+                                                  clearValues,
+                                                  VK_SUBPASS_CONTENTS_INLINE)
+        .SetName ("Operation - Renderpass Begin");
 
-    // TODO transition image layouts here
-
-    //for (auto& i : inputBindings) {
-    //    i.RecordTransition (commandBuffer);
-    //}
-
-    //for (auto& o : outputBindings) {
-    //    o.RecordTransition (commandBuffer);
-    //}
-
-    // inputs:  undef/color_attachment_optimal ?? -> shader_read_only_optimal
-    // outputs: undef ?? -> color_attachment_optimal
-
-    commandBuffer.RecordT<CommandBeginRenderPass> (renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE).SetName ("Operation - Renderpass Begin");
-
-    commandBuffer.RecordT<CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipeline).SetName ("Operation - Bind");
+    commandBuffer.Record<CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipeline).SetName ("Operation - Bind");
 
     if (!compileResult.descriptorSets.empty ()) {
         VkDescriptorSet dsHandle = *compileResult.descriptorSets[resourceIndex];
 
-        commandBuffer.RecordT<CommandBindDescriptorSets> (
+        commandBuffer.Record<CommandBindDescriptorSets> (
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             *compileSettings.pipeline->compileResult.pipelineLayout,
             0,
@@ -220,7 +207,7 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
 
     compileSettings.drawRecordable->Record (commandBuffer);
 
-    commandBuffer.RecordT<CommandEndRenderPass> ().SetName ("Operation - Renderpass End");
+    commandBuffer.Record<CommandEndRenderPass> ().SetName ("Operation - Renderpass End");
 }
 
 
@@ -323,7 +310,7 @@ void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t ima
             imageCopyRegion.extent.height                 = fromVkImage->GetHeight ();
             imageCopyRegion.extent.depth                  = fromVkImage->GetDepth ();
 
-            commandBuffer.RecordT<CommandCopyImage> (
+            commandBuffer.Record<CommandCopyImage> (
                     *fromVkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                     *toVkImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                     std::vector<VkImageCopy> { imageCopyRegion});

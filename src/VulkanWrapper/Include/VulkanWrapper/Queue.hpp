@@ -48,6 +48,12 @@ public:
                  const std::vector<CommandBuffer*>&       commandBuffers,
                  const std::vector<VkSemaphore>&          signalSemaphores,
                  VkFence                                  fenceToSignal) const;
+
+    void Submit (const std::vector<VkSemaphore>&          waitSemaphores,
+                 const std::vector<VkPipelineStageFlags>& waitDstStageMasks,
+                 const std::vector<CommandBuffer>&       commandBuffers,
+                 const std::vector<VkSemaphore>&          signalSemaphores,
+                 VkFence                                  fenceToSignal) const;
 };
 
 VULKANWRAPPER_API extern Queue dummyQueue;

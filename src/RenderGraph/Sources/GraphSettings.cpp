@@ -103,21 +103,25 @@ ConnectionSet::ConnectionSet () = default;
 
 ConnectionSet::ConnectionSet (ConnectionSet&& other)
     : connections (std::move (other.connections))
-    , nodes (std::move (other.nodes))
+    , nodeSet (std::move (other.nodeSet))
+    , insertionOrder (std::move (other.insertionOrder))
 {
     other.connections.clear ();
-    other.nodes.clear ();
+    other.nodeSet.clear ();
+    other.insertionOrder.clear ();
 }
 
 
 ConnectionSet& ConnectionSet::operator= (ConnectionSet&& other)
 {
     if (this != &other) {
-        connections = std::move (other.connections);
-        nodes       = std::move (other.nodes);
+        connections    = std::move (other.connections);
+        nodeSet        = std::move (other.nodeSet);
+        insertionOrder = std::move (other.insertionOrder);
 
         other.connections.clear ();
-        other.nodes.clear ();
+        other.nodeSet.clear ();
+        other.insertionOrder.clear ();
     }
 
     return *this;

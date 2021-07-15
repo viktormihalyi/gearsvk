@@ -39,9 +39,9 @@ class Generic(Base) :
             ):
         self.name                =      name
         self.duration            =      duration
-        sequence = self.getSequence()
-        if(duration_s != 0):
-            self.duration = int(duration_s // sequence.getFrameInterval_s() + 1)
+        
+        if duration_s != 0:
+            self.duration = int(duration_s // self.getSequence().getFrameInterval_s() + 1)
         
         forward      .apply(self)
         signal       .apply(self)

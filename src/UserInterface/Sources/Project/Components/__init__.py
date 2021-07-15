@@ -1,5 +1,6 @@
 ﻿__gears_api__ = True
 from .argProcessors import *
+from .IComponent import *
 from .Component import *
 from . import Temporal
 from . import Gamma

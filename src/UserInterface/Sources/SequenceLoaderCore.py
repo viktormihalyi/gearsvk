@@ -10,7 +10,11 @@ def loadParents(fullpath, rootPath):
         if module == '__init__.py' or module[-3:] != '.py':
             continue
 
-        loader = importlib.machinery.SourceFileLoader('my_module', fullpath + "/" + module)
+        sourceFileName = fullpath + "/" + module
+
+        print ('Loading {}...'.format (sourceFileName))
+
+        loader = importlib.machinery.SourceFileLoader('my_module', sourceFileName)
         my_module = loader.load_module()
 
         module_dict = my_module.__dict__
