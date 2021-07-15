@@ -138,7 +138,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 
     ShaderPipeline::CompileSettings pipelineSettigns = { width,
                                                          height,
-                                                         *compileResult.descriptorSetLayout,
+                                                         compileResult.descriptorSetLayout->operator VkDescriptorSetLayout (),
                                                          attachmentReferences,
                                                          attachmentDescriptions,
                                                          compileSettings.topology };
