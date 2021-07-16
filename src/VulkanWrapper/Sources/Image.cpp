@@ -1,4 +1,5 @@
 #include "Image.hpp"
+#include "Commands.hpp"
 
 #include "Utils/Assert.hpp"
 
@@ -102,33 +103,10 @@ Image::~Image ()
 }
 
 
-static VkAccessFlags GetSrcAccessMask (VkImageLayout oldLayout)
-{
-    switch (oldLayout) {
-        case VK_IMAGE_LAYOUT_UNDEFINED: return 0;
-        case VK_IMAGE_LAYOUT_GENERAL: return VK_ACCESS_MEMORY_WRITE_BIT;
-        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: return VK_ACCESS_TRANSFER_READ_BIT;
-        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: return VK_ACCESS_TRANSFER_WRITE_BIT;
-        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: return VK_ACCESS_SHADER_READ_BIT;
-        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: return VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        default:
-            GVK_ERROR ("unhandled img layout transition");
-            return VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    }
-}
-
-
-static VkAccessFlags GetDstAccessMask (VkImageLayout newLayout)
-{
-    GVK_ASSERT (newLayout != VK_IMAGE_LAYOUT_UNDEFINED);
-    return GetSrcAccessMask (newLayout);
-}
-
-
 VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask) const
 {
-    VkImageMemoryBarrier barrier = {};
-
+    VkImageMemoryBarrier barrier            = {};
+    barrier.pNext                           = nullptr;
     barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.oldLayout                       = oldLayout;
     barrier.newLayout                       = newLayout;
@@ -142,132 +120,7 @@ VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout n
     barrier.subresourceRange.layerCount     = arrayLayers;
     barrier.srcAccessMask                   = srcAccessMask;
     barrier.dstAccessMask                   = dstAccessMask;
-
     return barrier;
-}
-
-
-VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout) const
-{
-    return GetBarrier (oldLayout, newLayout, GetSrcAccessMask (oldLayout), GetDstAccessMask (newLayout));
-}
-
-
-void Image::CmdPipelineBarrier (CommandBuffer& commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout) const
-{
-    VkImageMemoryBarrier barrier            = {};
-    barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    barrier.oldLayout                       = oldLayout;
-    barrier.newLayout                       = newLayout;
-    barrier.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image                           = handle;
-    barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-    barrier.subresourceRange.baseMipLevel   = 0;
-    barrier.subresourceRange.levelCount     = 1;
-    barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount     = arrayLayers;
-    barrier.srcAccessMask                   = 0;
-    barrier.dstAccessMask                   = 0;
-
-    VkPipelineStageFlags sourceStage;
-    VkPipelineStageFlags destinationStage;
-
-    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-        barrier.srcAccessMask = 0;
-        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-        sourceStage      = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-        sourceStage      = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    } else {
-        // TODO
-        barrier.srcAccessMask = 0;
-        barrier.dstAccessMask = 0;
-        sourceStage           = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-        destinationStage      = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    }
-
-
-    sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    destinationStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-
-    barrier.srcAccessMask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
-                            VK_ACCESS_INDEX_READ_BIT |
-                            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
-                            VK_ACCESS_UNIFORM_READ_BIT |
-                            VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
-                            VK_ACCESS_SHADER_READ_BIT |
-                            VK_ACCESS_SHADER_WRITE_BIT |
-                            VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-                            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
-                            VK_ACCESS_TRANSFER_READ_BIT |
-                            VK_ACCESS_TRANSFER_WRITE_BIT |
-                            VK_ACCESS_HOST_READ_BIT |
-                            VK_ACCESS_HOST_WRITE_BIT;
-
-    barrier.dstAccessMask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
-                            VK_ACCESS_INDEX_READ_BIT |
-                            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
-                            VK_ACCESS_UNIFORM_READ_BIT |
-                            VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
-                            VK_ACCESS_SHADER_READ_BIT |
-                            VK_ACCESS_SHADER_WRITE_BIT |
-                            VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-                            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
-                            VK_ACCESS_TRANSFER_READ_BIT |
-                            VK_ACCESS_TRANSFER_WRITE_BIT |
-                            VK_ACCESS_HOST_READ_BIT |
-                            VK_ACCESS_HOST_WRITE_BIT;
-
-    VkMemoryBarrier flushAllMemory = {};
-    flushAllMemory.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-    flushAllMemory.srcAccessMask   = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
-                                   VK_ACCESS_INDEX_READ_BIT |
-                                   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
-                                   VK_ACCESS_UNIFORM_READ_BIT |
-                                   VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
-                                   VK_ACCESS_SHADER_READ_BIT |
-                                   VK_ACCESS_SHADER_WRITE_BIT |
-                                   VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-                                   VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
-                                   VK_ACCESS_TRANSFER_READ_BIT |
-                                   VK_ACCESS_TRANSFER_WRITE_BIT |
-                                       VK_ACCESS_HOST_READ_BIT |
-                                   VK_ACCESS_HOST_WRITE_BIT;
-    flushAllMemory.dstAccessMask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
-                                   VK_ACCESS_INDEX_READ_BIT |
-                                   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
-                                   VK_ACCESS_UNIFORM_READ_BIT |
-                                   VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
-                                   VK_ACCESS_SHADER_READ_BIT |
-                                   VK_ACCESS_SHADER_WRITE_BIT |
-                                   VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-                                   VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
-                                   VK_ACCESS_TRANSFER_READ_BIT |
-                                   VK_ACCESS_TRANSFER_WRITE_BIT |
-                                       VK_ACCESS_HOST_READ_BIT |
-                                   VK_ACCESS_HOST_WRITE_BIT;
-
-    commandBuffer.Record<CommandPipelineBarrier> (
-        sourceStage,
-        destinationStage,
-        std::vector<VkMemoryBarrier> { flushAllMemory },
-        std::vector<VkBufferMemoryBarrier> {},
-        std::vector<VkImageMemoryBarrier> { barrier });
 }
 
 
@@ -311,15 +164,10 @@ void Image::CmdCopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer)
 
 void Image::CmdCopyBufferPartToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkBufferImageCopy region) const
 {
-    commandBuffer.Record<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
-        vkCmdCopyBufferToImage (
-            commandBuffer,
-            buffer,
-            handle,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1,
-            &region);
-    });
+    commandBuffer.Record<CommandCopyBufferToImage> (buffer,
+                                                    handle,
+                                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                                    std::vector<VkBufferImageCopy> { region });
 }
 
 } // namespace GVK

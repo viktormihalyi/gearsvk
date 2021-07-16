@@ -4,6 +4,7 @@
 #include "stb_image_write.h"
 
 #include "ImageData.hpp"
+#include "Commands.hpp"
 
 #include <array>
 #include <cstring>
@@ -26,8 +27,7 @@ std::string GetVersionString (uint32_t version)
 
 void TransitionImageLayout (const DeviceExtra& device, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
-    SingleTimeCommand commandBuffer (device);
-    image.CmdPipelineBarrier (commandBuffer, oldLayout, newLayout);
+    SingleTimeCommand (device).Record<CommandTranstionImage> (image, oldLayout, newLayout);
 }
 
 

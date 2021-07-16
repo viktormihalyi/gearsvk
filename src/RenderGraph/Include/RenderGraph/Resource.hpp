@@ -7,6 +7,7 @@
 #include "Utils/Timer.hpp"
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
+#include "VulkanWrapper/Commands.hpp"
 #include "RenderGraph/ShaderPipeline.hpp"
 
 #include "Connections.hpp"
@@ -174,7 +175,7 @@ protected:
 
             {
                 SingleTimeCommand s (device);
-                image->CmdPipelineBarrier (s, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+                s.Record<CommandTranstionImage> (*image, Image::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
             }
         }
 
@@ -438,7 +439,7 @@ public:
         }
 
         SingleTimeCommand s (settings.GetDevice ());
-        image->imageGPU->CmdPipelineBarrier (s, Image::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        s.Record<CommandTranstionImage> (*image->imageGPU, Image::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     // overriding ImageResource

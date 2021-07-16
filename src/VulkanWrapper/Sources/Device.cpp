@@ -46,7 +46,8 @@ DeviceObject::DeviceObject (VkPhysicalDevice physicalDevice, std::vector<uint32_
     createInfo.pEnabledFeatures        = &deviceFeatures;
     createInfo.enabledExtensionCount   = static_cast<uint32_t> (requestedDeviceExtensions.size ());
     createInfo.ppEnabledExtensionNames = requestedDeviceExtensions.data ();
-    createInfo.enabledLayerCount       = 0;
+    createInfo.enabledLayerCount       = 0;       // deprecated
+    createInfo.ppEnabledLayerNames     = nullptr; // deprecated
 
     if (GVK_ERROR (vkCreateDevice (physicalDevice, &createInfo, nullptr, &handle) != VK_SUCCESS)) {
         throw std::runtime_error ("failed to create device");

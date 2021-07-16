@@ -1,4 +1,5 @@
 #include "ImageData.hpp"
+#include "Commands.hpp"
 
 #include "DeviceExtra.hpp"
 #include "Utils/Assert.hpp"

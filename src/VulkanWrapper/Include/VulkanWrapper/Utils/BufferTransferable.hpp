@@ -11,6 +11,7 @@
 #include "VulkanWrapper/Utils/MemoryMapping.hpp"
 #include "VulkanWrapper/Utils/SingleTimeCommand.hpp"
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
+#include "VulkanWrapper/Commands.hpp"
 #include <memory>
 
 #include <cstring>
@@ -82,7 +83,7 @@ public:
 
         SingleTimeCommand commandBuffer (device);
 
-        imageGPU->CmdPipelineBarrier (commandBuffer, currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        commandBuffer.Record<CommandTranstionImage> (*imageGPU, currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
         VkBufferImageCopy region               = {};
         region.bufferOffset                    = 0;
@@ -96,8 +97,9 @@ public:
         region.imageExtent                     = { imageGPU->GetWidth (), imageGPU->GetHeight (), imageGPU->GetDepth () };
 
         imageGPU->CmdCopyBufferPartToImage (commandBuffer, bufferCPU, region);
+
         if (nextLayout.has_value ()) {
-            imageGPU->CmdPipelineBarrier (commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
+            commandBuffer.Record<CommandTranstionImage> (*imageGPU, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
         }
     }
 

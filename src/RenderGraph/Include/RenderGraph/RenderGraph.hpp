@@ -28,9 +28,8 @@ public:// TODO
     bool                       compiled;
     std::vector<Pass>          passes;
     std::vector<CommandBuffer> commandBuffers;
-    std::vector<std::vector<CommandBuffer>> commandBuffers2;
     
-    std::unordered_map<Image*, std::vector<VkImageLayout>> imageLayoutSequence;
+    std::unordered_map<VkImage, std::vector<VkImageLayout>> imageLayoutSequence;
 
 public:
     GraphSettings graphSettings;
@@ -46,12 +45,13 @@ public:
     uint32_t GetPassCount () const;
 
 private:
-    // utility functions for compilation
-    void              CompileResources (const GraphSettings& settings);
-    Pass              GetNextPass (const ConnectionSet& connectionSet, const Pass& lastPass) const;
-    Pass              GetFirstPass (const ConnectionSet& connectionSet) const;
-    std::vector<Pass> GetPasses (const ConnectionSet& connectionSet) const;
-    void              SeparatePasses (const ConnectionSet& connectionSet);
+    void CompileResources ();
+    void CompileOperations ();
+    Pass GetNextPass (const Pass& lastPass) const;
+    Pass GetFirstPass () const;
+    void CreatePasses ();
+    void SeparatePasses ();
+    void DebugPrint ();
 };
 
 

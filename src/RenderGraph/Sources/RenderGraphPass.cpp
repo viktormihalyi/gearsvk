@@ -1,6 +1,7 @@
 #include "RenderGraphPass.hpp"
 #include "Operation.hpp"
 #include "Resource.hpp"
+#include "DrawRecordable.hpp"
 
 #include "Utils/Assert.hpp"
 

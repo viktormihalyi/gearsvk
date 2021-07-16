@@ -10,6 +10,8 @@ set (Headers
 
     ${HeadersPath}/Allocator.hpp
     ${HeadersPath}/Buffer.hpp
+    ${HeadersPath}/Command.hpp
+    ${HeadersPath}/Commands.hpp
     ${HeadersPath}/CommandBuffer.hpp
     ${HeadersPath}/CommandPool.hpp
     ${HeadersPath}/DebugReportCallback.hpp
@@ -54,6 +56,7 @@ set (Sources
 
     ${SourcesPath}/Allocator.cpp
     ${SourcesPath}/Buffer.cpp
+    ${SourcesPath}/Commands.cpp
     ${SourcesPath}/CommandBuffer.cpp
     ${SourcesPath}/DebugReportCallback.cpp
     ${SourcesPath}/DebugUtilsMessenger.cpp
