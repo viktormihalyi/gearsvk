@@ -1,4 +1,6 @@
 #include "RenderGraphPass.hpp"
+#include "Operation.hpp"
+#include "Resource.hpp"
 
 #include "Utils/Assert.hpp"
 
@@ -93,8 +95,6 @@ void Pass::AddInput (Operation* op, Resource* input)
     InsertIfNotContains (oIO->inputs, input);
     InsertIfNotContains (rIO->readers, op);
 }
-
-
 
 
 bool Pass::RemoveOutput (Operation* op, Resource* output)
