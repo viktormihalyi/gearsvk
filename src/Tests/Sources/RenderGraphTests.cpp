@@ -1735,7 +1735,7 @@ void main () {
 }
 
 
-TEST_F (HiddenWindowGoogleTestEnvironment, DISABLED_SwapchainTest)
+TEST_F (HiddenWindowGoogleTestEnvironment, SwapchainTest)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();

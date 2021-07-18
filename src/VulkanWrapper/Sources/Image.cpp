@@ -7,6 +7,8 @@
 
 namespace GVK {
 
+const VkImageLayout Image::INITIAL_LAYOUT = VK_IMAGE_LAYOUT_UNDEFINED;
+
 Image::Image (VkImage handle, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
     : handle (handle)
     , allocator (VK_NULL_HANDLE)
