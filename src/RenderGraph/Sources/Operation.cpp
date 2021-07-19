@@ -150,8 +150,8 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
         compileResult.framebuffers.push_back (std::make_unique<Framebuffer> (graphSettings.GetDevice (),
                                                                              *compileSettings.pipeline->compileResult.renderPass,
-                                                                             //GetOutputImageViews (graphSettings.connectionSet, resourceIndex),
-                                                                             CreateOutputImageViews (graphSettings.GetDevice (), graphSettings.connectionSet, resourceIndex),
+                                                                             GetOutputImageViews (graphSettings.connectionSet, resourceIndex),
+                                                                             //CreateOutputImageViews (graphSettings.GetDevice (), graphSettings.connectionSet, resourceIndex),
                                                                              width,
                                                                              height));
     }

@@ -16,7 +16,7 @@ class ImageBuilder;
 
 class VULKANWRAPPER_API Image : public VulkanObject {
 public:
-    static const VkImageLayout INITIAL_LAYOUT = VK_IMAGE_LAYOUT_UNDEFINED;
+    static const VkImageLayout INITIAL_LAYOUT;
 
     static constexpr VkFormat R    = VK_FORMAT_R8_UINT;
     static constexpr VkFormat RG   = VK_FORMAT_R8G8_UINT;
