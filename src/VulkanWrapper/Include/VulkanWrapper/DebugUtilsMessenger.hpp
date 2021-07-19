@@ -42,6 +42,7 @@ private:
 public:
     static const Settings defaultSettings;
     static const Settings noPerformance;
+    static const Settings all;
 
     DebugUtilsMessenger (VkInstance instance, const Callback& callback, const Settings& settings = defaultSettings);
 

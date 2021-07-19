@@ -69,6 +69,18 @@ public:
     {
     }
 
+    CommandPipelineBarrier& AddMemoryBarrier (const std::vector<VkMemoryBarrier>& barriers)
+    {
+        memoryBarriers.insert (memoryBarriers.end (), barriers.begin (), barriers.end ());
+        return *this;
+    }
+
+    CommandPipelineBarrier& AddMemoryBarrier (const VkMemoryBarrier& barrier)
+    {
+        memoryBarriers.push_back (barrier);
+        return *this;
+    }
+
     CommandPipelineBarrier& AddImageMemoryBarrier (const std::vector<VkImageMemoryBarrier>& barriers)
     {
         imageMemoryBarriers.insert (imageMemoryBarriers.end (), barriers.begin (), barriers.end ());

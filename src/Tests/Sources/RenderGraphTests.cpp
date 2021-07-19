@@ -41,7 +41,7 @@ const std::filesystem::path ShadersFolder = std::filesystem::current_path () / "
 
 using Empty = ::testing::Test;
 
-TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleOutput)
+TEST_F (Empty, RenderGraphPassTest_SingleOutput)
 {
     using namespace GVK::RG;
 
@@ -63,7 +63,7 @@ TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleOutput)
 }
 
 
-TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleInput)
+TEST_F (Empty, RenderGraphPassTest_SingleInput)
 {
     using namespace GVK::RG;
 
@@ -84,7 +84,7 @@ TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleInput)
 }
 
 
-TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleOutput_Remove)
+TEST_F (Empty, RenderGraphPassTest_SingleOutput_Remove)
 {
     using namespace GVK::RG;
 
@@ -101,7 +101,7 @@ TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleOutput_Remove)
 }
 
 
-TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleInput_Remove)
+TEST_F (Empty, RenderGraphPassTest_SingleInput_Remove)
 {
     using namespace GVK::RG;
 
@@ -118,7 +118,7 @@ TEST_F (Empty, DISABLED_RenderGraphPassTest_SingleInput_Remove)
 }
 
 
-TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleInput)
+TEST_F (Empty, RenderGraphPassTest_MultipleInput)
 {
     using namespace GVK::RG;
 
@@ -136,7 +136,7 @@ TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleInput)
 }
 
 
-TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleInput_RemoveOne)
+TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveOne)
 {
     using namespace GVK::RG;
 
@@ -160,7 +160,7 @@ TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleInput_RemoveOne)
 }
 
 
-TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleInput_RemoveAll)
+TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveAll)
 {
     using namespace GVK::RG;
 
@@ -183,7 +183,7 @@ TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleInput_RemoveAll)
 }
 
 
-TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleOutput)
+TEST_F (Empty, RenderGraphPassTest_MultipleOutput)
 {
     using namespace GVK::RG;
 
@@ -201,7 +201,7 @@ TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleOutput)
 }
 
 
-TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleOutput_RemoveOne)
+TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveOne)
 {
     using namespace GVK::RG;
 
@@ -225,7 +225,7 @@ TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleOutput_RemoveOne)
 }
 
 
-TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleOutput_RemoveAll)
+TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveAll)
 {
     using namespace GVK::RG;
 
@@ -248,7 +248,7 @@ TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleOutput_RemoveAll)
 }
 
 
-TEST_F (Empty, DISABLED_RenderGraphPassTest_MultipleIO)
+TEST_F (Empty, RenderGraphPassTest_MultipleIO)
 {
     using namespace GVK::RG;
 
@@ -324,7 +324,7 @@ uint64_t Forrest_C (const uint64_t k, const uint64_t seed, const uint64_t g, con
     return C;
 }
 
-TEST_F (Empty, DISABLED_rng)
+TEST_F (Empty, rng)
 {
     double   sum     = 0.0;
     int      count   = 0;
@@ -345,7 +345,7 @@ TEST_F (Empty, DISABLED_rng)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_faszom)
+TEST_F (HeadlessGoogleTestEnvironment, faszom)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
@@ -560,7 +560,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_faszom2)
+TEST_F (HeadlessGoogleTestEnvironment, faszom2)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
@@ -739,7 +739,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_faszom3)
+TEST_F (HeadlessGoogleTestEnvironment, faszom3)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
@@ -914,7 +914,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_faszom4)
+TEST_F (HeadlessGoogleTestEnvironment, faszom4)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
@@ -1139,7 +1139,7 @@ void main ()
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_Spirvrross2)
+TEST_F (HeadlessGoogleTestEnvironment, Spirvrross2)
 {
     std::unique_ptr<GVK::ShaderModule> sm = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Fragment, R"(#version 450
 
@@ -1185,7 +1185,7 @@ void main ()
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_CompileTest)
+TEST_F (HeadlessGoogleTestEnvironment, CompileTest)
 {
     GVK::DeviceExtra& device = GetDeviceExtra ();
 
@@ -1197,7 +1197,7 @@ TEST_F (HeadlessGoogleTestEnvironment, DISABLED_CompileTest)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_ShaderCompileTests)
+TEST_F (HeadlessGoogleTestEnvironment, ShaderCompileTests)
 {
     try {
         GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Vertex, R"(
@@ -1242,7 +1242,7 @@ layout (location = 0) out vec2 textureCoords;
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_ImageMap_TextureArray)
+TEST_F (HeadlessGoogleTestEnvironment, ImageMap_TextureArray)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -1354,7 +1354,7 @@ void main () {
     CompareImages ("textureArray", *presented->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
 
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_RenderRedImage)
+TEST_F (HeadlessGoogleTestEnvironment, RenderRedImage)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -1432,7 +1432,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_TransferOperation)
+TEST_F (HeadlessGoogleTestEnvironment, TransferOperation)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -1522,7 +1522,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, DISABLED_RenderGraphUseTest)
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -1735,7 +1735,7 @@ void main () {
 }
 
 
-TEST_F (HiddenWindowGoogleTestEnvironment, DISABLED_SwapchainTest)
+TEST_F (HiddenWindowGoogleTestEnvironment, SwapchainTest)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -1823,7 +1823,7 @@ void main () {
 }
 
 
-TEST_F (HiddenWindowGoogleTestEnvironment, DISABLED_VertexAndIndexBufferTest)
+TEST_F (HiddenWindowGoogleTestEnvironment, VertexAndIndexBufferTest)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();
@@ -1923,7 +1923,7 @@ void main () {
 }
 
 
-TEST_F (HiddenWindowGoogleTestEnvironment, DISABLED_BasicUniformBufferTest)
+TEST_F (HiddenWindowGoogleTestEnvironment, BasicUniformBufferTest)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
     GVK::CommandPool& commandPool   = GetCommandPool ();

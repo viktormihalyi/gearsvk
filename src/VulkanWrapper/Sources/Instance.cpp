@@ -11,7 +11,7 @@
 
 namespace GVK {
 
-const InstanceSettings instanceDebugMode { { VK_EXT_DEBUG_UTILS_EXTENSION_NAME, "VK_EXT_debug_report" }, { "VK_LAYER_KHRONOS_validation" } };
+const InstanceSettings instanceDebugMode { { VK_EXT_DEBUG_UTILS_EXTENSION_NAME }, { "VK_LAYER_KHRONOS_validation" } };
 const InstanceSettings instanceReleaseMode { {}, {} };
 
 

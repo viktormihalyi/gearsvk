@@ -308,6 +308,7 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
 
                 std::unique_ptr<CommandPipelineBarrier> barrier = std::make_unique<CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,  // TODO maybe VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT?
                                                                                                             VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT); // TODO maybe VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT?
+                barrier->AddMemoryBarrier (flushAllMemory);
                 Utils::ForEachP<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (Image* image : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = imageLayoutSequence[*image].back ();
@@ -350,6 +351,7 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
         {
             std::unique_ptr<CommandPipelineBarrier> barrier = std::make_unique<CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,  // TODO maybe VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT?
                                                                                                         VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT); // TODO maybe VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT?
+            barrier->AddMemoryBarrier (flushAllMemory);
             for (Pass& p : passes) {
                 Utils::ForEach<ImageResource*> (p.GetAllInputs (), [&] (ImageResource* img) {
                     for (Image* image : img->GetImages (frameIndex)) {

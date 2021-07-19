@@ -26,6 +26,18 @@ const DebugUtilsMessenger::Settings DebugUtilsMessenger::noPerformance {
 };
 
 
+const DebugUtilsMessenger::Settings DebugUtilsMessenger::all {
+    true,
+    true,
+    true,
+    true,
+
+    true,
+    true,
+    true,
+};
+
+
 template<typename FunctionType>
 FunctionType GetVulkanFunction (VkInstance instance, const char* functionName)
 {
