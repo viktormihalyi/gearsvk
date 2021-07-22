@@ -3,7 +3,7 @@
 
 #include "GVKUtilsAPI.hpp"
 
-class GVK_UTILS_API Noncopyable {
+class /* GVK_UTILS_API */ Noncopyable {
 public:
     Noncopyable ()          = default;
     virtual ~Noncopyable () = default;

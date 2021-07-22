@@ -3,15 +3,11 @@
 
 #include "GVKUtilsAPI.hpp"
 
-#include "Noncopyable.hpp"
 #include <memory>
-
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
 #include <functional>
-#include <iterator>
-#include <mutex>
 #include <optional>
 #include <set>
 #include <string>

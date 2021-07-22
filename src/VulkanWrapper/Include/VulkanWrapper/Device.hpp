@@ -5,6 +5,7 @@
 #include "Utils/MovablePtr.hpp"
 #include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"
+#include "Utils/Noncopyable.hpp"
 
 #include <vulkan/vulkan.h>
 

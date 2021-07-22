@@ -9,7 +9,7 @@
 
 #define LOGASSERTS
 
-#if !defined(NDEBUG) || defined(FORCEDEBUGMODE)
+#ifndef NDEBUG
 #define GVK_ASSERT(condition) (::Utils::detail::DebugBreakAssertFunc (condition, true, "ASSERTION", #condition, { __FILE__, __LINE__, __func__ }))
 #define GVK_VERIFY(condition) (::Utils::detail::DebugBreakAssertFunc (condition, true, "ASSERTION", #condition, { __FILE__, __LINE__, __func__ }))
 #define GVK_ERROR(condition) (::Utils::detail::DebugBreakAssertFunc (condition, false, "GVK_ERROR", #condition, { __FILE__, __LINE__, __func__ }))
