@@ -20,7 +20,7 @@ RenderGraph::RenderGraph ()
 
 void RenderGraph::CompileResources ()
 {
-    Utils::ForEachP<Resource> (graphSettings.connectionSet.insertionOrder, [&] (std::shared_ptr<Resource>& res) {
+    Utils::ForEach<Resource> (graphSettings.connectionSet.insertionOrder, [&] (std::shared_ptr<Resource>& res) {
         res->Compile (graphSettings);
     });
 }
@@ -92,7 +92,7 @@ Pass RenderGraph::GetFirstPass () const
     std::set<Operation*>    allOpSet;
     std::vector<Operation*> allOp;
 
-    Utils::ForEachP<Operation> (graphSettings.connectionSet.insertionOrder, [&] (const std::shared_ptr<Operation>& op) {
+    Utils::ForEach<Operation> (graphSettings.connectionSet.insertionOrder, [&] (const std::shared_ptr<Operation>& op) {
         const std::vector<std::shared_ptr<Resource>> opInputs = graphSettings.connectionSet.GetPointingHere<Resource> (op.get ());
 
         const bool allInputsAreFirstWrittenByThisOp = std::all_of (opInputs.begin (), opInputs.end (), [&] (const std::shared_ptr<Resource>& res) {
@@ -309,7 +309,7 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
                 std::unique_ptr<CommandPipelineBarrier> barrier = std::make_unique<CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,  // TODO maybe VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT?
                                                                                                             VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT); // TODO maybe VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT?
                 barrier->AddMemoryBarrier (flushAllMemory);
-                Utils::ForEachP<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
+                Utils::ForEach<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (Image* image : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = imageLayoutSequence[*image].back ();
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForInputs (*img);
@@ -318,7 +318,7 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
                     }
                 });
 
-                Utils::ForEachP<ImageResource> (allOutputs, [&] (const std::shared_ptr<ImageResource>& img) {
+                Utils::ForEach<ImageResource> (allOutputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (Image* image : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = imageLayoutSequence[*image].back ();
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForOutputs (*img);
@@ -330,13 +330,13 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
                 currentCmdbuffer.RecordCommand (std::move (barrier))
                     .SetName ("Transition for next Pass");
 
-                Utils::ForEachP<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
+                Utils::ForEach<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (Image* image : img->GetImages (frameIndex)) {
                         imageLayoutSequence[*image].push_back (op->GetImageLayoutAtEndForInputs (*img)); // TODO VkAttachmentDescription.finalLayout
                     }
                 });
 
-                Utils::ForEachP<ImageResource> (allOutputs, [&] (const std::shared_ptr<ImageResource>& img) {
+                Utils::ForEach<ImageResource> (allOutputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (Image* image : img->GetImages (frameIndex)) {
                         imageLayoutSequence[*image].push_back (op->GetImageLayoutAtEndForOutputs (*img)); // TODO VkAttachmentDescription.finalLayout
                     }

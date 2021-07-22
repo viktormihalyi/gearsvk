@@ -20,7 +20,6 @@ private:
     uint32_t height;
 
 public:
-    Framebuffer (VkDevice device, VkRenderPass renderPass, const std::vector<std::reference_wrapper<ImageView2D>>& attachments, uint32_t width, uint32_t height);
     Framebuffer (VkDevice device, VkRenderPass renderPass, const std::vector<VkImageView>& attachments, uint32_t width, uint32_t height);
     Framebuffer (VkDevice device, VkRenderPass renderPass, std::vector<ImageView2D>&& attachments, uint32_t width, uint32_t height);
 

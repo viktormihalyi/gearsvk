@@ -552,7 +552,6 @@ void main () {
     env->graphicsQueue->Wait ();
 
     GVK::ImageData img (device, renderTarget, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    img.SaveTo (ReferenceImagesFolder / "killme.png");
 
     GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
 
@@ -731,7 +730,6 @@ void main () {
     env->graphicsQueue->Wait ();
 
     GVK::ImageData img (device, *renderTarget->images[0]->image, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    img.SaveTo (ReferenceImagesFolder / "killme.png");
 
     GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
 
@@ -906,7 +904,6 @@ void main () {
     env->graphicsQueue->Wait ();
 
     GVK::ImageData img (device, *renderTarget->images[0]->image, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    img.SaveTo (ReferenceImagesFolder / "killme.png");
 
     GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
 
@@ -1013,7 +1010,6 @@ void main () {
     env->graphicsQueue->Wait ();
 
     GVK::ImageData img (device, *renderTarget->images[0]->image, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    img.SaveTo (ReferenceImagesFolder / "killme.png");
 
     GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
 

@@ -83,65 +83,26 @@ std::set<T> SetDiff (const std::set<T>& left, const std::set<T>& right)
 }
 
 
-template<typename SourceType, typename DestinationType>
-std::vector<DestinationType> ConvertToHandles (const std::vector<std::unique_ptr<SourceType>>& src)
+template<typename CastedType, typename Container, typename Processor>
+void ForEach (Container&& container, Processor&& processor)
 {
-    std::vector<DestinationType> result;
-    result.reserve (src.size ());
-    for (const std::unique_ptr<SourceType>& s : src) {
-        GVK_ASSERT (s != nullptr);
-        result.push_back (static_cast<DestinationType> (*s));
-    }
-    return result;
-}
-
-
-template<typename SourceType, typename DestinationType>
-std::vector<DestinationType> ConvertToHandles (const std::vector<std::shared_ptr<SourceType>>& src)
-{
-    std::vector<DestinationType> result;
-    result.reserve (src.size ());
-    for (const std::shared_ptr<SourceType>& s : src) {
-        GVK_ASSERT (s != nullptr);
-        result.push_back (static_cast<DestinationType> (*s));
-    }
-    return result;
-}
-
-
-template<typename SourceType, typename DestinationType>
-std::vector<DestinationType> ConvertToHandles (const std::vector<std::reference_wrapper<SourceType>>& src)
-{
-    std::vector<DestinationType> result;
-    result.reserve (src.size ());
-    for (const std::reference_wrapper<SourceType>& s : src) {
-        result.push_back (static_cast<DestinationType> (s.get ()));
-    }
-    return result;
-}
-
-
-template<typename CastedType, typename Processor, typename Container>
-void ForEach (Container&& container, const Processor& processor)
-{
-    for (auto& elem : container) {
-        if (auto castedElem = dynamic_cast<CastedType> (elem)) {
-            processor (castedElem);
+    if constexpr (std::is_pointer_v<CastedType>) {
+        for (auto& elem : container) {
+            auto castedElem = dynamic_cast<CastedType> (elem);
+            if (castedElem != nullptr) {
+                processor (castedElem);
+            }
+        }
+    } else {
+        for (auto& elem : container) {
+            auto castedElem = std::dynamic_pointer_cast<CastedType> (elem);
+            if (castedElem != nullptr) {
+                processor (castedElem);
+            }
         }
     }
 }
 
-
-template<typename CastedType, typename Processor, typename Container>
-void ForEachP (Container&& container, Processor&& processor)
-{
-    for (auto& elem : container) {
-        auto castedElem = std::dynamic_pointer_cast<CastedType> (elem);
-        if (castedElem != nullptr) {
-            processor (castedElem);
-        }
-    }
-}
 
 } // namespace Utils
 

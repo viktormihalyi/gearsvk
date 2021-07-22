@@ -20,7 +20,7 @@ UniformReflection::UniformReflection (RG::ConnectionSet& connectionSet, const Fi
 
 void UniformReflection::Flush (uint32_t frameIndex)
 {
-    Utils::ForEachP<RG::CPUBufferResource> (uboResources, [&] (const std::shared_ptr<RG::CPUBufferResource>& uboRes) {
+    Utils::ForEach<RG::CPUBufferResource> (uboResources, [&] (const std::shared_ptr<RG::CPUBufferResource>& uboRes) {
         const std::shared_ptr<SR::IUData> uboData = udatas.at (uboRes->GetUUID ());
 
         uboRes->GetMapping (frameIndex).Copy (uboData->GetData (), uboData->GetSize ());
@@ -32,7 +32,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
 {
     // GVK_ASSERT (!graph.operations.empty ());
 
-    Utils::ForEachP<RG::RenderOperation> (connectionSet.insertionOrder, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
+    Utils::ForEach<RG::RenderOperation> (connectionSet.insertionOrder, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
         ShaderKindSelector newsel;
 
         renderOp->GetShaderPipeline ()->IterateShaders ([&] (const ShaderModule& shaderModule) {
@@ -139,7 +139,7 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
     ImageMap result;
 
     const auto nodes = connectionSet.insertionOrder;
-    Utils::ForEachP<RG::RenderOperation> (nodes, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
+    Utils::ForEach<RG::RenderOperation> (nodes, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
         renderOp->GetShaderPipeline ()->IterateShaders ([&] (const ShaderModule& shaderModule) {
             for (const SR::Sampler& sampler : shaderModule.GetReflection ().samplers) {
                 std::shared_ptr<ReadOnlyImageResource> imgRes;
