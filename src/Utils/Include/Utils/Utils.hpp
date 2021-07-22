@@ -133,10 +133,11 @@ void ForEach (Container&& container, const Processor& processor)
 
 
 template<typename CastedType, typename Processor, typename Container>
-void ForEachP (Container& container, const Processor& processor)
+void ForEachP (Container&& container, Processor&& processor)
 {
     for (auto& elem : container) {
-        if (auto castedElem = std::dynamic_pointer_cast<CastedType> (elem)) {
+        auto castedElem = std::dynamic_pointer_cast<CastedType> (elem);
+        if (castedElem != nullptr) {
             processor (castedElem);
         }
     }

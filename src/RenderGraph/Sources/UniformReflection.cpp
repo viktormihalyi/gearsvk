@@ -35,7 +35,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
     Utils::ForEachP<RG::RenderOperation> (connectionSet.insertionOrder, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
         ShaderKindSelector newsel;
 
-        renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
+        renderOp->GetShaderPipeline ()->IterateShaders ([&] (const ShaderModule& shaderModule) {
             UboSelector ubosel;
             for (std::shared_ptr<SR::UBO> ubo : shaderModule.GetReflection ().ubos) {
                 if (filter (renderOp, shaderModule, ubo)) {
@@ -138,8 +138,9 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 {
     ImageMap result;
 
-    Utils::ForEachP<RG::RenderOperation> (connectionSet.insertionOrder, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
-        renderOp->compileSettings.pipeline->IterateShaders ([&] (const ShaderModule& shaderModule) {
+    const auto nodes = connectionSet.insertionOrder;
+    Utils::ForEachP<RG::RenderOperation> (nodes, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
+        renderOp->GetShaderPipeline ()->IterateShaders ([&] (const ShaderModule& shaderModule) {
             for (const SR::Sampler& sampler : shaderModule.GetReflection ().samplers) {
                 std::shared_ptr<ReadOnlyImageResource> imgRes;
 

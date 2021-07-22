@@ -90,6 +90,8 @@ public:
     virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, CommandBuffer& commandBuffer) override;
     virtual bool IsActive () override { return true; }
 
+    const std::unique_ptr<ShaderPipeline>& GetShaderPipeline () const { return compileSettings.pipeline; }
+
 private:
     virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&) override;
     virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&) override;

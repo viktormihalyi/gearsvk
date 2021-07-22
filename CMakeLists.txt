@@ -16,36 +16,26 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # ========== CONAN ==========
 
-# Only run conan install when conanfile.txt changes
+if (UNIX)
+set (WHICH_COMMAND which)
+else ()
+set (WHICH_COMMAND where)
+endif ()
+
+execute_process (COMMAND ${WHICH_COMMAND} conan OUTPUT_VARIABLE ConanPath RESULT_VARIABLE ret)
+
+if (ret EQUAL "0")
+message ("Found conan: " ${ConanPath})
+else ()
+message (FATAL_ERROR "Could not find conan.")
+endif ()
 
 execute_process (
-    COMMAND ${CMAKE_COMMAND} -E sha512sum ${CMAKE_SOURCE_DIR}/conanfile.txt
-    OUTPUT_VARIABLE ConanfileChecksumCurrent
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    
-set (CONANFILE_CHECKSUM_LAST_PATH ${CMAKE_BINARY_DIR}/ConanfileChecksumLast.txt)
-if (EXISTS ${CONANFILE_CHECKSUM_LAST_PATH})
-    file (STRINGS ${CONANFILE_CHECKSUM_LAST_PATH} ConanfileChecksumLast)
-endif ()
-
-if (NOT "${ConanfileChecksumCurrent}" STREQUAL "${ConanfileChecksumLast}")
-    message (NOTICE "[CONANFILE_CHECKSUM] Current: ${ConanfileChecksumCurrent}")
-    message (NOTICE "[CONANFILE_CHECKSUM] Last:    ${ConanfileChecksumLast}")
-    message (NOTICE "Running conan install...")
-    execute_process (
-        COMMAND conan install ${CMAKE_SOURCE_DIR}/conanfile.txt
-                    --install-folder=${CMAKE_BINARY_DIR}
-                    --build=missing
-                    --settings build_type=${CMAKE_BUILD_TYPE}
-        OUTPUT_VARIABLE ret)
-    if (ret EQUAL "1")
-        file (WRITE ${CMAKE_BINARY_DIR}/ConanfileChecksumLast.txt "${ConanfileChecksumCurrent}")
-    else ()
-        message (NOTICE "Conan install failed.")
-    endif ()
-else ()
-    message (NOTICE "NOT Running conan install.")
-endif ()
+    COMMAND conan install ${CMAKE_SOURCE_DIR}/conanfile.txt
+                --install-folder=${CMAKE_BINARY_DIR}
+                --build=missing
+                --settings build_type=${CMAKE_BUILD_TYPE}
+)
 
 include (${CMAKE_BINARY_DIR}/conan_paths.cmake)
 

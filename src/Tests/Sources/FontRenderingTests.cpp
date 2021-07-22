@@ -1,12 +1,7 @@
 ﻿#include "GoogleTestEnvironment.hpp"
 
-//#include "RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
 #include "RenderGraph/Font.hpp"
-//#include "RenderGraph/GraphSettings.hpp"
 #include "VulkanWrapper/Utils/ImageData.hpp"
-//#include "RenderGraph/Operation.hpp"
-//#include "RenderGraph/RenderGraph.hpp"
-//#include "RenderGraph/Resource.hpp"
 #include "RenderGraph/UniformReflection.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "RenderGraph/Window/Window.hpp"

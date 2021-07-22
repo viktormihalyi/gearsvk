@@ -101,7 +101,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 {
     compileResult.Clear ();
 
-    compileResult.descriptorSetLayout = compileSettings.pipeline->CreateDescriptorSetLayout (graphSettings.GetDevice ());
+    compileResult.descriptorSetLayout = GetShaderPipeline ()->CreateDescriptorSetLayout (graphSettings.GetDevice ());
 
     uint32_t s = 0;
 
@@ -145,11 +145,11 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 
     pipelineSettigns.blendEnabled = compileSettings.blendEnabled;
 
-    compileSettings.pipeline->Compile (std::move (pipelineSettigns));
+    GetShaderPipeline ()->Compile (std::move (pipelineSettigns));
 
     for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
         compileResult.framebuffers.push_back (std::make_unique<Framebuffer> (graphSettings.GetDevice (),
-                                                                             *compileSettings.pipeline->compileResult.renderPass,
+                                                                             *GetShaderPipeline ()->compileResult.renderPass,
                                                                              GetOutputImageViews (graphSettings.connectionSet, resourceIndex),
                                                                              //CreateOutputImageViews (graphSettings.GetDevice (), graphSettings.connectionSet, resourceIndex),
                                                                              width,
@@ -185,21 +185,21 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
 
     std::vector<VkClearValue> clearValues (outputCount, clearColor);
 
-    commandBuffer.Record<CommandBeginRenderPass> (*compileSettings.pipeline->compileResult.renderPass,
+    commandBuffer.Record<CommandBeginRenderPass> (*GetShaderPipeline ()->compileResult.renderPass,
                                                   *compileResult.framebuffers[resourceIndex],
                                                   VkRect2D { { 0, 0 }, { compileResult.width, compileResult.height } },
                                                   clearValues,
                                                   VK_SUBPASS_CONTENTS_INLINE)
         .SetName ("Operation - Renderpass Begin");
 
-    commandBuffer.Record<CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *compileSettings.pipeline->compileResult.pipeline).SetName ("Operation - Bind");
+    commandBuffer.Record<CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *GetShaderPipeline ()->compileResult.pipeline).SetName ("Operation - Bind");
 
     if (!compileResult.descriptorSets.empty ()) {
         VkDescriptorSet dsHandle = *compileResult.descriptorSets[resourceIndex];
 
         commandBuffer.Record<CommandBindDescriptorSets> (
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            *compileSettings.pipeline->compileResult.pipelineLayout,
+            *GetShaderPipeline ()->compileResult.pipelineLayout,
             0,
             std::vector<VkDescriptorSet> { dsHandle },
             std::vector<uint32_t> {}).SetName ("Operation - DescriptionSet");

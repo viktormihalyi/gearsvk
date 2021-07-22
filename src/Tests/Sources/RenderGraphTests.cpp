@@ -345,7 +345,7 @@ TEST_F (Empty, rng)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, faszom)
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphAbstractionTest_)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
@@ -560,7 +560,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, faszom2)
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphAbstractionTest_2)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
@@ -739,7 +739,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, faszom3)
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphAbstractionTest_3)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
@@ -914,7 +914,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, faszom4)
+TEST_F (HeadlessGoogleTestEnvironment, RenderGraphAbstractionTest_4)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
