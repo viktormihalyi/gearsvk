@@ -1,3 +1,4 @@
+#include "GoogleTestEnvironment.hpp"
 
 // from RenderGraph
 #include "RenderGraph/DrawRecordable/FullscreenQuad.hpp"
@@ -24,24 +25,19 @@
 #include <string>
 #include <thread>
 
-// from Testing
-#include "GoogleTestEnvironment.hpp"
-
 // from Utils
 #include "Utils/SourceLocation.hpp"
 #include "Utils/Timer.hpp"
 #include "Utils/Utils.hpp"
-
-// from vulkan
-#include <vulkan/vulkan.h>
 
 
 const std::filesystem::path ShadersFolder = std::filesystem::current_path () / "TestData" / "shaders";
 
 
 using Empty = ::testing::Test;
+using RenderGraphPassTest = ::testing::Test;
 
-TEST_F (Empty, RenderGraphPassTest_SingleOutput)
+TEST_F (RenderGraphPassTest, RenderGraphPassTest_SingleOutput)
 {
     using namespace GVK::RG;
 
@@ -63,7 +59,7 @@ TEST_F (Empty, RenderGraphPassTest_SingleOutput)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_SingleInput)
+TEST_F (RenderGraphPassTest, RenderGraphPassTest_SingleInput)
 {
     using namespace GVK::RG;
 
@@ -84,7 +80,7 @@ TEST_F (Empty, RenderGraphPassTest_SingleInput)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_SingleOutput_Remove)
+TEST_F (RenderGraphPassTest, RenderGraphPassTest_SingleOutput_Remove)
 {
     using namespace GVK::RG;
 
@@ -101,7 +97,7 @@ TEST_F (Empty, RenderGraphPassTest_SingleOutput_Remove)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_SingleInput_Remove)
+TEST_F (RenderGraphPassTest, RenderGraphPassTest_SingleInput_Remove)
 {
     using namespace GVK::RG;
 
@@ -118,7 +114,7 @@ TEST_F (Empty, RenderGraphPassTest_SingleInput_Remove)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleInput)
+TEST_F (RenderGraphPassTest, RenderGraphPassTest_MultipleInput)
 {
     using namespace GVK::RG;
 
@@ -136,7 +132,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleInput)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveOne)
+TEST_F (RenderGraphPassTest, RenderGraphPassTest_MultipleInput_RemoveOne)
 {
     using namespace GVK::RG;
 
@@ -160,7 +156,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveOne)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveAll)
+TEST_F (RenderGraphPassTest, RenderGraphPassTest_MultipleInput_RemoveAll)
 {
     using namespace GVK::RG;
 
@@ -183,7 +179,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleInput_RemoveAll)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleOutput)
+TEST_F (RenderGraphPassTest, RenderGraphPassTest_MultipleOutput)
 {
     using namespace GVK::RG;
 
@@ -201,7 +197,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleOutput)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveOne)
+TEST_F (RenderGraphPassTest, RenderGraphPassTest_MultipleOutput_RemoveOne)
 {
     using namespace GVK::RG;
 
@@ -225,7 +221,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveOne)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveAll)
+TEST_F (RenderGraphPassTest, RenderGraphPassTest_MultipleOutput_RemoveAll)
 {
     using namespace GVK::RG;
 
@@ -248,7 +244,7 @@ TEST_F (Empty, RenderGraphPassTest_MultipleOutput_RemoveAll)
 }
 
 
-TEST_F (Empty, RenderGraphPassTest_MultipleIO)
+TEST_F (RenderGraphPassTest, RenderGraphPassTest_MultipleIO)
 {
     using namespace GVK::RG;
 
@@ -324,7 +320,8 @@ uint64_t Forrest_C (const uint64_t k, const uint64_t seed, const uint64_t g, con
     return C;
 }
 
-TEST_F (Empty, rng)
+
+TEST_F (Empty, ArbitraryStrideLCG)
 {
     double   sum     = 0.0;
     int      count   = 0;
@@ -345,7 +342,9 @@ TEST_F (Empty, rng)
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphAbstractionTest_)
+using RenderGraphAbstractionTest = HeadlessGoogleTestEnvironment;
+
+TEST_F (RenderGraphAbstractionTest, NoRG)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
@@ -417,9 +416,9 @@ void main () {
     GVK::ImageView2D renderTargetView (*env->device, renderTarget, 0, 1);
     GVK::ImageView2D renderTargetView2 (*env->device, renderTarget, 0, 1);
 
-    GVK::DescriptorPool pool (device, 1024, 1024, 1024);
+    GVK::DescriptorPool      pool (device, 1024, 1024, 1024);
     GVK::DescriptorSetLayout setLayout (device, {});
-    GVK::DescriptorSet set (device, pool, setLayout);
+    GVK::DescriptorSet       set (device, pool, setLayout);
 
     VkAttachmentDescription attDesc1 = {};
     attDesc1.flags                   = 0;
@@ -475,7 +474,7 @@ void main () {
     GVK::Framebuffer fb (*env->device, *sp->compileResult.renderPass, { renderTargetView.operator VkImageView () }, 512, 512);
     GVK::Framebuffer fb2 (*env->device, *sp2->compileResult.renderPass, { renderTargetView2.operator VkImageView () }, 512, 512);
 
-    VkClearValue clearValue = {};
+    VkClearValue clearValue     = {};
     clearValue.color.float32[0] = 0.0f;
     clearValue.color.float32[1] = 0.0f;
     clearValue.color.float32[2] = 0.0f;
@@ -499,7 +498,7 @@ void main () {
     flushAllMemory.dstAccessMask = flushAllMemory.srcAccessMask;
 
     std::vector<GVK::CommandBuffer> commandBuffers;
-    
+
     VkImageMemoryBarrier transition            = {};
     transition.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     transition.pNext                           = nullptr;
@@ -559,7 +558,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphAbstractionTest_2)
+TEST_F (RenderGraphAbstractionTest, Operation_Resource)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
@@ -632,28 +631,30 @@ void main () {
     std::shared_ptr<GVK::RG::RenderOperation> renderOp2 = std::make_shared<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp2));
 
     s.connectionSet.Add (renderOp, renderTarget,
-                         std::make_unique<GVK::RG::OutputBinding> (0,
-                                                                   [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
-                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                                                   1,
-                                                                   VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+                         std::make_unique<GVK::RG::OutputBinding> (
+                             0,
+                             [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
+                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                             1,
+                             VK_ATTACHMENT_LOAD_OP_CLEAR,
+                             VK_ATTACHMENT_STORE_OP_STORE));
 
     s.connectionSet.Add (renderOp2, renderTarget,
-                         std::make_unique<GVK::RG::OutputBinding> (0,
-                                                                   [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
-                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                                                   1,
-                                                                   VK_ATTACHMENT_LOAD_OP_LOAD,
-                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+                         std::make_unique<GVK::RG::OutputBinding> (
+                             0,
+                             [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
+                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                             1,
+                             VK_ATTACHMENT_LOAD_OP_LOAD,
+                             VK_ATTACHMENT_STORE_OP_STORE));
 
 
     renderOp->Compile (s, 512, 512);
     renderOp2->Compile (s, 512, 512);
 
-    VkClearValue clearValue = {};
+    VkClearValue clearValue     = {};
     clearValue.color.float32[0] = 0.0f;
     clearValue.color.float32[1] = 0.0f;
     clearValue.color.float32[2] = 0.0f;
@@ -677,7 +678,7 @@ void main () {
     flushAllMemory.dstAccessMask = flushAllMemory.srcAccessMask;
 
     std::vector<GVK::CommandBuffer> commandBuffers;
-    
+
     VkImageMemoryBarrier transition            = {};
     transition.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     transition.pNext                           = nullptr;
@@ -737,7 +738,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphAbstractionTest_3)
+TEST_F (RenderGraphAbstractionTest, CommandBuffer)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
@@ -826,13 +827,12 @@ void main () {
                                                                    VK_ATTACHMENT_LOAD_OP_LOAD,
                                                                    VK_ATTACHMENT_STORE_OP_STORE));
 
-    
 
     GVK::RG::RenderGraph rg;
 
     rg.Compile (std::move (s));
 
-    VkClearValue clearValue = {};
+    VkClearValue clearValue     = {};
     clearValue.color.float32[0] = 0.0f;
     clearValue.color.float32[1] = 0.0f;
     clearValue.color.float32[2] = 0.0f;
@@ -856,7 +856,7 @@ void main () {
     flushAllMemory.dstAccessMask = flushAllMemory.srcAccessMask;
 
     std::vector<GVK::CommandBuffer> commandBuffers;
-    
+
     VkImageMemoryBarrier transition            = {};
     transition.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     transition.pNext                           = nullptr;
@@ -887,7 +887,7 @@ void main () {
         commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *renderOp2->compileSettings.pipeline->compileResult.pipeline);
         commandBuffer.Record<GVK::CommandDraw> (6, 1, 0, 0);
         commandBuffer.Record<GVK::CommandEndRenderPass> ();
-        commandBuffer.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, std::vector<VkMemoryBarrier> { flushAllMemory }, std::vector<VkBufferMemoryBarrier> {}, std::vector<VkImageMemoryBarrier> { });
+        commandBuffer.Record<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, std::vector<VkMemoryBarrier> { flushAllMemory }, std::vector<VkBufferMemoryBarrier> {}, std::vector<VkImageMemoryBarrier> {});
         commandBuffer.End ();
 
         commandBuffers.push_back (std::move (commandBuffer));
@@ -900,7 +900,7 @@ void main () {
 
     //env->graphicsQueue->Submit ({}, {}, commandBuffers, {}, VK_NULL_HANDLE);
     env->graphicsQueue->Submit ({}, {}, rg.commandBuffers, {}, VK_NULL_HANDLE);
-    
+
     env->graphicsQueue->Wait ();
 
     GVK::ImageData img (device, *renderTarget->images[0]->image, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -911,7 +911,7 @@ void main () {
 }
 
 
-TEST_F (HeadlessGoogleTestEnvironment, RenderGraphAbstractionTest_4)
+TEST_F (RenderGraphAbstractionTest, FullRG)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 

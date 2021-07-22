@@ -12,6 +12,7 @@
 #include "VulkanUtils.hpp"
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 namespace GVK {
 
@@ -254,7 +255,9 @@ void ImageData::SaveTo (const std::filesystem::path& path) const
     const int result = stbi_write_png (path.string ().c_str (), width, height, components, data.data (), width * components);
 
     if (GVK_VERIFY (result == 1)) {
-        std::cout << "Saved image to " << path.string () << std::endl;
+        spdlog::trace ("Saved image to {}.", path.string ());
+    } else {
+        spdlog::error ("Error saving image to {}.", path.string ());
     }
 }
 
