@@ -68,8 +68,6 @@ public:
 
     virtual void SetWindowMode (Mode) = 0;
     virtual Mode GetWindowMode ()     = 0;
-
-    static std::vector<const char*> GetExtensions ();
 };
 
 } // namespace GVK

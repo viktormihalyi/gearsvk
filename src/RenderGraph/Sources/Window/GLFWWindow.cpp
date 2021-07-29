@@ -32,7 +32,8 @@ public:
     {
         if (!initialized) {
             initialized = true;
-            int result  = glfwInit ();
+            glfwInitHint (GLFW_JOYSTICK_HAT_BUTTONS, GLFW_FALSE);
+            int result = glfwInit ();
             if (GVK_ERROR (result != GLFW_TRUE)) {
                 std::terminate ();
             }
@@ -320,7 +321,7 @@ void GLFWWindowBase::DoEventLoop (const DrawCallback& drawCallback)
 }
 
 
-std::vector<const char*> Window::GetExtensions ()
+std::vector<const char*> GetGLFWInstanceExtensions ()
 {
     globalGLFWInitializer.EnsureInitialized ();
 

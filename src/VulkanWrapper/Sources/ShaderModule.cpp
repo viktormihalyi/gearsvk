@@ -453,11 +453,13 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 
 ShaderModule::Reflection::Reflection (ShaderKind shaderKind, const std::vector<uint32_t>& binary)
     : shaderKind (shaderKind)
-    , ubos (SR::GetUBOsFromBinary (binary))
-    , samplers (SR::GetSamplersFromBinary (binary))
-    , inputs (SR::GetInputsFromBinary (binary))
-    , outputs (SR::GetOutputsFromBinary (binary))
 {
+    SR::ReflCompiler c (binary);
+
+    ubos     = SR::GetUBOsFromBinary (c);
+    samplers = SR::GetSamplersFromBinary (c);
+    inputs   = SR::GetInputsFromBinary (c);
+    outputs  = SR::GetOutputsFromBinary (c);
 }
 
 

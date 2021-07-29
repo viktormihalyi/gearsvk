@@ -1585,11 +1585,6 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    GVK::ImageData (device, *green->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "green.png");
-    GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presented.png");
-    GVK::ImageData (device, *red->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "red.png");
-    GVK::ImageData (device, *finalImg->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "final.png");
-
     ASSERT_TRUE (GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == GVK::ImageData (ReferenceImagesFolder / "black.png"));
 }
 
@@ -1704,7 +1699,7 @@ void main () {
 
     graph.Compile (std::move (s));
 
-    ASSERT_EQ (2, graph.GetPassCount ());
+    EXPECT_EQ (2, graph.GetPassCount ());
 
     GVK::ImageData referenceImage (ReferenceImagesFolder / "pink.png");
 

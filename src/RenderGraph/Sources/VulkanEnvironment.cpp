@@ -7,6 +7,7 @@
 #include "Utils/Timer.hpp"
 
 #include "Window.hpp"
+#include "GLFWWindow.hpp"
 
 #include "VulkanWrapper/Allocator.hpp"
 #include "VulkanWrapper/DebugUtilsMessenger.hpp"
@@ -121,7 +122,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
 {
     InstanceSettings is = (IsDebugBuild) ? instanceDebugMode : instanceReleaseMode;
 
-    const std::vector<const char*> windowExtenions = Window::GetExtensions ();
+    const std::vector<const char*> windowExtenions = GVK::GetGLFWInstanceExtensions ();
     is.extensions.insert (is.extensions.end (), windowExtenions.begin (), windowExtenions.end ());
 
     instance = std::make_unique<Instance> (is);

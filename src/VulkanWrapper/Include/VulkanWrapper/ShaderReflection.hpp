@@ -146,17 +146,29 @@ public:
 };
 
 
-VULKANWRAPPER_API
-std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>& binary);
+class VULKANWRAPPER_API ReflCompiler {
+public:
+
+    struct Impl; // hide spirv_cross::Compiler
+
+    std::unique_ptr<Impl> impl;
+
+    ReflCompiler (const std::vector<uint32_t>& binary);
+    ~ReflCompiler ();
+};
+
 
 VULKANWRAPPER_API
-std::vector<Sampler> GetSamplersFromBinary (const std::vector<uint32_t>& binary);
+std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler);
 
 VULKANWRAPPER_API
-std::vector<Input> GetInputsFromBinary (const std::vector<uint32_t>& binary);
+std::vector<Sampler> GetSamplersFromBinary (ReflCompiler& compiler);
 
 VULKANWRAPPER_API
-std::vector<Output> GetOutputsFromBinary (const std::vector<uint32_t>& binary);
+std::vector<Input> GetInputsFromBinary (ReflCompiler& compiler);
+
+VULKANWRAPPER_API
+std::vector<Output> GetOutputsFromBinary (ReflCompiler& compiler);
 
 VULKANWRAPPER_API
 VkFormat FieldTypeToVkFormat (FieldType fieldType);

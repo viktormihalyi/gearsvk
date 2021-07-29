@@ -177,7 +177,7 @@ ShaderUData::ShaderUData (const std::vector<std::shared_ptr<UBO>>& ubos)
 }
 
 ShaderUData::ShaderUData (const std::vector<uint32_t>& shaderBinary)
-    : ShaderUData (GetUBOsFromBinary (shaderBinary))
+    : ShaderUData (GetUBOsFromBinary (SR::ReflCompiler (shaderBinary)))
 {
 }
 

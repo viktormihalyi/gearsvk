@@ -339,9 +339,28 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
 }
 
 
-std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>& binary)
+struct ReflCompiler::Impl {
+    spirv_cross::Compiler compiler;
+
+    Impl (const std::vector<uint32_t>& binary)
+        : compiler (binary)
+    {
+    }
+};
+
+
+ReflCompiler::ReflCompiler (const std::vector<uint32_t>& binary)
+    : impl { std::make_unique<Impl> (binary) }
 {
-    spirv_cross::Compiler compiler (binary);
+}
+
+
+ReflCompiler::~ReflCompiler () = default;
+
+
+std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler_)
+{
+    spirv_cross::Compiler& compiler = compiler_.impl->compiler;
 
     const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
 
@@ -376,9 +395,9 @@ std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (const std::vector<uint32_t>
 }
 
 
-std::vector<Output> GetOutputsFromBinary (const std::vector<uint32_t>& binary)
+std::vector<Output> GetOutputsFromBinary (ReflCompiler& compiler_)
 {
-    spirv_cross::Compiler compiler (binary);
+    spirv_cross::Compiler& compiler = compiler_.impl->compiler;
 
     const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
 
@@ -455,9 +474,9 @@ VkFormat FieldTypeToVkFormat (FieldType fieldType)
 }
 
 
-std::vector<Input> GetInputsFromBinary (const std::vector<uint32_t>& binary)
+std::vector<Input> GetInputsFromBinary (ReflCompiler& compiler_)
 {
-    spirv_cross::Compiler compiler (binary);
+    spirv_cross::Compiler& compiler = compiler_.impl->compiler;
 
     const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
 
@@ -501,9 +520,9 @@ static Sampler::Type SpvDimToSamplerType (spv::Dim dim)
 }
 
 
-std::vector<Sampler> GetSamplersFromBinary (const std::vector<uint32_t>& binary)
+std::vector<Sampler> GetSamplersFromBinary (ReflCompiler& compiler_)
 {
-    spirv_cross::Compiler compiler (binary);
+    spirv_cross::Compiler& compiler = compiler_.impl->compiler;
 
     const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
 

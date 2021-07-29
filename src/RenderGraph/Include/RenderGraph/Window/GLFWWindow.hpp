@@ -56,6 +56,10 @@ public:
     virtual ~HiddenGLFWWindow () = default;
 };
 
+
+GVK_RENDERER_API
+std::vector<const char*> GetGLFWInstanceExtensions ();
+
 } // namespace GVK
 
 #endif
