@@ -16,7 +16,7 @@ class GVK_RENDERER_API Node : public Noncopyable {
 private:
     GVK::UUID   uuid;
     std::string name;
-    std::string description;
+    std::string debugInfo;
 
 public:
     virtual ~Node () = default;
@@ -24,10 +24,10 @@ public:
     const GVK::UUID& GetUUID () const { return uuid; }
 
     void SetName (const std::string& value) { name = value; }
-    void SetDescription (const std::string& value) { description = value; }
+    void SetDebugInfo (const std::string& value) { debugInfo = value; }
 
     const std::string& GetName () const { return name; }
-    const std::string& GetDescription () const { return description; }
+    const std::string& GetDebugInfo () const { return debugInfo; }
 };
 
 } // namespace RG

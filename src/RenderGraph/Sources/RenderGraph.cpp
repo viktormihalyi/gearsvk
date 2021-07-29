@@ -220,16 +220,16 @@ void RenderGraph::DebugPrint ()
         const Pass& pass = passes[i];
         logString << "Pass " << i << std::endl;
         for (const Operation* op : pass.GetAllOperations ()) {
-            logString << "\tOperation \"" << op->GetName () << "\" (desc: \"" << op->GetDescription () << "\", " << op->GetUUID ().GetValue () << ")" << std::endl;
+            logString << "\tOperation \"" << op->GetName () << "\" (debugInfo: \"" << op->GetDebugInfo () << "\", " << op->GetUUID ().GetValue () << ")" << std::endl;
             logString << "\tInputs:" << std::endl;
             auto resinp = graphSettings.connectionSet.GetPointingHere<Resource> (op);
             for (auto res : resinp) {
-                logString << "\t\tInput Resource \"" << res->GetName () << "\" (desc: \"" << res->GetDescription () << "\", id: " << res->GetUUID ().GetValue () << ")" << std::endl;
+                logString << "\t\tInput Resource \"" << res->GetName () << "\" (debugInfo: \"" << res->GetDebugInfo () << "\", id: " << res->GetUUID ().GetValue () << ")" << std::endl;
             }
             logString << "\tOutputs:" << std::endl;
             auto resout = graphSettings.connectionSet.GetPointingTo<Resource> (op);
             for (auto res : resout) {
-                logString << "\t\tOutput Resource \"" << res->GetName () << "\" (desc: \"" << res->GetDescription () << "\", id: " << res->GetUUID ().GetValue () << ")" << std::endl;
+                logString << "\t\tOutput Resource \"" << res->GetName () << "\" (debugInfo: \"" << res->GetDebugInfo () << "\", id: " << res->GetUUID ().GetValue () << ")" << std::endl;
             }
         }
     }

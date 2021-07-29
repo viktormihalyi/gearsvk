@@ -471,13 +471,35 @@ std::string Pass::ToDebugString () const
     const std::string frag = getStimulusGeneratorShaderSource ();
 
     if (!vert.empty ())
-        ss << "Vertex shader:" << std::endl << vert << std::endl;
+        ss << "========================== Vertex shader ==========================" << std::endl << vert << std::endl;
 
     if (!geom.empty ())
-        ss << "Geometry shader:" << std::endl << geom << std::endl;
+        ss << "========================== Geometry shader ========================" << std::endl << geom << std::endl;
 
     if (!frag.empty ())
-        ss << "Fragment shader:" << std::endl << frag << std::endl;
+        ss << "========================== Fragment shader ========================" << std::endl << frag << std::endl;
+
+    ss << "Shader variables:" << std::endl;
+    if (!shaderVariables.empty ())
+        for (auto& v : shaderVariables)
+            ss << "\t" << v.first << " = " << v.second << std::endl;
+
+    ss << std::endl;
+
+    ss << "Shader vectors:" << std::endl;
+    if (!shaderVectors.empty ())
+        for (auto& v : shaderVectors)
+            ss << "\t" << v.first << " = (" << v.second.x << ", " << v.second.y << ")" << std::endl;
+
+    ss << std::endl;
+
+    ss << "Shader colors:" << std::endl;
+    if (!shaderColors.empty ())
+        for (auto& v : shaderColors)
+            ss << "\t" << v.first << " = (" << v.second.x << ", " << v.second.y << ", " << v.second.z << ")" << std::endl;
+
+    ss << std::endl;
+
 
     return ss.str ();
 }

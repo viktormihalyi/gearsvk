@@ -48,7 +48,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
                 GVK_ASSERT (uboRes != nullptr);
 
                 uboRes->SetName (ubo->name);
-                uboRes->SetDescription ("Made by UniformReflection.");
+                uboRes->SetDebugInfo ("Made by UniformReflection.");
 
                 std::shared_ptr<SR::UDataInternal> uboData = std::make_unique<SR::UDataInternal> (ubo);
                 ubosel.Set (ubo->name, uboData);
@@ -178,7 +178,7 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
                 }
 
                 imgRes->SetName (sampler.name);
-                imgRes->SetDescription ("Made by ImageMap.");
+                imgRes->SetDebugInfo ("Made by ImageMap.");
 
                 result.Put (sampler, imgRes);
 
