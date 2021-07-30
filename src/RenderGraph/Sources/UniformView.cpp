@@ -176,26 +176,13 @@ ShaderUData::ShaderUData (const std::vector<std::shared_ptr<UBO>>& ubos)
     }
 }
 
-ShaderUData::ShaderUData (const std::vector<uint32_t>& shaderBinary)
-    : ShaderUData (GetUBOsFromBinary (SR::ReflCompiler (shaderBinary)))
-{
-}
-
-ShaderUData::ShaderUData (const std::unique_ptr<ShaderModule>& shaderModule)
-    : ShaderUData (shaderModule->GetBinary ())
-{
-}
-
-ShaderUData::ShaderUData (const ShaderModule& shaderModule)
-    : ShaderUData (shaderModule.GetBinary ())
-{
-}
 
 IUData& ShaderUData::operator[] (std::string_view str)
 {
     const uint32_t index = std::distance (uboNames.begin (), std::find (uboNames.begin (), uboNames.end (), str));
     return *udatas[index];
 }
+
 
 std::shared_ptr<UBO> ShaderUData::GetUbo (std::string_view str)
 {

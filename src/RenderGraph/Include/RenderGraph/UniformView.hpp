@@ -216,9 +216,6 @@ private:
 
 public:
     ShaderUData (const std::vector<std::shared_ptr<UBO>>& ubos);
-    ShaderUData (const std::vector<uint32_t>& shaderBinary);
-    ShaderUData (const std::unique_ptr<ShaderModule>& shaderModule);
-    ShaderUData (const ShaderModule& shaderModule);
 
     IUData& operator[] (std::string_view str);
 
