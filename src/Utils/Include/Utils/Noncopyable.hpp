@@ -9,9 +9,7 @@ public:
     virtual ~Noncopyable () = default;
 
     Noncopyable (Noncopyable&)  = delete;
-    Noncopyable (Noncopyable&&) = delete;
     Noncopyable& operator= (Noncopyable&) = delete;
-    Noncopyable& operator= (Noncopyable&&) = delete;
 };
 
 #endif
