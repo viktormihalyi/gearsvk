@@ -32,6 +32,9 @@ jobs:
         python3 -m pip install conan 
       
     - name: Create default conan profile
+      env:
+        CC: ${{ matrix.compiler.CC }}
+        CXX: ${{ matrix.compiler.CXX }}
       run: |
         conan profile new default --detect --force
         conan profile update settings.compiler.libcxx=libstdc++11 default
