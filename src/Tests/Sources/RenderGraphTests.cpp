@@ -348,28 +348,47 @@ TEST_F (RenderGraphAbstractionTest, NoRG)
 {
     GVK::DeviceExtra& device = *env->deviceExtra;
 
-    const char* vertSrc = R"(
+    const char* vertSrc1 = R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
 layout (location = 0) out vec2 textureCoords;
 
-vec2 uvs[6] = vec2[] (
+vec2 uvs[3] = vec2[] (
     vec2 (0.f, 0.f),
     vec2 (0.f, 1.f),
-    vec2 (1.f, 1.f),
+    vec2 (1.f, 1.f)
+);
+
+vec2 positions[3] = vec2[] (
+    vec2 (-1.f, -1.f),
+    vec2 (-1.f, +1.f),
+    vec2 (+1.f, +1.f)
+);
+
+
+void main() {
+    gl_Position = vec4 (positions[gl_VertexIndex], 0.0, 1.0);
+    textureCoords = uvs[gl_VertexIndex];
+}
+    )";
+
+    const char* vertSrc2 = R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) out vec2 textureCoords;
+
+vec2 uvs[3] = vec2[] (
     vec2 (1.f, 1.f),
     vec2 (0.f, 0.f),
     vec2 (1.f, 0.f)
 );
 
-vec2 positions[6] = vec2[] (
-    vec2 (-1.f, -1.f),
+vec2 positions[3] = vec2[] (
     vec2 (-1.f, +1.f),
-    vec2 (+1.f, +1.f),
-    vec2 (+1.f, +1.f),
-    vec2 (-1.f, -1.f),
-    vec2 (+1.f, -1.f)
+    vec2 (+1.f, -1.f),
+    vec2 (+1.f, +1.f)
 );
 
 
@@ -380,7 +399,7 @@ void main() {
     )";
 
     auto sp = std::make_unique<GVK::RG::ShaderPipeline> (device);
-    sp->SetVertexShaderFromString (vertSrc);
+    sp->SetVertexShaderFromString (vertSrc1);
     sp->SetFragmentShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -393,7 +412,7 @@ void main () {
     )");
 
     auto sp2 = std::make_unique<GVK::RG::ShaderPipeline> (device);
-    sp2->SetVertexShaderFromString (vertSrc);
+    sp2->SetVertexShaderFromString (vertSrc2);
     sp2->SetFragmentShaderFromString (R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -457,7 +476,7 @@ void main () {
     shaderPipelineSettings.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     shaderPipelineSettings.attachmentDescriptions = { attDesc1 };
     shaderPipelineSettings.attachmentReferences   = { attRef1 };
-    shaderPipelineSettings.blendEnabled           = false;
+    shaderPipelineSettings.blendEnabled           = true;
 
     GVK::RG::ShaderPipeline::CompileSettings shaderPipelineSettings2;
     shaderPipelineSettings2.width                  = 512;
@@ -551,6 +570,7 @@ void main () {
     env->graphicsQueue->Wait ();
 
     GVK::ImageData img (device, renderTarget, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    img.SaveTo (TempFolder / "twotriangles_blend.png");
 
     GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
 
@@ -1014,6 +1034,10 @@ void main () {
     GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
 
     EXPECT_TRUE (refimg == img);
+
+    if (!(refimg == img)) {
+        img.SaveTo (TempFolder / "pink_actual.png");
+    }
 }
 
 
@@ -1172,7 +1196,9 @@ void main ()
 
 )");
 
-    GVK::SR::ShaderUData refl (sm);
+    GVK::SR::ReflCompiler reflCompiler (sm->GetBinary ());
+    auto ubos = GVK::SR::GetUBOsFromBinary (reflCompiler);
+    GVK::SR::ShaderUData refl (ubos);
 
     refl["Quadrics"]["quadrics"][0]["WTF"] = glm::mat3x4 ();
 

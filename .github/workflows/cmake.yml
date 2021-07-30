@@ -12,10 +12,10 @@ jobs:
     
     strategy:
       matrix:
-        buildType: [Debug, Release, RelWithDebInfo]
+        buildType: [Debug, Release]
         compiler:
           - { CC: gcc-10,   CXX: g++-10 }
-          - { CC: clang-10, CXX: clang++-10 }       
+          - { CC: clang-10, CXX: clang++-10 }
 
     steps:
     - uses: actions/checkout@v2
