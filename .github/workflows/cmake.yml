@@ -12,7 +12,10 @@ jobs:
     
     strategy:
       matrix:
-        buildType: [Debug, Release]
+        buildType: [Debug, Release, RelWithDebInfo]
+        compiler:
+          - { CC: gcc-10,   CXX: g++-10 }
+          - { CC: clang-10, CXX: clang++-10 }       
 
     steps:
     - uses: actions/checkout@v2
@@ -34,10 +37,14 @@ jobs:
         conan profile update settings.compiler.libcxx=libstdc++11 default
 
     - name: Install system dependencies
-      run: sudo apt-get install vulkan-sdk ninja-build python3-setuptools python3-venv libgl1-mesa-dev xorg-dev libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-xinerama0-dev
+      run: sudo apt-get install gcc-10 clang-10 vulkan-sdk ninja-build python3-setuptools python3-venv libgl1-mesa-dev xorg-dev libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-xinerama0-dev
   
     - name: Configure CMake
+      env:
+        CC: ${{ matrix.compiler.CC }}
+        CXX: ${{ matrix.compiler.CXX }}
       run: |
+        export CXX=`which ${{matrix.compiler}}`
         cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}}
       
     - name: Build
