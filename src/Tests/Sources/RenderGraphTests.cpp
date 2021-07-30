@@ -1172,7 +1172,9 @@ void main ()
 
 )");
 
-    GVK::SR::ShaderUData refl (sm);
+    GVK::SR::ReflCompiler reflCompiler (sm->GetBinary ());
+    auto                  ubos = GVK::SR::GetUBOsFromBinary (reflCompiler);
+    GVK::SR::ShaderUData  refl (ubos);
 
     refl["Quadrics"]["quadrics"][0]["WTF"] = glm::mat3x4 ();
 
