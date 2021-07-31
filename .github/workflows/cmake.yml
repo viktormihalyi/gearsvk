@@ -27,10 +27,6 @@ jobs:
       with:
         path: ~/.conan
         key: ${{ runner.os }}-${{ matrix.compiler.CC }}-${{ matrix.buildType }}-build-${{ env.cache-name }}-${{ hashFiles('conanfile.txt', 'conanprofile') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
             
     - name: Add Vulkan SDK package
       run: |
