@@ -65,7 +65,9 @@ public:
     std::unique_ptr<DeviceExtra>         deviceExtra;
     std::unique_ptr<Allocator>           allocator;
 
-    VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback = testDebugCallback);
+    VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback           = testDebugCallback,
+                       const std::vector<const char*>&              instanceExtensions = {},
+                       const std::vector<const char*>&              deviceExtensions = {});
 
     virtual ~VulkanEnvironment ();
 

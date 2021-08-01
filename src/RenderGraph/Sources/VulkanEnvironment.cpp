@@ -118,12 +118,10 @@ DebugOnlyStaticInit apiVersionLogger ([] () {
 });
 
 
-VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback)
+VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback, const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& deviceExtensions)
 {
     InstanceSettings is = (IsDebugBuild) ? instanceDebugMode : instanceReleaseMode;
-
-    const std::vector<const char*> windowExtenions = GVK::GetGLFWInstanceExtensions ();
-    is.extensions.insert (is.extensions.end (), windowExtenions.begin (), windowExtenions.end ());
+    is.extensions.insert (is.extensions.end (), instanceExtensions.begin (), instanceExtensions.end ());
 
     instance = std::make_unique<Instance> (is);
 
@@ -164,10 +162,6 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
         vkGetPhysicalDeviceFormatProperties (*physicalDevice, VK_FORMAT_R32G32B32_SFLOAT, &props);
         vkGetPhysicalDeviceFormatProperties (*physicalDevice, VK_FORMAT_R32G32B32_SFLOAT, &props);
     }
-
-    std::vector<const char*> deviceExtensions;
-
-    deviceExtensions.push_back (VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
     device = std::make_unique<DeviceObject> (*physicalDevice, std::vector<uint32_t> { *physicalDevice->GetQueueFamilies ().graphics }, deviceExtensions);
 
