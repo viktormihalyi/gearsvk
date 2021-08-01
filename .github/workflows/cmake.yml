@@ -60,3 +60,7 @@ jobs:
     - name: Build
       run: |
         cmake --build ${{github.workspace}}/build --parallel
+
+    - name: Run tests
+      run: |
+        ./bin/GVKTest --gtest_filter=*Spirvrross2*
