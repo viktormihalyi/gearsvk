@@ -77,5 +77,6 @@ jobs:
         ls -la
 
     - name: Run tests
+      working-directory: ${{github.workspace}}/build/bin
       run: |
-        .${{github.workspace}}/build/bin/GVKTest --gtest_filter=*Spirvrross2*
+        ./GVKTest --gtest_filter=*Spirvrross2*
