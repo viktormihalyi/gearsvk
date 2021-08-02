@@ -27,7 +27,7 @@
 #include <fstream>
 
 
-constexpr bool LogDebugInfo = true;
+constexpr bool LogDebugInfo = false;
 constexpr bool LogUniformDebugInfo = false;
 
 
@@ -73,7 +73,7 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         sequencePip->SetFragmentShaderFromString (frag);
 
         std::shared_ptr<GVK::RG::RenderOperation> passOperation = std::make_unique<GVK::RG::RenderOperation> (
-            std::make_unique<GVK::DrawRecordableInfo> (1, 4), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+            std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
         passOperation->SetName (pass->name);
         passOperation->SetDebugInfo (pass->brief);
@@ -86,7 +86,7 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         //    passOperation->compileSettings.clearColor = std::nullopt;
         //}
 
-        passOperation->compileSettings.blendEnabled = !firstPass;
+        passOperation->compileSettings.blendEnabled = true;
 
         GVK_ASSERT (!stimulus->usesForwardRendering);
         //GVK_ASSERT (stimulus->mono);
@@ -94,7 +94,7 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         s.connectionSet.Add (passOperation, presented,
                              std::make_unique<GVK::RG::OutputBinding> (0,
                                                                        presented->GetFormatProvider (),
-                                                                       firstPass ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                                                                       VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                                                                        presented->GetFinalLayout (),
                                                                        1,
                                                                        firstPass ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,

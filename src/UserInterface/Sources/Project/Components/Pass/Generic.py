@@ -48,8 +48,8 @@ class Generic(Base) :
                 
                 vec4 outcolor = vec4 (fig (pos, time), alphaMask (pos, time).x); 
                 
-                outcolor.rgb = temporalProcess(outcolor.rgb, fTexCoord);
-                outcolor.rgb = toneMap(outcolor.rgb);
+                //outcolor.rgb = temporalProcess(outcolor.rgb, fTexCoord);
+                //outcolor.rgb = toneMap(outcolor.rgb);
                 
                 if (swizzleForFft == 0x00020000) {
                     outcolor = vec4(outcolor.r, 0, outcolor.g, 0);
