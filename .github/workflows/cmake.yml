@@ -60,23 +60,8 @@ jobs:
     - name: Build
       run: |
         cmake --build ${{github.workspace}}/build --parallel
-        
-    - name: ls1
-      working-directory: ${{github.workspace}}
-      run: |
-        ls -la
-        
-    - name: ls2
-      working-directory: ${{github.workspace}}/build
-      run: |
-        ls -la
-
-    - name: ls3
-      working-directory: ${{github.workspace}}/build/bin
-      run: |
-        ls -la
 
     - name: Run tests
       working-directory: ${{github.workspace}}/build/bin
       run: |
-        ./GVKTest --gtest_filter=*Spirvrross2*
+        ./GVKTest --gtest_filter=Empty.*:RenderGraphPassTest.*
