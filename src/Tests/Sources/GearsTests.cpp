@@ -206,6 +206,25 @@ TEST_F (GearsTests, 1_fullfield_whites)
 }
 
 
+TEST_F (GearsTests, 3_Patterns_1_Gratings_3_dual)
+{
+    LoadFromFile (SequencesFolder / "3_Patterns" / "1_Gratings" / "3_dual.pyx");
+
+    RenderAndCompare (480, "3_dual_480");
+}
+
+
+TEST_F (GearsTests, 3_Patterns_8_Other_3_mandelbrot)
+{
+    LoadFromFile (SequencesFolder / "3_Patterns" / "8_Other" / "3_mandelbrot.pyx");
+
+    RenderAndCompare (122, "3_mandelbrot_122");
+    RenderAndCompare (480, "3_mandelbrot_480");
+    RenderAndCompare (780, "3_mandelbrot_780");
+    RenderAndCompare (1000, "3_mandelbrot_1000");
+}
+
+
 // clang-format off
 
 TEST_F (GearsTests, LoadOnly_0_Utility_1_Spots_1_tiny_red) { LoadFromFile (SequencesFolder / "0_Utility" / "1_Spots" / "1_tiny_red.pyx"); RenderFirstFrame (); }
@@ -278,7 +297,6 @@ TEST_F (GearsTests, LoadOnly_5_squarechirp_ampmod_9Hz) { LoadFromFile (Sequences
 
 TEST_F (GearsTests, LoadOnly_3_Patterns_1_Gratings_1_sine) { LoadFromFile (SequencesFolder / "3_Patterns" / "1_Gratings" / "1_sine.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_3_Patterns_1_Gratings_2_wheel) { LoadFromFile (SequencesFolder / "3_Patterns" / "1_Gratings" / "2_wheel.pyx"); RenderFirstFrame (); }
-TEST_F (GearsTests, LoadOnly_3_Patterns_1_Gratings_3_dual) { LoadFromFile (SequencesFolder / "3_Patterns" / "1_Gratings" / "3_dual.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_3_Patterns_1_Gratings_4_two_gratings) { LoadFromFile (SequencesFolder / "3_Patterns" / "1_Gratings" / "4_two_gratings.pyx"); RenderFirstFrame (); }
 
 TEST_F (GearsTests, LoadOnly_3_Patterns_2_MovingGrids_1_sin) { LoadFromFile (SequencesFolder / "3_Patterns" / "2_MovingGrids" / "1_sin.pyx"); RenderFirstFrame (); }
@@ -288,7 +306,6 @@ TEST_F (GearsTests, LoadOnly_3_Patterns_2_MovingGrids_3_sinPhaseInvert) { LoadFr
 // SequenceError: applyWithArgs() got an unexpected keyword argument 'contrast'
 TEST_F (GearsTests, DISABLED_LoadOnly_3_Patterns_8_Other_1_classicCampbellRobertson) { LoadFromFile (SequencesFolder / "3_Patterns" / "8_Other" / "1_classicCampbellRobertson.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_3_Patterns_8_Other_2_constCampbellRobertson) { LoadFromFile (SequencesFolder / "3_Patterns" / "8_Other" / "2_constCampbellRobertson.pyx"); RenderFirstFrame (); }
-TEST_F (GearsTests, LoadOnly_3_Patterns_8_Other_3_mandelbrot) { LoadFromFile (SequencesFolder / "3_Patterns" / "8_Other" / "3_mandelbrot.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_3_Patterns_8_Other_4_gradients) { LoadFromFile (SequencesFolder / "3_Patterns" / "8_Other" / "4_gradients.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_3_Patterns_8_Other_5_edges) { LoadFromFile (SequencesFolder / "3_Patterns" / "8_Other" / "5_edges.pyx"); RenderFirstFrame (); }
 

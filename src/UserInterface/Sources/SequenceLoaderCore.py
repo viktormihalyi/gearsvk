@@ -12,7 +12,7 @@ def loadParents(fullpath, rootPath):
 
         sourceFileName = fullpath + "/" + module
 
-        print ('Loading {}...'.format (sourceFileName))
+        #print ('Loading {}...'.format (sourceFileName))
 
         loader = importlib.machinery.SourceFileLoader('my_module', sourceFileName)
         my_module = loader.load_module()
