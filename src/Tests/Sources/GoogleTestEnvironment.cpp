@@ -92,7 +92,9 @@ void GoogleTestEnvironmentBase::CompareImages (const std::string& imageName, con
 
 void GoogleTestEnvironmentBase::CompareImages (const std::string& name, const ImageData& actualImage)
 {
-    const ImageData referenceImage (ReferenceImagesFolder / (name + "_Reference.png"));
+    GVK_ASSERT (std::filesystem::exists (ReferenceImagesFolder / (name + ".png")));
+
+    const ImageData referenceImage (ReferenceImagesFolder / (name + ".png"));
 
     const ImageData::ComparisonResult comparison = referenceImage.CompareTo (actualImage);
 

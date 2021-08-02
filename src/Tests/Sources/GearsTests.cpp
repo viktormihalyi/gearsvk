@@ -88,7 +88,7 @@ protected:
 
     virtual void SetUp () override
     {
-        env = std::make_unique<VulkanEnvironment> (gtestDebugCallback);
+        env = std::make_unique<VulkanEnvironment> (gtestDebugCallback, GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
     }
 
     virtual void TearDown () override
