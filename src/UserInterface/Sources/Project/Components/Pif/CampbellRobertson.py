@@ -47,9 +47,8 @@ class CampbellRobertson(Base) :
                 direction = direction,
                )        
 
-        #spass.setShaderColor( name = functionName+'_color1', red = color1[0], green=color1[1], blue=color1[2] )
-        #spass.setShaderColor( name = functionName+'_color2', red = color2[0], green=color2[1], blue=color2[2] )
-
+        spass.setShaderColor( name = functionName+'_color1', red = color1[0], green=color1[1], blue=color1[2] )
+        spass.setShaderColor( name = functionName+'_color2', red = color2[0], green=color2[1], blue=color2[2] )
         
         try:
             direction.setDirection()
@@ -68,11 +67,11 @@ class CampbellRobertson(Base) :
         spass.setShaderVector( name=functionName+'_wavelength',
                              x = startWavelength / patternLength * 1.4142135623730950488016887242097,
                              y = endWavelength / patternLength * 1.4142135623730950488016887242097 )
-        #spass.setShaderVector( name=functionName+'_contrastLevels', x=minContrast, y=maxContrast )
+        spass.setShaderVector( name=functionName+'_contrastLevels', x=minContrast, y=maxContrast )
         spass.setShaderVector( name=functionName+'_span', x=c/patternLength, y=s/patternLength )
         spass.setShaderVector( name=functionName+'_cspan', x=c/patternWidth, y=s/patternWidth )
-        #spass.setShaderVariable( name=functionName+'_sineExponent', value=sineExponent )
-        #spass.setShaderVariable( name=functionName+'_contrastGradientExponent', value=contrastGradientExponent )
+        spass.setShaderVariable( name=functionName+'_sineExponent', value=sineExponent )
+        spass.setShaderVariable( name=functionName+'_contrastGradientExponent', value=contrastGradientExponent )
         spass.setShaderFunction( name = functionName, src = self.glslEsc( '''
             vec3 @<X>@(vec2 x, float time){
                 float t = dot(x,  @<X>@_span) + 0.5;

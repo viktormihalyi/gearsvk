@@ -66,8 +66,8 @@ class Gradient(Base) :
                 color2 = color2,
                 gradientEnds = (start, end)
                 )
-        #spass.setShaderVector( name = functionName+'_span', x=c, y=s )
-        #spass.setShaderVector( name = functionName+'_gradientEnds', x = start, y = end )
+        spass.setShaderVector( name = functionName+'_span', x=c, y=s )
+        spass.setShaderVector( name = functionName+'_gradientEnds', x = start, y = end )
         
         spass.setShaderFunction( name = functionName, src = self.glslEsc( '''
                 vec3 @<X>@(vec2 x, float time){
@@ -105,7 +105,7 @@ class Gradient(Base) :
                 start = - patternLength / 2
             if end == 'edge' :
                 end =  patternLength / 2
-            #spass.setShaderVector( name = functionName+'_gradientEnds', x = start, y = end )
+            spass.setShaderVector( name = functionName+'_gradientEnds', x = start, y = end )
             Component.update(self,
                              span = span,
                              color1 = color1,

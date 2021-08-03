@@ -298,8 +298,7 @@ TEST_F (GearsTests, LoadOnly_3_Patterns_2_MovingGrids_1_sin) { LoadFromFile (Seq
 TEST_F (GearsTests, LoadOnly_3_Patterns_2_MovingGrids_2_square) { LoadFromFile (SequencesFolder / "3_Patterns" / "2_MovingGrids" / "2_square.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_3_Patterns_2_MovingGrids_3_sinPhaseInvert) { LoadFromFile (SequencesFolder / "3_Patterns" / "2_MovingGrids" / "3_sinPhaseInvert.pyx"); RenderFirstFrame (); }
 
-// SequenceError: applyWithArgs() got an unexpected keyword argument 'contrast'
-TEST_F (GearsTests, DISABLED_LoadOnly_3_Patterns_8_Other_1_classicCampbellRobertson) { LoadFromFile (SequencesFolder / "3_Patterns" / "8_Other" / "1_classicCampbellRobertson.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_3_Patterns_8_Other_1_classicCampbellRobertson) { LoadFromFile (SequencesFolder / "3_Patterns" / "8_Other" / "1_classicCampbellRobertson.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_3_Patterns_8_Other_2_constCampbellRobertson) { LoadFromFile (SequencesFolder / "3_Patterns" / "8_Other" / "2_constCampbellRobertson.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_3_Patterns_8_Other_4_gradients) { LoadFromFile (SequencesFolder / "3_Patterns" / "8_Other" / "4_gradients.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_3_Patterns_8_Other_5_edges) { LoadFromFile (SequencesFolder / "3_Patterns" / "8_Other" / "5_edges.pyx"); RenderFirstFrame (); }
@@ -355,8 +354,7 @@ TEST_F (GearsTests, LoadOnly_4_MovingShapes_5_Scan_2_scanTinySquaresShuffled) { 
 TEST_F (GearsTests, DISABLED_LoadOnly_4_MovingShapes_6_Complex_1_brownian) { LoadFromFile (SequencesFolder / "4_MovingShapes" / "6_Complex" / "1_brownian.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, DISABLED_LoadOnly_4_MovingShapes_6_Complex_5_showoff) { LoadFromFile (SequencesFolder / "4_MovingShapes" / "6_Complex" / "5_showoff.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, DISABLED_LoadOnly_4_MovingShapes_6_Complex_6_showoffScale) { LoadFromFile (SequencesFolder / "4_MovingShapes" / "6_Complex" / "6_showoffScale.pyx"); RenderFirstFrame (); }
-// failed to create pipeline
-TEST_F (GearsTests, DISABLED_LoadOnly_4_MovingShapes_6_Complex_7_showoffChaos) { LoadFromFile (SequencesFolder / "4_MovingShapes" / "6_Complex" / "7_showoffChaos.pyx"); RenderFirstFrame (); }
+TEST_F (GearsTests, LoadOnly_4_MovingShapes_6_Complex_7_showoffChaos) { LoadFromFile (SequencesFolder / "4_MovingShapes" / "6_Complex" / "7_showoffChaos.pyx"); RenderFirstFrame (); }
 
 TEST_F (GearsTests, LoadOnly_5_Randoms_1_FullFields_1_Binary_1_ff_60Hz) { LoadFromFile (SequencesFolder / "5_Randoms" / "1_FullFields" / "1_Binary" / "1_ff_60Hz.pyx"); RenderFirstFrame (); }
 TEST_F (GearsTests, LoadOnly_5_Randoms_1_FullFields_1_Binary_2_ff_30Hz) { LoadFromFile (SequencesFolder / "5_Randoms" / "1_FullFields" / "1_Binary" / "2_ff_30Hz.pyx"); RenderFirstFrame (); }
