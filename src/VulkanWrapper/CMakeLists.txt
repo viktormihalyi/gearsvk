@@ -52,6 +52,7 @@ set (Sources
     ${SourcesPath}/Utils/ImageData.cpp
     ${SourcesPath}/Utils/MemoryMapping.cpp
     ${SourcesPath}/Utils/VulkanUtils.cpp
+    ${SourcesPath}/Utils/STBImpl.cpp
 
     ${SourcesPath}/Allocator.cpp
     ${SourcesPath}/Buffer.cpp
@@ -78,7 +79,6 @@ set (Sources
     ${SourcesPath}/VulkanObject.cpp
  
     ${SourcesPath}/VulkanMemoryAllocatorImpl.cpp
-    ${SourcesPath}/Utils/STBImpl.cpp
 )
 
 add_library (VulkanWrapper SHARED ${Headers} ${Sources})
