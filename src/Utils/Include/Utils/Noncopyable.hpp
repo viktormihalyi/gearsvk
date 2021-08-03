@@ -8,8 +8,11 @@ public:
     Noncopyable ()          = default;
     virtual ~Noncopyable () = default;
 
-    Noncopyable (Noncopyable&)  = delete;
-    Noncopyable& operator= (Noncopyable&) = delete;
+    Noncopyable (const Noncopyable&) = delete;
+    Noncopyable& operator= (const Noncopyable&) = delete;
+
+    Noncopyable (Noncopyable&&) = default;
+    Noncopyable& operator= (Noncopyable&&) = default;
 };
 
 #endif

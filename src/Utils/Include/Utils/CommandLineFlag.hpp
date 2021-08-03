@@ -53,7 +53,7 @@ public:
     virtual std::string GVK_UTILS_API GetHelpText () override;
 
 private:
-    void Match (int argc, char** argv, Utils::Matcher& matcher);
+    virtual void Match (int argc, char** argv, Utils::Matcher& matcher) override;
     virtual void MatchParameters (int argc, char** argv, Utils::Matcher& matcher, size_t matched) {}
 };
 

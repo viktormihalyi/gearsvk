@@ -13,8 +13,12 @@ private:
 
 protected:
     VulkanObject ();
+
     VulkanObject (const VulkanObject&) = default;
-    VulkanObject (VulkanObject&&)      = default;
+    VulkanObject& operator= (const VulkanObject&) = default;
+
+    VulkanObject (VulkanObject&&) = default;
+    VulkanObject& operator= (VulkanObject&&) = default;
 
 public:
     virtual ~VulkanObject ();

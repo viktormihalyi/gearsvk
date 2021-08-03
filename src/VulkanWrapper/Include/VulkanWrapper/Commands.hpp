@@ -31,7 +31,7 @@ public:
 
     virtual void Record (CommandBuffer&) override;
 
-    virtual bool IsEquivalent (const Command& other)
+    virtual bool IsEquivalent (const Command& other) override
     {
         if (auto otherCommand = dynamic_cast<const CommandBindVertexBuffers*> (&other)) {
             // ignore VkBuffer
@@ -96,7 +96,7 @@ public:
     virtual void Record (CommandBuffer&) override;
 
 
-    virtual bool IsEquivalent (const Command& other)
+    virtual bool IsEquivalent (const Command& other) override
     {
         if (auto otherCommand = dynamic_cast<const CommandPipelineBarrier*> (&other)) {
             if (memoryBarriers.size () != otherCommand->memoryBarriers.size ())
@@ -185,7 +185,7 @@ public:
     }
 
 
-    virtual bool IsEquivalent (const Command& other)
+    virtual bool IsEquivalent (const Command& other) override
     {
         if (auto otherCommand = dynamic_cast<const CommandPipelineBarrier*> (&other)) {
         }
@@ -209,7 +209,7 @@ public:
         recordCallback (commandBuffer.GetHandle ());
     }
 
-    virtual bool IsEquivalent (const Command& other)
+    virtual bool IsEquivalent (const Command& other) override
     {
         if (auto otherCommand = dynamic_cast<const CommandGeneric*> (&other)) {
             return true;
@@ -335,7 +335,7 @@ public:
         vkCmdEndRenderPass (commandBuffer.GetHandle ());
     }
 
-    virtual bool IsEquivalent (const Command& other)
+    virtual bool IsEquivalent (const Command& other) override
     {
         if (auto otherCommand = dynamic_cast<const CommandEndRenderPass*> (&other)) {
             return true;
@@ -564,7 +564,7 @@ public:
         vkCmdCopyBufferToImage (commandBuffer.GetHandle (), srcBuffer, dstImage, dstImageLayout, regions.size (), regions.data ());
     }
 
-    virtual bool IsEquivalent (const Command& other)
+    virtual bool IsEquivalent (const Command& other) override
     {
         if (auto otherCommand = dynamic_cast<const CommandCopyBufferToImage*> (&other)) {
             // ignore VkImage, VkBuffer, VkBufferImageCopy // TODO
@@ -597,7 +597,7 @@ public:
         vkCmdCopyBuffer (commandBuffer.GetHandle (), srcBuffer, dstBuffer, regions.size (), regions.data ());
     }
 
-    virtual bool IsEquivalent (const Command& other)
+    virtual bool IsEquivalent (const Command& other) override
     {
         if (auto otherCommand = dynamic_cast<const CommandCopyBuffer*> (&other)) {
             // ignore VkBuffer, VkBufferCopy // TODO
