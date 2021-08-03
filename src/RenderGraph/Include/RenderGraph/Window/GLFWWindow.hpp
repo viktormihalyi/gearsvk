@@ -37,6 +37,8 @@ public:
     virtual void Hide () override;
     virtual void Focus () override;
 
+    virtual void SetTitle (const std::string&) override;
+
     virtual VkSurfaceKHR GetSurface (VkInstance instance) override;
     virtual void         PollEvents () override;
     virtual void         Close () override;

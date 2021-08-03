@@ -157,7 +157,7 @@ std::shared_ptr<PySequence> createPySequence (std::string name)
 }
 
 
-std::shared_ptr<PySequence> setSequence (std::shared_ptr<PySequence> sequence)
+std::shared_ptr<PySequence> setSequence (std::shared_ptr<PySequence> sequence, const std::string& name)
 {
     ::sequence = sequence;
 
@@ -166,7 +166,7 @@ std::shared_ptr<PySequence> setSequence (std::shared_ptr<PySequence> sequence)
     //kernelManager->clear ();
     //sequenceRenderer->apply (::sequence, shaderManager, textureManager, kernelManager);
 
-    Gears::SetRenderGraphFromSequence (sequence);
+    Gears::SetRenderGraphFromSequence (sequence, name);
 
     return sequence;
 }
@@ -735,7 +735,6 @@ void FillModule (pybind11::module_& m)
     m.def ("StartRendering", Gears::StartRendering);
     m.def ("CreateSurface", Gears::CreateSurface);
     m.def ("DestroySurface", Gears::DestroySurface);
-    m.def ("DestroySurface", Gears::SetRenderGraphFromSequence);
 
     m.def ("SetCurrentSurface", Gears::SetCurrentSurface);
     m.def ("RenderFrame", Gears::RenderFrame);

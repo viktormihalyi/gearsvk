@@ -237,10 +237,10 @@ void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std
 
 
 void StimulusAdapter::RenderFrameIndex (GVK::RG::Renderer&                     renderer,
-                                                      const std::shared_ptr<Stimulus const>& stimulus,
-                                                      const uint32_t                         frameIndex,
-                                                      GVK::RG::IFrameDisplayObserver&        frameDisplayObserver,
-                                                      IRandomExporter&                       randomExporter)
+                                        const std::shared_ptr<Stimulus const>& stimulus,
+                                        const uint32_t                         frameIndex,
+                                        GVK::RG::IFrameDisplayObserver&        frameDisplayObserver,
+                                        IRandomExporter&                       randomExporter)
 {
     const uint32_t stimulusStartingFrame = stimulus->getStartingFrame ();
     const uint32_t stimulusEndingFrame   = stimulus->getStartingFrame () + stimulus->getDuration ();
@@ -254,7 +254,6 @@ void StimulusAdapter::RenderFrameIndex (GVK::RG::Renderer&                     r
         for (auto& [pass, renderOp] : passToOperation) {
             SetUniforms (renderOp->GetUUID (), stimulus, frameIndex);
         }
-
 
         if (randomGeneratorOperation != nullptr) {
             auto& fragmentShaderUniforms = (*reflection)[randomGeneratorOperation->GetUUID ()][GVK::ShaderKind::Fragment];

@@ -49,8 +49,10 @@ private:
 
     std::vector<uint32_t> resourceIndexToRenderedFrameMapping;
 
+    std::string sequenceNameInTitle;
+
 public:
-    SequenceAdapter (GVK::VulkanEnvironment& environment, const std::shared_ptr<Sequence>& sequence);
+    SequenceAdapter (GVK::VulkanEnvironment& environment, const std::shared_ptr<Sequence>& sequence, const std::string& sequenceNameInTitle);
 
     virtual ~SequenceAdapter () = default;
 
@@ -64,10 +66,11 @@ public:
 
     void RenderFullOnExternalWindow ();
 
-    // GVK::RG::IFrameDisplayObserver
-    virtual void OnImageAcquisitionFenceSignaled (uint32_t) override;
-
     std::shared_ptr<Sequence> GetSequence () { return sequence; }
+
+    // implementing GVK::RG::IFrameDisplayObserver
+
+    virtual void OnImageAcquisitionFenceSignaled (uint32_t) override;
 
 private:
     void CreateStimulusAdapterViews ();

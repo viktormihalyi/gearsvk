@@ -60,11 +60,12 @@ public:
     virtual float    GetAspectRatio () const = 0;
     virtual double   GetRefreshRate () const   = 0;
 
-
     virtual void Show ()  = 0;
     virtual void Hide ()  = 0;
     virtual void Focus () = 0;
     virtual void Close () = 0;
+
+    virtual void SetTitle (const std::string&) = 0;
 
     virtual void SetWindowMode (Mode) = 0;
     virtual Mode GetWindowMode ()     = 0;

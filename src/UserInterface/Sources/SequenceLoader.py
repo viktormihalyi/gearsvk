@@ -31,7 +31,7 @@ def loadSequence(fullpath, browser, openIde):
 
             my_module = loader.load_module()
             gears.makeCurrent()
-            gears.setSequence(my_module.create(None))
+            gears.setSequence(my_module.create(None), os.path.basename (fullpath))
             #gears.SetCurrentSurface(browser.surfaceHandle)
             #gears.RenderFrame(600)
 

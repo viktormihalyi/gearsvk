@@ -145,7 +145,7 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
         usedMonitor  = primaryMonitor;
     }
 
-    impl->window = glfwCreateWindow (impl->width, impl->height, "test", usedMonitor, nullptr);
+    impl->window = glfwCreateWindow (impl->width, impl->height, "GearsVk", usedMonitor, nullptr);
     if (GVK_ERROR (impl->window == nullptr)) {
         throw std::runtime_error ("failed to create window");
     }
@@ -369,6 +369,12 @@ void GLFWWindowBase::Show ()
 void GLFWWindowBase::Focus ()
 {
     glfwFocusWindow (impl->window);
+}
+
+
+void GLFWWindowBase::SetTitle (const std::string& title)
+{
+    glfwSetWindowTitle (impl->window, title.c_str ());
 }
 
 

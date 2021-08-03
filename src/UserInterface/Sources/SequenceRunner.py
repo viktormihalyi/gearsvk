@@ -27,7 +27,7 @@ sequence = sequenceCreator.create (None)
 print ('Done!')
 
 print ('SetSequence... ', end='')
-gears.setSequence (sequence)
+gears.setSequence (sequence, os.path.basename (filePath))
 print ('Done!')
 
 print ('StartRendering...')

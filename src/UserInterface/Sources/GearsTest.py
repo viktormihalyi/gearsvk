@@ -31,7 +31,7 @@ try:
     gears.createStimulusWindow()
 
     print("setSequence")
-    gears.setSequence(movingbar)
+    gears.setSequence(movingbar, "")
 
     print("StartRendering")
     gears.StartRendering()

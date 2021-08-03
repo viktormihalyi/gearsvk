@@ -133,10 +133,11 @@ static std::unique_ptr<IRandomExporter> GetRandomExporterImpl (GVK::DeviceExtra&
 
 Utils::CommandLineOnOffFlag printSignalsFlag { "--printSignals", "Prints signals to stdout." };
 
-SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const std::shared_ptr<Sequence>& sequence)
+SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const std::shared_ptr<Sequence>& sequence, const std::string& sequenceNameInTitle)
     : sequence { sequence }
     , environment { environment }
     , randomExporter { GetRandomExporterImpl (*environment.deviceExtra) }
+    , sequenceNameInTitle { sequenceNameInTitle }
 {
     CreateStimulusAdapterViews ();
 
@@ -220,6 +221,20 @@ void SequenceAdapter::OnImageAcquisitionFenceSignaled (uint32_t resourceIndex)
     
     // TODO check if signal's frame index and finishedFrameIndex are the same
 
+    const std::shared_ptr<Stimulus const> stimulus = sequence->getStimulusAtFrame (finishedFrameIndex);
+    GVK_ASSERT (stimulus != nullptr);
+
+    GVK_ASSERT (finishedFrameIndex + 1 /* TODO why +1 */ >= stimulus->getStartingFrame ());
+    const size_t stimulusFrameIndex = finishedFrameIndex - stimulus->getStartingFrame ();
+
+    {
+        std::stringstream ss;
+        ss << "GearsVk - " << sequenceNameInTitle;
+        ss << " [stimulus: frame " << stimulusFrameIndex << " / " << stimulus->getDuration () << " (" << std::floor (static_cast<double> (stimulusFrameIndex) / stimulus->getDuration () * 100.0) << "%) ";
+        ss << ", sequence: frame " << finishedFrameIndex << " / " << sequence->getDuration () << " (" << std::floor (static_cast<double> (finishedFrameIndex) / sequence->getDuration () * 100.0) << "%)] ";
+        currentPresentable->GetWindow ().SetTitle (ss.str ());
+    }
+
     auto sequenceSignals = sequence->getSignals ().equal_range (finishedFrameIndex);
     for (auto it = sequenceSignals.first; it != sequenceSignals.second; ++it) {
         auto channel = sequence->getChannels ().find (it->second.channel);
@@ -228,9 +243,7 @@ void SequenceAdapter::OnImageAcquisitionFenceSignaled (uint32_t resourceIndex)
         }
     }
     
-    std::shared_ptr<Stimulus const> stimulus = sequence->getStimulusAtFrame (finishedFrameIndex);
-    
-    auto stimulusSignals = stimulus->getSignals ().equal_range (finishedFrameIndex - stimulus->getStartingFrame ());
+    auto stimulusSignals = stimulus->getSignals ().equal_range (stimulusFrameIndex);
     for (auto it = stimulusSignals.first; it != stimulusSignals.second; ++it) {
         auto channel = sequence->getChannels ().find (it->second.channel);
         if (GVK_VERIFY (channel != sequence->getChannels ().end ())) {

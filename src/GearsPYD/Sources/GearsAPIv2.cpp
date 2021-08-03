@@ -7,6 +7,7 @@
 #include "VulkanWrapper/Surface.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "RenderGraph/Window/Window.hpp"
+#include "RenderGraph/Window/GLFWWindow.hpp"
 
 // from Gears
 #include "Sequence/SequenceAdapter.hpp"
@@ -42,9 +43,9 @@ void DestroyEnvironment ()
 }
 
 
-void SetRenderGraphFromSequence (std::shared_ptr<Sequence> seq)
+void SetRenderGraphFromSequence (std::shared_ptr<Sequence> seq, const std::string& name)
 {
-    currentSeq = std::make_unique<SequenceAdapter> (GetVkEnvironment (), seq);
+    currentSeq = std::make_unique<SequenceAdapter> (GetVkEnvironment (), seq, name);
 }
 
 
@@ -192,7 +193,7 @@ std::shared_ptr<Sequence> GetSequenceFromPyx (const std::filesystem::path& fileP
 std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment& environment, const std::filesystem::path& filePath)
 {
     std::shared_ptr<Sequence> sequence = GetSequenceFromPyx (filePath);
-    return std::make_unique<SequenceAdapter> (environment, sequence);
+    return std::make_unique<SequenceAdapter> (environment, sequence, filePath.filename ().string ());
 }
 
 
@@ -208,7 +209,7 @@ static std::unique_ptr<GVK::VulkanEnvironment> env_ = nullptr;
 static GVK::VulkanEnvironment& GetVkEnvironment ()
 {
     if (env_ == nullptr) {
-        env_ = std::make_unique<GVK::VulkanEnvironment> ();
+        env_ = std::make_unique<GVK::VulkanEnvironment> (GVK::testDebugCallback, GVK::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
     }
 
     return *env_;
