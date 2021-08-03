@@ -70,9 +70,6 @@ namespace glm
 }
 
 
-namespace GVK {
-namespace RG {
-
 static const std::filesystem::path SequencesFolder = std::filesystem::current_path () / "Project" / "Sequences";
 
 
@@ -83,12 +80,12 @@ StaticInit nosync ([] () {
 
 class GearsTests : public GoogleTestEnvironmentBase {
 protected:
-    std::shared_ptr<Presentable>     pres;
+    std::shared_ptr<GVK::Presentable>     pres;
     std::unique_ptr<SequenceAdapter> sequenceAdapter;
 
     virtual void SetUp () override
     {
-        env = std::make_unique<VulkanEnvironment> (gtestDebugCallback, GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+        env = std::make_unique<GVK::VulkanEnvironment> (gtestDebugCallback, GVK::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
     }
 
     virtual void TearDown () override
@@ -111,7 +108,7 @@ protected:
             return;
         }
 
-        pres = std::make_unique<Presentable> (*env, std::make_unique<HiddenGLFWWindow> (), defaultSwapchainSettingsSingleImage);
+        pres = std::make_unique<GVK::Presentable> (*env, std::make_unique<GVK::HiddenGLFWWindow> (), GVK::defaultSwapchainSettingsSingleImage);
 
         bool success = false;
         try {
@@ -133,9 +130,9 @@ protected:
         sequenceAdapter->RenderFrameIndex (frameIndex);
         sequenceAdapter->Wait ();
 
-        std::vector<std::unique_ptr<InheritedImage>> imgs = pres->GetSwapchain ().GetImageObjects ();
+        std::vector<std::unique_ptr<GVK::InheritedImage>> imgs = pres->GetSwapchain ().GetImageObjects ();
 
-        ImageData img { GetDeviceExtra (), *imgs[0], 0, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR };
+        GVK::ImageData img { GetDeviceExtra (), *imgs[0], 0, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR };
 
         CompareImages (checkName, img);
     }
@@ -397,6 +394,3 @@ TEST_F (GearsTests, LoadOnly_5_Randoms_4_Barcode_3_barcodeSatColor) { LoadFromFi
 TEST_F (GearsTests, LoadOnly_5_Randoms_4_Barcode_4_barcodeColor) { LoadFromFile (SequencesFolder / "5_Randoms" / "4_Barcode" / "4_barcodeColor.pyx"); RenderFirstFrame (); }
 
 // clang-format on
-
-} // namespace RG
-} // namespace GVK

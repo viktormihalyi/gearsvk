@@ -5,9 +5,7 @@
 
 #include <string>
 
-namespace MessageBox {
-
-enum class Result {
+enum class MessageBoxResult {
     Yes,
     No,
     Third,
@@ -15,8 +13,6 @@ enum class Result {
 };
 
 GVK_UTILS_API
-Result Show (const std::string& title, const std::string& message);
-
-} // namespace MessageBox
+MessageBoxResult ShowMessageBox (const std::string& title, const std::string& message);
 
 #endif

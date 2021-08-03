@@ -8,8 +8,6 @@
 
 // #include <glm/glm.hpp>
 
-namespace GVK {
-
 using FontRenderingTests = HiddenWindowGoogleTestEnvironment;
 
 #define STB_DEFINE
@@ -165,7 +163,7 @@ TEST_F (FontRenderingTests, DISABLED_SDF_a)
 
     dataV.resize (selected.w * selected.h);
     memcpy (dataV.data (), selected.data, dataV.size ());
-    ImageData asd = ImageData::FromDataUint (dataV, selected.w, selected.h, 1);
+    GVK::ImageData asd = GVK::ImageData::FromDataUint (dataV, selected.w, selected.h, 1);
     asd.SaveTo (std::filesystem::current_path () / "test.png");
 
     ypos = 60;
@@ -181,7 +179,7 @@ TEST_F (FontRenderingTests, DISABLED_SDF_a)
 }
 
 
-void CompareImages2 (const std::string &name, const ImageData &referenceImage, const ImageData &actualImage)
+void CompareImages2 (const std::string &name, const GVK::ImageData &referenceImage, const GVK::ImageData &actualImage)
 {
     const bool isSame = referenceImage == actualImage;
 
@@ -382,5 +380,3 @@ void main ()
 }
 
 #endif
-
-} // namespace GVK

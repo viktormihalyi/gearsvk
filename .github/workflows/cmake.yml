@@ -22,7 +22,6 @@ jobs:
               compiler: { CC: clang-10, CXX: clang++-10 }
               unityBuild: ON
 
-
     steps:
     - uses: actions/checkout@v2
   

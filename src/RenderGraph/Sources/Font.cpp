@@ -1,6 +1,9 @@
 #include "Font.hpp"
-#if 0
+
 #pragma warning(push, 0)
+#ifdef INFINITE // WinBase.h 
+#undef INFINITE
+#endif
 #include "msdfgen/msdfgen-ext.h"
 #include "msdfgen/msdfgen.h"
 #pragma warning(pop)
@@ -257,4 +260,3 @@ GlyphData Font::GetGlyphMTDF (uint32_t width, uint32_t height, uint32_t unicode)
     return GetGlyph<4> (impl->fontHandle, width, height, emSize, unicode, generator);
 }
 }
-#endif

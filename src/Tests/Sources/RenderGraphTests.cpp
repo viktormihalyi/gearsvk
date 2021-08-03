@@ -342,8 +342,6 @@ TEST_F (Empty, ArbitraryStrideLCG)
     std::cout << sum / count << std::endl;
 }
 
-using GVK::HeadlessGoogleTestEnvironment;
-using GVK::HiddenWindowGoogleTestEnvironment;
 
 using RenderGraphAbstractionTest = HeadlessGoogleTestEnvironment;
 
@@ -555,7 +553,7 @@ void main () {
 
     GVK::ImageData img (device, renderTarget, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-    GVK::ImageData refimg (GVK::ReferenceImagesFolder / "pink.png");
+    GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
 
     EXPECT_TRUE (refimg == img);
 }
@@ -735,7 +733,7 @@ void main () {
 
     GVK::ImageData img (device, *renderTarget->images[0]->image, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-    GVK::ImageData refimg (GVK::ReferenceImagesFolder / "pink.png");
+    GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
 
     EXPECT_TRUE (refimg == img);
 }
@@ -908,7 +906,7 @@ void main () {
 
     GVK::ImageData img (device, *renderTarget->images[0]->image, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-    GVK::ImageData refimg (GVK::ReferenceImagesFolder / "pink.png");
+    GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
 
     EXPECT_TRUE (refimg == img);
 }
@@ -1014,7 +1012,7 @@ void main () {
 
     GVK::ImageData img (device, *renderTarget->images[0]->image, 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-    GVK::ImageData refimg (GVK::ReferenceImagesFolder / "pink.png");
+    GVK::ImageData refimg (ReferenceImagesFolder / "pink.png");
 
     EXPECT_TRUE (refimg == img);
 }
@@ -1590,7 +1588,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
     vkQueueWaitIdle (graphicsQueue);
     vkDeviceWaitIdle (device);
 
-    ASSERT_TRUE (GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == GVK::ImageData (GVK::ReferenceImagesFolder / "black.png"));
+    ASSERT_TRUE (GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == GVK::ImageData (ReferenceImagesFolder / "black.png"));
 }
 
 
@@ -1706,7 +1704,7 @@ void main () {
 
     EXPECT_EQ (2, graph.GetPassCount ());
 
-    GVK::ImageData referenceImage (GVK::ReferenceImagesFolder / "pink.png");
+    GVK::ImageData referenceImage (ReferenceImagesFolder / "pink.png");
 
     const size_t renderCount = 1;
     size_t matchCount = 0;
@@ -1719,7 +1717,7 @@ void main () {
         vkQueueWaitIdle (graphicsQueue);
         vkDeviceWaitIdle (device);
 
-        GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (GVK::ReferenceImagesFolder / "presentedTwo.png");
+        GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presentedTwo.png");
  
         if (GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == referenceImage) {
             ++matchCount;

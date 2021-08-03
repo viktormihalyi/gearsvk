@@ -45,20 +45,20 @@ static void ShowAssertPopup (const std::string& title,
 
     bool ignoreNextTime = true;
 
-    const MessageBox::Result result = MessageBox::Show (title, sourceLocation + "\n" + message);
+    const MessageBoxResult result = ShowMessageBox (title, sourceLocation + "\n" + message);
 
     switch (result) {
-        case MessageBox::Result::Yes:
+        case MessageBoxResult::Yes:
             ignoreNextTime = false;
             DebugBreak ();
             break;
 
-        case MessageBox::Result::Third: // "Ignore"
+        case MessageBoxResult::Third: // "Ignore"
             ignoreNextTime = true;
             break;
 
-        case MessageBox::Result::No:
-        case MessageBox::Result::Error:
+        case MessageBoxResult::No:
+        case MessageBoxResult::Error:
             ignoreNextTime = false;
             break;
     }

@@ -4,9 +4,7 @@
 #include "CompilerDefinitions.hpp"
 #include "Platform.hpp"
 
-#define SKIP_WINDOWS_H 0
-
-#if SKIP_WINDOWS_H
+#ifdef PLATFORM_WINDOWS
 #include <cstring>
 #include <rpc.h>
 
@@ -51,7 +49,9 @@ static std::array<uint8_t, 16> GenerateUUID ()
     static std::random_device rd;
     static std::mt19937_64    gen (rd ());
 
-    static std::uniform_int_distribution<uint64_t> dis (0, 100000);
+    static std::uniform_int_distribution<uint64_t> dis (
+        std::numeric_limits<std::uint64_t>::min (),
+        std::numeric_limits<std::uint64_t>::max ());
 
     std::array<uint8_t, 16> result;
     *reinterpret_cast<uint64_t*> (result.data ())     = dis (gen);

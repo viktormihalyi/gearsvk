@@ -1,23 +1,20 @@
 #include "MessageBox.hpp"
 
-
 #include <iostream>
 #include <string>
 #include <vector>
 
 #include "Assert.hpp"
 
-namespace MessageBox {
-
 #ifdef GEARSVK_SDL_MESSAGEBOX
 
 // #include <SDL.h>
-Result Show (const std::string& title, const std::string& message)
+Result ShowMessageBox (const std::string& title, const std::string& message)
 {
     static const std::vector<Result> buttonOrder = {
-        Result::No,
-        Result::Yes,
-        Result::Third,
+        MessageBoxResult::No,
+        MessageBoxResult::Yes,
+        MessageBoxResult::Third,
     };
 
     static const std::vector<SDL_MessageBoxButtonData> buttons = {
@@ -41,11 +38,11 @@ Result Show (const std::string& title, const std::string& message)
 
     int buttonIndex = -1;
     if (SDL_ShowMessageBox (&messageBoxData, &buttonIndex) < 0) {
-        return Result::Error;
+        return MessageBoxResult::Error;
     }
 
     if (buttonIndex < 0 || buttonIndex > static_cast<int> (buttons.size ()) - 1) {
-        return Result::Error;
+        return MessageBoxResult::Error;
     }
 
     return buttonOrder[buttonIndex];
@@ -56,14 +53,14 @@ Result Show (const std::string& title, const std::string& message)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-Result Show (const std::string& title, const std::string& message)
+MessageBoxResult ShowMessageBox (const std::string& title, const std::string& message)
 {
     const int msgBoxResult = MessageBox (NULL, message.c_str (), title.c_str (), MB_YESNOCANCEL);
     switch (msgBoxResult) {
-        case IDYES: return Result::Yes;
-        case IDNO: return Result::No;
-        case IDCANCEL: return Result::Third;
-        default: return Result::Error;
+        case IDYES: return MessageBoxResult::Yes;
+        case IDNO: return MessageBoxResult::No;
+        case IDCANCEL: return MessageBoxResult::Third;
+        default: return MessageBoxResult::Error;
     }
 }
 
@@ -73,7 +70,7 @@ Result Show (const std::string& title, const std::string& message)
 
 #include "TerminalColors.hpp"
 
-Result Show (const std::string& title, const std::string& message)
+MessageBoxResult ShowMessageBox (const std::string& title, const std::string& message)
 {
     std::cout << title << std::endl;
     std::cout << "\t" << message << std::endl;
@@ -87,16 +84,14 @@ Result Show (const std::string& title, const std::string& message)
     }
 
     if (choice == 'y') {
-        return Result::Yes;
+        return MessageBoxResult::Yes;
     } else if (choice == 'n') {
-        return Result::No;
+        return MessageBoxResult::No;
     } else if (choice == 'i') {
-        return Result::Third;
+        return MessageBoxResult::Third;
     }
 
-    return Result::No;
+    return MessageBoxResult::No;
 }
 
 #endif
-
-} // namespace MessageBox
