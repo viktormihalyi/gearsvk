@@ -148,11 +148,6 @@ protected:
 };
 
 
-TEST_F (GearsTests, SerializeTest)
-{
-}
-
-
 TEST_F (GearsTests, 04_velocity400)
 {
     LoadFromFile (SequencesFolder / "4_MovingShapes" / "1_Bars" / "04_velocity400.pyx");
