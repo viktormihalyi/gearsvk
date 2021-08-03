@@ -11,7 +11,7 @@
 
 namespace GVK {
 
-class /* VULKANWRAPPER_API */ CommandPool : public VulkanObject, public Noncopyable {
+class /* VULKANWRAPPER_API */ CommandPool : public VulkanObject {
 private:
     VkDevice                       device;
     GVK::MovablePtr<VkCommandPool> handle;

@@ -41,13 +41,13 @@ public:
 };
 
 
-class SDLWindow final : public SDLWindowBase {
+class SDLWindow : public SDLWindowBase {
 public:
     SDLWindow ();
 };
 
 
-class HiddenSDLWindow final : public SDLWindowBase {
+class HiddenSDLWindow : public SDLWindowBase {
 public:
     HiddenSDLWindow ();
 };

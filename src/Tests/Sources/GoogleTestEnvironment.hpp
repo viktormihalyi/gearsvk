@@ -57,9 +57,6 @@ protected:
 
     virtual ~GoogleTestEnvironmentBase () override = default;
 
-    virtual void SetUp ()    = 0;
-    virtual void TearDown () = 0;
-
     void CompareImages (const std::string& imageName, const GVK::Image& image, std::optional<VkImageLayout> transitionFrom = std::nullopt);
 
     void CompareImages (const std::string& name, const GVK::ImageData& actualImage);

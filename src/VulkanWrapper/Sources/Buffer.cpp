@@ -10,7 +10,7 @@ Buffer::Buffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags us
     : allocator (allocator)
     , handle (VK_NULL_HANDLE)
     , allocationHandle (VK_NULL_HANDLE)
-    , size (size)
+    , size (bufferSize)
 {
     VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
     bufferInfo.size               = bufferSize;

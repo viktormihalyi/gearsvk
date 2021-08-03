@@ -167,12 +167,12 @@ public:
         }
     }
 
-    virtual std::vector<VkVertexInputAttributeDescription> GetAttributes () const
+    virtual std::vector<VkVertexInputAttributeDescription> GetAttributes () const override
     {
         return vertexInputAttributes;
     }
 
-    virtual std::vector<VkVertexInputBindingDescription> GetBindings () const
+    virtual std::vector<VkVertexInputBindingDescription> GetBindings () const override
     {
         return vertexInputBindings;
     }
@@ -180,9 +180,9 @@ public:
 
 class DrawRecordableInfoProvider : public DrawRecordable {
 public:
-    void                                           Record (CommandBuffer& commandBuffer) const override { GetDrawRecordableInfo ().Record (commandBuffer); }
-    std::vector<VkVertexInputAttributeDescription> GetAttributes () const override { return GetDrawRecordableInfo ().GetAttributes (); }
-    std::vector<VkVertexInputBindingDescription>   GetBindings () const override { return GetDrawRecordableInfo ().GetBindings (); }
+    virtual void                                           Record (CommandBuffer& commandBuffer) const override { GetDrawRecordableInfo ().Record (commandBuffer); }
+    virtual std::vector<VkVertexInputAttributeDescription> GetAttributes () const override { return GetDrawRecordableInfo ().GetAttributes (); }
+    virtual std::vector<VkVertexInputBindingDescription>   GetBindings () const override { return GetDrawRecordableInfo ().GetBindings (); }
 
 private:
     virtual const DrawRecordableInfo& GetDrawRecordableInfo () const = 0;

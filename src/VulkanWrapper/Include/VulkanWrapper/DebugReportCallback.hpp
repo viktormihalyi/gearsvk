@@ -9,7 +9,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API DebugReportCallback : public VulkanObject, public Noncopyable {
+class VULKANWRAPPER_API DebugReportCallback : public VulkanObject {
 private:
     VkInstance               instance;
     VkDebugReportCallbackEXT handle;

@@ -40,8 +40,8 @@ std::vector<fontchar> fdata;
 #define BITMAP_H 800
 unsigned char bitmap[BITMAP_H][BITMAP_W][3];
 
-char *sample       = "This is goofy text, size %d!";
-char *small_sample = "This is goofy text, size %d! Really needs in-shader supersampling to look good.";
+const char *sample       = "This is goofy text, size %d!";
+const char *small_sample = "This is goofy text, size %d! Really needs in-shader supersampling to look good.";
 
 void blend_pixel (int x, int y, int color, float alpha)
 {
@@ -138,7 +138,8 @@ TEST_F (FontRenderingTests, DISABLED_SDF_a)
     int            ch;
     float          scale, ypos;
     stbtt_fontinfo font;
-    void *         data = stb_file ("c:/windows/fonts/times.ttf", NULL);
+    const std::string    fileName = "c:/windows/fonts/times.ttf";
+    void *         data     = stb_file (const_cast<char*> (fileName.c_str ()), NULL);
     stbtt_InitFont (&font, static_cast<unsigned char*> (data), 0);
 
     scale = stbtt_ScaleForPixelHeight (&font, sdf_size);

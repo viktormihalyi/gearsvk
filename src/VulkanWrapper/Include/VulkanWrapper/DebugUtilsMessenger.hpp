@@ -11,7 +11,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API DebugUtilsMessenger : public VulkanObject, public Noncopyable {
+class VULKANWRAPPER_API DebugUtilsMessenger : public VulkanObject {
 public:
     using Callback = std::function<void (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
                                          VkDebugUtilsMessageTypeFlagsEXT             messageType,

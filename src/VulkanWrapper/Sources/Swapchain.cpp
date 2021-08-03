@@ -144,7 +144,6 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
     createInfo.clipped        = VK_TRUE;
     createInfo.oldSwapchain   = VK_NULL_HANDLE;
 
-    GVK_ASSERT (vkCreateSwapchainKHR != nullptr);
     if (GVK_ERROR (vkCreateSwapchainKHR (createSettings.device, &createInfo, nullptr, &createResult.handle) != VK_SUCCESS)) {
         spdlog::critical ("VkSwapchainKHR creation failed.");
         throw std::runtime_error ("failed to create swapchain");

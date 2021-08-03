@@ -208,10 +208,10 @@ void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std
 
     if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0) {
         if (fragmentShaderUniforms.Contains ("randomUniformBlock")) {
-            fragmentShaderUniforms["randomUniformBlock"]["cellSize"] = static_cast<glm::vec2> (
+            fragmentShaderUniforms["randomUniformBlock"]["cellSize"] = glm::vec2 (
                 stimulus->sequence->fieldWidth_um / stimulus->randomGridWidth,
                 stimulus->sequence->fieldHeight_um / stimulus->randomGridHeight);
-            fragmentShaderUniforms["randomUniformBlock"]["randomGridSize"] = static_cast<glm::ivec2> (
+            fragmentShaderUniforms["randomUniformBlock"]["randomGridSize"] = glm::ivec2 (
                 stimulus->sequence->maxRandomGridWidth,
                 stimulus->sequence->maxRandomGridHeight);
         }

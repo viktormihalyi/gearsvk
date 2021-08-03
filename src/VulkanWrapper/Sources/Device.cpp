@@ -4,6 +4,9 @@
 namespace GVK {
 
 
+Device::~Device () = default;
+
+
 uint32_t DeviceObject::FindMemoryType (uint32_t typeFilter, VkMemoryPropertyFlags properties) const
 {
     VkPhysicalDeviceMemoryProperties memProperties = {};

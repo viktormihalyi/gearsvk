@@ -11,9 +11,17 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API Device : public Noncopyable {
+class VULKANWRAPPER_API Device {
 public:
-    virtual ~Device () = default;
+    Device () = default;
+    
+    virtual ~Device ();
+
+    Device (const Device&) = delete;
+    Device& operator= (const Device&) = delete;
+
+    Device (Device&&) = default;
+    Device& operator= (Device&&) = default;
 
     virtual      operator VkDevice () const = 0;
     virtual void Wait () const              = 0;

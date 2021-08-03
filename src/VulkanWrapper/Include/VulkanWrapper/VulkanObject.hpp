@@ -3,10 +3,11 @@
 
 #include "VulkanWrapper/VulkanWrapperAPI.hpp"
 #include "Utils/UUID.hpp"
+#include "Utils/Noncopyable.hpp"
 
 namespace GVK {
 
-class VULKANWRAPPER_API VulkanObject {
+class VULKANWRAPPER_API VulkanObject : public Noncopyable {
 private:
     GVK::UUID   uuid;
     std::string name;
@@ -14,14 +15,14 @@ private:
 protected:
     VulkanObject ();
 
-    VulkanObject (const VulkanObject&) = default;
-    VulkanObject& operator= (const VulkanObject&) = default;
+    VulkanObject (const VulkanObject&) = delete;
+    VulkanObject& operator= (const VulkanObject&) = delete;
 
     VulkanObject (VulkanObject&&) = default;
     VulkanObject& operator= (VulkanObject&&) = default;
 
 public:
-    virtual ~VulkanObject ();
+    virtual ~VulkanObject () override;
 
     void SetName (const std::string& value) { name = value; }
 
