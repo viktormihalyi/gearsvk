@@ -8,7 +8,7 @@
 
 // #include <glm/glm.hpp>
 
-using namespace GVK;
+namespace GVK {
 
 using FontRenderingTests = HiddenWindowGoogleTestEnvironment;
 
@@ -135,15 +135,13 @@ void print_text (float x, float y, char *text, float scale)
 }
 
 
-
-
 TEST_F (FontRenderingTests, DISABLED_SDF_a)
 {
     int            ch;
     float          scale, ypos;
     stbtt_fontinfo font;
     void *         data = stb_file ("c:/windows/fonts/times.ttf", NULL);
-    stbtt_InitFont (&font, static_cast<unsigned char*>(data), 0);
+    stbtt_InitFont (&font, static_cast<unsigned char*> (data), 0);
 
     scale = stbtt_ScaleForPixelHeight (&font, sdf_size);
 
@@ -183,7 +181,7 @@ TEST_F (FontRenderingTests, DISABLED_SDF_a)
 }
 
 
-void CompareImages2 (const std::string& name, const ImageData& referenceImage, const ImageData& actualImage)
+void CompareImages2 (const std::string &name, const ImageData &referenceImage, const ImageData &actualImage)
 {
     const bool isSame = referenceImage == actualImage;
 
@@ -383,5 +381,6 @@ void main ()
     CompareImages2 ("G.png", ImageData (ReferenceImagesFolder / "G.png"), ImageData (GetDeviceExtra (), *outputImage->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
 }
 
-
 #endif
+
+} // namespace GVK

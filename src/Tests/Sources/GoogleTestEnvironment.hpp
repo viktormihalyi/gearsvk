@@ -26,7 +26,6 @@ class Queue;
 class Window;
 class DeviceExtra;
 class Image;
-} // namespace GVK
 
 
 extern const std::filesystem::path ReferenceImagesFolder;
@@ -88,5 +87,6 @@ protected:
     virtual void TearDown () override;
 };
 
+} // namespace GVK
 
 #endif

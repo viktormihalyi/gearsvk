@@ -48,8 +48,8 @@
 #include <unordered_map>
 
 
-using namespace GVK;
-using namespace GVK::RG;
+namespace GVK {
+namespace RG {
 
 using VizHFTests = HiddenWindowGoogleTestEnvironment;
 
@@ -1022,3 +1022,6 @@ void main ()
 
     CompareImages ("VizHF2_InitialState", sw);
 }
+
+} // namespace RG
+} // namespace GVK

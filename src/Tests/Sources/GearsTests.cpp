@@ -70,8 +70,8 @@ namespace glm
 }
 
 
-using namespace GVK;
-using namespace GVK::RG;
+namespace GVK {
+namespace RG {
 
 static const std::filesystem::path SequencesFolder = std::filesystem::current_path () / "Project" / "Sequences";
 
@@ -153,8 +153,7 @@ TEST_F (GearsTests, 04_velocity400)
     LoadFromFile (SequencesFolder / "4_MovingShapes" / "1_Bars" / "04_velocity400.pyx");
 
     {
-        
-        std::stringstream ss; // any stream can be used
+        std::stringstream         ss;            // any stream can be used
         cereal::JSONOutputArchive oarchive (ss); // Create an output archive
 
         oarchive (sequenceAdapter->GetSequence ());
@@ -398,3 +397,6 @@ TEST_F (GearsTests, LoadOnly_5_Randoms_4_Barcode_3_barcodeSatColor) { LoadFromFi
 TEST_F (GearsTests, LoadOnly_5_Randoms_4_Barcode_4_barcodeColor) { LoadFromFile (SequencesFolder / "5_Randoms" / "4_Barcode" / "4_barcodeColor.pyx"); RenderFirstFrame (); }
 
 // clang-format on
+
+} // namespace RG
+} // namespace GVK

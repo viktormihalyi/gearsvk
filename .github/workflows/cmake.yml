@@ -16,6 +16,7 @@ jobs:
         compiler:
           - { CC: gcc-10,   CXX: g++-10 }
           - { CC: clang-10, CXX: clang++-10 }
+        unityBuild: [ON, OFF]
 
     steps:
     - uses: actions/checkout@v2
@@ -55,7 +56,7 @@ jobs:
         CC: ${{ matrix.compiler.CC }}
         CXX: ${{ matrix.compiler.CXX }}
       run: |
-        cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}}
+        cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}} -DCMAKE_UNITY_BUILD=${{matrix.unityBuild}}
       
     - name: Build
       run: |

@@ -7,8 +7,7 @@
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
 
-using namespace GVK;
-
+namespace GVK {
 
 const std::filesystem::path ReferenceImagesFolder = std::filesystem::current_path () / "TestData" / "ReferenceImages";
 const std::filesystem::path TempFolder            = std::filesystem::current_path () / "temp";
@@ -160,3 +159,5 @@ void HiddenWindowGoogleTestEnvironment::TearDown ()
     env.reset ();
     window.reset ();
 }
+
+} // namespace GVK

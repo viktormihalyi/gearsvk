@@ -1,4 +1,5 @@
 #include "DebugReportCallback.hpp"
+#include "VulkanFunctionGetter.hpp"
 
 #include "Utils/Assert.hpp"
 #include "Utils/StaticInit.hpp"
@@ -18,17 +19,6 @@ static VkBool32 cb (VkDebugReportFlagsEXT      flags,
     return VK_FALSE;
 }
 
-
-template<typename FunctionType>
-FunctionType GetVulkanFunction (VkInstance instance, const char* functionName)
-{
-    FunctionType func = reinterpret_cast<FunctionType> (vkGetInstanceProcAddr (instance, functionName));
-
-    if (GVK_ERROR (func == nullptr))
-        throw std::runtime_error ("Function not loaded.");
-
-    return func;
-}
 
 DebugReportCallback::DebugReportCallback (VkInstance instance)
     : instance (instance)

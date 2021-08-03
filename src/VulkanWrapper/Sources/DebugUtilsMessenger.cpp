@@ -1,4 +1,5 @@
 #include "DebugUtilsMessenger.hpp"
+#include "VulkanFunctionGetter.hpp"
 
 namespace GVK {
 
@@ -36,18 +37,6 @@ const DebugUtilsMessenger::Settings DebugUtilsMessenger::all {
     true,
     true,
 };
-
-
-template<typename FunctionType>
-FunctionType GetVulkanFunction (VkInstance instance, const char* functionName)
-{
-    FunctionType func = reinterpret_cast<FunctionType> (vkGetInstanceProcAddr (instance, functionName));
-
-    if (GVK_ERROR (func == nullptr))
-        throw std::runtime_error ("Function not loaded.");
-
-    return func;
-}
 
 
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsMessenger::debugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
