@@ -7,8 +7,6 @@
 
 namespace GVK {
 
-DefaultSwapchainSettings            defaultSwapchainSettings;
-DefaultSwapchainSettingsSingleImage defaultSwapchainSettingsSingleImage;
 
 const VkImageUsageFlags RealSwapchain::ImageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
@@ -109,10 +107,10 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
     presentModes.resize (presentModeCount);
     vkGetPhysicalDeviceSurfacePresentModesKHR (createSettings.physicalDevice, createSettings.surface, &presentModeCount, presentModes.data ());
 
-    createResult.surfaceFormat = createSettings.settings.SelectSurfaceFormat (formats);
-    createResult.presentMode   = createSettings.settings.SelectPresentMode (presentModes);
-    createResult.extent        = createSettings.settings.SelectExtent (capabilities);
-    createResult.imageCount    = createSettings.settings.SelectImageCount (capabilities);
+    createResult.surfaceFormat = createSettings.settings->SelectSurfaceFormat (formats);
+    createResult.presentMode   = createSettings.settings->SelectPresentMode (presentModes);
+    createResult.extent        = createSettings.settings->SelectExtent (capabilities);
+    createResult.imageCount    = createSettings.settings->SelectImageCount (capabilities);
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType                    = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -161,14 +159,14 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
 }
 
 
-RealSwapchain::RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface, SwapchainSettingsProvider& settings)
-    : RealSwapchain (physicalDevice, device, surface, physicalDevice.GetQueueFamilies (), settings)
+RealSwapchain::RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface, std::unique_ptr<SwapchainSettingsProvider>&& settings)
+    : RealSwapchain (physicalDevice, device, surface, physicalDevice.GetQueueFamilies (), std::move (settings))
 {
 }
 
 
-RealSwapchain::RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, SwapchainSettingsProvider& settings)
-    : createSettings ({ physicalDevice, device, surface, queueFamilyIndices, settings })
+RealSwapchain::RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, std::unique_ptr<SwapchainSettingsProvider>&& settings)
+    : createSettings ({ physicalDevice, device, surface, queueFamilyIndices, std::move (settings) })
 {
     Recreate ();
 }

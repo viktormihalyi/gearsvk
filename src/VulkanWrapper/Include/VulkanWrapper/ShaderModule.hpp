@@ -37,25 +37,6 @@ VULKANWRAPPER_API
 std::string ShaderKindToString (ShaderKind);
 
 
-class VULKANWRAPPER_API ShaderPreprocessor {
-public:
-    virtual ~ShaderPreprocessor () = default;
-
-    virtual std::string Preprocess (const std::string& source) = 0;
-};
-
-
-class VULKANWRAPPER_API EmptyPreprocessor : public ShaderPreprocessor {
-public:
-    virtual std::string Preprocess (const std::string& source) override
-    {
-        return source;
-    }
-};
-
-VULKANWRAPPER_API extern EmptyPreprocessor emptyPreprocessor;
-
-
 class VULKANWRAPPER_API ShaderModule : public VulkanObject {
 public:
     static constexpr uint32_t ShaderKindCount = 6;
@@ -104,8 +85,6 @@ private:
 
     Reflection reflection;
 
-    ShaderPreprocessor& preprocessor;
-
 public:
     // dont use this ctor, use factories instead
     ShaderModule (ShaderKind                   shaderKind,
@@ -114,15 +93,14 @@ public:
                   VkShaderModule               handle,
                   const std::filesystem::path& fileLocation,
                   const std::vector<uint32_t>& binary,
-                  const std::string&           sourceCode,
-                  ShaderPreprocessor&          preprocessor);
+                  const std::string&           sourceCode);
 
     ShaderModule (ShaderModule&&) = default;
     ShaderModule& operator= (ShaderModule&&) = default;
 
 public:
-    static std::unique_ptr<ShaderModule> CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, ShaderPreprocessor& preprocessor = emptyPreprocessor);
-    static std::unique_ptr<ShaderModule> CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation, ShaderPreprocessor& preprocessor = emptyPreprocessor);
+    static std::unique_ptr<ShaderModule> CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource);
+    static std::unique_ptr<ShaderModule> CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation);
     static std::unique_ptr<ShaderModule> CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation);
 
     virtual ~ShaderModule ();

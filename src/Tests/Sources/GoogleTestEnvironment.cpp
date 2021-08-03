@@ -132,7 +132,7 @@ void ShownWindowGoogleTestEnvironment::SetUp ()
 {
     window      = std::make_unique<GVK::GLFWWindow> ();
     env         = std::make_unique<GVK::VulkanEnvironment> (gtestDebugCallback, GVK::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
-    presentable = std::make_unique<GVK::Presentable> (*env, *window);
+    presentable = std::make_unique<GVK::Presentable> (*env, *window, std::make_unique<GVK::DefaultSwapchainSettings> ());
 }
 
 
@@ -148,7 +148,7 @@ void HiddenWindowGoogleTestEnvironment::SetUp ()
 {
     window      = std::make_unique<GVK::HiddenGLFWWindow> ();
     env         = std::make_unique<GVK::VulkanEnvironment> (gtestDebugCallback, GVK::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
-    presentable = std::make_unique<GVK::Presentable> (*env, *window);
+    presentable = std::make_unique<GVK::Presentable> (*env, *window, std::make_unique<GVK::DefaultSwapchainSettings> ());
 }
 
 

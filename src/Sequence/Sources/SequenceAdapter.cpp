@@ -314,7 +314,7 @@ std::shared_ptr<GVK::Presentable> SequenceAdapter::GetCurrentPresentable ()
 
 void SequenceAdapter::RenderFullOnExternalWindow ()
 {
-    std::unique_ptr<GVK::Presentable> presentable = std::make_unique<GVK::Presentable> (environment, std::make_unique<GVK::HiddenGLFWWindow> ());
+    std::unique_ptr<GVK::Presentable> presentable = std::make_unique<GVK::Presentable> (environment, std::make_unique<GVK::HiddenGLFWWindow> (), std::make_unique<GVK::DefaultSwapchainSettings> ());
 
     GVK::Window& window = presentable->GetWindow ();
 

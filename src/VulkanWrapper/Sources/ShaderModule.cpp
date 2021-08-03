@@ -26,8 +26,6 @@ static Utils::CommandLineOnOffFlag disableShaderCacheFlag ("--disableShaderCache
 
 namespace GVK {
 
-EmptyPreprocessor emptyPreprocessor;
-
 
 class ShaderKindAdapter final {
 public:
@@ -294,10 +292,8 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 }
 
 
-static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource_, const ShaderKindAdapter& shaderKind, ShaderPreprocessor& preprocessor)
+static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindAdapter& shaderKind)
 {
-    const std::string shaderSource = preprocessor.Preprocess (shaderSource_);
-
     ShaderCache& shaderCache = IsDebugBuild ? debugShaderCache : releaseShaderCache;
 
     std::optional<std::vector<uint32_t>> cachedBinary = shaderCache.Load (shaderSource);
@@ -356,8 +352,7 @@ ShaderModule::ShaderModule (ShaderKind                   shaderKind,
                             VkShaderModule               handle,
                             const std::filesystem::path& fileLocation,
                             const std::vector<uint32_t>& binary,
-                            const std::string&           sourceCode,
-                            ShaderPreprocessor&          preprocessor)
+                            const std::string&           sourceCode)
     : readMode (readMode)
     , shaderKind (shaderKind)
     , device (device)
@@ -366,7 +361,6 @@ ShaderModule::ShaderModule (ShaderKind                   shaderKind,
     , binary (binary)
     , reflection (shaderKind, binary)
     , sourceCode (sourceCode)
-    , preprocessor (preprocessor)
 {
     spdlog::trace ("VkShaderModule created: {}, uuid: {}.", this->handle, GetUUID ().GetValue ());
 }
@@ -385,18 +379,18 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromSPVFile (VkDevice device, 
 
     VkShaderModule handle = CreateShaderModuleImpl (device, *binaryC);
 
-    return std::make_unique<ShaderModule> (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, "", emptyPreprocessor);
+    return std::make_unique<ShaderModule> (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, "");
 }
 
 
-std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation, ShaderPreprocessor& preprocessor)
+std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation)
 {
     std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
     if (GVK_ERROR (!fileContents.has_value ())) {
         throw std::runtime_error ("failed to read shader");
     }
 
-    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (*fileContents, ShaderKindAdapter::FromExtension (fileLocation.extension ().string ()), preprocessor);
+    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (*fileContents, ShaderKindAdapter::FromExtension (fileLocation.extension ().string ()));
     if (GVK_ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }
@@ -410,14 +404,13 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
         handle,
         fileLocation,
         *binary,
-        *fileContents,
-        preprocessor);
+        *fileContents);
 }
 
 
-std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, ShaderPreprocessor& preprocessor)
+std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource)
 {
-    std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, ShaderKindAdapter::FromShaderKind (shaderKind), preprocessor);
+    std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, ShaderKindAdapter::FromShaderKind (shaderKind));
 
     VkShaderModule handle = CreateShaderModuleImpl (device, binary);
     
@@ -428,8 +421,7 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice devic
         handle,
         "",
         binary,
-        shaderSource,
-        preprocessor);
+        shaderSource);
 }
 
 
@@ -638,7 +630,7 @@ void ShaderModule::Reload ()
             throw std::runtime_error ("failed to read shader");
         }
 
-        std::optional<std::vector<uint32_t>> newBinary = CompileFromSourceCode (*fileContents, ShaderKindAdapter::FromExtension (fileLocation.extension ().string ()), preprocessor);
+        std::optional<std::vector<uint32_t>> newBinary = CompileFromSourceCode (*fileContents, ShaderKindAdapter::FromExtension (fileLocation.extension ().string ()));
         if (GVK_ERROR (!newBinary.has_value ())) {
             throw std::runtime_error ("failed to compile shader");
         }

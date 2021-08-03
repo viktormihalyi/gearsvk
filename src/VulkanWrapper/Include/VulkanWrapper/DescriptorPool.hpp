@@ -12,7 +12,7 @@ namespace GVK {
 
 class /* VULKANWRAPPER_API */ DescriptorPool : public VulkanObject {
 private:
-    const VkDevice   device;
+    VkDevice         device;
     VkDescriptorPool handle;
 
 public:

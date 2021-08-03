@@ -77,7 +77,11 @@ void TryCompile (GVK::ShaderKind shaderKind, const std::string& source)
 intptr_t CreateSurface (intptr_t hwnd)
 {
 #ifdef WIN32
-    std::shared_ptr<GVK::Presentable> presentable = std::make_unique<GVK::Presentable> (GetVkEnvironment (), std::make_unique<GVK::Surface> (GVK::Surface::PlatformSpecific, *GetVkEnvironment ().instance, reinterpret_cast<void*> (hwnd)));
+    std::shared_ptr<GVK::Presentable> presentable =
+        std::make_unique<GVK::Presentable> (GetVkEnvironment (),
+                                            std::make_unique<GVK::Surface> (GVK::Surface::PlatformSpecific, *GetVkEnvironment ().instance, reinterpret_cast<void*> (hwnd)),
+                                            std::make_unique<GVK::DefaultSwapchainSettings> ());
+
     createdSurfaces.push_back (presentable);
     return reinterpret_cast<intptr_t> (presentable.get ());
 #else

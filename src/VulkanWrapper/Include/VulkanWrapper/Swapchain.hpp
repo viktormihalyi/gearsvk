@@ -17,6 +17,8 @@ namespace GVK {
 
 class VULKANWRAPPER_API SwapchainSettingsProvider {
 public:
+    virtual ~SwapchainSettingsProvider () = default;
+    
     virtual VkSurfaceFormatKHR SelectSurfaceFormat (const std::vector<VkSurfaceFormatKHR>&) = 0;
     virtual VkPresentModeKHR   SelectPresentMode (const std::vector<VkPresentModeKHR>&)     = 0;
     virtual VkExtent2D         SelectExtent (const VkSurfaceCapabilitiesKHR&)               = 0;
@@ -26,6 +28,8 @@ public:
 
 class VULKANWRAPPER_API DefaultSwapchainSettings : public SwapchainSettingsProvider {
 public:
+    virtual ~DefaultSwapchainSettings () override = default;
+
     virtual VkSurfaceFormatKHR SelectSurfaceFormat (const std::vector<VkSurfaceFormatKHR>& formats) override;
     virtual VkPresentModeKHR   SelectPresentMode (const std::vector<VkPresentModeKHR>& modes) override;
     virtual VkExtent2D         SelectExtent (const VkSurfaceCapabilitiesKHR& capabilities) override;
@@ -34,14 +38,10 @@ public:
 
 class VULKANWRAPPER_API DefaultSwapchainSettingsSingleImage : public DefaultSwapchainSettings {
 public:
+    virtual ~DefaultSwapchainSettingsSingleImage () override = default;
+
     virtual uint32_t SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities) override;
 };
-
-VULKANWRAPPER_API
-extern DefaultSwapchainSettings defaultSwapchainSettings;
-
-VULKANWRAPPER_API
-extern DefaultSwapchainSettingsSingleImage defaultSwapchainSettingsSingleImage;
 
 
 class VULKANWRAPPER_API Swapchain {
@@ -80,11 +80,11 @@ public:
 
 private:
     struct CreateSettings {
-        VkPhysicalDevice              physicalDevice;
-        VkDevice                      device;
-        VkSurfaceKHR                  surface;
-        PhysicalDevice::QueueFamilies queueFamilyIndices;
-        SwapchainSettingsProvider&    settings;
+        VkPhysicalDevice                           physicalDevice;
+        VkDevice                                   device;
+        VkSurfaceKHR                               surface;
+        PhysicalDevice::QueueFamilies              queueFamilyIndices;
+        std::unique_ptr<SwapchainSettingsProvider> settings;
     };
 
     struct CreateResult {
@@ -131,8 +131,8 @@ private:
     static CreateResult CreateForResult (const CreateSettings& createSettings);
 
 public:
-    RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface, SwapchainSettingsProvider& settings = defaultSwapchainSettings);
-    RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, SwapchainSettingsProvider& settings = defaultSwapchainSettings);
+    RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface, std::unique_ptr<SwapchainSettingsProvider>&& settings);
+    RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, std::unique_ptr<SwapchainSettingsProvider>&& settings);
 
     RealSwapchain (RealSwapchain&&) = default;
     RealSwapchain& operator= (RealSwapchain&&) = default;

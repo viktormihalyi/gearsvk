@@ -108,7 +108,7 @@ protected:
             return;
         }
 
-        pres = std::make_unique<GVK::Presentable> (*env, std::make_unique<GVK::HiddenGLFWWindow> (), GVK::defaultSwapchainSettingsSingleImage);
+        pres = std::make_unique<GVK::Presentable> (*env, std::make_unique<GVK::HiddenGLFWWindow> (), std::make_unique<GVK::DefaultSwapchainSettingsSingleImage> ());
 
         bool success = false;
         try {

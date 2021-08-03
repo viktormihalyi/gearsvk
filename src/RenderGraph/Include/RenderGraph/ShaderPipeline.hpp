@@ -64,9 +64,9 @@ public:
     ShaderPipeline (VkDevice device, const std::vector<std::pair<ShaderKind, std::string>>& sources);
 
     // settings shaders
-    void SetShaderFromSourceString (ShaderKind shaderKind, const std::string& source, ShaderPreprocessor& preprocessor = emptyPreprocessor);
-    void SetVertexShaderFromString (const std::string& source, ShaderPreprocessor& preprocessor = emptyPreprocessor);
-    void SetFragmentShaderFromString (const std::string& source, ShaderPreprocessor& preprocessor = emptyPreprocessor);
+    void SetShaderFromSourceString (ShaderKind shaderKind, const std::string& source);
+    void SetVertexShaderFromString (const std::string& source);
+    void SetFragmentShaderFromString (const std::string& source);
 
     void SetShaderFromSourceFile (const std::filesystem::path& shaderPath);
     void SetShadersFromSourceFiles (const std::vector<std::filesystem::path>& shaderPath);

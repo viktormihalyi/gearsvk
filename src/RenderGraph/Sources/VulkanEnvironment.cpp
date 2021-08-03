@@ -27,7 +27,7 @@ static Utils::CommandLineOnOffFlag logVulkanVersionFlag ("--logVulkanVersion");
 
 namespace GVK {
 
-Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Surface>&& surface, SwapchainSettingsProvider& settingsProvider)
+Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Surface>&& surface, std::unique_ptr<SwapchainSettingsProvider>&& settingsProvider)
     : surface (std::move (surface))
     , window (nullptr)
 {
@@ -38,18 +38,18 @@ Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Surface>&& sur
 
     env.RecreateForPresentable (*this);
 
-    swapchain = std::make_unique<RealSwapchain> (*env.physicalDevice, *env.device, *this->surface, settingsProvider);
+    swapchain = std::make_unique<RealSwapchain> (*env.physicalDevice, *env.device, *this->surface, std::move (settingsProvider));
 }
 
 
-Presentable::Presentable (VulkanEnvironment& env, Window& window, SwapchainSettingsProvider& settingsProvider)
-    : Presentable (env, std::make_unique<Surface> (*env.instance, window.GetSurface (*env.instance)), settingsProvider)
+Presentable::Presentable (VulkanEnvironment& env, Window& window, std::unique_ptr<SwapchainSettingsProvider>&& settingsProvider)
+    : Presentable (env, std::make_unique<Surface> (*env.instance, window.GetSurface (*env.instance)), std::move (settingsProvider))
 {
 }
 
 
-Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Window>&& window, SwapchainSettingsProvider& settingsProvider)
-    : Presentable (env, std::make_unique<Surface> (*env.instance, window->GetSurface (*env.instance)), settingsProvider)
+Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Window>&& window, std::unique_ptr<SwapchainSettingsProvider>&& settingsProvider)
+    : Presentable (env, std::make_unique<Surface> (*env.instance, window->GetSurface (*env.instance)), std::move (settingsProvider))
 {
     this->window = std::move (window);
 }

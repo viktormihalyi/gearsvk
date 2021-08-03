@@ -34,9 +34,9 @@ private:
     std::unique_ptr<Swapchain> swapchain;
 
 public:
-    Presentable (VulkanEnvironment& env, std::unique_ptr<Surface>&& surface, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
-    Presentable (VulkanEnvironment& env, Window& window, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
-    Presentable (VulkanEnvironment& env, std::unique_ptr<Window>&& window, SwapchainSettingsProvider& settingsProvider = defaultSwapchainSettings);
+    Presentable (VulkanEnvironment& env, std::unique_ptr<Surface>&& surface, std::unique_ptr<SwapchainSettingsProvider>&& settingsProvider);
+    Presentable (VulkanEnvironment& env, Window& window, std::unique_ptr<SwapchainSettingsProvider>&& settingsProvider);
+    Presentable (VulkanEnvironment& env, std::unique_ptr<Window>&& window, std::unique_ptr<SwapchainSettingsProvider>&& settingsProvider);
 
     virtual Swapchain& GetSwapchain () override;
 
