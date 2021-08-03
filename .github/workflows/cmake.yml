@@ -56,7 +56,7 @@ jobs:
         CC: ${{ matrix.compiler.CC }}
         CXX: ${{ matrix.compiler.CXX }}
       run: |
-        cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}} -DCMAKE_UNITY_BUILD=${{matrix.unityBuild}}
+        cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}} -DCMAKE_UNITY_BUILD=${{matrix.unityBuild}} -DUNITY_BUILD_BATCH_SIZE=999999
       
     - name: Build
       run: |
