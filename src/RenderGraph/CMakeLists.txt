@@ -67,8 +67,6 @@ target_compile_definitions (RenderGraph
     PUBLIC GLM_FORCE_DEPTH_ZERO_TO_ONE
 )
 
-target_precompile_headers (RenderGraph PRIVATE ${SourcesPath}/PCH.hpp)
-
 target_include_directories (RenderGraph
     PRIVATE ${IncludePath}
     PRIVATE ${HeadersPath}

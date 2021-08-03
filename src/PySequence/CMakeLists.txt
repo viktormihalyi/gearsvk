@@ -24,8 +24,6 @@ add_library (PySequence SHARED ${Headers} ${Sources})
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 find_package (pybind11 REQUIRED)
 
-target_precompile_headers (PySequence PRIVATE ${SourcesPath}/PCH.hpp)
-
 target_include_directories (PySequence
     PRIVATE
         ${HeadersPath}
