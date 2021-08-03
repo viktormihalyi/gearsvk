@@ -16,7 +16,12 @@ jobs:
         compiler:
           - { CC: gcc-10,   CXX: g++-10 }
           - { CC: clang-10, CXX: clang++-10 }
-        unityBuild: [ON]
+        unityBuild: [OFF]
+        include:
+            - buildType: Debug
+              compiler: { CC: clang-10, CXX: clang++-10 }
+              unityBuild: ON
+
 
     steps:
     - uses: actions/checkout@v2
