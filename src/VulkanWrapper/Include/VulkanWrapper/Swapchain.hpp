@@ -83,7 +83,6 @@ private:
         VkPhysicalDevice                           physicalDevice;
         VkDevice                                   device;
         VkSurfaceKHR                               surface;
-        PhysicalDevice::QueueFamilies              queueFamilyIndices;
         std::unique_ptr<SwapchainSettingsProvider> settings;
     };
 
@@ -131,8 +130,7 @@ private:
     static CreateResult CreateForResult (const CreateSettings& createSettings);
 
 public:
-    RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface, std::unique_ptr<SwapchainSettingsProvider>&& settings);
-    RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, std::unique_ptr<SwapchainSettingsProvider>&& settings);
+    RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, std::unique_ptr<SwapchainSettingsProvider>&& settings);
 
     RealSwapchain (RealSwapchain&&) = default;
     RealSwapchain& operator= (RealSwapchain&&) = default;

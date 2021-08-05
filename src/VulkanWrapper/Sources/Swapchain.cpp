@@ -83,15 +83,6 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
 {
     CreateResult createResult;
 
-    if (createSettings.queueFamilyIndices.presentation.has_value ()) {
-        VkBool32 yes;
-        VkResult yesyes = vkGetPhysicalDeviceSurfaceSupportKHR (createSettings.physicalDevice, *createSettings.queueFamilyIndices.presentation, createSettings.surface, &yes);
-        if (GVK_ERROR (yesyes != VK_SUCCESS || yes != VK_TRUE)) {
-            spdlog::error ("VkSwapchainKHR: Cannot create swapchain for this surface on this physical device.");
-            throw std::runtime_error ("cannot create swapchain on this physicald device queue");
-        }
-    }
-
     VkSurfaceCapabilitiesKHR capabilities;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR (createSettings.physicalDevice, createSettings.surface, &capabilities);
 
@@ -121,26 +112,14 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
     createInfo.imageExtent              = createResult.extent;
     createInfo.imageArrayLayers         = 1;
     createInfo.imageUsage               = RealSwapchain::ImageUsage;
-
-    uint32_t queueFamilyIndicesData[] = { *createSettings.queueFamilyIndices.graphics, *createSettings.queueFamilyIndices.presentation };
-    if (createSettings.queueFamilyIndices.presentation) {
-        GVK_ASSERT (*createSettings.queueFamilyIndices.graphics == *createSettings.queueFamilyIndices.presentation);
-    }
-
-    //if (GVK_ERROR (*queueFamilyIndices.graphics != *queueFamilyIndices.presentation)) {
-    createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
-    createInfo.queueFamilyIndexCount = 1;
-    createInfo.pQueueFamilyIndices   = queueFamilyIndicesData;
-    //} else {
-    //    createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
-    //    createInfo.queueFamilyIndexCount = 0;       // Optional
-    //    createInfo.pQueueFamilyIndices   = nullptr; // Optional
-    //}
-    createInfo.preTransform   = capabilities.currentTransform;
-    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    createInfo.presentMode    = createResult.presentMode;
-    createInfo.clipped        = VK_TRUE;
-    createInfo.oldSwapchain   = VK_NULL_HANDLE;
+    createInfo.imageSharingMode         = VK_SHARING_MODE_EXCLUSIVE;
+    createInfo.queueFamilyIndexCount    = 0;       // only required for VK_SHARING_MODE_CONCURRENT
+    createInfo.pQueueFamilyIndices      = nullptr; // only required for VK_SHARING_MODE_CONCURRENT
+    createInfo.preTransform             = capabilities.currentTransform;
+    createInfo.compositeAlpha           = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    createInfo.presentMode              = createResult.presentMode;
+    createInfo.clipped                  = VK_TRUE;
+    createInfo.oldSwapchain             = VK_NULL_HANDLE;
 
     if (GVK_ERROR (vkCreateSwapchainKHR (createSettings.device, &createInfo, nullptr, &createResult.handle) != VK_SUCCESS)) {
         spdlog::critical ("VkSwapchainKHR creation failed.");
@@ -159,14 +138,8 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
 }
 
 
-RealSwapchain::RealSwapchain (const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface, std::unique_ptr<SwapchainSettingsProvider>&& settings)
-    : RealSwapchain (physicalDevice, device, surface, physicalDevice.GetQueueFamilies (), std::move (settings))
-{
-}
-
-
-RealSwapchain::RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, PhysicalDevice::QueueFamilies queueFamilyIndices, std::unique_ptr<SwapchainSettingsProvider>&& settings)
-    : createSettings ({ physicalDevice, device, surface, queueFamilyIndices, std::move (settings) })
+RealSwapchain::RealSwapchain (VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, std::unique_ptr<SwapchainSettingsProvider>&& settings)
+    : createSettings ({ physicalDevice, device, surface, std::move (settings) })
 {
     Recreate ();
 }

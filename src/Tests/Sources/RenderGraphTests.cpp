@@ -12,6 +12,7 @@
 #include "RenderGraph/UniformReflection.hpp"
 #include "RenderGraph/UniformView.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
+#include "RenderGraph/Window/GLFWWindow.hpp"
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
 #include "VulkanWrapper/Allocator.hpp"
@@ -1726,6 +1727,41 @@ void main () {
 
     EXPECT_EQ (renderCount, matchCount);
 
+}
+
+// no window, swapchain, surface
+class HeadlessGoogleTestEnvironmentWithExt : public GoogleTestEnvironmentBase {
+protected:
+    virtual void SetUp () override;
+    virtual void TearDown () override;
+};
+
+
+void HeadlessGoogleTestEnvironmentWithExt::SetUp ()
+{
+    env = std::make_unique<GVK::VulkanEnvironment> (gtestDebugCallback, GVK::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+}
+
+
+void HeadlessGoogleTestEnvironmentWithExt::TearDown ()
+{
+    env.reset ();
+}
+
+
+TEST_F (HeadlessGoogleTestEnvironmentWithExt, SwapchainCreateTest)
+{
+    GVK::DeviceExtra& device        = GetDeviceExtra ();
+    GVK::CommandPool& commandPool   = GetCommandPool ();
+    GVK::Queue&       graphicsQueue = GetGraphicsQueue ();
+
+    GVK::GLFWWindow window;
+
+    GVK::Surface surface (*env->instance, window.GetSurface (*env->instance));
+
+    env->physicalDevice->RecreateForSurface (surface);
+
+    GVK::RealSwapchain swapchain (*env->physicalDevice, *env->device, surface, std::make_unique<GVK::DefaultSwapchainSettings> ());
 }
 
 
