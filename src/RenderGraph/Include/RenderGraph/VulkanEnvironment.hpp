@@ -73,7 +73,7 @@ public:
 
     void Wait () const;
 
-    void RecreateForPresentable (const Presentable&);
+    bool CheckForPhsyicalDeviceSupport (const Presentable&);
 };
 
 } // namespace GVK

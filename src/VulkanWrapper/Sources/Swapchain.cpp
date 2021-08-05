@@ -156,20 +156,6 @@ void RealSwapchain::Recreate ()
 }
 
 
-void RealSwapchain::RecreateForSurface (VkSurfaceKHR surface)
-{
-    createSettings.surface = surface;
-    Recreate ();
-}
-
-
-bool RealSwapchain::IsEqualSettings (const Swapchain& other)
-{
-    GVK_ASSERT (dynamic_cast<const RealSwapchain*> (&other) != nullptr);
-    return createResult.IsEqualSettings (static_cast<const RealSwapchain&> (other).createResult);
-}
-
-
 RealSwapchain::~RealSwapchain ()
 {
     if (createResult.handle != VK_NULL_HANDLE) {

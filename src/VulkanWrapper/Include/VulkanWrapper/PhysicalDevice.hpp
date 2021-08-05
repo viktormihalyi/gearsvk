@@ -16,41 +16,6 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API QueueFamilySelector {
-public:
-    using Selector = std::function<std::optional<uint32_t> (VkPhysicalDevice, VkSurfaceKHR, const std::vector<VkQueueFamilyProperties>&)>;
-
-public:
-    Selector graphicsSelector;
-    Selector presentationSelector;
-    Selector computeSelector;
-    Selector transferSelector;
-
-    QueueFamilySelector (const Selector& graphicsSelector,
-                         const Selector& presentationSelector,
-                         const Selector& computeSelector,
-                         const Selector& transferSelector)
-        : graphicsSelector (graphicsSelector)
-        , presentationSelector (presentationSelector)
-        , computeSelector (computeSelector)
-        , transferSelector (transferSelector)
-    {
-    }
-
-    virtual ~QueueFamilySelector () {}
-};
-
-
-class VULKANWRAPPER_API DefaultQueueFamilySelector final : public QueueFamilySelector {
-public:
-    DefaultQueueFamilySelector ();
-};
-
-
-VULKANWRAPPER_API
-extern DefaultQueueFamilySelector defaultQueueFamilySelector;
-
-
 class VULKANWRAPPER_API PhysicalDevice final : public Noncopyable {
 public:
     struct QueueFamilies {
@@ -61,22 +26,22 @@ public:
     };
 
 private:
-    VkInstance            instance;
-    std::set<std::string> requestedDeviceExtensionSet;
-    QueueFamilySelector   selector;
-
+    VkInstance                        instance;
     GVK::MovablePtr<VkPhysicalDevice> handle;
+    std::set<std::string>             requestedDeviceExtensionSet;
     QueueFamilies                     queueFamilies;
 
     std::unique_ptr<VkPhysicalDeviceProperties> properties;
-    std::unique_ptr<VkPhysicalDeviceFeatures> features;
+    std::unique_ptr<VkPhysicalDeviceFeatures>   features;
 
 public:
-    PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet, const QueueFamilySelector& Selector = defaultQueueFamilySelector);
+    PhysicalDevice (VkInstance                   instance,
+                    VkSurfaceKHR                 surface, // VK_NULL_HANDLE is accepted
+                    const std::set<std::string>& requestedDeviceExtensionSet);
 
-    ~PhysicalDevice ();
+    virtual ~PhysicalDevice () override;
 
-    void RecreateForSurface (VkSurfaceKHR surface);
+    bool CheckSurfaceSupported (VkSurfaceKHR surface) const;
 
     operator VkPhysicalDevice () const { return handle; }
 

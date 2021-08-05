@@ -1759,7 +1759,7 @@ TEST_F (HeadlessGoogleTestEnvironmentWithExt, SwapchainCreateTest)
 
     GVK::Surface surface (*env->instance, window.GetSurface (*env->instance));
 
-    env->physicalDevice->RecreateForSurface (surface);
+    GVK_ASSERT (env->physicalDevice->CheckSurfaceSupported (surface));
 
     GVK::RealSwapchain swapchain (*env->physicalDevice, *env->device, surface, std::make_unique<GVK::DefaultSwapchainSettings> ());
 }

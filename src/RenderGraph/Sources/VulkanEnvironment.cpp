@@ -31,12 +31,12 @@ Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Surface>&& sur
     : surface (std::move (surface))
     , window (nullptr)
 {
-    // TODO this is kind of a hack
+    // TODO this is kind of ugly
     // when creating a swapchain, we must query if presentation is supported for the surface
-    // but we create a physicaldevice first, then connect the swapchains later, so we completely recreate the physical device
-    // and _hope_ we get the same
+    // but we create a physicaldevice first and create the swapchains later
+    // so we _hope_ it is supported
 
-    env.RecreateForPresentable (*this);
+    GVK_ASSERT (env.CheckForPhsyicalDeviceSupport (*this));
 
     swapchain = std::make_unique<RealSwapchain> (*env.physicalDevice, *env.device, *this->surface, std::move (settingsProvider));
 }
@@ -189,10 +189,10 @@ VulkanEnvironment::~VulkanEnvironment ()
 }
 
 
-void VulkanEnvironment::RecreateForPresentable (const Presentable& presentable)
+bool VulkanEnvironment::CheckForPhsyicalDeviceSupport (const Presentable& presentable)
 {
     const Surface& surface = presentable.GetSurface ();
-    physicalDevice->RecreateForSurface (surface);
+    return physicalDevice->CheckSurfaceSupported (surface);
 }
 
 } // namespace GVK

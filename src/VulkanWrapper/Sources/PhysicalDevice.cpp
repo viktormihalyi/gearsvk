@@ -6,8 +6,6 @@
 
 namespace GVK {
 
-DefaultQueueFamilySelector defaultQueueFamilySelector;
-
 
 static std::optional<uint32_t> AcceptFirstGraphicsAndPresentSupport (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<VkQueueFamilyProperties>& queueFamilies)
 {
@@ -67,17 +65,7 @@ static auto AcceptFirstWithFlag (VkQueueFlagBits flagbits)
 }
 
 
-DefaultQueueFamilySelector::DefaultQueueFamilySelector ()
-    : QueueFamilySelector (
-          AcceptFirstWithFlag (VK_QUEUE_GRAPHICS_BIT),
-          AcceptFirstPresentSupport,
-          AcceptFirstWithFlag (VK_QUEUE_COMPUTE_BIT),
-          AcceptFirstWithFlag (VK_QUEUE_TRANSFER_BIT))
-{
-}
-
-
-static PhysicalDevice::QueueFamilies FindQueueFamilyIndices (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const QueueFamilySelector& Selector)
+static PhysicalDevice::QueueFamilies FindQueueFamilyIndices (VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
 {
     PhysicalDevice::QueueFamilies result;
 
@@ -86,10 +74,10 @@ static PhysicalDevice::QueueFamilies FindQueueFamilyIndices (VkPhysicalDevice ph
     std::vector<VkQueueFamilyProperties> queueFamilies (queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties (physicalDevice, &queueFamilyCount, queueFamilies.data ());
 
-    result.graphics     = Selector.graphicsSelector (physicalDevice, surface, queueFamilies);
-    result.presentation = Selector.presentationSelector (physicalDevice, surface, queueFamilies);
-    result.compute      = Selector.computeSelector (physicalDevice, surface, queueFamilies);
-    result.transfer     = Selector.transferSelector (physicalDevice, surface, queueFamilies);
+    result.graphics     = AcceptFirstWithFlag (VK_QUEUE_GRAPHICS_BIT) (physicalDevice, surface, queueFamilies);
+    result.presentation = AcceptFirstPresentSupport (physicalDevice, surface, queueFamilies);
+    result.compute      = AcceptFirstWithFlag (VK_QUEUE_COMPUTE_BIT) (physicalDevice, surface, queueFamilies);
+    result.transfer     = AcceptFirstWithFlag (VK_QUEUE_TRANSFER_BIT) (physicalDevice, surface, queueFamilies);
 
     if (result.presentation) {
         GVK_ASSERT (result.graphics == result.presentation); // TODO handle different queue indices ...
@@ -99,77 +87,95 @@ static PhysicalDevice::QueueFamilies FindQueueFamilyIndices (VkPhysicalDevice ph
 }
 
 
-static VkPhysicalDevice CreatePhysicalDevice (VkInstance instance, const std::set<std::string>& requestedDeviceExtensionSet)
+struct PhysicalDeviceCandidate {
+    VkPhysicalDevice                   handle;
+    VkPhysicalDeviceProperties         properties;
+    VkPhysicalDeviceFeatures           features;
+    std::vector<VkExtensionProperties> extensionProperties;
+};
+
+
+static std::vector<PhysicalDeviceCandidate> GetPhysicalDeviceCandidates (VkInstance instance)
 {
-    // query physical devices
-    uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices (instance, &deviceCount, nullptr);
-    std::vector<VkPhysicalDevice> devices (deviceCount);
-    vkEnumeratePhysicalDevices (instance, &deviceCount, devices.data ());
+    const std::vector<VkPhysicalDevice> physicalDevices = [instance] {
+        uint32_t physicalDeviceCount = 0;
+        vkEnumeratePhysicalDevices (instance, &physicalDeviceCount, nullptr);
+        std::vector<VkPhysicalDevice> result (physicalDeviceCount);
+        vkEnumeratePhysicalDevices (instance, &physicalDeviceCount, result.data ());
+        return result;
+    }();
 
-    std::optional<uint32_t> physicalDeviceIndex;
+    std::vector<PhysicalDeviceCandidate> result;
 
-    auto extensionNameAccessor = [] (const VkExtensionProperties& props) { return props.extensionName; };
-
-    uint32_t i = 0;
-    for (VkPhysicalDevice device : devices) {
-        // check supported extensions
+    for (VkPhysicalDevice physicalDevice : physicalDevices) {
         uint32_t deviceExtensionCount = 0;
-        vkEnumerateDeviceExtensionProperties (device, nullptr, &deviceExtensionCount, nullptr);
+        vkEnumerateDeviceExtensionProperties (physicalDevice, nullptr, &deviceExtensionCount, nullptr);
         std::vector<VkExtensionProperties> supportedDeviceExtensions (deviceExtensionCount);
-        vkEnumerateDeviceExtensionProperties (device, nullptr, &deviceExtensionCount, supportedDeviceExtensions.data ());
+        vkEnumerateDeviceExtensionProperties (physicalDevice, nullptr, &deviceExtensionCount, supportedDeviceExtensions.data ());
 
-        VkPhysicalDeviceProperties deviceProperties;
-        vkGetPhysicalDeviceProperties (device, &deviceProperties);
+        VkPhysicalDeviceProperties properties;
+        vkGetPhysicalDeviceProperties (physicalDevice, &properties);
 
-        VkPhysicalDeviceFeatures deviceFeatures;
-        vkGetPhysicalDeviceFeatures (device, &deviceFeatures);
+        VkPhysicalDeviceFeatures features;
+        vkGetPhysicalDeviceFeatures (physicalDevice, &features);
 
-        GVK_ASSERT (deviceFeatures.shaderInt64 == VK_TRUE);
-
-        // check if the device supports all requested extensions
-        const std::set<std::string> supportedDeviceExtensionSet   = Utils::ToSet<VkExtensionProperties, std::string> (supportedDeviceExtensions, extensionNameAccessor);
-        const std::set<std::string> unsupportedDeviceExtensionSet = Utils::SetDiff (requestedDeviceExtensionSet, supportedDeviceExtensionSet);
-
-        if (unsupportedDeviceExtensionSet.empty ()) {
-            physicalDeviceIndex = i;
-            break;
-        }
-
-        ++i;
+        result.push_back (PhysicalDeviceCandidate { physicalDevice, properties, features, supportedDeviceExtensions });
     }
 
-    if (GVK_ERROR (!physicalDeviceIndex.has_value ())) {
-        throw std::runtime_error ("No physical device available");
-    }
-
-    return devices[*physicalDeviceIndex];
+    return result;
 }
 
 
-PhysicalDevice::PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet, const QueueFamilySelector& selector)
+static VkPhysicalDevice FindPhysicalDevice (VkInstance instance, const std::set<std::string>& requestedDeviceExtensionSet)
+{
+    std::vector<PhysicalDeviceCandidate> candidates = GetPhysicalDeviceCandidates (instance);
+
+    const auto RemoveBadCandidate = [&] (const std::function<bool (const PhysicalDeviceCandidate&)>& filterFunc) {
+        candidates.erase (std::remove_if (candidates.begin (), candidates.end (), filterFunc), candidates.end ());
+    };
+
+    RemoveBadCandidate ([&] (const PhysicalDeviceCandidate& candidate) {
+        auto extensionNameAccessor = [] (const VkExtensionProperties& props) { return props.extensionName; };
+
+        const std::set<std::string> supportedDeviceExtensionSet   = Utils::ToSet<VkExtensionProperties, std::string> (candidate.extensionProperties, extensionNameAccessor);
+        const std::set<std::string> unsupportedDeviceExtensionSet = Utils::SetDiff (requestedDeviceExtensionSet, supportedDeviceExtensionSet);
+
+        return !unsupportedDeviceExtensionSet.empty ();
+    });
+
+    RemoveBadCandidate ([] (const PhysicalDeviceCandidate& candidate) {
+        return candidate.features.shaderInt64 == VK_FALSE;
+    });
+
+    std::optional<PhysicalDeviceCandidate> selectedCandidate;
+
+    for (const PhysicalDeviceCandidate& candidate : candidates) {
+        if (candidate.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+            selectedCandidate = candidate;
+            break;
+        }
+    }
+
+    if (!selectedCandidate.has_value () && !candidates.empty ())
+        selectedCandidate = candidates[0];
+
+    if GVK_ERROR (!selectedCandidate.has_value ())
+        throw std::runtime_error ("No physical device available");
+
+    return selectedCandidate->handle;
+}
+
+
+PhysicalDevice::PhysicalDevice (VkInstance instance, VkSurfaceKHR surface, const std::set<std::string>& requestedDeviceExtensionSet)
     : instance (instance)
     , requestedDeviceExtensionSet (requestedDeviceExtensionSet)
-    , selector (selector)
+    , handle (FindPhysicalDevice (instance, requestedDeviceExtensionSet))
+    , queueFamilies (FindQueueFamilyIndices (handle, surface))
 {
-    RecreateForSurface (surface);
-
-    VkFormatProperties prop = {};
-
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8_UINT, &prop);
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8_UINT, &prop);
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8_UINT, &prop);
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8A8_UINT, &prop);
-
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8_SRGB, &prop);
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8_SRGB, &prop);
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8_SRGB, &prop);
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8A8_SRGB, &prop);
-
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8_UNORM, &prop);
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8_UNORM, &prop);
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8_UNORM, &prop);
-    vkGetPhysicalDeviceFormatProperties (handle, VK_FORMAT_R8G8B8A8_UNORM, &prop);
+    if constexpr (IsDebugBuild) {
+        properties = std::make_unique<VkPhysicalDeviceProperties> (GetProperties ());
+        features   = std::make_unique<VkPhysicalDeviceFeatures> (GetFeatures ());
+    }
 }
 
 
@@ -179,15 +185,10 @@ PhysicalDevice::~PhysicalDevice ()
 }
 
 
-void PhysicalDevice::RecreateForSurface (VkSurfaceKHR surface)
+bool PhysicalDevice::CheckSurfaceSupported (VkSurfaceKHR surface) const
 {
-    handle        = CreatePhysicalDevice (instance, requestedDeviceExtensionSet);
-    queueFamilies = FindQueueFamilyIndices (handle, surface, selector);
-
-    if constexpr (IsDebugBuild) {
-        properties = std::make_unique<VkPhysicalDeviceProperties> (GetProperties ());
-        features = std::make_unique<VkPhysicalDeviceFeatures> (GetFeatures ());
-    }
+    PhysicalDevice findForSurface { instance, surface, requestedDeviceExtensionSet };
+    return handle == findForSurface.handle;
 }
 
 } // namespace GVK
