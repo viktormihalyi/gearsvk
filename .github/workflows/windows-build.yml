@@ -12,7 +12,7 @@ jobs:
     
     strategy:
       matrix:
-        buildType: [Debug]
+        buildType: [Debug, Release]
         unityBuild: [OFF]
 
     steps:
