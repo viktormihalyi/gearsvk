@@ -43,10 +43,10 @@ jobs:
         $env:VULKAN_SDK="$(pwd)/VulkanSDK"
         cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}} -DCMAKE_UNITY_BUILD=${{matrix.unityBuild}} -DUNITY_BUILD_BATCH_SIZE=999999
   
-#    - name: Build
-#      run: |
-#        cmake --build ${{github.workspace}}/build --parallel
-#
+    - name: Build
+      run: |
+        cmake --build ${{github.workspace}}/build --parallel
+
 #    - name: Run tests
 #      working-directory: ${{github.workspace}}/build/bin
 #      run: |
