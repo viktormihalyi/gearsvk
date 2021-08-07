@@ -45,6 +45,7 @@ jobs:
       
     - name: Build
       run: |
+        set VULKAN_LIBRARY="C:/VulkanSDK/1.1.126.0/"
         cmake --build ${{github.workspace}}/build --parallel
 
     - name: Run tests
