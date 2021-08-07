@@ -6,8 +6,6 @@
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "RenderGraph/Window/Window.hpp"
 
-// #include <glm/glm.hpp>
-
 using FontRenderingTests = HiddenWindowGoogleTestEnvironment;
 
 #pragma warning(push, 0)
