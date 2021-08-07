@@ -31,11 +31,6 @@ jobs:
         Invoke-WebRequest -Uri https://sdk.lunarg.com/sdk/download/1.2.162.0/windows/VulkanSDK-1.2.162.0-Installer.exe?Human=true -OutFile VulkanSDK-1.2.162.0-Installer.exe
         7z x -aoa ./VulkanSDK-1.2.162.0-Installer.exe -oVulkanSDK
         Remove-Item .\VulkanSDK\Demos, .\VulkanSDK\Samples, .\VulkanSDK\Third-Party, .\VulkanSDK\Tools, .\VulkanSDK\Tools32, .\VulkanSDK\Bin32, .\VulkanSDK\Lib32 -Recurse
-      
-    - name: Install wheel from pip
-      run: |
-        python -m pip install wheel 
-        python -m pip install conan 
 
     - name: Configure CMake
       run: |
