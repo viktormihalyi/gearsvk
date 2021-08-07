@@ -45,7 +45,7 @@ jobs:
   
     - name: Build
       run: |
-        cmake --build ${{github.workspace}}/build --parallel
+        cmake --build ${{github.workspace}}/build --config ${{matrix.buildType}} --parallel
 
 #    - name: Run tests
 #      working-directory: ${{github.workspace}}/build/bin
