@@ -32,6 +32,11 @@ jobs:
         7z x -aoa ./VulkanSDK-1.2.162.0-Installer.exe -oVulkanSDK
         Remove-Item .\VulkanSDK\Demos, .\VulkanSDK\Samples, .\VulkanSDK\Third-Party, .\VulkanSDK\Tools, .\VulkanSDK\Tools32, .\VulkanSDK\Bin32, .\VulkanSDK\Lib32 -Recurse
 
+    - name: Install conan
+      run: |
+        python -m pip install wheel 
+        python -m pip install conan 
+
     - name: Configure CMake
       run: |
         $env:VULKAN_SDK="$(pwd)/VulkanSDK"
