@@ -33,15 +33,12 @@ jobs:
         python -m pip install conan 
 
     - name: Configure CMake
-      env:
-        CC: ${{ matrix.compiler.CC }}
-        CXX: ${{ matrix.compiler.CXX }}
       run: |
+        set Vulkan_LIBRARY="C:/VulkanSDK/1.1.126.0/"
         cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}} -DCMAKE_UNITY_BUILD=${{matrix.unityBuild}} -DUNITY_BUILD_BATCH_SIZE=999999
       
     - name: Build
       run: |
-        set Vulkan_LIBRARY="C:/VulkanSDK/1.1.126.0/"
         cmake --build ${{github.workspace}}/build --parallel
 
     - name: Run tests
