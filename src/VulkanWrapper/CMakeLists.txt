@@ -47,12 +47,11 @@ set (Headers
 )
 
 set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
-set (Sources
+set (SourcesGroup1
     ${SourcesPath}/Utils/BufferTransferable.cpp
     ${SourcesPath}/Utils/ImageData.cpp
     ${SourcesPath}/Utils/MemoryMapping.cpp
     ${SourcesPath}/Utils/VulkanUtils.cpp
-    ${SourcesPath}/Utils/STBImpl.cpp
 
     ${SourcesPath}/Allocator.cpp
     ${SourcesPath}/Buffer.cpp
@@ -77,9 +76,11 @@ set (Sources
     ${SourcesPath}/Surface.cpp
     ${SourcesPath}/Swapchain.cpp
     ${SourcesPath}/VulkanObject.cpp
- 
-    ${SourcesPath}/VulkanMemoryAllocatorImpl.cpp
 )
+set (SourcesGroup2 ${SourcesPath}/Utils/STBImpl.cpp)
+set (SourcesGroup3 ${SourcesPath}/VulkanMemoryAllocatorImpl.cpp)
+
+set (Sources ${SourcesGroup1} ${SourcesGroup2} ${SourcesGroup3})
 
 add_library (VulkanWrapper SHARED ${Headers} ${Sources})
 
@@ -90,6 +91,11 @@ find_package (spdlog REQUIRED)
 find_package (stb REQUIRED)
 find_package (glslang REQUIRED)
 find_package (spirv-cross REQUIRED)
+
+set_target_properties (VulkanWrapper PROPERTIES UNITY_BUILD_MODE GROUP)
+set_source_files_properties (${SourcesGroup1} PROPERTIES UNITY_GROUP "bucket1")
+set_source_files_properties (${SourcesGroup2} PROPERTIES UNITY_GROUP "bucket2")
+set_source_files_properties (${SourcesGroup3} PROPERTIES UNITY_GROUP "bucket3")
 
 target_compile_definitions (VulkanWrapper
     PUBLIC SPDLOG_FMT_EXTERNAL
