@@ -39,6 +39,7 @@ jobs:
 
     - name: Configure CMake
       run: |
+        $env:Python_ROOT_DIR="C:/hostedtoolcache/windows/Python/3.9.6/x64"
         $env:VULKAN_SDK="$(pwd)/VulkanSDK"
         cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}} -DCMAKE_UNITY_BUILD=${{matrix.unityBuild}} -DUNITY_BUILD_BATCH_SIZE=999999
   
