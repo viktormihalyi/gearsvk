@@ -3,12 +3,8 @@ name: Windows Build
 on:
   push:
     branches: [ master ]
-    paths:
-      - 'src/**'
   pull_request:
     branches: [ master ]
-    paths:
-      - 'src/**'
 
 jobs:
   build:
@@ -45,7 +41,7 @@ jobs:
       
     - name: Build
       run: |
-        set VULKAN_LIBRARY="C:/VulkanSDK/1.1.126.0/"
+        set Vulkan_LIBRARY="C:/VulkanSDK/1.1.126.0/"
         cmake --build ${{github.workspace}}/build --parallel
 
     - name: Run tests
