@@ -5,7 +5,6 @@
 #include "Utils/BuildType.hpp"
 
 namespace GVK {
-
 namespace RG {
 
 std::unique_ptr<ShaderModule>& ShaderPipeline::GetShaderByIndex (uint32_t index)
@@ -283,5 +282,4 @@ std::unique_ptr<DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLayout (
 }
 
 } // namespace RG
-
 } // namespace GVK
