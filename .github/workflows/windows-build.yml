@@ -34,7 +34,7 @@ jobs:
 
     - name: Configure CMake
       run: |
-        set Vulkan_LIBRARY="C:/VulkanSDK/1.1.126.0/"
+        $env:VULKAN_SDK="$(pwd)/VulkanSDK"
         cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}} -DCMAKE_UNITY_BUILD=${{matrix.unityBuild}} -DUNITY_BUILD_BATCH_SIZE=999999
       
     - name: Build
