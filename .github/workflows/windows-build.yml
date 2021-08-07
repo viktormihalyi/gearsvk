@@ -14,7 +14,9 @@ jobs:
       matrix:
         buildType: [Debug, Release]
         unityBuild: [OFF]
-
+        include:
+            - buildType: Debug
+              unityBuild: ON
     steps:
     - uses: actions/checkout@v2
     
