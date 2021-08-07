@@ -1,0 +1,53 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'src/**'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        buildType: [Debug, Release]
+        unityBuild: [OFF]
+        include:
+            - buildType: Debug
+              unityBuild: ON
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup Vulkan
+      run: |
+          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/1.1.126.0/windows/VulkanSDK-1.1.126.0-Installer.exe" -OutFile VulkanSDK.exe
+          $installer = Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("/S");
+          $installer.WaitForExit();
+    
+    - name: Install wheel from pip
+      run: |
+        python -m pip install wheel 
+        python -m pip install conan 
+
+    - name: Configure CMake
+      env:
+        CC: ${{ matrix.compiler.CC }}
+        CXX: ${{ matrix.compiler.CXX }}
+      run: |
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.buildType}} -DCMAKE_UNITY_BUILD=${{matrix.unityBuild}} -DUNITY_BUILD_BATCH_SIZE=999999
+      
+    - name: Build
+      run: |
+        cmake --build ${{github.workspace}}/build --parallel
+
+    - name: Run tests
+      working-directory: ${{github.workspace}}/build/bin
+      run: |
+        ./GVKTest.exe --gtest_filter=Empty.*:RenderGraphPassTest.*
