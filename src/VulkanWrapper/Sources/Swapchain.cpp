@@ -21,6 +21,7 @@ VkSurfaceFormatKHR DefaultSwapchainSettings::SelectSurfaceFormat (const std::vec
         }
     }
 
+    GVK_ASSERT (false);
     spdlog::error ("VkSwapchainKHR: Failed to choose swapchain surface format ({} format and {} color space is not available).", preferred.format, preferred.colorSpace);
     throw std::runtime_error ("failed to choose swapchain surface format");
 }
@@ -34,6 +35,7 @@ VkPresentModeKHR DefaultSwapchainSettings::SelectPresentMode (const std::vector<
         }
     }
 
+    GVK_ASSERT (false);
     spdlog::error ("VkSwapchainKHR: Failed to choose swapchain present mode.");
     throw std::runtime_error ("failed to choose swapchain present mode");
 }
@@ -79,24 +81,39 @@ uint32_t DefaultSwapchainSettingsSingleImage::SelectImageCount (const VkSurfaceC
 }
 
 
+uint32_t DefaultSwapchainSettingsMaxImages::SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities)
+{
+    return capabilities.maxImageCount;
+}
+
+
 RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings& createSettings)
 {
     CreateResult createResult;
 
-    VkSurfaceCapabilitiesKHR capabilities;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR (createSettings.physicalDevice, createSettings.surface, &capabilities);
+    VkSurfaceCapabilitiesKHR capabilities = {};
+    const VkResult           capRes       = vkGetPhysicalDeviceSurfaceCapabilitiesKHR (createSettings.physicalDevice, createSettings.surface, &capabilities);
+    if (GVK_ERROR (capRes != VK_SUCCESS)) {
+        throw std::runtime_error ("Failed to get physical device surface capabilitites.");
+    }
 
-    std::vector<VkSurfaceFormatKHR> formats;
-    uint32_t                        formatCount = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR (createSettings.physicalDevice, createSettings.surface, &formatCount, nullptr);
-    formats.resize (formatCount);
-    vkGetPhysicalDeviceSurfaceFormatsKHR (createSettings.physicalDevice, createSettings.surface, &formatCount, formats.data ());
+    const std::vector<VkSurfaceFormatKHR> formats = [&] {
+        std::vector<VkSurfaceFormatKHR> result;
+        uint32_t                        formatCount = 0;
+        GVK_ASSERT (vkGetPhysicalDeviceSurfaceFormatsKHR (createSettings.physicalDevice, createSettings.surface, &formatCount, nullptr) == VK_SUCCESS);
+        result.resize (formatCount);
+        GVK_ASSERT (vkGetPhysicalDeviceSurfaceFormatsKHR (createSettings.physicalDevice, createSettings.surface, &formatCount, result.data ()) == VK_SUCCESS);
+        return result;
+    } ();
 
-    std::vector<VkPresentModeKHR> presentModes;
-    uint32_t                      presentModeCount = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR (createSettings.physicalDevice, createSettings.surface, &presentModeCount, nullptr);
-    presentModes.resize (presentModeCount);
-    vkGetPhysicalDeviceSurfacePresentModesKHR (createSettings.physicalDevice, createSettings.surface, &presentModeCount, presentModes.data ());
+    const std::vector<VkPresentModeKHR> presentModes = [&] {
+        std::vector<VkPresentModeKHR> result;
+        uint32_t                      presentModeCount = 0;
+        GVK_ASSERT (vkGetPhysicalDeviceSurfacePresentModesKHR (createSettings.physicalDevice, createSettings.surface, &presentModeCount, nullptr) == VK_SUCCESS);
+        result.resize (presentModeCount);
+        GVK_ASSERT (vkGetPhysicalDeviceSurfacePresentModesKHR (createSettings.physicalDevice, createSettings.surface, &presentModeCount, result.data ()) == VK_SUCCESS);
+        return result;
+    } ();
 
     createResult.surfaceFormat = createSettings.settings->SelectSurfaceFormat (formats);
     createResult.presentMode   = createSettings.settings->SelectPresentMode (presentModes);
@@ -127,9 +144,9 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
     }
 
     uint32_t imageCount;
-    vkGetSwapchainImagesKHR (createSettings.device, createResult.handle, &imageCount, nullptr);
+    GVK_ASSERT (vkGetSwapchainImagesKHR (createSettings.device, createResult.handle, &imageCount, nullptr) == VK_SUCCESS);
     createResult.images.resize (imageCount);
-    vkGetSwapchainImagesKHR (createSettings.device, createResult.handle, &imageCount, createResult.images.data ());
+    GVK_ASSERT (vkGetSwapchainImagesKHR (createSettings.device, createResult.handle, &imageCount, createResult.images.data ()) == VK_SUCCESS);
 
     for (size_t i = 0; i < createResult.images.size (); ++i) {
         createResult.imageViews.push_back (std::make_unique<ImageView2D> (createSettings.device, createResult.images[i], createResult.surfaceFormat.format));

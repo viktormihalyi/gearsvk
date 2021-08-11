@@ -29,7 +29,7 @@ public:
     {
     }
 
-    ~Queue ()
+    virtual ~Queue () override
     {
         handle = nullptr;
     }

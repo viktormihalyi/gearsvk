@@ -43,6 +43,12 @@ public:
     virtual uint32_t SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities) override;
 };
 
+class VULKANWRAPPER_API DefaultSwapchainSettingsMaxImages : public DefaultSwapchainSettings {
+public:
+    virtual ~DefaultSwapchainSettingsMaxImages () override = default;
+
+    virtual uint32_t SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities) override;
+};
 
 class VULKANWRAPPER_API Swapchain {
 public:
