@@ -9,6 +9,7 @@
 #include "Utils/BuildType.hpp"
 #include "Utils/CommandLineFlag.hpp"
 
+#include <iostream>
 
 int main (int argc, char** argv)
 {

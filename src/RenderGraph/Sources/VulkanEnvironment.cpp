@@ -19,6 +19,7 @@
 
 
 #include <iomanip>
+#include <iostream>
 
 
 static Utils::CommandLineOnOffFlag disableValidationLayersFlag (std::vector<std::string> { "--disableValidationLayers", "-v" }, "Disables Vulkan validation layers.");

@@ -2,6 +2,9 @@
 #include "DrawRecordable.hpp"
 
 #include "Utils/Event.hpp"
+#include "Utils/Utils.hpp"
+
+#include <iostream>
 
 namespace GVK {
 

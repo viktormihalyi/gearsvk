@@ -4,7 +4,7 @@
 #include "Utils/Assert.hpp"
 #include "Utils/BuildType.hpp"
 #include "Utils/CommandLineFlag.hpp"
-#include "Utils/Utils.hpp"
+#include "Utils/FileSystemUtils.hpp"
 
 // from VulkanWrapper
 #include "ResourceLimits.hpp"

@@ -3,6 +3,7 @@
 
 #include "DeviceExtra.hpp"
 #include "Utils/Assert.hpp"
+#include "Utils/FileSystemUtils.hpp"
 
 #pragma warning(push, 0)
 #include "stb_image.h"

@@ -11,29 +11,10 @@
 #include <optional>
 #include <set>
 #include <string>
-#include <type_traits>
 #include <vector>
 
 
 namespace Utils {
-
-GVK_UTILS_API
-std::optional<std::string> ReadTextFile (const std::filesystem::path& filePath);
-
-GVK_UTILS_API
-std::optional<std::vector<char>> ReadBinaryFile (const std::filesystem::path& filePath);
-
-GVK_UTILS_API
-bool WriteBinaryFile (const std::filesystem::path& filePath, const std::vector<uint8_t>& data);
-
-GVK_UTILS_API
-bool WriteBinaryFile (const std::filesystem::path& filePath, const void* data, size_t size);
-
-GVK_UTILS_API
-bool WriteTextFile (const std::filesystem::path& filePath, const std::string&);
-
-GVK_UTILS_API
-std::optional<std::vector<uint32_t>> ReadBinaryFile4Byte (const std::filesystem::path& filePath);
 
 GVK_UTILS_API
 std::vector<std::string> SplitString (const std::string& str, const char delim, const bool keepEmpty = false);
@@ -46,9 +27,6 @@ std::string ReplaceAll (const std::string& str, const std::string& substringToRe
 
 GVK_UTILS_API
 bool StringContains (const std::string& str, const std::string& substr);
-
-GVK_UTILS_API
-void EnsureParentFolderExists (const std::filesystem::path& filePath);
 
 template<typename SourceType, typename DestType>
 std::set<DestType> ToSet (const std::vector<SourceType>& vec)

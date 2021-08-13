@@ -4,9 +4,13 @@
 #include "Operation.hpp"
 #include "DrawRecordable.hpp"
 #include "Resource.hpp"
+#include "Utils/Utils.hpp"
 #include "Utils/CommandLineFlag.hpp"
 
 #include "spdlog/spdlog.h"
+
+#include <iostream>
+#include <sstream>
 
 namespace GVK {
 

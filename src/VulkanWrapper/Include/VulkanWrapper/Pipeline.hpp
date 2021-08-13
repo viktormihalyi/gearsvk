@@ -5,8 +5,9 @@
 
 #include "Utils/Assert.hpp"
 #include "Utils/MovablePtr.hpp"
-#include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"
+
+#include <vector>
 
 namespace GVK {
 

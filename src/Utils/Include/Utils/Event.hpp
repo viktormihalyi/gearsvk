@@ -3,12 +3,11 @@
 
 #include "Assert.hpp"
 #include "Noncopyable.hpp"
-#include <memory>
 
+#include <memory>
 #include <algorithm>
 #include <functional>
 #include <memory>
-#include <set>
 #include <utility>
 #include <vector>
 

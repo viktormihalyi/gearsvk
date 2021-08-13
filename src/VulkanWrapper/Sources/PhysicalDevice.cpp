@@ -2,6 +2,10 @@
 #include "VulkanUtils.hpp"
 
 #include "Utils/BuildType.hpp"
+#include "Utils/Utils.hpp"
+
+#include <set>
+#include <functional>
 
 
 namespace GVK {

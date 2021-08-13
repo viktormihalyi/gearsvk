@@ -5,14 +5,14 @@
 
 #include "Utils/Assert.hpp"
 #include "Utils/MovablePtr.hpp"
-#include "Utils/Utils.hpp"
 #include "Utils/Noncopyable.hpp"
 
 #include <vulkan/vulkan.h>
 
-#include <functional>
+#include <memory>
 #include <optional>
 #include <vector>
+#include <set>
 
 namespace GVK {
 

@@ -1,5 +1,8 @@
 #include "Device.hpp"
 
+#include <vector>
+#include <stdexcept>
+
 
 namespace GVK {
 

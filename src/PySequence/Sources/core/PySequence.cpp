@@ -3,7 +3,6 @@
 #include "core/PyStimulus.h"
 #include "PyExtract.hpp"
 #include <algorithm>
-#include <iostream>
 #include <sstream>
 
 #include "Utils/Assert.hpp"

@@ -6,6 +6,7 @@
 #include "VulkanWrapper/Image.hpp"
 
 #include <vector>
+#include <functional>
 #include <vulkan/vulkan.h>
 
 namespace GVK {

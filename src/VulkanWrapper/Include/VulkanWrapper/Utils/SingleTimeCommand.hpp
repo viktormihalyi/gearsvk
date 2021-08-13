@@ -5,7 +5,6 @@
 #include "VulkanWrapper/CommandBuffer.hpp"
 #include "VulkanWrapper/DeviceExtra.hpp"
 #include "Utils/Noncopyable.hpp"
-#include "Utils/Utils.hpp"
 
 #include <vulkan/vulkan.h>
 

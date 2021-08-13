@@ -5,7 +5,6 @@
 
 #include "Utils/Assert.hpp"
 #include "Utils/MovablePtr.hpp"
-#include "Utils/Utils.hpp"
 
 #include "DescriptorPool.hpp"
 #include "DescriptorSetLayout.hpp"

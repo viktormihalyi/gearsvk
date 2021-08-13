@@ -2,6 +2,8 @@
 
 #include "Utils/Assert.hpp"
 
+#include <stdexcept>
+
 namespace GVK {
 
 Sampler::Sampler (VkDevice device, VkFilter filter, VkSamplerAddressMode addressMode)

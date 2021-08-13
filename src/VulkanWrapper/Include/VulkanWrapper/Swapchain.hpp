@@ -9,7 +9,6 @@
 #include "ImageView.hpp"
 #include "Utils/MovablePtr.hpp"
 #include "PhysicalDevice.hpp"
-#include "Utils/Utils.hpp"
 
 #include <vulkan/vulkan.h>
 

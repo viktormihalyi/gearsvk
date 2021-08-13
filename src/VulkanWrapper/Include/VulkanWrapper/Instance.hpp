@@ -5,9 +5,6 @@
 #include "Utils/MovablePtr.hpp"
 #include "VulkanObject.hpp"
 
-#include <iostream>
-#include <set>
-#include <string>
 #include <vector>
 #include <vulkan/vulkan.h>
 

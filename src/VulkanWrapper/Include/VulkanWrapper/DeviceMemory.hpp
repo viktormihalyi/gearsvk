@@ -6,7 +6,6 @@
 #include "Utils/Assert.hpp"
 #include "Device.hpp"
 #include "Utils/MovablePtr.hpp"
-#include "Utils/Utils.hpp"
 
 namespace GVK {
 

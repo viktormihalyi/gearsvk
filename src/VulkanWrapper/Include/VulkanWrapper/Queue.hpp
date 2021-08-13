@@ -7,8 +7,9 @@
 
 #include "Utils/Assert.hpp"
 #include "Utils/MovablePtr.hpp"
-#include "Utils/Utils.hpp"
 #include "Utils/Noncopyable.hpp"
+
+#include <vector>
 
 namespace GVK {
 

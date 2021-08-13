@@ -8,11 +8,11 @@
 #include "Utils/Assert.hpp"
 #include "Utils/MovablePtr.hpp"
 #include "Utils/Noncopyable.hpp"
-#include "Utils/Utils.hpp"
 
 #include "vk_mem_alloc.h"
 
 #include <cstring>
+#include <vector>
 
 namespace GVK {
 

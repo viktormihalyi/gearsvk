@@ -2,6 +2,8 @@
 
 #include "DeviceMemory.hpp"
 
+#include <stdexcept>
+
 namespace GVK {
 
 

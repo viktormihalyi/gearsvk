@@ -7,7 +7,6 @@
 
 #include "VulkanWrapper/DeviceExtra.hpp"
 #include "Utils/MovablePtr.hpp"
-#include "Utils/Utils.hpp"
 #include "VulkanWrapper/VulkanObject.hpp"
 #include "VulkanWrapper/Command.hpp"
 

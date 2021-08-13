@@ -3,6 +3,7 @@
 // from RenderGraph
 #include "Utils/Assert.hpp"
 #include "Utils/CommandLineFlag.hpp"
+#include "Utils/FileSystemUtils.hpp"
 
 #include "StimulusAdapter.hpp"
 #include "StimulusAdapterView.hpp"
@@ -24,6 +25,7 @@
 #include <iomanip>
 #include <fstream>
 #include <map>
+#include <sstream>
 
 #include "spdlog/spdlog.h"
 

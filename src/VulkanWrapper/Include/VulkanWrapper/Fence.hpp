@@ -4,7 +4,6 @@
 #include <vulkan/vulkan.h>
 
 #include "Utils/MovablePtr.hpp"
-#include "Utils/Utils.hpp"
 #include "VulkanObject.hpp"
 
 namespace GVK {

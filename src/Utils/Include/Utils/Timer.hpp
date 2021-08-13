@@ -4,7 +4,6 @@
 #include "BuildType.hpp"
 
 #include <chrono>
-#include <iostream>
 #include <string>
 
 namespace Utils {
@@ -43,29 +42,6 @@ private:
     }
 };
 
-
-class DebugTimerLogger final : public TimerObserver {
-private:
-    std::string name;
-
-public:
-    DebugTimerLogger (const std::string& name = "")
-        : name (name)
-    {
-    }
-
-private:
-    void TimerEnded (Duration delta) override
-    {
-        if constexpr (IsDebugBuild) {
-            if (name.empty ()) {
-                std::cout << "operation took " << delta.count () << " sec" << std::endl;
-            } else {
-                std::cout << name << " took " << delta.count () << " sec" << std::endl;
-            }
-        }
-    }
-};
 
 } // namespace Utils
 

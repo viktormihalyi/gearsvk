@@ -198,9 +198,6 @@ void ShaderPipeline::Compile (CompileSettings&& settings_)
 
 void ShaderPipeline::Reload ()
 {
-    Utils::DebugTimerLogger tl ("reloading shaders");
-    Utils::TimerScope       ts (tl);
-
     MultithreadedFunction reloader (5, [&] (uint32_t, uint32_t threadIndex) {
         std::unique_ptr<ShaderModule>& currentShader = GetShaderByIndex (threadIndex);
         std::unique_ptr<ShaderModule>  newShader;

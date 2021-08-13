@@ -8,6 +8,7 @@
 // from GearsVkUtils
 #include "Utils/CommandLineFlag.hpp"
 #include "Utils/Assert.hpp"
+#include "Utils/FileSystemUtils.hpp"
 
 // from RenderGraph
 #include "RenderGraph/DrawRecordable/DrawRecordable.hpp"

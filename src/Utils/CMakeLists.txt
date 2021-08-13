@@ -21,6 +21,7 @@ set (Headers
     ${HeadersPath}/Time.hpp
     ${HeadersPath}/Timer.hpp
     ${HeadersPath}/Utils.hpp
+    ${HeadersPath}/FileSystemUtils.hpp
     ${HeadersPath}/UUID.hpp
 )
 
@@ -32,6 +33,7 @@ set (Sources
     ${SourcesPath}/SourceLocation.cpp
     ${SourcesPath}/Time.cpp
     ${SourcesPath}/Utils.cpp
+    ${SourcesPath}/FileSystemUtils.cpp
     ${SourcesPath}/UUID.cpp
 )
 
