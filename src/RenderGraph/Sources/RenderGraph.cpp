@@ -303,6 +303,8 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
         CommandBuffer& currentCmdbuffer = commandBuffers.emplace_back (graphSettings.GetDevice ());
 
+        currentCmdbuffer.SetName (*graphSettings.device, fmt::format ("CommandBuffer {}/{}", frameIndex, graphSettings.framesInFlight));
+
         currentCmdbuffer.Begin ();
 
         for (Pass& p : passes) {

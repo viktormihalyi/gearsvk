@@ -3,7 +3,6 @@
 
 #include "RenderGraph/RenderGraphAPI.hpp"
 
-#include "VulkanWrapper/DebugReportCallback.hpp"
 #include "VulkanWrapper/DebugUtilsMessenger.hpp"
 #include "VulkanWrapper/Swapchain.hpp"
 #include "VulkanWrapper/Surface.hpp"
@@ -56,7 +55,6 @@ class GVK_RENDERER_API VulkanEnvironment {
 public:
     std::unique_ptr<Instance>            instance;
     std::unique_ptr<DebugUtilsMessenger> messenger;
-    std::unique_ptr<DebugReportCallback> debugReportCallback;
     std::unique_ptr<PhysicalDevice>      physicalDevice;
     std::unique_ptr<Device>              device;
     std::unique_ptr<Queue>               graphicsQueue;

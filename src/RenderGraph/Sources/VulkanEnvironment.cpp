@@ -150,6 +150,10 @@ void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSe
                            VkDebugUtilsMessageTypeFlagsEXT             messageType,
                            const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
+    if (messageSeverity <= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
+        return;
+    }
+
     char  prefix[64];
     char* message = (char*)malloc (strlen (callbackData->pMessage) + 500);
     if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
@@ -178,14 +182,14 @@ void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSe
     }
 
     sprintf (message,
-             "%sMessage ID Number %d, Message ID String : %s\n\t%s",
+             "\n%sMessage ID Number %d, Message ID String : %s\n\t%s",
              prefix,
              callbackData->messageIdNumber,
              callbackData->pMessageIdName,
              callbackData->pMessage);
     if (callbackData->objectCount > 0) {
         char tmp_message[500];
-        sprintf (tmp_message, "\n\tObjects - %d\n", callbackData->objectCount);
+        sprintf (tmp_message, "\n\n\tObjects - %d\n", callbackData->objectCount);
         strcat (message, tmp_message);
         for (uint32_t object = 0; object < callbackData->objectCount; ++object) {
             sprintf (tmp_message,
@@ -193,14 +197,14 @@ void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSe
                      object,
                      VkObjectTypeToString (callbackData->pObjects[object].objectType),
                      (void*)(callbackData->pObjects[object].objectHandle),
-                     callbackData->pObjects[object].pObjectName);
+                     callbackData->pObjects[object].pObjectName == nullptr ? "[UNNAMED]" : callbackData->pObjects[object].pObjectName);
             strcat (message, tmp_message);
         }
     }
     if (callbackData->cmdBufLabelCount > 0) {
         char tmp_message[500];
         sprintf (tmp_message,
-                 "\n\tCommand Buffer Labels - %d\n",
+                 "\n\n\tCommand Buffer Labels - %d\n",
                  callbackData->cmdBufLabelCount);
         strcat (message, tmp_message);
         for (uint32_t label = 0; label < callbackData->cmdBufLabelCount; ++label) {
@@ -215,10 +219,8 @@ void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSe
             strcat (message, tmp_message);
         }
     }
-    if (messageSeverity > VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-        printf ("%s\n", message);
-        fflush (stdout);
-    }
+    printf ("%s\n", message);
+    fflush (stdout);
     free (message);
 }
 
@@ -248,7 +250,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
         messenger = std::make_unique<DebugUtilsMessenger> (*instance, *callback, DebugUtilsMessenger::noPerformance);
     }
 
-    VkSurfaceKHR physicalDeviceSurfaceHandle = VK_NULL_HANDLE;
+    const VkSurfaceKHR physicalDeviceSurfaceHandle = VK_NULL_HANDLE;
 
     physicalDevice = std::make_unique<PhysicalDevice> (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
 
@@ -291,6 +293,9 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
     commandPool = std::make_unique<CommandPool> (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
     deviceExtra = std::make_unique<DeviceExtra> (*instance, *device, *commandPool, *allocator, *graphicsQueue);
+
+    commandPool->SetName (*deviceExtra, "VulkanEnvironment CommandPool");
+    static_cast<DeviceObject*> (device.get ())->SetName (*deviceExtra, "VulkanEnvironment DeviceObject");
 
     if (logVulkanVersionFlag.IsFlagOn ()) {
         VkPhysicalDeviceProperties deviceProperties;

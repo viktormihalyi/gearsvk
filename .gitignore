@@ -5,6 +5,8 @@
 build/
 build.debug/
 build.release/
+build-debug/
+build-release/
 compile_commands.json
 temp/
 out/

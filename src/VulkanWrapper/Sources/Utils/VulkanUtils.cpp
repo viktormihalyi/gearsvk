@@ -1,8 +1,5 @@
 #include "VulkanUtils.hpp"
 
-#include "stb_image.h"
-#include "stb_image_write.h"
-
 #include "ImageData.hpp"
 #include "Commands.hpp"
 
@@ -28,13 +25,16 @@ std::string GetVersionString (uint32_t version)
 
 void TransitionImageLayout (const DeviceExtra& device, const Image& image, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
-    SingleTimeCommand (device).Record<CommandTranstionImage> (image, oldLayout, newLayout);
+    SingleTimeCommand commandBuffer (device);
+    commandBuffer.SetName (device, "TransitionImageLayout - SingleTimeCommandBuffer");
+    commandBuffer.Record<CommandTranstionImage> (image, oldLayout, newLayout);
 }
 
 
 void CopyBufferToImage (const DeviceExtra& device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth)
 {
     SingleTimeCommand commandBuffer (device);
+    commandBuffer.SetName (device, "CopyBufferToImage - SingleTimeCommandBuffer");
     CopyBufferToImage (commandBuffer, buffer, image, width, height, depth);
 }
 
@@ -63,6 +63,7 @@ void CopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkImage i
 void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
     SingleTimeCommand commandBuffer (device);
+    commandBuffer.SetName (device, "CopyBuffer - SingleTimeCommandBuffer");
 
     VkBufferCopy copyRegion = {};
     copyRegion.srcOffset    = 0;
@@ -84,6 +85,7 @@ static std::unique_ptr<Image> CreateCopyImageOnCPU (const DeviceExtra& device, c
 
     {
         SingleTimeCommand single (device);
+        single.SetName (device, "CreateCopyImageOnCPU - SingleTimeCommandBuffer");
 
         VkImageCopy imageCopyRegion                   = {};
         imageCopyRegion.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -105,59 +107,14 @@ static std::unique_ptr<Image> CreateCopyImageOnCPU (const DeviceExtra& device, c
 }
 
 
-std::vector<uint8_t> ReadImage (const std::filesystem::path& filePath, uint32_t components)
-{
-    int width, height, readComponents;
-
-    unsigned char* imageData = stbi_load (filePath.string ().c_str (), &width, &height, &readComponents, components);
-
-    if (GVK_ERROR (imageData == nullptr)) {
-        throw std::runtime_error ("failed to load image");
-    }
-
-    std::vector<uint8_t> imageBytes (width * height * components);
-    memcpy (imageBytes.data (), imageData, width * height * components);
-
-    stbi_image_free (imageData);
-
-    return imageBytes;
-}
-
 // copy image to cpu and compare with a reference
 bool AreImagesEqual (const DeviceExtra& device, const Image& image, const std::filesystem::path& expectedImage, uint32_t layerIndex)
 {
-    const uint32_t width      = image.GetWidth ();
-    const uint32_t height     = image.GetHeight ();
-    const uint32_t pixelCount = width * height;
-    const uint32_t byteCount  = pixelCount * 4;
+    ImageData actualImage (device, image, layerIndex);
 
-    std::unique_ptr<Image> dst = CreateCopyImageOnCPU (device, image, layerIndex);
+    ImageData expectedImageData (expectedImage);
 
-
-    std::vector<std::array<uint8_t, 4>> mapped (pixelCount);
-
-    {
-        MemoryMapping mapping (device.GetAllocator (), *dst);
-        memcpy (mapped.data (), mapping.Get (), byteCount);
-    }
-
-    std::vector<std::array<uint8_t, 4>> expected (pixelCount);
-    int                                 expectedWidth, expectedHeight, expectedComponents;
-    unsigned char*                      exepctedData = stbi_load (expectedImage.string ().c_str (), &expectedWidth, &expectedHeight, &expectedComponents, STBI_rgb_alpha);
-    if (GVK_ERROR (exepctedData == nullptr)) {
-        spdlog::error ("Failed to load {}", expectedImage.string ());
-        return false;
-    }
-
-    if (GVK_ERROR (expectedWidth != width || expectedHeight != height || expectedComponents != 4)) {
-        stbi_image_free (exepctedData);
-        return false;
-    }
-
-    memcpy (expected.data (), exepctedData, byteCount);
-    stbi_image_free (exepctedData);
-
-    return memcmp (expected.data (), mapped.data (), byteCount) == 0;
+    return actualImage == expectedImage;
 }
 
 
