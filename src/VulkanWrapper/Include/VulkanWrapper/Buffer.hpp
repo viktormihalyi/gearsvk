@@ -28,6 +28,10 @@ public:
     Buffer& operator= (Buffer&&) = default;
 
     virtual ~Buffer () override;
+    
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_BUFFER; }
 
     operator VkBuffer () const { return handle; }
 

@@ -28,6 +28,10 @@ public:
 
     virtual ~DeviceMemory () override;
 
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_DEVICE_MEMORY; }
+
     operator VkDeviceMemory () const { return handle; }
 
     size_t GetSize () const { return allocationSize; }

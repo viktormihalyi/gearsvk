@@ -81,7 +81,7 @@ SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (const De
     , swapchain { swapchain }
     , presentationEngineFence { std::make_unique<Fence> (device, false) }
 {
-    presentationEngineFence->SetName ("presentationEngineFence");
+    presentationEngineFence->SetName (device, "presentationEngineFence");
     
     GVK_ASSERT (imageCount <= framesInFlight);
 
@@ -89,7 +89,7 @@ SynchronizedSwapchainGraphRenderer::SynchronizedSwapchainGraphRenderer (const De
         imageAvailableSemaphore.push_back (std::make_unique<Semaphore> (device));
         renderFinishedSemaphore.push_back (std::make_unique<Semaphore> (device));
         inFlightFences.push_back (std::make_unique<Fence> (device));
-        inFlightFences.back ()->SetName (std::string ("inFlightFence ") + std::to_string (i));
+        inFlightFences.back ()->SetName (device, std::string ("inFlightFence ") + std::to_string (i));
     }
 
     for (uint32_t i = 0; i < imageCount; ++i) {

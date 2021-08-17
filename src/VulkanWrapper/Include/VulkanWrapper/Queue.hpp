@@ -15,7 +15,7 @@ namespace GVK {
 
 class CommandBuffer;
 
-class VULKANWRAPPER_API Queue : public Noncopyable {
+class VULKANWRAPPER_API Queue : public Noncopyable, public Nonmovable {
 private:
     GVK::MovablePtr<VkQueue> handle;
 

@@ -36,11 +36,15 @@ public:
     Semaphore (Semaphore&&) = default;
     Semaphore& operator= (Semaphore&&) = default;
 
-    ~Semaphore ()
+    virtual ~Semaphore () override
     {
         vkDestroySemaphore (device, handle, nullptr);
         handle = nullptr;
     }
+
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_SEMAPHORE; }
 
     operator VkSemaphore () const
     {

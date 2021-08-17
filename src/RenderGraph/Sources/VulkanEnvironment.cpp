@@ -290,7 +290,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
 
     commandPool = std::make_unique<CommandPool> (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
-    deviceExtra = std::make_unique<DeviceExtra> (*device, *commandPool, *allocator, *graphicsQueue);
+    deviceExtra = std::make_unique<DeviceExtra> (*instance, *device, *commandPool, *allocator, *graphicsQueue);
 
     if (logVulkanVersionFlag.IsFlagOn ()) {
         VkPhysicalDeviceProperties deviceProperties;

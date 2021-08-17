@@ -5,6 +5,7 @@
 #include "VulkanObject.hpp"
 
 #include "vk_mem_alloc.h"
+#include <stdexcept>
 
 namespace GVK {
 
@@ -18,6 +19,10 @@ public:
     Allocator& operator= (Allocator&&) = default;
 
     virtual ~Allocator () override;
+
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { throw std::runtime_error ("Cannot name VmaAllocator."); }
 
     operator VmaAllocator () const { return handle; }
 };

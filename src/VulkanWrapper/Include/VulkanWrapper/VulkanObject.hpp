@@ -5,7 +5,11 @@
 #include "Utils/UUID.hpp"
 #include "Utils/Noncopyable.hpp"
 
+#include <vulkan/vulkan.h>
+
 namespace GVK {
+
+class DeviceExtra;
 
 class VULKANWRAPPER_API VulkanObject : public Noncopyable {
 private:
@@ -24,11 +28,15 @@ protected:
 public:
     virtual ~VulkanObject () override;
 
-    void SetName (const std::string& value) { name = value; }
+    void SetName (const DeviceExtra& device, const std::string& value);
 
     const std::string& GetName () const { return name; }
 
     const GVK::UUID& GetUUID () const { return uuid; }
+
+private:
+    virtual void*        GetHandleForName () const     = 0;
+    virtual VkObjectType GetObjectTypeForName () const = 0;
 };
 
 } // namespace GVK

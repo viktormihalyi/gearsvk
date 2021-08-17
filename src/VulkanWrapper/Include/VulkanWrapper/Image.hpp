@@ -65,6 +65,10 @@ public:
 
     virtual ~Image () override;
 
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_IMAGE; }
+
     VkFormat GetFormat () const { return format; }
     uint32_t GetArrayLayers () const { return arrayLayers; }
     uint32_t GetWidth () const { return width; }

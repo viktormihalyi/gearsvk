@@ -50,6 +50,10 @@ public:
         vkDestroyPipelineLayout (device, handle, nullptr);
         handle = nullptr;
     }
+    
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_PIPELINE_LAYOUT; }
 
     operator VkPipelineLayout () const
     {

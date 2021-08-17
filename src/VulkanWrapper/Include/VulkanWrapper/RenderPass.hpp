@@ -43,6 +43,10 @@ public:
         vkDestroyRenderPass (device, handle, nullptr);
         handle = nullptr;
     }
+    
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_RENDER_PASS; }
 
     operator VkRenderPass () const
     {

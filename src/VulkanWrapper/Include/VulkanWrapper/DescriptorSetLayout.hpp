@@ -49,6 +49,10 @@ public:
         handle = nullptr;
     }
 
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT; }
+
     operator VkDescriptorSetLayout () const
     {
         return handle;

@@ -28,6 +28,10 @@ public:
 
     virtual ~Framebuffer () override;
 
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_FRAMEBUFFER; }
+
     const size_t GetWidth () const { return width; }
     const size_t GetHeight () const { return height; }
 

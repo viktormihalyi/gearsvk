@@ -21,6 +21,10 @@ public:
 
     virtual ~Fence () override;
 
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_FENCE; }
+
     operator VkFence () const { return handle; }
 
     void Wait () const;

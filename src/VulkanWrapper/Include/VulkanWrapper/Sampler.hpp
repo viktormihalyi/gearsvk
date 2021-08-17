@@ -21,7 +21,11 @@ public:
     Sampler (Sampler&&) = default;
     Sampler& operator= (Sampler&&) = default;
 
-    ~Sampler ();
+    virtual ~Sampler () override;
+
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_SAMPLER; }
 
     operator VkSampler () const { return handle; }
 };

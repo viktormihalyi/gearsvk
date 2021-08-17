@@ -20,7 +20,7 @@ extern VULKANWRAPPER_API const InstanceSettings instanceDebugMode;
 extern VULKANWRAPPER_API const InstanceSettings instanceReleaseMode;
 
 
-class VULKANWRAPPER_API Instance : public VulkanObject {
+class VULKANWRAPPER_API Instance : public VulkanObject, public Nonmovable {
 private:
     GVK::MovablePtr<VkInstance> handle;
 
@@ -32,6 +32,10 @@ public:
     Instance& operator= (Instance&&) = default;
 
     virtual ~Instance () override;
+
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_INSTANCE; }
 
     operator VkInstance () const { return handle; }
 };

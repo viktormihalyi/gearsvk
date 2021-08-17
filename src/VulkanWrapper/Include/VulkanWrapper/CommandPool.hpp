@@ -12,7 +12,7 @@
 
 namespace GVK {
 
-class /* VULKANWRAPPER_API */ CommandPool : public VulkanObject {
+class /* VULKANWRAPPER_API */ CommandPool : public VulkanObject, public Nonmovable {
 private:
     VkDevice                       device;
     GVK::MovablePtr<VkCommandPool> handle;
@@ -33,8 +33,12 @@ public:
 
     CommandPool (CommandPool&&) = default;
     CommandPool& operator= (CommandPool&&) = default;
+    
+    virtual void* GetHandleForName () const override { return handle; }
 
-    ~CommandPool ()
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_COMMAND_POOL; }
+
+    virtual ~CommandPool () override
     {
         vkDestroyCommandPool (device, handle, nullptr);
         handle = nullptr;

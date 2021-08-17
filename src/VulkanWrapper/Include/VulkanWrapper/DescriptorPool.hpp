@@ -43,11 +43,15 @@ public:
     DescriptorPool (DescriptorPool&&) = default;
     DescriptorPool& operator= (DescriptorPool&&) = default;
 
-    ~DescriptorPool ()
+    virtual ~DescriptorPool () override
     {
         vkDestroyDescriptorPool (device, handle, nullptr);
         handle = nullptr;
     }
+
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT; };
 
     operator VkDescriptorPool () const
     {

@@ -105,7 +105,11 @@ public:
     static std::unique_ptr<ShaderModule> CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation);
     static std::unique_ptr<ShaderModule> CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation);
 
-    virtual ~ShaderModule ();
+    virtual ~ShaderModule () override;
+
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_SHADER_MODULE; }
 
     void Reload ();
 

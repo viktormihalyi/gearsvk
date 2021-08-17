@@ -32,11 +32,15 @@ public:
     Pipeline (Pipeline&&) = default;
     Pipeline& operator= (Pipeline&&) = default;
 
-    ~Pipeline ()
+    virtual ~Pipeline () override
     {
         vkDestroyPipeline (device, handle, nullptr);
         handle = nullptr;
     }
+    
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_PIPELINE; }
 
     operator VkPipeline () const
     {

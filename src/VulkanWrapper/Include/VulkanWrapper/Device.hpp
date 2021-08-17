@@ -11,7 +11,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API Device {
+class VULKANWRAPPER_API Device : public Nonmovable {
 public:
     Device () = default;
     
@@ -40,6 +40,11 @@ public:
     DeviceObject& operator= (DeviceObject&&) = default;
 
     virtual ~DeviceObject () override;
+
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_DEVICE; }
+
     virtual operator VkDevice () const override
     {
         return handle;

@@ -28,6 +28,10 @@ public:
 
     virtual ~Surface () override;
 
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_SURFACE_KHR; }
+
     operator VkSurfaceKHR () const { return handle; }
 };
 

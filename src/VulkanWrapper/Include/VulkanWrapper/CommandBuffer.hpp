@@ -34,6 +34,10 @@ public:
     CommandBuffer& operator= (CommandBuffer&&) = default;
 
     virtual ~CommandBuffer () override;
+    
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_COMMAND_BUFFER; }
 
     void Begin (VkCommandBufferUsageFlags flags = 0);
 

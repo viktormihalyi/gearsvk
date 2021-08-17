@@ -27,6 +27,10 @@ public:
 
     VkFormat GetFormat () const { return format; }
 
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_IMAGE_VIEW; }
+
     operator VkImageView () const { return handle; }
 };
 

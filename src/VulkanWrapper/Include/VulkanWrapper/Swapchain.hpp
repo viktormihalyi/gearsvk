@@ -130,7 +130,12 @@ public:
 
     virtual void Recreate () override;
 
+
     virtual ~RealSwapchain ();
+
+    virtual void* GetHandleForName () const override { return createResult.handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_SWAPCHAIN_KHR; }
 
     operator VkSwapchainKHR () const { return createResult.handle; }
 

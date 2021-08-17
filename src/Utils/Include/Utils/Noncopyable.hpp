@@ -15,4 +15,17 @@ public:
     Noncopyable& operator= (Noncopyable&&) = default;
 };
 
+
+class /* GVK_UTILS_API */ Nonmovable {
+public:
+    Nonmovable ()          = default;
+    virtual ~Nonmovable () = default;
+
+    Nonmovable (const Nonmovable&) = default;
+    Nonmovable& operator= (const Nonmovable&) = default;
+
+    Nonmovable (Nonmovable&&) = delete;
+    Nonmovable& operator= (Nonmovable&&) = delete;
+};
+
 #endif

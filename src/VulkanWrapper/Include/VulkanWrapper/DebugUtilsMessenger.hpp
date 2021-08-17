@@ -52,6 +52,10 @@ public:
 
     virtual ~DebugUtilsMessenger () override;
 
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT; }
+
     operator VkDebugUtilsMessengerEXT () const { return handle; }
 };
 

@@ -49,9 +49,11 @@ public:
         handle = nullptr;
     }
 
+    virtual void* GetHandleForName () const override { return handle; }
+
+    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_DESCRIPTOR_SET; }
 
     mutable std::vector<std::tuple<uint32_t, VkDescriptorType, VkWriteDescriptorSet>> writtenInfos;
-
 
     operator VkDescriptorSet () const
     {
