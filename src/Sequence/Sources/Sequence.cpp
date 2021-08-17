@@ -3,7 +3,6 @@
 #include "Stimulus.h"
 #include "SpatialFilter.h"
 #include <algorithm>
-#include <iostream>
 #include <sstream>
 
 

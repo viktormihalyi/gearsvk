@@ -52,6 +52,7 @@
 
 
 #include <sstream>
+#include "spdlog/spdlog.h"
 
 namespace glm
 {
@@ -80,11 +81,6 @@ namespace glm
 
 
 static const std::filesystem::path SequencesFolder = std::filesystem::current_path () / "Project" / "Sequences";
-
-
-StaticInit nosync ([] () {
-    std::cout.sync_with_stdio (false);
-});
 
 
 class GearsTests : public GoogleTestEnvironmentBase {
@@ -124,7 +120,7 @@ protected:
             sequenceAdapter->SetCurrentPresentable (pres);
             success = true;
         } catch (std::exception& ex) {
-            std::cout << ex.what () << std::endl;
+            spdlog::error ("{}", ex.what ());
             success = false;
         }
 

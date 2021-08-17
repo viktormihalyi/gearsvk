@@ -4,7 +4,7 @@
 #include "Utils/Event.hpp"
 #include "Utils/Utils.hpp"
 
-#include <iostream>
+#include "spdlog/spdlog.h"
 
 namespace GVK {
 
@@ -94,17 +94,15 @@ void UniformReflection::CreateGraphConnections ()
 void UniformReflection::PrintDebugInfo ()
 {
     for (auto& [uuid, selector] : selectors) {
-        std::cout << uuid.GetValue () << std::endl;
+        spdlog::info ("{}", uuid.GetValue ());
         for (auto& [shaderKind, uboSelector] : selector.uboSelectors) {
-            std::cout << "\t" << ShaderKindToString (shaderKind) << std::endl;
+            spdlog::info ("\t{}", ShaderKindToString (shaderKind));
             for (auto& [name, ubo] : uboSelector.udatas) {
-                std::cout << "\t\t" << name << " (" << static_cast<int32_t> (ubo->GetSize ()) << " bytes): ";
+                spdlog::info ("\t\t{} ({})", name, ubo->GetSize ());
 
                 for (int32_t i = ubo->GetSize () - 1; i >= 0; --i) {
-                    printf ("%02x ", ubo->GetData ()[i]);
+                    spdlog::info ("%02x ", ubo->GetData ()[i]); // TODO
                 }
-
-                std::cout << std::endl;
             }
         }
     }

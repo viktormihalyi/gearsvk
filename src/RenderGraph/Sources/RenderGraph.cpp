@@ -238,9 +238,9 @@ void RenderGraph::DebugPrint ()
         }
     }
 
-    std::cout << "======= Render graph begin =======" << std::endl;
-    std::cout << logString.str () << std::endl;
-    std::cout << "======= Render graph end =========" << std::endl;
+    spdlog::info ("======= Render graph begin =======");
+    spdlog::info ("{}", logString.str ());
+    spdlog::info ("======= Render graph end =========");
 }
 
 

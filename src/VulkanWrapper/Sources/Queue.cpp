@@ -1,7 +1,6 @@
 #include "Queue.hpp"
 
 #include "CommandBuffer.hpp"
-#include <iostream>
 
 #include "spdlog/spdlog.h"
 

@@ -3,7 +3,6 @@
 
 #include "Utils/Assert.hpp"
 #include "Utils/StaticInit.hpp"
-#include <iostream>
 
 namespace GVK {
     

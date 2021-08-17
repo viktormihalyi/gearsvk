@@ -3,8 +3,6 @@
 #include "Utils/Assert.hpp"
 #include "Utils/Time.hpp"
 
-#include <iostream>
-
 #include "spdlog/spdlog.h"
 
 constexpr bool LOG_WAITS = false;
@@ -53,7 +51,7 @@ void Fence::Wait () const
         const GVK::TimePoint end = GVK::TimePoint::SinceEpoch ();
 
         const std::string fenceId = !GetName ().empty () ? GetName () : GetUUID ().GetValue ();
-        std::cout << "fence \"" << fenceId << "\" waited " << std::fixed << (end - start).AsMilliseconds () << " ms" << std::endl;
+        spdlog::info  ("fence \"{}\" waited {} ms", fenceId, (end - start).AsMilliseconds ());
 
     } else {
         

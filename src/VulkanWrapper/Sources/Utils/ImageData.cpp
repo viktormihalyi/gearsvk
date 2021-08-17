@@ -12,8 +12,7 @@
 
 #include "VulkanUtils.hpp"
 
-#include <iostream>
-#include <spdlog/spdlog.h>
+#include "spdlog/spdlog.h"
 
 namespace GVK {
 

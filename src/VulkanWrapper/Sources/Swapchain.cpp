@@ -1,8 +1,6 @@
 #include "Swapchain.hpp"
 #include "VulkanUtils.hpp"
 
-#include <iostream>
-
 #include "spdlog/spdlog.h"
 
 namespace GVK {

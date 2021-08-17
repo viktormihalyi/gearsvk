@@ -3,7 +3,6 @@
 #include "Utils/BuildType.hpp"
 #include "Utils/CommandLineFlag.hpp"
 #include "Utils/StaticInit.hpp"
-#include "Utils/TerminalColors.hpp"
 #include "Utils/Timer.hpp"
 
 #include "Window.hpp"
@@ -89,19 +88,138 @@ std::optional<double> Presentable::GetRefreshRate () const
 constexpr uint32_t LogColumnWidth = 36;
 
 
-void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      severity,
-                        VkDebugUtilsMessageTypeFlagsEXT             messageType,
-                        const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
-{
-    using namespace TerminalColors;
+const std::unordered_map<VkObjectType, const char*> VkObjectTypeToStringMap {
+    { VK_OBJECT_TYPE_UNKNOWN, "VK_OBJECT_TYPE_UNKNOWN" },
+    { VK_OBJECT_TYPE_INSTANCE, "VK_OBJECT_TYPE_INSTANCE" },
+    { VK_OBJECT_TYPE_PHYSICAL_DEVICE, "VK_OBJECT_TYPE_PHYSICAL_DEVICE" },
+    { VK_OBJECT_TYPE_DEVICE, "VK_OBJECT_TYPE_DEVICE" },
+    { VK_OBJECT_TYPE_QUEUE, "VK_OBJECT_TYPE_QUEUE" },
+    { VK_OBJECT_TYPE_SEMAPHORE, "VK_OBJECT_TYPE_SEMAPHORE" },
+    { VK_OBJECT_TYPE_COMMAND_BUFFER, "VK_OBJECT_TYPE_COMMAND_BUFFER" },
+    { VK_OBJECT_TYPE_FENCE, "VK_OBJECT_TYPE_FENCE" },
+    { VK_OBJECT_TYPE_DEVICE_MEMORY, "VK_OBJECT_TYPE_DEVICE_MEMORY" },
+    { VK_OBJECT_TYPE_BUFFER, "VK_OBJECT_TYPE_BUFFER" },
+    { VK_OBJECT_TYPE_IMAGE, "VK_OBJECT_TYPE_IMAGE" },
+    { VK_OBJECT_TYPE_EVENT, "VK_OBJECT_TYPE_EVENT" },
+    { VK_OBJECT_TYPE_QUERY_POOL, "VK_OBJECT_TYPE_QUERY_POOL" },
+    { VK_OBJECT_TYPE_BUFFER_VIEW, "VK_OBJECT_TYPE_BUFFER_VIEW" },
+    { VK_OBJECT_TYPE_IMAGE_VIEW, "VK_OBJECT_TYPE_IMAGE_VIEW" },
+    { VK_OBJECT_TYPE_SHADER_MODULE, "VK_OBJECT_TYPE_SHADER_MODULE" },
+    { VK_OBJECT_TYPE_PIPELINE_CACHE, "VK_OBJECT_TYPE_PIPELINE_CACHE" },
+    { VK_OBJECT_TYPE_PIPELINE_LAYOUT, "VK_OBJECT_TYPE_PIPELINE_LAYOUT" },
+    { VK_OBJECT_TYPE_RENDER_PASS, "VK_OBJECT_TYPE_RENDER_PASS" },
+    { VK_OBJECT_TYPE_PIPELINE, "VK_OBJECT_TYPE_PIPELINE" },
+    { VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, "VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT" },
+    { VK_OBJECT_TYPE_SAMPLER, "VK_OBJECT_TYPE_SAMPLER" },
+    { VK_OBJECT_TYPE_DESCRIPTOR_POOL, "VK_OBJECT_TYPE_DESCRIPTOR_POOL" },
+    { VK_OBJECT_TYPE_DESCRIPTOR_SET, "VK_OBJECT_TYPE_DESCRIPTOR_SET" },
+    { VK_OBJECT_TYPE_FRAMEBUFFER, "VK_OBJECT_TYPE_FRAMEBUFFER" },
+    { VK_OBJECT_TYPE_COMMAND_POOL, "VK_OBJECT_TYPE_COMMAND_POOL" },
+    { VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION, "VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION" },
+    { VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE, "VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE" },
+    { VK_OBJECT_TYPE_SURFACE_KHR, "VK_OBJECT_TYPE_SURFACE_KHR" },
+    { VK_OBJECT_TYPE_SWAPCHAIN_KHR, "VK_OBJECT_TYPE_SWAPCHAIN_KHR" },
+    { VK_OBJECT_TYPE_DISPLAY_KHR, "VK_OBJECT_TYPE_DISPLAY_KHR" },
+    { VK_OBJECT_TYPE_DISPLAY_MODE_KHR, "VK_OBJECT_TYPE_DISPLAY_MODE_KHR" },
+    { VK_OBJECT_TYPE_DEBUG_REPORT_CALLBACK_EXT, "VK_OBJECT_TYPE_DEBUG_REPORT_CALLBACK_EXT" },
+    { VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT, "VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT" },
+    { VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR, "VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR" },
+    { VK_OBJECT_TYPE_VALIDATION_CACHE_EXT, "VK_OBJECT_TYPE_VALIDATION_CACHE_EXT" },
+    { VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_NV, "VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_NV" },
+    { VK_OBJECT_TYPE_PERFORMANCE_CONFIGURATION_INTEL, "VK_OBJECT_TYPE_PERFORMANCE_CONFIGURATION_INTEL" },
+    { VK_OBJECT_TYPE_DEFERRED_OPERATION_KHR, "VK_OBJECT_TYPE_DEFERRED_OPERATION_KHR" },
+    { VK_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_NV, "VK_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_NV" },
+    { VK_OBJECT_TYPE_PRIVATE_DATA_SLOT_EXT, "VK_OBJECT_TYPE_PRIVATE_DATA_SLOT_EXT" },
+    { VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR, "VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR" },
+    { VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_KHR, "VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_KHR" },
+};
 
-    if (severity > VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-        std::cout << RED << "validation layer: "
-                  << YELLOW << callbackData->pMessageIdName << ": "
-                  << RESET << callbackData->pMessage
-                  << std::endl
-                  << std::endl;
+
+static const char* VkObjectTypeToString (VkObjectType objectType)
+{
+    auto found = VkObjectTypeToStringMap.find (objectType);
+    if (found != VkObjectTypeToStringMap.end ())
+        return found->second;
+
+    return "[UNKNOWN]";
+}
+
+
+// from https://www.lunarg.com/wp-content/uploads/2018/05/Vulkan-Debug-Utils_05_18_v1.pdf
+void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+                           VkDebugUtilsMessageTypeFlagsEXT             messageType,
+                           const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
+{
+    char  prefix[64];
+    char* message = (char*)malloc (strlen (callbackData->pMessage) + 500);
+    if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
+        strcpy (prefix, "VERBOSE : ");
+    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+        strcpy (prefix, "INFO : ");
+    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+        strcpy (prefix, "WARNING : ");
+    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+        strcpy (prefix, "ERROR : ");
     }
+    if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) {
+        strcat (prefix, "GENERAL");
+    } else {
+#if 0
+        if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_SPECIFICATION_BIT_EXT) {
+            strcat (prefix, "SPEC");
+            // validation_error = 1;
+        }
+        if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) {
+            if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_SPECIFICATION_BIT_EXT) {
+                strcat (prefix, "|");
+            }
+        }
+#endif
+    }
+
+    sprintf (message,
+             "%sMessage ID Number %d, Message ID String : %s\n\t%s",
+             prefix,
+             callbackData->messageIdNumber,
+             callbackData->pMessageIdName,
+             callbackData->pMessage);
+    if (callbackData->objectCount > 0) {
+        char tmp_message[500];
+        sprintf (tmp_message, "\n\tObjects - %d\n", callbackData->objectCount);
+        strcat (message, tmp_message);
+        for (uint32_t object = 0; object < callbackData->objectCount; ++object) {
+            sprintf (tmp_message,
+                     "\t\tObject[%d] - Type %s, Value %#p, Name \"%s\"\n",
+                     object,
+                     VkObjectTypeToString (callbackData->pObjects[object].objectType),
+                     (void*)(callbackData->pObjects[object].objectHandle),
+                     callbackData->pObjects[object].pObjectName);
+            strcat (message, tmp_message);
+        }
+    }
+    if (callbackData->cmdBufLabelCount > 0) {
+        char tmp_message[500];
+        sprintf (tmp_message,
+                 "\n\tCommand Buffer Labels - %d\n",
+                 callbackData->cmdBufLabelCount);
+        strcat (message, tmp_message);
+        for (uint32_t label = 0; label < callbackData->cmdBufLabelCount; ++label) {
+            sprintf (tmp_message,
+                     "\t\tLabel[%d] - %s { %f, %f, %f, %f}\n",
+                     label,
+                     callbackData->pCmdBufLabels[label].pLabelName,
+                     callbackData->pCmdBufLabels[label].color[0],
+                     callbackData->pCmdBufLabels[label].color[1],
+                     callbackData->pCmdBufLabels[label].color[2],
+                     callbackData->pCmdBufLabels[label].color[3]);
+            strcat (message, tmp_message);
+        }
+    }
+    if (messageSeverity > VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
+        printf ("%s\n", message);
+        fflush (stdout);
+    }
+    free (message);
 }
 
 

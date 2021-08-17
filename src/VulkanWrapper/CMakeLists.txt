@@ -32,7 +32,6 @@ set (Headers
     ${HeadersPath}/PipelineLayout.hpp
     ${HeadersPath}/Queue.hpp
     ${HeadersPath}/RenderPass.hpp
-    ${HeadersPath}/ResourceLimits.hpp
     ${HeadersPath}/Sampler.hpp
     ${HeadersPath}/Semaphore.hpp
     ${HeadersPath}/ShaderModule.hpp

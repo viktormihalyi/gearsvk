@@ -4,11 +4,12 @@
 #include "CompilerDefinitions.hpp"
 #include "MessageBox.hpp"
 
-#include <iostream>
 #include <memory>
 #include <set>
 #include <string>
 #include <vector>
+
+#include "spdlog/spdlog.h"
 
 
 namespace Utils {
@@ -78,7 +79,7 @@ bool DebugBreakAssertFunc (bool condition, const bool shouldBe, const char* mess
         const std::string assertLocation = location.ToString ();
         bool              ignored        = true;
         if (disableAssertsFlag.IsFlagOn ()) {
-            std::cout << "[" << message << "] " << location.ToString () << std::endl;
+            spdlog::error ("[{}] {}", message, location.ToString ());
         } else {
             ShowAssertPopup (message, conditionString, assertLocation, ignored);
         }
@@ -90,7 +91,7 @@ bool DebugBreakAssertFunc (bool condition, const bool shouldBe, const char* mess
 bool LogAssertFunc (bool condition, const bool shouldBe, const char* message, const char* conditionString, const SourceLocation& location)
 {
     if (condition != shouldBe) {
-        std::cout << "[" << message << "] " << location.ToString () << std::endl;
+        spdlog::error ("[{}] {}", message, location.ToString ());
     }
     return condition;
 }

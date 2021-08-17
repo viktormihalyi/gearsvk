@@ -12,7 +12,6 @@
 
 // from std
 #include <array>
-#include <iostream>
 
 // from glslang
 #include <SPIRV/GlslangToSpv.h>
@@ -286,7 +285,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 
     const std::string loggerMessages = logger.getAllMessages ();
     if (GVK_ERROR (!loggerMessages.empty ()))
-        std::cout << loggerMessages << std::endl;
+        spdlog::error ("{}", loggerMessages);
 
     return spirvBinary;
 }

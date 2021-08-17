@@ -3,7 +3,6 @@
 #include "RenderGraph/Window/GLFWWindow.hpp"
 #include "VulkanWrapper/Utils/ImageData.hpp"
 #include "VulkanWrapper/Surface.hpp"
-#include "Utils/TerminalColors.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
 
@@ -16,13 +15,9 @@ void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeve
                          VkDebugUtilsMessageTypeFlagsEXT             messageType,
                          const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
-    using namespace TerminalColors;
-    if (messageSeverity > 1) {
-        std::cout << RED << "validation layer: "
-                  << YELLOW << callbackData->pMessageIdName << ": "
-                  << RESET << callbackData->pMessage
-                  << std::endl
-                  << std::endl;
+    GVK::defaultDebugCallback (messageSeverity, messageType, callbackData);
+
+    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
         EXPECT_TRUE (false);
     }
 }

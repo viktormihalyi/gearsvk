@@ -1,7 +1,8 @@
 #include "DeviceMemory.hpp"
 
-#include <iostream>
 #include <sstream>
+
+#include "spdlog/spdlog.h"
 
 namespace GVK {
 
@@ -23,7 +24,7 @@ static void LogMemoryOperation (const std::string& operation, const size_t alloc
         allocString << allocationSize << " byte(s)";
     }
     allocString << " (idx: " << memoryTypeIndex << ")";
-    std::cout << allocString.str () << std::endl;
+    spdlog::info ("{}",  allocString.str ());
 }
 
 

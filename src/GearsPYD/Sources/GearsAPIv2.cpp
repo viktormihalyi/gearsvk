@@ -17,6 +17,8 @@
 // from pybind11
 #include <pybind11/embed.h>
 
+// from spdlog
+#include "spdlog/spdlog.h"
 
 namespace Gears {
 
@@ -54,7 +56,7 @@ void StartRendering ()
     try {
         currentSeq->RenderFullOnExternalWindow ();
     } catch (std::exception& ex) {
-        std::cerr << ex.what () << std::endl;
+        spdlog::error ("StartRendering failed: {}", ex.what ());
         GVK_BREAK ("rendering failed");
     } catch (...) {
         GVK_BREAK ("rendering failed!!");
@@ -66,10 +68,8 @@ void TryCompile (GVK::ShaderKind shaderKind, const std::string& source)
 {
     try {
         GVK::ShaderModule::CreateFromGLSLString (*GetVkEnvironment ().device, shaderKind, source);
-        std::cout << "compile succeeded" << std::endl;
     } catch (const GVK::ShaderCompileException&) {
-        std::cout << "compile failed, source code: " << std::endl;
-        std::cout << source << std::endl;
+        spdlog::info ("compile failed, source code:\n{}", source);
     }
 }
 
@@ -188,7 +188,7 @@ std::shared_ptr<Sequence> GetSequenceFromPyx (const std::filesystem::path& fileP
 
     } catch (std::exception& e) {
         GVK_BREAK ("Failed to load sequence.");
-        std::cout << e.what () << std::endl;
+        spdlog::error ("Failed to load sequence: {}", e.what ());
         return nullptr;
     }
 }
@@ -213,7 +213,7 @@ static std::unique_ptr<GVK::VulkanEnvironment> env_ = nullptr;
 static GVK::VulkanEnvironment& GetVkEnvironment ()
 {
     if (env_ == nullptr) {
-        env_ = std::make_unique<GVK::VulkanEnvironment> (GVK::testDebugCallback, GVK::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+        env_ = std::make_unique<GVK::VulkanEnvironment> (GVK::defaultDebugCallback, GVK::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
     }
 
     return *env_;

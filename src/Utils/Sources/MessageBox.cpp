@@ -68,8 +68,6 @@ MessageBoxResult ShowMessageBox (const std::string& title, const std::string& me
 
 // "messagebox" in terminal
 
-#include "TerminalColors.hpp"
-
 MessageBoxResult ShowMessageBox (const std::string& title, const std::string& message)
 {
     std::cout << title << std::endl;

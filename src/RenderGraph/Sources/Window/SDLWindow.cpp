@@ -7,7 +7,6 @@
 #include "Assert.hpp"
 #include "Timer.hpp"
 
-#include <iostream>
 
 namespace GVK {
 

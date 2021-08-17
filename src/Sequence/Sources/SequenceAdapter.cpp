@@ -84,7 +84,7 @@ public:
 
     void Export ()
     {
-        std::cout << "Exporting randoms..." << std::endl;
+        spdlog::info ("Exporting randoms...");
 
         const std::filesystem::path dir = std::filesystem::temp_directory_path () / "GearsVk" / "RandomExport";
 
@@ -108,7 +108,7 @@ public:
             }
         }
 
-        std::cout << "Done!" << std::endl;
+        spdlog::info ("Exporting randoms... Done!");
     }
 };
 
@@ -144,13 +144,13 @@ SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const std
     CreateStimulusAdapterViews ();
 
     if (printSignalsFlag.IsFlagOn ()) {
-        std::cout << "======= Sequence signals =======" << std::endl;
+        spdlog::info ("======= Sequence signals =======");
         for (auto& signal : sequence->getSignals ()) {
             const size_t      frameIndex  = signal.first;
             const bool        clear       = signal.second.clear;
             const std::string channelName = signal.second.channel;
             const std::string channelPort = sequence->getChannels ().find (channelName)->second.portName;
-            std::cout << "Signal at frame index " << frameIndex << " on channel: " << channelName << ", port: " << channelPort << ", clear: " << std::boolalpha << clear << std::endl; 
+            spdlog::info ("Signal at frame index %d on channel: %d, port: %d, clear: %d", frameIndex, channelName, channelPort, clear);
         }
         for (auto& stimulus : sequence->getStimuli ()) {
             std::cout << "======= Stimulus signals - \"" << stimulus.second->name << "\" (starting frame: " << stimulus.second->getStartingFrame () << ", duration: " << stimulus.second->getDuration () << ") =======" << std::endl;

@@ -130,7 +130,7 @@ private:
                 GVK_ASSERT (false);
             }
 
-            std::cout << "generated '" << static_cast<char> (unicode) << "', scale: " << data.scale << ", translation: " << data.translation << std::endl;
+            //std::cout << "generated '" << static_cast<char> (unicode) << "', scale: " << data.scale << ", translation: " << data.translation << std::endl;
 
             const auto insertResult = loadedGlyphs.insert ({ unicode, std::make_unique<GlyphData> (data) });
 

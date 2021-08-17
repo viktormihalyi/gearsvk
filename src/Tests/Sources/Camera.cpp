@@ -3,7 +3,6 @@
 #include "Utils/Assert.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <sstream>
 
 #include <glm/glm.hpp>

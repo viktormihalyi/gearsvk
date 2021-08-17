@@ -39,9 +39,18 @@ set (Sources
 
 add_library (Utils SHARED ${Headers} ${Sources})
 
+find_package (spdlog REQUIRED)
+
+target_compile_definitions (Utils
+    PUBLIC SPDLOG_FMT_EXTERNAL
+)
+
 target_include_directories (Utils
     PRIVATE ${HeadersPath}
     PUBLIC  ${IncludePath}
+
+    PRIVATE ${fmt_INCLUDE_DIRS}
+    PRIVATE ${spdlog_INCLUDE_DIRS}
 )
 
 if (WIN32)
@@ -50,4 +59,8 @@ elseif (UNIX)
     set (UUID_LIB uuid)
 endif ()
 
-target_link_libraries (Utils PUBLIC ${UUID_LIB})
+target_link_libraries (Utils
+    PRIVATE ${UUID_LIB}
+    PRIVATE ${fmt_LIBRARIES}
+    PRIVATE ${spdlog_LIBRARIES}
+)

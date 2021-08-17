@@ -48,7 +48,7 @@ public:
 
 
 GVK_RENDERER_API
-void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
+void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
                         VkDebugUtilsMessageTypeFlagsEXT,
                         const VkDebugUtilsMessengerCallbackDataEXT* callbackData);
 
@@ -65,7 +65,7 @@ public:
     std::unique_ptr<DeviceExtra>         deviceExtra;
     std::unique_ptr<Allocator>           allocator;
 
-    VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback           = testDebugCallback,
+    VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback           = defaultDebugCallback,
                        const std::vector<const char*>&              instanceExtensions = {},
                        const std::vector<const char*>&              deviceExtensions = {});
 
