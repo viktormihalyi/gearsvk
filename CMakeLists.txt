@@ -10,9 +10,10 @@ set (GearsVk_VERSION_MAJOR 1 CACHE STRING "major version" FORCE)
 set (GearsVk_VERSION_MINOR 0 CACHE STRING "minor version" FORCE)
 set (GearsVk_VERSION ${GearsVk_VERSION_MAJOR}.${GearsVk_VERSION_MINOR} CACHE STRING "version" FORCE)
 
-set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/lib>)
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/lib>)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin>)
+
 
 if (MSVC)
     add_compile_options (/bigobj)
@@ -54,3 +55,7 @@ add_subdirectory (src/GearsPYD)
 add_subdirectory (src/Tests)
 add_subdirectory (src/SequenceRunner)
 add_subdirectory (src/UserInterface)
+
+set_property (TARGET GVKTest PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+set_property (TARGET SequenceRunner PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
