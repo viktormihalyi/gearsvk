@@ -1,7 +1,7 @@
 #ifndef PYSEQUENCE_HPP
 #define PYSEQUENCE_HPP
 
-#include "PySequence/PySequenceAPI.hpp"
+#include "Sequence/SequenceAPI.hpp"
 
 #include "Sequence/Sequence.h"
 
@@ -18,7 +18,7 @@ class Stimulus;
 class Response;
 
 //! A structure that contains all sequence parameters.
-class PYSEQUENCE_API PySequence : public Sequence {
+class SEQUENCE_API PySequence : public Sequence {
 private:
 
     struct Impl;

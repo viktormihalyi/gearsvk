@@ -14,7 +14,7 @@
 namespace Gears {
 namespace Event {
 
-class PYSEQUENCE_API Base {
+class SEQUENCE_API Base {
 protected:
     Base (uint32_t message, uint32_t wParam, uint32_t lParam)
         : message (message), wParam (wParam), lParam (lParam)

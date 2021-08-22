@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PySequence/PySequenceAPI.hpp"
+#include "Sequence/SequenceAPI.hpp"
 
 #include "PySequence/event/KeyPressed.h"
 #include "PySequence/event/KeyReleased.h"

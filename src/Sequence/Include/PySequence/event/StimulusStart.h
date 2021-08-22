@@ -13,20 +13,13 @@
 namespace Gears {
 namespace Event {
 
-class PYSEQUENCE_API Frame : public Base {
-    Frame (uint32_t iFrame, float time)
-#if _WIN32
-        : Base (WM_USER, 0, 0), iFrame (iFrame), time (time)
-#else
-        : Base (0, 0, 0), iFrame (iFrame), time (time)
-#endif
+class SEQUENCE_API StimulusStart : public Base {
+public:
+    StimulusStart ()
+        : Base (WM_USER, 0, 0)
     {
     }
 
-public:
-
-    float       time;
-    uint32_t        iFrame;
     static uint32_t typeId;
 };
 

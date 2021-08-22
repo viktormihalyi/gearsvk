@@ -1,7 +1,7 @@
 #ifndef PYRESPONSE_HPP
 #define PYRESPONSE_HPP
 
-#include "PySequence/PySequenceAPI.hpp"
+#include "Sequence/SequenceAPI.hpp"
 
 #include "Sequence/Response.h"
 
@@ -17,7 +17,7 @@ class Sequence;
 class SpatialFilter;
 
 //! A structure that contains all stimulus parameters.
-class PYSEQUENCE_API PyResponse : public Response {
+class SEQUENCE_API PyResponse : public Response {
 private:
 
     struct Impl;

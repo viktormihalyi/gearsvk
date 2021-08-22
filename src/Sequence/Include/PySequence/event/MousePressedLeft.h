@@ -1,16 +1,12 @@
 #pragma once
 
 #include "PySequence/event/Base.h"
-#if defined(_WIN32)
-#define NOMINMAX
-#include <windowsx.h>
-#endif
 
 namespace Gears {
 namespace Event {
 
-class PYSEQUENCE_API MousePressedRight : public Base {
-    MousePressedRight (uint32_t message, uint32_t wParam, uint32_t lParam)
+class SEQUENCE_API MousePressedLeft : public Base {
+    MousePressedLeft (uint32_t message, uint32_t wParam, uint32_t lParam)
         : Base (message, wParam, lParam)
     {
 #ifdef _WIN32

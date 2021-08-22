@@ -9,8 +9,8 @@
 namespace Gears {
 namespace Event {
 
-class PYSEQUENCE_API MouseReleasedMiddle : public Base {
-    MouseReleasedMiddle (uint32_t message, uint32_t wParam, uint32_t lParam)
+class SEQUENCE_API MouseMove : public Base {
+    MouseMove (uint32_t message, uint32_t wParam, uint32_t lParam, uint32_t screenw, uint32_t screenh)
         : Base (message, wParam, lParam)
     {
 #ifdef _WIN32
@@ -21,15 +21,21 @@ class PYSEQUENCE_API MouseReleasedMiddle : public Base {
         x = lParam;
         y = lParam;
 #endif
+        xPercent = (float)x / screenw;
+        yPercent = (float)y / screenh;
     }
 
 
-    uint32_t x;
-    uint32_t y;
+    uint32_t  x;
+    uint32_t  y;
+    float xPercent;
+    float yPercent;
 
 public:
-    uint32_t globalX () { return x; }
-    uint32_t globalY () { return y; }
+    uint32_t  globalX () { return x; }
+    uint32_t  globalY () { return y; }
+    float globalPercentX () { return xPercent; }
+    float globalPercentY () { return yPercent; }
 
     static uint32_t typeId;
 };

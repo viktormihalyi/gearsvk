@@ -9,8 +9,8 @@
 namespace Gears {
 namespace Event {
 
-class PYSEQUENCE_API MousePressedMiddle : public Base {
-    MousePressedMiddle (uint32_t message, uint32_t wParam, uint32_t lParam)
+class SEQUENCE_API MousePressedRight : public Base {
+    MousePressedRight (uint32_t message, uint32_t wParam, uint32_t lParam)
         : Base (message, wParam, lParam)
     {
 #ifdef _WIN32
@@ -26,7 +26,6 @@ class PYSEQUENCE_API MousePressedMiddle : public Base {
 
     uint32_t x;
     uint32_t y;
-
 
 public:
     uint32_t globalX () { return x; }

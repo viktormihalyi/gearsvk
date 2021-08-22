@@ -1,7 +1,7 @@
 #ifndef PYSTIMULUS_HPP
 #define PYSTIMULUS_HPP
 
-#include "PySequence/PySequenceAPI.hpp"
+#include "Sequence/SequenceAPI.hpp"
 
 #include "Sequence/Stimulus.h"
 
@@ -27,7 +27,7 @@
 class Pass;
 class Sequence;
 
-class PYSEQUENCE_API PyStimulus : public Stimulus {
+class SEQUENCE_API PyStimulus : public Stimulus {
 private:
 
     struct Impl;

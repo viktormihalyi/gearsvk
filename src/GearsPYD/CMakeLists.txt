@@ -23,11 +23,9 @@ target_include_directories (GearsModule
         $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:Sequence,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:PySequence,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries (GearsModule
-    PUBLIC PySequence
     PUBLIC Sequence
     PUBLIC RenderGraph
     PUBLIC Utils

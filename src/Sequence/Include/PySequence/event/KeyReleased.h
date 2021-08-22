@@ -6,9 +6,9 @@
 namespace Gears {
 	namespace Event {
 
-		class PYSEQUENCE_API KeyPressed : public Base
+		class SEQUENCE_API KeyReleased : public Base
 		{
-			KeyPressed(uint32_t message, uint32_t wParam, uint32_t lParam)
+			KeyReleased(uint32_t message, uint32_t wParam, uint32_t lParam)
 				:Base(message, wParam, lParam)
 			{
 				std::stringstream ss;
@@ -25,7 +25,7 @@ namespace Gears {
 			}
 			std::string text()
 			{
- 				return _text;
+				return _text;
 			}
 			static uint32_t typeId;
 		};

@@ -1,7 +1,7 @@
 #ifndef PYPASS_HPP
 #define PYPASS_HPP
 
-#include "PySequence/PySequenceAPI.hpp"
+#include "Sequence/SequenceAPI.hpp"
 
 #include "Sequence/Pass.h"
 
@@ -17,7 +17,7 @@ class Sequence;
 class Stimulus;
 
 //! A structure that specifies a shape in a stimulus.
-class PYSEQUENCE_API PyPass : public Pass {
+class SEQUENCE_API PyPass : public Pass {
 private:
 
     struct Impl;

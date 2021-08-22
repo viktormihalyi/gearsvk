@@ -10,10 +10,9 @@ add_custom_target (UserInterface_CopyDLLsToSource ALL
         $<TARGET_FILE:VulkanWrapper>
         $<TARGET_FILE:RenderGraph>
         $<TARGET_FILE:Sequence>
-        $<TARGET_FILE:PySequence>
         $<TARGET_FILE:GearsModule>
         ${CMAKE_CURRENT_SOURCE_DIR}/Sources/
-    DEPENDS Utils VulkanWrapper RenderGraph Sequence PySequence GearsModule
+    DEPENDS Utils VulkanWrapper RenderGraph Sequence GearsModule
 )
 
 if (WIN32)

@@ -14,7 +14,7 @@
 namespace Gears {
 namespace Event {
 
-class PYSEQUENCE_API Wheel : public Base {
+class SEQUENCE_API Wheel : public Base {
     Wheel (uint32_t message, uint32_t wParam, uint32_t lParam)
         : Base (message, wParam, lParam)
     {

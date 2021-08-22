@@ -13,7 +13,7 @@
 namespace Gears {
 namespace Event {
 
-class PYSEQUENCE_API StimulusEnd : public Base {
+class SEQUENCE_API StimulusEnd : public Base {
 public:
     StimulusEnd ()
         : Base (WM_USER, 0, 0)
