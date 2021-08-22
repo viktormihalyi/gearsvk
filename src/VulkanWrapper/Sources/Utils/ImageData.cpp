@@ -34,10 +34,9 @@ ImageData::ImageData (size_t                      components,
 ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout)
     : components (4)
     , componentByteSize (GetEachCompontentSizeFromFormat (image.GetFormat ()))
+    , width (image.GetWidth ())
+    , height (image.GetHeight ())
 {
-    width  = image.GetWidth ();
-    height = image.GetHeight ();
-
     if (currentLayout)
         TransitionImageLayout (device, image, *currentLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
@@ -49,7 +48,7 @@ ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t la
         
         {
             SingleTimeCommand single (device);
-            image.CmdCopyToBuffer (single, dstBuffer);
+            image.CmdCopyLayerToBuffer (single, layerIndex, dstBuffer);
         }
 
         MemoryMapping mapping (device.GetAllocator (), dstBuffer);

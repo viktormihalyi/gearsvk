@@ -142,9 +142,36 @@ VkBufferImageCopy Image::GetFullBufferImageCopy () const
 }
 
 
+VkBufferImageCopy Image::GetFullBufferImageCopyLayer (uint32_t layer) const
+{
+    VkBufferImageCopy result               = {};
+    result.bufferOffset                    = 0;
+    result.bufferRowLength                 = 0;
+    result.bufferImageHeight               = 0;
+    result.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    result.imageSubresource.mipLevel       = 0;
+    result.imageSubresource.baseArrayLayer = layer;
+    result.imageSubresource.layerCount     = 1;
+    result.imageOffset                     = { 0, 0, 0 };
+    result.imageExtent                     = { width, height, depth };
+    return result;
+}
+
+
 void Image::CmdCopyToBuffer (CommandBuffer& commandBuffer, VkBuffer buffer) const
 {
     VkBufferImageCopy region = GetFullBufferImageCopy ();
+    commandBuffer.Record<CommandCopyImageToBuffer> (
+        handle,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        buffer,
+        std::vector<VkBufferImageCopy> { region });
+}
+
+
+void Image::CmdCopyLayerToBuffer (CommandBuffer& commandBuffer, uint32_t layerIndex, VkBuffer buffer) const
+{
+    VkBufferImageCopy region = GetFullBufferImageCopyLayer (layerIndex);
     commandBuffer.Record<CommandCopyImageToBuffer> (
         handle,
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,

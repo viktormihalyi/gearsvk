@@ -79,10 +79,12 @@ public:
     operator VmaAllocation () const { return allocationHandle; }
 
     VkBufferImageCopy GetFullBufferImageCopy () const;
+    VkBufferImageCopy GetFullBufferImageCopyLayer (uint32_t layerIndex) const;
 
     VkImageMemoryBarrier GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask) const;
 
     void CmdCopyToBuffer (CommandBuffer& commandBuffer, VkBuffer buffer) const;
+    void CmdCopyLayerToBuffer (CommandBuffer& commandBuffer, uint32_t layerIndex, VkBuffer buffer) const;
 
     void CmdCopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer) const;
 

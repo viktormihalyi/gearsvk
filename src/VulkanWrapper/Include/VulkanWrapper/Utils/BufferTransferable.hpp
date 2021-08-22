@@ -113,7 +113,7 @@ public:
 class /* VULKANWRAPPER_API */ Image1DTransferable final : public ImageTransferable {
 public:
     Image1DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
-        : ImageTransferable (device, width * GetCompontentCountFromFormat (format))
+        : ImageTransferable (device, width * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
     {
         imageGPU = std::make_unique<Image1D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
     }
@@ -123,7 +123,7 @@ public:
 class /* VULKANWRAPPER_API */ Image2DTransferable final : public ImageTransferable {
 public:
     Image2DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
-        : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format))
+        : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
     {
         imageGPU = std::make_unique<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
     }
@@ -133,7 +133,7 @@ public:
 class /* VULKANWRAPPER_API */ Image2DTransferableLinear final : public ImageTransferable {
 public:
     Image2DTransferableLinear (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
-        : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format))
+        : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
     {
         imageGPU = std::make_unique<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_LINEAR, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
     }
@@ -143,7 +143,7 @@ public:
 class /* VULKANWRAPPER_API */ Image3DTransferable final : public ImageTransferable {
 public:
     Image3DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
-        : ImageTransferable (device, width * height * depth * GetCompontentCountFromFormat (format))
+        : ImageTransferable (device, width * height * depth * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
     {
         imageGPU = std::make_unique<Image3D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
     }
