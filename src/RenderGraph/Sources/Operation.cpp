@@ -10,6 +10,98 @@ namespace GVK {
 
 namespace RG {
 
+RenderOperation::Builder::Builder (VkDevice device)
+    : device (device)
+{
+}
+
+
+RenderOperation::Builder& RenderOperation::Builder::SetPrimitiveTopology (VkPrimitiveTopology value)
+{
+    topology = value;
+    return *this;
+}
+
+
+RenderOperation::Builder& RenderOperation::Builder::SetVertexShader (const std::string& value)
+{
+    EnsurePipelineCreated ();
+    shaderPipiline->SetVertexShaderFromString (value);
+    return *this;
+}
+
+
+RenderOperation::Builder& RenderOperation::Builder::SetFragmentShader (const std::string& value)
+{
+    EnsurePipelineCreated ();
+    shaderPipiline->SetFragmentShaderFromString (value);
+    return *this;
+}
+
+
+RenderOperation::Builder& RenderOperation::Builder::SetVertexShader (const std::filesystem::path& value)
+{
+    EnsurePipelineCreated ();
+    shaderPipiline->SetShaderFromSourceFile (value);
+    return *this;
+}
+
+
+RenderOperation::Builder& RenderOperation::Builder::SetFragmentShader (const std::filesystem::path& value)
+{
+    EnsurePipelineCreated ();
+    shaderPipiline->SetShaderFromSourceFile (value);
+    return *this;
+}
+
+
+RenderOperation::Builder& RenderOperation::Builder::SetVertices (std::unique_ptr<PureDrawRecordable>&& value)
+{
+    pureDrawRecordable = std::move (value);
+    return *this;
+}
+
+
+RenderOperation::Builder& RenderOperation::Builder::SetBlendEnabled (bool value)
+{
+    blendEnabled = value;
+    return *this;
+}
+
+
+RenderOperation::Builder& RenderOperation::Builder::SetName (const std::string& value)
+{
+    name = value;
+    return *this;
+}
+
+
+RenderOperation::Builder& RenderOperation::Builder::SetClearColor (const glm::vec4& value)
+{
+    clearColor = value;
+    return *this;
+}
+
+
+std::shared_ptr<RenderOperation> RenderOperation::Builder::Build ()
+{
+    std::shared_ptr<RenderOperation> op = std::make_shared<RenderOperation> (std::move (pureDrawRecordable), std::move (shaderPipiline), *topology);
+
+    if (name.has_value ())
+        op->SetName (*name);
+
+    return op;
+}
+
+
+void RenderOperation::Builder::EnsurePipelineCreated ()
+{
+    if (shaderPipiline == nullptr) {
+        shaderPipiline = std::make_unique<ShaderPipeline> (device);
+    }
+}
+
+
 std::vector<VkAttachmentDescription> RenderOperation::GetAttachmentDescriptions (const ConnectionSet& connectionSet) const
 {
     std::vector<VkAttachmentDescription> result;
@@ -85,14 +177,8 @@ std::vector<ImageView2D> RenderOperation::CreateOutputImageViews (const DeviceEx
 }
 
 
-RenderOperation::RenderOperation (std::unique_ptr<DrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
-    : compileSettings ({ std::move (drawRecordable), std::move (drawRecordable), std::move (shaderPipeline), topology })
-{
-}
-
-
-RenderOperation::RenderOperation (std::unique_ptr<PureDrawRecordable>&& drawRecordable, std::unique_ptr<VertexAttributeProvider>&& vap, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
-    : compileSettings ({ std::move (drawRecordable), std::move (vap), std::move (shaderPipeline), topology })
+RenderOperation::RenderOperation (std::unique_ptr<PureDrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
+    : compileSettings ({ std::move (drawRecordable), std::move (shaderPipeline), topology })
 {
 }
 
@@ -205,8 +291,9 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
             std::vector<uint32_t> {}).SetName ("Operation - DescriptionSet");
     }
 
-    compileSettings.drawRecordable->Record (commandBuffer);
-
+    GVK_ASSERT (compileSettings.pureDrawRecordable != nullptr);
+    compileSettings.pureDrawRecordable->Record (commandBuffer);
+    
     commandBuffer.Record<CommandEndRenderPass> ().SetName ("Operation - Renderpass End");
 }
 

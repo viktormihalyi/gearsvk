@@ -1524,11 +1524,7 @@ void main () {
 
 TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
 {
-    GVK::DeviceExtra& device        = GetDeviceExtra ();
-    GVK::CommandPool& commandPool   = GetCommandPool ();
-    GVK::Queue&       graphicsQueue = GetGraphicsQueue ();
-
-    GVK::RG::GraphSettings s (device, 4);
+    GVK::RG::GraphSettings s (GetDeviceExtra (), 4);
     GVK::RG::RenderGraph   graph;
 
     std::shared_ptr<GVK::RG::WritableImageResource> presented = std::make_unique<GVK::RG::WritableImageResource> (512, 512);
@@ -1542,17 +1538,19 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
                            -> red
     */
 
-    std::shared_ptr<GVK::RG::RenderOperation> dummyPass = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 3),
-                                                                                                      std::make_unique<GVK::RG::ShaderPipeline> (device, std::vector<std::filesystem::path> {
-                                                                                                                                                             ShadersFolder / "test.vert",
-                                                                                                                                                             ShadersFolder / "test.frag",
-                                                                                                                                                         }));
+    std::shared_ptr<GVK::RG::RenderOperation> dummyPass = GVK::RG::RenderOperation::Builder (GetDevice ())
+                                                              .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+                                                              .SetVertices (std::make_unique<GVK::DrawRecordableInfo> (1, 3))
+                                                              .SetVertexShader (ShadersFolder / "test.vert")
+                                                              .SetVertexShader (ShadersFolder / "test.frag")
+                                                              .Build ();
 
-    std::shared_ptr<GVK::RG::RenderOperation> secondPass = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 3),
-                                                                                                       std::make_unique<GVK::RG::ShaderPipeline> (device, std::vector<std::filesystem::path> {
-                                                                                                                                                              ShadersFolder / "fullscreenquad.vert",
-                                                                                                                                                              ShadersFolder / "fullscreenquad.frag",
-                                                                                                                                                          }));
+    std::shared_ptr<GVK::RG::RenderOperation> secondPass = GVK::RG::RenderOperation::Builder (GetDevice ())
+                                                               .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+                                                               .SetVertices (std::make_unique<GVK::DrawRecordableInfo> (1, 3))
+                                                              .SetVertexShader (ShadersFolder / "fullscreenquad.vert")
+                                                              .SetVertexShader (ShadersFolder / "fullscreenquad.frag")
+                                                              .Build ();
 
 
     s.connectionSet.Add (green, dummyPass, std::make_unique<GVK::RG::ImageInputBinding> (0, *green));
@@ -1586,25 +1584,15 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest)
         graph.Submit (i);
     }
 
-    vkQueueWaitIdle (graphicsQueue);
-    vkDeviceWaitIdle (device);
+    vkQueueWaitIdle (GetGraphicsQueue ());
+    vkDeviceWaitIdle (GetDevice ());
 
-    ASSERT_TRUE (GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == GVK::ImageData (ReferenceImagesFolder / "black.png"));
+    ASSERT_TRUE (GVK::ImageData (GetDeviceExtra (), *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == GVK::ImageData (ReferenceImagesFolder / "black.png"));
 }
 
 
 TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest_TwoOperationsRenderingToOutput)
 {
-    GVK::DeviceExtra& device        = GetDeviceExtra ();
-    GVK::CommandPool& commandPool   = GetCommandPool ();
-    GVK::Queue&       graphicsQueue = GetGraphicsQueue ();
-
-    GVK::RG::GraphSettings s (device, 1);
-    GVK::RG::RenderGraph   graph;
-
-    std::shared_ptr<GVK::RG::WritableImageResource> presented = std::make_unique<GVK::RG::WritableImageResource> (VK_FILTER_LINEAR, 512, 512, 1, VK_FORMAT_R8G8B8A8_SRGB);
-
-
     /*
         firstPass  ---> presented
         secondPass  _/ 
@@ -1616,7 +1604,7 @@ TEST_F (HeadlessGoogleTestEnvironment, RenderGraphUseTest_TwoOperationsRendering
         firstPass ---> presented ---> secondPass ---> presented
     */
     
-    const char* vertSrc = R"(
+    const std::string vertSrc = R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -1647,9 +1635,7 @@ void main() {
 }
     )";
 
-    auto sp = std::make_unique<GVK::RG::ShaderPipeline> (device);
-    sp->SetVertexShaderFromString (vertSrc);
-    sp->SetFragmentShaderFromString (R"(
+    const std::string frag1 = R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -1658,11 +1644,9 @@ layout (location = 0) out vec4 outColor;
 void main () {
     outColor = vec4 (1, 0, 0, 0.5);
 }
-    )");
+    )";
 
-    auto sp2 = std::make_unique<GVK::RG::ShaderPipeline> (device);
-    sp2->SetVertexShaderFromString (vertSrc);
-    sp2->SetFragmentShaderFromString (R"(
+    const std::string frag2 = R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -1671,19 +1655,32 @@ layout (location = 0) out vec4 outColor;
 void main () {
     outColor = vec4 (0, 0, 1, 0.5);
 }
-    )");
+    )";
 
-    std::shared_ptr<GVK::RG::RenderOperation> firstPass  = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp));
-    firstPass->SetName ("FIRST");
-    firstPass->compileSettings.blendEnabled = false;
+    std::shared_ptr<GVK::RG::RenderOperation> firstPass = GVK::RG::RenderOperation::Builder (GetDevice ())
+                                                              .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+                                                              .SetVertices (std::make_unique<GVK::DrawRecordableInfo> (1, 6))
+                                                              .SetVertexShader (vertSrc)
+                                                              .SetFragmentShader (frag1)
+                                                              .SetBlendEnabled (false)
+                                                              .SetName ("FIRST")
+                                                              .Build ();
 
-    std::shared_ptr<GVK::RG::RenderOperation> secondPass = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sp2));
-    secondPass->SetName ("SECOND");
+    std::shared_ptr<GVK::RG::RenderOperation> secondPass = GVK::RG::RenderOperation::Builder (GetDevice ())
+                                                              .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+                                                              .SetVertices (std::make_unique<GVK::DrawRecordableInfo> (1, 6))
+                                                              .SetVertexShader (vertSrc)
+                                                              .SetFragmentShader (frag2)
+                                                              .SetBlendEnabled (true)
+                                                              .SetName ("SECOND")
+                                                              .Build ();
 
-    secondPass->compileSettings.blendEnabled = true;
+    std::shared_ptr<GVK::RG::WritableImageResource> presented = std::make_unique<GVK::RG::WritableImageResource> (VK_FILTER_LINEAR, 512, 512, 1, VK_FORMAT_R8G8B8A8_SRGB);
+
+    GVK::RG::GraphSettings s (GetDeviceExtra (), 1);
 
     s.connectionSet.Add (firstPass, presented,
-                       std::make_unique<GVK::RG::OutputBinding> (0,
+                         std::make_unique<GVK::RG::OutputBinding> (0,
                                                                    presented->GetFormatProvider (),
                                                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                                                                    presented->GetFinalLayout (),
@@ -1701,6 +1698,7 @@ void main () {
                                                                    VK_ATTACHMENT_STORE_OP_STORE));
 
 
+    GVK::RG::RenderGraph graph;
     graph.Compile (std::move (s));
 
     EXPECT_EQ (2, graph.GetPassCount ());
@@ -1715,12 +1713,11 @@ void main () {
 
         graph.Submit (0);
 
-        vkQueueWaitIdle (graphicsQueue);
-        vkDeviceWaitIdle (device);
+        env->Wait ();
 
-        GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presentedTwo.png");
+        GVK::ImageData (GetDeviceExtra (), *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL).SaveTo (ReferenceImagesFolder / "presentedTwo.png");
  
-        if (GVK::ImageData (device, *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == referenceImage) {
+        if (GVK::ImageData (GetDeviceExtra (), *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) == referenceImage) {
             ++matchCount;
         }
     }
@@ -1751,10 +1748,6 @@ void HeadlessGoogleTestEnvironmentWithExt::TearDown ()
 
 TEST_F (HeadlessGoogleTestEnvironmentWithExt, SwapchainCreateTest)
 {
-    GVK::DeviceExtra& device        = GetDeviceExtra ();
-    GVK::CommandPool& commandPool   = GetCommandPool ();
-    GVK::Queue&       graphicsQueue = GetGraphicsQueue ();
-
     GVK::GLFWWindow window;
 
     GVK::Surface surface (*env->instance, window.GetSurface (*env->instance));
