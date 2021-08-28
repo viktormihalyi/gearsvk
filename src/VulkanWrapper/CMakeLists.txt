@@ -22,6 +22,7 @@ set (Headers
     ${HeadersPath}/Device.hpp
     ${HeadersPath}/DeviceExtra.hpp
     ${HeadersPath}/DeviceMemory.hpp
+    ${HeadersPath}/Event.hpp
     ${HeadersPath}/Fence.hpp
     ${HeadersPath}/Framebuffer.hpp
     ${HeadersPath}/Image.hpp
@@ -60,6 +61,7 @@ set (SourcesGroup1
     ${SourcesPath}/DebugUtilsMessenger.cpp
     ${SourcesPath}/Device.cpp
     ${SourcesPath}/DeviceMemory.cpp
+    ${SourcesPath}/Event.cpp
     ${SourcesPath}/Fence.cpp
     ${SourcesPath}/Framebuffer.cpp
     ${SourcesPath}/Image.cpp

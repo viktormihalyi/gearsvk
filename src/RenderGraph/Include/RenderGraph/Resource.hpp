@@ -8,6 +8,7 @@
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
 #include "VulkanWrapper/Commands.hpp"
+#include "VulkanWrapper/Event.hpp"
 #include "RenderGraph/ShaderPipeline.hpp"
 
 #include "Connections.hpp"
@@ -260,53 +261,17 @@ public:
     virtual void Visit (IResourceVisitor& visitor) override { visitor.Visit (*this); }
 };
 
-namespace GVKr {
-
-class Event : public GVK::VulkanObject {
-private:
-    VkDevice device;
-    VkEvent  handle;
-
-public:
-    Event (VkDevice device)
-        : device (device)
-    {
-        VkEventCreateInfo createInfo = {};
-        createInfo.sType             = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO;
-        createInfo.pNext             = nullptr;
-        createInfo.flags             = 0;
-
-        if (GVK_ERROR (vkCreateEvent (device, &createInfo, nullptr, &handle) != VK_SUCCESS)) {
-            throw std::runtime_error ("failed to create vkevent");
-        }
-    }
-
-    virtual ~Event () override
-    {
-        vkDestroyEvent (device, handle, nullptr);
-        handle = nullptr;
-    }
-
-    virtual void* GetHandleForName () const override { return handle; }
-
-    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_EVENT; }
-
-    operator VkEvent () const { return handle; }
-};
-
-} // namespace GVKr
-
 
 class GVK_RENDERER_API SingleWritableImageResource : public WritableImageResource {
 private:
-    std::unique_ptr<GVKr::Event> readWriteSync;
+    std::unique_ptr<VW::Event> readWriteSync;
 
 public:
     using WritableImageResource::WritableImageResource;
 
     virtual void Compile (const GraphSettings& graphSettings) override
     {
-        readWriteSync = std::make_unique<GVKr::Event> (graphSettings.GetDevice ());
+        readWriteSync = std::make_unique<VW::Event> (graphSettings.GetDevice ());
 
         sampler = std::make_unique<GVK::Sampler> (graphSettings.GetDevice (), filter);
         images.clear ();
@@ -331,14 +296,16 @@ public:
     virtual void OnPreWrite (uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) override
     {
         commandBuffer.Record<GVK::CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
-            vkCmdResetEvent (commandBuffer, *readWriteSync, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
+            VkEvent handle = *readWriteSync;
+            vkCmdResetEvent (commandBuffer, handle, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
         });
     }
 
     virtual void OnPostWrite (uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) override
     {
         commandBuffer.Record<GVK::CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
-            vkCmdSetEvent (commandBuffer, *readWriteSync, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
+            VkEvent handle = *readWriteSync;
+            vkCmdSetEvent (commandBuffer, handle, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
         });
     }
 
