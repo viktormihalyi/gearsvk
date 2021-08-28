@@ -15,7 +15,7 @@ void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeve
                          VkDebugUtilsMessageTypeFlagsEXT             messageType,
                          const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
-    GVK::defaultDebugCallback (messageSeverity, messageType, callbackData);
+    RG::defaultDebugCallback (messageSeverity, messageType, callbackData);
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
         EXPECT_TRUE (false);
@@ -53,7 +53,7 @@ GVK::DeviceExtra& GoogleTestEnvironmentBase::GetDeviceExtra ()
 }
 
 
-GVK::Window& GoogleTestEnvironmentBase::GetWindow ()
+RG::Window& GoogleTestEnvironmentBase::GetWindow ()
 {
     return *window;
 }
@@ -113,7 +113,7 @@ void GoogleTestEnvironmentBase::CompareImages (const std::string& name, const GV
 
 void HeadlessGoogleTestEnvironment::SetUp ()
 {
-    env = std::make_unique<GVK::VulkanEnvironment> (gtestDebugCallback);
+    env = std::make_unique<RG::VulkanEnvironment> (gtestDebugCallback);
 }
 
 
@@ -125,9 +125,9 @@ void HeadlessGoogleTestEnvironment::TearDown ()
 
 void ShownWindowGoogleTestEnvironment::SetUp ()
 {
-    window      = std::make_unique<GVK::GLFWWindow> ();
-    env         = std::make_unique<GVK::VulkanEnvironment> (gtestDebugCallback, GVK::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
-    presentable = std::make_unique<GVK::Presentable> (*env, *window, std::make_unique<GVK::DefaultSwapchainSettings> ());
+    window      = std::make_unique<RG::GLFWWindow> ();
+    env         = std::make_unique<RG::VulkanEnvironment> (gtestDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+    presentable = std::make_unique<RG::Presentable> (*env, *window, std::make_unique<GVK::DefaultSwapchainSettings> ());
 }
 
 
@@ -141,9 +141,9 @@ void ShownWindowGoogleTestEnvironment::TearDown ()
 
 void HiddenWindowGoogleTestEnvironment::SetUp ()
 {
-    window      = std::make_unique<GVK::HiddenGLFWWindow> ();
-    env         = std::make_unique<GVK::VulkanEnvironment> (gtestDebugCallback, GVK::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
-    presentable = std::make_unique<GVK::Presentable> (*env, *window, std::make_unique<GVK::DefaultSwapchainSettings> ());
+    window      = std::make_unique<RG::HiddenGLFWWindow> ();
+    env         = std::make_unique<RG::VulkanEnvironment> (gtestDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+    presentable = std::make_unique<RG::Presentable> (*env, *window, std::make_unique<GVK::DefaultSwapchainSettings> ());
 }
 
 

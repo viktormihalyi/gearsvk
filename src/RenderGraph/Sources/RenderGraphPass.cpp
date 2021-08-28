@@ -8,10 +8,8 @@
 #include <optional>
 #include <set>
 
-namespace GVK {
 
 namespace RG {
-
 
 std::vector<Operation*> Pass::GetAllOperations () const
 {
@@ -273,5 +271,3 @@ Pass::OperationIO* Pass::EnsureOperationIO (Operation* op)
 
 
 } // namespace RG
-
-} // namespace GVK

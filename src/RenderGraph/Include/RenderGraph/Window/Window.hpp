@@ -12,30 +12,30 @@
 
 #include <vulkan/vulkan.h>
 
-namespace GVK {
+namespace RG {
 
 class GVK_RENDERER_API Window : public Noncopyable {
 public:
     struct Events {
         // window events
-        Event<>                   shown;
-        Event<>                   hidden;
-        Event<>                   closed;
-        Event<>                   focused;
-        Event<>                   focusLost;
-        Event<uint32_t, uint32_t> resized;
-        Event<uint32_t, uint32_t> moved;
-        Event<>                   refresh;
+        GVK::Event<>                   shown;
+        GVK::Event<>                   hidden;
+        GVK::Event<>                   closed;
+        GVK::Event<>                   focused;
+        GVK::Event<>                   focusLost;
+        GVK::Event<uint32_t, uint32_t> resized;
+        GVK::Event<uint32_t, uint32_t> moved;
+        GVK::Event<>                   refresh;
 
         // user input
-        Event<uint32_t>           keyPressed;
-        Event<uint32_t>           keyReleased;
-        Event<int32_t, int32_t>   mouseMove;
-        Event<uint32_t, uint32_t> leftMouseButtonPressed;
-        Event<uint32_t, uint32_t> leftMouseButtonReleased;
-        Event<uint32_t, uint32_t> rightMouseButtonPressed;
-        Event<uint32_t, uint32_t> rightMouseButtonReleased;
-        Event<int32_t>            scroll;
+        GVK::Event<uint32_t>           keyPressed;
+        GVK::Event<uint32_t>           keyReleased;
+        GVK::Event<int32_t, int32_t>   mouseMove;
+        GVK::Event<uint32_t, uint32_t> leftMouseButtonPressed;
+        GVK::Event<uint32_t, uint32_t> leftMouseButtonReleased;
+        GVK::Event<uint32_t, uint32_t> rightMouseButtonPressed;
+        GVK::Event<uint32_t, uint32_t> rightMouseButtonReleased;
+        GVK::Event<int32_t>            scroll;
     } events;
 
 public:
@@ -71,6 +71,6 @@ public:
     virtual Mode GetWindowMode ()     = 0;
 };
 
-} // namespace GVK
+} // namespace RG
 
 #endif

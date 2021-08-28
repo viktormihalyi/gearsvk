@@ -25,9 +25,9 @@ static Utils::CommandLineOnOffFlag disableValidationLayersFlag (std::vector<std:
 static Utils::CommandLineOnOffFlag logVulkanVersionFlag ("--logVulkanVersion");
 
 
-namespace GVK {
+namespace RG {
 
-Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Surface>&& surface, std::unique_ptr<SwapchainSettingsProvider>&& settingsProvider)
+Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<GVK::Surface>&& surface, std::unique_ptr<GVK::SwapchainSettingsProvider>&& settingsProvider)
     : surface (std::move (surface))
     , window (nullptr)
 {
@@ -38,30 +38,30 @@ Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Surface>&& sur
 
     GVK_ASSERT (env.CheckForPhsyicalDeviceSupport (*this));
 
-    swapchain = std::make_unique<RealSwapchain> (*env.physicalDevice, *env.device, *this->surface, std::move (settingsProvider));
+    swapchain = std::make_unique<GVK::RealSwapchain> (*env.physicalDevice, *env.device, *this->surface, std::move (settingsProvider));
 }
 
 
-Presentable::Presentable (VulkanEnvironment& env, Window& window, std::unique_ptr<SwapchainSettingsProvider>&& settingsProvider)
-    : Presentable (env, std::make_unique<Surface> (*env.instance, window.GetSurface (*env.instance)), std::move (settingsProvider))
+Presentable::Presentable (VulkanEnvironment& env, Window& window, std::unique_ptr<GVK::SwapchainSettingsProvider>&& settingsProvider)
+    : Presentable (env, std::make_unique<GVK::Surface> (*env.instance, window.GetSurface (*env.instance)), std::move (settingsProvider))
 {
 }
 
 
-Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Window>&& window, std::unique_ptr<SwapchainSettingsProvider>&& settingsProvider)
-    : Presentable (env, std::make_unique<Surface> (*env.instance, window->GetSurface (*env.instance)), std::move (settingsProvider))
+Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<Window>&& window, std::unique_ptr<GVK::SwapchainSettingsProvider>&& settingsProvider)
+    : Presentable (env, std::make_unique<GVK::Surface> (*env.instance, window->GetSurface (*env.instance)), std::move (settingsProvider))
 {
     this->window = std::move (window);
 }
 
 
-Swapchain& Presentable::GetSwapchain ()
+GVK::Swapchain& Presentable::GetSwapchain ()
 {
     return *swapchain;
 }
 
 
-const Surface& Presentable::GetSurface () const
+const GVK::Surface& Presentable::GetSurface () const
 {
     return *surface;
 }
@@ -235,24 +235,24 @@ void VulkanEnvironment::Wait () const
 DebugOnlyStaticInit apiVersionLogger ([] () {
     uint32_t apiVersion;
     vkEnumerateInstanceVersion (&apiVersion);
-    std::cout << std::left << std::setw (LogColumnWidth) << "vulkan api version:" << GetVersionString (apiVersion) << std::endl;
+    std::cout << std::left << std::setw (LogColumnWidth) << "vulkan api version:" << GVK::GetVersionString (apiVersion) << std::endl;
 });
 
 
-VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callback> callback, const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& deviceExtensions)
+VulkanEnvironment::VulkanEnvironment (std::optional<GVK::DebugUtilsMessenger::Callback> callback, const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& deviceExtensions)
 {
-    InstanceSettings is = (IsDebugBuild) ? instanceDebugMode : instanceReleaseMode;
+    GVK::InstanceSettings is = (IsDebugBuild) ? GVK::instanceDebugMode : GVK::instanceReleaseMode;
     is.extensions.insert (is.extensions.end (), instanceExtensions.begin (), instanceExtensions.end ());
 
-    instance = std::make_unique<Instance> (is);
+    instance = std::make_unique<GVK::Instance> (is);
 
     if (IsDebugBuild && callback.has_value () && !disableValidationLayersFlag.IsFlagOn ()) {
-        messenger = std::make_unique<DebugUtilsMessenger> (*instance, *callback, DebugUtilsMessenger::noPerformance);
+        messenger = std::make_unique<GVK::DebugUtilsMessenger> (*instance, *callback, GVK::DebugUtilsMessenger::noPerformance);
     }
 
     const VkSurfaceKHR physicalDeviceSurfaceHandle = VK_NULL_HANDLE;
 
-    physicalDevice = std::make_unique<PhysicalDevice> (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
+    physicalDevice = std::make_unique<GVK::PhysicalDevice> (*instance, physicalDeviceSurfaceHandle, std::set<std::string> {});
 
     if (logVulkanVersionFlag.IsFlagOn ()) {
         VkPhysicalDeviceProperties properties = physicalDevice->GetProperties ();
@@ -270,8 +270,8 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
             }
         };
 
-        std::cout << std::left << std::setw (LogColumnWidth) << "physical device api version:" << GetVersionString (properties.apiVersion) << std::endl;
-        std::cout << std::left << std::setw (LogColumnWidth) << "physical device driver version:" << GetVersionString (properties.driverVersion) << " (" << properties.driverVersion << ")" << std::endl;
+        std::cout << std::left << std::setw (LogColumnWidth) << "physical device api version:" << GVK::GetVersionString (properties.apiVersion) << std::endl;
+        std::cout << std::left << std::setw (LogColumnWidth) << "physical device driver version:" << GVK::GetVersionString (properties.driverVersion) << " (" << properties.driverVersion << ")" << std::endl;
         std::cout << std::left << std::setw (LogColumnWidth) << "device name:" << properties.deviceName << std::endl;
         std::cout << std::left << std::setw (LogColumnWidth) << "device type:" << DeviceTypeToString (properties.deviceType) << std::endl;
         std::cout << std::left << std::setw (LogColumnWidth) << "device id:" << properties.deviceID << std::endl;
@@ -284,25 +284,25 @@ VulkanEnvironment::VulkanEnvironment (std::optional<DebugUtilsMessenger::Callbac
         vkGetPhysicalDeviceFormatProperties (*physicalDevice, VK_FORMAT_R32G32B32_SFLOAT, &props);
     }
 
-    device = std::make_unique<DeviceObject> (*physicalDevice, std::vector<uint32_t> { *physicalDevice->GetQueueFamilies ().graphics }, deviceExtensions);
+    device = std::make_unique<GVK::DeviceObject> (*physicalDevice, std::vector<uint32_t> { *physicalDevice->GetQueueFamilies ().graphics }, deviceExtensions);
 
-    allocator = std::make_unique<Allocator> (*instance, *physicalDevice, *device);
+    allocator = std::make_unique<GVK::Allocator> (*instance, *physicalDevice, *device);
 
-    graphicsQueue = std::make_unique<Queue> (*device, *physicalDevice->GetQueueFamilies ().graphics);
+    graphicsQueue = std::make_unique<GVK::Queue> (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
-    commandPool = std::make_unique<CommandPool> (*device, *physicalDevice->GetQueueFamilies ().graphics);
+    commandPool = std::make_unique<GVK::CommandPool> (*device, *physicalDevice->GetQueueFamilies ().graphics);
 
-    deviceExtra = std::make_unique<DeviceExtra> (*instance, *device, *commandPool, *allocator, *graphicsQueue);
+    deviceExtra = std::make_unique<GVK::DeviceExtra> (*instance, *device, *commandPool, *allocator, *graphicsQueue);
 
     commandPool->SetName (*deviceExtra, "VulkanEnvironment CommandPool");
-    static_cast<DeviceObject*> (device.get ())->SetName (*deviceExtra, "VulkanEnvironment DeviceObject");
+    static_cast<GVK::DeviceObject*> (device.get ())->SetName (*deviceExtra, "VulkanEnvironment DeviceObject");
 
     if (logVulkanVersionFlag.IsFlagOn ()) {
         VkPhysicalDeviceProperties deviceProperties;
         vkGetPhysicalDeviceProperties (*physicalDevice, &deviceProperties);
 
-        std::cout << "physical device api version: " << GetVersionString (deviceProperties.apiVersion) << std::endl;
-        std::cout << "physical device driver version: " << GetVersionString (deviceProperties.driverVersion) << std::endl;
+        std::cout << "physical device api version: " << GVK::GetVersionString (deviceProperties.apiVersion) << std::endl;
+        std::cout << "physical device driver version: " << GVK::GetVersionString (deviceProperties.driverVersion) << std::endl;
     }
 }
 
@@ -315,8 +315,8 @@ VulkanEnvironment::~VulkanEnvironment ()
 
 bool VulkanEnvironment::CheckForPhsyicalDeviceSupport (const Presentable& presentable)
 {
-    const Surface& surface = presentable.GetSurface ();
+    const GVK::Surface& surface = presentable.GetSurface ();
     return physicalDevice->CheckSurfaceSupported (surface);
 }
 
-} // namespace GVK
+} // namespace RG

@@ -57,7 +57,7 @@ public:
         return values.size () < randomValueLimit;
     }
 
-    virtual void OnRandomTextureDrawn (GVK::RG::ImageResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) override
+    virtual void OnRandomTextureDrawn (RG::ImageResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) override
     {
         GVK::ImageData randomImage (device, *randomTexture.GetImages (resourceIndex)[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
@@ -117,7 +117,7 @@ class NoRandomExporter : public IRandomExporter {
 public:
     virtual ~NoRandomExporter () override = default;
     virtual bool IsEnabled () override { return false; }
-    virtual void OnRandomTextureDrawn (GVK::RG::ImageResource&, uint32_t, uint32_t) override {}
+    virtual void OnRandomTextureDrawn (RG::ImageResource&, uint32_t, uint32_t) override {}
 };
 
 
@@ -135,7 +135,7 @@ static std::unique_ptr<IRandomExporter> GetRandomExporterImpl (GVK::DeviceExtra&
 
 Utils::CommandLineOnOffFlag printSignalsFlag { "--printSignals", "Prints signals to stdout." };
 
-SequenceAdapter::SequenceAdapter (GVK::VulkanEnvironment& environment, const std::shared_ptr<Sequence>& sequence, const std::string& sequenceNameInTitle)
+SequenceAdapter::SequenceAdapter (RG::VulkanEnvironment& environment, const std::shared_ptr<Sequence>& sequence, const std::string& sequenceNameInTitle)
     : sequence { sequence }
     , environment { environment }
     , randomExporter { GetRandomExporterImpl (*environment.deviceExtra) }
@@ -293,7 +293,7 @@ void SequenceAdapter::Wait ()
 }
 
 
-void SequenceAdapter::SetCurrentPresentable (std::shared_ptr<GVK::Presentable> presentable)
+void SequenceAdapter::SetCurrentPresentable (std::shared_ptr<RG::Presentable> presentable)
 {
     currentPresentable = presentable;
 
@@ -301,14 +301,14 @@ void SequenceAdapter::SetCurrentPresentable (std::shared_ptr<GVK::Presentable> p
         view->CreateForPresentable (currentPresentable);
     }
 
-    renderer = std::make_unique<GVK::RG::SynchronizedSwapchainGraphRenderer> (*environment.deviceExtra, presentable->GetSwapchain ());
+    renderer = std::make_unique<RG::SynchronizedSwapchainGraphRenderer> (*environment.deviceExtra, presentable->GetSwapchain ());
 
     resourceIndexToRenderedFrameMapping.clear ();
     resourceIndexToRenderedFrameMapping.resize (renderer->GetFramesInFlight (), 0);
 }
 
 
-std::shared_ptr<GVK::Presentable> SequenceAdapter::GetCurrentPresentable ()
+std::shared_ptr<RG::Presentable> SequenceAdapter::GetCurrentPresentable ()
 {
     return currentPresentable;
 }
@@ -316,19 +316,19 @@ std::shared_ptr<GVK::Presentable> SequenceAdapter::GetCurrentPresentable ()
 
 void SequenceAdapter::RenderFullOnExternalWindow ()
 {
-    std::unique_ptr<GVK::Presentable> presentable = std::make_unique<GVK::Presentable> (environment, std::make_unique<GVK::HiddenGLFWWindow> (), std::make_unique<GVK::DefaultSwapchainSettings> ());
+    std::unique_ptr<RG::Presentable> presentable = std::make_unique<RG::Presentable> (environment, std::make_unique<RG::HiddenGLFWWindow> (), std::make_unique<GVK::DefaultSwapchainSettings> ());
 
-    GVK::Window& window = presentable->GetWindow ();
+    RG::Window& window = presentable->GetWindow ();
 
-    //window->SetWindowMode (GVK::Window::Mode::Fullscreen);
+    //window->SetWindowMode (RG::Window::Mode::Fullscreen);
 
     GVK::SingleEventObserver kobs;
     kobs.Observe (window.events.keyPressed, [&] (uint32_t key) {
         // F11
         if (key == 300) {
-            window.SetWindowMode (window.GetWindowMode () == GVK::Window::Mode::Windowed
-                                      ? GVK::Window::Mode::Fullscreen
-                                      : GVK::Window::Mode::Windowed);
+            window.SetWindowMode (window.GetWindowMode () == RG::Window::Mode::Windowed
+                                      ? RG::Window::Mode::Fullscreen
+                                      : RG::Window::Mode::Windowed);
         }
         std::cout << key << std::endl;
     });

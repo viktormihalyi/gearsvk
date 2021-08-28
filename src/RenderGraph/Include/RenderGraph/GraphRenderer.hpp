@@ -16,6 +16,8 @@ namespace GVK {
 class Swapchain;
 class Fence;
 
+} // namespace GVK
+
 namespace RG {
 
 class RenderGraph;
@@ -41,7 +43,7 @@ extern GVK_RENDERER_API IFrameDisplayObserver noOpFrameDisplayObserver;
 
 class GVK_RENDERER_API Renderer {
 public:
-    Event<RenderGraph&, uint32_t, uint64_t> preSubmitEvent;
+    GVK::Event<RenderGraph&, uint32_t, uint64_t> preSubmitEvent;
 
     virtual ~Renderer () = default;
 
@@ -56,10 +58,10 @@ public:
 
 class GVK_RENDERER_API RecreatableGraphRenderer : public Renderer {
 protected:
-    Swapchain& swapchain;
+    GVK::Swapchain& swapchain;
 
 public:
-    RecreatableGraphRenderer (Swapchain& swapchain);
+    RecreatableGraphRenderer (GVK::Swapchain& swapchain);
     virtual ~RecreatableGraphRenderer () = default;
 
     void Recreate (RenderGraph& graph);
@@ -71,11 +73,11 @@ public:
 
 class GVK_RENDERER_API BlockingGraphRenderer final : public RecreatableGraphRenderer {
 private:
-    std::unique_ptr<Semaphore> s;
-    TimePoint                  lastDrawTime;
+    std::unique_ptr<GVK::Semaphore> s;
+    GVK::TimePoint                  lastDrawTime;
 
 public:
-    BlockingGraphRenderer (const DeviceExtra& device, Swapchain& swapchain);
+    BlockingGraphRenderer (const GVK::DeviceExtra& device, GVK::Swapchain& swapchain);
 
     virtual uint32_t GetNextRenderResourceIndex () override { return 0; }
     uint32_t         RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
@@ -96,22 +98,22 @@ private:
 
     // size is framesInFlight
     // synchronization objects for each frame in flight
-    std::vector<std::unique_ptr<Semaphore>> imageAvailableSemaphore; // present signals, submit  waits
-    std::vector<std::unique_ptr<Semaphore>> renderFinishedSemaphore; // submit  signals, present waits
-    std::vector<std::unique_ptr<Fence>>     inFlightFences;          // waited before submit, signaled by submit
+    std::vector<std::unique_ptr<GVK::Semaphore>> imageAvailableSemaphore; // present signals, submit  waits
+    std::vector<std::unique_ptr<GVK::Semaphore>> renderFinishedSemaphore; // submit  signals, present waits
+    std::vector<std::unique_ptr<GVK::Fence>>     inFlightFences;          // waited before submit, signaled by submit
 
-    std::unique_ptr<Fence> presentationEngineFence;
+    std::unique_ptr<GVK::Fence> presentationEngineFence;
 
     // size is imageCount
     // determines what frame is rendering to each swapchain image
     // each value is [0, framesInFlight)
     std::vector<uint32_t> imageToFrameMapping;
 
-    Swapchain& swapchain;
-    TimePoint  lastDrawTime;
+    GVK::Swapchain& swapchain;
+    GVK::TimePoint  lastDrawTime;
 
 public:
-    SynchronizedSwapchainGraphRenderer (const DeviceExtra& device, Swapchain& swapchain);
+    SynchronizedSwapchainGraphRenderer (const GVK::DeviceExtra& device, GVK::Swapchain& swapchain);
 
     ~SynchronizedSwapchainGraphRenderer ();
 
@@ -124,7 +126,5 @@ public:
 };
 
 } // namespace RG
-
-} // namespace GVK
 
 #endif

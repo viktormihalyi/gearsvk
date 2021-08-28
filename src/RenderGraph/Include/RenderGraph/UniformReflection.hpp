@@ -18,8 +18,6 @@
 #include <map>
 #include <vector>
 
-namespace GVK {
-
 namespace RG {
 
 // TODO add possibility to store uniforms in gpu memory
@@ -30,18 +28,18 @@ namespace RG {
 
 class GVK_RENDERER_API ImageMap {
 private:
-    std::vector<std::pair<GVK::SR::Sampler, std::shared_ptr<ReadOnlyImageResource>>> images;
+    std::vector<std::pair<SR::Sampler, std::shared_ptr<ReadOnlyImageResource>>> images;
 
 public:
     ImageMap ();
 
     std::shared_ptr<ReadOnlyImageResource> FindByName (const std::string& name) const;
 
-    void Put (const GVK::SR::Sampler& sampler, const std::shared_ptr<ReadOnlyImageResource>& res);
+    void Put (const SR::Sampler& sampler, const std::shared_ptr<ReadOnlyImageResource>& res);
 };
 
 using CreateParams                 = std::tuple<glm::uvec3, VkFormat, VkFilter>;
-using ExtentProviderForImageCreate = std::function<std::optional<CreateParams> (const GVK::SR::Sampler& sampler)>;
+using ExtentProviderForImageCreate = std::function<std::optional<CreateParams> (const SR::Sampler& sampler)>;
 
 
 GVK_RENDERER_API
@@ -51,15 +49,15 @@ GVK_RENDERER_API
 ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const ExtentProviderForImageCreate& extentProvider);
 
 
-class GVK_RENDERER_API UniformReflection final : public EventObserver {
+class GVK_RENDERER_API UniformReflection final : public GVK::EventObserver {
 private:
     class GVK_RENDERER_API UboSelector {
     private:
-        std::map<std::string, std::shared_ptr<GVK::SR::IUData>, std::less<>> udatas;
+        std::map<std::string, std::shared_ptr<SR::IUData>, std::less<>> udatas;
 
     public:
-        GVK::SR::IUData& operator[] (std::string_view uboName);
-        void             Set (const std::string& uboName, const std::shared_ptr<GVK::SR::IUData>& uboData);
+        SR::IUData& operator[] (std::string_view uboName);
+        void             Set (const std::string& uboName, const std::shared_ptr<SR::IUData>& uboData);
         bool             Contains (std::string_view uboName) const;
 
         friend class UniformReflection;
@@ -67,11 +65,11 @@ private:
 
     class GVK_RENDERER_API ShaderKindSelector {
     private:
-        std::unordered_map<ShaderKind, UboSelector> uboSelectors;
+        std::unordered_map<GVK::ShaderKind, UboSelector> uboSelectors;
 
     public:
-        UboSelector& operator[] (ShaderKind shaderKind);
-        void         Set (ShaderKind shaderKind, UboSelector&& uboSel);
+        UboSelector& operator[] (GVK::ShaderKind shaderKind);
+        void         Set (GVK::ShaderKind shaderKind, UboSelector&& uboSel);
 
         friend class UniformReflection;
     };
@@ -89,24 +87,24 @@ public:
     //
     std::vector<std::shared_ptr<RG::InputBufferBindableResource>>                                                                              uboResources;
     std::vector<std::tuple<std::shared_ptr<RG::RenderOperation>, uint32_t, std::shared_ptr<RG::InputBufferBindableResource>, GVK::ShaderKind>> uboConnections;
-    std::unordered_map<GVK::UUID, std::shared_ptr<GVK::SR::IUData>>                                                                            udatas;
+    std::unordered_map<GVK::UUID, std::shared_ptr<SR::IUData>>                                                                            udatas;
 
 public:
-    using Filter          = std::function<bool (const std::shared_ptr<RG::RenderOperation>&, const ShaderModule&, const std::shared_ptr<GVK::SR::UBO>&)>;
-    using ResourceCreator = std::function<std::shared_ptr<RG::InputBufferBindableResource> (const std::shared_ptr<RG::RenderOperation>&, const ShaderModule&, const std::shared_ptr<GVK::SR::UBO>&)>;
+    using Filter          = std::function<bool (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::UBO>&)>;
+    using ResourceCreator = std::function<std::shared_ptr<RG::InputBufferBindableResource> (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::UBO>&)>;
 
 public:
-    static bool DefaultFilter (const std::shared_ptr<RG::RenderOperation>&, const ShaderModule&, const std::shared_ptr<GVK::SR::UBO>&)
+    static bool DefaultFilter (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::UBO>&)
     {
         return false;
     }
 
-    static std::shared_ptr<RG::InputBufferBindableResource> DefaultResourceCreator (const std::shared_ptr<RG::RenderOperation>&, const ShaderModule&, const std::shared_ptr<GVK::SR::UBO>& ubo)
+    static std::shared_ptr<RG::InputBufferBindableResource> DefaultResourceCreator (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::UBO>& ubo)
     {
         return std::make_unique<RG::CPUBufferResource> (ubo->GetFullSize ());
     }
 
-    static std::shared_ptr<RG::InputBufferBindableResource> GPUBufferResourceCreator (const std::shared_ptr<RG::RenderOperation>&, const ShaderModule&, const std::shared_ptr<GVK::SR::UBO>& ubo)
+    static std::shared_ptr<RG::InputBufferBindableResource> GPUBufferResourceCreator (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::UBO>& ubo)
     {
         return std::make_unique<RG::GPUBufferResource> (ubo->GetFullSize ());
     }
@@ -132,7 +130,7 @@ public:
 };
 
 
-inline GVK::SR::IUData& UniformReflection::UboSelector::operator[] (std::string_view uboName)
+inline SR::IUData& UniformReflection::UboSelector::operator[] (std::string_view uboName)
 {
     auto it = udatas.find (uboName);
     if (it != udatas.end ()) {
@@ -140,11 +138,11 @@ inline GVK::SR::IUData& UniformReflection::UboSelector::operator[] (std::string_
     }
 
     GVK_ASSERT (false);
-    return GVK::SR::dummyUData;
+    return SR::dummyUData;
 }
 
 
-inline void UniformReflection::UboSelector::Set (const std::string& uboName, const std::shared_ptr<GVK::SR::IUData>& uboData)
+inline void UniformReflection::UboSelector::Set (const std::string& uboName, const std::shared_ptr<SR::IUData>& uboData)
 {
     udatas[uboName] = uboData;
 }
@@ -156,7 +154,7 @@ inline bool UniformReflection::UboSelector::Contains (std::string_view uboName) 
 }
 
 
-inline UniformReflection::UboSelector& UniformReflection::ShaderKindSelector::operator[] (ShaderKind shaderKind)
+inline UniformReflection::UboSelector& UniformReflection::ShaderKindSelector::operator[] (GVK::ShaderKind shaderKind)
 {
     auto it = uboSelectors.find (shaderKind);
     if (it != uboSelectors.end ()) {
@@ -168,7 +166,7 @@ inline UniformReflection::UboSelector& UniformReflection::ShaderKindSelector::op
 }
 
 
-inline void UniformReflection::ShaderKindSelector::Set (ShaderKind shaderKind, UniformReflection::UboSelector&& uboSel)
+inline void UniformReflection::ShaderKindSelector::Set (GVK::ShaderKind shaderKind, UniformReflection::UboSelector&& uboSel)
 {
     uboSelectors[shaderKind] = std::move (uboSel);
 }
@@ -192,9 +190,6 @@ inline UniformReflection::ShaderKindSelector& UniformReflection::operator[] (con
     return (*this)[renderOp->GetUUID ()];
 }
 
-
 } // namespace RG
-
-} // namespace GVK
 
 #endif

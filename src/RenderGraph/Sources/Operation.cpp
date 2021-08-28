@@ -6,8 +6,6 @@
 #include "DrawRecordable.hpp"
 #include <memory>
 
-namespace GVK {
-
 namespace RG {
 
 RenderOperation::Builder::Builder (VkDevice device)
@@ -153,9 +151,9 @@ std::vector<VkImageView> RenderOperation::GetOutputImageViews (const ConnectionS
 }
 
 
-std::vector<ImageView2D> RenderOperation::CreateOutputImageViews (const DeviceExtra& device, const ConnectionSet& conncetionSet, uint32_t resourceIndex) const
+std::vector<GVK::ImageView2D> RenderOperation::CreateOutputImageViews (const GVK::DeviceExtra& device, const ConnectionSet& conncetionSet, uint32_t resourceIndex) const
 {
-    std::vector<ImageView2D> result;
+    std::vector<GVK::ImageView2D> result;
 
     IResourceVisitorFn outputGatherer ([] (ReadOnlyImageResource&) {},
                                        [&] (WritableImageResource& res) {
@@ -198,10 +196,10 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     s *= graphSettings.framesInFlight;
 
     if (s > 0) {
-        compileResult.descriptorPool = std::make_unique<DescriptorPool> (graphSettings.GetDevice (), s, s, graphSettings.framesInFlight);
+        compileResult.descriptorPool = std::make_unique<GVK::DescriptorPool> (graphSettings.GetDevice (), s, s, graphSettings.framesInFlight);
 
         for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
-            std::unique_ptr<DescriptorSet> descriptorSet = std::make_unique<DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
+            std::unique_ptr<GVK::DescriptorSet> descriptorSet = std::make_unique<GVK::DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
             graphSettings.connectionSet.ProcessInputBindingsOf (this, [&] (const IConnectionBinding& binding) {
                 binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, resourceIndex);
@@ -234,7 +232,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     GetShaderPipeline ()->Compile (std::move (pipelineSettigns));
 
     for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
-        compileResult.framebuffers.push_back (std::make_unique<Framebuffer> (graphSettings.GetDevice (),
+        compileResult.framebuffers.push_back (std::make_unique<GVK::Framebuffer> (graphSettings.GetDevice (),
                                                                              *GetShaderPipeline ()->compileResult.renderPass,
                                                                              GetOutputImageViews (graphSettings.connectionSet, resourceIndex),
                                                                              //CreateOutputImageViews (graphSettings.GetDevice (), graphSettings.connectionSet, resourceIndex),
@@ -247,7 +245,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 }
 
 
-void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, CommandBuffer& commandBuffer)
+void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
 {
     uint32_t outputCount = 0;
 
@@ -271,19 +269,19 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
 
     std::vector<VkClearValue> clearValues (outputCount, clearColor);
 
-    commandBuffer.Record<CommandBeginRenderPass> (*GetShaderPipeline ()->compileResult.renderPass,
+    commandBuffer.Record<GVK::CommandBeginRenderPass> (*GetShaderPipeline ()->compileResult.renderPass,
                                                   *compileResult.framebuffers[resourceIndex],
                                                   VkRect2D { { 0, 0 }, { compileResult.width, compileResult.height } },
                                                   clearValues,
                                                   VK_SUBPASS_CONTENTS_INLINE)
         .SetName ("Operation - Renderpass Begin");
 
-    commandBuffer.Record<CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *GetShaderPipeline ()->compileResult.pipeline).SetName ("Operation - Bind");
+    commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *GetShaderPipeline ()->compileResult.pipeline).SetName ("Operation - Bind");
 
     if (!compileResult.descriptorSets.empty ()) {
         VkDescriptorSet dsHandle = *compileResult.descriptorSets[resourceIndex];
 
-        commandBuffer.Record<CommandBindDescriptorSets> (
+        commandBuffer.Record<GVK::CommandBindDescriptorSets> (
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             *GetShaderPipeline ()->compileResult.pipelineLayout,
             0,
@@ -294,7 +292,7 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
     GVK_ASSERT (compileSettings.pureDrawRecordable != nullptr);
     compileSettings.pureDrawRecordable->Record (commandBuffer);
     
-    commandBuffer.Record<CommandEndRenderPass> ().SetName ("Operation - Renderpass End");
+    commandBuffer.Record<GVK::CommandEndRenderPass> ().SetName ("Operation - Renderpass End");
 }
 
 
@@ -341,7 +339,7 @@ void TransferOperation::Compile (const GraphSettings&, uint32_t, uint32_t)
 }
 
 
-void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t imageIndex, CommandBuffer& commandBuffer)
+void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t imageIndex, GVK::CommandBuffer& commandBuffer)
 {
     std::vector<ImageResource*> inputs;
     std::vector<ImageResource*> outputs;
@@ -378,8 +376,8 @@ void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t ima
 
     if (auto fromImg = dynamic_cast<ImageResource*> (from)) {
         if (auto toImg = dynamic_cast<ImageResource*> (to)) {
-            Image* fromVkImage = fromImg->GetImages ()[0];
-            Image* toVkImage   = toImg->GetImages ()[0];
+            GVK::Image* fromVkImage = fromImg->GetImages ()[0];
+            GVK::Image* toVkImage   = toImg->GetImages ()[0];
 
             GVK_ASSERT (fromVkImage->GetWidth () == toVkImage->GetWidth ());
             GVK_ASSERT (fromVkImage->GetHeight () == toVkImage->GetHeight ());
@@ -397,7 +395,7 @@ void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t ima
             imageCopyRegion.extent.height                 = fromVkImage->GetHeight ();
             imageCopyRegion.extent.depth                  = fromVkImage->GetDepth ();
 
-            commandBuffer.Record<CommandCopyImage> (
+            commandBuffer.Record<GVK::CommandCopyImage> (
                     *fromVkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                     *toVkImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                     std::vector<VkImageCopy> { imageCopyRegion});
@@ -411,5 +409,3 @@ void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t ima
 
 
 } // namespace RG
-
-} // namespace GVK

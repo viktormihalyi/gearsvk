@@ -8,8 +8,6 @@
 #include <memory>
 #include <string>
 
-namespace GVK {
-
 namespace RG {
 
 class GVK_RENDERER_API Node : public Noncopyable {
@@ -31,7 +29,5 @@ public:
 };
 
 } // namespace RG
-
-} // namespace GVK
 
 #endif

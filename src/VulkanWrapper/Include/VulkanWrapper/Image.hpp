@@ -82,6 +82,8 @@ public:
     VkBufferImageCopy GetFullBufferImageCopyLayer (uint32_t layerIndex) const;
 
     VkImageMemoryBarrier GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask) const;
+    VkImageMemoryBarrier GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, uint32_t layerIndex) const;
+    VkImageMemoryBarrier GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, uint32_t baseArrayLayer, uint32_t layerCount) const;
 
     void CmdCopyToBuffer (CommandBuffer& commandBuffer, VkBuffer buffer) const;
     void CmdCopyLayerToBuffer (CommandBuffer& commandBuffer, uint32_t layerIndex, VkBuffer buffer) const;

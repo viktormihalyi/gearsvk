@@ -9,7 +9,7 @@
 #include "VulkanWrapper/CommandBuffer.hpp"
 #include <memory>
 
-namespace GVK {
+namespace RG {
 
 class VertexAttributeProvider {
 public:
@@ -24,13 +24,13 @@ class PureDrawRecordable {
 public:
     virtual ~PureDrawRecordable () = default;
 
-    virtual void Record (CommandBuffer&) const = 0;
+    virtual void Record (GVK::CommandBuffer&) const = 0;
 };
 
 
 class LambdaPureDrawRecordable : private PureDrawRecordable {
 public:
-    using Type = std::function<void (CommandBuffer&)>;
+    using Type = std::function<void (GVK::CommandBuffer&)>;
 
 private:
     Type callback;
@@ -42,7 +42,7 @@ public:
     }
 
 private:
-    virtual void Record (CommandBuffer& c) const override
+    virtual void Record (GVK::CommandBuffer& c) const override
     {
         callback (c);
     }
@@ -53,6 +53,6 @@ public:
     virtual ~DrawRecordable () = default;
 };
 
-} // namespace GVK
+} // namespace RG
 
 #endif

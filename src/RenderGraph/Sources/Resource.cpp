@@ -1,7 +1,5 @@
 #include "Resource.hpp"
 
-namespace GVK {
-
 namespace RG {
 
 
@@ -11,5 +9,3 @@ const VkFormat WritableImageResource::SingleImageResource::FormatRGB  = VK_FORMA
 
 
 } // namespace RG
-
-} // namespace GVK

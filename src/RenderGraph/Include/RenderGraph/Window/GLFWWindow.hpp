@@ -9,7 +9,7 @@
 #include <optional>
 #include <vector>
 
-namespace GVK {
+namespace RG {
 
 class GVK_RENDERER_API GLFWWindowBase : public Window {
 private:
@@ -62,6 +62,6 @@ public:
 GVK_RENDERER_API
 std::vector<const char*> GetGLFWInstanceExtensions ();
 
-} // namespace GVK
+} // namespace RG
 
 #endif

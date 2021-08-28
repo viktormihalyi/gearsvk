@@ -5,8 +5,6 @@
 
 #include <vector>
 
-namespace GVK {
-
 namespace RG {
 
 class Operation;
@@ -58,7 +56,5 @@ private:
 };
 
 } // namespace RG
-
-} // namespace GVK
 
 #endif

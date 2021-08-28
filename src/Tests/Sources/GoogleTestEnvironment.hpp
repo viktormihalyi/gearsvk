@@ -15,18 +15,21 @@
 #include <vulkan/vulkan.h>
 
 namespace GVK {
-class VulkanEnvironment;
 class ImageData;
-class Presentable;
 class PhysicalDevice;
 class Swapchain;
 class Device;
 class CommandPool;
 class Queue;
-class Window;
 class DeviceExtra;
 class Image;
 } // namespace GVK
+
+namespace RG {
+class Presentable;
+class VulkanEnvironment;
+class Window;
+} // namespace RG
 
 
 extern const std::filesystem::path ReferenceImagesFolder;
@@ -43,16 +46,16 @@ using EmptyTestEnvironment = ::testing::Test;
 
 class GoogleTestEnvironmentBase : public ::testing::Test {
 protected:
-    std::unique_ptr<GVK::VulkanEnvironment> env;
-    std::unique_ptr<GVK::Window>            window;
-    std::shared_ptr<GVK::Presentable>       presentable;
+    std::unique_ptr<RG::VulkanEnvironment> env;
+    std::unique_ptr<RG::Window>            window;
+    std::shared_ptr<RG::Presentable>       presentable;
 
     GVK::PhysicalDevice& GetPhysicalDevice ();
     GVK::Device&         GetDevice ();
     GVK::CommandPool&    GetCommandPool ();
     GVK::Queue&          GetGraphicsQueue ();
     GVK::DeviceExtra&    GetDeviceExtra ();
-    GVK::Window&         GetWindow ();
+    RG::Window&          GetWindow ();
     GVK::Swapchain&      GetSwapchain ();
 
     virtual ~GoogleTestEnvironmentBase () override = default;

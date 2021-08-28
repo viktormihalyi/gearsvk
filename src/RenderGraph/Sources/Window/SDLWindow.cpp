@@ -8,7 +8,7 @@
 #include "Timer.hpp"
 
 
-namespace GVK {
+namespace RG {
 
 uint32_t SDLWindowBase::windowCount = 0;
 

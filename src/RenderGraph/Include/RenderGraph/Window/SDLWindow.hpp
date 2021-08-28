@@ -8,7 +8,7 @@
 #include <optional>
 #include <vector>
 
-namespace GVK {
+namespace RG {
 
 class GVK_RENDERER_API SDLWindowBase : public Window {
 private:
@@ -52,6 +52,6 @@ public:
     HiddenSDLWindow ();
 };
 
-} // namespace GVK
+} // namespace RG
 
 #endif

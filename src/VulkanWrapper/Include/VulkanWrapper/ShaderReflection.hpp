@@ -14,8 +14,6 @@
 
 // NOTE: SSBOs are not supported
 
-namespace GVK {
-
 namespace SR {
 
 
@@ -175,7 +173,5 @@ VkFormat FieldTypeToVkFormat (FieldType fieldType);
 
 
 } // namespace SR
-
-} // namespace GVK
 
 #endif

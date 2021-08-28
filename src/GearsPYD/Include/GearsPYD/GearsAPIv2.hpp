@@ -7,10 +7,14 @@
 
 
 namespace GVK {
-class Presentable;
-class VulkanEnvironment;
 enum class ShaderKind : uint8_t;
 } // namespace GVK
+
+namespace RG {
+class Presentable;
+class VulkanEnvironment;
+} // namespace RG
+
 class SequenceAdapter;
 class Sequence;
 
@@ -39,10 +43,10 @@ void Wait ();
 
 std::string GetGLSLResourcesForRandoms ();
 
-void SetCurrentPresentable (std::shared_ptr<GVK::Presentable>&);
+void SetCurrentPresentable (std::shared_ptr<RG::Presentable>&);
 
 GEARS_API_TEST
-std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (GVK::VulkanEnvironment&, const std::filesystem::path&);
+std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (RG::VulkanEnvironment&, const std::filesystem::path&);
 
 GEARS_API_TEST
 std::shared_ptr<Sequence> GetSequenceFromPyx (const std::filesystem::path&);

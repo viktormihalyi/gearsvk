@@ -12,7 +12,6 @@
 #include <iostream>
 #include <sstream>
 
-namespace GVK {
 
 namespace RG {
     
@@ -268,12 +267,12 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
 
     for (Pass& p : passes) {
         Utils::ForEach<ImageResource*> (p.GetAllInputs (), [&] (ImageResource* img) {
-            for (Image* image : img->GetImages ()) {
+            for (GVK::Image* image : img->GetImages ()) {
                 imageLayoutSequence[*image].push_back (img->GetInitialLayout ());
             }
         });
         Utils::ForEach<ImageResource*> (p.GetAllOutputs (), [&] (ImageResource* img) {
-            for (Image* image : img->GetImages ()) {
+            for (GVK::Image* image : img->GetImages ()) {
                 imageLayoutSequence[*image].push_back (img->GetInitialLayout ());
             }
         });
@@ -301,7 +300,7 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
     commandBuffers.clear ();
 
     for (uint32_t frameIndex = 0; frameIndex < graphSettings.framesInFlight; ++frameIndex) {
-        CommandBuffer& currentCmdbuffer = commandBuffers.emplace_back (graphSettings.GetDevice ());
+        GVK::CommandBuffer& currentCmdbuffer = commandBuffers.emplace_back (graphSettings.GetDevice ());
 
         currentCmdbuffer.SetName (*graphSettings.device, fmt::format ("CommandBuffer {}/{}", frameIndex, graphSettings.framesInFlight));
 
@@ -312,11 +311,11 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
                 auto allInputs  = graphSettings.connectionSet.GetPointingHere<Resource> (op);
                 auto allOutputs = graphSettings.connectionSet.GetPointingTo<Resource> (op);
 
-                std::unique_ptr<CommandPipelineBarrier> barrier = std::make_unique<CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,  // TODO maybe VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT?
+                std::unique_ptr<GVK::CommandPipelineBarrier> barrier = std::make_unique<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,  // TODO maybe VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT?
                                                                                                             VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT); // TODO maybe VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT?
                 barrier->AddMemoryBarrier (flushAllMemory);
                 Utils::ForEach<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
-                    for (Image* image : img->GetImages (frameIndex)) {
+                    for (GVK::Image* image : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = imageLayoutSequence[*image].back ();
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForInputs (*img);
                         barrier->AddImageMemoryBarrier (image->GetBarrier (currentLayout, newLayout, fullMask, fullMask));
@@ -325,7 +324,7 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
                 });
 
                 Utils::ForEach<ImageResource> (allOutputs, [&] (const std::shared_ptr<ImageResource>& img) {
-                    for (Image* image : img->GetImages (frameIndex)) {
+                    for (GVK::Image* image : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = imageLayoutSequence[*image].back ();
                         const VkImageLayout newLayout     = op->GetImageLayoutAtStartForOutputs (*img);
                         barrier->AddImageMemoryBarrier (image->GetBarrier (currentLayout, newLayout, fullMask, fullMask));
@@ -337,13 +336,13 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
                     .SetName ("Transition for next Pass");
 
                 Utils::ForEach<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
-                    for (Image* image : img->GetImages (frameIndex)) {
+                    for (GVK::Image* image : img->GetImages (frameIndex)) {
                         imageLayoutSequence[*image].push_back (op->GetImageLayoutAtEndForInputs (*img)); // TODO VkAttachmentDescription.finalLayout
                     }
                 });
 
                 Utils::ForEach<ImageResource> (allOutputs, [&] (const std::shared_ptr<ImageResource>& img) {
-                    for (Image* image : img->GetImages (frameIndex)) {
+                    for (GVK::Image* image : img->GetImages (frameIndex)) {
                         imageLayoutSequence[*image].push_back (op->GetImageLayoutAtEndForOutputs (*img)); // TODO VkAttachmentDescription.finalLayout
                     }
                 });
@@ -355,12 +354,12 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
         }
 
         {
-            std::unique_ptr<CommandPipelineBarrier> barrier = std::make_unique<CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,  // TODO maybe VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT?
+            std::unique_ptr<GVK::CommandPipelineBarrier> barrier = std::make_unique<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,  // TODO maybe VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT?
                                                                                                         VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT); // TODO maybe VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT?
             barrier->AddMemoryBarrier (flushAllMemory);
             for (Pass& p : passes) {
                 Utils::ForEach<ImageResource*> (p.GetAllInputs (), [&] (ImageResource* img) {
-                    for (Image* image : img->GetImages (frameIndex)) {
+                    for (GVK::Image* image : img->GetImages (frameIndex)) {
                         const VkImageLayout currentLayout = imageLayoutSequence[*image].back ();
                         barrier->AddImageMemoryBarrier (image->GetBarrier (currentLayout, img->GetInitialLayout (), fullMask, fullMask));
                     }
@@ -392,7 +391,7 @@ void RenderGraph::Submit (uint32_t frameIndex, const std::vector<VkSemaphore>& w
 }
 
 
-void RenderGraph::Present (uint32_t imageIndex, Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores)
+void RenderGraph::Present (uint32_t imageIndex, GVK::Swapchain& swapchain, const std::vector<VkSemaphore>& waitSemaphores)
 {
     GVK_ASSERT (swapchain.SupportsPresenting ());
 
@@ -409,5 +408,3 @@ uint32_t RenderGraph::GetPassCount () const
 }
 
 } // namespace RG
-
-} // namespace GVK

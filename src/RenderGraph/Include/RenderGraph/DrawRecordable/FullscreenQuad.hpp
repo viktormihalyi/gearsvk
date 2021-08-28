@@ -6,7 +6,7 @@
 
 #include <glm/glm.hpp>
 
-namespace GVK {
+namespace RG {
 
 class FullscreenQuad : public DrawRecordableInfoProvider {
 private:
@@ -15,13 +15,13 @@ private:
         glm::vec2 uv;
     };
 
-    VertexBufferTransferable<Vertex> vertexBuffer;
-    IndexBufferTransferable          indexBuffer;
+    GVK::VertexBufferTransferable<Vertex> vertexBuffer;
+    GVK::IndexBufferTransferable          indexBuffer;
 
     std::unique_ptr<DrawRecordableInfo> info;
 
 public:
-    FullscreenQuad (const DeviceExtra& device)
+    FullscreenQuad (const GVK::DeviceExtra& device)
         : vertexBuffer (device, 4, { VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32_SFLOAT }, VK_VERTEX_INPUT_RATE_VERTEX)
         , indexBuffer (device, 6)
     {
@@ -47,6 +47,6 @@ private:
     }
 };
 
-} // namespace GVK
+} // namespace RG
 
 #endif

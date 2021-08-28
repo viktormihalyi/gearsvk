@@ -8,8 +8,6 @@
 // from SPRIV-Cross
 #include "spirv_cross.hpp"
 
-namespace GVK {
-
 namespace SR {
 
 
@@ -614,5 +612,3 @@ std::string FieldTypeToString (FieldType fieldType)
 }
 
 } // namespace SR
-
-}; // namespace GVK

@@ -85,12 +85,12 @@ static const std::filesystem::path SequencesFolder = std::filesystem::current_pa
 
 class GearsTests : public GoogleTestEnvironmentBase {
 protected:
-    std::shared_ptr<GVK::Presentable>     pres;
+    std::shared_ptr<RG::Presentable>     pres;
     std::unique_ptr<SequenceAdapter> sequenceAdapter;
 
     virtual void SetUp () override
     {
-        env = std::make_unique<GVK::VulkanEnvironment> (gtestDebugCallback, GVK::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+        env = std::make_unique<RG::VulkanEnvironment> (gtestDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
     }
 
     virtual void TearDown () override
@@ -113,7 +113,7 @@ protected:
             return;
         }
 
-        pres = std::make_unique<GVK::Presentable> (*env, std::make_unique<GVK::HiddenGLFWWindow> (), std::make_unique<GVK::DefaultSwapchainSettingsSingleImage> ());
+        pres = std::make_unique<RG::Presentable> (*env, std::make_unique<RG::HiddenGLFWWindow> (), std::make_unique<GVK::DefaultSwapchainSettingsSingleImage> ());
 
         bool success = false;
         try {

@@ -12,8 +12,6 @@
 #include <vulkan/vulkan.h>
 
 
-namespace GVK {
-
 namespace RG {
 
 class IResourceVisitor;
@@ -145,26 +143,23 @@ public:
 class GVK_RENDERER_API GraphSettings {
 public:
     ConnectionSet      connectionSet;
-    const DeviceExtra* device;
+    const GVK::DeviceExtra* device;
     uint32_t           framesInFlight;
 
-    GraphSettings (const DeviceExtra& device, VkQueue queue, VkCommandPool commandPool, uint32_t framesInFlight);
-
-    GraphSettings (const DeviceExtra& device, uint32_t framesInFlight);
+    GraphSettings (const GVK::DeviceExtra& device, ConnectionSet&& connectionSet, uint32_t framesInFlight);
+    GraphSettings (const GVK::DeviceExtra& device, uint32_t framesInFlight);
 
     GraphSettings ();
     GraphSettings (GraphSettings&&);
     GraphSettings& operator= (GraphSettings&&);
 
-    const DeviceExtra& GetDevice () const;
+    const GVK::DeviceExtra& GetDevice () const;
 
-    const Queue& GetGrahpicsQueue () const;
+    const GVK::Queue& GetGrahpicsQueue () const;
 
-    const CommandPool& GetCommandPool () const;
+    const GVK::CommandPool& GetCommandPool () const;
 };
 
 } // namespace RG
-
-} // namespace GVK
 
 #endif

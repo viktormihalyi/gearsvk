@@ -8,12 +8,12 @@
 
 #include "VulkanWrapper/Utils/BufferTransferable.hpp"
 
-namespace GVK {
+namespace RG {
 
 class VertexBufferList {
 private:
     template<typename T>
-    std::vector<T> Get (std::function<T (const std::shared_ptr<VertexBufferTransferableUntyped>&)> getterFunc) const
+    std::vector<T> Get (std::function<T (const std::shared_ptr<GVK::VertexBufferTransferableUntyped>&)> getterFunc) const
     {
         std::vector<T> result;
 
@@ -25,7 +25,7 @@ private:
     }
 
     template<typename T>
-    std::vector<T> GetFromVector (std::function<std::vector<T> (const std::shared_ptr<VertexBufferTransferableUntyped>&)> getterFunc) const
+    std::vector<T> GetFromVector (std::function<std::vector<T> (const std::shared_ptr<GVK::VertexBufferTransferableUntyped>&)> getterFunc) const
     {
         std::vector<T> result;
 
@@ -38,23 +38,23 @@ private:
     }
 
 public:
-    std::vector<std::shared_ptr<VertexBufferTransferableUntyped>> vertexBuffers;
+    std::vector<std::shared_ptr<GVK::VertexBufferTransferableUntyped>> vertexBuffers;
 
     VertexBufferList () = default;
 
-    VertexBufferList (std::vector<std::shared_ptr<VertexBufferTransferableUntyped>> vertexBuffers)
+    VertexBufferList (std::vector<std::shared_ptr<GVK::VertexBufferTransferableUntyped>> vertexBuffers)
         : vertexBuffers (vertexBuffers)
     {
     }
 
-    void Add (std::shared_ptr<VertexBufferTransferableUntyped> vb)
+    void Add (std::shared_ptr<GVK::VertexBufferTransferableUntyped> vb)
     {
         vertexBuffers.push_back (vb);
     }
 
     std::vector<VkBuffer> GetHandles () const
     {
-        return Get<VkBuffer> ([] (const std::shared_ptr<VertexBufferTransferableUntyped>& vb) {
+        return Get<VkBuffer> ([] (const std::shared_ptr<GVK::VertexBufferTransferableUntyped>& vb) {
             return vb->buffer.GetBufferToBind ();
         });
     }
@@ -62,7 +62,7 @@ public:
     std::vector<VkVertexInputBindingDescription> GetBindings () const
     {
         uint32_t nextBinding = 0;
-        return GetFromVector<VkVertexInputBindingDescription> ([&] (const std::shared_ptr<VertexBufferTransferableUntyped>& vb) {
+        return GetFromVector<VkVertexInputBindingDescription> ([&] (const std::shared_ptr<GVK::VertexBufferTransferableUntyped>& vb) {
             return vb->info.GetBindings (nextBinding++);
         });
     }
@@ -71,7 +71,7 @@ public:
     {
         size_t nextLocation = 0;
         size_t nextBinding  = 0;
-        return GetFromVector<VkVertexInputAttributeDescription> ([&] (const std::shared_ptr<VertexBufferTransferableUntyped>& vb) {
+        return GetFromVector<VkVertexInputAttributeDescription> ([&] (const std::shared_ptr<GVK::VertexBufferTransferableUntyped>& vb) {
             auto attribs = vb->info.GetAttributes (nextLocation, nextBinding++);
             nextLocation += attribs.size ();
             return attribs;
@@ -110,8 +110,8 @@ public:
     }
 
     DrawRecordableInfo (const uint32_t                         instanceCount,
-                        const VertexBufferTransferableUntyped& vertexBuffer,
-                        const IndexBufferTransferable&         indexBuffer)
+                        const GVK::VertexBufferTransferableUntyped& vertexBuffer,
+                        const GVK::IndexBufferTransferable&         indexBuffer)
         : instanceCount (instanceCount)
         , vertexCount (vertexBuffer.data.size ())
         , vertexBuffer ({ vertexBuffer.buffer.GetBufferToBind () })
@@ -123,7 +123,7 @@ public:
     }
 
     DrawRecordableInfo (const uint32_t                         instanceCount,
-                        const VertexBufferTransferableUntyped& vertexBuffer)
+                        const GVK::VertexBufferTransferableUntyped& vertexBuffer)
         : instanceCount (instanceCount)
         , vertexCount (vertexBuffer.data.size ())
         , vertexBuffer ({ vertexBuffer.buffer.GetBufferToBind () })
@@ -149,21 +149,21 @@ public:
     {
     }
 
-    void Record (CommandBuffer& commandBuffer) const override
+    void Record (GVK::CommandBuffer& commandBuffer) const override
     {
         if (!vertexBuffer.empty ()) {
             std::vector<VkDeviceSize> offsets (vertexBuffer.size (), 0);
-            commandBuffer.Record<CommandBindVertexBuffers> (0, static_cast<uint32_t> (vertexBuffer.size ()), vertexBuffer, offsets).SetName ("DrawRecordableInfo");
+            commandBuffer.Record<GVK::CommandBindVertexBuffers> (0, static_cast<uint32_t> (vertexBuffer.size ()), vertexBuffer, offsets).SetName ("DrawRecordableInfo");
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {
-            commandBuffer.Record<CommandBindIndexBuffer> (indexBuffer, 0, VK_INDEX_TYPE_UINT16).SetName ("DrawRecordableInfo");
+            commandBuffer.Record<GVK::CommandBindIndexBuffer> (indexBuffer, 0, VK_INDEX_TYPE_UINT16).SetName ("DrawRecordableInfo");
         }
 
         if (indexBuffer != VK_NULL_HANDLE) {
-            commandBuffer.Record<CommandDrawIndexed> (indexCount, instanceCount, 0, 0, 0).SetName ("DrawRecordableInfo");
+            commandBuffer.Record<GVK::CommandDrawIndexed> (indexCount, instanceCount, 0, 0, 0).SetName ("DrawRecordableInfo");
         } else {
-            commandBuffer.Record<CommandDraw> (vertexCount, instanceCount, 0, 0).SetName ("DrawRecordableInfo");
+            commandBuffer.Record<GVK::CommandDraw> (vertexCount, instanceCount, 0, 0).SetName ("DrawRecordableInfo");
         }
     }
 
@@ -180,7 +180,7 @@ public:
 
 class DrawRecordableInfoProvider : public DrawRecordable {
 public:
-    virtual void                                           Record (CommandBuffer& commandBuffer) const override { GetDrawRecordableInfo ().Record (commandBuffer); }
+    virtual void                                           Record (GVK::CommandBuffer& commandBuffer) const override { GetDrawRecordableInfo ().Record (commandBuffer); }
     virtual std::vector<VkVertexInputAttributeDescription> GetAttributes () const override { return GetDrawRecordableInfo ().GetAttributes (); }
     virtual std::vector<VkVertexInputBindingDescription>   GetBindings () const override { return GetDrawRecordableInfo ().GetBindings (); }
 
@@ -188,6 +188,6 @@ private:
     virtual const DrawRecordableInfo& GetDrawRecordableInfo () const = 0;
 };
 
-} // namespace GVK
+} // namespace RG
 
 #endif

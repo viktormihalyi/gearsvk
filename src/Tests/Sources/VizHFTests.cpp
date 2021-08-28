@@ -62,13 +62,13 @@ TEST_F (VizHFTests, HF1)
     GVK::Camera   c (glm::vec3 (-1, 0, 0.5f), glm::vec3 (1, 0.0f, 0), window->GetAspectRatio ());
     GVK::CameraControl cameraControl (c, window->events);
 
-    GVK::RG::GraphSettings s (device, swapchain.GetImageCount ());
-    GVK::RG::RenderGraph   graph;
+    RG::GraphSettings s (device, swapchain.GetImageCount ());
+    RG::RenderGraph   graph;
 
 
     // ========================= GRAPH OPERATIONS =========================
 
-    std::unique_ptr<GVK::RG::ShaderPipeline> sp = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    std::unique_ptr<RG::ShaderPipeline> sp = std::make_unique<RG::ShaderPipeline> (device);
 
     sp->SetVertexShaderFromString (R"(#version 450
 
@@ -351,26 +351,26 @@ void main ()
 }
 )");
 
-    std::shared_ptr<GVK::RG::RenderOperation> brainRenderOp = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::FullscreenQuad> (device), std::move (sp));
+    std::shared_ptr<RG::RenderOperation> brainRenderOp = std::make_unique<RG::RenderOperation> (std::make_unique<RG::FullscreenQuad> (device), std::move (sp));
 
 
     // ========================= GRAPH RESOURCES =========================
 
-    std::shared_ptr<GVK::RG::SwapchainImageResource> presented = std::make_unique<GVK::RG::SwapchainImageResource> (*presentable);
-    std::shared_ptr<GVK::RG::ReadOnlyImageResource>  matcap    = std::make_unique<GVK::RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
-    std::shared_ptr<GVK::RG::ReadOnlyImageResource>  agy3d     = std::make_unique<GVK::RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
+    std::shared_ptr<RG::SwapchainImageResource> presented = std::make_unique<RG::SwapchainImageResource> (*presentable);
+    std::shared_ptr<RG::ReadOnlyImageResource>  matcap    = std::make_unique<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
+    std::shared_ptr<RG::ReadOnlyImageResource>  agy3d     = std::make_unique<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
 
     s.connectionSet.Add (brainRenderOp, presented,
-                         std::make_unique<GVK::RG::OutputBinding> (0,
+                         std::make_unique<RG::OutputBinding> (0,
                                                                    presented->GetFormatProvider (),
                                                                    presented->GetFinalLayout (),
                                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
                                                                    VK_ATTACHMENT_STORE_OP_STORE));
 
-    s.connectionSet.Add (agy3d, brainRenderOp, std::make_unique<GVK::RG::ImageInputBinding> (2, *agy3d));
-    s.connectionSet.Add (matcap, brainRenderOp, std::make_unique<GVK::RG::ImageInputBinding> (3, *matcap));
+    s.connectionSet.Add (agy3d, brainRenderOp, std::make_unique<RG::ImageInputBinding> (2, *agy3d));
+    s.connectionSet.Add (matcap, brainRenderOp, std::make_unique<RG::ImageInputBinding> (3, *matcap));
 
-    GVK::RG::UniformReflection r (s.connectionSet);
+    RG::UniformReflection r (s.connectionSet);
 
     // ========================= GRAPH RESOURCE SETUP =========================
 
@@ -409,7 +409,7 @@ void main ()
 
     // ========================= RENDERING =========================
 
-    GVK::RG::SynchronizedSwapchainGraphRenderer renderer (device, swapchain);
+    RG::SynchronizedSwapchainGraphRenderer renderer (device, swapchain);
 
     enum class DisplayMode : uint32_t {
         Feladat1 = 1,
@@ -458,7 +458,7 @@ void main ()
     r[*brainRenderOp][GVK::ShaderKind::Vertex]["Camera"]["VP"] = glm::mat4 (1.f);
     r[*brainRenderOp][GVK::ShaderKind::Fragment]["Camera"]["VP"] = glm::mat4 (1.f);
 
-    obs.Observe (renderer.preSubmitEvent, [&] (GVK::RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
+    obs.Observe (renderer.preSubmitEvent, [&] (RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
         GVK::TimePoint delta (deltaNs);
 
         const float dt = delta.AsSeconds ();
@@ -560,13 +560,13 @@ TEST_F (VizHFTests, HF2)
     GVK::CameraControl cameraControl (c, window->events);
     c.SetSpeed (3.f);
 
-    GVK::RG::GraphSettings s (deviceExtra, swapchain.GetImageCount ());
-    GVK::RG::RenderGraph   graph;
+    RG::GraphSettings s (deviceExtra, swapchain.GetImageCount ());
+    RG::RenderGraph   graph;
 
 
     // ========================= GRAPH OPERATIONS & RESOURCES =========================
 
-    std::unique_ptr<GVK::RG::ShaderPipeline> sp = std::make_unique<GVK::RG::ShaderPipeline> (device);
+    std::unique_ptr<RG::ShaderPipeline> sp = std::make_unique<RG::ShaderPipeline> (device);
 
     sp->SetVertexShaderFromString (R"(#version 450
 
@@ -825,14 +825,14 @@ void main ()
 }
 )");
 
-    std::shared_ptr<GVK::RG::RenderOperation> brainRenderOp = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::FullscreenQuad> (deviceExtra), std::move (sp));
+    std::shared_ptr<RG::RenderOperation> brainRenderOp = std::make_unique<RG::RenderOperation> (std::make_unique<RG::FullscreenQuad> (deviceExtra), std::move (sp));
 
-    std::shared_ptr<GVK::RG::SwapchainImageResource> presented = std::make_unique<GVK::RG::SwapchainImageResource> (*presentable);
+    std::shared_ptr<RG::SwapchainImageResource> presented = std::make_unique<RG::SwapchainImageResource> (*presentable);
 
     // ========================= GRAPH CONNECTIONS =========================
 
     s.connectionSet.Add (brainRenderOp, presented,
-                         std::make_unique<GVK::RG::OutputBinding> (0,
+                         std::make_unique<RG::OutputBinding> (0,
                                                                    presented->GetFormatProvider (),
                                                                    presented->GetFinalLayout (),
                                                                    VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -840,7 +840,7 @@ void main ()
 
     // ========================= UNIFORM REFLECTION =========================
 
-    GVK::RG::UniformReflection refl (s.connectionSet);
+    RG::UniformReflection refl (s.connectionSet);
 
     // ========================= GRAPH COMPILE =========================
 
@@ -848,7 +848,7 @@ void main ()
 
     // ========================= RENDERING =========================
 
-    GVK::RG::SynchronizedSwapchainGraphRenderer renderer (device, swapchain);
+    RG::SynchronizedSwapchainGraphRenderer renderer (device, swapchain);
 
     bool quit = false;
 
@@ -985,7 +985,7 @@ void main ()
     refl[brainRenderOp][GVK::ShaderKind::Fragment]["Quadrics"] = quadrics;
     refl[brainRenderOp][GVK::ShaderKind::Fragment]["Lights"]   = lights;
 
-    obs.Observe (renderer.preSubmitEvent, [&] (GVK::RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
+    obs.Observe (renderer.preSubmitEvent, [&] (RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
         GVK::TimePoint delta (deltaNs);
 
         const float dt = delta.AsSeconds ();

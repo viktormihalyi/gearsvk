@@ -15,7 +15,7 @@ private:
     std::unique_ptr<KeyboardState> keyboard;
 
 public:
-    CameraControl (Camera& camera, Window::Events& windowEvents)
+    CameraControl (Camera& camera, RG::Window::Events& windowEvents)
         : camera (camera)
         , keyboard (std::make_unique<KeyboardState> ())
     {

@@ -8,6 +8,7 @@
 #include "VulkanWrapper/VulkanWrapper.hpp"
 
 #include "RenderGraph/Connections.hpp"
+#include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include "RenderGraph/Node.hpp"
 
 #include <glm/glm.hpp>
@@ -22,6 +23,8 @@ class DrawRecordableInfo;
 class PureDrawRecordable;
 class VertexAttributeProvider;
 
+}
+
 namespace RG {
 
 class ShaderPipeline;
@@ -35,7 +38,7 @@ public:
     virtual ~Operation () = default;
 
     virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height)                                = 0;
-    virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, CommandBuffer& commandBuffer) = 0;
+    virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) = 0;
     virtual bool IsActive ()                                                                                    = 0;
 
     // when record called, input images will be in GetImageLayoutAtStartForInputs ()
@@ -92,10 +95,10 @@ public:
     struct CompileResult {
         uint32_t                                    width;
         uint32_t                                    height;
-        std::unique_ptr<DescriptorPool>             descriptorPool;
-        std::unique_ptr<DescriptorSetLayout>        descriptorSetLayout;
-        std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
-        std::vector<std::unique_ptr<Framebuffer>>   framebuffers;
+        std::unique_ptr<GVK::DescriptorPool>             descriptorPool;
+        std::unique_ptr<GVK::DescriptorSetLayout>        descriptorSetLayout;
+        std::vector<std::unique_ptr<GVK::DescriptorSet>> descriptorSets;
+        std::vector<std::unique_ptr<GVK::Framebuffer>>   framebuffers;
 
         void Clear ()
         {
@@ -114,7 +117,7 @@ public:
     virtual ~RenderOperation () = default;
 
     virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) override;
-    virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, CommandBuffer& commandBuffer) override;
+    virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, GVK::CommandBuffer& commandBuffer) override;
     virtual bool IsActive () override { return true; }
 
     const std::unique_ptr<ShaderPipeline>& GetShaderPipeline () const { return compileSettings.pipeline; }
@@ -129,7 +132,7 @@ private:
     // helper functions
 
     std::vector<VkImageView>             GetOutputImageViews (const ConnectionSet& conncetionSet, uint32_t resourceIndex) const;
-    std::vector<ImageView2D>             CreateOutputImageViews (const DeviceExtra& device, const ConnectionSet& conncetionSet, uint32_t resourceIndex) const;
+    std::vector<GVK::ImageView2D>        CreateOutputImageViews (const GVK::DeviceExtra& device, const ConnectionSet& conncetionSet, uint32_t resourceIndex) const;
     std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const ConnectionSet& conncetionSet) const;
     std::vector<VkAttachmentReference>   GetAttachmentReferences (const ConnectionSet& conncetionSet) const;
 };
@@ -141,7 +144,7 @@ public:
 
     // overriding Operation
     virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) override;
-    virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, CommandBuffer& commandBuffer) override;
+    virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, GVK::CommandBuffer& commandBuffer) override;
     virtual bool IsActive () override { return true; }
 
     virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL; }
@@ -152,8 +155,5 @@ public:
 
 
 } // namespace RG
-
-} // namespace GVK
-
 
 #endif

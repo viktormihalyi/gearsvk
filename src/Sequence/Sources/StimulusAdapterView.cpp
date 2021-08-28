@@ -10,14 +10,14 @@
 #include "Stimulus.h"
 
 
-StimulusAdapterView::StimulusAdapterView (GVK::VulkanEnvironment& environment, const std::shared_ptr<Stimulus const>& stimulus)
+StimulusAdapterView::StimulusAdapterView (RG::VulkanEnvironment& environment, const std::shared_ptr<Stimulus const>& stimulus)
     : environment (environment)
     , stimulus (stimulus)
 {
 }
 
 
-void StimulusAdapterView::CreateForPresentable (std::shared_ptr<GVK::Presentable>& presentable)
+void StimulusAdapterView::CreateForPresentable (std::shared_ptr<RG::Presentable>& presentable)
 {
     const bool contains = std::find_if (compiledAdapters.begin (), compiledAdapters.end (), [&] (const auto& x) { return x.first == presentable; }) != compiledAdapters.end ();
     if (contains) {
@@ -28,7 +28,7 @@ void StimulusAdapterView::CreateForPresentable (std::shared_ptr<GVK::Presentable
 }
 
 
-void StimulusAdapterView::DestroyForPresentable (const std::shared_ptr<GVK::Presentable>& presentable)
+void StimulusAdapterView::DestroyForPresentable (const std::shared_ptr<RG::Presentable>& presentable)
 {
     // TODO use
     auto adapter = std::find_if (compiledAdapters.begin (), compiledAdapters.end (), [&] (const auto& x) { return x.first == presentable; });
@@ -40,11 +40,11 @@ void StimulusAdapterView::DestroyForPresentable (const std::shared_ptr<GVK::Pres
 }
 
 
-void StimulusAdapterView::RenderFrameIndex (GVK::RG::Renderer&                     renderer,
-                                            std::shared_ptr<GVK::Presentable>&     presentable,
+void StimulusAdapterView::RenderFrameIndex (RG::Renderer&                     renderer,
+                                            std::shared_ptr<RG::Presentable>&     presentable,
                                             const std::shared_ptr<Stimulus const>& stimulus,
                                             const uint32_t                         frameIndex,
-                                            GVK::RG::IFrameDisplayObserver&        frameDisplayObserver,
+                                            RG::IFrameDisplayObserver&        frameDisplayObserver,
                                             IRandomExporter&                       randomExporter)
 {
     if (GVK_ERROR (compiledAdapters.find (presentable) == compiledAdapters.end ())) {

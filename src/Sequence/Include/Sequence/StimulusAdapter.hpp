@@ -22,8 +22,8 @@ namespace GVK {
 class UUID;
 }
 
-namespace GVK {
 namespace RG {
+class Presentable;
 class RenderGraph;
 class UniformReflection;
 class Operation;
@@ -31,11 +31,9 @@ class SynchronizedSwapchainGraphRenderer;
 class Renderer;
 class ImageResource;
 class WritableImageResource;
-} // namespace RG
-class Presentable;
 class IFrameDisplayObserver;
 class VulkanEnvironment;
-} // namespace GVK
+} // namespace RG
 
 
 class SEQUENCE_API IRandomExporter {
@@ -43,31 +41,31 @@ public:
     virtual ~IRandomExporter () = default;
 
     virtual bool IsEnabled () = 0;
-    virtual void OnRandomTextureDrawn (GVK::RG::ImageResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) = 0;
+    virtual void OnRandomTextureDrawn (RG::ImageResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) = 0;
 };
 
 
 class SEQUENCE_API StimulusAdapter : public Noncopyable {
 private:
-    const GVK::VulkanEnvironment&           environment;
+    const RG::VulkanEnvironment&           environment;
 
     const std::shared_ptr<Stimulus const>   stimulus;
-    const std::shared_ptr<GVK::Presentable> presentable;
+    const std::shared_ptr<RG::Presentable> presentable;
 
-    std::shared_ptr<GVK::RG::RenderGraph>                                renderGraph;
-    std::shared_ptr<GVK::RG::UniformReflection>                          reflection;
-    std::map<std::shared_ptr<Pass>, std::shared_ptr<GVK::RG::Operation>> passToOperation;
-    std::shared_ptr<GVK::RG::Operation>                                  randomGeneratorOperation;
+    std::shared_ptr<RG::RenderGraph>                                renderGraph;
+    std::shared_ptr<RG::UniformReflection>                          reflection;
+    std::map<std::shared_ptr<Pass>, std::shared_ptr<RG::Operation>> passToOperation;
+    std::shared_ptr<RG::Operation>                                  randomGeneratorOperation;
 
-    std::shared_ptr<GVK::RG::WritableImageResource> randomTexture;
+    std::shared_ptr<RG::WritableImageResource> randomTexture;
 
 public:
-    StimulusAdapter (const GVK::VulkanEnvironment& environment, std::shared_ptr<GVK::Presentable>& presentable, const std::shared_ptr<Stimulus const>& stimulus);
+    StimulusAdapter (const RG::VulkanEnvironment& environment, std::shared_ptr<RG::Presentable>& presentable, const std::shared_ptr<Stimulus const>& stimulus);
 
-    void RenderFrameIndex (GVK::RG::Renderer&                     renderer,
+    void RenderFrameIndex (RG::Renderer&                     renderer,
                            const std::shared_ptr<Stimulus const>& stimulus,
                            const uint32_t                         frameIndex,
-                           GVK::RG::IFrameDisplayObserver&        frameDisplayObserver,
+                           RG::IFrameDisplayObserver&        frameDisplayObserver,
                            IRandomExporter&                       randomExporter);
 
     void Wait ();

@@ -16,8 +16,6 @@
 #include "Node.hpp"
 #include <memory>
 
-namespace GVK {
-
 namespace RG {
 
 class GraphSettings;
@@ -32,11 +30,11 @@ public:
 
     virtual void Compile (const GraphSettings&) = 0;
 
-    virtual void OnPreRead (uint32_t resourceIndex, CommandBuffer&) {};
-    virtual void OnPreWrite (uint32_t resourceIndex, CommandBuffer&) {};
-    virtual void OnPostWrite (uint32_t resourceIndex, CommandBuffer&) {};
-    virtual void OnGraphExecutionStarted (uint32_t resourceIndex, CommandBuffer&) {};
-    virtual void OnGraphExecutionEnded (uint32_t resourceIndex, CommandBuffer&) {};
+    virtual void OnPreRead (uint32_t resourceIndex, GVK::CommandBuffer&) {};
+    virtual void OnPreWrite (uint32_t resourceIndex, GVK::CommandBuffer&) {};
+    virtual void OnPostWrite (uint32_t resourceIndex, GVK::CommandBuffer&) {};
+    virtual void OnGraphExecutionStarted (uint32_t resourceIndex, GVK::CommandBuffer&) {};
+    virtual void OnGraphExecutionEnded (uint32_t resourceIndex, GVK::CommandBuffer&) {};
 
     virtual void Visit (IResourceVisitor&) = 0;
 };
@@ -108,8 +106,8 @@ public:
     virtual VkImageLayout       GetFinalLayout () const               = 0;
     virtual VkFormat            GetFormat () const                    = 0;
     virtual uint32_t            GetLayerCount () const                = 0;
-    virtual std::vector<Image*> GetImages () const                    = 0;
-    virtual std::vector<Image*> GetImages (uint32_t resourceIndex) const = 0;
+    virtual std::vector<GVK::Image*> GetImages () const                    = 0;
+    virtual std::vector<GVK::Image*> GetImages (uint32_t resourceIndex) const = 0;
 
 
     std::function<VkFormat ()> GetFormatProvider () const
@@ -151,8 +149,8 @@ protected:
         static const VkFormat FormatRGBA;
         static const VkFormat FormatRGB;
 
-        const std::unique_ptr<Image>              image;
-        std::vector<std::unique_ptr<ImageView2D>> imageViews;
+        const std::unique_ptr<GVK::Image>         image;
+        std::vector<std::unique_ptr<GVK::ImageView2D>> imageViews;
         std::optional<VkImageLayout>              layoutRead;
         std::optional<VkImageLayout>              layoutWrite;
 
@@ -162,26 +160,26 @@ protected:
         // NO  read, YES write: general -> write
         // YES read, YES write: general -> write -> read
 
-        SingleImageResource (const DeviceExtra& device, uint32_t width, uint32_t height, uint32_t arrayLayers, VkFormat format = FormatRGBA, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL)
-            : image (std::make_unique<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU,
+        SingleImageResource (const GVK::DeviceExtra& device, uint32_t width, uint32_t height, uint32_t arrayLayers, VkFormat format = FormatRGBA, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL)
+            : image (std::make_unique<GVK::Image2D> (device.GetAllocator (), GVK::Image::MemoryLocation::GPU,
                                                 width, height,
                                                 format, tiling,
                                                 VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                                                 arrayLayers))
         {
             for (uint32_t layerIndex = 0; layerIndex < arrayLayers; ++layerIndex) {
-                imageViews.push_back (std::make_unique<ImageView2D> (device, *image, layerIndex));
+                imageViews.push_back (std::make_unique<GVK::ImageView2D> (device, *image, layerIndex));
             }
 
             {
-                SingleTimeCommand s (device);
-                s.Record<CommandTranstionImage> (*image, Image::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+                GVK::SingleTimeCommand s (device);
+                s.Record<GVK::CommandTranstionImage> (*image, GVK::Image::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
             }
         }
 
-        std::vector<ImageView2D> CreateImageViews (const DeviceExtra& device) const
+        std::vector<GVK::ImageView2D> CreateImageViews (const GVK::DeviceExtra& device) const
         {
-            std::vector<ImageView2D> result;
+            std::vector<GVK::ImageView2D> result;
             for (uint32_t layerIndex = 0; layerIndex < image->GetArrayLayers (); ++layerIndex) {
                 result.emplace_back (device, *image, layerIndex);
             }
@@ -197,7 +195,7 @@ public:
     const uint32_t arrayLayers;
 
     std::vector<std::unique_ptr<SingleImageResource>> images;
-    std::unique_ptr<Sampler>                          sampler;
+    std::unique_ptr<GVK::Sampler>                     sampler;
 
 public:
     WritableImageResource (VkFilter filter, uint32_t width, uint32_t height, uint32_t arrayLayers, VkFormat format = SingleImageResource::FormatRGBA)
@@ -218,7 +216,7 @@ public:
 
     virtual void Compile (const GraphSettings& graphSettings) override
     {
-        sampler = std::make_unique<Sampler> (graphSettings.GetDevice (), filter);
+        sampler = std::make_unique<GVK::Sampler> (graphSettings.GetDevice (), filter);
 
         images.clear ();
         for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
@@ -240,9 +238,9 @@ public:
     virtual VkFormat GetFormat () const override { return format; }
     virtual uint32_t GetLayerCount () const override { return arrayLayers; }
 
-    virtual std::vector<Image*> GetImages () const override
+    virtual std::vector<GVK::Image*> GetImages () const override
     {
-        std::vector<Image*> result;
+        std::vector<GVK::Image*> result;
 
         for (auto& img : images) {
             result.push_back (img->image.get ());
@@ -251,7 +249,7 @@ public:
         return result;
     }
 
-    virtual std::vector<Image*> GetImages (uint32_t resourceIndex) const override
+    virtual std::vector<GVK::Image*> GetImages (uint32_t resourceIndex) const override
     {
         return { images[resourceIndex]->image.get () };
     }
@@ -264,7 +262,7 @@ public:
 
 namespace GVKr {
 
-class Event : public VulkanObject {
+class Event : public GVK::VulkanObject {
 private:
     VkDevice device;
     VkEvent  handle;
@@ -310,14 +308,14 @@ public:
     {
         readWriteSync = std::make_unique<GVKr::Event> (graphSettings.GetDevice ());
 
-        sampler = std::make_unique<Sampler> (graphSettings.GetDevice (), filter);
+        sampler = std::make_unique<GVK::Sampler> (graphSettings.GetDevice (), filter);
         images.clear ();
         images.push_back (std::make_unique<SingleImageResource> (graphSettings.GetDevice (), width, height, arrayLayers, GetFormat ()));
     }
 
-    virtual void OnPreRead (uint32_t resourceIndex, CommandBuffer& commandBuffer) override
+    virtual void OnPreRead (uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) override
     {
-        commandBuffer.Record<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+        commandBuffer.Record<GVK::CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
             VkEvent handle = *readWriteSync;
             vkCmdWaitEvents (commandBuffer,
                              1,
@@ -330,16 +328,16 @@ public:
         });
     }
 
-    virtual void OnPreWrite (uint32_t resourceIndex, CommandBuffer& commandBuffer) override
+    virtual void OnPreWrite (uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) override
     {
-        commandBuffer.Record<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+        commandBuffer.Record<GVK::CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
             vkCmdResetEvent (commandBuffer, *readWriteSync, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
         });
     }
 
-    virtual void OnPostWrite (uint32_t resourceIndex, CommandBuffer& commandBuffer) override
+    virtual void OnPostWrite (uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) override
     {
-        commandBuffer.Record<CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
+        commandBuffer.Record<GVK::CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
             vkCmdSetEvent (commandBuffer, *readWriteSync, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
         });
     }
@@ -350,7 +348,7 @@ public:
 
 class GVK_RENDERER_API GPUBufferResource : public InputBufferBindableResource {
 private:
-    std::unique_ptr<BufferTransferable> buffer;
+    std::unique_ptr<GVK::BufferTransferable> buffer;
     const uint32_t                      size;
 
 public:
@@ -363,7 +361,7 @@ public:
 
     virtual void Compile (const GraphSettings& settings) override
     {
-        buffer = std::make_unique<BufferTransferable> (settings.GetDevice (), size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        buffer = std::make_unique<GVK::BufferTransferable> (settings.GetDevice (), size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
     }
 
     // overriding InputImageBindable
@@ -388,9 +386,9 @@ public:
 
 class GVK_RENDERER_API ReadOnlyImageResource : public OneTimeCompileResource, public InputImageBindable {
 public:
-    std::unique_ptr<ImageTransferable> image;
-    std::unique_ptr<ImageViewBase>     imageView;
-    std::unique_ptr<Sampler>           sampler;
+    std::unique_ptr<GVK::ImageTransferable> image;
+    std::unique_ptr<GVK::ImageViewBase>     imageView;
+    std::unique_ptr<GVK::Sampler>           sampler;
 
     const VkFormat format;
     const VkFilter filter;
@@ -424,26 +422,26 @@ public:
     // overriding OneTimeCompileResource
     virtual void CompileOnce (const GraphSettings& settings) override
     {
-        sampler = std::make_unique<Sampler> (settings.GetDevice (), filter);
+        sampler = std::make_unique<GVK::Sampler> (settings.GetDevice (), filter);
 
         if (height == 1 && depth == 1) {
-            image     = std::make_unique<Image1DTransferable> (settings.GetDevice (), format, width, VK_IMAGE_USAGE_SAMPLED_BIT);
-            imageView = std::make_unique<ImageView1D> (settings.GetDevice (), *image->imageGPU);
+            image     = std::make_unique<GVK::Image1DTransferable> (settings.GetDevice (), format, width, VK_IMAGE_USAGE_SAMPLED_BIT);
+            imageView = std::make_unique<GVK::ImageView1D> (settings.GetDevice (), *image->imageGPU);
         } else if (depth == 1) {
             if (layerCount == 1) {
-                image     = std::make_unique<Image2DTransferable> (settings.GetDevice (), format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
-                imageView = std::make_unique<ImageView2D> (settings.GetDevice (), *image->imageGPU, 0);
+                image     = std::make_unique<GVK::Image2DTransferable> (settings.GetDevice (), format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
+                imageView = std::make_unique<GVK::ImageView2D> (settings.GetDevice (), *image->imageGPU, 0);
             } else {
-                image     = std::make_unique<Image2DTransferable> (settings.GetDevice (), format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT, layerCount);
-                imageView = std::make_unique<ImageView2DArray> (settings.GetDevice (), *image->imageGPU, 0, layerCount);
+                image     = std::make_unique<GVK::Image2DTransferable> (settings.GetDevice (), format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT, layerCount);
+                imageView = std::make_unique<GVK::ImageView2DArray> (settings.GetDevice (), *image->imageGPU, 0, layerCount);
             }
         } else {
-            image     = std::make_unique<Image3DTransferable> (settings.GetDevice (), format, width, height, depth, VK_IMAGE_USAGE_SAMPLED_BIT);
-            imageView = std::make_unique<ImageView3D> (settings.GetDevice (), *image->imageGPU);
+            image     = std::make_unique<GVK::Image3DTransferable> (settings.GetDevice (), format, width, height, depth, VK_IMAGE_USAGE_SAMPLED_BIT);
+            imageView = std::make_unique<GVK::ImageView3D> (settings.GetDevice (), *image->imageGPU);
         }
 
-        SingleTimeCommand s (settings.GetDevice ());
-        s.Record<CommandTranstionImage> (*image->imageGPU, Image::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        GVK::SingleTimeCommand s (settings.GetDevice ());
+        s.Record<GVK::CommandTranstionImage> (*image->imageGPU, GVK::Image::INITIAL_LAYOUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     // overriding ImageResource
@@ -452,12 +450,12 @@ public:
     virtual VkFormat      GetFormat () const override { return format; }
     virtual uint32_t      GetLayerCount () const override { return 1; }
 
-    virtual std::vector<Image*> GetImages () const override
+    virtual std::vector<GVK::Image*> GetImages () const override
     {
         return { image->imageGPU.get () };
     }
 
-    virtual std::vector<Image*> GetImages (uint32_t) const override
+    virtual std::vector<GVK::Image*> GetImages (uint32_t) const override
     {
         return GetImages ();
     }
@@ -484,12 +482,12 @@ public:
 
 class GVK_RENDERER_API SwapchainImageResource : public ImageResource, public InputImageBindable {
 public:
-    std::vector<std::unique_ptr<ImageView2D>>    imageViews;
-    SwapchainProvider&                           swapchainProv;
-    std::vector<std::unique_ptr<InheritedImage>> inheritedImages;
+    std::vector<std::unique_ptr<GVK::ImageView2D>> imageViews;
+    GVK::SwapchainProvider&                           swapchainProv;
+    std::vector<std::unique_ptr<GVK::InheritedImage>> inheritedImages;
 
 public:
-    SwapchainImageResource (SwapchainProvider& swapchainProv)
+    SwapchainImageResource (GVK::SwapchainProvider& swapchainProv)
         : swapchainProv (swapchainProv)
     {
     }
@@ -505,8 +503,8 @@ public:
         inheritedImages.clear ();
 
         for (size_t i = 0; i < swapChainImages.size (); ++i) {
-            imageViews.push_back (std::make_unique<ImageView2D> (graphSettings.GetDevice (), swapChainImages[i], swapchainProv.GetSwapchain ().GetImageFormat ()));
-            inheritedImages.push_back (std::make_unique<InheritedImage> (
+            imageViews.push_back (std::make_unique<GVK::ImageView2D> (graphSettings.GetDevice (), swapChainImages[i], swapchainProv.GetSwapchain ().GetImageFormat ()));
+            inheritedImages.push_back (std::make_unique<GVK::InheritedImage> (
                 swapChainImages[i],
                 swapchainProv.GetSwapchain ().GetWidth (),
                 swapchainProv.GetSwapchain ().GetHeight (),
@@ -516,11 +514,11 @@ public:
         }
     }
 
-    std::vector<ImageView2D> CreateImageViews (const DeviceExtra& device) const
+    std::vector<GVK::ImageView2D> CreateImageViews (const GVK::DeviceExtra& device) const
     {
         const std::vector<VkImage> swapChainImages = swapchainProv.GetSwapchain ().GetImages ();
 
-        std::vector<ImageView2D> result;
+        std::vector<GVK::ImageView2D> result;
         for (size_t i = 0; i < swapChainImages.size (); ++i) {
             result.emplace_back (device, swapChainImages[i], swapchainProv.GetSwapchain ().GetImageFormat ());
         }
@@ -533,9 +531,9 @@ public:
     virtual VkFormat      GetFormat () const override { return swapchainProv.GetSwapchain ().GetImageFormat (); }
     virtual uint32_t      GetLayerCount () const override { return 1; }
 
-    virtual std::vector<Image*> GetImages () const override
+    virtual std::vector<GVK::Image*> GetImages () const override
     {
-        std::vector<Image*> result;
+        std::vector<GVK::Image*> result;
 
         for (auto& img : inheritedImages) {
             result.push_back (img.get ());
@@ -544,7 +542,7 @@ public:
         return result;
     }
 
-    virtual std::vector<Image*> GetImages (uint32_t resourceIndex) const override
+    virtual std::vector<GVK::Image*> GetImages (uint32_t resourceIndex) const override
     {
         return { inheritedImages[resourceIndex].get () };
     }
@@ -561,8 +559,8 @@ public:
 class GVK_RENDERER_API CPUBufferResource : public InputBufferBindableResource {
 public:
     const uint32_t                              size;
-    std::vector<std::unique_ptr<Buffer>>        buffers;
-    std::vector<std::unique_ptr<MemoryMapping>> mappings;
+    std::vector<std::unique_ptr<GVK::Buffer>>        buffers;
+    std::vector<std::unique_ptr<GVK::MemoryMapping>> mappings;
 
 public:
     CPUBufferResource (uint32_t size)
@@ -580,8 +578,8 @@ public:
         buffers.clear ();
 
         for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
-            buffers.push_back (std::make_unique<UniformBuffer> (graphSettings.GetDevice ().GetAllocator (), size, 0, Buffer::MemoryLocation::CPU));
-            mappings.push_back (std::make_unique<MemoryMapping> (graphSettings.GetDevice ().GetAllocator (), *buffers[buffers.size () - 1]));
+            buffers.push_back (std::make_unique<GVK::UniformBuffer> (graphSettings.GetDevice ().GetAllocator (), size, 0, GVK::Buffer::MemoryLocation::CPU));
+            mappings.push_back (std::make_unique<GVK::MemoryMapping> (graphSettings.GetDevice ().GetAllocator (), *buffers[buffers.size () - 1]));
         }
     }
 
@@ -589,14 +587,12 @@ public:
     virtual VkBuffer GetBufferForFrame (uint32_t resourceIndex) override { return *buffers[resourceIndex]; }
     virtual uint32_t GetBufferSize () override { return size; }
 
-    MemoryMapping& GetMapping (uint32_t resourceIndex) { return *mappings[resourceIndex]; }
+    GVK::MemoryMapping& GetMapping (uint32_t resourceIndex) { return *mappings[resourceIndex]; }
 
     virtual void Visit (IResourceVisitor& visitor) override { visitor.Visit (*this); }
 };
 
 
 } // namespace RG
-
-} // namespace GVK
 
 #endif

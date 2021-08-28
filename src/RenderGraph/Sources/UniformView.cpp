@@ -7,8 +7,6 @@
 
 #include "spdlog/spdlog.h"
 
-namespace GVK {
-
 namespace SR {
 
 static const std::vector<std::unique_ptr<Field>> emptyFieldVector;
@@ -191,5 +189,3 @@ std::shared_ptr<UBO> ShaderUData::GetUbo (std::string_view str)
 }
 
 } // namespace SR
-
-} // namespace GVK

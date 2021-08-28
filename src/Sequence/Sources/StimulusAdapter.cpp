@@ -32,17 +32,17 @@ constexpr bool LogDebugInfo = false;
 constexpr bool LogUniformDebugInfo = false;
 
 
-StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environment,
-                                  std::shared_ptr<GVK::Presentable>&     presentable,
+StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environment,
+                                  std::shared_ptr<RG::Presentable>&     presentable,
                                   const std::shared_ptr<Stimulus const>& stimulus)
     : environment { environment }
     , presentable { presentable }
 {
-    renderGraph = std::make_unique<GVK::RG::RenderGraph> ();
+    renderGraph = std::make_unique<RG::RenderGraph> ();
 
-    GVK::RG::GraphSettings s (*environment.deviceExtra, presentable->GetSwapchain ().GetImageCount ());
+    RG::GraphSettings s (*environment.deviceExtra, presentable->GetSwapchain ().GetImageCount ());
 
-    std::shared_ptr<GVK::RG::SwapchainImageResource> presented = std::make_unique<GVK::RG::SwapchainImageResource> (*presentable);
+    std::shared_ptr<RG::SwapchainImageResource> presented = std::make_unique<RG::SwapchainImageResource> (*presentable);
 
     presented->SetName ("Swapchain");
     presented->SetDebugInfo ("Made by StimulusAdapter.");
@@ -65,7 +65,7 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         const std::string geom = pass->getStimulusGeneratorGeometryShaderSource (pass->rasterizationMode);
         const std::string frag = pass->getStimulusGeneratorShaderSource ();
 
-        std::unique_ptr<GVK::RG::ShaderPipeline> sequencePip = std::make_unique<GVK::RG::ShaderPipeline> (*environment.device);
+        std::unique_ptr<RG::ShaderPipeline> sequencePip = std::make_unique<RG::ShaderPipeline> (*environment.device);
 
         sequencePip->SetVertexShaderFromString (vert);
         if (!geom.empty ()) {
@@ -73,8 +73,8 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         }
         sequencePip->SetFragmentShaderFromString (frag);
 
-        std::shared_ptr<GVK::RG::RenderOperation> passOperation = std::make_unique<GVK::RG::RenderOperation> (
-            std::make_unique<GVK::DrawRecordableInfo> (1, 6), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        std::shared_ptr<RG::RenderOperation> passOperation = std::make_unique<RG::RenderOperation> (
+            std::make_unique<RG::DrawRecordableInfo> (1, 6), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
         passOperation->SetName (pass->name);
         passOperation->SetDebugInfo (pass->brief);
@@ -93,7 +93,7 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         //GVK_ASSERT (stimulus->mono);
 
         s.connectionSet.Add (passOperation, presented,
-                             std::make_unique<GVK::RG::OutputBinding> (0,
+                             std::make_unique<RG::OutputBinding> (0,
                                                                        presented->GetFormatProvider (),
                                                                        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                                                                        presented->GetFinalLayout (),
@@ -106,7 +106,7 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
 
     std::optional<uint32_t> randomBinding;
 
-    GVK::RG::ImageMap imgMap = GVK::RG::CreateEmptyImageResources (s.connectionSet, [&] (const GVK::SR::Sampler& sampler) -> std::optional<GVK::RG::CreateParams> {
+    RG::ImageMap imgMap = RG::CreateEmptyImageResources (s.connectionSet, [&] (const SR::Sampler& sampler) -> std::optional<RG::CreateParams> {
         if (sampler.name == "gamma") {
             return std::make_tuple (glm::uvec3 { 256, 0, 0 }, VK_FORMAT_R32_SFLOAT, VK_FILTER_NEAREST);
         }
@@ -121,7 +121,7 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
 
     // TODO 0 means viewport size
     if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0 && randomBinding.has_value ()) {
-        randomTexture = std::make_unique<GVK::RG::WritableImageResource> (
+        randomTexture = std::make_unique<RG::WritableImageResource> (
             VK_FILTER_NEAREST,
             stimulus->sequence->maxRandomGridWidth,
             stimulus->sequence->maxRandomGridHeight,
@@ -131,16 +131,16 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         randomTexture->SetName ("RandomTexture");
         randomTexture->SetDebugInfo ("Made by StimulusAdapter.");
 
-        std::unique_ptr<GVK::RG::ShaderPipeline> randoSeqPipeline = std::make_unique<GVK::RG::ShaderPipeline> (*environment.device);
+        std::unique_ptr<RG::ShaderPipeline> randoSeqPipeline = std::make_unique<RG::ShaderPipeline> (*environment.device);
         randoSeqPipeline->SetVertexShaderFromString (*Utils::ReadTextFile (std::filesystem::current_path () / "Project" / "Shaders" / "quad.vert"));
         randoSeqPipeline->SetFragmentShaderFromString (stimulus->getRandomGeneratorShaderSource ());
 
-        randomGeneratorOperation = std::make_unique<GVK::RG::RenderOperation> (std::make_unique<GVK::DrawRecordableInfo> (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        randomGeneratorOperation = std::make_unique<RG::RenderOperation> (std::make_unique<RG::DrawRecordableInfo> (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
-        std::static_pointer_cast<GVK::RG::RenderOperation> (randomGeneratorOperation)->compileSettings.blendEnabled = false;
+        std::static_pointer_cast<RG::RenderOperation> (randomGeneratorOperation)->compileSettings.blendEnabled = false;
 
         s.connectionSet.Add (randomGeneratorOperation, randomTexture,
-                             std::make_unique<GVK::RG::OutputBinding> (0,
+                             std::make_unique<RG::OutputBinding> (0,
                                                                        randomTexture->GetFormatProvider (),
                                                                        randomTexture->GetFinalLayout (),
                                                                        1,
@@ -149,15 +149,15 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
 
         GVK_ASSERT (randomBinding.has_value ());
         s.connectionSet.Add (randomTexture, passToOperation[passes[0]],
-                             std::make_unique<GVK::RG::ImageInputBinding> (*randomBinding, *randomTexture, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
+                             std::make_unique<RG::ImageInputBinding> (*randomBinding, *randomTexture, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
     }
 
 
-    std::shared_ptr<GVK::RG::ReadOnlyImageResource> gammaTexture = imgMap.FindByName ("gamma");
+    std::shared_ptr<RG::ReadOnlyImageResource> gammaTexture = imgMap.FindByName ("gamma");
     GVK_ASSERT (gammaTexture != nullptr);
 
     // this is a one time compile resource, which doesnt use framesinflight attrib
-    gammaTexture->Compile (GVK::RG::GraphSettings (*environment.deviceExtra, 0));
+    gammaTexture->Compile (RG::GraphSettings (*environment.deviceExtra, 0));
 
     std::vector<float> gammaAndTemporalWeights (256, 0.f);
     for (int i = 0; i < 101; i++)
@@ -166,7 +166,7 @@ StimulusAdapter::StimulusAdapter (const GVK::VulkanEnvironment&          environ
         gammaAndTemporalWeights[128 + i] = stimulus->temporalWeights[i];
     gammaTexture->CopyTransitionTransfer (gammaAndTemporalWeights);
 
-    reflection = std::make_unique<GVK::RG::UniformReflection> (s.connectionSet);
+    reflection = std::make_unique<RG::UniformReflection> (s.connectionSet);
 
     renderGraph->Compile (std::move (s));
 
@@ -189,8 +189,8 @@ void StimulusAdapter::SetConstantUniforms ()
 
 void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t frameIndex)
 {
-    GVK::RG::UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOperationId][GVK::ShaderKind::Vertex];
-    GVK::RG::UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOperationId][GVK::ShaderKind::Fragment];
+    RG::UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOperationId][GVK::ShaderKind::Vertex];
+    RG::UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOperationId][GVK::ShaderKind::Fragment];
 
     const double deviceRefreshRateDefault = 60.0;
     const double deviceRefreshRate        = presentable->GetRefreshRate ().value_or (deviceRefreshRateDefault);
@@ -237,10 +237,10 @@ void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std
 }
 
 
-void StimulusAdapter::RenderFrameIndex (GVK::RG::Renderer&                     renderer,
+void StimulusAdapter::RenderFrameIndex (RG::Renderer&                     renderer,
                                         const std::shared_ptr<Stimulus const>& stimulus,
                                         const uint32_t                         frameIndex,
-                                        GVK::RG::IFrameDisplayObserver&        frameDisplayObserver,
+                                        RG::IFrameDisplayObserver&        frameDisplayObserver,
                                         IRandomExporter&                       randomExporter)
 {
     const uint32_t stimulusStartingFrame = stimulus->getStartingFrame ();
@@ -251,7 +251,7 @@ void StimulusAdapter::RenderFrameIndex (GVK::RG::Renderer&                     r
     }
 
     GVK::EventObserver obs;
-    obs.Observe (renderer.preSubmitEvent, [&] (GVK::RG::RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
+    obs.Observe (renderer.preSubmitEvent, [&] (RG::RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
         for (auto& [pass, renderOp] : passToOperation) {
             SetUniforms (renderOp->GetUUID (), stimulus, frameIndex);
         }

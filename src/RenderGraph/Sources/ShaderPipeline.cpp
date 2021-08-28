@@ -4,10 +4,9 @@
 #include "Utils/Timer.hpp"
 #include "Utils/BuildType.hpp"
 
-namespace GVK {
 namespace RG {
 
-std::unique_ptr<ShaderModule>& ShaderPipeline::GetShaderByIndex (uint32_t index)
+std::unique_ptr<GVK::ShaderModule>& ShaderPipeline::GetShaderByIndex (uint32_t index)
 {
     switch (index) {
         case 0: return vertexShader;
@@ -23,7 +22,7 @@ std::unique_ptr<ShaderModule>& ShaderPipeline::GetShaderByIndex (uint32_t index)
 }
 
 
-std::unique_ptr<ShaderModule>& ShaderPipeline::GetShaderByExtension (const std::string& extension)
+std::unique_ptr<GVK::ShaderModule>& ShaderPipeline::GetShaderByExtension (const std::string& extension)
 {
     if (extension == ".vert") {
         return vertexShader;
@@ -44,15 +43,15 @@ std::unique_ptr<ShaderModule>& ShaderPipeline::GetShaderByExtension (const std::
 }
 
 
-std::unique_ptr<ShaderModule>& ShaderPipeline::GetShaderByKind (ShaderKind kind)
+std::unique_ptr<GVK::ShaderModule>& ShaderPipeline::GetShaderByKind (GVK::ShaderKind kind)
 {
     switch (kind) {
-        case ShaderKind::Vertex: return vertexShader;
-        case ShaderKind::Fragment: return fragmentShader;
-        case ShaderKind::TessellationControl: return tessellationControlShader;
-        case ShaderKind::TessellationEvaluation: return tessellationEvaluationShader;
-        case ShaderKind::Geometry: return geometryShader;
-        case ShaderKind::Compute: return computeShader;
+        case GVK::ShaderKind::Vertex: return vertexShader;
+        case GVK::ShaderKind::Fragment: return fragmentShader;
+        case GVK::ShaderKind::TessellationControl: return tessellationControlShader;
+        case GVK::ShaderKind::TessellationEvaluation: return tessellationEvaluationShader;
+        case GVK::ShaderKind::Geometry: return geometryShader;
+        case GVK::ShaderKind::Compute: return computeShader;
     }
 
     GVK_ERROR (true);
@@ -73,11 +72,11 @@ ShaderPipeline::ShaderPipeline (VkDevice device, const std::vector<std::filesyst
 }
 
 
-ShaderPipeline::ShaderPipeline (VkDevice device, const std::vector<std::pair<ShaderKind, std::string>>& sources)
+ShaderPipeline::ShaderPipeline (VkDevice device, const std::vector<std::pair<GVK::ShaderKind, std::string>>& sources)
     : ShaderPipeline (device)
 {
     for (auto [kind, source] : sources) {
-        GetShaderByKind (kind) = ShaderModule::CreateFromGLSLString (device, kind, source);
+        GetShaderByKind (kind) = GVK::ShaderModule::CreateFromGLSLString (device, kind, source);
     }
 }
 
@@ -103,22 +102,22 @@ std::vector<VkPipelineShaderStageCreateInfo> ShaderPipeline::GetShaderStages () 
 }
 
 
-void ShaderPipeline::SetShaderFromSourceString (ShaderKind shaderKind, const std::string& source)
+void ShaderPipeline::SetShaderFromSourceString (GVK::ShaderKind shaderKind, const std::string& source)
 {
     GVK_ASSERT (GetShaderByKind (shaderKind) == nullptr);
-    GetShaderByKind (shaderKind) = ShaderModule::CreateFromGLSLString (device, shaderKind, source);
+    GetShaderByKind (shaderKind) = GVK::ShaderModule::CreateFromGLSLString (device, shaderKind, source);
 }
 
 
 void ShaderPipeline::SetVertexShaderFromString (const std::string& source)
 {
-    SetShaderFromSourceString (ShaderKind::Vertex, source);
+    SetShaderFromSourceString (GVK::ShaderKind::Vertex, source);
 }
 
 
 void ShaderPipeline::SetFragmentShaderFromString (const std::string& source)
 {
-    SetShaderFromSourceString (ShaderKind::Fragment, source);
+    SetShaderFromSourceString (GVK::ShaderKind::Fragment, source);
 }
 
 
@@ -127,7 +126,7 @@ void ShaderPipeline::SetShaderFromSourceFile (const std::filesystem::path& shade
     // assert on overwriting shader
     GVK_ASSERT (GetShaderByExtension (shaderPath.extension ().string ()) == nullptr);
 
-    GetShaderByExtension (shaderPath.extension ().string ()) = ShaderModule::CreateFromGLSLFile (device, shaderPath);
+    GetShaderByExtension (shaderPath.extension ().string ()) = GVK::ShaderModule::CreateFromGLSLFile (device, shaderPath);
 }
 
 
@@ -179,9 +178,9 @@ void ShaderPipeline::Compile (CompileSettings&& settings_)
     dependency.srcSubpass           = 0;
     dependency.dstSubpass           = VK_SUBPASS_EXTERNAL;
 
-    compileResult.renderPass     = std::unique_ptr<RenderPass> (new RenderPass (device, compileSettings.attachmentDescriptions, { subpass }, { dependency, dependency2 }));
-    compileResult.pipelineLayout = std::unique_ptr<PipelineLayout> (new PipelineLayout (device, { compileSettings.layout }));
-    compileResult.pipeline       = std::unique_ptr<Pipeline> (new Pipeline (
+    compileResult.renderPass     = std::unique_ptr<GVK::RenderPass> (new GVK::RenderPass (device, compileSettings.attachmentDescriptions, { subpass }, { dependency, dependency2 }));
+    compileResult.pipelineLayout = std::unique_ptr<GVK::PipelineLayout> (new GVK::PipelineLayout (device, { compileSettings.layout }));
+    compileResult.pipeline       = std::unique_ptr<GVK::Pipeline> (new GVK::Pipeline (
         device,
         compileSettings.width,
         compileSettings.height,
@@ -199,26 +198,26 @@ void ShaderPipeline::Compile (CompileSettings&& settings_)
 void ShaderPipeline::Reload ()
 {
     MultithreadedFunction reloader (5, [&] (uint32_t, uint32_t threadIndex) {
-        std::unique_ptr<ShaderModule>& currentShader = GetShaderByIndex (threadIndex);
-        std::unique_ptr<ShaderModule>  newShader;
+        std::unique_ptr<GVK::ShaderModule>& currentShader = GetShaderByIndex (threadIndex);
+        std::unique_ptr<GVK::ShaderModule>  newShader;
 
         if (currentShader != nullptr) {
             switch (currentShader->GetReadMode ()) {
-                case ShaderModule::ReadMode::GLSLFilePath:
+                case GVK::ShaderModule::ReadMode::GLSLFilePath:
                     try {
-                        newShader = ShaderModule::CreateFromGLSLFile (device, currentShader->GetLocation ());
-                    } catch (ShaderCompileException&) {
+                        newShader = GVK::ShaderModule::CreateFromGLSLFile (device, currentShader->GetLocation ());
+                    } catch (GVK::ShaderCompileException&) {
                     }
                     break;
 
-                case ShaderModule::ReadMode::SPVFilePath:
+                case GVK::ShaderModule::ReadMode::SPVFilePath:
                     try {
-                        newShader = ShaderModule::CreateFromSPVFile (device, currentShader->GetShaderKind (), currentShader->GetLocation ());
-                    } catch (ShaderCompileException&) {
+                        newShader = GVK::ShaderModule::CreateFromSPVFile (device, currentShader->GetShaderKind (), currentShader->GetLocation ());
+                    } catch (GVK::ShaderCompileException&) {
                     }
                     break;
 
-                case ShaderModule::ReadMode::GLSLString:
+                case GVK::ShaderModule::ReadMode::GLSLString:
                     // cannot reload string shaders
                     break;
 
@@ -235,7 +234,7 @@ void ShaderPipeline::Reload ()
 }
 
 
-void ShaderPipeline::IterateShaders (const std::function<void (ShaderModule&)>& func) const
+void ShaderPipeline::IterateShaders (const std::function<void (GVK::ShaderModule&)>& func) const
 {
     if (vertexShader) {
         func (*vertexShader);
@@ -258,25 +257,24 @@ void ShaderPipeline::IterateShaders (const std::function<void (ShaderModule&)>& 
 }
 
 
-std::unique_ptr<DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLayout (VkDevice device) const
+std::unique_ptr<GVK::DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLayout (VkDevice device) const
 {
     std::vector<VkDescriptorSetLayoutBinding> layout;
 
     std::vector<std::string> shaderSources;
 
     if constexpr (IsDebugBuild) {
-        IterateShaders ([&] (ShaderModule& shaderModule) {
+        IterateShaders ([&] (GVK::ShaderModule& shaderModule) {
             shaderSources.push_back (shaderModule.GetSourceCode ());
         });
     }
 
-    IterateShaders ([&] (ShaderModule& shaderModule) {
+    IterateShaders ([&] (GVK::ShaderModule& shaderModule) {
         auto layoutPart = shaderModule.GetReflection ().GetLayout ();
         layout.insert (layout.end (), layoutPart.begin (), layoutPart.end ());
     });
 
-    return std::make_unique<DescriptorSetLayout> (device, layout);
+    return std::make_unique<GVK::DescriptorSetLayout> (device, layout);
 }
 
 } // namespace RG
-} // namespace GVK

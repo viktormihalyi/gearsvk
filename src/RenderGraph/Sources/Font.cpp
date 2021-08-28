@@ -16,7 +16,7 @@
 #include <map>
 
 
-namespace GVK {
+namespace RG {
 
 static msdfgen::FontHandle* GetFont (const std::filesystem::path& fontFile)
 {
@@ -213,7 +213,7 @@ static GlyphData GetGlyph (msdfgen::FontHandle*                 fontHandle,
     result.height      = height;
     result.aspectRatio = glm::vec2 { asp.x, asp.y };
 
-    ImageData::FromDataFloat (result.data, width, height, Components).SaveTo (std::filesystem::current_path () / "temp" / (std::to_string (unicode) + ".png"));
+    GVK::ImageData::FromDataFloat (result.data, width, height, Components).SaveTo (std::filesystem::current_path () / "temp" / (std::to_string (unicode) + ".png"));
 
     return result;
 }
@@ -259,4 +259,5 @@ GlyphData Font::GetGlyphMTDF (uint32_t width, uint32_t height, uint32_t unicode)
 
     return GetGlyph<4> (impl->fontHandle, width, height, emSize, unicode, generator);
 }
+
 }

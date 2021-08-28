@@ -12,8 +12,6 @@
 #include <functional>
 #include <vector>
 
-namespace GVK {
-
 namespace RG {
 
 class IConnectionBindingVisitor;
@@ -310,7 +308,5 @@ public:
 };
 
 } // namespace RG
-
-} // namespace GVK
 
 #endif

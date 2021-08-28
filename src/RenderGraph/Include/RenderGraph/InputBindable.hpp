@@ -6,8 +6,6 @@
 
 #include "Node.hpp"
 
-namespace GVK {
-
 namespace RG {
 
 class InputBufferBindable {
@@ -23,7 +21,5 @@ public:
 };
 
 } // namespace RG
-
-} // namespace GVK
 
 #endif

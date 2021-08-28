@@ -9,7 +9,7 @@
 #include "Utils/Timer.hpp"
 #include <iostream>
 
-namespace GVK {
+namespace RG {
 
 
 static void error_callback (int error, const char *description)
@@ -420,4 +420,4 @@ HiddenGLFWWindow::HiddenGLFWWindow ()
 }
 
 
-} // namespace GVK
+} // namespace RG

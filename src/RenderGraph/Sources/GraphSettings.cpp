@@ -2,10 +2,8 @@
 
 #include "Resource.hpp"
 
-namespace GVK {
 
 namespace RG {
-
 
 void ConnectionSet::VisitOutputsOf (const Node* node, IResourceVisitor& visitor) const
 {
@@ -35,15 +33,18 @@ void ConnectionSet::VisitInputsOf (const Node* node, IResourceVisitor& visitor) 
 }
 
 
-GraphSettings::GraphSettings (const DeviceExtra& device, VkQueue queue, VkCommandPool commandPool, uint32_t framesInFlight)
+GraphSettings::GraphSettings (const GVK::DeviceExtra& device, ConnectionSet&& connectionSet, uint32_t framesInFlight)
     : device (&device)
     , framesInFlight (framesInFlight)
+    , connectionSet (std::move (connectionSet))
 {
 }
 
 
-GraphSettings::GraphSettings (const DeviceExtra& device, uint32_t framesInFlight)
-    : GraphSettings (device, device.GetGraphicsQueue (), device.GetCommandPool (), framesInFlight)
+
+GraphSettings::GraphSettings (const GVK::DeviceExtra& device, uint32_t framesInFlight)
+    : device (&device)
+    , framesInFlight (framesInFlight)
 {
 }
 
@@ -54,20 +55,20 @@ GraphSettings::GraphSettings ()
 {
 }
 
-const DeviceExtra& GraphSettings::GetDevice () const
+const GVK::DeviceExtra& GraphSettings::GetDevice () const
 {
     GVK_ASSERT (device != nullptr);
     return *device;
 }
 
 
-const Queue& GraphSettings::GetGrahpicsQueue () const
+const GVK::Queue& GraphSettings::GetGrahpicsQueue () const
 {
     return device->GetGraphicsQueue ();
 }
 
 
-const CommandPool& GraphSettings::GetCommandPool () const
+const GVK::CommandPool& GraphSettings::GetCommandPool () const
 {
     return device->GetCommandPool ();
 }
@@ -129,5 +130,3 @@ ConnectionSet& ConnectionSet::operator= (ConnectionSet&& other)
 
 
 } // namespace RG
-
-} // namespace GVK

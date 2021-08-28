@@ -37,7 +37,7 @@ inline std::ostream& operator<< (std::ostream& os, const glm::vec3& vec)
 }
 
 
-namespace GVK {
+namespace RG {
 
 struct GlyphData {
     std::vector<float> data;
@@ -110,7 +110,7 @@ private:
     std::unordered_map<uint32_t, std::unique_ptr<GlyphData>> loadedGlyphs;
 
 public:
-    Event<uint32_t> glyphLoaded;
+    GVK::Event<uint32_t> glyphLoaded;
 
 private:
     const GlyphData& Retrieve (const uint32_t unicode)
@@ -165,7 +165,7 @@ public:
     }
 };
 
-} // namespace GVK
+} // namespace RG
 
 
 #endif

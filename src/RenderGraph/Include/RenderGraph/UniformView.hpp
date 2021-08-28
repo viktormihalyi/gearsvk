@@ -16,6 +16,8 @@ namespace GVK {
 
 class ShaderModule;
 
+}
+
 namespace SR {
 
 class FieldContainer;
@@ -224,8 +226,6 @@ public:
 
 
 } // namespace SR
-
-} // namespace GVK
 
 
 #endif

@@ -107,6 +107,18 @@ Image::~Image ()
 
 VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask) const
 {
+    return GetBarrier (oldLayout, newLayout, srcAccessMask, dstAccessMask, 0, arrayLayers);
+}
+
+
+VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, uint32_t layerIndex) const
+{
+    return GetBarrier (oldLayout, newLayout, srcAccessMask, dstAccessMask, layerIndex, 1);
+}
+
+
+VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, uint32_t baseArrayLayer, uint32_t layerCount) const
+{
     VkImageMemoryBarrier barrier            = {};
     barrier.pNext                           = nullptr;
     barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -118,7 +130,7 @@ VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout n
     barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseMipLevel   = 0;
     barrier.subresourceRange.levelCount     = 1;
-    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.baseArrayLayer = baseArrayLayer;
     barrier.subresourceRange.layerCount     = arrayLayers;
     barrier.srcAccessMask                   = srcAccessMask;
     barrier.dstAccessMask                   = dstAccessMask;

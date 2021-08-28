@@ -6,8 +6,6 @@
 
 #include "spdlog/spdlog.h"
 
-namespace GVK {
-
 namespace RG {
 
 
@@ -38,7 +36,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
     Utils::ForEach<RG::RenderOperation> (connectionSet.insertionOrder, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
         ShaderKindSelector newsel;
 
-        renderOp->GetShaderPipeline ()->IterateShaders ([&] (const ShaderModule& shaderModule) {
+        renderOp->GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
             UboSelector ubosel;
             for (std::shared_ptr<SR::UBO> ubo : shaderModule.GetReflection ().ubos) {
                 if (filter (renderOp, shaderModule, ubo)) {
@@ -71,14 +69,14 @@ void UniformReflection::CreateGraphConnections ()
 {
     GVK_ASSERT (!uboConnections.empty ());
 
-    const auto shaderKindToShaderStage = [] (ShaderKind shaderKind) -> VkShaderStageFlags {
+    const auto shaderKindToShaderStage = [] (GVK::ShaderKind shaderKind) -> VkShaderStageFlags {
         switch (shaderKind) {
-            case ShaderKind::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
-            case ShaderKind::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
-            case ShaderKind::Geometry: return VK_SHADER_STAGE_GEOMETRY_BIT;
-            case ShaderKind::TessellationControl: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-            case ShaderKind::TessellationEvaluation: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-            case ShaderKind::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
+            case GVK::ShaderKind::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
+            case GVK::ShaderKind::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
+            case GVK::ShaderKind::Geometry: return VK_SHADER_STAGE_GEOMETRY_BIT;
+            case GVK::ShaderKind::TessellationControl: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+            case GVK::ShaderKind::TessellationEvaluation: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+            case GVK::ShaderKind::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
             default: GVK_BREAK ("unexpected shaderkind type"); return VK_SHADER_STAGE_ALL;
         }
     };
@@ -141,7 +139,7 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 
     const auto nodes = connectionSet.insertionOrder;
     Utils::ForEach<RG::RenderOperation> (nodes, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
-        renderOp->GetShaderPipeline ()->IterateShaders ([&] (const ShaderModule& shaderModule) {
+        renderOp->GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
             for (const SR::Sampler& sampler : shaderModule.GetReflection ().samplers) {
                 std::shared_ptr<ReadOnlyImageResource> imgRes;
 
@@ -192,5 +190,3 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 }
 
 } // namespace RG
-
-} // namespace GVK
