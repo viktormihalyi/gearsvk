@@ -87,7 +87,7 @@ private:
 
     Reflection reflection;
 
-public:
+private:
     // dont use this ctor, use factories instead
     ShaderModule (ShaderKind                   shaderKind,
                   ReadMode                     mode,

@@ -7,7 +7,6 @@
 #include "OpenGLProxy.hpp"
 
 #include "Event.hpp"
-#include "VulkanWrapper.hpp"
 
 
 class UniformBinder {

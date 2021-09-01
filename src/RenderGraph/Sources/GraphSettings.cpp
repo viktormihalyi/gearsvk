@@ -1,6 +1,8 @@
 #include "GraphSettings.hpp"
-
 #include "Resource.hpp"
+
+#include "VulkanWrapper/Image.hpp"
+#include "VulkanWrapper/ImageView.hpp"
 
 
 namespace RG {

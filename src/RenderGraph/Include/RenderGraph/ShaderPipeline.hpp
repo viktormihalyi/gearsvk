@@ -2,11 +2,26 @@
 #define SHADERPIPELINE2_HPP
 
 #include "RenderGraph/RenderGraphAPI.hpp"
-#include "VulkanWrapper/VulkanWrapper.hpp"
 
-#include <thread>
+#include "Utils/MovablePtr.hpp"
+
 #include <vector>
+#include <functional>
+#include <optional>
+#include <memory>
+#include <filesystem>
+#include <string>
+
 #include <vulkan/vulkan.h>
+
+namespace GVK {
+enum class ShaderKind : uint8_t;
+class ShaderModule;
+class RenderPass;
+class Pipeline;
+class PipelineLayout;
+class DescriptorSetLayout;
+}
 
 namespace RG {
 
@@ -45,12 +60,7 @@ public:
         std::unique_ptr<GVK::PipelineLayout> pipelineLayout;
         std::unique_ptr<GVK::Pipeline>       pipeline;
 
-        void Clear ()
-        {
-            renderPass.reset ();
-            pipelineLayout.reset ();
-            pipeline.reset ();
-        }
+        void Clear ();
     };
 
 public:

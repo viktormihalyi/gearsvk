@@ -1,16 +1,25 @@
 #ifndef RENDERGRAPH_UNIFORM_REFLECTION_HPP
 #define RENDERGRAPH_UNIFORM_REFLECTION_HPP
 
+#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/UniformView.hpp"
 #include "RenderGraph/Operation.hpp"
 #include "RenderGraph/RenderGraph.hpp"
 #include "RenderGraph/Resource.hpp"
+
 #include "VulkanWrapper/ShaderReflection.hpp"
+#include "VulkanWrapper/Framebuffer.hpp"
+#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/RenderPass.hpp"
+#include "VulkanWrapper/ShaderModule.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/DescriptorSet.hpp"
+#include "VulkanWrapper/DescriptorSetLayout.hpp"
 
 #include "Utils/Assert.hpp"
 #include "Utils/UUID.hpp"
 
-#include "RenderGraph/RenderGraphAPI.hpp"
-#include "RenderGraph/UniformView.hpp"
 #include <glm/glm.hpp>
 
 #include <tuple>

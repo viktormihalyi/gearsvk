@@ -1,10 +1,28 @@
 #include "ShaderPipeline.hpp"
 
+#include "VulkanWrapper/ShaderModule.hpp"
+#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/RenderPass.hpp"
+#include "VulkanWrapper/DescriptorSetLayout.hpp"
+
 #include "Utils/MultithreadedFunction.hpp"
 #include "Utils/Timer.hpp"
 #include "Utils/BuildType.hpp"
+#include "Utils/Assert.hpp"
+
+#include <stdexcept>
+
 
 namespace RG {
+
+void ShaderPipeline::CompileResult::Clear ()
+{
+    renderPass.reset ();
+    pipelineLayout.reset ();
+    pipeline.reset ();
+}
+
 
 std::unique_ptr<GVK::ShaderModule>& ShaderPipeline::GetShaderByIndex (uint32_t index)
 {

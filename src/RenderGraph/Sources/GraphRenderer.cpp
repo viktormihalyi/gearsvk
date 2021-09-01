@@ -1,14 +1,23 @@
 #include "GraphRenderer.hpp"
-
-#include "VulkanWrapper/Fence.hpp"
-#include "VulkanWrapper/Semaphore.hpp"
-#include "VulkanWrapper/Swapchain.hpp"
-
+#include "ShaderPipeline.hpp"
 #include "GraphSettings.hpp"
 #include "Operation.hpp"
 #include "DrawRecordable.hpp"
 #include "RenderGraph.hpp"
 #include "Resource.hpp"
+#include "DrawRecordable.hpp"
+
+#include "VulkanWrapper/DescriptorSet.hpp"
+#include "VulkanWrapper/DescriptorSetLayout.hpp"
+#include "VulkanWrapper/DeviceExtra.hpp"
+#include "VulkanWrapper/Fence.hpp"
+#include "VulkanWrapper/Image.hpp"
+#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/RenderPass.hpp"
+#include "VulkanWrapper/Semaphore.hpp"
+#include "VulkanWrapper/ShaderModule.hpp"
+#include "VulkanWrapper/Swapchain.hpp"
 
 
 namespace RG {

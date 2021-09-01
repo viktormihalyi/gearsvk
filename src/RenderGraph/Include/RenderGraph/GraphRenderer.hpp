@@ -2,8 +2,7 @@
 #define GRAPHRENDERER_HPP
 
 #include "RenderGraph/RenderGraphAPI.hpp"
-#include "VulkanWrapper/DeviceExtra.hpp"
-#include "VulkanWrapper/Semaphore.hpp"
+
 #include "RenderGraph/Window/Window.hpp"
 
 #include "Utils/Event.hpp"
@@ -12,10 +11,10 @@
 #include <memory>
 
 namespace GVK {
-
+class DeviceExtra;
+class Semaphore;
 class Swapchain;
 class Fence;
-
 } // namespace GVK
 
 namespace RG {

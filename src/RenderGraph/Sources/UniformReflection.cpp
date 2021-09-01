@@ -1,5 +1,9 @@
 #include "UniformReflection.hpp"
 #include "DrawRecordable.hpp"
+#include "ShaderPipeline.hpp"
+#include "Operation.hpp"
+
+#include "VulkanWrapper/ShaderModule.hpp"
 
 #include "Utils/Event.hpp"
 #include "Utils/Utils.hpp"

@@ -378,7 +378,7 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromSPVFile (VkDevice device, 
 
     VkShaderModule handle = CreateShaderModuleImpl (device, *binaryC);
 
-    return std::make_unique<ShaderModule> (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, "");
+    return std::unique_ptr<ShaderModule> (new ShaderModule (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, ""));
 }
 
 
@@ -396,14 +396,14 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
 
     VkShaderModule handle = CreateShaderModuleImpl (device, *binary);
     
-    return std::make_unique<ShaderModule> (
+    return std::unique_ptr<ShaderModule> (new ShaderModule (
         ShaderKindAdapter::FromExtension (fileLocation.extension ().string ()).shaderKind,
         ReadMode::GLSLFilePath,
         device,
         handle,
         fileLocation,
         *binary,
-        *fileContents);
+        *fileContents));
 }
 
 
@@ -413,14 +413,14 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice devic
 
     VkShaderModule handle = CreateShaderModuleImpl (device, binary);
     
-    return std::make_unique<ShaderModule> (
+    return std::unique_ptr<ShaderModule> (new ShaderModule (
         shaderKind,
         ReadMode::GLSLString,
         device,
         handle,
         "",
         binary,
-        shaderSource);
+        shaderSource));
 }
 
 

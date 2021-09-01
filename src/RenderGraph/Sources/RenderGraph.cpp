@@ -4,8 +4,20 @@
 #include "Operation.hpp"
 #include "DrawRecordable.hpp"
 #include "Resource.hpp"
+#include "ShaderPipeline.hpp"
+
 #include "Utils/Utils.hpp"
 #include "Utils/CommandLineFlag.hpp"
+
+#include "VulkanWrapper/Swapchain.hpp"
+#include "VulkanWrapper/CommandBuffer.hpp"
+#include "VulkanWrapper/Commands.hpp"
+#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/RenderPass.hpp"
+#include "VulkanWrapper/ShaderModule.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/DescriptorSet.hpp"
+#include "VulkanWrapper/DescriptorSetLayout.hpp"
 
 #include "spdlog/spdlog.h"
 

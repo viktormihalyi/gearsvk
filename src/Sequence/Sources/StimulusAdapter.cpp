@@ -20,6 +20,7 @@
 #include "RenderGraph/Resource.hpp"
 #include "RenderGraph/UniformReflection.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
+#include "RenderGraph/ShaderPipeline.hpp"
 
 // from std
 #include <random>

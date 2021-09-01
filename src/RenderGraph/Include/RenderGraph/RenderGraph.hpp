@@ -5,7 +5,6 @@
 
 #include "Utils/Event.hpp"
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
-#include "VulkanWrapper/VulkanWrapper.hpp"
 #include <memory>
 
 #include "RenderGraph/GraphSettings.hpp"
@@ -14,12 +13,20 @@
 #include <set>
 #include <unordered_set>
 
-namespace RG {
 
+namespace GVK {
+class CommandBuffer;
+class Swapchain;
+}
+
+namespace RG {
 class Operation;
 class Resource;
 class GraphSettings;
+}
 
+
+namespace RG {
 
 class GVK_RENDERER_API RenderGraph final : public Noncopyable {
 public:// TODO

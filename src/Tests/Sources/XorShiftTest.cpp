@@ -5,9 +5,14 @@
 #include "RenderGraph/Operation.hpp"
 #include "RenderGraph/RenderGraph.hpp"
 #include "RenderGraph/Resource.hpp"
+#include "RenderGraph/ShaderPipeline.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "RenderGraph/Window/Window.hpp"
 
+#include "VulkanWrapper/RenderPass.hpp"
+#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/ShaderModule.hpp"
 #include "VulkanWrapper/DeviceExtra.hpp"
 #include "VulkanWrapper/Utils/ImageData.hpp"
 
@@ -62,7 +67,7 @@ layout (location = 0) in vec2 textureCoords;
 layout (binding = 8) uniform sampler2D randomTextureIn[5];
 
 void main () {
-    outColor = texture (randomTextureIn[randomTextureIndex], textureCoords);
+    // outColor = texture (randomTextureIn[randomTextureIndex], textureCoords);
 }
     )";
 
@@ -71,7 +76,7 @@ void main () {
 #extension GL_ARB_separate_shader_objects : enable
 
 layout (std140, binding = 2) uniform CommonUniforms {
-    uint 123;
+    uint randomTextureIndex;
 };
 
 layout (binding = 8) uniform sampler2D randomTextureIn[5];
@@ -79,7 +84,7 @@ layout (binding = 8) uniform sampler2D randomTextureIn[5];
 layout (location = 0) out vec4 randomTextureOut[5];
 
 void main () {
-    outColor = vec4 (1, 0, 0, 0.5);
+    // outColor = vec4 (1, 0, 0, 0.5);
 }
     )";
 

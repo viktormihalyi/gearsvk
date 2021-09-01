@@ -2,8 +2,18 @@
 #include "Operation.hpp"
 #include "Resource.hpp"
 #include "DrawRecordable.hpp"
+#include "ShaderPipeline.hpp"
 
 #include "Utils/Assert.hpp"
+
+#include "VulkanWrapper/Framebuffer.hpp"
+#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/RenderPass.hpp"
+#include "VulkanWrapper/ShaderModule.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/DescriptorSet.hpp"
+#include "VulkanWrapper/DescriptorSetLayout.hpp"
 
 #include <optional>
 #include <set>

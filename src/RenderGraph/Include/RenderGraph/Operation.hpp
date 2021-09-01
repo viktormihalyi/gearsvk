@@ -3,35 +3,40 @@
 
 #include "RenderGraph/RenderGraphAPI.hpp"
 
-#include "Utils/Timer.hpp"
-#include "VulkanWrapper/Utils/VulkanUtils.hpp"
-#include "VulkanWrapper/VulkanWrapper.hpp"
-
-#include "RenderGraph/Connections.hpp"
-#include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include "RenderGraph/Node.hpp"
 
 #include <glm/glm.hpp>
+#include <vulkan/vulkan.h>
 
+#include <optional>
+#include <filesystem>
 #include <vector>
+#include <memory>
 
 
 namespace GVK {
-
+class DeviceExtra;
+class DescriptorPool;
+class DescriptorSet;
+class DescriptorSetLayout;
+class Framebuffer;
 class DrawRecordable;
 class DrawRecordableInfo;
-class PureDrawRecordable;
 class VertexAttributeProvider;
-
-}
+class ImageView2D;
+class CommandBuffer;
+} // namespace GVK
 
 namespace RG {
-
 class ShaderPipeline;
-
 class Resource;
 class GraphSettings;
 class ConnectionSet;
+class PureDrawRecordable;
+} // namespace RG
+
+
+namespace RG {
 
 class GVK_RENDERER_API Operation : public Node {
 public:
@@ -93,20 +98,14 @@ public:
     };
 
     struct CompileResult {
-        uint32_t                                    width;
-        uint32_t                                    height;
+        uint32_t                                         width;
+        uint32_t                                         height;
         std::unique_ptr<GVK::DescriptorPool>             descriptorPool;
         std::unique_ptr<GVK::DescriptorSetLayout>        descriptorSetLayout;
         std::vector<std::unique_ptr<GVK::DescriptorSet>> descriptorSets;
         std::vector<std::unique_ptr<GVK::Framebuffer>>   framebuffers;
 
-        void Clear ()
-        {
-            descriptorPool.reset ();
-            descriptorSetLayout.reset ();
-            descriptorSets.clear ();
-            framebuffers.clear ();
-        }
+        void Clear ();
     };
 
     CompileSettings compileSettings;

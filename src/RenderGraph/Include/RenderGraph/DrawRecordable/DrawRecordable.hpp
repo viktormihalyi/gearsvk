@@ -5,9 +5,13 @@
 
 #include <cstdint>
 #include <vector>
-
-#include "VulkanWrapper/CommandBuffer.hpp"
 #include <memory>
+
+
+namespace GVK {
+class CommandBuffer;
+}
+
 
 namespace RG {
 
@@ -27,26 +31,6 @@ public:
     virtual void Record (GVK::CommandBuffer&) const = 0;
 };
 
-
-class LambdaPureDrawRecordable : private PureDrawRecordable {
-public:
-    using Type = std::function<void (GVK::CommandBuffer&)>;
-
-private:
-    Type callback;
-
-public:
-    LambdaPureDrawRecordable (const Type& callback)
-        : callback (callback)
-    {
-    }
-
-private:
-    virtual void Record (GVK::CommandBuffer& c) const override
-    {
-        callback (c);
-    }
-};
 
 class DrawRecordable : public VertexAttributeProvider, public PureDrawRecordable {
 public:

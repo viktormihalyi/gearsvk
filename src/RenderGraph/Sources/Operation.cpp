@@ -4,6 +4,21 @@
 #include "Resource.hpp"
 #include "ShaderPipeline.hpp"
 #include "DrawRecordable.hpp"
+
+#include "VulkanWrapper/CommandBuffer.hpp"
+#include "VulkanWrapper/Commands.hpp"
+#include "VulkanWrapper/DescriptorSet.hpp"
+#include "VulkanWrapper/DescriptorSetLayout.hpp"
+#include "VulkanWrapper/ShaderModule.hpp"
+#include "VulkanWrapper/DescriptorSetLayout.hpp"
+#include "VulkanWrapper/Event.hpp"
+#include "VulkanWrapper/Framebuffer.hpp"
+#include "VulkanWrapper/Image.hpp"
+#include "VulkanWrapper/ImageView.hpp"
+#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/RenderPass.hpp"
+
 #include <memory>
 
 namespace RG {
@@ -178,6 +193,15 @@ std::vector<GVK::ImageView2D> RenderOperation::CreateOutputImageViews (const GVK
 RenderOperation::RenderOperation (std::unique_ptr<PureDrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
     : compileSettings ({ std::move (drawRecordable), std::move (shaderPipeline), topology })
 {
+}
+
+
+void RenderOperation::CompileResult::Clear ()
+{
+    descriptorPool.reset ();
+    descriptorSetLayout.reset ();
+    descriptorSets.clear ();
+    framebuffers.clear ();
 }
 
 
