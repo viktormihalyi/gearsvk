@@ -20,9 +20,6 @@ public:
     Device (const Device&) = delete;
     Device& operator= (const Device&) = delete;
 
-    Device (Device&&) = default;
-    Device& operator= (Device&&) = default;
-
     virtual      operator VkDevice () const = 0;
     virtual void Wait () const              = 0;
 };
@@ -35,9 +32,6 @@ private:
 
 public:
     DeviceObject (VkPhysicalDevice physicalDevice, std::vector<uint32_t> queueFamilyIndices, std::vector<const char*> requestedDeviceExtensions);
-
-    DeviceObject (DeviceObject&&) = default;
-    DeviceObject& operator= (DeviceObject&&) = default;
 
     virtual ~DeviceObject () override;
 

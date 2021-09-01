@@ -28,9 +28,6 @@ public:
     Instance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers);
     Instance (const InstanceSettings& settings);
 
-    Instance (Instance&&) = default;
-    Instance& operator= (Instance&&) = default;
-
     virtual ~Instance () override;
 
     virtual void* GetHandleForName () const override { return handle; }

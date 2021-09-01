@@ -31,9 +31,6 @@ public:
         }
     }
 
-    CommandPool (CommandPool&&) = default;
-    CommandPool& operator= (CommandPool&&) = default;
-    
     virtual void* GetHandleForName () const override { return handle; }
 
     virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_COMMAND_POOL; }
