@@ -5,7 +5,6 @@
 
 #include "Utils/Noncopyable.hpp"
 #include "Utils/UUID.hpp"
-#include <memory>
 #include <string>
 
 namespace RG {

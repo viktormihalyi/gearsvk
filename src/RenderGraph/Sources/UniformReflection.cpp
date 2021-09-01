@@ -3,7 +3,13 @@
 #include "ShaderPipeline.hpp"
 #include "Operation.hpp"
 
-#include "VulkanWrapper/ShaderModule.hpp"
+#include "VulkanWrapper/Framebuffer.hpp"
+#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/RenderPass.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/DescriptorSet.hpp"
+#include "VulkanWrapper/DescriptorSetLayout.hpp"
 
 #include "Utils/Event.hpp"
 #include "Utils/Utils.hpp"

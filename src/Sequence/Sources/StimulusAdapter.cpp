@@ -10,6 +10,14 @@
 #include "Utils/Assert.hpp"
 #include "Utils/FileSystemUtils.hpp"
 
+// from VulkanWrapper
+#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/PipelineLayout.hpp"
+#include "VulkanWrapper/RenderPass.hpp"
+#include "VulkanWrapper/DescriptorSet.hpp"
+#include "VulkanWrapper/DescriptorPool.hpp"
+#include "VulkanWrapper/DescriptorSetLayout.hpp"
+
 // from RenderGraph
 #include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include "RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"

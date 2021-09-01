@@ -35,6 +35,7 @@ class Window;
 extern const std::filesystem::path ReferenceImagesFolder;
 extern const std::filesystem::path TempFolder;
 
+extern const std::string passThroughVertexShader;
 
 void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
                          VkDebugUtilsMessageTypeFlagsEXT             messageType,
