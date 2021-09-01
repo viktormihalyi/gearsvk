@@ -2,15 +2,19 @@ enable_testing ()
 
 set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
-    #${SourcesPath}/FontRenderingTests.cpp
-    ${SourcesPath}/TestMain.cpp
-    ${SourcesPath}/GoogleTestEnvironment.hpp
-    ${SourcesPath}/GoogleTestEnvironment.cpp
-    ${SourcesPath}/FontRenderingTests.cpp
-    ${SourcesPath}/RenderGraphTests.cpp
-    ${SourcesPath}/VizHFTests.cpp
     ${SourcesPath}/Camera.cpp
     ${SourcesPath}/Frustum.cpp
+    ${SourcesPath}/TestEnvironment.cpp
+    ${SourcesPath}/TestEnvironment.hpp
+    ${SourcesPath}/TestMain.cpp
+
+    ${SourcesPath}/LCGTest.cpp
+    ${SourcesPath}/RenderGraphPassTest.cpp
+    ${SourcesPath}/RenderGraphAbstractionTest.cpp
+    ${SourcesPath}/RenderGraphTests.cpp
+    ${SourcesPath}/VizHFTests.cpp
+    ${SourcesPath}/XorShiftTest.cpp
+    ${SourcesPath}/FontRenderingTests.cpp
     ${SourcesPath}/GearsTests.cpp
 )
 

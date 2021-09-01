@@ -7,6 +7,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <sstream>
 #include <vector>
 
 #include "spdlog/spdlog.h"
@@ -73,13 +74,21 @@ static void ShowAssertPopup (const std::string& title,
 static CommandLineOnOffFlag disableAssertsFlag (std::vector<std::string> { "--disableAsserts", "-a" }, "Disables asserts.");
 
 
+static std::string SourceLocationToString (const SourceLocation& sourceLocation)
+{
+    std::stringstream ss;
+    ss << sourceLocation.file << ":" << sourceLocation.line << " (" << sourceLocation.function << ")";
+    return ss.str ();
+}
+
+
 bool DebugBreakAssertFunc (bool condition, const bool shouldBe, const char* message, const char* conditionString, const SourceLocation& location)
 {
     if (condition != shouldBe) {
-        const std::string assertLocation = location.ToString ();
+        const std::string assertLocation = SourceLocationToString (location);
         bool              ignored        = true;
         if (disableAssertsFlag.IsFlagOn ()) {
-            spdlog::error ("[{}] {}", message, location.ToString ());
+            spdlog::error ("[{}] {}", message, SourceLocationToString (location));
         } else {
             ShowAssertPopup (message, conditionString, assertLocation, ignored);
         }
@@ -91,7 +100,7 @@ bool DebugBreakAssertFunc (bool condition, const bool shouldBe, const char* mess
 bool LogAssertFunc (bool condition, const bool shouldBe, const char* message, const char* conditionString, const SourceLocation& location)
 {
     if (condition != shouldBe) {
-        spdlog::error ("[{}] {}", message, location.ToString ());
+        spdlog::error ("[{}] {}", message, SourceLocationToString (location));
     }
     return condition;
 }

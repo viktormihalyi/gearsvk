@@ -4,13 +4,11 @@
 #include "PyExtract.hpp"
 #include <algorithm>
 #include <sstream>
+#include <stdexcept>
 
 #include "Utils/Assert.hpp"
 
 #include "Utils/SourceLocation.hpp"
-
-#define THROW_LOC() \
-    throw ::std::runtime_error (::Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ())
 
 
 struct PySequence::Impl {
@@ -37,7 +35,8 @@ PySequence::~PySequence () = default;
 
 pybind11::object PySequence::set (pybind11::object settings)
 {
-    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
+    GVK_ASSERT (false);
+    throw std::runtime_error ("PySequence::set not implemented.");
 #if 0
 	using namespace boost::python;
 	dict d = PyExtract<dict>(settings);
@@ -114,9 +113,10 @@ std::shared_ptr<PySequence> PySequence::setAgenda (pybind11::object agenda)
                 if (!setMeasurementStart ()) {
                     std::stringstream ss;
                     ss << "Item #" << i + 1 << " on agenda is a StartMeasurement, but the measurement has already been started.";
-                    THROW_LOC ();
-                    //PyErr_SetString (PyExc_TypeError, ss.str ().c_str ());
-                    //boost::python::throw_error_already_set ();
+                    PyErr_SetString (PyExc_TypeError, ss.str ().c_str ());
+                    GVK_ASSERT (false);
+                    throw std::runtime_error ("throw_error_already_set");
+                    // boost::python::throw_error_already_set ();
                 }
                 continue;
             }
@@ -130,8 +130,9 @@ std::shared_ptr<PySequence> PySequence::setAgenda (pybind11::object agenda)
                 if (!setMeasurementEnd ()) {
                     std::stringstream ss;
                     ss << "Item #" << i + 1 << " on agenda is an EndMeasurement, but the measurement has already been ended.";
-                    THROW_LOC ();
-                    //PyErr_SetString (PyExc_TypeError, ss.str ().c_str ());
+                    GVK_ASSERT (false);
+                    PyErr_SetString (PyExc_TypeError, ss.str ().c_str ());
+                    throw std::runtime_error ("throw_error_already_set");
                     //boost::python::throw_error_already_set ();
                 }
                 continue;
@@ -139,7 +140,6 @@ std::shared_ptr<PySequence> PySequence::setAgenda (pybind11::object agenda)
         }
         std::stringstream ss;
         ss << "Item #" << i + 1 << " on agenda is of unknown type.";
-        //THROW_LOC ();
         //PyErr_SetString (PyExc_TypeError, ss.str ().c_str ());
         //boost::python::throw_error_already_set ();
     }

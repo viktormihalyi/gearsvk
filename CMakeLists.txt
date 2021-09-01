@@ -17,6 +17,7 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin>)
 
 if (MSVC)
     add_compile_options (/bigobj)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4099")
 endif ()
 
 # ========== CONAN ==========

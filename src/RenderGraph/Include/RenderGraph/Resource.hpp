@@ -373,10 +373,10 @@ public:
         , depth (depth)
         , layerCount (layerCount)
     {
-        GVK_ASSERT_THROW (width > 0);
-        GVK_ASSERT_THROW (height > 0);
-        GVK_ASSERT_THROW (depth > 0);
-        GVK_ASSERT_THROW (layerCount > 0);
+        GVK_ASSERT (width > 0);
+        GVK_ASSERT (height > 0);
+        GVK_ASSERT (depth > 0);
+        GVK_ASSERT (layerCount > 0);
     }
 
     ReadOnlyImageResource (VkFormat format, uint32_t width, uint32_t height = 1, uint32_t depth = 1, uint32_t layerCount = 1)

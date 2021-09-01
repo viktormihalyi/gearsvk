@@ -10,6 +10,7 @@
 #include <fstream>
 #include <limits>
 #include <sstream>
+#include <stdexcept>
 
 //#include "Eigen/Dense"
 //#include "Eigen/SVD"
@@ -69,7 +70,8 @@ pybind11::object PyStimulus::setGamma (pybind11::object gammaList, bool invert)
 
 pybind11::object PyStimulus::setTemporalWeights (pybind11::object twList, bool fullScreen)
 {
-    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
+    GVK_ASSERT (false);
+    throw std::runtime_error ("PyStimulus::setTemporalWeights not implemented.");
 #if 0
     fullScreenTemporalFiltering = fullScreen;
     using namespace boost::python;
@@ -292,7 +294,8 @@ pybind11::object PyStimulus::setLtiMatrix (pybind11::object mList)
 
 pybind11::object PyStimulus::setLtiImpulseResponse (pybind11::object mList, uint32_t nStates)
 {
-    throw std::runtime_error (Utils::SourceLocation { __FILE__, __LINE__, __func__ }.ToString ());
+    GVK_ASSERT (false);
+    throw std::runtime_error ("PyStimulus::setLtiImpulseResponse not implemented.");
 #if 0
     fullScreenTemporalFiltering        = true;
     doesToneMappingInStimulusGenerator = false;

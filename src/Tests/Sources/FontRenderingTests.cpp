@@ -1,4 +1,4 @@
-﻿#include "GoogleTestEnvironment.hpp"
+﻿#include "TestEnvironment.hpp"
 
 #include "RenderGraph/Font.hpp"
 #include "VulkanWrapper/Utils/ImageData.hpp"
@@ -6,7 +6,7 @@
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "RenderGraph/Window/Window.hpp"
 
-using FontRenderingTests = HiddenWindowGoogleTestEnvironment;
+using FontRenderingTests = HiddenWindowTestEnvironment;
 
 #pragma warning(push, 0)
 #pragma error(push, 0)

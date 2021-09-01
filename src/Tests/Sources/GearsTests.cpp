@@ -1,4 +1,4 @@
-#include "GoogleTestEnvironment.hpp"
+#include "TestEnvironment.hpp"
 
 // from RenderGraph
 #include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
@@ -83,14 +83,14 @@ namespace glm
 static const std::filesystem::path SequencesFolder = std::filesystem::current_path () / "Project" / "Sequences";
 
 
-class GearsTests : public GoogleTestEnvironmentBase {
+class GearsTests : public TestEnvironmentBase {
 protected:
     std::shared_ptr<RG::Presentable>     pres;
     std::unique_ptr<SequenceAdapter> sequenceAdapter;
 
     virtual void SetUp () override
     {
-        env = std::make_unique<RG::VulkanEnvironment> (gtestDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+        env = std::make_unique<RG::VulkanEnvironment> (testDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
     }
 
     virtual void TearDown () override

@@ -1,30 +1,36 @@
-#include "Utils/Assert.hpp"
 #include "Camera.hpp"
+#include "CameraControl.hpp"
+#include "TestEnvironment.hpp"
+
 #include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include "RenderGraph/DrawRecordable/FullscreenQuad.hpp"
-#include "RenderGraph/Window/GLFWWindow.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
 #include "RenderGraph/GraphSettings.hpp"
-#include "VulkanWrapper/Utils/ImageData.hpp"
-#include "Utils/MultithreadedFunction.hpp"
-#include "Utils/Noncopyable.hpp"
 #include "RenderGraph/Operation.hpp"
 #include "RenderGraph/RenderGraph.hpp"
 #include "RenderGraph/Resource.hpp"
+#include "RenderGraph/UniformReflection.hpp"
+#include "RenderGraph/UniformView.hpp"
+#include "RenderGraph/VulkanEnvironment.hpp"
+#include "RenderGraph/Window/GLFWWindow.hpp"
 #include "RenderGraph/Window/SDLWindow.hpp"
+
+#include "Utils/Assert.hpp"
+#include "Utils/MultithreadedFunction.hpp"
+#include "Utils/Noncopyable.hpp"
 #include "Utils/Time.hpp"
 #include "Utils/Timer.hpp"
 #include "Utils/Utils.hpp"
-#include "RenderGraph/VulkanEnvironment.hpp"
-
-// from VulkanWrapper
-#include "VulkanWrapper/VulkanWrapper.hpp"
+#include "Utils/UUID.hpp"
 
 #include "VulkanWrapper/DeviceExtra.hpp"
 #include "VulkanWrapper/ShaderReflection.hpp"
+#include "VulkanWrapper/Utils/ImageData.hpp"
+#include "VulkanWrapper/VulkanWrapper.hpp"
 
-#include "CameraControl.hpp"
-#include "RenderGraph/UniformReflection.hpp"
+#include <glm/ext.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <array>
 #include <cstdint>
@@ -35,20 +41,11 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
-#include "GoogleTestEnvironment.hpp"
-#include "Utils/UUID.hpp"
-#include "RenderGraph/UniformView.hpp"
 
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <unordered_map>
-
-
-using VizHFTests = HiddenWindowGoogleTestEnvironment;
+using VizHFTests = HiddenWindowTestEnvironment;
 
 
 TEST_F (VizHFTests, HF1)

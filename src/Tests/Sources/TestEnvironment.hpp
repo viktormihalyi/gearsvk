@@ -1,5 +1,5 @@
-#ifndef GOOGLETESTENVIRONMENT_HPP
-#define GOOGLETESTENVIRONMENT_HPP
+#ifndef TestENVIRONMENT_HPP
+#define TestENVIRONMENT_HPP
 
 #include <memory>
 
@@ -36,7 +36,7 @@ extern const std::filesystem::path ReferenceImagesFolder;
 extern const std::filesystem::path TempFolder;
 
 
-void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
                          VkDebugUtilsMessageTypeFlagsEXT             messageType,
                          const VkDebugUtilsMessengerCallbackDataEXT* callbackData);
 
@@ -44,7 +44,7 @@ void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeve
 using EmptyTestEnvironment = ::testing::Test;
 
 
-class GoogleTestEnvironmentBase : public ::testing::Test {
+class TestEnvironmentBase : public ::testing::Test {
 protected:
     std::unique_ptr<RG::VulkanEnvironment> env;
     std::unique_ptr<RG::Window>            window;
@@ -58,7 +58,7 @@ protected:
     RG::Window&          GetWindow ();
     GVK::Swapchain&      GetSwapchain ();
 
-    virtual ~GoogleTestEnvironmentBase () override = default;
+    virtual ~TestEnvironmentBase () override = default;
 
     void CompareImages (const std::string& imageName, const GVK::Image& image, std::optional<VkImageLayout> transitionFrom = std::nullopt);
 
@@ -67,14 +67,15 @@ protected:
 
 
 // no window, swapchain, surface
-class HeadlessGoogleTestEnvironment : public GoogleTestEnvironmentBase {
+class HeadlessTestEnvironment : public TestEnvironmentBase {
 protected:
     virtual void SetUp () override;
     virtual void TearDown () override;
 };
 
+
 // window shown by default
-class ShownWindowGoogleTestEnvironment : public GoogleTestEnvironmentBase {
+class ShownWindowTestEnvironment : public TestEnvironmentBase {
 protected:
     virtual void SetUp () override;
     virtual void TearDown () override;
@@ -82,7 +83,7 @@ protected:
 
 
 // window hidden by default
-class HiddenWindowGoogleTestEnvironment : public GoogleTestEnvironmentBase {
+class HiddenWindowTestEnvironment : public TestEnvironmentBase {
 protected:
     virtual void SetUp () override;
     virtual void TearDown () override;

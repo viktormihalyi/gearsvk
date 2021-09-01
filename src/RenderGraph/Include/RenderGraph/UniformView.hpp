@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <cstring>
 #include <vector>
+#include <string_view>
 
 
 namespace GVK {

@@ -1,4 +1,4 @@
-#include "GoogleTestEnvironment.hpp"
+#include "TestEnvironment.hpp"
 
 #include "RenderGraph/Window/GLFWWindow.hpp"
 #include "VulkanWrapper/Utils/ImageData.hpp"
@@ -11,7 +11,7 @@ const std::filesystem::path ReferenceImagesFolder = std::filesystem::current_pat
 const std::filesystem::path TempFolder            = std::filesystem::current_path () / "temp";
 
 
-void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
                          VkDebugUtilsMessageTypeFlagsEXT             messageType,
                          const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
@@ -23,49 +23,49 @@ void gtestDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeve
 }
 
 
-GVK::PhysicalDevice& GoogleTestEnvironmentBase::GetPhysicalDevice ()
+GVK::PhysicalDevice& TestEnvironmentBase::GetPhysicalDevice ()
 {
     return *env->physicalDevice;
 }
 
 
-GVK::Device& GoogleTestEnvironmentBase::GetDevice ()
+GVK::Device& TestEnvironmentBase::GetDevice ()
 {
     return *env->device;
 }
 
 
-GVK::CommandPool& GoogleTestEnvironmentBase::GetCommandPool ()
+GVK::CommandPool& TestEnvironmentBase::GetCommandPool ()
 {
     return *env->commandPool;
 }
 
 
-GVK::Queue& GoogleTestEnvironmentBase::GetGraphicsQueue ()
+GVK::Queue& TestEnvironmentBase::GetGraphicsQueue ()
 {
     return *env->graphicsQueue;
 }
 
 
-GVK::DeviceExtra& GoogleTestEnvironmentBase::GetDeviceExtra ()
+GVK::DeviceExtra& TestEnvironmentBase::GetDeviceExtra ()
 {
     return *env->deviceExtra;
 }
 
 
-RG::Window& GoogleTestEnvironmentBase::GetWindow ()
+RG::Window& TestEnvironmentBase::GetWindow ()
 {
     return *window;
 }
 
 
-GVK::Swapchain& GoogleTestEnvironmentBase::GetSwapchain ()
+GVK::Swapchain& TestEnvironmentBase::GetSwapchain ()
 {
     return presentable->GetSwapchain ();
 }
 
 
-void GoogleTestEnvironmentBase::CompareImages (const std::string& imageName, const GVK::Image& image, std::optional<VkImageLayout> transitionFrom)
+void TestEnvironmentBase::CompareImages (const std::string& imageName, const GVK::Image& image, std::optional<VkImageLayout> transitionFrom)
 {
     if (transitionFrom.has_value ()) {
         TransitionImageLayout (GetDeviceExtra (), image, *transitionFrom, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
@@ -83,7 +83,7 @@ void GoogleTestEnvironmentBase::CompareImages (const std::string& imageName, con
 }
 
 
-void GoogleTestEnvironmentBase::CompareImages (const std::string& name, const GVK::ImageData& actualImage)
+void TestEnvironmentBase::CompareImages (const std::string& name, const GVK::ImageData& actualImage)
 {
     GVK_ASSERT (std::filesystem::exists (ReferenceImagesFolder / (name + ".png")));
 
@@ -111,27 +111,27 @@ void GoogleTestEnvironmentBase::CompareImages (const std::string& name, const GV
 }
 
 
-void HeadlessGoogleTestEnvironment::SetUp ()
+void HeadlessTestEnvironment::SetUp ()
 {
-    env = std::make_unique<RG::VulkanEnvironment> (gtestDebugCallback);
+    env = std::make_unique<RG::VulkanEnvironment> (testDebugCallback);
 }
 
 
-void HeadlessGoogleTestEnvironment::TearDown ()
+void HeadlessTestEnvironment::TearDown ()
 {
     env.reset ();
 }
 
 
-void ShownWindowGoogleTestEnvironment::SetUp ()
+void ShownWindowTestEnvironment::SetUp ()
 {
     window      = std::make_unique<RG::GLFWWindow> ();
-    env         = std::make_unique<RG::VulkanEnvironment> (gtestDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+    env         = std::make_unique<RG::VulkanEnvironment> (testDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
     presentable = std::make_unique<RG::Presentable> (*env, *window, std::make_unique<GVK::DefaultSwapchainSettings> ());
 }
 
 
-void ShownWindowGoogleTestEnvironment::TearDown ()
+void ShownWindowTestEnvironment::TearDown ()
 {
     presentable.reset ();
     env.reset ();
@@ -139,15 +139,15 @@ void ShownWindowGoogleTestEnvironment::TearDown ()
 }
 
 
-void HiddenWindowGoogleTestEnvironment::SetUp ()
+void HiddenWindowTestEnvironment::SetUp ()
 {
     window      = std::make_unique<RG::HiddenGLFWWindow> ();
-    env         = std::make_unique<RG::VulkanEnvironment> (gtestDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+    env         = std::make_unique<RG::VulkanEnvironment> (testDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
     presentable = std::make_unique<RG::Presentable> (*env, *window, std::make_unique<GVK::DefaultSwapchainSettings> ());
 }
 
 
-void HiddenWindowGoogleTestEnvironment::TearDown ()
+void HiddenWindowTestEnvironment::TearDown ()
 {
     presentable.reset ();
     env.reset ();

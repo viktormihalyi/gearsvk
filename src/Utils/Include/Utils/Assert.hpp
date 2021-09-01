@@ -3,8 +3,6 @@
 
 #include "GVKUtilsAPI.hpp"
 
-#include <string>
-
 #include "SourceLocation.hpp"
 
 #define LOGASSERTS
@@ -26,12 +24,6 @@
 #define GVK_BREAK(message)
 #endif
 
-
-#define GVK_ASSERT_THROW(cond)                            \
-    if (GVK_ERROR (!(cond))) {                            \
-        throw std::runtime_error ("precondition failed"); \
-    }                                                     \
-    (void)0
 
 namespace Utils {
 
