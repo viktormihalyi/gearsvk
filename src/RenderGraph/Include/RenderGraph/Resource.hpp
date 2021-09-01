@@ -8,6 +8,7 @@
 
 #include "VulkanWrapper/Event.hpp"
 #include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/Utils/BufferTransferable.hpp"
 
 #include "RenderGraph/Connections.hpp"
 #include "RenderGraph/GraphSettings.hpp"
