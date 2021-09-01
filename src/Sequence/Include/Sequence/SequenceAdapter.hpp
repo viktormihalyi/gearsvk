@@ -1,11 +1,12 @@
 #ifndef SEQUENCEADAPTER_HPP
 #define SEQUENCEADAPTER_HPP
 
-// from RenderGraph
+// from Utils
 #include "Utils/Event.hpp"
-#include "RenderGraph/GraphRenderer.hpp"
 #include "Utils/Time.hpp"
-#include <memory>
+
+// from RenderGraph
+#include "RenderGraph/GraphRenderer.hpp"
 
 // from Sequence
 #include "SequenceAPI.hpp"
@@ -13,6 +14,8 @@
 // from std
 #include <map>
 #include <optional>
+#include <memory>
+#include <string>
 
 
 class StimulusAdapterView;

@@ -40,11 +40,11 @@ void StimulusAdapterView::DestroyForPresentable (const std::shared_ptr<RG::Prese
 }
 
 
-void StimulusAdapterView::RenderFrameIndex (RG::Renderer&                     renderer,
-                                            std::shared_ptr<RG::Presentable>&     presentable,
+void StimulusAdapterView::RenderFrameIndex (RG::Renderer&                          renderer,
+                                            std::shared_ptr<RG::Presentable>&      presentable,
                                             const std::shared_ptr<Stimulus const>& stimulus,
                                             const uint32_t                         frameIndex,
-                                            RG::IFrameDisplayObserver&        frameDisplayObserver,
+                                            RG::IFrameDisplayObserver&             frameDisplayObserver,
                                             IRandomExporter&                       randomExporter)
 {
     if (GVK_ERROR (compiledAdapters.find (presentable) == compiledAdapters.end ())) {
