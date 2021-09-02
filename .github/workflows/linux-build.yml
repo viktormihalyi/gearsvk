@@ -14,12 +14,12 @@ jobs:
       matrix:
         buildType: [Debug, Release]
         compiler:
-          - { CC: gcc-10,   CXX: g++-10 }
-          - { CC: clang-10, CXX: clang++-10 }
+          - { CC: gcc-11,   CXX: g++-11 }
+          - { CC: clang-12, CXX: clang++-12 }
         unityBuild: [OFF]
         include:
             - buildType: Debug
-              compiler: { CC: clang-10, CXX: clang++-10 }
+              compiler: { CC: clang-12, CXX: clang++-12 }
               unityBuild: ON
 
     steps:
