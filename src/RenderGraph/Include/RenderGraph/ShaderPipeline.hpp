@@ -71,6 +71,8 @@ public:
     ShaderPipeline (VkDevice device, const std::vector<std::filesystem::path>& pathes);
     ShaderPipeline (VkDevice device, const std::vector<std::pair<GVK::ShaderKind, std::string>>& sources);
 
+    ~ShaderPipeline ();
+
     // settings shaders
     void SetShaderFromSourceString (GVK::ShaderKind shaderKind, const std::string& source);
     void SetVertexShaderFromString (const std::string& source);

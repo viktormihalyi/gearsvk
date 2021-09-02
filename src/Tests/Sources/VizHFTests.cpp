@@ -6,6 +6,7 @@
 #include "RenderGraph/DrawRecordable/FullscreenQuad.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
 #include "RenderGraph/GraphSettings.hpp"
+#include "RenderGraph/ConnectionBuilder.hpp"
 #include "RenderGraph/Operation.hpp"
 #include "RenderGraph/RenderGraph.hpp"
 #include "RenderGraph/Resource.hpp"
@@ -358,12 +359,12 @@ void main ()
     std::shared_ptr<RG::ReadOnlyImageResource>  matcap    = std::make_unique<RG::ReadOnlyImageResource> (VK_FORMAT_R8G8B8A8_SRGB, 512, 512);
     std::shared_ptr<RG::ReadOnlyImageResource>  agy3d     = std::make_unique<RG::ReadOnlyImageResource> (VK_FORMAT_R8_SRGB, 256, 256, 256);
 
-    s.connectionSet.Add (brainRenderOp, presented,
-                         std::make_unique<RG::OutputBinding> (0,
-                                                                   presented->GetFormatProvider (),
-                                                                   presented->GetFinalLayout (),
-                                                                   VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                                   VK_ATTACHMENT_STORE_OP_STORE));
+    s.connectionSet.Add (RG::OutputBuilder ()
+                             .SetOperation (brainRenderOp)
+                             .SetTarget (presented)
+                             .SetBinding (0)
+                             .SetClear ()
+                             .Build ());
 
     s.connectionSet.Add (agy3d, brainRenderOp, std::make_unique<RG::ImageInputBinding> (2, *agy3d));
     s.connectionSet.Add (matcap, brainRenderOp, std::make_unique<RG::ImageInputBinding> (3, *matcap));
@@ -829,12 +830,12 @@ void main ()
 
     // ========================= GRAPH CONNECTIONS =========================
 
-    s.connectionSet.Add (brainRenderOp, presented,
-                         std::make_unique<RG::OutputBinding> (0,
-                                                                   presented->GetFormatProvider (),
-                                                                   presented->GetFinalLayout (),
-                                                                   VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                          VK_ATTACHMENT_STORE_OP_STORE));
+    s.connectionSet.Add (RG::OutputBuilder ()
+                             .SetOperation (brainRenderOp)
+                             .SetTarget (presented)
+                             .SetBinding (0)
+                             .SetClear ()
+                             .Build ());
 
     // ========================= UNIFORM REFLECTION =========================
 

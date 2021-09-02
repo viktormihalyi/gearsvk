@@ -98,7 +98,13 @@ RenderOperation::Builder& RenderOperation::Builder::SetClearColor (const glm::ve
 
 std::shared_ptr<RenderOperation> RenderOperation::Builder::Build ()
 {
+    GVK_ASSERT (pureDrawRecordable != nullptr);
+    GVK_ASSERT (shaderPipiline != nullptr);
+
     std::shared_ptr<RenderOperation> op = std::make_shared<RenderOperation> (std::move (pureDrawRecordable), std::move (shaderPipiline), *topology);
+
+    pureDrawRecordable = nullptr;
+    shaderPipiline     = nullptr;
 
     if (name.has_value ())
         op->SetName (*name);
@@ -293,11 +299,13 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
 
     std::vector<VkClearValue> clearValues (outputCount, clearColor);
 
+    GVK_ASSERT (GetShaderPipeline () != nullptr);
+
     commandBuffer.Record<GVK::CommandBeginRenderPass> (*GetShaderPipeline ()->compileResult.renderPass,
-                                                  *compileResult.framebuffers[resourceIndex],
-                                                  VkRect2D { { 0, 0 }, { compileResult.width, compileResult.height } },
-                                                  clearValues,
-                                                  VK_SUBPASS_CONTENTS_INLINE)
+                                                       *compileResult.framebuffers[resourceIndex],
+                                                       VkRect2D { { 0, 0 }, { compileResult.width, compileResult.height } },
+                                                       clearValues,
+                                                       VK_SUBPASS_CONTENTS_INLINE)
         .SetName ("Operation - Renderpass Begin");
 
     commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *GetShaderPipeline ()->compileResult.pipeline).SetName ("Operation - Bind");

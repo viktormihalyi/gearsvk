@@ -21,6 +21,7 @@
 // from RenderGraph
 #include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include "RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
+#include "RenderGraph/ConnectionBuilder.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
 #include "RenderGraph/GraphSettings.hpp"
 #include "RenderGraph/Operation.hpp"
@@ -102,14 +103,14 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
         GVK_ASSERT (!stimulus->usesForwardRendering);
         //GVK_ASSERT (stimulus->mono);
 
-        s.connectionSet.Add (passOperation, presented,
-                             std::make_unique<RG::OutputBinding> (0,
-                                                                       presented->GetFormatProvider (),
-                                                                       VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                                                                       presented->GetFinalLayout (),
-                                                                       1,
-                                                                       firstPass ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,
-                                                                       VK_ATTACHMENT_STORE_OP_STORE));
+        s.connectionSet.Add (RG::OutputBuilder ()
+                                 .SetOperation (passOperation)
+                                 .SetTarget (presented)
+                                 .SetBinding (0)
+                                 .SetLayerCount (1)
+                                 .SetInitialLayout (VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+                                 .SetLoadOp (firstPass ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD)
+                                 .Build ());
 
         passToOperation[pass] = passOperation;
     }
@@ -149,13 +150,13 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
 
         std::static_pointer_cast<RG::RenderOperation> (randomGeneratorOperation)->compileSettings.blendEnabled = false;
 
-        s.connectionSet.Add (randomGeneratorOperation, randomTexture,
-                             std::make_unique<RG::OutputBinding> (0,
-                                                                       randomTexture->GetFormatProvider (),
-                                                                       randomTexture->GetFinalLayout (),
-                                                                       1,
-                                                                       VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                                       VK_ATTACHMENT_STORE_OP_STORE));
+        s.connectionSet.Add (RG::OutputBuilder ()
+                                 .SetOperation (randomGeneratorOperation)
+                                 .SetTarget (randomTexture)
+                                 .SetBinding (0)
+                                 .SetLayerCount (1)
+                                 .SetClear ()
+                                 .Build ());
 
         GVK_ASSERT (randomBinding.has_value ());
         s.connectionSet.Add (randomTexture, passToOperation[passes[0]],

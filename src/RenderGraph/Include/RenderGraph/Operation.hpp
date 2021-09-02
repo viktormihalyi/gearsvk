@@ -40,7 +40,7 @@ namespace RG {
 
 class GVK_RENDERER_API Operation : public Node {
 public:
-    virtual ~Operation () = default;
+    virtual ~Operation () override = default;
 
     virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height)                                = 0;
     virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) = 0;
@@ -113,7 +113,7 @@ public:
 
     RenderOperation (std::unique_ptr<PureDrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
-    virtual ~RenderOperation () = default;
+    virtual ~RenderOperation () override = default;
 
     virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) override;
     virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, GVK::CommandBuffer& commandBuffer) override;

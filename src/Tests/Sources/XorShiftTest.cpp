@@ -8,6 +8,7 @@
 #include "RenderGraph/ShaderPipeline.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "RenderGraph/Window/Window.hpp"
+#include "RenderGraph/ConnectionBuilder.hpp"
 
 #include "VulkanWrapper/RenderPass.hpp"
 #include "VulkanWrapper/Pipeline.hpp"
@@ -18,7 +19,6 @@
 
 #include <memory>
 #include <string>
-
 
 TEST_F (HeadlessTestEnvironment, DISABLED_XorShiftRNG)
 {
@@ -73,22 +73,28 @@ void main () {
                                                         .SetFragmentShader (fragSrc2)
                                                         .Build ();
 
+    RG::ConnectionSet connectionSet;
+
+    connectionSet.Add (RG::OutputBuilder ()
+            .SetOperation (renderOp)
+            .SetTarget (renderTarget)
+            .SetBinding (0)
+            .SetClear ()
+            .Build ());
+    
+    connectionSet.Add (RG::OutputBuilder ()
+            .SetOperation (renderOp2)
+            .SetTarget (renderTarget)
+            .SetBinding (1)
+            .SetClear ()
+            .Build ());
+
     RG::GraphSettings s;
-    s.framesInFlight = 1;
+    s.connectionSet = std::move (connectionSet);
+    s.framesInFlight = 3;
     s.device         = env->deviceExtra.get ();
-
-    s.connectionSet.Add (renderOp, renderTarget,
-                         std::make_unique<RG::OutputBinding> (0,
-                                                              renderTarget->GetFormatProvider (),
-                                                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                                              renderTarget->GetFinalLayout (),
-                                                              1,
-                                                              VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                              VK_ATTACHMENT_STORE_OP_STORE));
-
-
+    
     RG::RenderGraph rg;
-
     rg.Compile (std::move (s));
 
     VkClearValue clearValue     = {};

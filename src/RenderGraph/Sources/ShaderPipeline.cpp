@@ -16,6 +16,12 @@
 
 namespace RG {
 
+
+ShaderPipeline::~ShaderPipeline ()
+{
+}
+
+
 void ShaderPipeline::CompileResult::Clear ()
 {
     renderPass.reset ();
