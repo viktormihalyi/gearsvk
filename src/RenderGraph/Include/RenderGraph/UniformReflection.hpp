@@ -50,24 +50,18 @@ GVK_RENDERER_API
 ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const ExtentProviderForImageCreate& extentProvider);
 
 
-struct string_hash {
-    using is_transparent = void;
-    [[nodiscard]] size_t operator() (std::string_view txt) const { return std::hash<std::string_view> {}(txt); }
-    [[nodiscard]] size_t operator() (const std::string& txt) const { return std::hash<std::string> {}(txt); }
-};
-
 class GVK_RENDERER_API UniformReflection final : public GVK::EventObserver {
 private:
     class GVK_RENDERER_API UboSelector {
     private:
-        std::unordered_map<std::string, std::shared_ptr<SR::IUData>, string_hash, std::equal_to<>> udatas;
+        std::map<std::string, std::shared_ptr<SR::IUData>, std::less<>> udatas;
 
     public:
-        [[nodiscard]] SR::IUData& operator[] (std::string_view uboName);
+        SR::IUData& operator[] (std::string_view uboName);
         
         void Set (const std::string& uboName, const std::shared_ptr<SR::IUData>& uboData);
         
-        [[nodiscard]] bool Contains (std::string_view uboName) const;
+        bool Contains (std::string_view uboName) const;
 
         friend class UniformReflection;
     };
@@ -77,7 +71,7 @@ private:
         std::unordered_map<GVK::ShaderKind, UboSelector> uboSelectors;
 
     public:
-        [[nodiscard]] UboSelector& operator[] (GVK::ShaderKind shaderKind);
+        UboSelector& operator[] (GVK::ShaderKind shaderKind);
 
         void Set (GVK::ShaderKind shaderKind, UboSelector&& uboSel);
 
