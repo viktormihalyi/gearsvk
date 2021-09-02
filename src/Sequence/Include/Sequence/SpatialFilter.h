@@ -8,8 +8,10 @@
 #include <map>
 #include <string>
 
+#ifdef GEARSVK_CEREAL
 #include <cereal/cereal.hpp>
 #include <cereal/types/polymorphic.hpp>
+#endif
 
 class Sequence;
 
@@ -201,7 +203,8 @@ public:
     void makeUnique ();
 
     
-    template <typename Archive>
+#ifdef GEARSVK_CEREAL
+    template<typename Archive>
     void serialize (Archive& ar)
     {
         ar (CEREAL_NVP (kernelFuncSource));
@@ -232,4 +235,5 @@ public:
         ar (CEREAL_NVP (shaderFunctions));
         ar (CEREAL_NVP (shaderFunctionOrder));
     }
+#endif
 };

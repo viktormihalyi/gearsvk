@@ -20,9 +20,11 @@
 
 #include "pybind11/pybind11.h"
 
+#ifdef GEARSVK_CEREAL
 #include <cereal/cereal.hpp>
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/types/base_class.hpp>
+#endif
 
 class Pass;
 class Sequence;
@@ -87,14 +89,18 @@ public:
 
     virtual void OnPassAdded (std::shared_ptr<Pass> pass) override;
 
+#ifdef GEARSVK_CEREAL
     template<typename Archive>
     void serialize (Archive& ar)
     {
         ar (cereal::base_class<Stimulus> (this));
     }
+#endif
 };
 
+#ifdef GEARSVK_CEREAL
 CEREAL_REGISTER_TYPE (PyStimulus)
 CEREAL_REGISTER_POLYMORPHIC_RELATION (Stimulus, PyStimulus)
+#endif
 
 #endif

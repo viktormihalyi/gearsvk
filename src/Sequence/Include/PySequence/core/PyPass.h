@@ -9,9 +9,11 @@
 
 #include "pybind11/pybind11.h"
 
+#ifdef GEARSVK_CEREAL
 #include <cereal/cereal.hpp>
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/types/base_class.hpp>
+#endif
 
 class Sequence;
 class Stimulus;
@@ -36,15 +38,18 @@ public:
 
     void setPolygonMask (std::string mode, pybind11::object o);
 
-    template <typename Archive>
+#ifdef GEARSVK_CEREAL
+    template<typename Archive>
     void serialize (Archive& ar)
     {
         ar (cereal::base_class<Pass> (this));
     }
+#endif
 };
 
+#ifdef GEARSVK_CEREAL
 CEREAL_REGISTER_TYPE (PyPass)
 CEREAL_REGISTER_POLYMORPHIC_RELATION (Pass, PyPass)
-
+#endif
 
 #endif

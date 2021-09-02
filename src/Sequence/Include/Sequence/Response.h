@@ -12,9 +12,10 @@
 #include <string>
 #include <vector>
 
+#ifdef GEARSVK_CEREAL
 #include <cereal/cereal.hpp>
 #include <cereal/types/polymorphic.hpp>
-
+#endif
 
 class Sequence;
 
@@ -30,7 +31,8 @@ public:
         uint32_t        key;
         bool        visible;
         
-        template <class Archive>
+#ifdef GEARSVK_CEREAL
+        template<class Archive>
         void serialize (Archive& ar)
         {
             ar (CEREAL_NVP (label));
@@ -41,6 +43,7 @@ public:
             ar (CEREAL_NVP (key));
             ar (CEREAL_NVP (visible));
         }
+#endif
     };
     std::vector<Button> buttons;
     unsigned int        duration; //frames
@@ -61,7 +64,8 @@ public:
 
     std::shared_ptr<Sequence> getSequence () { return sequence; }
 
-    template <class Archive>
+#ifdef GEARSVK_CEREAL
+    template<class Archive>
     void serialize (Archive& ar)
     {
         ar (CEREAL_NVP (question));
@@ -71,4 +75,5 @@ public:
         ar (CEREAL_NVP (startingFrame));
         ar (CEREAL_NVP (sequence));
     }
+#endif
 };

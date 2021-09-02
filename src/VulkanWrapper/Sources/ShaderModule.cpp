@@ -35,7 +35,18 @@ public:
     const char*           displayName;
 
 private:
-    ShaderKindAdapter () = default;
+    ShaderKindAdapter (const char*           extension,
+                       VkShaderStageFlagBits vkflag,
+                       ShaderKind            shaderKind,
+                       EShLanguage           esh,
+                       const char*           displayName)
+        : extension { extension }
+        , vkflag { vkflag }
+        , shaderKind { shaderKind }
+        , esh { esh }
+        , displayName { displayName }
+    {
+    }
 
 public:
     static const ShaderKindAdapter FromExtension (const std::string&);

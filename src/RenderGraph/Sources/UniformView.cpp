@@ -42,6 +42,7 @@ UView::UView (const std::shared_ptr<UBO>& root, uint8_t* data)
 {
 }
 
+
 UView::UView (const UView& other)
     : type (other.type)
     , data (other.data)
@@ -52,10 +53,12 @@ UView::UView (const UView& other)
 {
 }
 
+
 uint32_t UView::GetOffset () const
 {
     return offset;
 }
+
 
 UView UView::operator[] (std::string_view str)
 {
@@ -81,6 +84,7 @@ UView UView::operator[] (std::string_view str)
     return invalidUview;
 }
 
+
 UView UView::operator[] (uint32_t index)
 {
     if (GVK_ERROR (data == nullptr)) {
@@ -94,6 +98,7 @@ UView UView::operator[] (uint32_t index)
 
     return UView (Type::Variable, data, index * currentField->arrayStride, size, parentContainer, currentField);
 }
+
 
 std::vector<std::string> UView::GetFieldNames () const
 {
@@ -115,25 +120,30 @@ UDataInternal::UDataInternal (const std::shared_ptr<UBO>& ubo)
     std::fill (bytes.begin (), bytes.end (), 0);
 }
 
+
 UView UDataInternal::operator[] (std::string_view str)
 {
     return root[str];
 }
+
 
 std::vector<std::string> UDataInternal::GetNames ()
 {
     return root.GetFieldNames ();
 }
 
+
 uint8_t* UDataInternal::GetData ()
 {
     return bytes.data ();
 }
 
+
 uint32_t UDataInternal::GetSize () const
 {
     return bytes.size ();
 }
+
 
 UDataExternal::UDataExternal (const std::shared_ptr<UBO>& ubo, uint8_t* bytes, uint32_t size)
     : root (ubo, bytes)
@@ -144,20 +154,24 @@ UDataExternal::UDataExternal (const std::shared_ptr<UBO>& ubo, uint8_t* bytes, u
     memset (bytes, 0, size);
 }
 
+
 UView UDataExternal::operator[] (std::string_view str)
 {
     return root[str];
 }
+
 
 std::vector<std::string> UDataExternal::GetNames ()
 {
     return root.GetFieldNames ();
 }
 
+
 uint8_t* UDataExternal::GetData ()
 {
     return bytes;
 }
+
 
 uint32_t UDataExternal::GetSize () const
 {

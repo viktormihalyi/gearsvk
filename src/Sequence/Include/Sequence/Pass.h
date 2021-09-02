@@ -10,9 +10,10 @@
 #include <vector>
 #include <memory>
 
+#ifdef GEARSVK_CEREAL
 #include <cereal/cereal.hpp>
 #include <cereal/types/polymorphic.hpp>
-
+#endif
 
 class Sequence;
 class Stimulus;
@@ -58,7 +59,8 @@ public:
         float pif;
         float motion;
         
-        template <class Archive>
+#ifdef GEARSVK_CEREAL
+        template<class Archive>
         void serialize (Archive& ar)
         {
             ar (CEREAL_NVP (x));
@@ -68,6 +70,7 @@ public:
             ar (CEREAL_NVP (pif));
             ar (CEREAL_NVP (motion));
         }
+#endif
     };
     std::vector<QuadData> quads;
     enum class RasterizationMode {
@@ -211,7 +214,8 @@ public:
 
     std::string ToDebugString () const;
 
-    template <class Archive>
+#ifdef GEARSVK_CEREAL
+    template<class Archive>
     void serialize (Archive& ar)
     {
         ar (CEREAL_NVP (name));
@@ -239,7 +243,10 @@ public:
         ar (CEREAL_NVP (mono));
         ar (CEREAL_NVP (transparent));
     }
+#endif
 };
 
 
+#ifdef GEARSVK_CEREAL
 CEREAL_REGISTER_TYPE (Pass)
+#endif

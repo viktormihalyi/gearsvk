@@ -15,9 +15,10 @@
 
 #include <glm/glm.hpp>
 
+#ifdef GEARSVK_CEREAL
 #include <cereal/cereal.hpp>
 #include <cereal/types/polymorphic.hpp>
-
+#endif
 
 class Pass;
 class Sequence;
@@ -41,12 +42,14 @@ public:
         bool        clear;
         std::string channel;
             
-        template <typename Archive>
+#ifdef GEARSVK_CEREAL
+        template<typename Archive>
         void serialize (Archive& ar)
         {
             ar (CEREAL_NVP (clear));
             ar (CEREAL_NVP (channel));
         }
+#endif
     };
     using SignalMap = std::multimap<unsigned int, SignalEvent>;
     SignalMap             tickSignals;
@@ -204,7 +207,8 @@ public:
 
     virtual void OnPassAdded (std::shared_ptr<Pass> pass) {}
 
-    template <typename Archive>
+#ifdef GEARSVK_CEREAL
+    template<typename Archive>
     void serialize (Archive& ar)
     {
         ar (CEREAL_NVP (duration));
@@ -265,6 +269,9 @@ public:
         ar (CEREAL_NVP (interactives));
 
     }
+#endif
 };
 
+#ifdef GEARSVK_CEREAL
 CEREAL_REGISTER_TYPE (Stimulus)
+#endif

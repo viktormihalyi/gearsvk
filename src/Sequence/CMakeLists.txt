@@ -40,7 +40,6 @@ add_library (Sequence SHARED ${Headers} ${Sources})
 
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 find_package (pybind11 REQUIRED)
-find_package (cereal REQUIRED)
 
 target_include_directories (Sequence
     PRIVATE
@@ -55,7 +54,6 @@ target_include_directories (Sequence
 
         ${Python3_INCLUDE_DIRS}
         ${pybind11_INCLUDE_DIRS}
-        ${cereal_INCLUDE_DIRS}
 
         $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
@@ -64,7 +62,6 @@ target_include_directories (Sequence
 target_link_libraries (Sequence
     PUBLIC ${Python3_LIBRARY_RELEASE}
     PUBLIC ${pybind11_LIBRARIES}
-    PUBLIC ${cereal_LIBRARIES}
     PUBLIC RenderGraph
     PUBLIC Utils
 )

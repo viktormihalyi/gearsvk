@@ -23,18 +23,6 @@
 // from glm
 #include <glm/glm.hpp>
 
-#define CEREAL_THREAD_SAFE 1 // doesnt compile otherwise
-
-#include <cereal/types/map.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/types/string.hpp>
-#include <cereal/types/memory.hpp>
-#include <cereal/types/list.hpp>
-#include <cereal/types/set.hpp>
-#include <cereal/types/complex.hpp>
-#include <cereal/archives/binary.hpp>
-#include <cereal/archives/json.hpp>
-
 #include "Sequence/Pass.h"
 #include "Sequence/Sequence.h"
 #include "Sequence/Stimulus.h"
@@ -50,34 +38,8 @@
 #include "GearsPYD/GearsAPIv2.hpp"
 #include "Sequence/SequenceAdapter.hpp"
 
-
 #include <sstream>
 #include "spdlog/spdlog.h"
-
-namespace glm
-{
-
-    template<class Archive> void serialize(Archive& archive, glm::vec2& v) { archive(v.x, v.y); }
-    template<class Archive> void serialize(Archive& archive, glm::vec3& v) { archive(v.x, v.y, v.z); }
-    template<class Archive> void serialize(Archive& archive, glm::vec4& v) { archive(v.x, v.y, v.z, v.w); }
-    template<class Archive> void serialize(Archive& archive, glm::ivec2& v) { archive(v.x, v.y); }
-    template<class Archive> void serialize(Archive& archive, glm::ivec3& v) { archive(v.x, v.y, v.z); }
-    template<class Archive> void serialize(Archive& archive, glm::ivec4& v) { archive(v.x, v.y, v.z, v.w); }
-    template<class Archive> void serialize(Archive& archive, glm::uvec2& v) { archive(v.x, v.y); }
-    template<class Archive> void serialize(Archive& archive, glm::uvec3& v) { archive(v.x, v.y, v.z); }
-    template<class Archive> void serialize(Archive& archive, glm::uvec4& v) { archive(v.x, v.y, v.z, v.w); }
-    template<class Archive> void serialize(Archive& archive, glm::dvec2& v) { archive(v.x, v.y); }
-    template<class Archive> void serialize(Archive& archive, glm::dvec3& v) { archive(v.x, v.y, v.z); }
-    template<class Archive> void serialize(Archive& archive, glm::dvec4& v) { archive(v.x, v.y, v.z, v.w); }
-
-    // glm matrices serialization
-    template<class Archive> void serialize(Archive& archive, glm::mat2& m) { archive(m[0], m[1]); }
-    template<class Archive> void serialize(Archive& archive, glm::dmat2& m) { archive(m[0], m[1]); }
-    template<class Archive> void serialize(Archive& archive, glm::mat3& m) { archive(m[0], m[1], m[2]); }
-    template<class Archive> void serialize(Archive& archive, glm::mat4& m) { archive(m[0], m[1], m[2], m[3]); }
-    template<class Archive> void serialize(Archive& archive, glm::dmat4& m) { archive(m[0], m[1], m[2], m[3]); }
-
-}
 
 
 static const std::filesystem::path SequencesFolder = std::filesystem::current_path () / "Project" / "Sequences";
@@ -153,17 +115,6 @@ protected:
 TEST_F (GearsTests, 04_velocity400)
 {
     LoadFromFile (SequencesFolder / "4_MovingShapes" / "1_Bars" / "04_velocity400.pyx");
-
-    {
-        std::stringstream         ss;            // any stream can be used
-        cereal::JSONOutputArchive oarchive (ss); // Create an output archive
-
-        oarchive (sequenceAdapter->GetSequence ());
-
-        std::string val = ss.str ();
-        Utils::WriteTextFile (std::filesystem::current_path () / "asd.txt", val);
-    }
-
 
     RenderAndCompare (243, "400_velocity400_243");
 }

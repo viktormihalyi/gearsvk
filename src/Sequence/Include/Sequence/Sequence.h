@@ -6,8 +6,10 @@
 #include "SequenceAPI.hpp"
 #include <memory>
 
+#ifdef GEARSVK_CEREAL
 #include <cereal/cereal.hpp>
 #include <cereal/types/polymorphic.hpp>
+#endif
 
 class Stimulus;
 class Response;
@@ -22,26 +24,29 @@ public:
         unsigned int raiseFunc;
         unsigned int clearFunc;
 
-        template <typename Archive>
+#ifdef GEARSVK_CEREAL
+        template<typename Archive>
         void serialize (Archive& ar)
         {
             ar (CEREAL_NVP (portName));
             ar (CEREAL_NVP (raiseFunc));
             ar (CEREAL_NVP (clearFunc));
         }
-
+#endif
     };
     using ChannelMap = std::map<std::string, Channel>;
     struct SignalEvent {
         bool        clear;
         std::string channel;
 
-        template <typename Archive>
+#ifdef GEARSVK_CEREAL
+        template<typename Archive>
         void serialize (Archive& ar)
         {
             ar (CEREAL_NVP (clear));
             ar (CEREAL_NVP (channel));
         }
+#endif
     };
     using SignalMap = std::multimap<unsigned int, SignalEvent>;
 
@@ -246,7 +251,8 @@ public:
 
 public:
 
-    template <typename Archive>
+#ifdef GEARSVK_CEREAL
+    template<typename Archive>
     void serialize (Archive& ar)
     {
         ar (CEREAL_NVP (stimuli));
@@ -297,7 +303,9 @@ public:
         ar (CEREAL_NVP (hasSpatialDomainConvolution));
 
     }
+#endif
 };
 
-
+#ifdef GEARSVK_CEREAL
 CEREAL_REGISTER_TYPE (Sequence)
+#endif

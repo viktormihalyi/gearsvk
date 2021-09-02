@@ -5,7 +5,7 @@
 #include "Sequence.h"
 #include "Stimulus.h"
 
-// from GearsVkUtils
+// from Utils
 #include "Utils/CommandLineFlag.hpp"
 #include "Utils/Assert.hpp"
 #include "Utils/FileSystemUtils.hpp"
@@ -35,6 +35,7 @@
 #include <string>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 
 
 constexpr bool LogDebugInfo = false;
