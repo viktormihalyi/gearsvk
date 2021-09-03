@@ -188,7 +188,8 @@ public:
 
     virtual bool IsEquivalent (const Command& other) override
     {
-        if (auto otherCommand = dynamic_cast<const CommandPipelineBarrier*> (&other)) {
+        if (auto otherCommand = dynamic_cast<const CommandTranstionImage*> (&other)) {
+            return true;
         }
 
         return false;
@@ -558,6 +559,7 @@ public:
         , dstImageLayout (dstImageLayout)
         , regions (regions)
     {
+        GVK_ASSERT (dstImageLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL || dstImageLayout == VK_IMAGE_LAYOUT_GENERAL);
     }
 
     virtual void Record (CommandBuffer& commandBuffer) override

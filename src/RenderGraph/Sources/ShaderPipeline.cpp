@@ -40,7 +40,7 @@ std::unique_ptr<GVK::ShaderModule>& ShaderPipeline::GetShaderByIndex (uint32_t i
         case 4: return tessellationControlShader;
         case 5: return computeShader;
         default:
-            GVK_ASSERT (false);
+            GVK_BREAK ();
             throw std::runtime_error ("no");
     }
 }
@@ -62,7 +62,7 @@ std::unique_ptr<GVK::ShaderModule>& ShaderPipeline::GetShaderByExtension (const 
         return computeShader;
     }
 
-    GVK_ERROR (true);
+    GVK_BREAK ();
     throw std::runtime_error ("bad shader extension");
 }
 
@@ -78,7 +78,7 @@ std::unique_ptr<GVK::ShaderModule>& ShaderPipeline::GetShaderByKind (GVK::Shader
         case GVK::ShaderKind::Compute: return computeShader;
     }
 
-    GVK_ERROR (true);
+    GVK_BREAK ();
     throw std::runtime_error ("unknown shader kind");
 }
 

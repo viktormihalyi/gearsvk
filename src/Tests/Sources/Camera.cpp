@@ -144,7 +144,7 @@ void Camera::Move (Camera::MovementDirection dir, float dt)
             break;
 
         default:
-            GVK_ASSERT (false);
+            GVK_BREAK ();
             break;
     }
 

@@ -158,7 +158,7 @@ protected:
         static const VkFormat FormatRGBA;
         static const VkFormat FormatRGB;
 
-        const std::unique_ptr<GVK::Image>              image;
+        std::unique_ptr<GVK::Image>                    image;
         std::vector<std::unique_ptr<GVK::ImageView2D>> imageViews;
         std::optional<VkImageLayout>                   layoutRead;
         std::optional<VkImageLayout>                   layoutWrite;

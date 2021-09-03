@@ -393,7 +393,7 @@ void GLFWWindowBase::SetWindowMode (Mode mode)
         glfwSetWindowMonitor (impl->window, nullptr, 0, 0, 800, 600, primaryMonitorMode->refreshRate);
         glfwSetWindowPos (impl->window, impl->posXWindowed, impl->posYWindowed);
     } else {
-        GVK_BREAK ("unexpected window mode type");
+        GVK_BREAK_STR ("unexpected window mode type");
     }
 
     impl->mode = mode;

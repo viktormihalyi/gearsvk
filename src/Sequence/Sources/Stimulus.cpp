@@ -396,7 +396,7 @@ void Stimulus::addPass (std::shared_ptr<Pass> pass)
 
 void Stimulus::finishLtiSettings ()
 {
-    GVK_ASSERT (false);
+    GVK_BREAK ();
 #if 0
     if (temporalProcessingStateCount == 3) {
         temporalMemoryLength = 64;

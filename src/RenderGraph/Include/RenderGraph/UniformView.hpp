@@ -95,7 +95,7 @@ public:
         static_assert (sizeof (T) >= 4, "there are no data types in glsl with less than 4 bytes");
 
         if (GetData () == nullptr) {
-            GVK_ASSERT (false);
+            GVK_BREAK ();
             return;
         }
 
@@ -109,7 +109,7 @@ public:
         static_assert (sizeof (T) >= 4, "there are no data types in glsl with less than 4 bytes");
 
         if (GetData () == nullptr) {
-            GVK_ASSERT (false);
+            GVK_BREAK ();
             return;
         }
 
@@ -120,7 +120,7 @@ public:
     bool IsAllZero ()
     {
         if (GetData () == nullptr) {
-            GVK_ASSERT (false);
+            GVK_BREAK ();
             return true;
         }
 

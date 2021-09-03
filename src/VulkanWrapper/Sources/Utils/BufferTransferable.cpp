@@ -1,5 +1,10 @@
 #include "BufferTransferable.hpp"
 
+#include "VulkanWrapper/CommandBuffer.hpp"
+#include "VulkanWrapper/Utils/SingleTimeCommand.hpp"
+#include "VulkanWrapper/Commands.hpp"
+#include "VulkanWrapper/Utils/VulkanUtils.hpp"
+
 #include <cmath>
 
 namespace GVK {
@@ -37,7 +42,7 @@ static ShaderType GetShaderTypeFromFormat (VkFormat format)
         case VK_FORMAT_R32G32B32A32_UINT: return vec4;
 
         default:
-            GVK_ASSERT (false);
+            GVK_BREAK ();
             throw std::runtime_error ("unhandled VkFormat value");
     }
 }
@@ -94,6 +99,69 @@ std::vector<VkVertexInputBindingDescription> VertexInputInfo::GetBindings (uint3
         a.binding = binding;
     }
     return result;
+}
+
+
+void BufferTransferable::CopyAndTransfer (const void* data, size_t size) const
+{
+    GVK_ASSERT (size == bufferSize);
+    bufferCPUMapping.Copy (data, size);
+    CopyBuffer (device, bufferCPU, bufferGPU, bufferSize);
+}
+
+
+void ImageTransferable::CopyLayer (VkImageLayout currentImageLayout, const void* data, size_t size, uint32_t layerIndex, std::optional<VkImageLayout> nextLayout) const
+{
+    bufferCPUMapping.Copy (data, size);
+
+    SingleTimeCommand commandBuffer (device);
+
+    commandBuffer.Record<CommandTranstionImage> (*imageGPU, currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    VkBufferImageCopy region               = {};
+    region.bufferOffset                    = 0;
+    region.bufferRowLength                 = 0;
+    region.bufferImageHeight               = 0;
+    region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel       = 0;
+    region.imageSubresource.baseArrayLayer = layerIndex;
+    region.imageSubresource.layerCount     = 1;
+    region.imageOffset                     = { 0, 0, 0 };
+    region.imageExtent                     = { imageGPU->GetWidth (), imageGPU->GetHeight (), imageGPU->GetDepth () };
+
+    imageGPU->CmdCopyBufferPartToImage (commandBuffer, bufferCPU, region);
+
+    if (nextLayout.has_value ()) {
+        commandBuffer.Record<CommandTranstionImage> (*imageGPU, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
+    }
+}
+
+
+Image1DTransferable::Image1DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
+    : ImageTransferable (device, width * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
+{
+    imageGPU = std::make_unique<Image1D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
+}
+
+
+Image2DTransferable::Image2DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers)
+    : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
+{
+    imageGPU = std::make_unique<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
+}
+
+
+Image2DTransferableLinear::Image2DTransferableLinear (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers)
+    : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
+{
+    imageGPU = std::make_unique<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_LINEAR, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
+}
+
+
+Image3DTransferable::Image3DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
+    : ImageTransferable (device, width * height * depth * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
+{
+    imageGPU = std::make_unique<Image3D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
 }
 
 }

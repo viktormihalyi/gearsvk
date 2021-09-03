@@ -42,7 +42,7 @@ Surface::Surface (PlatformSpecificSelector, VkInstance instance, void* handle)
     : instance (instance)
     , handle (VK_NULL_HANDLE)
 {
-    GVK_BREAK ("no implementation for this platform");
+    GVK_BREAK_STR ("no implementation for this platform");
     throw std::runtime_error ("unsupported platform for creating VkSurface");
 }
 

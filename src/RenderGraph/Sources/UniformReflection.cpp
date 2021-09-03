@@ -87,7 +87,7 @@ void UniformReflection::CreateGraphConnections ()
             case GVK::ShaderKind::TessellationControl: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
             case GVK::ShaderKind::TessellationEvaluation: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
             case GVK::ShaderKind::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
-            default: GVK_BREAK ("unexpected shaderkind type"); return VK_SHADER_STAGE_ALL;
+            default: GVK_BREAK_STR ("unexpected shaderkind type"); return VK_SHADER_STAGE_ALL;
         }
     };
 
@@ -178,7 +178,7 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
                         imgRes = std::make_unique<ReadOnlyImageResource> (format, filter, extent.x, extent.y, extent.z, layerCount);
                         break;
                     default:
-                        GVK_BREAK ("unexpected sampler type");
+                        GVK_BREAK_STR ("unexpected sampler type");
                         break;
                 }
 

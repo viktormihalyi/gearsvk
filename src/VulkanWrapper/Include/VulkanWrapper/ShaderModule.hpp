@@ -56,6 +56,7 @@ public:
         std::vector<SR::Sampler>              samplers;
         std::vector<SR::Input>                inputs;
         std::vector<SR::Output>               outputs;
+        std::vector<SR::SubpassInput>         subpassInputs;
 
         Reflection (ShaderKind shaderKind, const std::vector<uint32_t>& binary);
 

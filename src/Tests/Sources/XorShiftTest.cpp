@@ -16,6 +16,7 @@
 #include "VulkanWrapper/ShaderModule.hpp"
 #include "VulkanWrapper/DeviceExtra.hpp"
 #include "VulkanWrapper/Utils/ImageData.hpp"
+#include "VulkanWrapper/Commands.hpp"
 
 #include <memory>
 #include <string>

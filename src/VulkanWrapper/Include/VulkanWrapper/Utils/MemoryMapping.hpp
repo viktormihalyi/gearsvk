@@ -41,9 +41,8 @@ public:
     template<typename T>
     void Copy (const std::vector<T>& obj) const
     {
-        const size_t copiedObjSize = sizeof (T);
-        GVK_ASSERT (copiedObjSize * obj.size () == size);
-        memcpy (mappedMemory, obj.data (), size);
+        GVK_ASSERT (sizeof (T) * obj.size () == size);
+        memcpy (mappedMemory, obj.data (), sizeof (T) * obj.size ());
     }
 
     template<typename T>

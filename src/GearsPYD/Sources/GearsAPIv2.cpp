@@ -57,9 +57,9 @@ void StartRendering ()
         currentSeq->RenderFullOnExternalWindow ();
     } catch (std::exception& ex) {
         spdlog::error ("StartRendering failed: {}", ex.what ());
-        GVK_BREAK ("rendering failed");
+        GVK_BREAK_STR ("rendering failed");
     } catch (...) {
-        GVK_BREAK ("rendering failed!!");
+        GVK_BREAK_STR ("rendering failed!!");
     }
 }
 
@@ -85,7 +85,7 @@ intptr_t CreateSurface (intptr_t hwnd)
     createdSurfaces.push_back (presentable);
     return reinterpret_cast<intptr_t> (presentable.get ());
 #else
-    GVK_BREAK ("Creating native VkSurfaceKHR on this platform is not supported.");
+    GVK_BREAK_STR ("Creating native VkSurfaceKHR on this platform is not supported.");
     return 0;
 #endif
 }
@@ -187,7 +187,7 @@ std::shared_ptr<Sequence> GetSequenceFromPyx (const std::filesystem::path& fileP
         return sequenceCpp;
 
     } catch (std::exception& e) {
-        GVK_BREAK ("Failed to load sequence.");
+        GVK_BREAK_STR ("Failed to load sequence.");
         spdlog::error ("Failed to load sequence: {}", e.what ());
         return nullptr;
     }

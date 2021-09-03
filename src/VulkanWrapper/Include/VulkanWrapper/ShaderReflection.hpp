@@ -45,6 +45,7 @@ enum class FieldType : uint16_t {
     Dmat4x2, Dmat4x3, Dmat4x4,
 
     // ...
+    Image,
     Struct,
     Unknown
 };
@@ -138,9 +139,19 @@ class VULKANWRAPPER_API Input {
 public:
     std::string   name;
     uint32_t      location;
-    FieldType type;
+    FieldType     type;
     uint32_t      arraySize; // 0 for non-arrays
     uint32_t      sizeInBytes;
+};
+
+
+class VULKANWRAPPER_API SubpassInput {
+public:
+    std::string name;
+    uint32_t    binding;
+    uint32_t    subpassIndex;
+    FieldType   type;
+    uint32_t    arraySize; // 0 for non-arrays
 };
 
 
@@ -161,6 +172,9 @@ std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler);
 
 VULKANWRAPPER_API
 std::vector<Sampler> GetSamplersFromBinary (ReflCompiler& compiler);
+
+VULKANWRAPPER_API
+std::vector<SubpassInput> GetSubpassInputsFromBinary (ReflCompiler& compiler);
 
 VULKANWRAPPER_API
 std::vector<Input> GetInputsFromBinary (ReflCompiler& compiler);

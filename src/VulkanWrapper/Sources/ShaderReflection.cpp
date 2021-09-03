@@ -84,6 +84,7 @@ public:
     std::optional<uint32_t> Binding;
     std::optional<uint32_t> DescriptorSet;
     std::optional<uint32_t> Location;
+    std::optional<uint32_t> InputAttachmentIndex;
 
 private:
     static std::optional<uint32_t> GetDecor (const spirv_cross::Compiler& compiler, spirv_cross::ID resId, spv::Decoration decor)
@@ -138,6 +139,7 @@ public:
         , AllDecorations_INITIALIZE_DECORATION (DescriptorSet)
         , AllDecorations_INITIALIZE_DECORATION (Offset)
         , AllDecorations_INITIALIZE_DECORATION (Location)
+        , AllDecorations_INITIALIZE_DECORATION (InputAttachmentIndex)
     {
     }
 
@@ -147,7 +149,7 @@ public:
         , AllDecorations_INITIALIZE_MEMBER_DECORATION (Binding)
         , AllDecorations_INITIALIZE_MEMBER_DECORATION (DescriptorSet)
         , AllDecorations_INITIALIZE_MEMBER_DECORATION (Offset)
-        , AllDecorations_INITIALIZE_MEMBER_DECORATION (Location)
+        , AllDecorations_INITIALIZE_MEMBER_DECORATION (InputAttachmentIndex)
     {
     }
 };
@@ -169,7 +171,7 @@ static uint32_t BaseTypeToByteSize (spirv_cross::SPIRType::BaseType b)
             return 8;
 
         default:
-            GVK_BREAK ("bad BaseType");
+            GVK_BREAK_STR ("bad BaseType");
             return 4;
     }
 }
@@ -282,6 +284,9 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
         case BaseType::Struct:
             return FieldType::Struct;
 
+        case BaseType::Image:
+            return FieldType::Image;
+
         case BaseType::Int64:
             switch (vecSize) {
                 case 1: return FieldType::i64;
@@ -301,7 +306,7 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
             }
 
         default:
-            GVK_ASSERT (false);
+            GVK_BREAK ();
             return FieldType::Unknown;
     }
 }
@@ -466,9 +471,40 @@ VkFormat FieldTypeToVkFormat (FieldType fieldType)
         case FieldType::Dvec4: return VK_FORMAT_R64G64B64A64_SFLOAT;
 
         default:
-            GVK_BREAK ("no");
+            GVK_BREAK_STR ("no");
             throw std::runtime_error ("unable to convert FieldType to VkFormat");
     }
+}
+
+
+std::vector<SubpassInput> GetSubpassInputsFromBinary (ReflCompiler& compiler_)
+{
+    spirv_cross::Compiler& compiler = compiler_.impl->compiler;
+
+    const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
+
+    std::vector<SubpassInput> result;
+
+    for (auto& resource : resources.subpass_inputs) {
+        AllDecorations decorations (compiler, resource.id);
+        auto           type = compiler.get_type (resource.type_id);
+
+        SubpassInput inp;
+
+        inp.name         = resource.name;
+        inp.binding      = *decorations.Binding;
+        inp.subpassIndex = *decorations.InputAttachmentIndex;
+        inp.type         = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
+        inp.arraySize    = !type.array.empty () ? type.array[0] : 0;
+
+        result.push_back (inp);
+    }
+
+    std::sort (result.begin (), result.end (), [] (const SubpassInput& first, const SubpassInput& second) {
+        return first.binding < second.binding;
+    });
+
+    return result;
 }
 
 
@@ -512,7 +548,7 @@ static Sampler::Type SpvDimToSamplerType (spv::Dim dim)
         case spv::Dim::DimCube: return Sampler::Type::SamplerCube;
 
         default:
-            GVK_ASSERT (false);
+            GVK_BREAK ();
             throw std::runtime_error ("not supported type");
     }
 }
@@ -554,7 +590,7 @@ std::vector<Sampler> GetSamplersFromBinary (ReflCompiler& compiler_)
     case enumname::type:                    \
         return #type;
 #define ENUM_TO_STRING_DEFAULT(enumname) \
-    default: GVK_ASSERT (false); return #enumname "::[unknown]";
+    default: GVK_BREAK (); return #enumname "::[unknown]";
 
 
 std::string FieldTypeToString (FieldType fieldType)

@@ -458,10 +458,11 @@ ShaderModule::Reflection::Reflection (ShaderKind shaderKind, const std::vector<u
 {
     SR::ReflCompiler c (binary);
 
-    ubos     = SR::GetUBOsFromBinary (c);
-    samplers = SR::GetSamplersFromBinary (c);
-    inputs   = SR::GetInputsFromBinary (c);
-    outputs  = SR::GetOutputsFromBinary (c);
+    ubos          = SR::GetUBOsFromBinary (c);
+    samplers      = SR::GetSamplersFromBinary (c);
+    inputs        = SR::GetInputsFromBinary (c);
+    outputs       = SR::GetOutputsFromBinary (c);
+    subpassInputs = SR::GetSubpassInputsFromBinary (c);
 }
 
 
@@ -478,7 +479,7 @@ ShaderModule::Reflection::GetLayout () const
             case ShaderKind::TessellationControl: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
             case ShaderKind::TessellationEvaluation: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
             case ShaderKind::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
-            default: GVK_BREAK ("unexpected shaderkind type"); return VK_SHADER_STAGE_ALL;
+            default: GVK_BREAK_STR ("unexpected shaderkind type"); return VK_SHADER_STAGE_ALL;
         }
     };
 
@@ -496,6 +497,16 @@ ShaderModule::Reflection::GetLayout () const
         VkDescriptorSetLayoutBinding bin = {};
         bin.binding                      = ubo->binding;
         bin.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        bin.descriptorCount              = 1;
+        bin.stageFlags                   = shaderKindToShaderStage (shaderKind);
+        bin.pImmutableSamplers           = nullptr;
+        result.push_back (bin);
+    }
+
+    for (const SR::SubpassInput& subpassInput : subpassInputs) {
+        VkDescriptorSetLayoutBinding bin = {};
+        bin.binding                      = subpassInput.binding;
+        bin.descriptorType               = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
         bin.descriptorCount              = 1;
         bin.stageFlags                   = shaderKindToShaderStage (shaderKind);
         bin.pImmutableSamplers           = nullptr;
@@ -672,10 +683,10 @@ void ShaderModule::Reload ()
         binary = code;
 
     } else if (readMode == ReadMode::GLSLString) {
-        GVK_BREAK ("cannot reload shaders from hard coded strings");
+        GVK_BREAK_STR ("cannot reload shaders from hard coded strings");
 
     } else {
-        GVK_BREAK ("unknown read mode");
+        GVK_BREAK_STR ("unknown read mode");
     }
 }
 
@@ -690,7 +701,7 @@ std::string ShaderKindToString (ShaderKind shaderKind)
         case ShaderKind::Geometry: return "Geometry";
         case ShaderKind::Compute: return "Compute";
         default:
-            GVK_BREAK ("unexpected shaderkind type");
+            GVK_BREAK_STR ("unexpected shaderkind type");
             return "";
     }
 }

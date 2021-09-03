@@ -80,7 +80,7 @@ UView UView::operator[] (std::string_view str)
 
     spdlog::error ("No \"{}\" uniform named on \"{}\".", str, currentField->name);
 
-    GVK_ASSERT (false);
+    GVK_BREAK ();
     return invalidUview;
 }
 

@@ -265,7 +265,7 @@ VulkanEnvironment::VulkanEnvironment (std::optional<GVK::DebugUtilsMessenger::Ca
                 case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: return "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
                 case VK_PHYSICAL_DEVICE_TYPE_CPU: return "VK_PHYSICAL_DEVICE_TYPE_CPU";
                 default:
-                    GVK_ASSERT (false);
+                    GVK_BREAK ();
                     return "<unknown>";
             }
         };

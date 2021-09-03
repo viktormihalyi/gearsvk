@@ -35,7 +35,7 @@ PySequence::~PySequence () = default;
 
 pybind11::object PySequence::set (pybind11::object settings)
 {
-    GVK_ASSERT (false);
+    GVK_BREAK ();
     throw std::runtime_error ("PySequence::set not implemented.");
 #if 0
 	using namespace boost::python;
@@ -114,7 +114,7 @@ std::shared_ptr<PySequence> PySequence::setAgenda (pybind11::object agenda)
                     std::stringstream ss;
                     ss << "Item #" << i + 1 << " on agenda is a StartMeasurement, but the measurement has already been started.";
                     PyErr_SetString (PyExc_TypeError, ss.str ().c_str ());
-                    GVK_ASSERT (false);
+                    GVK_BREAK ();
                     throw std::runtime_error ("throw_error_already_set");
                     // boost::python::throw_error_already_set ();
                 }
@@ -130,7 +130,7 @@ std::shared_ptr<PySequence> PySequence::setAgenda (pybind11::object agenda)
                 if (!setMeasurementEnd ()) {
                     std::stringstream ss;
                     ss << "Item #" << i + 1 << " on agenda is an EndMeasurement, but the measurement has already been ended.";
-                    GVK_ASSERT (false);
+                    GVK_BREAK ();
                     PyErr_SetString (PyExc_TypeError, ss.str ().c_str ());
                     throw std::runtime_error ("throw_error_already_set");
                     //boost::python::throw_error_already_set ();

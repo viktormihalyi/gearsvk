@@ -14,7 +14,7 @@ void ConnectionSet::VisitOutputsOf (const Node* node, IResourceVisitor& visitor)
             if (std::shared_ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c->to)) {
                 asResource->Visit (visitor);
             } else {
-                GVK_BREAK ("???");
+                GVK_BREAK_STR ("???");
             }
         }
     }
@@ -28,7 +28,7 @@ void ConnectionSet::VisitInputsOf (const Node* node, IResourceVisitor& visitor) 
             if (std::shared_ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c->from)) {
                 asResource->Visit (visitor);
             } else {
-                GVK_BREAK ("???");
+                GVK_BREAK_STR ("???");
             }
         }
     }

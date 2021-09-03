@@ -460,7 +460,7 @@ std::string Pass::ToDebugString () const
         case RasterizationMode::fullscreen: ss << "RasterizationMode::fullscreen"; break;
         case RasterizationMode::quads: ss << "RasterizationMode::quads"; break;
         case RasterizationMode::triangles: ss << "RasterizationMode::triangles"; break;
-        default: GVK_BREAK ("unkown RasterizationMode"); ss << "unkown RasterizationMode"; break;
+        default: GVK_BREAK_STR ("unkown RasterizationMode"); ss << "unkown RasterizationMode"; break;
     }
 
     ss << std::endl;

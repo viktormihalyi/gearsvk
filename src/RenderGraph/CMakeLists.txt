@@ -31,6 +31,8 @@ set (Headers
 
 set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
+    ${SourcesPath}/DrawRecordable/DrawRecordableInfo.cpp
+
     ${SourcesPath}/GraphRenderer.cpp
     ${SourcesPath}/GraphSettings.cpp
     ${SourcesPath}/Operation.cpp

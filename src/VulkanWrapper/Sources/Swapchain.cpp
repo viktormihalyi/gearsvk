@@ -19,7 +19,7 @@ VkSurfaceFormatKHR DefaultSwapchainSettings::SelectSurfaceFormat (const std::vec
         }
     }
 
-    GVK_ASSERT (false);
+    GVK_BREAK ();
     spdlog::error ("VkSwapchainKHR: Failed to choose swapchain surface format ({} format and {} color space is not available).", preferred.format, preferred.colorSpace);
     throw std::runtime_error ("failed to choose swapchain surface format");
 }
@@ -33,7 +33,7 @@ VkPresentModeKHR DefaultSwapchainSettings::SelectPresentMode (const std::vector<
         }
     }
 
-    GVK_ASSERT (false);
+    GVK_BREAK ();
     spdlog::error ("VkSwapchainKHR: Failed to choose swapchain present mode.");
     throw std::runtime_error ("failed to choose swapchain present mode");
 }

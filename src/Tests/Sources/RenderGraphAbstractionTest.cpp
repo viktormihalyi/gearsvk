@@ -16,6 +16,7 @@
 #include "VulkanWrapper/Utils/ImageData.hpp"
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
+#include "VulkanWrapper/Commands.hpp"
 
 #include <iostream>
 #include <memory>

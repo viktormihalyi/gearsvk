@@ -11,7 +11,7 @@ RandomSequenceBuffer::RandomSequenceBuffer (GLuint width, GLuint height, void* i
     this->width  = width;
     this->height = height;
 
-	GVK_BREAK ("unused");
+	GVK_BREAK_STR ("unused");
 #if 0
 	glGenFramebuffers(1, &handle);
 	glGenTextures(1, &colorBuffer);
@@ -62,7 +62,7 @@ RandomSequenceBuffer::~RandomSequenceBuffer ()
 
 void RandomSequenceBuffer::setRenderTarget ()
 {
-	GVK_BREAK ("unused");
+	GVK_BREAK_STR ("unused");
 #if 0
     glBindFramebuffer (GL_FRAMEBUFFER, handle);
 
@@ -74,7 +74,7 @@ void RandomSequenceBuffer::setRenderTarget ()
 
 void RandomSequenceBuffer::disableRenderTarget ()
 {
-	GVK_BREAK ("unused");
+	GVK_BREAK_STR ("unused");
 #if 0
     GLenum tmpBuff[] = {GL_COLOR_ATTACHMENT0};
     glDrawBuffers (1, tmpBuff);

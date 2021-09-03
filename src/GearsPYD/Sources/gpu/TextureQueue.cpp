@@ -14,7 +14,7 @@ TextureQueue::TextureQueue (GLuint width, GLuint height, GLuint nSlices, bool mo
     this->height  = height;
     this->nSlices = nSlices;
 
-    GVK_BREAK ("unused func");
+    GVK_BREAK_STR ("unused func");
 #if 0
     glGenFramebuffers (1, &handle);
     glGenTextures (1, &colorBuffer);
@@ -101,7 +101,7 @@ TextureQueue::~TextureQueue ()
 
 void TextureQueue::setRenderTarget (GLuint slice)
 {
-    GVK_BREAK ("unused func");
+    GVK_BREAK_STR ("unused func");
 #if 0
     glBindFramebuffer (GL_FRAMEBUFFER, handle);
     glFramebufferTextureLayer (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorBuffer, 0, slice);
@@ -115,7 +115,7 @@ void TextureQueue::setRenderTarget (GLuint slice)
 
 void TextureQueue::disableRenderTarget ()
 {
-    GVK_BREAK ("unused func");
+    GVK_BREAK_STR ("unused func");
 #if 0
     GLenum tmpBuff[] = {GL_COLOR_ATTACHMENT0};
     glDrawBuffers (1, tmpBuff);
@@ -125,7 +125,7 @@ void TextureQueue::disableRenderTarget ()
 
 void TextureQueue::clear ()
 {
-    GVK_BREAK ("unused func");
+    GVK_BREAK_STR ("unused func");
 #if 0
     glClearColor (0.0f, 0.0f, 0.0f, 0.0f);
     glClearDepth (1.0f);
@@ -140,7 +140,7 @@ void TextureQueue::clear ()
 
 void TextureQueue::setRenderTargets ()
 {
-    GVK_BREAK ("unused func");
+    GVK_BREAK_STR ("unused func");
 #if 0
     glBindFramebuffer (GL_FRAMEBUFFER, handle);
     for (unsigned int i = 0; i < nSlices; i++) {
@@ -165,7 +165,7 @@ void TextureQueue::setRenderTargets ()
 
 void TextureQueue::disableRenderTargets ()
 {
-    GVK_BREAK ("unused func");
+    GVK_BREAK_STR ("unused func");
 #if 0
     GLenum tmpBuff[] = {GL_COLOR_ATTACHMENT0,
                         GL_COLOR_ATTACHMENT1,

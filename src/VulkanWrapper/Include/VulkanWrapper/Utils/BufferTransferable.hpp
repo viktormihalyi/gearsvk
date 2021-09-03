@@ -4,21 +4,16 @@
 #include "VulkanWrapper/VulkanWrapperAPI.hpp"
 
 #include "VulkanWrapper/Buffer.hpp"
-#include "VulkanWrapper/CommandBuffer.hpp"
 #include "VulkanWrapper/Device.hpp"
-#include "VulkanWrapper/DeviceMemory.hpp"
 #include "VulkanWrapper/Image.hpp"
 #include "VulkanWrapper/Utils/MemoryMapping.hpp"
-#include "VulkanWrapper/Utils/SingleTimeCommand.hpp"
-#include "VulkanWrapper/Utils/VulkanUtils.hpp"
-#include "VulkanWrapper/Commands.hpp"
 #include <memory>
 
 #include <cstring>
 
 namespace GVK {
 
-class /* VULKANWRAPPER_API */ BufferTransferable final {
+class VULKANWRAPPER_API BufferTransferable final {
 public:
     const DeviceExtra& device;
 
@@ -37,12 +32,7 @@ public:
     {
     }
 
-    void CopyAndTransfer (const void* data, size_t size) const
-    {
-        GVK_ASSERT (size == bufferSize);
-        bufferCPUMapping.Copy (data, size);
-        CopyBuffer (device, bufferCPU, bufferGPU, bufferSize);
-    }
+    void CopyAndTransfer (const void* data, size_t size) const;
 
     VkBuffer GetBufferToBind () const
     {
@@ -51,7 +41,7 @@ public:
 };
 
 
-class /* VULKANWRAPPER_API */ ImageTransferable {
+class VULKANWRAPPER_API ImageTransferable {
 private:
     const DeviceExtra& device;
 
@@ -77,31 +67,7 @@ public:
         CopyLayer (currentImageLayout, data, size, 0, nextLayout);
     }
 
-    void CopyLayer (VkImageLayout currentImageLayout, const void* data, size_t size, uint32_t layerIndex, std::optional<VkImageLayout> nextLayout = std::nullopt) const
-    {
-        bufferCPUMapping.Copy (data, size);
-
-        SingleTimeCommand commandBuffer (device);
-
-        commandBuffer.Record<CommandTranstionImage> (*imageGPU, currentImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-        VkBufferImageCopy region               = {};
-        region.bufferOffset                    = 0;
-        region.bufferRowLength                 = 0;
-        region.bufferImageHeight               = 0;
-        region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-        region.imageSubresource.mipLevel       = 0;
-        region.imageSubresource.baseArrayLayer = layerIndex;
-        region.imageSubresource.layerCount     = 1;
-        region.imageOffset                     = { 0, 0, 0 };
-        region.imageExtent                     = { imageGPU->GetWidth (), imageGPU->GetHeight (), imageGPU->GetDepth () };
-
-        imageGPU->CmdCopyBufferPartToImage (commandBuffer, bufferCPU, region);
-
-        if (nextLayout.has_value ()) {
-            commandBuffer.Record<CommandTranstionImage> (*imageGPU, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *nextLayout);
-        }
-    }
+    void CopyLayer (VkImageLayout currentImageLayout, const void* data, size_t size, uint32_t layerIndex, std::optional<VkImageLayout> nextLayout = std::nullopt) const;
 
     VkImage GetImageToBind () const
     {
@@ -110,43 +76,31 @@ public:
 };
 
 
-class /* VULKANWRAPPER_API */ Image1DTransferable final : public ImageTransferable {
+class VULKANWRAPPER_API Image1DTransferable final : public ImageTransferable {
 public:
-    Image1DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags)
-        : ImageTransferable (device, width * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
-    {
-        imageGPU = std::make_unique<Image1D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
-    }
+    Image1DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags);
+    virtual ~Image1DTransferable () override = default;
 };
 
 
-class /* VULKANWRAPPER_API */ Image2DTransferable final : public ImageTransferable {
+class VULKANWRAPPER_API Image2DTransferable final : public ImageTransferable {
 public:
-    Image2DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
-        : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
-    {
-        imageGPU = std::make_unique<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
-    }
+    Image2DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1);
+    virtual ~Image2DTransferable () override = default;
 };
 
 
-class /* VULKANWRAPPER_API */ Image2DTransferableLinear final : public ImageTransferable {
+class VULKANWRAPPER_API Image2DTransferableLinear final : public ImageTransferable {
 public:
-    Image2DTransferableLinear (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1)
-        : ImageTransferable (device, width * height * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
-    {
-        imageGPU = std::make_unique<Image2D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, format, VK_IMAGE_TILING_LINEAR, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, arrayLayers);
-    }
+    Image2DTransferableLinear (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1);
+    virtual ~Image2DTransferableLinear () override = default;
 };
 
 
-class /* VULKANWRAPPER_API */ Image3DTransferable final : public ImageTransferable {
+class VULKANWRAPPER_API Image3DTransferable final : public ImageTransferable {
 public:
-    Image3DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags)
-        : ImageTransferable (device, width * height * depth * GetCompontentCountFromFormat (format) * GetEachCompontentSizeFromFormat (format))
-    {
-        imageGPU = std::make_unique<Image3D> (device.GetAllocator (), Image::MemoryLocation::GPU, width, height, depth, format, VK_IMAGE_TILING_OPTIMAL, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags);
-    }
+    Image3DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags);
+    virtual ~Image3DTransferable () override = default;
 };
 
 

@@ -150,7 +150,7 @@ uint32_t GetCompontentCountFromFormat (VkFormat format)
         case VK_FORMAT_R8G8B8A8_UINT:
             return 4;
         default:
-            GVK_ASSERT (false);
+            GVK_BREAK ();
             return 4;
     }
 }
@@ -185,7 +185,7 @@ uint32_t GetEachCompontentSizeFromFormat (VkFormat format)
             return 4;
 
         default:
-            GVK_ASSERT (false);
+            GVK_BREAK ();
             return 1;
     }
 }

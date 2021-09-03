@@ -70,7 +70,7 @@ pybind11::object PyStimulus::setGamma (pybind11::object gammaList, bool invert)
 
 pybind11::object PyStimulus::setTemporalWeights (pybind11::object twList, bool fullScreen)
 {
-    GVK_ASSERT (false);
+    GVK_BREAK ();
     throw std::runtime_error ("PyStimulus::setTemporalWeights not implemented.");
 #if 0
     fullScreenTemporalFiltering = fullScreen;
@@ -294,7 +294,7 @@ pybind11::object PyStimulus::setLtiMatrix (pybind11::object mList)
 
 pybind11::object PyStimulus::setLtiImpulseResponse (pybind11::object mList, uint32_t nStates)
 {
-    GVK_ASSERT (false);
+    GVK_BREAK ();
     throw std::runtime_error ("PyStimulus::setLtiImpulseResponse not implemented.");
 #if 0
     fullScreenTemporalFiltering        = true;

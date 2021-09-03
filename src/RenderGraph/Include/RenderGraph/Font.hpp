@@ -127,7 +127,7 @@ private:
             } else if (distanceFieldType == Type::MTDF) {
                 data = font.GetGlyphMTDF (width, height, unicode);
             } else {
-                GVK_ASSERT (false);
+                GVK_BREAK ();
             }
 
             //std::cout << "generated '" << static_cast<char> (unicode) << "', scale: " << data.scale << ", translation: " << data.translation << std::endl;

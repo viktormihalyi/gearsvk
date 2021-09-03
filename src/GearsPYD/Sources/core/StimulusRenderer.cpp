@@ -49,7 +49,7 @@ StimulusRenderer::StimulusRenderer (std::shared_ptr<SequenceRenderer> sequenceRe
 
     // throw std::runtime_error (Utils::SourceLocation {__FILE__, __LINE__, __func__}.ToString ());
     if (stimulus->spatialFilter) {
-        GVK_BREAK ("spatial filter");
+        GVK_BREAK_STR ("spatial filter");
 #if 0
         auto width  = sequenceRenderer->getSequence ()->fftWidth_px;
         auto height = sequenceRenderer->getSequence ()->fftHeight_px;

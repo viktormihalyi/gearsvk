@@ -227,7 +227,7 @@ void cleanup ()
 
 void setMousePointerLocation (float x, float y)
 {
-    GVK_ASSERT (false);
+    GVK_BREAK ();
     throw std::runtime_error ("setMousePointerLocation not implemented.");
 #if 0
 #ifdef _WIN32

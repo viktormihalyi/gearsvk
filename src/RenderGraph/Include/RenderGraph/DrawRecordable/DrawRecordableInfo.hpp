@@ -1,12 +1,16 @@
 #ifndef DRAWRECORDABLEINFO_HPP
 #define DRAWRECORDABLEINFO_HPP
 
+#include "RenderGraph/RenderGraphAPI.hpp"
 #include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
-#include <memory>
-
-#include <vulkan/vulkan.h>
 
 #include "VulkanWrapper/Utils/BufferTransferable.hpp"
+#include "VulkanWrapper/CommandBuffer.hpp"
+
+#include <memory>
+#include <functional>
+
+#include <vulkan/vulkan.h>
 
 namespace RG {
 
@@ -80,7 +84,7 @@ public:
 };
 
 
-class DrawRecordableInfo : public DrawRecordable {
+class GVK_RENDERER_API DrawRecordableInfo : public DrawRecordable {
 public:
     const uint32_t instanceCount;
 
@@ -149,23 +153,9 @@ public:
     {
     }
 
-    void Record (GVK::CommandBuffer& commandBuffer) const override
-    {
-        if (!vertexBuffer.empty ()) {
-            std::vector<VkDeviceSize> offsets (vertexBuffer.size (), 0);
-            commandBuffer.Record<GVK::CommandBindVertexBuffers> (0, static_cast<uint32_t> (vertexBuffer.size ()), vertexBuffer, offsets).SetName ("DrawRecordableInfo");
-        }
+    virtual ~DrawRecordableInfo () override = default;
 
-        if (indexBuffer != VK_NULL_HANDLE) {
-            commandBuffer.Record<GVK::CommandBindIndexBuffer> (indexBuffer, 0, VK_INDEX_TYPE_UINT16).SetName ("DrawRecordableInfo");
-        }
-
-        if (indexBuffer != VK_NULL_HANDLE) {
-            commandBuffer.Record<GVK::CommandDrawIndexed> (indexCount, instanceCount, 0, 0, 0).SetName ("DrawRecordableInfo");
-        } else {
-            commandBuffer.Record<GVK::CommandDraw> (vertexCount, instanceCount, 0, 0).SetName ("DrawRecordableInfo");
-        }
-    }
+    void Record (GVK::CommandBuffer& commandBuffer) const override;
 
     virtual std::vector<VkVertexInputAttributeDescription> GetAttributes () const override
     {

@@ -22,6 +22,7 @@
 #include "VulkanWrapper/Utils/ImageData.hpp"
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
+#include "VulkanWrapper/Commands.hpp"
 
 #include <glm/glm.hpp>
 
@@ -471,6 +472,131 @@ TEST_F (HeadlessTestEnvironment, RenderGraph_MultipleOperations_MultipleOutputs)
 }
 
 
+
+TEST_F (HeadlessTestEnvironment, InputAttachment)
+{
+    std::unique_ptr<GVK::ShaderModule> shaderModule = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Fragment, R"(
+#version 450
+
+layout (input_attachment_index = 0, binding = 0) uniform subpassInput inputColor;
+layout (input_attachment_index = 1, binding = 1) uniform subpassInput inputDepth;
+
+layout (binding = 2) uniform UBO {
+        vec2 brightnessContrast;
+        vec2 range;
+        int attachmentIndex;
+} ubo;
+
+layout (location = 0) out vec4 outColor;
+
+vec3 brightnessContrast(vec3 color, float brightness, float contrast) {
+        return (color - 0.5) * contrast + 0.5 + brightness;
+}
+
+void main() 
+{
+    // Apply brightness and contrast filer to color input
+    if (ubo.attachmentIndex == 0) {
+        // Read color from previous color input attachment
+        vec3 color = subpassLoad(inputColor).rgb;
+        outColor.rgb = brightnessContrast(color, ubo.brightnessContrast[0], ubo.brightnessContrast[1]);
+    }
+
+    // Visualize depth input range
+    if (ubo.attachmentIndex == 1) {
+        // Read depth from previous depth input attachment
+        float depth = subpassLoad(inputDepth).r;
+        outColor.rgb = vec3((depth - ubo.range[0]) * 1.0 / (ubo.range[1] - ubo.range[0]));
+    }
+}
+)");
+
+    shaderModule->GetReflection ();
+}
+
+
+
+TEST_F (HeadlessTestEnvironment, RenderGraph_SameImageAsInputAndOutput)
+{
+    /*
+        presented ---> firstPass  ---> presented
+    */
+
+    const std::string frag1 = R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) flat in uvec4 inColor[3];
+
+layout (location = 0) out uvec4 outColor[3];
+
+void main () {
+    outColor[0] = uvec4 (inColor[0].bgr, 255);
+}
+    )";
+
+    std::shared_ptr<RG::RenderOperation> firstPass = RG::RenderOperation::Builder (GetDevice ())
+                                                         .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+                                                         .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                         .SetVertexShader (passThroughVertexShader)
+                                                         .SetFragmentShader (frag1)
+                                                         .SetName ("FIRST")
+                                                         .Build ();
+
+    std::shared_ptr<RG::WritableImageResource> presented = std::make_unique<RG::WritableImageResource> (VK_FILTER_NEAREST, 32, 32, 3, VK_FORMAT_R8G8B8A8_UINT);
+
+    RG::GraphSettings s (GetDeviceExtra (), 1);
+
+    s.connectionSet.Add (RG::OutputBuilder ()
+                           .SetOperation (firstPass)
+                           .SetTarget (presented)
+                           .SetBinding (0)
+                           .SetLoad ()
+                           .Build ());
+
+    s.connectionSet.Add (presented, firstPass,
+                         std::make_unique<RG::ImageInputBinding> (0, *presented));
+
+    RG::RenderGraph graph;
+    graph.Compile (std::move (s));
+
+    GVK::ImageData before2_resultImage (GetDeviceExtra (), *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    before2_resultImage.SaveTo (TempFolder / "before_tempDoubl2e.png");
+
+    {
+        GVK::Buffer buff (*env->allocator, 32 * 32 * 4 * 3, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, GVK::Buffer::MemoryLocation::CPU);
+
+        GVK::MemoryMapping mapping (*env->allocator, buff);
+
+        std::vector<uint8_t> pixelData (32 * 32 * 4 * 3);
+        for (uint32_t i = 0; i < pixelData.size (); i += 4) {
+            pixelData[i + 0] = 255;
+            pixelData[i + 1] = 0;
+            pixelData[i + 2] = 0;
+            pixelData[i + 3] = 128;
+        }
+        mapping.Copy (pixelData);
+
+        {
+            GVK::SingleTimeCommand s (GetDevice (), GetCommandPool (), GetGraphicsQueue ());
+            s.Record<GVK::CommandTranstionImage> (*presented->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            s.Record<GVK::CommandCopyBufferToImage> (buff, *presented->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, std::vector<VkBufferImageCopy> { presented->GetImages ()[0]->GetFullBufferImageCopy () });
+            s.Record<GVK::CommandTranstionImage> (*presented->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        }
+    }
+
+    env->Wait ();
+    GVK::ImageData before_resultImage (GetDeviceExtra (), *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    before_resultImage.SaveTo (TempFolder / "before_tempDouble.png");
+
+    graph.Submit (0);
+    env->Wait ();
+
+    GVK::ImageData resultImage (GetDeviceExtra (), *presented->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    resultImage.SaveTo (TempFolder / "tempDouble.png");
+}
+
+
 TEST_F (HeadlessTestEnvironment, RenderGraph_TwoOperationsRenderingToOutput)
 {
     /*
@@ -529,11 +655,11 @@ void main () {
     RG::GraphSettings s (GetDeviceExtra (), 1);
 
     s.connectionSet.Add (RG::OutputBuilder ()
-                           .SetOperation (firstPass)
-                           .SetTarget (presented)
-                           .SetBinding (0)
-                           .SetClear ()
-                           .Build ());
+                             .SetOperation (firstPass)
+                             .SetTarget (presented)
+                             .SetBinding (0)
+                             .SetClear ()
+                             .Build ());
 
     s.connectionSet.Add (RG::OutputBuilder ()
                              .SetOperation (secondPass)
@@ -568,6 +694,7 @@ void main () {
 
     EXPECT_EQ (renderCount, matchCount);
 }
+
 
 // no window, swapchain, surface
 class HeadlessTestEnvironmentWithExt : public TestEnvironmentBase {

@@ -31,27 +31,34 @@ static void DebugBreak ()
 }
 
 
-static void ShowAssertPopup (const std::string& title,
-                             const std::string& message,
-                             const std::string& sourceLocation,
-                             bool&              wasIgnored)
+static std::string SourceLocationToString (const SourceLocation& sourceLocation)
 {
-    static std::set<std::string> ignoredLocations;
+    std::stringstream ss;
+    ss << sourceLocation.file << ":" << sourceLocation.line << " (" << sourceLocation.function << ")";
+    return ss.str ();
+}
 
-    if (ignoredLocations.find (sourceLocation) != std::end (ignoredLocations)) {
-        wasIgnored = true;
+
+static void ShowAssertPopup (const std::string&    dialogTitle,
+                             const std::string&    dialogMessage,
+                             const SourceLocation& location)
+{
+    static std::set<std::string> ignoredAssertions;
+    
+    const std::string locationString = SourceLocationToString (location);
+
+    if (ignoredAssertions.find (locationString) != std::end (ignoredAssertions)) {
         return;
     }
 
-    wasIgnored = false;
+    bool ignoreNextTime = false;
 
-    bool ignoreNextTime = true;
+    const std::string dialogLocationAndMessage = SourceLocationToString (location) + "\n" + dialogMessage;
 
-    const MessageBoxResult result = ShowMessageBox (title, sourceLocation + "\n" + message);
+    const MessageBoxResult result = ShowMessageBox (dialogTitle, dialogLocationAndMessage);
 
     switch (result) {
         case MessageBoxResult::Yes:
-            ignoreNextTime = false;
             DebugBreak ();
             break;
 
@@ -61,12 +68,11 @@ static void ShowAssertPopup (const std::string& title,
 
         case MessageBoxResult::No:
         case MessageBoxResult::Error:
-            ignoreNextTime = false;
             break;
     }
 
     if (ignoreNextTime) {
-        ignoredLocations.insert (sourceLocation);
+        ignoredAssertions.insert (locationString);
     }
 }
 
@@ -74,36 +80,44 @@ static void ShowAssertPopup (const std::string& title,
 static CommandLineOnOffFlag disableAssertsFlag (std::vector<std::string> { "--disableAsserts", "-a" }, "Disables asserts.");
 
 
-static std::string SourceLocationToString (const SourceLocation& sourceLocation)
-{
-    std::stringstream ss;
-    ss << sourceLocation.file << ":" << sourceLocation.line << " (" << sourceLocation.function << ")";
-    return ss.str ();
-}
-
-
-bool DebugBreakAssertFunc (bool condition, const bool shouldBe, const char* message, const char* conditionString, const SourceLocation& location)
+bool DebugBreakAssertFunc (bool condition, const bool shouldBe, const char* dialogTitle, const char* conditionString, const SourceLocation& location)
 {
     if (condition != shouldBe) {
-        const std::string assertLocation = SourceLocationToString (location);
-        bool              ignored        = true;
         if (disableAssertsFlag.IsFlagOn ()) {
-            spdlog::error ("[{}] {}", message, SourceLocationToString (location));
+            spdlog::error ("[{}] {} - {}", dialogTitle, SourceLocationToString (location), conditionString);
         } else {
-            ShowAssertPopup (message, conditionString, assertLocation, ignored);
+            ShowAssertPopup (dialogTitle, conditionString, location);
         }
     }
     return condition;
 }
 
 
-bool LogAssertFunc (bool condition, const bool shouldBe, const char* message, const char* conditionString, const SourceLocation& location)
+void DebugBreakFunc (const char* dialogTitle, const char* conditionString, const SourceLocation& location)
+{
+    if (disableAssertsFlag.IsFlagOn ()) {
+        spdlog::error ("[{}] {} - {}", dialogTitle, SourceLocationToString (location), conditionString);
+    } else {
+        ShowAssertPopup (dialogTitle, conditionString, location);
+    }
+}
+
+
+
+bool LogAssertFunc (bool condition, const bool shouldBe, const char* dialogTitle, const char* conditionString, const SourceLocation& location)
 {
     if (condition != shouldBe) {
-        spdlog::error ("[{}] {}", message, SourceLocationToString (location));
+        spdlog::error ("[{}] {} - {}", dialogTitle, SourceLocationToString (location), conditionString);
     }
     return condition;
 }
+
+
+void LogDebugBreakFunc (bool condition, const bool shouldBe, const char* dialogTitle, const char* conditionString, const SourceLocation& location)
+{
+    spdlog::error ("[{}] {} - {}", dialogTitle, SourceLocationToString (location), conditionString);
+}
+
 
 } // namespace detail
 
