@@ -5,6 +5,9 @@
 
 #include "RenderGraph/Node.hpp"
 
+#include "VulkanWrapper/ShaderModule.hpp"
+
+
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
 
@@ -95,6 +98,9 @@ public:
 
         std::optional<glm::vec4> clearColor;   // (0, 0, 0, 1) by default
         std::optional<bool>      blendEnabled; // true by default
+
+        std::unique_ptr<GVK::ShaderModule::Reflection::IDescriptorWriteInfoProvider> descriptorWriteProvider;
+
     };
 
     struct CompileResult {

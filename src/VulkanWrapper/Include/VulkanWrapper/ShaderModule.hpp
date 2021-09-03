@@ -60,17 +60,41 @@ public:
 
         Reflection (ShaderKind shaderKind, const std::vector<uint32_t>& binary);
 
-        std::vector<VkWriteDescriptorSet> GetDescriptorWrites (
-            VkDescriptorSet                                                            dstSet,
-            const std::function<VkDescriptorImageInfo (const SR::Sampler&, uint32_t)>& imageInfoProvider,
-            const std::function<VkDescriptorBufferInfo (const SR::UBO&)>&              bufferInfoProvider) const;
+        struct VULKANWRAPPER_API DescriptorImageInfoTableEntry {
+            std::string           name;
+            uint32_t              frameIndex;
+            VkDescriptorImageInfo info;
+        };
+
+        struct VULKANWRAPPER_API DescriptorBufferInfoTableEntry {
+            std::string                name;
+            uint32_t                   frameIndex;
+            std::function<VkBuffer ()> buffer;
+            VkDeviceSize               offset;
+            VkDeviceSize               range;
+        };
+
+        class VULKANWRAPPER_API IDescriptorWriteInfoProvider {
+        public:
+            virtual ~IDescriptorWriteInfoProvider () = default;
+
+            virtual std::vector<VkDescriptorImageInfo>  GetDescriptorImageInfos (const std::string& name, uint32_t frameIndex)  = 0;
+            virtual std::vector<VkDescriptorBufferInfo> GetDescriptorBufferInfos (const std::string& name, uint32_t frameIndex) = 0;
+        };
+
+        class VULKANWRAPPER_API DescriptorWriteInfoTable : public GVK::ShaderModule::Reflection::IDescriptorWriteInfoProvider {
+        public:
+            std::vector<DescriptorImageInfoTableEntry>  imageInfos;
+            std::vector<DescriptorBufferInfoTableEntry> bufferInfos;
+
+            virtual std::vector<VkDescriptorImageInfo> GetDescriptorImageInfos (const std::string& name, uint32_t frameIndex) override;
+
+            virtual std::vector<VkDescriptorBufferInfo> GetDescriptorBufferInfos (const std::string& name, uint32_t frameIndex) override;
+        };
+
+        size_t WriteDescriptors (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex, IDescriptorWriteInfoProvider& infoProvider) const;
 
         std::vector<VkDescriptorSetLayoutBinding> GetLayout () const;
-
-        struct Buff {
-            std::set<std::string> attributes;
-            bool                  instanced;
-        };
 
         std::vector<VkVertexInputAttributeDescription> GetVertexAttributes (const std::function<bool (const std::string&)>& instanceNameProvider) const;
         std::vector<VkVertexInputBindingDescription>   GetVertexBindings (const std::function<bool (const std::string&)>& instanceNameProvider) const;

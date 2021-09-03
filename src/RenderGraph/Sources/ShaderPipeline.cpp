@@ -285,9 +285,8 @@ std::unique_ptr<GVK::DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLay
 {
     std::vector<VkDescriptorSetLayoutBinding> layout;
 
-    std::vector<std::string> shaderSources;
-
     if constexpr (IsDebugBuild) {
+        std::vector<std::string> shaderSources;
         IterateShaders ([&] (GVK::ShaderModule& shaderModule) {
             shaderSources.push_back (shaderModule.GetSourceCode ());
         });

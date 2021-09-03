@@ -336,6 +336,9 @@ void main () {
                              .SetClear ()
                              .Build ());
 
+    auto table = std::make_unique<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+    redFillOperation->compileSettings.descriptorWriteProvider = std::move (table);
+
     RG::RenderGraph graph;
     graph.Compile (std::move (s));
     graph.Submit (0);
@@ -979,6 +982,12 @@ void main () {
                              .SetBinding (0)
                              .SetClear ()
                              .Build ());
+
+    auto table = std::make_unique<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+    table->bufferInfos.push_back ({ std::string ("Time"), 0, unif->GetBufferForFrameProvider (0), 0, unif->GetBufferSize () });
+    table->bufferInfos.push_back ({ std::string ("Time"), 1, unif->GetBufferForFrameProvider (1), 0, unif->GetBufferSize () });
+    table->bufferInfos.push_back ({ std::string ("Time"), 2, unif->GetBufferForFrameProvider (2), 0, unif->GetBufferSize () });
+    redFillOperation->compileSettings.descriptorWriteProvider = std::move (table);
 
     graph.Compile (std::move (s));
 

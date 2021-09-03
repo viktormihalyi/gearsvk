@@ -2,6 +2,7 @@
 #define INPUTBINDABLE_HPPc
 
 #include <cstdint>
+#include <functional>
 #include <vulkan/vulkan.h>
 
 #include "Node.hpp"
@@ -11,6 +12,12 @@ namespace RG {
 class InputBufferBindable {
 public:
     virtual VkBuffer GetBufferForFrame (uint32_t frameIndex) = 0;
+    
+    std::function<VkBuffer ()> GetBufferForFrameProvider (uint32_t frameIndex)
+    {
+        return [=] () -> VkBuffer { return GetBufferForFrame (frameIndex); };
+    }
+
     virtual uint32_t GetBufferSize ()                        = 0;
 };
 
