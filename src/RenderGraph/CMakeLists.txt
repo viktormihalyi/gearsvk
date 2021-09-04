@@ -6,8 +6,6 @@ set (Headers
     ${HeadersPath}/DrawRecordable/DrawRecordableInfo.hpp
     ${HeadersPath}/DrawRecordable/FullscreenQuad.hpp
 
-    ${HeadersPath}/Connections.hpp
-    ${HeadersPath}/ConnectionBuilder.hpp
     ${HeadersPath}/GraphRenderer.hpp
     ${HeadersPath}/GraphSettings.hpp
     ${HeadersPath}/InputBindable.hpp
