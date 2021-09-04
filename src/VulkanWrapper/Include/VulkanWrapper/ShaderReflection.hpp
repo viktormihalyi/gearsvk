@@ -130,7 +130,7 @@ class VULKANWRAPPER_API Output {
 public:
     std::string   name;
     uint32_t      location;
-    FieldType type;
+    FieldType     type;
     uint32_t      arraySize; // 0 for non-arrays
 };
 

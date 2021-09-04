@@ -172,6 +172,7 @@ void ShaderPipeline::Compile (CompileSettings&& settings_)
     const std::vector<VkVertexInputAttributeDescription> attribs  = vertexShader->GetReflection ().GetVertexAttributes (instancedVertexProvider);
     const std::vector<VkVertexInputBindingDescription>   bindings = vertexShader->GetReflection ().GetVertexBindings (instancedVertexProvider);
 
+
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount = static_cast<uint32_t> (compileSettings.attachmentReferences.size ());

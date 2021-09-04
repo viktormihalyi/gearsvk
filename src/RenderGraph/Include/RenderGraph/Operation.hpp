@@ -91,6 +91,34 @@ public:
         void EnsurePipelineCreated ();
     };
 
+    class IAttachmentProvider {
+    public:
+        virtual ~IAttachmentProvider () = default;
+
+        struct AttachmentData {
+            std::function<VkFormat ()>    format;
+            VkAttachmentLoadOp            loadOp;
+            std::function<VkImageView ()> imageView;
+        };
+
+        virtual std::optional<AttachmentData> GetAttachmentData (const std::string& name, GVK::ShaderKind shaderKind) = 0;
+    };
+
+    class AttachmentDataTable : public IAttachmentProvider {
+    public:
+        struct AttachmentDataEntry {
+            std::string     name;
+            GVK::ShaderKind shaderKind;
+            AttachmentData  data;
+        };
+
+        std::vector<AttachmentDataEntry> table;
+
+        virtual ~AttachmentDataTable () override = default;
+
+        virtual std::optional<AttachmentData> GetAttachmentData (const std::string& name, GVK::ShaderKind shaderKind) override;
+    };
+
     struct CompileSettings {
         std::unique_ptr<PureDrawRecordable>      pureDrawRecordable;
         std::unique_ptr<ShaderPipeline>          pipeline;
@@ -100,6 +128,7 @@ public:
         std::optional<bool>      blendEnabled; // true by default
 
         std::unique_ptr<GVK::ShaderModule::Reflection::IDescriptorWriteInfoProvider> descriptorWriteProvider;
+        std::unique_ptr<IAttachmentProvider>                                         attachmentProvider;
 
         template<typename T>
         T* GetDescriptorWriteInfoProvider ()

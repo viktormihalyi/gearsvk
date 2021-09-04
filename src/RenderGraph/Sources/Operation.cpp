@@ -213,6 +213,18 @@ void RenderOperation::CompileResult::Clear ()
 }
 
 
+std::optional<RenderOperation::AttachmentDataTable::AttachmentData> RenderOperation::AttachmentDataTable::GetAttachmentData (const std::string& name, GVK::ShaderKind shaderKind)
+{
+    for (const auto& entry : table) {
+        if (entry.name == name && entry.shaderKind == shaderKind) {
+            return entry.data;
+        }
+    }
+
+    return std::nullopt;
+}
+
+
 void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t width, uint32_t height)
 {
     compileResult.Clear ();
@@ -235,8 +247,40 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
         }
     }
 
-    const auto attachmentReferences   = GetAttachmentReferences (graphSettings.connectionSet);
-    const auto attachmentDescriptions = GetAttachmentDescriptions (graphSettings.connectionSet);
+    std::vector<VkImageView>             imageViews;
+    std::vector<VkAttachmentReference>   attRefs;
+    std::vector<VkAttachmentDescription> attDesc;
+
+    if (compileSettings.attachmentProvider != nullptr) {
+        GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
+            for (const SR::Output& output : shaderModule.GetReflection ().outputs) {
+                auto attachmentData = compileSettings.attachmentProvider->GetAttachmentData (output.name, shaderModule.GetShaderKind ());
+
+                if (GVK_ERROR (!attachmentData.has_value ()))
+                    continue;
+
+                VkAttachmentReference aRef = {};
+                aRef.attachment            = output.location;
+                aRef.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+                VkAttachmentDescription aDesc = {};
+                aDesc.flags                   = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
+                aDesc.format                  = attachmentData->format ();
+                aDesc.samples                 = VK_SAMPLE_COUNT_1_BIT;
+                aDesc.loadOp                  = attachmentData->loadOp;
+                aDesc.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
+                aDesc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                aDesc.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+                imageViews.push_back (attachmentData->imageView ());
+                attRefs.push_back (aRef);
+                attDesc.push_back (aDesc);
+            }
+        });
+    }
+
+    const auto attachmentReferences   = compileSettings.attachmentProvider ? attRefs : GetAttachmentReferences (graphSettings.connectionSet);
+    const auto attachmentDescriptions = compileSettings.attachmentProvider ? attDesc : GetAttachmentDescriptions (graphSettings.connectionSet);
 
     if constexpr (IsDebugBuild) {
         GVK_ASSERT (attachmentReferences.size () == attachmentDescriptions.size ());
@@ -259,11 +303,11 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 
     for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
         compileResult.framebuffers.push_back (std::make_unique<GVK::Framebuffer> (graphSettings.GetDevice (),
-                                                                             *GetShaderPipeline ()->compileResult.renderPass,
-                                                                             GetOutputImageViews (graphSettings.connectionSet, resourceIndex),
-                                                                             //CreateOutputImageViews (graphSettings.GetDevice (), graphSettings.connectionSet, resourceIndex),
-                                                                             width,
-                                                                             height));
+                                                                                  *GetShaderPipeline ()->compileResult.renderPass,
+                                                                                  compileSettings.attachmentProvider ? imageViews : GetOutputImageViews (graphSettings.connectionSet, resourceIndex),
+                                                                                  //CreateOutputImageViews (graphSettings.GetDevice (), graphSettings.connectionSet, resourceIndex),
+                                                                                  width,
+                                                                                  height));
     }
 
     compileResult.width  = width;
