@@ -25,6 +25,11 @@ set (Headers
     ${HeadersPath}/RenderGraphAPI.hpp
     ${HeadersPath}/UniformView.hpp
     ${HeadersPath}/VulkanEnvironment.hpp
+
+    ${HeadersPath}/ShaderReflectionToVertexAttribute.hpp
+    ${HeadersPath}/ShaderReflectionToDescriptor.hpp
+    ${HeadersPath}/ShaderReflectionToAttachment.hpp
+
 )
 
 set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
@@ -47,6 +52,10 @@ set (Sources
     ${SourcesPath}/SpdlogInitializer.cpp
     ${SourcesPath}/UniformView.cpp
     ${SourcesPath}/VulkanEnvironment.cpp
+    
+    ${SourcesPath}/ShaderReflectionToVertexAttribute.cpp
+    ${SourcesPath}/ShaderReflectionToDescriptor.cpp
+    ${SourcesPath}/ShaderReflectionToAttachment.cpp
 )
 
 add_library (RenderGraph SHARED ${Headers} ${Sources})

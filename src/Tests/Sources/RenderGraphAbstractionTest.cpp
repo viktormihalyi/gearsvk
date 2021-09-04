@@ -69,7 +69,13 @@ void main () {
     GVK::ImageView2D renderTargetView (*env->device, renderTarget, 0, 1);
     GVK::ImageView2D renderTargetView2 (*env->device, renderTarget, 0, 1);
 
-    GVK::DescriptorPool      pool (device, 1024, 1024, 1024);
+    GVK::DescriptorPool pool (device,
+                              std::vector<VkDescriptorPoolSize> {
+                                  { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1024 },
+                                  { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1024 },
+                              },
+                              1);
+
     GVK::DescriptorSetLayout setLayout (device, {});
     GVK::DescriptorSet       set (device, pool, setLayout);
 

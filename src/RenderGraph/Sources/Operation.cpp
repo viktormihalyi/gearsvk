@@ -1,4 +1,5 @@
 #include "Operation.hpp"
+#include "ShaderReflectionToDescriptor.hpp"
 
 #include "GraphSettings.hpp"
 #include "Resource.hpp"
@@ -127,6 +128,7 @@ void RenderOperation::Builder::EnsurePipelineCreated ()
 RenderOperation::RenderOperation (std::unique_ptr<DrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
     : compileSettings ({ std::move (drawRecordable), std::move (shaderPipeline), topology })
 {
+    compileSettings.descriptorWriteProvider = std::make_unique<RG::FromShaderReflection::DescriptorWriteInfoTable> ();
 }
 
 
@@ -151,6 +153,46 @@ std::optional<RenderOperation::AttachmentDataTable::AttachmentData> RenderOperat
 }
 
 
+class DescriptorCounter : public RG::FromShaderReflection::IUpdateDescriptorSets {
+public:
+    std::vector<VkDescriptorPoolSize> poolSizes;
+
+    uint32_t multiplier = 1;
+
+    virtual void UpdateDescriptorSets (const std::vector<VkWriteDescriptorSet>& writes) override
+    {
+        for (const VkWriteDescriptorSet& write : writes) {
+            VkDescriptorPoolSize& poolSize = GetPoolSizeByType (write.descriptorType);
+            poolSize.descriptorCount += write.descriptorCount * multiplier;
+        }
+    }
+
+private:
+    VkDescriptorPoolSize& GetPoolSizeByType (VkDescriptorType type)
+    {
+        for (VkDescriptorPoolSize& poolSize : poolSizes) {
+            if (poolSize.type == type) {
+                return poolSize;
+            }
+        }
+
+        poolSizes.push_back ({ type, 0 });
+        return poolSizes.back ();
+    }
+};
+
+
+class DescriptorWriter : public RG::FromShaderReflection::IUpdateDescriptorSets {
+public:
+    VkDevice device = VK_NULL_HANDLE;
+
+    virtual void UpdateDescriptorSets (const std::vector<VkWriteDescriptorSet>& writes) override
+    {
+        vkUpdateDescriptorSets (device, writes.size (), writes.data (), 0, nullptr);
+    }
+};
+
+
 void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t width, uint32_t height)
 {
     compileResult.Clear ();
@@ -158,18 +200,31 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     compileResult.descriptorSetLayout = GetShaderPipeline ()->CreateDescriptorSetLayout (graphSettings.GetDevice ());
 
     if (compileSettings.descriptorWriteProvider != nullptr) {
-        compileResult.descriptorPool = std::make_unique<GVK::DescriptorPool> (graphSettings.GetDevice (), 1024, 1024, graphSettings.framesInFlight);
+        
+        DescriptorCounter descriptorCounter;
+        descriptorCounter.multiplier = graphSettings.framesInFlight;
+        GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
+            RG::FromShaderReflection::WriteDescriptors (shaderModule.GetReflection (), VK_NULL_HANDLE, 0, shaderModule.GetShaderKind (), *compileSettings.descriptorWriteProvider, descriptorCounter);
+        });
 
-        for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
-            std::unique_ptr<GVK::DescriptorSet> descriptorSet = std::make_unique<GVK::DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
+        if (!descriptorCounter.poolSizes.empty ()) {
 
-            if (compileSettings.descriptorWriteProvider != nullptr) {
-                GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
-                    shaderModule.GetReflection ().WriteDescriptors (graphSettings.GetDevice (), *descriptorSet, resourceIndex, shaderModule.GetShaderKind (), * compileSettings.descriptorWriteProvider);
-                });
+            compileResult.descriptorPool = std::make_unique<GVK::DescriptorPool> (graphSettings.GetDevice (), descriptorCounter.poolSizes, graphSettings.framesInFlight);
+            
+            DescriptorWriter descriptorWriter;
+            descriptorWriter.device = graphSettings.GetDevice ();
+
+            for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
+                std::unique_ptr<GVK::DescriptorSet> descriptorSet = std::make_unique<GVK::DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
+
+                if (compileSettings.descriptorWriteProvider != nullptr) {
+                    GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
+                        RG::FromShaderReflection::WriteDescriptors (shaderModule.GetReflection (), *descriptorSet, resourceIndex, shaderModule.GetShaderKind (), *compileSettings.descriptorWriteProvider, descriptorWriter);
+                    });
+                }
+
+                compileResult.descriptorSets.push_back (std::move (descriptorSet));
             }
-
-            compileResult.descriptorSets.push_back (std::move (descriptorSet));
         }
     }
 

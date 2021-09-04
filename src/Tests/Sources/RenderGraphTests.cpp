@@ -329,9 +329,6 @@ void main () {
 
     s.connectionSet.Add (redFillOperation, red);
 
-    auto table = std::make_unique<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
-    redFillOperation->compileSettings.descriptorWriteProvider = std::move (table);
-
     RG::RenderGraph graph;
     graph.Compile (std::move (s));
     graph.Submit (0);
@@ -430,10 +427,10 @@ TEST_F (HeadlessTestEnvironment, RenderGraph_MultipleOperations_MultipleOutputs)
                                                           .SetVertexShader (ShadersFolder / "fullscreenquad.frag")
                                                           .Build ();
 
-    auto table = dummyPass->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+    auto& table = dummyPass->compileSettings.descriptorWriteProvider;
     table->imageInfos.push_back ({ "sampl", GVK::ShaderKind::Fragment, green->GetSamplerProvider (), green->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 
-    auto table2 = secondPass->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+    auto& table2 = secondPass->compileSettings.descriptorWriteProvider;
     table2->imageInfos.push_back ({ "sampl", GVK::ShaderKind::Fragment, red->GetSamplerProvider (), red->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 
     auto aTable = dummyPass->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
@@ -543,7 +540,7 @@ void main () {
 
     s.connectionSet.Add (presented, firstPass);
 
-    auto table = firstPass->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+    auto& table = firstPass->compileSettings.descriptorWriteProvider;
     table->imageInfos.push_back ({ "inColor", GVK::ShaderKind::Fragment, presented->GetSamplerProvider (), presented->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 
     RG::RenderGraph graph;
@@ -942,9 +939,8 @@ void main () {
     s.connectionSet.Add (redFillOperation, presented);
     s.connectionSet.Add (redFillOperation, presentedCopy);
 
-    auto table = std::make_unique<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+    auto& table = redFillOperation->compileSettings.descriptorWriteProvider;
     table->bufferInfos.push_back ({ std::string ("Time"), GVK::ShaderKind::Vertex, unif->GetBufferForFrameProvider (), 0, unif->GetBufferSize () });
-    redFillOperation->compileSettings.descriptorWriteProvider = std::move (table);
 
     graph.Compile (std::move (s));
 

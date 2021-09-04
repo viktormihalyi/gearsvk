@@ -1,4 +1,6 @@
 #include "ShaderPipeline.hpp"
+#include "ShaderReflectionToVertexAttribute.hpp"
+#include "ShaderReflectionToDescriptor.hpp"
 
 #include "VulkanWrapper/ShaderModule.hpp"
 #include "VulkanWrapper/Pipeline.hpp"
@@ -169,9 +171,8 @@ void ShaderPipeline::Compile (CompileSettings&& settings_)
 
     const auto instancedVertexProvider = [] (const std::string&) { return false; };
 
-    const std::vector<VkVertexInputAttributeDescription> attribs  = vertexShader->GetReflection ().GetVertexAttributes (instancedVertexProvider);
-    const std::vector<VkVertexInputBindingDescription>   bindings = vertexShader->GetReflection ().GetVertexBindings (instancedVertexProvider);
-
+    const std::vector<VkVertexInputAttributeDescription> attribs  = RG::FromShaderReflection::GetVertexAttributes (vertexShader->GetReflection (), instancedVertexProvider);
+    const std::vector<VkVertexInputBindingDescription>   bindings = RG::FromShaderReflection::GetVertexBindings (vertexShader->GetReflection (), instancedVertexProvider);
 
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -294,7 +295,7 @@ std::unique_ptr<GVK::DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLay
     }
 
     IterateShaders ([&] (GVK::ShaderModule& shaderModule) {
-        auto layoutPart = shaderModule.GetReflection ().GetLayout ();
+        auto layoutPart = RG::FromShaderReflection::GetLayout (shaderModule.GetReflection (), shaderModule.GetShaderKind ());
         layout.insert (layout.end (), layoutPart.begin (), layoutPart.end ());
     });
 

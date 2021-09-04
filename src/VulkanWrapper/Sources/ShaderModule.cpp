@@ -377,7 +377,7 @@ ShaderModule::ShaderModule (ShaderKind                   shaderKind,
     , handle (handle)
     , fileLocation (fileLocation)
     , binary (binary)
-    , reflection (shaderKind, binary)
+    , reflection (binary)
     , sourceCode (sourceCode)
 {
     spdlog::trace ("VkShaderModule created: {}, uuid: {}.", this->handle, GetUUID ().GetValue ());
@@ -461,8 +461,7 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 }
 
 
-ShaderModule::Reflection::Reflection (ShaderKind shaderKind, const std::vector<uint32_t>& binary)
-    : shaderKind (shaderKind)
+ShaderModule::Reflection::Reflection (const std::vector<uint32_t>& binary)
 {
     SR::ReflCompiler c (binary);
 
@@ -471,294 +470,6 @@ ShaderModule::Reflection::Reflection (ShaderKind shaderKind, const std::vector<u
     inputs        = SR::GetInputsFromBinary (c);
     outputs       = SR::GetOutputsFromBinary (c);
     subpassInputs = SR::GetSubpassInputsFromBinary (c);
-}
-
-
-static VkShaderStageFlags GetShaderStageFromShaderKind (ShaderKind shaderKind)
-{
-    switch (shaderKind) {
-        case ShaderKind::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
-        case ShaderKind::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
-        case ShaderKind::Geometry: return VK_SHADER_STAGE_GEOMETRY_BIT;
-        case ShaderKind::TessellationControl: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        case ShaderKind::TessellationEvaluation: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        case ShaderKind::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
-        default: GVK_BREAK_STR ("unexpected shaderkind type"); return VK_SHADER_STAGE_ALL;
-    }
-}
-
-
-std::vector<VkDescriptorSetLayoutBinding>
-ShaderModule::Reflection::GetLayout () const
-{
-    std::vector<VkDescriptorSetLayoutBinding> result;
-
-    for (const SR::Sampler& sampler : samplers) {
-        VkDescriptorSetLayoutBinding bin = {};
-        bin.binding                      = sampler.binding;
-        bin.descriptorType               = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        bin.descriptorCount              = sampler.arraySize == 0 ? 1 : sampler.arraySize;
-        bin.stageFlags                   = GetShaderStageFromShaderKind (shaderKind);
-        bin.pImmutableSamplers           = nullptr;
-        result.push_back (bin);
-    }
-
-    for (const std::shared_ptr<SR::UBO>& ubo : ubos) {
-        VkDescriptorSetLayoutBinding bin = {};
-        bin.binding                      = ubo->binding;
-        bin.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        bin.descriptorCount              = 1;
-        bin.stageFlags                   = GetShaderStageFromShaderKind (shaderKind);
-        bin.pImmutableSamplers           = nullptr;
-        result.push_back (bin);
-    }
-
-    for (const SR::SubpassInput& subpassInput : subpassInputs) {
-        VkDescriptorSetLayoutBinding bin = {};
-        bin.binding                      = subpassInput.binding;
-        bin.descriptorType               = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-        bin.descriptorCount              = 1;
-        bin.stageFlags                   = GetShaderStageFromShaderKind (shaderKind);
-        bin.pImmutableSamplers           = nullptr;
-        result.push_back (bin);
-    }
-
-    return result;
-}
-
-
-std::vector<VkDescriptorImageInfo> ShaderModule::Reflection::DescriptorWriteInfoTable::GetDescriptorImageInfos (const std::string& name, ShaderKind shaderKind, uint32_t layerIndex, uint32_t resourceIndex)
-{
-    std::vector<DescriptorImageInfoTableEntry> result = imageInfos;
-    result.erase (std::remove_if (result.begin (), result.end (), [&] (const auto& entry) {
-                      return entry.name != name || entry.shaderKind != shaderKind;
-                  }),
-                  result.end ());
-
-    std::vector<VkDescriptorImageInfo> resultInfos;
-
-    for (const auto& entry : result)
-        resultInfos.push_back ({ entry.sampler (), entry.imageView (resourceIndex, layerIndex), entry.imageLayout });
-
-    return resultInfos;
-}
-
-
-std::vector<VkDescriptorBufferInfo> ShaderModule::Reflection::DescriptorWriteInfoTable::GetDescriptorBufferInfos (const std::string& name, ShaderKind shaderKind, uint32_t frameIndex)
-{
-    std::vector<DescriptorBufferInfoTableEntry> result = bufferInfos;
-    result.erase (std::remove_if (result.begin (), result.end (), [&] (const auto& entry) {
-                      return entry.name != name || entry.shaderKind != shaderKind;
-                  }),
-                  result.end ());
-
-    std::vector<VkDescriptorBufferInfo> resultInfos;
-
-    for (const auto& entry : result)
-        resultInfos.push_back ({ entry.buffer (frameIndex), entry.offset, entry.range });
-
-    return resultInfos;
-}
-
-
-size_t ShaderModule::Reflection::WriteDescriptors (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex, ShaderKind shaderKind, IDescriptorWriteInfoProvider& infoProvider) const
-{
-    std::vector<VkDescriptorImageInfo>  imgInfos;
-    std::vector<VkDescriptorBufferInfo> bufferInfos;
-    std::vector<VkWriteDescriptorSet>   result;
-
-    imgInfos.reserve (1024);
-    bufferInfos.reserve (1024);
-    result.reserve (1024);
-
-    for (const SR::Sampler& sampler : samplers) {
-        const uint32_t layerCount = sampler.arraySize == 0 ? 1 : sampler.arraySize;
-        for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
-            const std::vector<VkDescriptorImageInfo> tempImgInfos = infoProvider.GetDescriptorImageInfos (sampler.name, shaderKind, layerIndex, frameIndex);
-            if (GVK_ERROR (tempImgInfos.empty ())) {
-                spdlog::error ("Combined sampler \"{}\" (layer {}) has no descriptor bound.", sampler.name, layerIndex);
-                continue;
-            }
-
-            const int32_t currentSize = imgInfos.size ();
-
-            imgInfos.insert (imgInfos.end (), tempImgInfos.begin (), tempImgInfos.end ());
-
-            const int32_t newSize = imgInfos.size ();
-
-            GVK_ASSERT (newSize - currentSize == tempImgInfos.size ());
-            GVK_ASSERT (newSize - currentSize > 0);
-
-            VkWriteDescriptorSet write = {};
-            write.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            write.dstSet               = dstSet;
-            write.dstBinding           = sampler.binding;
-            write.dstArrayElement      = layerIndex;
-            write.descriptorType       = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            write.descriptorCount      = newSize - currentSize;
-            write.pBufferInfo          = nullptr;
-            write.pImageInfo           = &imgInfos[currentSize];
-            write.pTexelBufferView     = nullptr;
-
-            result.push_back (write);
-            }
-    }
-
-    if (device != VK_NULL_HANDLE && !result.empty ())
-        vkUpdateDescriptorSets (device, result.size (), result.data (), 0, nullptr);
-    result.clear ();
-    imgInfos.clear ();
-    bufferInfos.clear ();
-
-    for (const std::shared_ptr<SR::UBO>& ubo : ubos) {
-        const std::vector<VkDescriptorBufferInfo> tempBufferInfos = infoProvider.GetDescriptorBufferInfos (ubo->name, shaderKind, frameIndex);
-        if (GVK_ERROR (tempBufferInfos.empty ())) {
-            spdlog::error ("Uniform block \"{}\" has no descriptor bound.", ubo->name);
-            continue;
-        }
-
-        const int32_t currentSize = bufferInfos.size ();
-
-        bufferInfos.insert (bufferInfos.end (), tempBufferInfos.begin (), tempBufferInfos.end ());
-
-        const int32_t newSize = bufferInfos.size ();
-
-        GVK_ASSERT (newSize - currentSize == tempBufferInfos.size ());
-        GVK_ASSERT (newSize - currentSize > 0);
-
-        VkWriteDescriptorSet write = {};
-        write.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        write.dstSet               = dstSet;
-        write.dstBinding           = ubo->binding;
-        write.dstArrayElement      = 0;
-        write.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        write.descriptorCount      = newSize - currentSize;
-        write.pBufferInfo          = &bufferInfos[currentSize];
-        write.pImageInfo           = nullptr;
-        write.pTexelBufferView     = nullptr;
-
-        result.push_back (write);
-    }
-
-    if (device != VK_NULL_HANDLE && !result.empty ())
-        vkUpdateDescriptorSets (device, result.size (), result.data (), 0, nullptr);
-    result.clear ();
-    imgInfos.clear ();
-    bufferInfos.clear ();
-
-    for (const SR::SubpassInput& subpassInput : subpassInputs) {
-        const uint32_t layerCount = subpassInput.arraySize == 0 ? 1 : subpassInput.arraySize;
-        for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
-            const std::vector<VkDescriptorImageInfo> tempImgInfos = infoProvider.GetDescriptorImageInfos (subpassInput.name, shaderKind, layerIndex, frameIndex);
-            if (GVK_ERROR (tempImgInfos.empty ())) {
-                spdlog::error ("Input attachment \"{}\" (layer {}) has no descriptor bound.", subpassInput.name, layerIndex);
-                continue;
-            }
-
-            const int32_t currentSize = imgInfos.size ();
-
-            imgInfos.insert (imgInfos.end (), tempImgInfos.begin (), tempImgInfos.end ());
-
-            const int32_t newSize = imgInfos.size ();
-
-            GVK_ASSERT (newSize - currentSize == tempImgInfos.size ());
-            GVK_ASSERT (newSize - currentSize > 0);
-
-            VkWriteDescriptorSet write = {};
-            write.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            write.dstSet               = dstSet;
-            write.dstBinding           = subpassInput.binding;
-            write.dstArrayElement      = layerIndex;
-            write.descriptorType       = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-            write.descriptorCount      = newSize - currentSize;
-            write.pBufferInfo          = nullptr;
-            write.pImageInfo           = &imgInfos[currentSize];
-            write.pTexelBufferView     = nullptr;
-
-            result.push_back (write);
-        }
-    }
-
-    if (device != VK_NULL_HANDLE && !result.empty ())
-        vkUpdateDescriptorSets (device, result.size (), result.data (), 0, nullptr);
-    result.clear ();
-    imgInfos.clear ();
-    bufferInfos.clear ();
-
-    return result.size ();
-}
-
-
-std::vector<VkVertexInputAttributeDescription> ShaderModule::Reflection::GetVertexAttributes (const std::function<bool (const std::string&)>& IsInputInstanced) const
-{
-    GVK_ASSERT (shaderKind == ShaderKind::Vertex);
-
-    std::vector<VkVertexInputAttributeDescription> result;
-
-    uint32_t currentOffsetVertex   = 0;
-    uint32_t currentOffsetInstance = 0;
-
-    for (const SR::Input& input : inputs) {
-        VkVertexInputAttributeDescription attrib = {};
-        attrib.binding                           = 0;
-        attrib.location                          = input.location;
-        attrib.format                            = FieldTypeToVkFormat (input.type);
-
-        if (IsInputInstanced (input.name)) {
-            attrib.offset = currentOffsetInstance;
-            currentOffsetInstance += input.sizeInBytes;
-        } else {
-            attrib.offset = currentOffsetVertex;
-            currentOffsetVertex += input.sizeInBytes;
-        }
-
-        result.push_back (attrib);
-    }
-
-    return result;
-}
-
-
-std::vector<VkVertexInputBindingDescription> ShaderModule::Reflection::GetVertexBindings (const std::function<bool (const std::string&)>& IsInputInstanced) const
-{
-    GVK_ASSERT (shaderKind == ShaderKind::Vertex);
-
-    if (inputs.empty ()) {
-        return {};
-    }
-
-    std::vector<VkVertexInputBindingDescription> result;
-
-    uint32_t fullSizeVertex   = 0;
-    uint32_t fullSizeInstance = 0;
-
-    for (const SR::Input& input : inputs) {
-        if (IsInputInstanced (input.name)) {
-            fullSizeInstance += input.sizeInBytes;
-        } else {
-            fullSizeVertex += input.sizeInBytes;
-        }
-    }
-
-    {
-        VkVertexInputBindingDescription bindingDescription = {};
-        bindingDescription                                 = {};
-        bindingDescription.binding                         = 0;
-        bindingDescription.stride                          = fullSizeVertex;
-        bindingDescription.inputRate                       = VK_VERTEX_INPUT_RATE_VERTEX;
-        result.push_back (bindingDescription);
-    }
-
-    if (fullSizeInstance > 0) {
-        VkVertexInputBindingDescription bindingDescription = {};
-        bindingDescription                                 = {};
-        bindingDescription.binding                         = 0;
-        bindingDescription.stride                          = fullSizeInstance;
-        bindingDescription.inputRate                       = VK_VERTEX_INPUT_RATE_INSTANCE;
-        result.push_back (bindingDescription);
-    }
-
-    return result;
 }
 
 
@@ -781,7 +492,7 @@ void ShaderModule::Reload ()
 
         binary = *newBinary;
 
-        reflection = Reflection (shaderKind, binary);
+        reflection = Reflection (binary);
 
         sourceCode = *fileContents;
 
@@ -799,7 +510,7 @@ void ShaderModule::Reload ()
 
         handle = CreateShaderModuleImpl (device, *binaryC);
 
-        reflection = Reflection (shaderKind, binary);
+        reflection = Reflection (binary);
 
         binary = code;
 

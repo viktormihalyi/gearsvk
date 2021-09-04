@@ -15,16 +15,10 @@ private:
     VkDescriptorPool handle;
 
 public:
-    DescriptorPool (VkDevice device, uint32_t descriptorCountUbo, uint32_t descriptorCountSampler, uint32_t maxSets)
+    DescriptorPool (VkDevice device, std::vector<VkDescriptorPoolSize> poolSizes, uint32_t maxSets)
         : device (device)
         , handle (VK_NULL_HANDLE)
     {
-        std::vector<VkDescriptorPoolSize> poolSizes = {};
-        if (descriptorCountUbo > 0)
-            poolSizes.push_back ({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCountUbo });
-        if (descriptorCountSampler > 0)
-            poolSizes.push_back ({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCountSampler });
-
         if (GVK_ERROR (poolSizes.empty ())) {
             throw std::runtime_error ("empty pool");
         }

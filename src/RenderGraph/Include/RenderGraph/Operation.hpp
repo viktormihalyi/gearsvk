@@ -4,9 +4,9 @@
 #include "RenderGraph/RenderGraphAPI.hpp"
 
 #include "RenderGraph/Node.hpp"
+#include "RenderGraph/ShaderReflectionToDescriptor.hpp"
 
 #include "VulkanWrapper/ShaderModule.hpp"
-
 
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
@@ -35,7 +35,6 @@ class ConnectionSet;
 class DrawRecordable;
 class DrawRecordableInfo;
 } // namespace RG
-
 
 namespace RG {
 
@@ -127,17 +126,8 @@ public:
         std::optional<glm::vec4> clearColor;   // (0, 0, 0, 1) by default
         std::optional<bool>      blendEnabled; // true by default
 
-        std::unique_ptr<GVK::ShaderModule::Reflection::IDescriptorWriteInfoProvider> descriptorWriteProvider;
-        std::unique_ptr<IAttachmentProvider>                                         attachmentProvider;
-
-        template<typename T>
-        T* GetDescriptorWriteInfoProvider ()
-        {
-            if (descriptorWriteProvider == nullptr)
-                descriptorWriteProvider = std::make_unique<T> ();
-
-            return dynamic_cast<T*> (descriptorWriteProvider.get ());
-        }
+        std::unique_ptr<RG::FromShaderReflection::DescriptorWriteInfoTable> descriptorWriteProvider;
+        std::unique_ptr<IAttachmentProvider>                                attachmentProvider;
 
         template<typename T>
         T* GetAttachmentProvider ()

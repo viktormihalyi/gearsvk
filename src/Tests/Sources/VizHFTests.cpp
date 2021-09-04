@@ -369,9 +369,9 @@ void main ()
 
     RG::UniformReflection r (s.connectionSet);
 
-    auto table = (brainRenderOp->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ());
-    table->imageInfos.push_back (GVK::ShaderModule::Reflection::DescriptorImageInfoTableEntry { std::string ("agySampler"), GVK::ShaderKind::Fragment, agy3d->GetSamplerProvider (), agy3d->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
-    table->imageInfos.push_back (GVK::ShaderModule::Reflection::DescriptorImageInfoTableEntry { std::string ("matcapSampler"), GVK::ShaderKind::Fragment, matcap->GetSamplerProvider (), matcap->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+    auto& table = brainRenderOp->compileSettings.descriptorWriteProvider;
+    table->imageInfos.push_back ({ std::string ("agySampler"), GVK::ShaderKind::Fragment, agy3d->GetSamplerProvider (), agy3d->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+    table->imageInfos.push_back ({ std::string ("matcapSampler"), GVK::ShaderKind::Fragment, matcap->GetSamplerProvider (), matcap->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 
 
     // ========================= GRAPH RESOURCE SETUP =========================

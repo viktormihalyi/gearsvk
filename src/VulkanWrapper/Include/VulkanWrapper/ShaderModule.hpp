@@ -50,57 +50,13 @@ public:
     };
 
     struct VULKANWRAPPER_API Reflection {
-        ShaderKind shaderKind;
-
         std::vector<std::shared_ptr<SR::UBO>> ubos;
         std::vector<SR::Sampler>              samplers;
         std::vector<SR::Input>                inputs;
         std::vector<SR::Output>               outputs;
         std::vector<SR::SubpassInput>         subpassInputs;
 
-        Reflection (ShaderKind shaderKind, const std::vector<uint32_t>& binary);
-
-
-        class VULKANWRAPPER_API IDescriptorWriteInfoProvider {
-        public:
-            virtual ~IDescriptorWriteInfoProvider () = default;
-
-            virtual std::vector<VkDescriptorImageInfo>  GetDescriptorImageInfos (const std::string& name, ShaderKind shaderKind, uint32_t layerIndex, uint32_t frameIndex) = 0;
-            virtual std::vector<VkDescriptorBufferInfo> GetDescriptorBufferInfos (const std::string& name, ShaderKind shaderKind, uint32_t frameIndex) = 0;
-        };
-
-        struct VULKANWRAPPER_API DescriptorImageInfoTableEntry {
-            std::string                                     name;
-            ShaderKind                                      shaderKind;
-            std::function<VkSampler ()>                     sampler;
-            std::function<VkImageView (uint32_t, uint32_t)> imageView;
-            VkImageLayout                                   imageLayout;
-        };
-
-        struct VULKANWRAPPER_API DescriptorBufferInfoTableEntry {
-            std::string                        name;
-            ShaderKind                         shaderKind;
-            std::function<VkBuffer (uint32_t)> buffer;
-            VkDeviceSize                       offset;
-            VkDeviceSize                       range;
-        };
-
-        class VULKANWRAPPER_API DescriptorWriteInfoTable : public GVK::ShaderModule::Reflection::IDescriptorWriteInfoProvider {
-        public:
-            std::vector<DescriptorImageInfoTableEntry>  imageInfos;
-            std::vector<DescriptorBufferInfoTableEntry> bufferInfos;
-
-            virtual std::vector<VkDescriptorImageInfo> GetDescriptorImageInfos (const std::string& name, ShaderKind shaderKind, uint32_t layerIndex, uint32_t frameIndex) override;
-
-            virtual std::vector<VkDescriptorBufferInfo> GetDescriptorBufferInfos (const std::string& name, ShaderKind shaderKind, uint32_t frameIndex) override;
-        };
-
-        size_t WriteDescriptors (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex, ShaderKind shaderKind, IDescriptorWriteInfoProvider& infoProvider) const;
-
-        std::vector<VkDescriptorSetLayoutBinding> GetLayout () const;
-
-        std::vector<VkVertexInputAttributeDescription> GetVertexAttributes (const std::function<bool (const std::string&)>& instanceNameProvider) const;
-        std::vector<VkVertexInputBindingDescription>   GetVertexBindings (const std::function<bool (const std::string&)>& instanceNameProvider) const;
+        Reflection (const std::vector<uint32_t>& binary);
     };
 
 private:

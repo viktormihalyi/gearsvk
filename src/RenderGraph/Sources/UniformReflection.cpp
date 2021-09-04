@@ -2,6 +2,7 @@
 #include "DrawRecordable.hpp"
 #include "ShaderPipeline.hpp"
 #include "Operation.hpp"
+#include "ShaderReflectionToDescriptor.hpp"
 
 #include "VulkanWrapper/Framebuffer.hpp"
 #include "VulkanWrapper/Pipeline.hpp"
@@ -95,7 +96,7 @@ void UniformReflection::CreateGraphConnections ()
         connectionSet.Add (operation);
         connectionSet.Add (resource);
         
-        auto table = operation->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+        auto& table = operation->compileSettings.descriptorWriteProvider;
         table->bufferInfos.push_back ({ ubo->name, shaderKind, resource->GetBufferForFrameProvider (), 0, resource->GetBufferSize () });
     }
 
@@ -197,8 +198,8 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 
                 connectionSet.Add (imgRes);
                 connectionSet.Add (renderOp);
-                auto table = renderOp->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
-                table->imageInfos.push_back (GVK::ShaderModule::Reflection::DescriptorImageInfoTableEntry { sampler.name, shaderModule.GetShaderKind (), imgRes->GetSamplerProvider (), imgRes->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+                auto& table = renderOp->compileSettings.descriptorWriteProvider;
+                table->imageInfos.push_back ({ sampler.name, shaderModule.GetShaderKind (), imgRes->GetSamplerProvider (), imgRes->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
             }
         });
     });
