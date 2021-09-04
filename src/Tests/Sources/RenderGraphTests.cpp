@@ -439,8 +439,14 @@ TEST_F (HeadlessTestEnvironment, RenderGraph_MultipleOperations_MultipleOutputs)
 
 
     RG::ConnectionSet connectionSet;
-    connectionSet.Add (green, dummyPass, std::make_unique<RG::ImageInputBinding> (0, *green));
-    connectionSet.Add (red, secondPass, std::make_unique<RG::ImageInputBinding> (0, *red));
+    connectionSet.Add (green, dummyPass, std::make_unique<RG::DummyIConnectionBinding> ());
+    connectionSet.Add (red, secondPass, std::make_unique<RG::DummyIConnectionBinding> ());
+
+    auto table = dummyPass->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+    table->imageInfos.push_back ({ "sampl", GVK::ShaderKind::Fragment, green->GetSamplerProvider (), green->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+
+    auto table2 = secondPass->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+    table2->imageInfos.push_back ({ "sampl", GVK::ShaderKind::Fragment, red->GetSamplerProvider (), red->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 
     connectionSet.Add (RG::OutputBuilder ()
                              .SetOperation (dummyPass)

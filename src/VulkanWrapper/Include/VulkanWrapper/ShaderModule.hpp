@@ -65,7 +65,7 @@ public:
         public:
             virtual ~IDescriptorWriteInfoProvider () = default;
 
-            virtual std::vector<VkDescriptorImageInfo>  GetDescriptorImageInfos (const std::string& name, ShaderKind shaderKind, uint32_t frameIndex) = 0;
+            virtual std::vector<VkDescriptorImageInfo>  GetDescriptorImageInfos (const std::string& name, ShaderKind shaderKind, uint32_t layerIndex, uint32_t frameIndex) = 0;
             virtual std::vector<VkDescriptorBufferInfo> GetDescriptorBufferInfos (const std::string& name, ShaderKind shaderKind, uint32_t frameIndex) = 0;
         };
 
@@ -75,7 +75,6 @@ public:
             std::function<VkSampler ()>                     sampler;
             std::function<VkImageView (uint32_t, uint32_t)> imageView;
             VkImageLayout                                   imageLayout;
-            uint32_t                                        layerCount;
         };
 
         struct VULKANWRAPPER_API DescriptorBufferInfoTableEntry {
@@ -91,7 +90,7 @@ public:
             std::vector<DescriptorImageInfoTableEntry>  imageInfos;
             std::vector<DescriptorBufferInfoTableEntry> bufferInfos;
 
-            virtual std::vector<VkDescriptorImageInfo> GetDescriptorImageInfos (const std::string& name, ShaderKind shaderKind, uint32_t frameIndex) override;
+            virtual std::vector<VkDescriptorImageInfo> GetDescriptorImageInfos (const std::string& name, ShaderKind shaderKind, uint32_t layerIndex, uint32_t frameIndex) override;
 
             virtual std::vector<VkDescriptorBufferInfo> GetDescriptorBufferInfos (const std::string& name, ShaderKind shaderKind, uint32_t frameIndex) override;
         };

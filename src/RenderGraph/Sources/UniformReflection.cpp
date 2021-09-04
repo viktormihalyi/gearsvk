@@ -197,7 +197,8 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 
                 connectionSet.Add (imgRes);
                 connectionSet.Add (renderOp);
-                connectionSet.Add (imgRes, renderOp, std::make_unique<ImageInputBinding> (sampler.binding, *imgRes, (sampler.arraySize > 0) ? sampler.arraySize : 1));
+                auto table = renderOp->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+                table->imageInfos.push_back (GVK::ShaderModule::Reflection::DescriptorImageInfoTableEntry { sampler.name, shaderModule.GetShaderKind (), imgRes->GetSamplerProvider (), imgRes->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
             }
         });
     });
