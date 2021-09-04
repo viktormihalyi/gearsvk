@@ -102,7 +102,7 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
         GVK_ASSERT (!stimulus->usesForwardRendering);
         //GVK_ASSERT (stimulus->mono);
 
-        auto aTable2 = passOperation->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+        auto& aTable2 = passOperation->compileSettings.attachmentProvider;
         aTable2->table.push_back ({ "presented", GVK::ShaderKind::Fragment, { presented->GetFormatProvider (), firstPass ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD, presented->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, presented->GetFinalLayout () } });
 
         s.connectionSet.Add (passOperation, presented);
@@ -145,7 +145,7 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
 
         std::static_pointer_cast<RG::RenderOperation> (randomGeneratorOperation)->compileSettings.blendEnabled = false;
 
-        auto aTable2 = std::dynamic_pointer_cast<RG::RenderOperation> (randomGeneratorOperation)->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+        auto& aTable2 = std::dynamic_pointer_cast<RG::RenderOperation> (randomGeneratorOperation)->compileSettings.attachmentProvider;
         aTable2->table.push_back ({ "nextElement", GVK::ShaderKind::Fragment, { randomTexture->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, randomTexture->GetImageViewForFrameProvider (), randomTexture->GetInitialLayout (), randomTexture->GetFinalLayout () } });
 
         s.connectionSet.Add (randomGeneratorOperation, randomTexture);

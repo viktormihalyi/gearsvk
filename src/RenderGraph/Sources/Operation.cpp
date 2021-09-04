@@ -129,6 +129,7 @@ RenderOperation::RenderOperation (std::unique_ptr<DrawRecordable>&& drawRecordab
     : compileSettings ({ std::move (drawRecordable), std::move (shaderPipeline), topology })
 {
     compileSettings.descriptorWriteProvider = std::make_unique<RG::FromShaderReflection::DescriptorWriteInfoTable> ();
+    compileSettings.attachmentProvider = std::make_unique<RG::FromShaderReflection::AttachmentDataTable> ();
 }
 
 
@@ -141,17 +142,7 @@ void RenderOperation::CompileResult::Clear ()
 }
 
 
-std::optional<RenderOperation::AttachmentDataTable::AttachmentData> RenderOperation::AttachmentDataTable::GetAttachmentData (const std::string& name, GVK::ShaderKind shaderKind)
-{
-    for (const auto& entry : table) {
-        if (entry.name == name && entry.shaderKind == shaderKind) {
-            return entry.data;
-        }
-    }
-
-    return std::nullopt;
-}
-
+namespace {
 
 class DescriptorCounter : public RG::FromShaderReflection::IUpdateDescriptorSets {
 public:
@@ -192,6 +183,8 @@ public:
     }
 };
 
+} // namespace
+
 
 void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t width, uint32_t height)
 {
@@ -199,82 +192,37 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 
     compileResult.descriptorSetLayout = GetShaderPipeline ()->CreateDescriptorSetLayout (graphSettings.GetDevice ());
 
-    if (compileSettings.descriptorWriteProvider != nullptr) {
-        
-        DescriptorCounter descriptorCounter;
-        descriptorCounter.multiplier = graphSettings.framesInFlight;
-        GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
-            RG::FromShaderReflection::WriteDescriptors (shaderModule.GetReflection (), VK_NULL_HANDLE, 0, shaderModule.GetShaderKind (), *compileSettings.descriptorWriteProvider, descriptorCounter);
-        });
+    DescriptorCounter descriptorCounter;
+    descriptorCounter.multiplier = graphSettings.framesInFlight;
+    GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
+        RG::FromShaderReflection::WriteDescriptors (shaderModule.GetReflection (), VK_NULL_HANDLE, 0, shaderModule.GetShaderKind (), *compileSettings.descriptorWriteProvider, descriptorCounter);
+    });
 
-        if (!descriptorCounter.poolSizes.empty ()) {
+    if (!descriptorCounter.poolSizes.empty ()) {
 
-            compileResult.descriptorPool = std::make_unique<GVK::DescriptorPool> (graphSettings.GetDevice (), descriptorCounter.poolSizes, graphSettings.framesInFlight);
+        compileResult.descriptorPool = std::make_unique<GVK::DescriptorPool> (graphSettings.GetDevice (), descriptorCounter.poolSizes, graphSettings.framesInFlight);
             
-            DescriptorWriter descriptorWriter;
-            descriptorWriter.device = graphSettings.GetDevice ();
+        DescriptorWriter descriptorWriter;
+        descriptorWriter.device = graphSettings.GetDevice ();
 
-            for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
-                std::unique_ptr<GVK::DescriptorSet> descriptorSet = std::make_unique<GVK::DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
+        for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
+            std::unique_ptr<GVK::DescriptorSet> descriptorSet = std::make_unique<GVK::DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
-                if (compileSettings.descriptorWriteProvider != nullptr) {
-                    GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
-                        RG::FromShaderReflection::WriteDescriptors (shaderModule.GetReflection (), *descriptorSet, resourceIndex, shaderModule.GetShaderKind (), *compileSettings.descriptorWriteProvider, descriptorWriter);
-                    });
-                }
+            GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
+                RG::FromShaderReflection::WriteDescriptors (shaderModule.GetReflection (), *descriptorSet, resourceIndex, shaderModule.GetShaderKind (), *compileSettings.descriptorWriteProvider, descriptorWriter);
+            });
 
-                compileResult.descriptorSets.push_back (std::move (descriptorSet));
-            }
+            compileResult.descriptorSets.push_back (std::move (descriptorSet));
         }
     }
 
     std::vector<std::vector<VkImageView>> imageViews;
-    imageViews.resize (graphSettings.framesInFlight);
-
-    std::vector<VkAttachmentReference>   attachmentReferences;
-    std::vector<VkAttachmentDescription> attachmentDescriptions;
-
-    if (compileSettings.attachmentProvider != nullptr) {
-        GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
-            if (shaderModule.GetShaderKind () != GVK::ShaderKind::Fragment)
-                return;
-
-            for (const SR::Output& output : shaderModule.GetReflection ().outputs) {
-
-                auto attachmentData = compileSettings.attachmentProvider->GetAttachmentData (output.name, shaderModule.GetShaderKind ());
-
-                if (GVK_ERROR (!attachmentData.has_value ())) {
-                    spdlog::error ("Attachment \"{}\" (location: {}, layerCount: {}) is not set.", output.name, output.location, output.arraySize == 0 ? 1 : output.arraySize);
-                    continue;
-                }
-
-                const uint32_t layerCount     = output.arraySize == 0 ? 1 : output.arraySize;
-                for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
-
-                    VkAttachmentReference aRef = {};
-                    aRef.attachment            = output.location + layerIndex;
-                    aRef.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-                    VkAttachmentDescription aDesc = {};
-                    aDesc.flags                   = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
-                    aDesc.format                  = attachmentData->format ();
-                    aDesc.samples                 = VK_SAMPLE_COUNT_1_BIT;
-                    aDesc.loadOp                  = attachmentData->loadOp;
-                    aDesc.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
-                    aDesc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                    aDesc.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                    aDesc.initialLayout           = attachmentData->initialLayout;
-                    aDesc.finalLayout             = attachmentData->finalLayout;
-
-                    for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex)
-                        imageViews[resourceIndex].push_back (attachmentData->imageView (resourceIndex, layerIndex));
-
-                    attachmentReferences.push_back (aRef);
-                    attachmentDescriptions.push_back (aDesc);
-                }
-            }
-        });
+    for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
+        imageViews.push_back (RG::FromShaderReflection::GetImageViews (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, resourceIndex, *compileSettings.attachmentProvider));
     }
+
+    const std::vector<VkAttachmentReference>   attachmentReferences = RG::FromShaderReflection::GetAttachmentReferences (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
+    const std::vector<VkAttachmentDescription> attachmentDescriptions = RG::FromShaderReflection::GetAttachmentDescriptions (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
 
     if constexpr (IsDebugBuild) {
         GVK_ASSERT (attachmentReferences.size () == attachmentDescriptions.size ());

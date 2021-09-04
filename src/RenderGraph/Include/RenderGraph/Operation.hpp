@@ -5,6 +5,7 @@
 
 #include "RenderGraph/Node.hpp"
 #include "RenderGraph/ShaderReflectionToDescriptor.hpp"
+#include "RenderGraph/ShaderReflectionToAttachment.hpp"
 
 #include "VulkanWrapper/ShaderModule.hpp"
 
@@ -88,36 +89,6 @@ public:
         void EnsurePipelineCreated ();
     };
 
-    class GVK_RENDERER_API IAttachmentProvider {
-    public:
-        virtual ~IAttachmentProvider () = default;
-
-        struct AttachmentData {
-            std::function<VkFormat ()>                      format;
-            VkAttachmentLoadOp                              loadOp;
-            std::function<VkImageView (uint32_t, uint32_t)> imageView;
-            VkImageLayout                                   initialLayout;
-            VkImageLayout                                   finalLayout;
-        };
-
-        virtual std::optional<AttachmentData> GetAttachmentData (const std::string& name, GVK::ShaderKind shaderKind) = 0;
-    };
-
-    class GVK_RENDERER_API AttachmentDataTable : public IAttachmentProvider {
-    public:
-        struct AttachmentDataEntry {
-            std::string     name;
-            GVK::ShaderKind shaderKind;
-            AttachmentData  data;
-        };
-
-        std::vector<AttachmentDataEntry> table;
-
-        virtual ~AttachmentDataTable () override = default;
-
-        virtual std::optional<AttachmentData> GetAttachmentData (const std::string& name, GVK::ShaderKind shaderKind) override;
-    };
-
     struct GVK_RENDERER_API CompileSettings {
         std::unique_ptr<DrawRecordable> drawRecordable;
         std::unique_ptr<ShaderPipeline> pipeline;
@@ -127,16 +98,7 @@ public:
         std::optional<bool>      blendEnabled; // true by default
 
         std::unique_ptr<RG::FromShaderReflection::DescriptorWriteInfoTable> descriptorWriteProvider;
-        std::unique_ptr<IAttachmentProvider>                                attachmentProvider;
-
-        template<typename T>
-        T* GetAttachmentProvider ()
-        {
-            if (attachmentProvider == nullptr)
-                attachmentProvider = std::make_unique<T> ();
-
-            return dynamic_cast<T*> (attachmentProvider.get ());
-        }
+        std::unique_ptr<RG::FromShaderReflection::AttachmentDataTable>      attachmentProvider;
     };
 
     struct GVK_RENDERER_API CompileResult {

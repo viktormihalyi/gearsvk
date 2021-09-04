@@ -75,12 +75,12 @@ void main () {
 
     RG::ConnectionSet connectionSet;
 
-    auto aTable2 = renderOp->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable2 = renderOp->compileSettings.attachmentProvider;
     aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { renderTarget->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, renderTarget->GetImageViewForFrameProvider (), renderTarget->GetInitialLayout (), renderTarget->GetFinalLayout () } });
 
     connectionSet.Add (renderOp, renderTarget);
 
-    auto aTable3 = renderOp2->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable3 = renderOp2->compileSettings.attachmentProvider;
     aTable3->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { renderTarget->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, renderTarget->GetImageViewForFrameProvider (), renderTarget->GetInitialLayout (), renderTarget->GetFinalLayout () } });
 
     connectionSet.Add (renderOp, renderTarget);

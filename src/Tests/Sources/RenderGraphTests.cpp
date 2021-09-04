@@ -102,7 +102,7 @@ void main ()
 
     RG::GraphSettings s (GetDeviceExtra (), 3);
 
-    auto aTable2 = redFillOperation->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable2 = redFillOperation->compileSettings.attachmentProvider;
     aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { red->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, red->GetImageViewForFrameProvider (), red->GetInitialLayout (), red->GetFinalLayout () } });
 
     s.connectionSet.Add (redFillOperation, red);
@@ -266,7 +266,7 @@ void main () {
 
     std::shared_ptr<RG::WritableImageResource> presented = std::make_unique<RG::WritableImageResource> (512, 512);
 
-    auto aTable2 = redFillOperation->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable2 = redFillOperation->compileSettings.attachmentProvider;
     aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { presented->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, presented->GetImageViewForFrameProvider (), presented->GetInitialLayout (), presented->GetFinalLayout () } });
 
     s.connectionSet.Add (redFillOperation, presented);
@@ -324,7 +324,7 @@ void main () {
 
     RG::GraphSettings s (GetDeviceExtra (), 3);
 
-    auto aTable2 = redFillOperation->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable2 = redFillOperation->compileSettings.attachmentProvider;
     aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { red->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, red->GetImageViewForFrameProvider (), red->GetInitialLayout (), red->GetFinalLayout () } });
 
     s.connectionSet.Add (redFillOperation, red);
@@ -433,11 +433,11 @@ TEST_F (HeadlessTestEnvironment, RenderGraph_MultipleOperations_MultipleOutputs)
     auto& table2 = secondPass->compileSettings.descriptorWriteProvider;
     table2->imageInfos.push_back ({ "sampl", GVK::ShaderKind::Fragment, red->GetSamplerProvider (), red->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 
-    auto aTable = dummyPass->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable = dummyPass->compileSettings.attachmentProvider;
     aTable->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { presented->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, presented->GetImageViewForFrameProvider (), presented->GetInitialLayout (), presented->GetFinalLayout () } });
     aTable->table.push_back ({ "red", GVK::ShaderKind::Fragment, { red->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, red->GetImageViewForFrameProvider (), red->GetInitialLayout (), red->GetFinalLayout () } });
 
-    auto aTable2 = secondPass->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable2 = secondPass->compileSettings.attachmentProvider;
     aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { finalImg->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, finalImg->GetImageViewForFrameProvider (), finalImg->GetInitialLayout (), finalImg->GetFinalLayout () } });
 
     RG::ConnectionSet connectionSet;
@@ -535,7 +535,7 @@ void main () {
 
     RG::GraphSettings s (GetDeviceExtra (), 1);
 
-    auto aTable2 = firstPass->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable2 = firstPass->compileSettings.attachmentProvider;
     aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { presented->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_LOAD, presented->GetImageViewForFrameProvider (), presented->GetInitialLayout (), presented->GetFinalLayout () } });
 
     s.connectionSet.Add (presented, firstPass);
@@ -640,12 +640,12 @@ void main () {
 
     RG::GraphSettings s (GetDeviceExtra (), 1);
 
-    auto aTable2 = firstPass->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable2 = firstPass->compileSettings.attachmentProvider;
     aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { presented->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, presented->GetImageViewForFrameProvider (), presented->GetInitialLayout (), presented->GetFinalLayout () } });
 
     s.connectionSet.Add (firstPass, presented);
 
-    auto aTable3 = secondPass->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable3 = secondPass->compileSettings.attachmentProvider;
     aTable3->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { presented->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_LOAD, presented->GetImageViewForFrameProvider (), presented->GetInitialLayout (), presented->GetFinalLayout () } });
 
     s.connectionSet.Add (secondPass, presented);
@@ -745,7 +745,7 @@ void main () {
     std::shared_ptr<RG::WritableImageResource> presentedCopy = std::make_unique<RG::WritableImageResource> (800, 600);
     std::shared_ptr<RG::SwapchainImageResource> presented     = std::make_unique<RG::SwapchainImageResource> (*presentable);
 
-    auto aTable3 = redFillOperation->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable3 = redFillOperation->compileSettings.attachmentProvider;
     aTable3->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { presented->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, presented->GetImageViewForFrameProvider (), presented->GetInitialLayout (), presented->GetFinalLayout () } });
     aTable3->table.push_back ({ "outCopy", GVK::ShaderKind::Fragment, { presentedCopy->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, presentedCopy->GetImageViewForFrameProvider (), presentedCopy->GetInitialLayout (), presentedCopy->GetFinalLayout () } });
 
@@ -833,7 +833,7 @@ void main () {
     std::shared_ptr<RG::WritableImageResource>  presentedCopy = std::make_unique<RG::WritableImageResource> (800, 600);
     std::shared_ptr<RG::SwapchainImageResource> presented     = std::make_unique<RG::SwapchainImageResource> (*presentable);
 
-    auto aTable2 = redFillOperation->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable2 = redFillOperation->compileSettings.attachmentProvider;
     aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { presented->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, presented->GetImageViewForFrameProvider (), presented->GetInitialLayout (), presented->GetFinalLayout () } });
     aTable2->table.push_back ({ "outCopy", GVK::ShaderKind::Fragment, { presentedCopy->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, presentedCopy->GetImageViewForFrameProvider (), presentedCopy->GetInitialLayout (), presentedCopy->GetFinalLayout () } });
 
@@ -932,7 +932,7 @@ void main () {
 
     s.connectionSet.Add (unif);
 
-    auto aTable2 = redFillOperation->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    auto& aTable2 = redFillOperation->compileSettings.attachmentProvider;
     aTable2->table.push_back ({ "presented", GVK::ShaderKind::Fragment, { presented->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, presented->GetImageViewForFrameProvider (), presented->GetInitialLayout (), presented->GetFinalLayout () } });
     aTable2->table.push_back ({ "copy", GVK::ShaderKind::Fragment, { presentedCopy->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, presentedCopy->GetImageViewForFrameProvider (), presentedCopy->GetInitialLayout (), presentedCopy->GetFinalLayout () } });
 
