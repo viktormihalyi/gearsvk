@@ -50,7 +50,11 @@ std::vector<VkImageView> GetImageViews (const GVK::ShaderModule::Reflection& ref
 
 
 GVK_RENDERER_API
-std::vector<VkAttachmentReference>   GetAttachmentReferences (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider);
+std::vector<VkAttachmentReference> GetAttachmentReferences (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider);
+
+
+GVK_RENDERER_API
+std::vector<VkAttachmentReference> GetInputAttachmentReferences (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider, uint32_t startIndex);
 
 
 GVK_RENDERER_API

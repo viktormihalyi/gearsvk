@@ -48,6 +48,7 @@ public:
         uint32_t                               height;
         GVK::MovablePtr<VkDescriptorSetLayout> layout;
         std::vector<VkAttachmentReference>     attachmentReferences;
+        std::vector<VkAttachmentReference>     inputAttachmentReferences;
         std::vector<VkAttachmentDescription>   attachmentDescriptions;
         VkPrimitiveTopology                    topology;
 

@@ -180,6 +180,9 @@ public:
     const uint32_t height;
     const uint32_t arrayLayers;
 
+    VkImageLayout initialLayout;
+    VkImageLayout finalLayout;
+
     std::vector<std::unique_ptr<SingleImageResource>> images;
     std::unique_ptr<GVK::Sampler>                     sampler;
 

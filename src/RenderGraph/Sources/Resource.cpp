@@ -48,7 +48,7 @@ WritableImageResource::SingleImageResource::SingleImageResource (const GVK::Devi
     : image (std::make_unique<GVK::Image2D> (device.GetAllocator (), GVK::Image::MemoryLocation::GPU,
                                         width, height,
                                         format, tiling,
-                                        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                                             VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
                                         arrayLayers))
 {
     for (uint32_t layerIndex = 0; layerIndex < arrayLayers; ++layerIndex) {
@@ -77,6 +77,8 @@ WritableImageResource::WritableImageResource (VkFilter filter, uint32_t width, u
     , width (width)
     , height (height)
     , arrayLayers (arrayLayers)
+    , initialLayout (VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+    , finalLayout (VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
 {
 }
 
@@ -103,13 +105,13 @@ void WritableImageResource::Compile (const GraphSettings& graphSettings)
 
 VkImageLayout WritableImageResource::GetInitialLayout () const
 {
-    return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    return initialLayout;
 }
 
 
 VkImageLayout WritableImageResource::GetFinalLayout () const
 {
-    return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    return finalLayout;
 }
 
 

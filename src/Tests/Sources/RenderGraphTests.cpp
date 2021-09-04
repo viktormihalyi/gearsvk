@@ -460,8 +460,7 @@ TEST_F (HeadlessTestEnvironment, RenderGraph_MultipleOperations_MultipleOutputs)
 }
 
 
-
-TEST_F (HeadlessTestEnvironment, InputAttachment)
+TEST_F (HeadlessTestEnvironment, InputAttachment_ShaderModule_Compile)
 {
     std::unique_ptr<GVK::ShaderModule> shaderModule = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Fragment, R"(
 #version 450
@@ -498,10 +497,93 @@ void main()
     }
 }
 )");
-
-    shaderModule->GetReflection ();
 }
 
+
+TEST_F (HeadlessTestEnvironment, InputAttachment_RenderGraph)
+{
+    const std::string fragSrc = R"(
+#version 450
+
+layout (input_attachment_index = 0, binding = 0) uniform usubpassInput inputColor;
+
+layout (location = 0) out uvec4 outColor;
+
+void main() 
+{
+    uvec3 si = subpassLoad (inputColor).bgr;
+    outColor = uvec4 (si, 255);
+}
+)";
+
+    std::shared_ptr<RG::RenderOperation> firstPass = RG::RenderOperation::Builder (GetDevice ())
+                                                         .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+                                                         .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                         .SetVertexShader (passThroughVertexShader)
+                                                         .SetFragmentShader (fragSrc)
+                                                         .SetBlendEnabled (false)
+                                                         .Build ();
+
+    std::shared_ptr<RG::WritableImageResource> inputColor = std::make_unique<RG::WritableImageResource> (VK_FILTER_LINEAR, 32, 32, 1, VK_FORMAT_R8G8B8A8_UINT);
+
+    std::shared_ptr<RG::WritableImageResource> outColor = std::make_unique<RG::WritableImageResource> (VK_FILTER_LINEAR, 32, 32, 1, VK_FORMAT_R8G8B8A8_UINT);
+
+    inputColor->initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    inputColor->finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+    auto& aTable = firstPass->compileSettings.attachmentProvider->table;
+    aTable.push_back ({ "inputColor", GVK::ShaderKind::Fragment, { inputColor->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_LOAD, inputColor->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL } });
+    aTable.push_back ({ "outColor", GVK::ShaderKind::Fragment, { outColor->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, outColor->GetImageViewForFrameProvider (), outColor->GetInitialLayout (), outColor->GetFinalLayout () } });
+
+    auto& dTable = firstPass->compileSettings.descriptorWriteProvider;
+    dTable->imageInfos.push_back ({ "inputColor", GVK::ShaderKind::Fragment, inputColor->GetSamplerProvider (), inputColor->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+
+    RG::ConnectionSet connectionSet;
+
+    connectionSet.Add (inputColor, firstPass);
+    connectionSet.Add (firstPass, outColor);
+
+    RG::GraphSettings s;
+
+    s.framesInFlight = 1;
+    s.device         = &GetDeviceExtra ();
+    s.connectionSet  = std::move (connectionSet);
+
+    RG::RenderGraph graph;
+    graph.Compile (std::move (s));
+
+    {
+        GVK::Buffer buff (*env->allocator, 32 * 32 * 4 * 3, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, GVK::Buffer::MemoryLocation::CPU);
+
+        GVK::MemoryMapping mapping (*env->allocator, buff);
+
+        std::vector<uint8_t> pixelData (32 * 32 * 4 * 3);
+        for (uint32_t i = 0; i < pixelData.size (); i += 4) {
+            pixelData[i + 0] = 255;
+            pixelData[i + 1] = 0;
+            pixelData[i + 2] = 0;
+            pixelData[i + 3] = 128;
+        }
+        mapping.Copy (pixelData);
+
+        {
+            GVK::SingleTimeCommand s (GetDevice (), GetCommandPool (), GetGraphicsQueue ());
+            s.Record<GVK::CommandTranstionImage> (*inputColor->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            s.Record<GVK::CommandCopyBufferToImage> (buff, *inputColor->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, std::vector<VkBufferImageCopy> { inputColor->GetImages ()[0]->GetFullBufferImageCopy () });
+            s.Record<GVK::CommandTranstionImage> (*inputColor->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
+    }
+
+
+    env->Wait ();
+    graph.Submit (0);
+    env->Wait ();
+
+    GVK::ImageData img (GetDeviceExtra (), *outColor->GetImages ()[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    GVK::ImageData referenceImage (ReferenceImagesFolder / "blue_32x32.png");
+
+    EXPECT_TRUE (referenceImage == img);
+}
 
 
 TEST_F (HeadlessTestEnvironment, DISABLED_RenderGraph_SameImageAsInputAndOutput)
@@ -538,10 +620,11 @@ void main () {
     auto& aTable2 = firstPass->compileSettings.attachmentProvider;
     aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { presented->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_LOAD, presented->GetImageViewForFrameProvider (), presented->GetInitialLayout (), presented->GetFinalLayout () } });
 
-    s.connectionSet.Add (presented, firstPass);
-
     auto& table = firstPass->compileSettings.descriptorWriteProvider;
     table->imageInfos.push_back ({ "inColor", GVK::ShaderKind::Fragment, presented->GetSamplerProvider (), presented->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+
+    s.connectionSet.Add (presented, firstPass);
+    s.connectionSet.Add (firstPass, presented);
 
     RG::RenderGraph graph;
     graph.Compile (std::move (s));

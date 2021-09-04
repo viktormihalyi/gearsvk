@@ -178,6 +178,8 @@ void ShaderPipeline::Compile (CompileSettings&& settings_)
     subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount = static_cast<uint32_t> (compileSettings.attachmentReferences.size ());
     subpass.pColorAttachments    = compileSettings.attachmentReferences.data ();
+    subpass.inputAttachmentCount = static_cast<uint32_t> (compileSettings.inputAttachmentReferences.size ());
+    subpass.pInputAttachments    = compileSettings.inputAttachmentReferences.data ();
 
     VkSubpassDependency dependency = {};
     dependency.srcSubpass          = VK_SUBPASS_EXTERNAL;

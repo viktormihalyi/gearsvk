@@ -107,8 +107,9 @@ std::shared_ptr<RenderOperation> RenderOperation::Builder::Build ()
 
     std::shared_ptr<RenderOperation> op = std::make_shared<RenderOperation> (std::move (drawRecordable), std::move (shaderPipiline), *topology);
 
-    drawRecordable = nullptr;
-    shaderPipiline     = nullptr;
+    drawRecordable                   = nullptr;
+    shaderPipiline                   = nullptr;
+    op->compileSettings.blendEnabled = blendEnabled;
 
     if (name.has_value ())
         op->SetName (*name);
@@ -179,6 +180,21 @@ public:
 
     virtual void UpdateDescriptorSets (const std::vector<VkWriteDescriptorSet>& writes) override
     {
+        for (const auto& write : writes) {
+
+            spdlog::trace ("DescriptorWriter: dstBinding = {}, dstArrayElement = {}, descriptorCount = {}, descriptorType = {}",
+                write.dstBinding, write.dstArrayElement, write.descriptorCount, write.descriptorType);
+
+            if (write.pImageInfo != nullptr) {
+                for (uint32_t i = 0; i < write.descriptorCount; ++i) {
+                    spdlog::trace ("DescriptorWriter: Image");
+                }
+            } else if (write.pBufferInfo != nullptr) {
+                for (uint32_t i = 0; i < write.descriptorCount; ++i) {
+                    spdlog::trace ("DescriptorWriter: Buffer");
+                }
+            }
+        }
         vkUpdateDescriptorSets (device, writes.size (), writes.data (), 0, nullptr);
     }
 };
@@ -226,10 +242,11 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
         imageViews.push_back (RG::FromShaderReflection::GetImageViews (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, resourceIndex, *compileSettings.attachmentProvider));
     }
 
-    const std::vector<VkAttachmentReference>   attachmentReferences = RG::FromShaderReflection::GetAttachmentReferences (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
-    const std::vector<VkAttachmentDescription> attachmentDescriptions = RG::FromShaderReflection::GetAttachmentDescriptions (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
+    const std::vector<VkAttachmentReference>   attachmentReferences      = RG::FromShaderReflection::GetAttachmentReferences (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
+    const std::vector<VkAttachmentReference>   inputAttachmentReferences = RG::FromShaderReflection::GetInputAttachmentReferences (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider, attachmentReferences.size ());
+    const std::vector<VkAttachmentDescription> attachmentDescriptions    = RG::FromShaderReflection::GetAttachmentDescriptions (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
 
-    if constexpr (IsDebugBuild) {
+    if constexpr (false) {
         GVK_ASSERT (attachmentReferences.size () == attachmentDescriptions.size ());
         for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
             const auto outputImageView = imageViews[resourceIndex];
@@ -241,6 +258,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
                                                          height,
                                                          compileResult.descriptorSetLayout->operator VkDescriptorSetLayout (),
                                                          attachmentReferences,
+                                                         inputAttachmentReferences,
                                                          attachmentDescriptions,
                                                          compileSettings.topology };
 
