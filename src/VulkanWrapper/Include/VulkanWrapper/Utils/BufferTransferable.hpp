@@ -111,9 +111,6 @@ public:
     std::vector<VkVertexInputBindingDescription>   bindings;
 
     VertexInputInfo (const std::vector<VkFormat>& vertexInputFormats, VkVertexInputRate inputRate);
-
-    std::vector<VkVertexInputAttributeDescription> GetAttributes (uint32_t nextLocation, uint32_t binding) const;
-    std::vector<VkVertexInputBindingDescription>   GetBindings (uint32_t binding) const;
 };
 
 

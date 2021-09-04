@@ -68,9 +68,9 @@ RenderOperation::Builder& RenderOperation::Builder::SetFragmentShader (const std
 }
 
 
-RenderOperation::Builder& RenderOperation::Builder::SetVertices (std::unique_ptr<PureDrawRecordable>&& value)
+RenderOperation::Builder& RenderOperation::Builder::SetVertices (std::unique_ptr<DrawRecordable>&& value)
 {
-    pureDrawRecordable = std::move (value);
+    drawRecordable = std::move (value);
     return *this;
 }
 
@@ -98,12 +98,12 @@ RenderOperation::Builder& RenderOperation::Builder::SetClearColor (const glm::ve
 
 std::shared_ptr<RenderOperation> RenderOperation::Builder::Build ()
 {
-    GVK_ASSERT (pureDrawRecordable != nullptr);
+    GVK_ASSERT (drawRecordable != nullptr);
     GVK_ASSERT (shaderPipiline != nullptr);
 
-    std::shared_ptr<RenderOperation> op = std::make_shared<RenderOperation> (std::move (pureDrawRecordable), std::move (shaderPipiline), *topology);
+    std::shared_ptr<RenderOperation> op = std::make_shared<RenderOperation> (std::move (drawRecordable), std::move (shaderPipiline), *topology);
 
-    pureDrawRecordable = nullptr;
+    drawRecordable = nullptr;
     shaderPipiline     = nullptr;
 
     if (name.has_value ())
@@ -121,7 +121,7 @@ void RenderOperation::Builder::EnsurePipelineCreated ()
 }
 
 
-RenderOperation::RenderOperation (std::unique_ptr<PureDrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
+RenderOperation::RenderOperation (std::unique_ptr<DrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
     : compileSettings ({ std::move (drawRecordable), std::move (shaderPipeline), topology })
 {
 }
@@ -297,8 +297,8 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
             std::vector<uint32_t> {}).SetName ("Operation - DescriptionSet");
     }
 
-    GVK_ASSERT (compileSettings.pureDrawRecordable != nullptr);
-    compileSettings.pureDrawRecordable->Record (commandBuffer);
+    GVK_ASSERT (compileSettings.drawRecordable != nullptr);
+    compileSettings.drawRecordable->Record (commandBuffer);
     
     commandBuffer.Record<GVK::CommandEndRenderPass> ().SetName ("Operation - Renderpass End");
 }

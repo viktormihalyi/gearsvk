@@ -81,27 +81,6 @@ VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormat
 }
 
 
-std::vector<VkVertexInputAttributeDescription> VertexInputInfo::GetAttributes (uint32_t firstLocation, uint32_t binding) const
-{
-    std::vector<VkVertexInputAttributeDescription> result = attributes;
-    for (auto& a : result) {
-        a.location += firstLocation;
-        a.binding = binding;
-    }
-    return result;
-}
-
-
-std::vector<VkVertexInputBindingDescription> VertexInputInfo::GetBindings (uint32_t binding) const
-{
-    std::vector<VkVertexInputBindingDescription> result = bindings;
-    for (auto& a : result) {
-        a.binding = binding;
-    }
-    return result;
-}
-
-
 void BufferTransferable::CopyAndTransfer (const void* data, size_t size) const
 {
     GVK_ASSERT (size == bufferSize);

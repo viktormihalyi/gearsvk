@@ -23,9 +23,6 @@ class DescriptorPool;
 class DescriptorSet;
 class DescriptorSetLayout;
 class Framebuffer;
-class DrawRecordable;
-class DrawRecordableInfo;
-class VertexAttributeProvider;
 class ImageView2D;
 class CommandBuffer;
 } // namespace GVK
@@ -35,7 +32,8 @@ class ShaderPipeline;
 class Resource;
 class GraphSettings;
 class ConnectionSet;
-class PureDrawRecordable;
+class DrawRecordable;
+class DrawRecordableInfo;
 } // namespace RG
 
 
@@ -45,9 +43,9 @@ class GVK_RENDERER_API Operation : public Node {
 public:
     virtual ~Operation () override = default;
 
-    virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height)                                = 0;
+    virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height)                                        = 0;
     virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) = 0;
-    virtual bool IsActive ()                                                                                    = 0;
+    virtual bool IsActive ()                                                                                            = 0;
 
     // when record called, input images will be in GetImageLayoutAtStartForInputs ()
     // output images will be in GetImageLayoutAtStartForOutputs () layouts.
@@ -64,13 +62,13 @@ public:
 
     class GVK_RENDERER_API Builder {
     private:
-        VkDevice                            device;
-        std::unique_ptr<PureDrawRecordable> pureDrawRecordable;
-        std::unique_ptr<ShaderPipeline>     shaderPipiline;
-        std::optional<VkPrimitiveTopology>  topology;
-        std::optional<glm::vec4>            clearColor;
-        std::optional<bool>                 blendEnabled;
-        std::optional<std::string>          name;
+        VkDevice                           device;
+        std::unique_ptr<DrawRecordable>    drawRecordable;
+        std::unique_ptr<ShaderPipeline>    shaderPipiline;
+        std::optional<VkPrimitiveTopology> topology;
+        std::optional<glm::vec4>           clearColor;
+        std::optional<bool>                blendEnabled;
+        std::optional<std::string>         name;
 
     public:
         Builder (VkDevice device);
@@ -80,7 +78,7 @@ public:
         Builder& SetFragmentShader (const std::string& value);
         Builder& SetVertexShader (const std::filesystem::path& value);
         Builder& SetFragmentShader (const std::filesystem::path& value);
-        Builder& SetVertices (std::unique_ptr<PureDrawRecordable>&& value);
+        Builder& SetVertices (std::unique_ptr<DrawRecordable>&& value);
         Builder& SetBlendEnabled (bool value = true);
         Builder& SetClearColor (const glm::vec4& value);
         Builder& SetName (const std::string& value);
@@ -122,9 +120,9 @@ public:
     };
 
     struct GVK_RENDERER_API CompileSettings {
-        std::unique_ptr<PureDrawRecordable>      pureDrawRecordable;
-        std::unique_ptr<ShaderPipeline>          pipeline;
-        VkPrimitiveTopology                      topology;
+        std::unique_ptr<DrawRecordable> drawRecordable;
+        std::unique_ptr<ShaderPipeline> pipeline;
+        VkPrimitiveTopology             topology;
 
         std::optional<glm::vec4> clearColor;   // (0, 0, 0, 1) by default
         std::optional<bool>      blendEnabled; // true by default
@@ -165,7 +163,7 @@ public:
     CompileSettings compileSettings;
     CompileResult   compileResult;
 
-    RenderOperation (std::unique_ptr<PureDrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    RenderOperation (std::unique_ptr<DrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
     virtual ~RenderOperation () override = default;
 

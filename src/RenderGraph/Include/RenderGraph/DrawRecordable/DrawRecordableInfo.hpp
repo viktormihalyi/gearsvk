@@ -62,25 +62,6 @@ public:
             return vb->buffer.GetBufferToBind ();
         });
     }
-
-    std::vector<VkVertexInputBindingDescription> GetBindings () const
-    {
-        uint32_t nextBinding = 0;
-        return GetFromVector<VkVertexInputBindingDescription> ([&] (const std::shared_ptr<GVK::VertexBufferTransferableUntyped>& vb) {
-            return vb->info.GetBindings (nextBinding++);
-        });
-    }
-
-    std::vector<VkVertexInputAttributeDescription> GetAttributes () const
-    {
-        size_t nextLocation = 0;
-        size_t nextBinding  = 0;
-        return GetFromVector<VkVertexInputAttributeDescription> ([&] (const std::shared_ptr<GVK::VertexBufferTransferableUntyped>& vb) {
-            auto attribs = vb->info.GetAttributes (nextLocation, nextBinding++);
-            nextLocation += attribs.size ();
-            return attribs;
-        });
-    }
 };
 
 
@@ -90,8 +71,6 @@ public:
 
     const uint32_t                                       vertexCount;
     const std::vector<VkBuffer>                          vertexBuffer;
-    const std::vector<VkVertexInputBindingDescription>   vertexInputBindings;
-    const std::vector<VkVertexInputAttributeDescription> vertexInputAttributes;
 
     const uint32_t indexCount;
     const VkBuffer indexBuffer;
@@ -106,8 +85,6 @@ public:
         : instanceCount (instanceCount)
         , vertexCount (vertexCount)
         , vertexBuffer ((vertexBuffer == VK_NULL_HANDLE) ? std::vector<VkBuffer> {} : std::vector<VkBuffer> { vertexBuffer })
-        , vertexInputBindings (vertexInputBindings)
-        , vertexInputAttributes (vertexInputAttributes)
         , indexCount (indexCount)
         , indexBuffer (indexBuffer)
     {
@@ -119,8 +96,6 @@ public:
         : instanceCount (instanceCount)
         , vertexCount (vertexBuffer.data.size ())
         , vertexBuffer ({ vertexBuffer.buffer.GetBufferToBind () })
-        , vertexInputBindings (vertexBuffer.info.bindings)
-        , vertexInputAttributes (vertexBuffer.info.attributes)
         , indexCount (indexBuffer.data.size ())
         , indexBuffer (indexBuffer.buffer.GetBufferToBind ())
     {
@@ -131,8 +106,6 @@ public:
         : instanceCount (instanceCount)
         , vertexCount (vertexBuffer.data.size ())
         , vertexBuffer ({ vertexBuffer.buffer.GetBufferToBind () })
-        , vertexInputBindings (vertexBuffer.info.bindings)
-        , vertexInputAttributes (vertexBuffer.info.attributes)
         , indexCount (0)
         , indexBuffer (VK_NULL_HANDLE)
     {
@@ -146,8 +119,6 @@ public:
         : instanceCount (instanceCount)
         , vertexCount (vertexCount)
         , vertexBuffer (vertexBuffers.GetHandles ())
-        , vertexInputBindings (vertexBuffers.GetBindings ())
-        , vertexInputAttributes (vertexBuffers.GetAttributes ())
         , indexCount (indexCount)
         , indexBuffer (indexBuffer)
     {
@@ -156,23 +127,11 @@ public:
     virtual ~DrawRecordableInfo () override = default;
 
     void Record (GVK::CommandBuffer& commandBuffer) const override;
-
-    virtual std::vector<VkVertexInputAttributeDescription> GetAttributes () const override
-    {
-        return vertexInputAttributes;
-    }
-
-    virtual std::vector<VkVertexInputBindingDescription> GetBindings () const override
-    {
-        return vertexInputBindings;
-    }
 };
 
 class DrawRecordableInfoProvider : public DrawRecordable {
 public:
-    virtual void                                           Record (GVK::CommandBuffer& commandBuffer) const override { GetDrawRecordableInfo ().Record (commandBuffer); }
-    virtual std::vector<VkVertexInputAttributeDescription> GetAttributes () const override { return GetDrawRecordableInfo ().GetAttributes (); }
-    virtual std::vector<VkVertexInputBindingDescription>   GetBindings () const override { return GetDrawRecordableInfo ().GetBindings (); }
+    virtual void Record (GVK::CommandBuffer& commandBuffer) const override { GetDrawRecordableInfo ().Record (commandBuffer); }
 
 private:
     virtual const DrawRecordableInfo& GetDrawRecordableInfo () const = 0;
