@@ -51,8 +51,6 @@ public:
 
     void VisitOutputsOf (const Node* node, IResourceVisitor& visitor) const;
 
-    void VisitInputsOf (const Node* node, IResourceVisitor& visitor) const;
-
     template<typename T>
     std::vector<std::shared_ptr<T>> GetPointingTo (const Node* node) const
     {
@@ -113,17 +111,6 @@ public:
         }
     }
 
-
-    void VisitInputsOf (const Node* node, IConnectionBindingVisitor& visitor) const
-    {
-        for (const std::unique_ptr<NodeConnection>& c : connections) {
-            if (c->to.get () == node) {
-                c->binding->Visit (visitor);
-            }
-        }
-    }
-
-    
     void Add (std::unique_ptr<NodeConnection>&& connection)
     {
         Add (connection->from);

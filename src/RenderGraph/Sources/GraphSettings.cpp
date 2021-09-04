@@ -20,21 +20,6 @@ void ConnectionSet::VisitOutputsOf (const Node* node, IResourceVisitor& visitor)
     }
 }
 
-
-void ConnectionSet::VisitInputsOf (const Node* node, IResourceVisitor& visitor) const
-{
-    for (const std::unique_ptr<NodeConnection>& c : connections) {
-        if (c->to.get () == node) {
-            if (std::shared_ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c->from)) {
-                asResource->Visit (visitor);
-            } else {
-                GVK_BREAK_STR ("???");
-            }
-        }
-    }
-}
-
-
 GraphSettings::GraphSettings (const GVK::DeviceExtra& device, ConnectionSet&& connectionSet, uint32_t framesInFlight)
     : device (&device)
     , framesInFlight (framesInFlight)

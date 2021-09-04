@@ -172,6 +172,7 @@ std::vector<VkImageView> RenderOperation::GetOutputImageViews (const ConnectionS
 }
 
 
+#if 0
 std::vector<GVK::ImageView2D> RenderOperation::CreateOutputImageViews (const GVK::DeviceExtra& device, const ConnectionSet& conncetionSet, uint32_t resourceIndex) const
 {
     std::vector<GVK::ImageView2D> result;
@@ -194,6 +195,7 @@ std::vector<GVK::ImageView2D> RenderOperation::CreateOutputImageViews (const GVK
 
     return result;
 }
+#endif
 
 
 RenderOperation::RenderOperation (std::unique_ptr<PureDrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
@@ -373,6 +375,7 @@ VkImageLayout RenderOperation::GetImageLayoutAtEndForOutputs (Resource& res)
 }
 
 
+#if 0
 TransferOperation::TransferOperation ()
 {
 }
@@ -401,7 +404,6 @@ void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t ima
                                        [&] (GPUBufferResource&) {},
                                        [&] (CPUBufferResource&) {});
 
-    connectionSet.VisitInputsOf (this, inputGatherer);
     connectionSet.VisitOutputsOf (this, outputGatherer);
 
     if (GVK_ERROR (inputs.size () != 1)) {
@@ -451,6 +453,7 @@ void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t ima
     GVK_ASSERT ("bad resources");
     throw std::runtime_error ("unknown resources to transfer");
 }
+#endif
 
 
 } // namespace RG

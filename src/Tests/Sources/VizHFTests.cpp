@@ -366,10 +366,16 @@ void main ()
                              .SetClear ()
                              .Build ());
 
-    s.connectionSet.Add (agy3d, brainRenderOp, std::make_unique<RG::ImageInputBinding> (2, *agy3d));
-    s.connectionSet.Add (matcap, brainRenderOp, std::make_unique<RG::ImageInputBinding> (3, *matcap));
+    s.connectionSet.Add (agy3d);
+    s.connectionSet.Add (matcap);
+    s.connectionSet.Add (brainRenderOp);
 
     RG::UniformReflection r (s.connectionSet);
+
+    auto table = (brainRenderOp->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ());
+    table->imageInfos.push_back (GVK::ShaderModule::Reflection::DescriptorImageInfoTableEntry { std::string ("agySampler"), GVK::ShaderKind::Fragment, agy3d->GetSamplerProvider (), agy3d->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, agy3d->GetLayerCount () });
+    table->imageInfos.push_back (GVK::ShaderModule::Reflection::DescriptorImageInfoTableEntry { std::string ("matcapSampler"), GVK::ShaderKind::Fragment, matcap->GetSamplerProvider (), matcap->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, matcap->GetLayerCount () });
+
 
     // ========================= GRAPH RESOURCE SETUP =========================
 

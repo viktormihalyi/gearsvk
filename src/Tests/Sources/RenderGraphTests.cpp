@@ -353,6 +353,7 @@ void main () {
 }
 
 
+#if 0
 TEST_F (HeadlessTestEnvironment, RenderGraph_TransferOperation)
 {
     const std::string fragSrc = R"(
@@ -388,8 +389,7 @@ void main () {
                              .SetClear ()
                              .Build ());
 
-    s.connectionSet.Add (red, transfer,
-                         std::make_unique<RG::ImageInputBinding> (0, *red));
+    s.connectionSet.Add (red, transfer, std::make_unique<RG::DummyIConnectionBinding> ());
 
     s.connectionSet.Add (RG::OutputBuilder ()
                              .SetOperation (transfer)
@@ -406,6 +406,7 @@ void main () {
 
     CompareImages ("red", *duplicate->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 }
+#endif
 
 
 TEST_F (HeadlessTestEnvironment, RenderGraph_MultipleOperations_MultipleOutputs)

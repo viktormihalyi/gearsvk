@@ -94,12 +94,9 @@ void UniformReflection::CreateGraphConnections ()
     for (auto& [operation, ubo, resource, shaderKind] : uboConnections) {
         connectionSet.Add (operation);
         connectionSet.Add (resource);
-        if (operation->compileSettings.descriptorWriteProvider == nullptr)
-            operation->compileSettings.descriptorWriteProvider = std::make_unique<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
-
-        auto table = dynamic_cast<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable*> (operation->compileSettings.descriptorWriteProvider.get ());
-        if (GVK_VERIFY (table != nullptr))
-            table->bufferInfos.push_back ({ ubo->name, shaderKind, resource->GetBufferForFrameProvider (), 0, resource->GetBufferSize () });
+        
+        auto table = operation->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+        table->bufferInfos.push_back ({ ubo->name, shaderKind, resource->GetBufferForFrameProvider (), 0, resource->GetBufferSize () });
     }
 
     uboConnections.clear ();
@@ -198,6 +195,8 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 
                 result.Put (sampler, imgRes);
 
+                connectionSet.Add (imgRes);
+                connectionSet.Add (renderOp);
                 connectionSet.Add (imgRes, renderOp, std::make_unique<ImageInputBinding> (sampler.binding, *imgRes, (sampler.arraySize > 0) ? sampler.arraySize : 1));
             }
         });

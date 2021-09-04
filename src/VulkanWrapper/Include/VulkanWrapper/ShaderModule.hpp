@@ -70,11 +70,12 @@ public:
         };
 
         struct VULKANWRAPPER_API DescriptorImageInfoTableEntry {
-            std::string                           name;
-            ShaderKind                            shaderKind;
-            std::function<VkSampler (uint32_t)>   sampler;
-            std::function<VkImageView (uint32_t)> imageView;
-            VkImageLayout                         imageLayout;
+            std::string                                     name;
+            ShaderKind                                      shaderKind;
+            std::function<VkSampler ()>                     sampler;
+            std::function<VkImageView (uint32_t, uint32_t)> imageView;
+            VkImageLayout                                   imageLayout;
+            uint32_t                                        layerCount;
         };
 
         struct VULKANWRAPPER_API DescriptorBufferInfoTableEntry {

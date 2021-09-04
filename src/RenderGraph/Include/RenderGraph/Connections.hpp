@@ -18,7 +18,7 @@ class IConnectionBindingVisitor;
 
 class IConnectionBinding : public Noncopyable {
 public:
-    ~IConnectionBinding ()                          = default;
+    virtual ~IConnectionBinding () override = default;
     virtual void Visit (IConnectionBindingVisitor&) = 0;
 
     virtual uint32_t GetLayerCount () const = 0;
@@ -27,6 +27,15 @@ public:
 
     virtual std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const { return {}; }
     virtual std::vector<VkAttachmentReference>   GetAttachmentReferences () const { return {}; }
+};
+
+class DummyIConnectionBinding : public IConnectionBinding {
+public:
+    virtual ~DummyIConnectionBinding () override = default;
+
+    virtual void Visit (IConnectionBindingVisitor&) {}
+
+    virtual uint32_t GetLayerCount () const override { return 0; }
 };
 
 class UniformInputBinding;

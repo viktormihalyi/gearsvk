@@ -528,9 +528,11 @@ std::vector<VkDescriptorImageInfo> ShaderModule::Reflection::DescriptorWriteInfo
                   result.end ());
 
     std::vector<VkDescriptorImageInfo> resultInfos;
-    for (const auto& entry : result) {
-        resultInfos.push_back ({ entry.sampler (frameIndex), entry.imageView (frameIndex), entry.imageLayout });
-    }
+
+    for (const auto& entry : result)
+        for (uint32_t layerIndex = 0; layerIndex < entry.layerCount; ++layerIndex)
+            resultInfos.push_back ({ entry.sampler (), entry.imageView (frameIndex, layerIndex), entry.imageLayout });
+
     return resultInfos;
 }
 

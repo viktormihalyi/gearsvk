@@ -101,6 +101,14 @@ public:
 
         std::unique_ptr<GVK::ShaderModule::Reflection::IDescriptorWriteInfoProvider> descriptorWriteProvider;
 
+        template<typename T>
+        T* GetDescriptorWriteInfoProvider ()
+        {
+            if (descriptorWriteProvider == nullptr)
+                descriptorWriteProvider = std::make_unique<T> ();
+
+            return dynamic_cast<T*> (descriptorWriteProvider.get ());
+        }
     };
 
     struct CompileResult {
@@ -137,12 +145,15 @@ private:
     // helper functions
 
     std::vector<VkImageView>             GetOutputImageViews (const ConnectionSet& conncetionSet, uint32_t resourceIndex) const;
+#if 0
     std::vector<GVK::ImageView2D>        CreateOutputImageViews (const GVK::DeviceExtra& device, const ConnectionSet& conncetionSet, uint32_t resourceIndex) const;
+#endif
     std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const ConnectionSet& conncetionSet) const;
     std::vector<VkAttachmentReference>   GetAttachmentReferences (const ConnectionSet& conncetionSet) const;
 };
 
 
+#if 0
 class GVK_RENDERER_API TransferOperation : public Operation {
 public:
     TransferOperation ();
@@ -157,7 +168,7 @@ public:
     virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; }
     virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; }
 };
-
+#endif
 
 } // namespace RG
 
