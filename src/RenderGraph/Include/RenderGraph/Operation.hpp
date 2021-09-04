@@ -91,20 +91,22 @@ public:
         void EnsurePipelineCreated ();
     };
 
-    class IAttachmentProvider {
+    class GVK_RENDERER_API IAttachmentProvider {
     public:
         virtual ~IAttachmentProvider () = default;
 
         struct AttachmentData {
-            std::function<VkFormat ()>    format;
-            VkAttachmentLoadOp            loadOp;
-            std::function<VkImageView ()> imageView;
+            std::function<VkFormat ()>                      format;
+            VkAttachmentLoadOp                              loadOp;
+            std::function<VkImageView (uint32_t, uint32_t)> imageView;
+            VkImageLayout                                   initialLayout;
+            VkImageLayout                                   finalLayout;
         };
 
         virtual std::optional<AttachmentData> GetAttachmentData (const std::string& name, GVK::ShaderKind shaderKind) = 0;
     };
 
-    class AttachmentDataTable : public IAttachmentProvider {
+    class GVK_RENDERER_API AttachmentDataTable : public IAttachmentProvider {
     public:
         struct AttachmentDataEntry {
             std::string     name;
@@ -119,7 +121,7 @@ public:
         virtual std::optional<AttachmentData> GetAttachmentData (const std::string& name, GVK::ShaderKind shaderKind) override;
     };
 
-    struct CompileSettings {
+    struct GVK_RENDERER_API CompileSettings {
         std::unique_ptr<PureDrawRecordable>      pureDrawRecordable;
         std::unique_ptr<ShaderPipeline>          pipeline;
         VkPrimitiveTopology                      topology;
@@ -138,9 +140,18 @@ public:
 
             return dynamic_cast<T*> (descriptorWriteProvider.get ());
         }
+
+        template<typename T>
+        T* GetAttachmentProvider ()
+        {
+            if (attachmentProvider == nullptr)
+                attachmentProvider = std::make_unique<T> ();
+
+            return dynamic_cast<T*> (attachmentProvider.get ());
+        }
     };
 
-    struct CompileResult {
+    struct GVK_RENDERER_API CompileResult {
         uint32_t                                         width;
         uint32_t                                         height;
         std::unique_ptr<GVK::DescriptorPool>             descriptorPool;
@@ -169,16 +180,6 @@ private:
     virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&) override;
     virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) override;
     virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&) override;
-
-private:
-    // helper functions
-
-    std::vector<VkImageView>             GetOutputImageViews (const ConnectionSet& conncetionSet, uint32_t resourceIndex) const;
-#if 0
-    std::vector<GVK::ImageView2D>        CreateOutputImageViews (const GVK::DeviceExtra& device, const ConnectionSet& conncetionSet, uint32_t resourceIndex) const;
-#endif
-    std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const ConnectionSet& conncetionSet) const;
-    std::vector<VkAttachmentReference>   GetAttachmentReferences (const ConnectionSet& conncetionSet) const;
 };
 
 

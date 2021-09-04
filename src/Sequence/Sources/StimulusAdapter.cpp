@@ -21,7 +21,6 @@
 // from RenderGraph
 #include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
 #include "RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
-#include "RenderGraph/ConnectionBuilder.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
 #include "RenderGraph/GraphSettings.hpp"
 #include "RenderGraph/Operation.hpp"
@@ -103,14 +102,10 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
         GVK_ASSERT (!stimulus->usesForwardRendering);
         //GVK_ASSERT (stimulus->mono);
 
-        s.connectionSet.Add (RG::OutputBuilder ()
-                                 .SetOperation (passOperation)
-                                 .SetTarget (presented)
-                                 .SetBinding (0)
-                                 .SetLayerCount (1)
-                                 .SetInitialLayout (VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-                                 .SetLoadOp (firstPass ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD)
-                                 .Build ());
+        auto aTable2 = passOperation->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+        aTable2->table.push_back ({ "presented", GVK::ShaderKind::Fragment, { presented->GetFormatProvider (), firstPass ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD, presented->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, presented->GetFinalLayout () } });
+
+        s.connectionSet.Add (passOperation, presented);
 
         passToOperation[pass] = passOperation;
     }
@@ -150,16 +145,13 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
 
         std::static_pointer_cast<RG::RenderOperation> (randomGeneratorOperation)->compileSettings.blendEnabled = false;
 
-        s.connectionSet.Add (RG::OutputBuilder ()
-                                 .SetOperation (randomGeneratorOperation)
-                                 .SetTarget (randomTexture)
-                                 .SetBinding (0)
-                                 .SetLayerCount (1)
-                                 .SetClear ()
-                                 .Build ());
+        auto aTable2 = std::dynamic_pointer_cast<RG::RenderOperation> (randomGeneratorOperation)->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+        aTable2->table.push_back ({ "nextElement", GVK::ShaderKind::Fragment, { randomTexture->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, randomTexture->GetImageViewForFrameProvider (), randomTexture->GetInitialLayout (), randomTexture->GetFinalLayout () } });
+
+        s.connectionSet.Add (randomGeneratorOperation, randomTexture);
 
         GVK_ASSERT (randomBinding.has_value ());
-        s.connectionSet.Add (randomTexture, passToOperation[passes[0]], std::make_unique<RG::DummyIConnectionBinding> ());
+        s.connectionSet.Add (randomTexture, passToOperation[passes[0]]);
         auto table = std::dynamic_pointer_cast<RG::RenderOperation> (passToOperation[passes[0]])->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
         table->imageInfos.push_back ({ "randoms", GVK::ShaderKind::Fragment, randomTexture->GetSamplerProvider (), randomTexture->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
     }

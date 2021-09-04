@@ -121,83 +121,6 @@ void RenderOperation::Builder::EnsurePipelineCreated ()
 }
 
 
-std::vector<VkAttachmentDescription> RenderOperation::GetAttachmentDescriptions (const ConnectionSet& connectionSet) const
-{
-    std::vector<VkAttachmentDescription> result;
-
-    connectionSet.ProcessOutputBindingsOf (this, [&] (const IConnectionBinding& binding) {
-        for (auto& a : binding.GetAttachmentDescriptions ()) {
-            result.push_back (a);
-        }
-    });
-
-    return result;
-}
-
-
-std::vector<VkAttachmentReference> RenderOperation::GetAttachmentReferences (const ConnectionSet& connectionSet) const
-{
-    std::vector<VkAttachmentReference> result;
-
-    connectionSet.ProcessOutputBindingsOf (this, [&] (const IConnectionBinding& binding) {
-        for (auto& a : binding.GetAttachmentReferences ()) {
-            result.push_back (a);
-        }
-    });
-
-    return result;
-}
-
-
-std::vector<VkImageView> RenderOperation::GetOutputImageViews (const ConnectionSet& conncetionSet, uint32_t resourceIndex) const
-{
-    std::vector<VkImageView> result;
-
-    IResourceVisitorFn outputGatherer ([] (ReadOnlyImageResource&) {},
-                                       [&] (WritableImageResource& res) {
-        for (auto& imgView : res.images[resourceIndex]->imageViews) {
-            result.push_back (*imgView);
-        } },
-                                       [&] (SwapchainImageResource& res) {
-                                           result.push_back (*res.imageViews[resourceIndex]);
-                                       },
-                                       [] (GPUBufferResource&) {},
-                                       [] (CPUBufferResource&) {});
-
-
-    conncetionSet.VisitOutputsOf (this, outputGatherer);
-
-
-    return result;
-}
-
-
-#if 0
-std::vector<GVK::ImageView2D> RenderOperation::CreateOutputImageViews (const GVK::DeviceExtra& device, const ConnectionSet& conncetionSet, uint32_t resourceIndex) const
-{
-    std::vector<GVK::ImageView2D> result;
-
-    IResourceVisitorFn outputGatherer ([] (ReadOnlyImageResource&) {},
-                                       [&] (WritableImageResource& res) {
-        for (auto&& imgView : res.images[resourceIndex]->CreateImageViews (device)) {
-            result.push_back (std::move (imgView));
-        }},
-                                       [&] (SwapchainImageResource& res) {
-        for (auto&& imgView : res.CreateImageViews (device)) {
-            result.push_back (std::move (imgView));
-        }},
-                                       [] (GPUBufferResource&) {},
-                                       [] (CPUBufferResource&) {});
-
-
-    conncetionSet.VisitOutputsOf (this, outputGatherer);
-
-
-    return result;
-}
-#endif
-
-
 RenderOperation::RenderOperation (std::unique_ptr<PureDrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
     : compileSettings ({ std::move (drawRecordable), std::move (shaderPipeline), topology })
 {
@@ -247,45 +170,55 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
         }
     }
 
-    std::vector<VkImageView>             imageViews;
-    std::vector<VkAttachmentReference>   attRefs;
-    std::vector<VkAttachmentDescription> attDesc;
+    std::vector<std::vector<VkImageView>> imageViews;
+    imageViews.resize (graphSettings.framesInFlight);
+
+    std::vector<VkAttachmentReference>   attachmentReferences;
+    std::vector<VkAttachmentDescription> attachmentDescriptions;
 
     if (compileSettings.attachmentProvider != nullptr) {
         GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
+            if (shaderModule.GetShaderKind () != GVK::ShaderKind::Fragment)
+                return;
+
             for (const SR::Output& output : shaderModule.GetReflection ().outputs) {
-                auto attachmentData = compileSettings.attachmentProvider->GetAttachmentData (output.name, shaderModule.GetShaderKind ());
 
-                if (GVK_ERROR (!attachmentData.has_value ()))
-                    continue;
+                const uint32_t layerCount = output.arraySize == 0 ? 1 : output.arraySize;
+                for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
+                    auto attachmentData = compileSettings.attachmentProvider->GetAttachmentData (output.name, shaderModule.GetShaderKind ());
 
-                VkAttachmentReference aRef = {};
-                aRef.attachment            = output.location;
-                aRef.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                    if (GVK_ERROR (!attachmentData.has_value ()))
+                        continue;
 
-                VkAttachmentDescription aDesc = {};
-                aDesc.flags                   = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
-                aDesc.format                  = attachmentData->format ();
-                aDesc.samples                 = VK_SAMPLE_COUNT_1_BIT;
-                aDesc.loadOp                  = attachmentData->loadOp;
-                aDesc.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
-                aDesc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                aDesc.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                    VkAttachmentReference aRef = {};
+                    aRef.attachment            = output.location + layerIndex;
+                    aRef.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-                imageViews.push_back (attachmentData->imageView ());
-                attRefs.push_back (aRef);
-                attDesc.push_back (aDesc);
+                    VkAttachmentDescription aDesc = {};
+                    aDesc.flags                   = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
+                    aDesc.format                  = attachmentData->format ();
+                    aDesc.samples                 = VK_SAMPLE_COUNT_1_BIT;
+                    aDesc.loadOp                  = attachmentData->loadOp;
+                    aDesc.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
+                    aDesc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                    aDesc.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                    aDesc.initialLayout           = attachmentData->initialLayout;
+                    aDesc.finalLayout             = attachmentData->finalLayout;
+
+                    for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex)
+                        imageViews[resourceIndex].push_back (attachmentData->imageView (resourceIndex, layerIndex));
+
+                    attachmentReferences.push_back (aRef);
+                    attachmentDescriptions.push_back (aDesc);
+                }
             }
         });
     }
 
-    const auto attachmentReferences   = compileSettings.attachmentProvider ? attRefs : GetAttachmentReferences (graphSettings.connectionSet);
-    const auto attachmentDescriptions = compileSettings.attachmentProvider ? attDesc : GetAttachmentDescriptions (graphSettings.connectionSet);
-
     if constexpr (IsDebugBuild) {
         GVK_ASSERT (attachmentReferences.size () == attachmentDescriptions.size ());
         for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
-            const auto outputImageView = GetOutputImageViews (graphSettings.connectionSet, resourceIndex);
+            const auto outputImageView = imageViews[resourceIndex];
             GVK_ASSERT (attachmentReferences.size () == outputImageView.size ());
         }
     }
@@ -304,8 +237,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
         compileResult.framebuffers.push_back (std::make_unique<GVK::Framebuffer> (graphSettings.GetDevice (),
                                                                                   *GetShaderPipeline ()->compileResult.renderPass,
-                                                                                  compileSettings.attachmentProvider ? imageViews : GetOutputImageViews (graphSettings.connectionSet, resourceIndex),
-                                                                                  //CreateOutputImageViews (graphSettings.GetDevice (), graphSettings.connectionSet, resourceIndex),
+                                                                                  imageViews[resourceIndex],
                                                                                   width,
                                                                                   height));
     }

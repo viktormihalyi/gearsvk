@@ -8,7 +8,6 @@
 #include "RenderGraph/ShaderPipeline.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "RenderGraph/Window/Window.hpp"
-#include "RenderGraph/ConnectionBuilder.hpp"
 
 #include "VulkanWrapper/RenderPass.hpp"
 #include "VulkanWrapper/Pipeline.hpp"
@@ -76,19 +75,15 @@ void main () {
 
     RG::ConnectionSet connectionSet;
 
-    connectionSet.Add (RG::OutputBuilder ()
-            .SetOperation (renderOp)
-            .SetTarget (renderTarget)
-            .SetBinding (0)
-            .SetClear ()
-            .Build ());
-    
-    connectionSet.Add (RG::OutputBuilder ()
-            .SetOperation (renderOp2)
-            .SetTarget (renderTarget)
-            .SetBinding (1)
-            .SetClear ()
-            .Build ());
+    auto aTable2 = renderOp->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { renderTarget->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, renderTarget->GetImageViewForFrameProvider (), renderTarget->GetInitialLayout (), renderTarget->GetFinalLayout () } });
+
+    connectionSet.Add (renderOp, renderTarget);
+
+    auto aTable3 = renderOp2->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    aTable3->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { renderTarget->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, renderTarget->GetImageViewForFrameProvider (), renderTarget->GetInitialLayout (), renderTarget->GetFinalLayout () } });
+
+    connectionSet.Add (renderOp, renderTarget);
 
     RG::GraphSettings s;
     s.connectionSet = std::move (connectionSet);

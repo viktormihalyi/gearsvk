@@ -25,13 +25,13 @@ public:
 
 class InputImageBindable {
 public:
-    virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t layerIndex) = 0;
+    virtual VkImageView GetImageViewForFrame (uint32_t resourceIndex, uint32_t layerIndex) = 0;
     virtual VkSampler   GetSampler ()                                                   = 0;
 
-    std::function<VkImageView (uint32_t, uint32_t)> GetImageViewForFrameProvider ()
+    std::function<VkImageView (uint32_t resourceIndex, uint32_t layerIndex)> GetImageViewForFrameProvider ()
     {
-        return [=] (uint32_t frameIndex, uint32_t layerIndex) -> VkImageView {
-            return GetImageViewForFrame (frameIndex, layerIndex);
+        return [=] (uint32_t resourceIndex, uint32_t layerIndex) -> VkImageView {
+            return GetImageViewForFrame (resourceIndex, layerIndex);
         };
     }
 

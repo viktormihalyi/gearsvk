@@ -519,7 +519,7 @@ ShaderModule::Reflection::GetLayout () const
 }
 
 
-std::vector<VkDescriptorImageInfo> ShaderModule::Reflection::DescriptorWriteInfoTable::GetDescriptorImageInfos (const std::string& name, ShaderKind shaderKind, uint32_t layerIndex, uint32_t frameIndex)
+std::vector<VkDescriptorImageInfo> ShaderModule::Reflection::DescriptorWriteInfoTable::GetDescriptorImageInfos (const std::string& name, ShaderKind shaderKind, uint32_t layerIndex, uint32_t resourceIndex)
 {
     std::vector<DescriptorImageInfoTableEntry> result = imageInfos;
     result.erase (std::remove_if (result.begin (), result.end (), [&] (const auto& entry) {
@@ -530,7 +530,7 @@ std::vector<VkDescriptorImageInfo> ShaderModule::Reflection::DescriptorWriteInfo
     std::vector<VkDescriptorImageInfo> resultInfos;
 
     for (const auto& entry : result)
-        resultInfos.push_back ({ entry.sampler (), entry.imageView (frameIndex, layerIndex), entry.imageLayout });
+        resultInfos.push_back ({ entry.sampler (), entry.imageView (resourceIndex, layerIndex), entry.imageLayout });
 
     return resultInfos;
 }

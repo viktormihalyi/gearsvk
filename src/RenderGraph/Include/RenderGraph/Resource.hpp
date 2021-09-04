@@ -10,7 +10,6 @@
 #include "VulkanWrapper/Pipeline.hpp"
 #include "VulkanWrapper/Utils/BufferTransferable.hpp"
 
-#include "RenderGraph/Connections.hpp"
 #include "RenderGraph/GraphSettings.hpp"
 #include "RenderGraph/InputBindable.hpp"
 #include "RenderGraph/Node.hpp"

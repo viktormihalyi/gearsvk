@@ -3,7 +3,6 @@
 
 #include "RenderGraph/RenderGraphAPI.hpp"
 
-#include "RenderGraph/Connections.hpp"
 #include "RenderGraph/Node.hpp"
 #include "VulkanWrapper/DeviceExtra.hpp"
 
@@ -18,16 +17,13 @@ class IResourceVisitor;
 
 class GVK_RENDERER_API NodeConnection {
 public:
-    std::shared_ptr<Node>               from;
-    std::shared_ptr<Node>               to;
-    std::unique_ptr<IConnectionBinding> binding;
+    std::shared_ptr<Node> from;
+    std::shared_ptr<Node> to;
 
-    NodeConnection  (const std::shared_ptr<Node>&          from,
-                     const std::shared_ptr<Node>&          to,
-                     std::unique_ptr<IConnectionBinding>&& binding)
+    NodeConnection (const std::shared_ptr<Node>& from,
+                    const std::shared_ptr<Node>& to)
         : from (from)
         , to (to)
-        , binding (std::move (binding))
     {
     }
 };
@@ -36,7 +32,7 @@ class GVK_RENDERER_API ConnectionSet final : public Noncopyable {
 public:
 
 private:
-    std::vector<std::unique_ptr<NodeConnection>> connections;
+    std::vector<NodeConnection> connections;
     
     std::set<std::shared_ptr<Node>> nodeSet;
 
@@ -56,9 +52,9 @@ public:
     {
         std::vector<std::shared_ptr<T>> result;
 
-        for (const std::unique_ptr<NodeConnection>& c : connections) {
-            if (c->from.get () == node) {
-                if (auto asCasted = std::dynamic_pointer_cast<T> (c->to)) {
+        for (const NodeConnection& c : connections) {
+            if (c.from.get () == node) {
+                if (auto asCasted = std::dynamic_pointer_cast<T> (c.to)) {
                     result.push_back (asCasted);
                 }
             }
@@ -72,9 +68,9 @@ public:
     {
         std::vector<std::shared_ptr<T>> result;
 
-        for (const std::unique_ptr<NodeConnection>& c : connections) {
-            if (c->to.get () == node) {
-                if (auto asCasted = std::dynamic_pointer_cast<T> (c->from)) {
+        for (const NodeConnection& c : connections) {
+            if (c.to.get () == node) {
+                if (auto asCasted = std::dynamic_pointer_cast<T> (c.from)) {
                     result.push_back (asCasted);
                 }
             }
@@ -83,30 +79,18 @@ public:
         return result;
     }
 
-    template<typename Processor>
-    void ProcessOutputBindingsOf (const Node* node, const Processor& processor) const
+    void Add (const NodeConnection& connection)
     {
-        for (const std::unique_ptr<NodeConnection>& c : connections) {
-            if (c->from.get () == node) {
-                processor (*c->binding);
-            }
-        }
+        Add (connection.from);
+        Add (connection.to);
+
+        connections.push_back (connection);
     }
 
-    void Add (std::unique_ptr<NodeConnection>&& connection)
+    void Add (const std::shared_ptr<Node>& from, const std::shared_ptr<Node>& to)
     {
-        Add (connection->from);
-        Add (connection->to);
-
-        connections.push_back (std::move (connection));
+        Add ({ from, to });
     }
-
-
-    void Add (const std::shared_ptr<Node>& from, const std::shared_ptr<Node>& to, std::unique_ptr<IConnectionBinding>&& binding)
-    {
-        Add (std::make_unique<NodeConnection> (from, to, std::move (binding)));
-    }
-
 
     void Add (const std::shared_ptr<Node>& node)
     {
@@ -118,9 +102,9 @@ public:
 
 class GVK_RENDERER_API GraphSettings {
 public:
-    ConnectionSet      connectionSet;
+    ConnectionSet           connectionSet;
     const GVK::DeviceExtra* device;
-    uint32_t           framesInFlight;
+    uint32_t                framesInFlight;
 
     GraphSettings (const GVK::DeviceExtra& device, ConnectionSet&& connectionSet, uint32_t framesInFlight);
     GraphSettings (const GVK::DeviceExtra& device, uint32_t framesInFlight);

@@ -258,25 +258,15 @@ void main () {
 
     renderTarget->Compile (s);
 
-    s.connectionSet.Add (renderOp, renderTarget,
-                         std::make_unique<RG::OutputBinding> (
-                             0,
-                             [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
-                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                             1,
-                             VK_ATTACHMENT_LOAD_OP_CLEAR,
-                             VK_ATTACHMENT_STORE_OP_STORE));
+    auto aTable = renderOp->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    aTable->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; }, VK_ATTACHMENT_LOAD_OP_CLEAR, renderTarget->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL } });
 
-    s.connectionSet.Add (renderOp2, renderTarget,
-                         std::make_unique<RG::OutputBinding> (
-                             0,
-                             [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
-                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                             1,
-                             VK_ATTACHMENT_LOAD_OP_LOAD,
-                             VK_ATTACHMENT_STORE_OP_STORE));
+    s.connectionSet.Add (renderOp, renderTarget);
+
+    auto aTable2 = renderOp2->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; }, VK_ATTACHMENT_LOAD_OP_LOAD, renderTarget->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL } });
+
+    s.connectionSet.Add (renderOp2, renderTarget);
 
 
     renderOp->Compile (s, 512, 512);
@@ -411,24 +401,15 @@ void main () {
     s.framesInFlight = 1;
     s.device         = env->deviceExtra.get ();
 
-    s.connectionSet.Add (renderOp, renderTarget,
-                         std::make_unique<RG::OutputBinding> (0,
-                                                              renderTarget->GetFormatProvider (),
-                                                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                                              renderTarget->GetFinalLayout (),
-                                                              1,
-                                                              VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                              VK_ATTACHMENT_STORE_OP_STORE));
+    auto aTable = renderOp->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    aTable->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { renderTarget->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, renderTarget->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, renderTarget->GetFinalLayout () } });
 
-    s.connectionSet.Add (renderOp2, renderTarget,
-                         std::make_unique<RG::OutputBinding> (0,
-                                                              renderTarget->GetFormatProvider (),
-                                                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                                              renderTarget->GetFinalLayout (),
-                                                              1,
-                                                              VK_ATTACHMENT_LOAD_OP_LOAD,
-                                                              VK_ATTACHMENT_STORE_OP_STORE));
+    s.connectionSet.Add (renderOp, renderTarget);
 
+    auto aTable2 = renderOp2->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { renderTarget->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_LOAD, renderTarget->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, renderTarget->GetFinalLayout () } });
+
+    s.connectionSet.Add (renderOp2, renderTarget);
 
     RG::RenderGraph rg;
 
@@ -543,26 +524,15 @@ void main () {
     s.framesInFlight = 1;
     s.device         = env->deviceExtra.get ();
 
-    s.connectionSet.Add (renderOp, renderTarget,
-                         std::make_unique<RG::OutputBinding> (
-                             0,
-                             [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
-                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                             1,
-                             VK_ATTACHMENT_LOAD_OP_CLEAR,
-                             VK_ATTACHMENT_STORE_OP_STORE));
+    auto aTable = renderOp->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    aTable->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; }, VK_ATTACHMENT_LOAD_OP_CLEAR, renderTarget->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL } });
 
-    s.connectionSet.Add (renderOp2, renderTarget,
-                         std::make_unique<RG::OutputBinding> (
-                             0,
-                             [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; },
-                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                             1,
-                             VK_ATTACHMENT_LOAD_OP_LOAD,
-                             VK_ATTACHMENT_STORE_OP_STORE));
+    s.connectionSet.Add (renderOp, renderTarget);
 
+    auto aTable2 = renderOp2->compileSettings.GetAttachmentProvider<RG::RenderOperation::AttachmentDataTable> ();
+    aTable2->table.push_back ({ "outColor", GVK::ShaderKind::Fragment, { [] () -> VkFormat { return VK_FORMAT_R8G8B8A8_SRGB; }, VK_ATTACHMENT_LOAD_OP_LOAD, renderTarget->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL } });
+
+    s.connectionSet.Add (renderOp2, renderTarget);
 
     RG::RenderGraph rg;
 
