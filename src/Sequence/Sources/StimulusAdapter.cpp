@@ -159,8 +159,9 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
                                  .Build ());
 
         GVK_ASSERT (randomBinding.has_value ());
-        s.connectionSet.Add (randomTexture, passToOperation[passes[0]],
-                             std::make_unique<RG::ImageInputBinding> (*randomBinding, *randomTexture, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
+        s.connectionSet.Add (randomTexture, passToOperation[passes[0]], std::make_unique<RG::DummyIConnectionBinding> ());
+        auto table = std::dynamic_pointer_cast<RG::RenderOperation> (passToOperation[passes[0]])->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+        table->imageInfos.push_back ({ "randoms", GVK::ShaderKind::Fragment, randomTexture->GetSamplerProvider (), randomTexture->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
     }
 
 

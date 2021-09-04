@@ -526,7 +526,7 @@ void main()
 
 
 
-TEST_F (HeadlessTestEnvironment, RenderGraph_SameImageAsInputAndOutput)
+TEST_F (HeadlessTestEnvironment, DISABLED_RenderGraph_SameImageAsInputAndOutput)
 {
     /*
         presented ---> firstPass  ---> presented
@@ -564,8 +564,10 @@ void main () {
                            .SetLoad ()
                            .Build ());
 
-    s.connectionSet.Add (presented, firstPass,
-                         std::make_unique<RG::ImageInputBinding> (0, *presented));
+    s.connectionSet.Add (presented, firstPass, std::make_unique<RG::DummyIConnectionBinding> ());
+
+    auto table = firstPass->compileSettings.GetDescriptorWriteInfoProvider<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+    table->imageInfos.push_back ({ "inColor", GVK::ShaderKind::Fragment, presented->GetSamplerProvider (), presented->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 
     RG::RenderGraph graph;
     graph.Compile (std::move (s));

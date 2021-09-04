@@ -567,7 +567,7 @@ size_t ShaderModule::Reflection::WriteDescriptors (VkDevice device, VkDescriptor
         const uint32_t layerCount = sampler.arraySize == 0 ? 1 : sampler.arraySize;
         for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
             const std::vector<VkDescriptorImageInfo> tempImgInfos = infoProvider.GetDescriptorImageInfos (sampler.name, shaderKind, layerIndex, frameIndex);
-            if (tempImgInfos.empty ())
+            if (GVK_ERROR (tempImgInfos.empty ()))
                 continue;
 
             const int32_t currentSize = imgInfos.size ();
@@ -602,7 +602,7 @@ size_t ShaderModule::Reflection::WriteDescriptors (VkDevice device, VkDescriptor
 
     for (const std::shared_ptr<SR::UBO>& ubo : ubos) {
         const std::vector<VkDescriptorBufferInfo> tempBufferInfos = infoProvider.GetDescriptorBufferInfos (ubo->name, shaderKind, frameIndex);
-        if (tempBufferInfos.empty ())
+        if (GVK_ERROR (tempBufferInfos.empty ()))
             continue;
 
         const int32_t currentSize = bufferInfos.size ();
@@ -638,7 +638,7 @@ size_t ShaderModule::Reflection::WriteDescriptors (VkDevice device, VkDescriptor
         const uint32_t layerCount = subpassInput.arraySize == 0 ? 1 : subpassInput.arraySize;
         for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
             const std::vector<VkDescriptorImageInfo> tempImgInfos = infoProvider.GetDescriptorImageInfos (subpassInput.name, shaderKind, layerIndex, frameIndex);
-            if (tempImgInfos.empty ())
+            if (GVK_ERROR (tempImgInfos.empty ()))
                 continue;
 
             const int32_t currentSize = imgInfos.size ();

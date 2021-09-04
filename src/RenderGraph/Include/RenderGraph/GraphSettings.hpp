@@ -83,24 +83,6 @@ public:
         return result;
     }
 
-    void VisitOutputsOf (const Node* node, IConnectionBindingVisitor& visitor) const
-    {
-        for (const std::unique_ptr<NodeConnection>& c : connections) {
-            if (c->from.get () == node) {
-                c->binding->Visit (visitor);
-            }
-        }
-    }
-
-    template<typename Processor>
-    void ProcessInputBindingsOf (const Node* node, const Processor& processor) const
-    {
-        for (const std::unique_ptr<NodeConnection>& c : connections) {
-            if (c->to.get () == node) {
-                processor (*c->binding);
-            }
-        }
-    }
     template<typename Processor>
     void ProcessOutputBindingsOf (const Node* node, const Processor& processor) const
     {

@@ -14,211 +14,19 @@
 
 namespace RG {
 
-class IConnectionBindingVisitor;
 
 class IConnectionBinding : public Noncopyable {
 public:
     virtual ~IConnectionBinding () override = default;
-    virtual void Visit (IConnectionBindingVisitor&) = 0;
-
-    virtual uint32_t GetLayerCount () const = 0;
-
-    virtual void WriteToDescriptorSet (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex) const {}
 
     virtual std::vector<VkAttachmentDescription> GetAttachmentDescriptions () const { return {}; }
     virtual std::vector<VkAttachmentReference>   GetAttachmentReferences () const { return {}; }
 };
 
+
 class DummyIConnectionBinding : public IConnectionBinding {
 public:
     virtual ~DummyIConnectionBinding () override = default;
-
-    virtual void Visit (IConnectionBindingVisitor&) {}
-
-    virtual uint32_t GetLayerCount () const override { return 0; }
-};
-
-class UniformInputBinding;
-class ImageInputBinding;
-class OutputBinding;
-
-
-class IConnectionBindingVisitor : public Noncopyable {
-public:
-    virtual void Visit (UniformInputBinding& binding) = 0;
-    virtual void Visit (ImageInputBinding& binding)   = 0;
-    virtual void Visit (OutputBinding& binding)       = 0;
-};
-
-class IConnectionBindingVisitorFn : public IConnectionBindingVisitor {
-private:
-    template<typename T>
-    using VisitorFn = std::function<void (T&)>;
-
-    VisitorFn<UniformInputBinding> b1;
-    VisitorFn<ImageInputBinding>   b2;
-    VisitorFn<OutputBinding>       b3;
-
-public:
-    IConnectionBindingVisitorFn (const VisitorFn<UniformInputBinding>& b1,
-                                 const VisitorFn<ImageInputBinding>&   b2,
-                                 const VisitorFn<OutputBinding>&       b3)
-        : b1 (b1)
-        , b2 (b2)
-        , b3 (b3)
-    {
-    }
-
-    virtual void Visit (UniformInputBinding& binding) override { b1 (binding); }
-    virtual void Visit (ImageInputBinding& binding) override { b2 (binding); }
-    virtual void Visit (OutputBinding& binding) override { b3 (binding); }
-};
-
-class InputBinding : public IConnectionBinding {
-public:
-    virtual ~InputBinding () = default;
-
-    virtual uint32_t           GetBinding () const = 0;
-    virtual VkDescriptorType   GetType () const    = 0;
-    virtual uint32_t           GetOffset () const  = 0;
-    virtual uint32_t           GetSize () const    = 0;
-    virtual VkShaderStageFlags GetStages () const  = 0;
-    virtual uint32_t           GetLayerCount () const override { return 1; }
-
-    virtual std::vector<VkDescriptorImageInfo>  GetImageInfos (uint32_t) const { return {}; }
-    virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t) const { return {}; }
-
-    VkDescriptorSetLayoutBinding ToDescriptorSetLayoutBinding () const
-    {
-        VkDescriptorSetLayoutBinding result = {};
-        result.binding                      = GetBinding ();
-        result.descriptorType               = GetType ();
-        result.descriptorCount              = GetLayerCount ();
-        result.stageFlags                   = GetStages ();
-        result.pImmutableSamplers           = nullptr;
-        return result;
-    }
-
-    virtual void WriteToDescriptorSet (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex) const override
-    {
-        const std::vector<VkDescriptorImageInfo>  imgInfos = GetImageInfos (frameIndex);
-        const std::vector<VkDescriptorBufferInfo> bufInfos = GetBufferInfos (frameIndex);
-
-        size_t infosSize = imgInfos.size () + bufInfos.size ();
-        GVK_ASSERT (infosSize != 0);
-
-        VkWriteDescriptorSet result = {};
-        result.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        result.dstSet               = dstSet;
-        result.dstBinding           = GetBinding ();
-        result.dstArrayElement      = 0;
-        result.descriptorType       = GetType ();
-        result.descriptorCount      = static_cast<uint32_t> (infosSize);
-        result.pBufferInfo          = bufInfos.empty () ? nullptr : bufInfos.data ();
-        result.pImageInfo           = imgInfos.empty () ? nullptr : imgInfos.data ();
-        result.pTexelBufferView     = nullptr;
-
-        vkUpdateDescriptorSets (device, 1, &result, 0, nullptr);
-    }
-};
-
-
-class UniformInputBinding : public InputBinding {
-public:
-    InputBufferBindable&     bufferProvider;
-    const uint32_t           binding;
-    const uint32_t           size;
-    const uint32_t           offset;
-    const VkShaderStageFlags stages;
-
-    UniformInputBinding (uint32_t binding, InputBufferBindable& bufferProvider, uint32_t size, uint32_t offset, VkShaderStageFlags stages = VK_SHADER_STAGE_ALL)
-        : bufferProvider (bufferProvider)
-        , binding (binding)
-        , size (size)
-        , offset (offset)
-        , stages (stages)
-    {
-    }
-
-    UniformInputBinding (uint32_t binding, InputBufferBindable& bufferProvider, VkShaderStageFlags stages = VK_SHADER_STAGE_ALL)
-        : bufferProvider (bufferProvider)
-        , binding (binding)
-        , size (bufferProvider.GetBufferSize ())
-        , offset (0)
-        , stages (stages)
-    {
-    }
-
-    virtual uint32_t           GetBinding () const override { return binding; }
-    virtual VkDescriptorType   GetType () const override { return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; }
-    virtual uint32_t           GetOffset () const override { return size; }
-    virtual uint32_t           GetSize () const override { return offset; }
-    virtual VkShaderStageFlags GetStages () const override { return stages; }
-
-    virtual std::vector<VkDescriptorBufferInfo> GetBufferInfos (uint32_t frameIndex) const override
-    {
-        VkDescriptorBufferInfo result = {};
-        result.buffer                 = bufferProvider.GetBufferForFrame (frameIndex);
-        result.offset                 = offset;
-        result.range                  = size;
-        return { result };
-    }
-
-    virtual void Visit (IConnectionBindingVisitor& visitor) override
-    {
-        visitor.Visit (*this);
-    }
-};
-
-
-class ImageInputBinding : public InputBinding {
-public:
-    InputImageBindable&      imageViewProvider;
-    const uint32_t           binding;
-    const uint32_t           layerCount;
-    const VkShaderStageFlags stages;
-
-    ImageInputBinding (uint32_t binding, InputImageBindable& imageViewProvider, uint32_t layerCount = 1, VkShaderStageFlags stages = VK_SHADER_STAGE_ALL)
-        : imageViewProvider (imageViewProvider)
-        , binding (binding)
-        , layerCount (layerCount)
-        , stages (stages)
-    {
-    }
-
-    virtual uint32_t           GetBinding () const override { return binding; }
-    virtual VkDescriptorType   GetType () const override { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; }
-    virtual uint32_t           GetOffset () const override { return 0; }
-    virtual uint32_t           GetSize () const override { return 0; }
-    virtual VkShaderStageFlags GetStages () const override { return stages; }
-    virtual uint32_t           GetLayerCount () const override { return layerCount; }
-
-    virtual std::vector<VkDescriptorImageInfo> GetImageInfos (uint32_t frameIndex) const override
-    {
-        std::vector<VkDescriptorImageInfo> result;
-        for (uint32_t imageIndex = 0; imageIndex < layerCount; ++imageIndex) {
-            VkDescriptorImageInfo imageInfo = {};
-            imageInfo.sampler               = imageViewProvider.GetSampler ();
-            imageInfo.imageView             = imageViewProvider.GetImageViewForFrame (frameIndex, imageIndex);
-            imageInfo.imageLayout           = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            result.push_back (imageInfo);
-        }
-        return result;
-    }
-
-    std::vector<VkImageView> GetImageViewsForFrame (uint32_t frameIndex) const
-    {
-        std::vector<VkImageView> result;
-        for (uint32_t imageIndex = 0; imageIndex < layerCount; ++imageIndex) {
-            result.push_back (imageViewProvider.GetImageViewForFrame (frameIndex, imageIndex));
-        }
-        return result;
-    }
-
-    virtual void Visit (IConnectionBindingVisitor& visitor) override
-    {
-        visitor.Visit (*this);
-    }
 };
 
 
@@ -270,8 +78,6 @@ public:
         GVK_ERROR (loadOp == VK_ATTACHMENT_LOAD_OP_LOAD && initialLayout == VK_IMAGE_LAYOUT_UNDEFINED);
     }
 
-    virtual uint32_t GetLayerCount () const override { return layerCount; }
-
     virtual std::vector<VkAttachmentReference> GetAttachmentReferences () const override
     {
         std::vector<VkAttachmentReference> result;
@@ -310,10 +116,6 @@ public:
 
     bool operator== (uint32_t otherBinding) const { return binding == otherBinding; }
 
-    virtual void Visit (IConnectionBindingVisitor& visitor) override
-    {
-        visitor.Visit (*this);
-    }
 };
 
 } // namespace RG

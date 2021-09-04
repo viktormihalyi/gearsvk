@@ -219,22 +219,7 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 
     compileResult.descriptorSetLayout = GetShaderPipeline ()->CreateDescriptorSetLayout (graphSettings.GetDevice ());
 
-    uint32_t s = 0;
-
     if (compileSettings.descriptorWriteProvider != nullptr) {
-        GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
-            auto writeCount = shaderModule.GetReflection ().WriteDescriptors (VK_NULL_HANDLE, VK_NULL_HANDLE, 0, shaderModule.GetShaderKind (), *compileSettings.descriptorWriteProvider);
-            s += 1;
-        });
-    } else {
-        graphSettings.connectionSet.ProcessInputBindingsOf (this, [&] (const IConnectionBinding& binding) {
-            s += binding.GetLayerCount ();
-        });
-    }
-
-    s *= graphSettings.framesInFlight;
-    
-    if (s > 0) {
         compileResult.descriptorPool = std::make_unique<GVK::DescriptorPool> (graphSettings.GetDevice (), 1024, 1024, graphSettings.framesInFlight);
 
         for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
@@ -245,10 +230,6 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
                     shaderModule.GetReflection ().WriteDescriptors (graphSettings.GetDevice (), *descriptorSet, resourceIndex, shaderModule.GetShaderKind (), * compileSettings.descriptorWriteProvider);
                 });
             }
-
-            graphSettings.connectionSet.ProcessInputBindingsOf (this, [&] (const IConnectionBinding& binding) {
-                binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, resourceIndex);
-            });
 
             compileResult.descriptorSets.push_back (std::move (descriptorSet));
         }
@@ -294,9 +275,13 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
 {
     uint32_t outputCount = 0;
 
-    connectionSet.ProcessOutputBindingsOf (this, [&] (const IConnectionBinding& binding) {
-        outputCount += binding.GetLayerCount ();
-    });
+    IResourceVisitorFn outputCounter ([&] (ReadOnlyImageResource&) {},
+                                      [&] (WritableImageResource& res) { outputCount += res.GetLayerCount (); },
+                                      [&] (SwapchainImageResource& res) { outputCount += res.GetLayerCount (); },
+                                      [&] (GPUBufferResource&) {},
+                                      [&] (CPUBufferResource&) {});
+
+    connectionSet.VisitOutputsOf (this, outputCounter);
 
     VkClearValue clearColor     = {};
     clearColor.color.float32[0] = 0.0f;
