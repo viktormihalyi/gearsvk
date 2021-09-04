@@ -39,7 +39,7 @@ GVK_UTILS_API
 void DebugBreakFunc (const char* dialogTitle, const char* conditionString, const SourceLocation& location);
 
 GVK_UTILS_API
-bool LogAssertFunc (const char* dialogTitle, const char* conditionString, const SourceLocation& location);
+bool LogAssertFunc (const bool condition, const bool shouldBe, const char* dialogTitle, const char* conditionString, const SourceLocation& location);
 
 GVK_UTILS_API
 void LogDebugBreakFunc (const char* dialogTitle, const char* conditionString, const SourceLocation& location);
