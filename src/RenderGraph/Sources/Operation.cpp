@@ -19,7 +19,10 @@
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
 
+#include "spdlog/spdlog.h"
+
 #include <memory>
+
 
 namespace RG {
 
@@ -183,12 +186,15 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 
             for (const SR::Output& output : shaderModule.GetReflection ().outputs) {
 
-                const uint32_t layerCount = output.arraySize == 0 ? 1 : output.arraySize;
-                for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
-                    auto attachmentData = compileSettings.attachmentProvider->GetAttachmentData (output.name, shaderModule.GetShaderKind ());
+                auto attachmentData = compileSettings.attachmentProvider->GetAttachmentData (output.name, shaderModule.GetShaderKind ());
 
-                    if (GVK_ERROR (!attachmentData.has_value ()))
-                        continue;
+                if (GVK_ERROR (!attachmentData.has_value ())) {
+                    spdlog::error ("Attachment \"{}\" (location: {}, layerCount: {}) is not set.", output.name, output.location, output.arraySize == 0 ? 1 : output.arraySize);
+                    continue;
+                }
+
+                const uint32_t layerCount     = output.arraySize == 0 ? 1 : output.arraySize;
+                for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
 
                     VkAttachmentReference aRef = {};
                     aRef.attachment            = output.location + layerIndex;

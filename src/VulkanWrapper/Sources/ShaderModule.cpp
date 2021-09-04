@@ -39,14 +39,7 @@ private:
                        VkShaderStageFlagBits vkflag,
                        ShaderKind            shaderKind,
                        EShLanguage           esh,
-                       const char*           displayName)
-        : extension { extension }
-        , vkflag { vkflag }
-        , shaderKind { shaderKind }
-        , esh { esh }
-        , displayName { displayName }
-    {
-    }
+                       const char*           displayName);
 
 public:
     static const ShaderKindAdapter FromExtension (const std::string&);
@@ -60,6 +53,21 @@ private:
 
     static const std::array<ShaderKindAdapter, 6> allShaderKinds;
 };
+
+
+ShaderKindAdapter::ShaderKindAdapter (const char*           extension,
+                                      VkShaderStageFlagBits vkflag,
+                                      ShaderKind            shaderKind,
+                                      EShLanguage           esh,
+                                      const char*           displayName)
+    : extension { extension }
+    , vkflag { vkflag }
+    , shaderKind { shaderKind }
+    , esh { esh }
+    , displayName { displayName }
+{
+}
+
 
 const ShaderKindAdapter ShaderKindAdapter::vert {
     ".vert",
