@@ -113,7 +113,7 @@ bool LogAssertFunc (bool condition, const bool shouldBe, const char* dialogTitle
 }
 
 
-void LogDebugBreakFunc (bool condition, const bool shouldBe, const char* dialogTitle, const char* conditionString, const SourceLocation& location)
+void LogDebugBreakFunc (const char* dialogTitle, const char* conditionString, const SourceLocation& location)
 {
     spdlog::error ("[{}] {} - {}", dialogTitle, SourceLocationToString (location), conditionString);
 }

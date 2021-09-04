@@ -186,10 +186,8 @@ public:
 } // namespace
 
 
-void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t width, uint32_t height)
+void RenderOperation::CompileDescriptors (const GraphSettings& graphSettings)
 {
-    compileResult.Clear ();
-
     compileResult.descriptorSetLayout = GetShaderPipeline ()->CreateDescriptorSetLayout (graphSettings.GetDevice ());
 
     DescriptorCounter descriptorCounter;
@@ -199,9 +197,8 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     });
 
     if (!descriptorCounter.poolSizes.empty ()) {
-
         compileResult.descriptorPool = std::make_unique<GVK::DescriptorPool> (graphSettings.GetDevice (), descriptorCounter.poolSizes, graphSettings.framesInFlight);
-            
+
         DescriptorWriter descriptorWriter;
         descriptorWriter.device = graphSettings.GetDevice ();
 
@@ -215,6 +212,14 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
             compileResult.descriptorSets.push_back (std::move (descriptorSet));
         }
     }
+}
+
+
+void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t width, uint32_t height)
+{
+    compileResult.Clear ();
+
+    CompileDescriptors (graphSettings);
 
     std::vector<std::vector<VkImageView>> imageViews;
     for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {

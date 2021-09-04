@@ -130,6 +130,9 @@ private:
     virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&) override;
     virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) override;
     virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&) override;
+
+private:
+    void CompileDescriptors (const GraphSettings&);
 };
 
 
