@@ -466,29 +466,31 @@ ShaderModule::Reflection::Reflection (ShaderKind shaderKind, const std::vector<u
 }
 
 
+static VkShaderStageFlags GetShaderStageFromShaderKind (ShaderKind shaderKind)
+{
+    switch (shaderKind) {
+        case ShaderKind::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
+        case ShaderKind::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case ShaderKind::Geometry: return VK_SHADER_STAGE_GEOMETRY_BIT;
+        case ShaderKind::TessellationControl: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        case ShaderKind::TessellationEvaluation: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        case ShaderKind::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
+        default: GVK_BREAK_STR ("unexpected shaderkind type"); return VK_SHADER_STAGE_ALL;
+    }
+}
+
+
 std::vector<VkDescriptorSetLayoutBinding>
 ShaderModule::Reflection::GetLayout () const
 {
     std::vector<VkDescriptorSetLayoutBinding> result;
-
-    const auto shaderKindToShaderStage = [] (ShaderKind shaderKind) -> VkShaderStageFlags {
-        switch (shaderKind) {
-            case ShaderKind::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
-            case ShaderKind::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
-            case ShaderKind::Geometry: return VK_SHADER_STAGE_GEOMETRY_BIT;
-            case ShaderKind::TessellationControl: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-            case ShaderKind::TessellationEvaluation: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-            case ShaderKind::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
-            default: GVK_BREAK_STR ("unexpected shaderkind type"); return VK_SHADER_STAGE_ALL;
-        }
-    };
 
     for (const SR::Sampler& sampler : samplers) {
         VkDescriptorSetLayoutBinding bin = {};
         bin.binding                      = sampler.binding;
         bin.descriptorType               = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         bin.descriptorCount              = sampler.arraySize == 0 ? 1 : sampler.arraySize;
-        bin.stageFlags                   = shaderKindToShaderStage (shaderKind);
+        bin.stageFlags                   = GetShaderStageFromShaderKind (shaderKind);
         bin.pImmutableSamplers           = nullptr;
         result.push_back (bin);
     }
@@ -498,7 +500,7 @@ ShaderModule::Reflection::GetLayout () const
         bin.binding                      = ubo->binding;
         bin.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         bin.descriptorCount              = 1;
-        bin.stageFlags                   = shaderKindToShaderStage (shaderKind);
+        bin.stageFlags                   = GetShaderStageFromShaderKind (shaderKind);
         bin.pImmutableSamplers           = nullptr;
         result.push_back (bin);
     }
@@ -508,7 +510,7 @@ ShaderModule::Reflection::GetLayout () const
         bin.binding                      = subpassInput.binding;
         bin.descriptorType               = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
         bin.descriptorCount              = 1;
-        bin.stageFlags                   = shaderKindToShaderStage (shaderKind);
+        bin.stageFlags                   = GetShaderStageFromShaderKind (shaderKind);
         bin.pImmutableSamplers           = nullptr;
         result.push_back (bin);
     }
@@ -517,53 +519,61 @@ ShaderModule::Reflection::GetLayout () const
 }
 
 
-std::vector<VkDescriptorImageInfo> ShaderModule::Reflection::DescriptorWriteInfoTable::GetDescriptorImageInfos (const std::string& name, uint32_t frameIndex)
+std::vector<VkDescriptorImageInfo> ShaderModule::Reflection::DescriptorWriteInfoTable::GetDescriptorImageInfos (const std::string& name, ShaderKind shaderKind, uint32_t frameIndex)
 {
     std::vector<DescriptorImageInfoTableEntry> result = imageInfos;
     result.erase (std::remove_if (result.begin (), result.end (), [&] (const auto& entry) {
-                      return entry.name != name || entry.frameIndex != frameIndex;
+                      return entry.name != name || entry.shaderKind != shaderKind;
                   }),
                   result.end ());
 
     std::vector<VkDescriptorImageInfo> resultInfos;
     for (const auto& entry : result) {
-        resultInfos.push_back (entry.info);
+        resultInfos.push_back ({ entry.sampler (frameIndex), entry.imageView (frameIndex), entry.imageLayout });
     }
     return resultInfos;
 }
 
 
-std::vector<VkDescriptorBufferInfo> ShaderModule::Reflection::DescriptorWriteInfoTable::GetDescriptorBufferInfos (const std::string& name, uint32_t frameIndex)
+std::vector<VkDescriptorBufferInfo> ShaderModule::Reflection::DescriptorWriteInfoTable::GetDescriptorBufferInfos (const std::string& name, ShaderKind shaderKind, uint32_t frameIndex)
 {
     std::vector<DescriptorBufferInfoTableEntry> result = bufferInfos;
     result.erase (std::remove_if (result.begin (), result.end (), [&] (const auto& entry) {
-                      return entry.name != name || entry.frameIndex != frameIndex;
+                      return entry.name != name || entry.shaderKind != shaderKind;
                   }),
                   result.end ());
 
     std::vector<VkDescriptorBufferInfo> resultInfos;
     for (const auto& entry : result) {
-        resultInfos.push_back ({ entry.buffer (), entry.offset, entry.range });
+        resultInfos.push_back ({ entry.buffer (frameIndex), entry.offset, entry.range });
     }
     return resultInfos;
 }
 
 
-size_t ShaderModule::Reflection::WriteDescriptors (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex, IDescriptorWriteInfoProvider& infoProvider) const
+size_t ShaderModule::Reflection::WriteDescriptors (VkDevice device, VkDescriptorSet dstSet, uint32_t frameIndex, ShaderKind shaderKind, IDescriptorWriteInfoProvider& infoProvider) const
 {
-    std::vector<VkDescriptorImageInfo> imgInfos;
+    std::vector<VkDescriptorImageInfo>  imgInfos;
     std::vector<VkDescriptorBufferInfo> bufferInfos;
+    std::vector<VkWriteDescriptorSet>   result;
 
-    std::vector<VkWriteDescriptorSet> result;
+    imgInfos.reserve (1024);
+    bufferInfos.reserve (1024);
+    result.reserve (1024);
 
     for (const SR::Sampler& sampler : samplers) {
-        const std::vector<VkDescriptorImageInfo> tempImgInfos = infoProvider.GetDescriptorImageInfos (sampler.name, frameIndex);
+        const std::vector<VkDescriptorImageInfo> tempImgInfos = infoProvider.GetDescriptorImageInfos (sampler.name, shaderKind, frameIndex);
+        if (tempImgInfos.empty ())
+            continue;
 
-        const size_t currentSize = imgInfos.size ();
+        const int32_t currentSize = imgInfos.size ();
 
         imgInfos.insert (imgInfos.end (), tempImgInfos.begin (), tempImgInfos.end ());
 
-        const size_t newSize = imgInfos.size ();
+        const int32_t newSize = imgInfos.size ();
+
+        GVK_ASSERT (newSize - currentSize == tempImgInfos.size ());
+        GVK_ASSERT (newSize - currentSize > 0);
 
         VkWriteDescriptorSet write = {};
         write.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -573,20 +583,31 @@ size_t ShaderModule::Reflection::WriteDescriptors (VkDevice device, VkDescriptor
         write.descriptorType       = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         write.descriptorCount      = newSize - currentSize;
         write.pBufferInfo          = nullptr;
-        write.pImageInfo           = tempImgInfos.empty () ? nullptr : &imgInfos[currentSize];
+        write.pImageInfo           = &imgInfos[currentSize];
         write.pTexelBufferView     = nullptr;
 
         result.push_back (write);
     }
 
-    for (const std::shared_ptr<SR::UBO>& ubo : ubos) {
-        const std::vector<VkDescriptorBufferInfo> tempBufferInfos = infoProvider.GetDescriptorBufferInfos (ubo->name, frameIndex);
+    if (device != VK_NULL_HANDLE && !result.empty ())
+        vkUpdateDescriptorSets (device, result.size (), result.data (), 0, nullptr);
+    result.clear ();
+    imgInfos.clear ();
+    bufferInfos.clear ();
 
-        const size_t currentSize = bufferInfos.size ();
+    for (const std::shared_ptr<SR::UBO>& ubo : ubos) {
+        const std::vector<VkDescriptorBufferInfo> tempBufferInfos = infoProvider.GetDescriptorBufferInfos (ubo->name, shaderKind, frameIndex);
+        if (tempBufferInfos.empty ())
+            continue;
+
+        const int32_t currentSize = bufferInfos.size ();
 
         bufferInfos.insert (bufferInfos.end (), tempBufferInfos.begin (), tempBufferInfos.end ());
 
-        const size_t newSize = bufferInfos.size ();
+        const int32_t newSize = bufferInfos.size ();
+
+        GVK_ASSERT (newSize - currentSize == tempBufferInfos.size ());
+        GVK_ASSERT (newSize - currentSize > 0);
 
         VkWriteDescriptorSet write = {};
         write.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -595,21 +616,32 @@ size_t ShaderModule::Reflection::WriteDescriptors (VkDevice device, VkDescriptor
         write.dstArrayElement      = 0;
         write.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         write.descriptorCount      = newSize - currentSize;
-        write.pBufferInfo          = tempBufferInfos.empty () ? nullptr : &bufferInfos[currentSize];
+        write.pBufferInfo          = &bufferInfos[currentSize];
         write.pImageInfo           = nullptr;
         write.pTexelBufferView     = nullptr;
 
         result.push_back (write);
     }
 
-    for (const SR::SubpassInput& subpassInput : subpassInputs) {
-        const std::vector<VkDescriptorImageInfo> tempImgInfos = infoProvider.GetDescriptorImageInfos (subpassInput.name, frameIndex);
+    if (device != VK_NULL_HANDLE && !result.empty ())
+        vkUpdateDescriptorSets (device, result.size (), result.data (), 0, nullptr);
+    result.clear ();
+    imgInfos.clear ();
+    bufferInfos.clear ();
 
-        const size_t currentSize = imgInfos.size ();
+    for (const SR::SubpassInput& subpassInput : subpassInputs) {
+        const std::vector<VkDescriptorImageInfo> tempImgInfos = infoProvider.GetDescriptorImageInfos (subpassInput.name, shaderKind, frameIndex);
+        if (tempImgInfos.empty ())
+            continue;
+
+        const int32_t currentSize = imgInfos.size ();
 
         imgInfos.insert (imgInfos.end (), tempImgInfos.begin (), tempImgInfos.end ());
 
-        const size_t newSize = imgInfos.size ();
+        const int32_t newSize = imgInfos.size ();
+
+        GVK_ASSERT (newSize - currentSize == tempImgInfos.size ());
+        GVK_ASSERT (newSize - currentSize > 0);
 
         VkWriteDescriptorSet write = {};
         write.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -619,14 +651,17 @@ size_t ShaderModule::Reflection::WriteDescriptors (VkDevice device, VkDescriptor
         write.descriptorType       = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
         write.descriptorCount      = newSize - currentSize;
         write.pBufferInfo          = nullptr;
-        write.pImageInfo           = tempImgInfos.empty () ? nullptr : &imgInfos[currentSize];
+        write.pImageInfo           = &imgInfos[currentSize];
         write.pTexelBufferView     = nullptr;
 
         result.push_back (write);
     }
 
-    if (device != VK_NULL_HANDLE)
-        vkUpdateDescriptorSets (device, result.size (), result.empty () ? nullptr : result.data (), 0, nullptr);
+    if (device != VK_NULL_HANDLE && !result.empty ())
+        vkUpdateDescriptorSets (device, result.size (), result.data (), 0, nullptr);
+    result.clear ();
+    imgInfos.clear ();
+    bufferInfos.clear ();
 
     return result.size ();
 }

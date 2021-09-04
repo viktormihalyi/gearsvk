@@ -90,7 +90,7 @@ public:
 
     //
     std::vector<std::shared_ptr<RG::InputBufferBindableResource>>                                                                              uboResources;
-    std::vector<std::tuple<std::shared_ptr<RG::RenderOperation>, uint32_t, std::shared_ptr<RG::InputBufferBindableResource>, GVK::ShaderKind>> uboConnections;
+    std::vector<std::tuple<std::shared_ptr<RG::RenderOperation>, std::shared_ptr<SR::UBO>, std::shared_ptr<RG::InputBufferBindableResource>, GVK::ShaderKind>> uboConnections;
     std::unordered_map<GVK::UUID, std::shared_ptr<SR::IUData>>                                                                            udatas;
 
 public:

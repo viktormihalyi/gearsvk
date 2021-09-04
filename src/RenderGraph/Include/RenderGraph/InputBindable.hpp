@@ -13,18 +13,34 @@ class InputBufferBindable {
 public:
     virtual VkBuffer GetBufferForFrame (uint32_t frameIndex) = 0;
     
-    std::function<VkBuffer ()> GetBufferForFrameProvider (uint32_t frameIndex)
+    std::function<VkBuffer (uint32_t)> GetBufferForFrameProvider ()
     {
-        return [=] () -> VkBuffer { return GetBufferForFrame (frameIndex); };
+        return [=] (uint32_t frameIndex) -> VkBuffer {
+            return GetBufferForFrame (frameIndex);
+        };
     }
 
-    virtual uint32_t GetBufferSize ()                        = 0;
+    virtual uint32_t GetBufferSize () = 0;
 };
 
 class InputImageBindable {
 public:
     virtual VkImageView GetImageViewForFrame (uint32_t frameIndex, uint32_t layerIndex) = 0;
     virtual VkSampler   GetSampler ()                                                   = 0;
+
+    std::function<VkImageView (uint32_t, uint32_t)> GetImageViewForFrameProvider ()
+    {
+        return [=] (uint32_t frameIndex, uint32_t layerIndex) -> VkImageView {
+            return GetImageViewForFrame (frameIndex, layerIndex);
+        };
+    }
+
+    std::function<VkSampler ()> GetSamplerProvider ()
+    {
+        return [=] () -> VkSampler {
+            return GetSampler ();
+        };
+    }
 };
 
 } // namespace RG

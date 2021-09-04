@@ -64,7 +64,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
                 std::shared_ptr<SR::UDataInternal> uboData = std::make_unique<SR::UDataInternal> (ubo);
                 ubosel.Set (ubo->name, uboData);
 
-                uboConnections.push_back (std::make_tuple (renderOp, ubo->binding, uboRes, shaderModule.GetShaderKind ()));
+                uboConnections.push_back (std::make_tuple (renderOp, ubo, uboRes, shaderModule.GetShaderKind ()));
                 uboResources.push_back (uboRes);
                 udatas.insert ({ uboRes->GetUUID (), uboData });
             }
@@ -91,8 +91,15 @@ void UniformReflection::CreateGraphConnections ()
         }
     };
 
-    for (auto& [operation, binding, resource, shaderKind] : uboConnections) {
-        connectionSet.Add (resource, operation, std::make_unique<RG::UniformInputBinding> (binding, *resource, shaderKindToShaderStage (shaderKind)));
+    for (auto& [operation, ubo, resource, shaderKind] : uboConnections) {
+        connectionSet.Add (operation);
+        connectionSet.Add (resource);
+        if (operation->compileSettings.descriptorWriteProvider == nullptr)
+            operation->compileSettings.descriptorWriteProvider = std::make_unique<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
+
+        auto table = dynamic_cast<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable*> (operation->compileSettings.descriptorWriteProvider.get ());
+        if (GVK_VERIFY (table != nullptr))
+            table->bufferInfos.push_back ({ ubo->name, shaderKind, resource->GetBufferForFrameProvider (), 0, resource->GetBufferSize () });
     }
 
     uboConnections.clear ();

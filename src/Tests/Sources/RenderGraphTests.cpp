@@ -965,9 +965,7 @@ void main () {
     std::shared_ptr<RG::WritableImageResource>  presentedCopy = std::make_unique<RG::WritableImageResource> (VK_FILTER_LINEAR, 800, 600, 2);
     std::shared_ptr<RG::CPUBufferResource>      unif          = std::make_unique<RG::CPUBufferResource> (4);
 
-
-    s.connectionSet.Add (unif, redFillOperation,
-                         std::make_unique<RG::UniformInputBinding> (0, *unif));
+    s.connectionSet.Add (unif);
 
     s.connectionSet.Add (RG::OutputBuilder ()
                              .SetOperation (redFillOperation)
@@ -984,9 +982,7 @@ void main () {
                              .Build ());
 
     auto table = std::make_unique<GVK::ShaderModule::Reflection::DescriptorWriteInfoTable> ();
-    table->bufferInfos.push_back ({ std::string ("Time"), 0, unif->GetBufferForFrameProvider (0), 0, unif->GetBufferSize () });
-    table->bufferInfos.push_back ({ std::string ("Time"), 1, unif->GetBufferForFrameProvider (1), 0, unif->GetBufferSize () });
-    table->bufferInfos.push_back ({ std::string ("Time"), 2, unif->GetBufferForFrameProvider (2), 0, unif->GetBufferSize () });
+    table->bufferInfos.push_back ({ std::string ("Time"), GVK::ShaderKind::Vertex, unif->GetBufferForFrameProvider (), 0, unif->GetBufferSize () });
     redFillOperation->compileSettings.descriptorWriteProvider = std::move (table);
 
     graph.Compile (std::move (s));

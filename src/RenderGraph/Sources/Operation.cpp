@@ -221,8 +221,8 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
 
     if (compileSettings.descriptorWriteProvider != nullptr) {
         GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
-            auto writeCount = shaderModule.GetReflection ().WriteDescriptors (VK_NULL_HANDLE, VK_NULL_HANDLE, 0, *compileSettings.descriptorWriteProvider);
-            s += writeCount;
+            auto writeCount = shaderModule.GetReflection ().WriteDescriptors (VK_NULL_HANDLE, VK_NULL_HANDLE, 0, shaderModule.GetShaderKind (), *compileSettings.descriptorWriteProvider);
+            s += 1;
         });
     } else {
         graphSettings.connectionSet.ProcessInputBindingsOf (this, [&] (const IConnectionBinding& binding) {
@@ -231,22 +231,22 @@ void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t widt
     }
 
     s *= graphSettings.framesInFlight;
-
+    
     if (s > 0) {
-        compileResult.descriptorPool = std::make_unique<GVK::DescriptorPool> (graphSettings.GetDevice (), s, s, graphSettings.framesInFlight);
+        compileResult.descriptorPool = std::make_unique<GVK::DescriptorPool> (graphSettings.GetDevice (), 1024, 1024, graphSettings.framesInFlight);
 
         for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
             std::unique_ptr<GVK::DescriptorSet> descriptorSet = std::make_unique<GVK::DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
 
             if (compileSettings.descriptorWriteProvider != nullptr) {
                 GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
-                    shaderModule.GetReflection ().WriteDescriptors (graphSettings.GetDevice (), * descriptorSet, resourceIndex, *compileSettings.descriptorWriteProvider);
-                });
-            } else {
-                graphSettings.connectionSet.ProcessInputBindingsOf (this, [&] (const IConnectionBinding& binding) {
-                    binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, resourceIndex);
+                    shaderModule.GetReflection ().WriteDescriptors (graphSettings.GetDevice (), *descriptorSet, resourceIndex, shaderModule.GetShaderKind (), * compileSettings.descriptorWriteProvider);
                 });
             }
+
+            graphSettings.connectionSet.ProcessInputBindingsOf (this, [&] (const IConnectionBinding& binding) {
+                binding.WriteToDescriptorSet (graphSettings.GetDevice (), *descriptorSet, resourceIndex);
+            });
 
             compileResult.descriptorSets.push_back (std::move (descriptorSet));
         }
