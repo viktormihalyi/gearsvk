@@ -102,6 +102,7 @@ public:
     uint32_t                            descriptorSet;
     std::string                         name;
     std::vector<std::unique_ptr<Field>> fields;
+    bool                                hasDeclaredStructSize;
 
     uint32_t GetFullSize () const;
 
@@ -155,6 +156,7 @@ public:
 };
 
 
+// constructing a spirv_cross::Compiler is expensive
 class VULKANWRAPPER_API ReflCompiler {
 public:
 
@@ -169,6 +171,9 @@ public:
 
 VULKANWRAPPER_API
 std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler);
+
+VULKANWRAPPER_API
+std::vector<std::shared_ptr<UBO>> GetStorageBuffersFromBinary (ReflCompiler& compiler);
 
 VULKANWRAPPER_API
 std::vector<Sampler> GetSamplersFromBinary (ReflCompiler& compiler);

@@ -8,7 +8,9 @@
 #include "Device.hpp"
 #include "Queue.hpp"
 
+#pragma warning (push, 0)
 #include "vk_mem_alloc.h"
+#pragma warning(pop)
 
 namespace GVK {
 

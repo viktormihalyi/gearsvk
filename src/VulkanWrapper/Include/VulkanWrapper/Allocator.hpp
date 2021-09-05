@@ -4,7 +4,10 @@
 #include "Utils/MovablePtr.hpp"
 #include "VulkanObject.hpp"
 
+#pragma warning (push, 0)
 #include "vk_mem_alloc.h"
+#pragma warning(pop)
+
 #include <stdexcept>
 
 namespace GVK {

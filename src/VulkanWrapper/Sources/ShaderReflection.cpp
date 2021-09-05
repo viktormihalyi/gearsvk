@@ -361,7 +361,7 @@ ReflCompiler::ReflCompiler (const std::vector<uint32_t>& binary)
 ReflCompiler::~ReflCompiler () = default;
 
 
-std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler_)
+static std::vector<std::shared_ptr<UBO>> GetBufferObjectsFromBinary (ReflCompiler& compiler_, const std::function<const spirv_cross::SmallVector<spirv_cross::Resource>& (const spirv_cross::ShaderResources&)> bufferResourceSelector)
 {
     spirv_cross::Compiler& compiler = compiler_.impl->compiler;
 
@@ -369,7 +369,7 @@ std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler_)
 
     std::vector<std::shared_ptr<UBO>> ubos;
 
-    for (auto& resource : resources.uniform_buffers) {
+    for (auto& resource : bufferResourceSelector (resources)) {
         AllDecorations decorations (compiler, resource.id);
         auto           resType   = compiler.get_type (resource.type_id);
         const uint32_t arraySize = !resType.array.empty () ? resType.array[0] : 0;
@@ -385,7 +385,12 @@ std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler_)
 
         IterateTypeTree (compiler, resource.base_type_id, root->fields);
 
-        GVK_ASSERT (compiler.get_declared_struct_size (compiler.get_type (resource.base_type_id)) == root->GetFullSize ());
+        const size_t declaredStructSize = compiler.get_declared_struct_size (compiler.get_type (resource.base_type_id));
+        const size_t fullSize           = root->GetFullSize ();
+
+        root->hasDeclaredStructSize = declaredStructSize != 0;
+
+        GVK_ASSERT (!root->hasDeclaredStructSize || declaredStructSize == fullSize);
 
         ubos.push_back (root);
     }
@@ -396,6 +401,23 @@ std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler_)
 
     return ubos;
 }
+
+
+std::vector<std::shared_ptr<UBO>> GetStorageBuffersFromBinary (ReflCompiler& compiler_)
+{
+    return GetBufferObjectsFromBinary (compiler_, [] (const spirv_cross::ShaderResources& shaderResources) -> const spirv_cross::SmallVector<spirv_cross::Resource>& {
+        return shaderResources.storage_buffers;
+    });
+}
+
+
+std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler_)
+{
+    return GetBufferObjectsFromBinary (compiler_, [] (const spirv_cross::ShaderResources& shaderResources) -> const spirv_cross::SmallVector<spirv_cross::Resource>& {
+        return shaderResources.uniform_buffers;
+    });
+}
+
 
 
 std::vector<Output> GetOutputsFromBinary (ReflCompiler& compiler_)
