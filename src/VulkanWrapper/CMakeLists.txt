@@ -11,9 +11,10 @@ set (Headers
     ${HeadersPath}/Allocator.hpp
     ${HeadersPath}/Buffer.hpp
     ${HeadersPath}/Command.hpp
-    ${HeadersPath}/Commands.hpp
     ${HeadersPath}/CommandBuffer.hpp
     ${HeadersPath}/CommandPool.hpp
+    ${HeadersPath}/Commands.hpp
+    ${HeadersPath}/ComputePipeline.hpp
     ${HeadersPath}/DebugReportCallback.hpp
     ${HeadersPath}/DebugUtilsMessenger.hpp
     ${HeadersPath}/DescriptorPool.hpp
@@ -25,11 +26,11 @@ set (Headers
     ${HeadersPath}/Event.hpp
     ${HeadersPath}/Fence.hpp
     ${HeadersPath}/Framebuffer.hpp
+    ${HeadersPath}/GraphicsPipeline.hpp
     ${HeadersPath}/Image.hpp
     ${HeadersPath}/ImageView.hpp
     ${HeadersPath}/Instance.hpp
     ${HeadersPath}/PhysicalDevice.hpp
-    ${HeadersPath}/GraphicsPipeline.hpp
     ${HeadersPath}/PipelineLayout.hpp
     ${HeadersPath}/Queue.hpp
     ${HeadersPath}/RenderPass.hpp
@@ -55,8 +56,9 @@ set (SourcesGroup1
 
     ${SourcesPath}/Allocator.cpp
     ${SourcesPath}/Buffer.cpp
-    ${SourcesPath}/Commands.cpp
     ${SourcesPath}/CommandBuffer.cpp
+    ${SourcesPath}/Commands.cpp
+    ${SourcesPath}/ComputePipeline.cpp
     ${SourcesPath}/DebugReportCallback.cpp
     ${SourcesPath}/DebugUtilsMessenger.cpp
     ${SourcesPath}/Device.cpp
@@ -64,11 +66,11 @@ set (SourcesGroup1
     ${SourcesPath}/Event.cpp
     ${SourcesPath}/Fence.cpp
     ${SourcesPath}/Framebuffer.cpp
+    ${SourcesPath}/GraphicsPipeline.cpp
     ${SourcesPath}/Image.cpp
     ${SourcesPath}/ImageView.cpp
     ${SourcesPath}/Instance.cpp
     ${SourcesPath}/PhysicalDevice.cpp
-    ${SourcesPath}/GraphicsPipeline.cpp
     ${SourcesPath}/Queue.cpp
     ${SourcesPath}/ResourceLimits.cpp
     ${SourcesPath}/Sampler.cpp

@@ -4,6 +4,7 @@
 #include "GraphSettings.hpp"
 #include "Resource.hpp"
 #include "ShaderPipeline.hpp"
+#include "ComputeShaderPipeline.hpp"
 #include "DrawRecordable.hpp"
 
 #include "VulkanWrapper/CommandBuffer.hpp"
@@ -17,6 +18,7 @@
 #include "VulkanWrapper/Image.hpp"
 #include "VulkanWrapper/ImageView.hpp"
 #include "VulkanWrapper/GraphicsPipeline.hpp"
+#include "VulkanWrapper/ComputePipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
 
@@ -233,7 +235,7 @@ void RenderOperation::CompileDescriptors (const GraphSettings& graphSettings)
 void RenderOperation::Compile (const GraphSettings& graphSettings)
 {
     GVK_BREAK ();
-    throw std::runtime_error ("RenderOperations should be compiled with extent");
+    throw std::runtime_error ("RenderOperations should be compiled with extent.");
 }
 
 
@@ -260,7 +262,7 @@ void RenderOperation::CompileWithExtent (const GraphSettings& graphSettings, uin
         }
     }
 
-    ShaderPipeline::CompileSettings pipelineSettigns = { width,
+    ShaderPipeline::CompileSettings pipelineSettings = { width,
                                                          height,
                                                          compileResult.descriptorSetLayout->operator VkDescriptorSetLayout (),
                                                          attachmentReferences,
@@ -268,9 +270,9 @@ void RenderOperation::CompileWithExtent (const GraphSettings& graphSettings, uin
                                                          attachmentDescriptions,
                                                          compileSettings.topology };
 
-    pipelineSettigns.blendEnabled = compileSettings.blendEnabled;
+    pipelineSettings.blendEnabled = compileSettings.blendEnabled;
 
-    GetShaderPipeline ()->Compile (std::move (pipelineSettigns));
+    GetShaderPipeline ()->Compile (std::move (pipelineSettings));
 
     for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
         compileResult.framebuffers.push_back (std::make_unique<GVK::Framebuffer> (graphSettings.GetDevice (),
@@ -456,19 +458,87 @@ void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t ima
 #endif
 
 
-void ComputeOperation::Compile (const GraphSettings&)
+ComputeOperation::ComputeOperation (uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+    : groupCountX (groupCountX)
+    , groupCountY (groupCountY)
+    , groupCountZ (groupCountZ)
 {
 }
 
 
-void ComputeOperation::CompileWithExtent (const GraphSettings& graphSettings, uint32_t width, uint32_t height)
+void ComputeOperation::Compile (const GraphSettings& graphSettings)
 {
+    CompileDescriptors (graphSettings);
+
+    const GVK::ShaderModule& computeShader = *compileSettings.computeShaderPipeline->computeShader;
+
+    const std::vector<VkAttachmentReference>   attachmentReferences      = RG::FromShaderReflection::GetAttachmentReferences (computeShader.GetReflection (), GVK::ShaderKind::Compute, *compileSettings.attachmentProvider);
+    const std::vector<VkAttachmentReference>   inputAttachmentReferences = RG::FromShaderReflection::GetInputAttachmentReferences (computeShader.GetReflection (), GVK::ShaderKind::Compute, *compileSettings.attachmentProvider, attachmentReferences.size ());
+    const std::vector<VkAttachmentDescription> attachmentDescriptions    = RG::FromShaderReflection::GetAttachmentDescriptions (computeShader.GetReflection (), GVK::ShaderKind::Compute, *compileSettings.attachmentProvider);
+
+    ComputeShaderPipeline::CompileSettings pipelineSettings { compileResult.descriptorSetLayout->operator VkDescriptorSetLayout (),
+                                                              attachmentReferences,
+                                                              inputAttachmentReferences,
+                                                              attachmentDescriptions };
+
+    compileSettings.computeShaderPipeline->Compile (std::move (pipelineSettings));
+}
+
+
+void ComputeOperation::CompileWithExtent (const GraphSettings&, uint32_t, uint32_t)
+{
+    GVK_BREAK ();
+    throw std::runtime_error ("ComputeOperations should be compiled without extent.");
 }
 
 
 void ComputeOperation::Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
 {
+    commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_COMPUTE, *compileSettings.computeShaderPipeline->compileResult.pipeline).SetName ("ComputeOperation - Bind");
+
+    if (!compileResult.descriptorSets.empty ()) {
+        VkDescriptorSet dsHandle = *compileResult.descriptorSets[resourceIndex];
+
+        commandBuffer.Record<GVK::CommandBindDescriptorSets> (
+                         VK_PIPELINE_BIND_POINT_COMPUTE,
+                         *compileSettings.computeShaderPipeline->compileResult.pipelineLayout,
+                         0,
+                         std::vector<VkDescriptorSet> { dsHandle },
+                         std::vector<uint32_t> {})
+            .SetName ("ComputeOperation - DescriptionSet");
+    }
+
+    commandBuffer.Record<GVK::CommandDispatch> (groupCountX, groupCountY, groupCountZ);
+
+    commandBuffer.Record<GVK::CommandEndRenderPass> ().SetName ("ComputeOperation - Renderpass End");
 }
-    
+
+
+void ComputeOperation::CompileDescriptors (const GraphSettings& graphSettings)
+{
+    compileResult.descriptorSetLayout = compileSettings.computeShaderPipeline->CreateDescriptorSetLayout (graphSettings.GetDevice ());
+
+    const GVK::ShaderModule& computeShader = *compileSettings.computeShaderPipeline->computeShader;
+
+    DescriptorCounter descriptorCounter;
+    descriptorCounter.multiplier = graphSettings.framesInFlight;
+    RG::FromShaderReflection::WriteDescriptors (computeShader.GetReflection (), VK_NULL_HANDLE, 0, computeShader.GetShaderKind (), *compileSettings.descriptorWriteProvider, descriptorCounter);
+
+    if (!descriptorCounter.poolSizes.empty ()) {
+        compileResult.descriptorPool = std::make_unique<GVK::DescriptorPool> (graphSettings.GetDevice (), descriptorCounter.poolSizes, graphSettings.framesInFlight);
+
+        DescriptorWriter descriptorWriter;
+        descriptorWriter.device = graphSettings.GetDevice ();
+
+        for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
+            std::unique_ptr<GVK::DescriptorSet> descriptorSet = std::make_unique<GVK::DescriptorSet> (graphSettings.GetDevice (), *compileResult.descriptorPool, *compileResult.descriptorSetLayout);
+
+            RG::FromShaderReflection::WriteDescriptors (computeShader.GetReflection (), *descriptorSet, resourceIndex, computeShader.GetShaderKind (), *compileSettings.descriptorWriteProvider, descriptorWriter);
+
+            compileResult.descriptorSets.push_back (std::move (descriptorSet));
+        }
+    }
+}
+
 
 } // namespace RG

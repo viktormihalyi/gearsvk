@@ -13,6 +13,7 @@
 #include "VulkanWrapper/Fence.hpp"
 #include "VulkanWrapper/Image.hpp"
 #include "VulkanWrapper/GraphicsPipeline.hpp"
+#include "VulkanWrapper/ComputePipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
 #include "VulkanWrapper/Semaphore.hpp"

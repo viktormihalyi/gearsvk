@@ -24,11 +24,11 @@ public:
         VkRenderPassCreateInfo renderPassInfo = {};
         renderPassInfo.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         renderPassInfo.attachmentCount        = static_cast<uint32_t> (attachments.size ());
-        renderPassInfo.pAttachments           = attachments.data ();
+        renderPassInfo.pAttachments           = attachments.empty () ? nullptr : attachments.data ();
         renderPassInfo.subpassCount           = static_cast<uint32_t> (subpasses.size ());
-        renderPassInfo.pSubpasses             = subpasses.data ();
+        renderPassInfo.pSubpasses             = subpasses.empty () ? nullptr : subpasses.data ();
         renderPassInfo.dependencyCount        = static_cast<uint32_t> (subpassDependencies.size ());
-        renderPassInfo.pDependencies          = subpassDependencies.data ();
+        renderPassInfo.pDependencies          = subpassDependencies.empty () ? nullptr : subpassDependencies.data ();
 
         if (GVK_ERROR (vkCreateRenderPass (device, &renderPassInfo, nullptr, &handle) != VK_SUCCESS)) {
             throw std::runtime_error ("failed to create renderpass");

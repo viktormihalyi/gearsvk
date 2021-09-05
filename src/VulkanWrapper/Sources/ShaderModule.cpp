@@ -454,9 +454,12 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 {
     VkPipelineShaderStageCreateInfo result = {};
     result.sType                           = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    result.pNext                           = nullptr;
+    result.flags                           = 0;
     result.stage                           = ShaderKindAdapter::FromShaderKind (shaderKind).vkflag;
     result.module                          = handle;
     result.pName                           = "main";
+    result.pSpecializationInfo             = nullptr;
     return result;
 }
 

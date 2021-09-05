@@ -611,6 +611,116 @@ public:
     }
 };
 
+
+class VULKANWRAPPER_API CommandDispatch : public Command {
+private:
+    uint32_t groupCountX;
+    uint32_t groupCountY;
+    uint32_t groupCountZ;
+
+public:
+    CommandDispatch (uint32_t groupCountX,
+                     uint32_t groupCountY,
+                     uint32_t groupCountZ)
+        : groupCountX (groupCountX)
+        , groupCountY (groupCountY)
+        , groupCountZ (groupCountZ)
+    {
+    }
+
+    virtual void Record (CommandBuffer& commandBuffer) override
+    {
+        vkCmdDispatch (commandBuffer.GetHandle (), groupCountX, groupCountY, groupCountZ);
+    }
+
+    virtual bool IsEquivalent (const Command& other) override
+    {
+        if (auto otherCommand = dynamic_cast<const CommandDispatch*> (&other)) {
+            return groupCountX == otherCommand->groupCountX &&
+                   groupCountY == otherCommand->groupCountY &&
+                   groupCountZ == otherCommand->groupCountZ;
+        }
+
+        return false;
+    }
+};
+
+
+class VULKANWRAPPER_API CommandDispatchBase : public Command {
+private:
+    uint32_t baseGroupX;
+    uint32_t baseGroupY;
+    uint32_t baseGroupZ;
+    uint32_t groupCountX;
+    uint32_t groupCountY;
+    uint32_t groupCountZ;
+
+public:
+    CommandDispatchBase (uint32_t baseGroupX,
+                     uint32_t baseGroupY,
+                     uint32_t baseGroupZ,
+                     uint32_t groupCountX,
+                     uint32_t groupCountY,
+                     uint32_t groupCountZ)
+        : baseGroupX (baseGroupX)
+        , baseGroupY (baseGroupY)
+        , baseGroupZ (baseGroupZ)
+        , groupCountX (groupCountX)
+        , groupCountY (groupCountY)
+        , groupCountZ (groupCountZ)
+    {
+    }
+
+    virtual void Record (CommandBuffer& commandBuffer) override
+    {
+        vkCmdDispatchBase (commandBuffer.GetHandle (), baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ);
+    }
+
+    virtual bool IsEquivalent (const Command& other) override
+    {
+        if (auto otherCommand = dynamic_cast<const CommandDispatchBase*> (&other)) {
+            return baseGroupX == otherCommand->baseGroupX &&
+                   baseGroupY == otherCommand->baseGroupY &&
+                   baseGroupY == otherCommand->baseGroupZ &&
+                   groupCountY == otherCommand->groupCountX &&
+                   groupCountY == otherCommand->groupCountY &&
+                   groupCountZ == otherCommand->groupCountZ;
+        }
+
+        return false;
+    }
+};
+
+
+class VULKANWRAPPER_API CommandDispatchIndirect : public Command {
+private:
+    VkBuffer     buffer;
+    VkDeviceSize offset;
+
+public:
+    CommandDispatchIndirect (VkBuffer     buffer,
+                             VkDeviceSize offset)
+        : buffer (buffer)
+        , offset (offset)
+    {
+    }
+
+    virtual void Record (CommandBuffer& commandBuffer) override
+    {
+        vkCmdDispatchIndirect (commandBuffer.GetHandle (), buffer, offset);
+    }
+
+    virtual bool IsEquivalent (const Command& other) override
+    {
+        if (auto otherCommand = dynamic_cast<const CommandDispatchIndirect*> (&other)) {
+            return buffer == otherCommand->buffer &&
+                   offset == otherCommand->offset;
+        }
+
+        return false;
+    }
+};
+
 } // namespace GVK
 
 #endif

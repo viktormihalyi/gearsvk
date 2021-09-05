@@ -57,9 +57,9 @@ public:
 
 
     struct CompileResult {
-        std::unique_ptr<GVK::RenderPass>     renderPass;
-        std::unique_ptr<GVK::PipelineLayout> pipelineLayout;
-        std::unique_ptr<GVK::GraphicsPipeline>       pipeline;
+        std::unique_ptr<GVK::RenderPass>       renderPass;
+        std::unique_ptr<GVK::PipelineLayout>   pipelineLayout;
+        std::unique_ptr<GVK::GraphicsPipeline> pipeline;
 
         void Clear ();
     };

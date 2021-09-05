@@ -5,6 +5,7 @@
 
 #include "RenderGraph/Node.hpp"
 #include "RenderGraph/ShaderPipeline.hpp"
+#include "RenderGraph/ComputeShaderPipeline.hpp"
 #include "RenderGraph/ShaderReflectionToDescriptor.hpp"
 #include "RenderGraph/ShaderReflectionToAttachment.hpp"
 
@@ -62,8 +63,15 @@ public:
 
 class GVK_RENDERER_API ComputeOperation : public Operation {
 private:
+    uint32_t groupCountX;
+    uint32_t groupCountY;
+    uint32_t groupCountZ;
+
     struct GVK_RENDERER_API CompileSettings {
-        std::unique_ptr<ShaderPipeline> shaderPipiline;
+        std::unique_ptr<ComputeShaderPipeline> computeShaderPipeline;
+
+        std::unique_ptr<RG::FromShaderReflection::DescriptorWriteInfoTable> descriptorWriteProvider;
+        std::unique_ptr<RG::FromShaderReflection::AttachmentDataTable>      attachmentProvider;
     };
 
     struct GVK_RENDERER_API CompileResult {
@@ -72,7 +80,14 @@ private:
         std::vector<std::unique_ptr<GVK::DescriptorSet>> descriptorSets;
     };
 
+    CompileSettings compileSettings;
+    CompileResult   compileResult;
+
 public:
+    ComputeOperation (uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
+
+    virtual ~ComputeOperation () override = default;
+
     virtual void Compile (const GraphSettings&);
     virtual void CompileWithExtent (const GraphSettings&, uint32_t width, uint32_t height) override;
 
@@ -84,6 +99,9 @@ public:
     virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&)    { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
     virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
     virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&)   { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
+
+private:
+    void CompileDescriptors (const GraphSettings&);
 };
 
 

@@ -3,11 +3,13 @@
 #include "Resource.hpp"
 #include "DrawRecordable.hpp"
 #include "ShaderPipeline.hpp"
+#include "ComputeShaderPipeline.hpp"
 
 #include "Utils/Assert.hpp"
 
 #include "VulkanWrapper/Framebuffer.hpp"
 #include "VulkanWrapper/GraphicsPipeline.hpp"
+#include "VulkanWrapper/ComputePipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
 #include "VulkanWrapper/ShaderModule.hpp"

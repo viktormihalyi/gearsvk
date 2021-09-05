@@ -1,11 +1,13 @@
 #include "UniformReflection.hpp"
 #include "DrawRecordable.hpp"
 #include "ShaderPipeline.hpp"
+#include "ComputeShaderPipeline.hpp"
 #include "Operation.hpp"
 #include "ShaderReflectionToDescriptor.hpp"
 
 #include "VulkanWrapper/Framebuffer.hpp"
 #include "VulkanWrapper/GraphicsPipeline.hpp"
+#include "VulkanWrapper/ComputePipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"

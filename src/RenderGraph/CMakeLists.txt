@@ -15,6 +15,7 @@ set (Headers
     ${HeadersPath}/RenderGraphPass.hpp
     ${HeadersPath}/Resource.hpp
     ${HeadersPath}/ShaderPipeline.hpp
+    ${HeadersPath}/ComputeShaderPipeline.hpp
     ${HeadersPath}/UniformReflection.hpp
     
     ${HeadersPath}/Window/GLFWWindow.hpp
@@ -43,6 +44,7 @@ set (Sources
     ${SourcesPath}/RenderGraphPass.cpp
     ${SourcesPath}/Resource.cpp
     ${SourcesPath}/ShaderPipeline.cpp
+    ${SourcesPath}/ComputeShaderPipeline.cpp
     ${SourcesPath}/UniformReflection.cpp
 
     ${SourcesPath}/Window/GLFWWindow.cpp

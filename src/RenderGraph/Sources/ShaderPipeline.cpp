@@ -171,9 +171,6 @@ void ShaderPipeline::Compile (CompileSettings&& settings_)
 
     const auto instancedVertexProvider = [] (const std::string&) { return false; };
 
-    const std::vector<VkVertexInputAttributeDescription> attribs  = RG::FromShaderReflection::GetVertexAttributes (vertexShader->GetReflection (), instancedVertexProvider);
-    const std::vector<VkVertexInputBindingDescription>   bindings = RG::FromShaderReflection::GetVertexBindings (vertexShader->GetReflection (), instancedVertexProvider);
-
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount = static_cast<uint32_t> (compileSettings.attachmentReferences.size ());
@@ -208,6 +205,10 @@ void ShaderPipeline::Compile (CompileSettings&& settings_)
 
     compileResult.renderPass     = std::unique_ptr<GVK::RenderPass> (new GVK::RenderPass (device, compileSettings.attachmentDescriptions, { subpass }, { dependency, dependency2 }));
     compileResult.pipelineLayout = std::unique_ptr<GVK::PipelineLayout> (new GVK::PipelineLayout (device, { compileSettings.layout }));
+
+    const std::vector<VkVertexInputAttributeDescription> attribs  = RG::FromShaderReflection::GetVertexAttributes (vertexShader->GetReflection (), instancedVertexProvider);
+    const std::vector<VkVertexInputBindingDescription>   bindings = RG::FromShaderReflection::GetVertexBindings (vertexShader->GetReflection (), instancedVertexProvider);
+
     compileResult.pipeline       = std::unique_ptr<GVK::GraphicsPipeline> (new GVK::GraphicsPipeline (
         device,
         compileSettings.width,

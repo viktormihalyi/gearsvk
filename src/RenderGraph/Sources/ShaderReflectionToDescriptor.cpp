@@ -148,6 +148,54 @@ static void UpdateDescriptorSetsFromUBOs (const GVK::ShaderModule::Reflection& r
 }
 
 
+static void UpdateDescriptorSetsFromStorageBuffers (const GVK::ShaderModule::Reflection& reflection,
+                                                     VkDescriptorSet                      dstSet,
+                                                     uint32_t                             frameIndex,
+                                                     GVK::ShaderKind                      shaderKind,
+                                                     IDescriptorWriteInfoProvider&        infoProvider,
+                                                     IUpdateDescriptorSets&               updateInterface)
+{
+    std::vector<VkDescriptorBufferInfo> bufferInfos;
+    std::vector<VkWriteDescriptorSet>   result;
+
+    bufferInfos.reserve (1024);
+    result.reserve (1024);
+
+    for (const std::shared_ptr<SR::UBO>& storageBuffer : reflection.storageBuffers) {
+        const std::vector<VkDescriptorBufferInfo> tempBufferInfos = infoProvider.GetDescriptorBufferInfos (storageBuffer->name, shaderKind, frameIndex);
+        if (GVK_ERROR (tempBufferInfos.empty ())) {
+            spdlog::error ("Uniform block \"{}\" has no descriptor bound.", storageBuffer->name);
+            continue;
+        }
+
+        const int32_t currentSize = bufferInfos.size ();
+
+        bufferInfos.insert (bufferInfos.end (), tempBufferInfos.begin (), tempBufferInfos.end ());
+
+        const int32_t newSize = bufferInfos.size ();
+
+        GVK_ASSERT (newSize - currentSize == tempBufferInfos.size ());
+        GVK_ASSERT (newSize - currentSize > 0);
+
+        VkWriteDescriptorSet write = {};
+        write.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write.dstSet               = dstSet;
+        write.dstBinding           = storageBuffer->binding;
+        write.dstArrayElement      = 0;
+        write.descriptorType       = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        write.descriptorCount      = newSize - currentSize;
+        write.pBufferInfo          = &bufferInfos[currentSize];
+        write.pImageInfo           = nullptr;
+        write.pTexelBufferView     = nullptr;
+
+        result.push_back (write);
+    }
+
+    if (!result.empty ())
+        updateInterface.UpdateDescriptorSets (result);
+}
+
+
 static void UpdateDescriptorSetsFromInputAttachments (const GVK::ShaderModule::Reflection& reflection,
                                                       VkDescriptorSet                      dstSet,
                                                       uint32_t                             frameIndex,
@@ -210,6 +258,7 @@ void WriteDescriptors (const GVK::ShaderModule::Reflection& reflection,
 {
     UpdateDescriptorSetsFromSamplers (reflection, dstSet, frameIndex, shaderKind, infoProvider, updateInterface);
     UpdateDescriptorSetsFromUBOs (reflection, dstSet, frameIndex, shaderKind, infoProvider, updateInterface);
+    UpdateDescriptorSetsFromStorageBuffers (reflection, dstSet, frameIndex, shaderKind, infoProvider, updateInterface);
     UpdateDescriptorSetsFromInputAttachments (reflection, dstSet, frameIndex, shaderKind, infoProvider, updateInterface);
 }
 
