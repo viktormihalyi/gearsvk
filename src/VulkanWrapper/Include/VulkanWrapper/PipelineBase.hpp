@@ -12,6 +12,8 @@ namespace GVK {
 
 class VULKANWRAPPER_API PipelineBase : public VulkanObject {
 public:
+    PipelineBase () = default;
+
     virtual ~PipelineBase () override;
 
     PipelineBase (PipelineBase&&) = default;
