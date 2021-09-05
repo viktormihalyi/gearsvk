@@ -60,6 +60,8 @@ public:
 
     void Compile (CompileSettings&& settings);
 
+    void IterateShaders (const std::function<void(const GVK::ShaderModule&)> iterator) const;
+
     std::unique_ptr<GVK::DescriptorSetLayout> CreateDescriptorSetLayout (VkDevice device) const;
 };
 

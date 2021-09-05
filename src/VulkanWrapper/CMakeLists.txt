@@ -15,6 +15,7 @@ set (Headers
     ${HeadersPath}/CommandPool.hpp
     ${HeadersPath}/Commands.hpp
     ${HeadersPath}/ComputePipeline.hpp
+    ${HeadersPath}/PipelineBase.hpp
     ${HeadersPath}/DebugReportCallback.hpp
     ${HeadersPath}/DebugUtilsMessenger.hpp
     ${HeadersPath}/DescriptorPool.hpp
@@ -59,6 +60,7 @@ set (SourcesGroup1
     ${SourcesPath}/CommandBuffer.cpp
     ${SourcesPath}/Commands.cpp
     ${SourcesPath}/ComputePipeline.cpp
+    ${SourcesPath}/PipelineBase.cpp
     ${SourcesPath}/DebugReportCallback.cpp
     ${SourcesPath}/DebugUtilsMessenger.cpp
     ${SourcesPath}/Device.cpp

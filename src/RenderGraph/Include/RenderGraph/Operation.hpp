@@ -42,13 +42,19 @@ namespace RG {
 
 class GVK_RENDERER_API Operation : public Node {
 public:
+    
+    struct GVK_RENDERER_API Descriptors {
+        std::unique_ptr<GVK::DescriptorPool>             descriptorPool;
+        std::unique_ptr<GVK::DescriptorSetLayout>        descriptorSetLayout;
+        std::vector<std::unique_ptr<GVK::DescriptorSet>> descriptorSets;
+    };
+
     virtual ~Operation () override = default;
 
     virtual void Compile (const GraphSettings&) = 0;
     virtual void CompileWithExtent (const GraphSettings& graphSettings, uint32_t width, uint32_t height) = 0;
 
     virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) = 0;
-    virtual bool IsActive ()                                                                                            = 0;
 
     // when record called, input images will be in GetImageLayoutAtStartForInputs ()
     // output images will be in GetImageLayoutAtStartForOutputs () layouts.
@@ -75,9 +81,7 @@ private:
     };
 
     struct GVK_RENDERER_API CompileResult {
-        std::unique_ptr<GVK::DescriptorPool>             descriptorPool;
-        std::unique_ptr<GVK::DescriptorSetLayout>        descriptorSetLayout;
-        std::vector<std::unique_ptr<GVK::DescriptorSet>> descriptorSets;
+        Descriptors descriptors;
     };
 
     CompileSettings compileSettings;
@@ -93,15 +97,10 @@ public:
 
     virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer);
     
-    virtual bool IsActive () { return true; }
-
     virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&)  { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
     virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&)    { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
     virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
     virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&)   { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
-
-private:
-    void CompileDescriptors (const GraphSettings&);
 };
 
 
@@ -153,12 +152,8 @@ public:
     struct GVK_RENDERER_API CompileResult {
         uint32_t                                         width;
         uint32_t                                         height;
-        std::unique_ptr<GVK::DescriptorPool>             descriptorPool;
-        std::unique_ptr<GVK::DescriptorSetLayout>        descriptorSetLayout;
-        std::vector<std::unique_ptr<GVK::DescriptorSet>> descriptorSets;
+        Descriptors                                      descriptors;
         std::vector<std::unique_ptr<GVK::Framebuffer>>   framebuffers;
-
-        void Clear ();
     };
 
     CompileSettings compileSettings;
@@ -171,7 +166,6 @@ public:
     virtual void Compile (const GraphSettings&) override;
     virtual void CompileWithExtent (const GraphSettings&, uint32_t width, uint32_t height) override;
     virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, GVK::CommandBuffer& commandBuffer) override;
-    virtual bool IsActive () override { return true; }
 
     const std::unique_ptr<ShaderPipeline>& GetShaderPipeline () const { return compileSettings.pipeline; }
 
@@ -180,9 +174,6 @@ private:
     virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&) override;
     virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) override;
     virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&) override;
-
-private:
-    void CompileDescriptors (const GraphSettings&);
 };
 
 
@@ -194,7 +185,6 @@ public:
     // overriding Operation
     virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) override;
     virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, GVK::CommandBuffer& commandBuffer) override;
-    virtual bool IsActive () override { return true; }
 
     virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL; }
     virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL; }

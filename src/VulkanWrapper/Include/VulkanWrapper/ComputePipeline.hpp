@@ -2,6 +2,8 @@
 #define VULKANWRAPPER_COMPUTEPIPELINE_HPP
 
 #include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/PipelineBase.hpp"
+
 #include <vulkan/vulkan.h>
 
 #include "Utils/Assert.hpp"
@@ -12,7 +14,7 @@ namespace GVK {
 
 class ShaderModule;
 
-class VULKANWRAPPER_API ComputePipeline : public VulkanObject {
+class VULKANWRAPPER_API ComputePipeline : public PipelineBase {
 private:
     VkDevice                    device;
     GVK::MovablePtr<VkPipeline> handle;
@@ -34,12 +36,7 @@ public:
 
     virtual void* GetHandleForName () const override { return handle; }
 
-    virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_PIPELINE; }
-
-    operator VkPipeline () const
-    {
-        return handle;
-    }
+    virtual operator VkPipeline () const override { return handle; }
 };
 
 } // namespace GVK

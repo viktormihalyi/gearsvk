@@ -97,6 +97,13 @@ void ComputeShaderPipeline::Compile (CompileSettings&& settings_)
 }
 
 
+void ComputeShaderPipeline::IterateShaders (const std::function<void(const GVK::ShaderModule&)> iterator) const
+{
+    if (computeShader != nullptr)
+        iterator (*computeShader);
+}
+
+
 std::unique_ptr<GVK::DescriptorSetLayout> ComputeShaderPipeline::CreateDescriptorSetLayout (VkDevice device) const
 {
     return std::make_unique<GVK::DescriptorSetLayout> (device, RG::FromShaderReflection::GetLayout (computeShader->GetReflection (), computeShader->GetShaderKind ()));
