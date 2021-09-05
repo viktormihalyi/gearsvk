@@ -167,7 +167,7 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
                 const VkFormat   format = providedExtent.has_value () ? std::get<1> (*providedExtent) : VK_FORMAT_R8_SRGB;
                 const VkFilter   filter = providedExtent.has_value () ? std::get<2> (*providedExtent) : VK_FILTER_LINEAR;
 
-                const uint32_t layerCount = sampler.arraySize == 0 ? 1 : sampler.arraySize;
+                const uint32_t layerCount = sampler.arraySize;
 
                 switch (sampler.type) {
                     case SR::Sampler::Type::Sampler1D:

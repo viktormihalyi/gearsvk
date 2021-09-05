@@ -24,7 +24,7 @@ Field::Field ()
 
 bool Field::IsArray () const
 {
-    return arraySize > 0;
+    return arraySize > 1;
 }
 
 
@@ -327,7 +327,7 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
         f->name                  = typeMemDecor.name;
         f->offset                = *typeMemDecor.Offset;
         f->arrayStride           = typeMemDecorA.ArrayStride ? *typeMemDecorA.ArrayStride : 0;
-        f->arraySize             = !Mtype.array.empty () ? Mtype.array[0] : 0;
+        f->arraySize             = !Mtype.array.empty () ? Mtype.array[0] : 1;
         f->size                  = (Mtype.width * Mtype.vecsize * Mtype.columns) / 8;
         f->type                  = BaseTypeNMToSRFieldType (Mtype.basetype, Mtype.vecsize, Mtype.columns);
 
@@ -372,11 +372,11 @@ static std::vector<std::shared_ptr<UBO>> GetBufferObjectsFromBinary (ReflCompile
     for (auto& resource : bufferResourceSelector (resources)) {
         AllDecorations decorations (compiler, resource.id);
         auto           resType   = compiler.get_type (resource.type_id);
-        const uint32_t arraySize = !resType.array.empty () ? resType.array[0] : 0;
+        const uint32_t arraySize = !resType.array.empty () ? resType.array[0] : 1;
 
         // using arrays on ubos will create seperate bindings,
         // eg. array of 4 on binding 2 will create 4 different bindings: 2, 3, 4, 5
-        GVK_ASSERT (arraySize == 0);
+        GVK_ASSERT (arraySize == 1);
 
         std::shared_ptr<UBO> root = std::make_unique<UBO> ();
         root->name                = resource.name;
@@ -437,7 +437,7 @@ std::vector<Output> GetOutputsFromBinary (ReflCompiler& compiler_)
         output.name      = resource.name;
         output.location  = *decorations.Location;
         output.type      = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
-        output.arraySize = !type.array.empty () ? type.array[0] : 0;
+        output.arraySize = !type.array.empty () ? type.array[0] : 1;
 
         result.push_back (output);
     }
@@ -517,7 +517,7 @@ std::vector<SubpassInput> GetSubpassInputsFromBinary (ReflCompiler& compiler_)
         inp.binding      = *decorations.Binding;
         inp.subpassIndex = *decorations.InputAttachmentIndex;
         inp.type         = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
-        inp.arraySize    = !type.array.empty () ? type.array[0] : 0;
+        inp.arraySize    = !type.array.empty () ? type.array[0] : 1;
 
         result.push_back (inp);
     }
@@ -547,7 +547,7 @@ std::vector<Input> GetInputsFromBinary (ReflCompiler& compiler_)
         inp.name        = resource.name;
         inp.location    = *decorations.Location;
         inp.type        = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
-        inp.arraySize   = !type.array.empty () ? type.array[0] : 0;
+        inp.arraySize   = !type.array.empty () ? type.array[0] : 1;
         inp.sizeInBytes = BaseTypeNMToByteSize (type.basetype, type.vecsize, type.columns);
 
         result.push_back (inp);
@@ -593,7 +593,7 @@ std::vector<Sampler> GetSamplersFromBinary (ReflCompiler& compiler_)
         sampler.binding       = *decorations.Binding;
         sampler.descriptorSet = *decorations.DescriptorSet;
         sampler.type          = SpvDimToSamplerType (type.image.dim);
-        sampler.arraySize     = !type.array.empty () ? type.array[0] : 0;
+        sampler.arraySize     = !type.array.empty () ? type.array[0] : 1;
 
         GVK_ASSERT (type.array.empty () || type.array.size () == 1);
 

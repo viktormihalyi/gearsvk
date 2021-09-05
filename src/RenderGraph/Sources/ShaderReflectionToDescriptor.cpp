@@ -63,7 +63,7 @@ static void UpdateDescriptorSetsFromSamplers (const GVK::ShaderModule::Reflectio
     result.reserve (1024);
 
     for (const SR::Sampler& sampler : reflection.samplers) {
-        const uint32_t layerCount = sampler.arraySize == 0 ? 1 : sampler.arraySize;
+        const uint32_t layerCount = sampler.arraySize;
         for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
             const std::vector<VkDescriptorImageInfo> tempImgInfos = infoProvider.GetDescriptorImageInfos (sampler.name, shaderKind, layerIndex, frameIndex);
             if (GVK_ERROR (tempImgInfos.empty ())) {
@@ -164,7 +164,7 @@ static void UpdateDescriptorSetsFromInputAttachments (const GVK::ShaderModule::R
     result.reserve (1024);
 
     for (const SR::SubpassInput& subpassInput : reflection.subpassInputs) {
-        const uint32_t layerCount = subpassInput.arraySize == 0 ? 1 : subpassInput.arraySize;
+        const uint32_t layerCount = subpassInput.arraySize;
         for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
             const std::vector<VkDescriptorImageInfo> tempImgInfos = infoProvider.GetDescriptorImageInfos (subpassInput.name, shaderKind, layerIndex, frameIndex);
             if (GVK_ERROR (tempImgInfos.empty ())) {
@@ -236,7 +236,7 @@ std::vector<VkDescriptorSetLayoutBinding> GetLayout (const GVK::ShaderModule::Re
         VkDescriptorSetLayoutBinding bin = {};
         bin.binding                      = sampler.binding;
         bin.descriptorType               = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        bin.descriptorCount              = sampler.arraySize == 0 ? 1 : sampler.arraySize;
+        bin.descriptorCount              = sampler.arraySize;
         bin.stageFlags                   = GetShaderStageFromShaderKind (shaderKind);
         bin.pImmutableSamplers           = nullptr;
         result.push_back (bin);

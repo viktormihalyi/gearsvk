@@ -29,11 +29,11 @@ std::vector<VkImageView> GetImageViews (const GVK::ShaderModule::Reflection& ref
         const std::optional<IAttachmentProvider::AttachmentData> attachmentData = attachmentProvider.GetAttachmentData (output.name, shaderKind);
 
         if (GVK_ERROR (!attachmentData.has_value ())) {
-            spdlog::error ("Attachment \"{}\" (location: {}, layerCount: {}) is not set.", output.name, output.location, output.arraySize == 0 ? 1 : output.arraySize);
+            spdlog::error ("Attachment \"{}\" (location: {}, layerCount: {}) is not set.", output.name, output.location, output.arraySize);
             continue;
         }
 
-        const uint32_t layerCount = output.arraySize == 0 ? 1 : output.arraySize;
+        const uint32_t layerCount = output.arraySize;
 
         for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
             imageViews.push_back (attachmentData->imageView (resourceIndex, layerIndex));
@@ -44,11 +44,11 @@ std::vector<VkImageView> GetImageViews (const GVK::ShaderModule::Reflection& ref
         const std::optional<IAttachmentProvider::AttachmentData> attachmentData = attachmentProvider.GetAttachmentData (subpassInput.name, shaderKind);
 
         if (GVK_ERROR (!attachmentData.has_value ())) {
-            spdlog::error ("Attachment \"{}\" (binding: {}, layerCount: {}) is not set.", subpassInput.name, subpassInput.binding, subpassInput.arraySize == 0 ? 1 : subpassInput.arraySize);
+            spdlog::error ("Attachment \"{}\" (binding: {}, layerCount: {}) is not set.", subpassInput.name, subpassInput.binding, subpassInput.arraySize);
             continue;
         }
 
-        const uint32_t layerCount = subpassInput.arraySize == 0 ? 1 : subpassInput.arraySize;
+        const uint32_t layerCount = subpassInput.arraySize;
 
         for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
             imageViews.push_back (attachmentData->imageView (resourceIndex, layerIndex));
@@ -67,11 +67,11 @@ std::vector<VkAttachmentReference> GetAttachmentReferences (const GVK::ShaderMod
         const std::optional<IAttachmentProvider::AttachmentData> attachmentData = attachmentProvider.GetAttachmentData (output.name, shaderKind);
 
         if (GVK_ERROR (!attachmentData.has_value ())) {
-            spdlog::error ("Attachment \"{}\" (location: {}, layerCount: {}) is not set.", output.name, output.location, output.arraySize == 0 ? 1 : output.arraySize);
+            spdlog::error ("Attachment \"{}\" (location: {}, layerCount: {}) is not set.", output.name, output.location, output.arraySize);
             continue;
         }
 
-        const uint32_t layerCount = output.arraySize == 0 ? 1 : output.arraySize;
+        const uint32_t layerCount = output.arraySize;
 
         for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
             VkAttachmentReference attachmentReference = {};
@@ -94,11 +94,11 @@ std::vector<VkAttachmentReference> GetInputAttachmentReferences (const GVK::Shad
         const std::optional<IAttachmentProvider::AttachmentData> attachmentData = attachmentProvider.GetAttachmentData (subpassInput.name, shaderKind);
 
         if (GVK_ERROR (!attachmentData.has_value ())) {
-            spdlog::error ("Input attachment \"{}\" (binding: {}, layerCount: {}) is not set.", subpassInput.name, subpassInput.binding, subpassInput.arraySize == 0 ? 1 : subpassInput.arraySize);
+            spdlog::error ("Input attachment \"{}\" (binding: {}, layerCount: {}) is not set.", subpassInput.name, subpassInput.binding, subpassInput.arraySize);
             continue;
         }
 
-        const uint32_t layerCount = subpassInput.arraySize == 0 ? 1 : subpassInput.arraySize;
+        const uint32_t layerCount = subpassInput.arraySize;
 
         for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
             VkAttachmentReference attachmentReference = {};
@@ -121,11 +121,11 @@ std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const GVK::Shade
         const std::optional<IAttachmentProvider::AttachmentData> attachmentData = attachmentProvider.GetAttachmentData (output.name, shaderKind);
 
         if (GVK_ERROR (!attachmentData.has_value ())) {
-            spdlog::error ("Attachment \"{}\" (location: {}, layerCount: {}) is not set.", output.name, output.location, output.arraySize == 0 ? 1 : output.arraySize);
+            spdlog::error ("Attachment \"{}\" (location: {}, layerCount: {}) is not set.", output.name, output.location, output.arraySize);
             continue;
         }
 
-        const uint32_t layerCount = output.arraySize == 0 ? 1 : output.arraySize;
+        const uint32_t layerCount = output.arraySize;
 
         for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
             VkAttachmentDescription attachmentDescription = {};
@@ -147,11 +147,11 @@ std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const GVK::Shade
         const std::optional<IAttachmentProvider::AttachmentData> attachmentData = attachmentProvider.GetAttachmentData (subpassInput.name, shaderKind);
 
         if (GVK_ERROR (!attachmentData.has_value ())) {
-            spdlog::error ("Attachment \"{}\" (binding: {}, layerCount: {}) is not set.", subpassInput.name, subpassInput.binding, subpassInput.arraySize == 0 ? 1 : subpassInput.arraySize);
+            spdlog::error ("Attachment \"{}\" (binding: {}, layerCount: {}) is not set.", subpassInput.name, subpassInput.binding, subpassInput.arraySize);
             continue;
         }
 
-        const uint32_t layerCount = subpassInput.arraySize == 0 ? 1 : subpassInput.arraySize;
+        const uint32_t layerCount = subpassInput.arraySize;
 
         for (uint32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex) {
             VkAttachmentDescription attachmentDescription = {};
