@@ -322,9 +322,9 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
                                                        VkRect2D { { 0, 0 }, { compileResult.width, compileResult.height } },
                                                        clearValues,
                                                        VK_SUBPASS_CONTENTS_INLINE)
-        .SetName ("Operation - Renderpass Begin");
+        .SetName ("RenderOperation - Renderpass Begin");
 
-    commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *GetShaderPipeline ()->compileResult.pipeline).SetName ("Operation - Bind");
+    commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_GRAPHICS, *GetShaderPipeline ()->compileResult.pipeline).SetName ("RenderOperation - Bind");
 
     if (!compileResult.descriptorSets.empty ()) {
         VkDescriptorSet dsHandle = *compileResult.descriptorSets[resourceIndex];
@@ -335,13 +335,13 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
                          0,
                          std::vector<VkDescriptorSet> { dsHandle },
                          std::vector<uint32_t> {})
-            .SetName ("Operation - DescriptionSet");
+            .SetName ("RenderOperation - DescriptionSet");
     }
 
     GVK_ASSERT (compileSettings.drawRecordable != nullptr);
     compileSettings.drawRecordable->Record (commandBuffer);
 
-    commandBuffer.Record<GVK::CommandEndRenderPass> ().SetName ("Operation - Renderpass End");
+    commandBuffer.Record<GVK::CommandEndRenderPass> ().SetName ("RenderOperation - Renderpass End");
 }
 
 
@@ -509,8 +509,6 @@ void ComputeOperation::Record (const ConnectionSet& connectionSet, uint32_t reso
     }
 
     commandBuffer.Record<GVK::CommandDispatch> (groupCountX, groupCountY, groupCountZ);
-
-    commandBuffer.Record<GVK::CommandEndRenderPass> ().SetName ("ComputeOperation - Renderpass End");
 }
 
 
