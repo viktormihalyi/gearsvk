@@ -130,7 +130,7 @@ RenderOperation::RenderOperation (std::unique_ptr<DrawRecordable>&& drawRecordab
     : compileSettings ({ std::move (drawRecordable), std::move (shaderPipeline), topology })
 {
     compileSettings.descriptorWriteProvider = std::make_unique<RG::FromShaderReflection::DescriptorWriteInfoTable> ();
-    compileSettings.attachmentProvider = std::make_unique<RG::FromShaderReflection::AttachmentDataTable> ();
+    compileSettings.attachmentProvider      = std::make_unique<RG::FromShaderReflection::AttachmentDataTable> ();
 }
 
 
@@ -181,9 +181,8 @@ public:
     virtual void UpdateDescriptorSets (const std::vector<VkWriteDescriptorSet>& writes) override
     {
         for (const auto& write : writes) {
-
             spdlog::trace ("DescriptorWriter: dstBinding = {}, dstArrayElement = {}, descriptorCount = {}, descriptorType = {}",
-                write.dstBinding, write.dstArrayElement, write.descriptorCount, write.descriptorType);
+                           write.dstBinding, write.dstArrayElement, write.descriptorCount, write.descriptorType);
 
             if (write.pImageInfo != nullptr) {
                 for (uint32_t i = 0; i < write.descriptorCount; ++i) {
@@ -231,7 +230,14 @@ void RenderOperation::CompileDescriptors (const GraphSettings& graphSettings)
 }
 
 
-void RenderOperation::Compile (const GraphSettings& graphSettings, uint32_t width, uint32_t height)
+void RenderOperation::Compile (const GraphSettings& graphSettings)
+{
+    GVK_BREAK ();
+    throw std::runtime_error ("RenderOperations should be compiled with extent");
+}
+
+
+void RenderOperation::CompileWithExtent (const GraphSettings& graphSettings, uint32_t width, uint32_t height)
 {
     compileResult.Clear ();
 
@@ -296,14 +302,14 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
     clearColor.color.float32[1] = 0.0f;
     clearColor.color.float32[2] = 0.0f;
     clearColor.color.float32[3] = 1.0f;
-    clearColor = compileSettings.clearColor.has_value ()
-                                  ? VkClearValue {
-                                        compileSettings.clearColor->x,
-                                        compileSettings.clearColor->y,
-                                        compileSettings.clearColor->z,
-                                        compileSettings.clearColor->w
-                                    }
-                                  : VkClearValue { 0.0f, 0.0f, 0.0f, 1.0f };
+    clearColor                  = compileSettings.clearColor.has_value ()
+                                      ? VkClearValue {
+                           compileSettings.clearColor->x,
+                           compileSettings.clearColor->y,
+                           compileSettings.clearColor->z,
+                           compileSettings.clearColor->w
+                       }
+                                      : VkClearValue { 0.0f, 0.0f, 0.0f, 1.0f };
 
     std::vector<VkClearValue> clearValues (outputCount, clearColor);
 
@@ -322,16 +328,17 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
         VkDescriptorSet dsHandle = *compileResult.descriptorSets[resourceIndex];
 
         commandBuffer.Record<GVK::CommandBindDescriptorSets> (
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            *GetShaderPipeline ()->compileResult.pipelineLayout,
-            0,
-            std::vector<VkDescriptorSet> { dsHandle },
-            std::vector<uint32_t> {}).SetName ("Operation - DescriptionSet");
+                         VK_PIPELINE_BIND_POINT_GRAPHICS,
+                         *GetShaderPipeline ()->compileResult.pipelineLayout,
+                         0,
+                         std::vector<VkDescriptorSet> { dsHandle },
+                         std::vector<uint32_t> {})
+            .SetName ("Operation - DescriptionSet");
     }
 
     GVK_ASSERT (compileSettings.drawRecordable != nullptr);
     compileSettings.drawRecordable->Record (commandBuffer);
-    
+
     commandBuffer.Record<GVK::CommandEndRenderPass> ().SetName ("Operation - Renderpass End");
 }
 
@@ -448,5 +455,20 @@ void TransferOperation::Record (const ConnectionSet& connectionSet, uint32_t ima
 }
 #endif
 
+
+void ComputeOperation::Compile (const GraphSettings&)
+{
+}
+
+
+void ComputeOperation::CompileWithExtent (const GraphSettings& graphSettings, uint32_t width, uint32_t height)
+{
+}
+
+
+void ComputeOperation::Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
+{
+}
+    
 
 } // namespace RG

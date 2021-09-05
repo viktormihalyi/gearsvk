@@ -4,6 +4,7 @@
 #include "RenderGraph/RenderGraphAPI.hpp"
 
 #include "RenderGraph/Node.hpp"
+#include "RenderGraph/ShaderPipeline.hpp"
 #include "RenderGraph/ShaderReflectionToDescriptor.hpp"
 #include "RenderGraph/ShaderReflectionToAttachment.hpp"
 
@@ -29,7 +30,6 @@ class CommandBuffer;
 } // namespace GVK
 
 namespace RG {
-class ShaderPipeline;
 class Resource;
 class GraphSettings;
 class ConnectionSet;
@@ -43,7 +43,9 @@ class GVK_RENDERER_API Operation : public Node {
 public:
     virtual ~Operation () override = default;
 
-    virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height)                                        = 0;
+    virtual void Compile (const GraphSettings&) = 0;
+    virtual void CompileWithExtent (const GraphSettings& graphSettings, uint32_t width, uint32_t height) = 0;
+
     virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) = 0;
     virtual bool IsActive ()                                                                                            = 0;
 
@@ -56,6 +58,35 @@ public:
     virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) = 0;
     virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&)   = 0;
 };
+
+
+class GVK_RENDERER_API ComputeOperation : public Operation {
+private:
+    struct GVK_RENDERER_API CompileSettings {
+        std::unique_ptr<ShaderPipeline> shaderPipiline;
+    };
+
+    struct GVK_RENDERER_API CompileResult {
+        std::unique_ptr<GVK::DescriptorPool>             descriptorPool;
+        std::unique_ptr<GVK::DescriptorSetLayout>        descriptorSetLayout;
+        std::vector<std::unique_ptr<GVK::DescriptorSet>> descriptorSets;
+    };
+
+public:
+    virtual void Compile (const GraphSettings&);
+    virtual void CompileWithExtent (const GraphSettings&, uint32_t width, uint32_t height) override;
+
+    virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer);
+    
+    virtual bool IsActive () { return true; }
+
+    virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&)  { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
+    virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&)    { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
+    virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
+    virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&)   { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
+};
+
+
 
 class GVK_RENDERER_API RenderOperation : public Operation {
 public:
@@ -119,7 +150,8 @@ public:
 
     virtual ~RenderOperation () override = default;
 
-    virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) override;
+    virtual void Compile (const GraphSettings&) override;
+    virtual void CompileWithExtent (const GraphSettings&, uint32_t width, uint32_t height) override;
     virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, GVK::CommandBuffer& commandBuffer) override;
     virtual bool IsActive () override { return true; }
 

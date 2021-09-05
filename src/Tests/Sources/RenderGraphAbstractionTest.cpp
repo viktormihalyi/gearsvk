@@ -275,8 +275,8 @@ void main () {
     s.connectionSet.Add (renderOp2, renderTarget);
 
 
-    renderOp->Compile (s, 512, 512);
-    renderOp2->Compile (s, 512, 512);
+    renderOp->CompileWithExtent (s, 512, 512);
+    renderOp2->CompileWithExtent (s, 512, 512);
 
     VkClearValue clearValue     = {};
     clearValue.color.float32[0] = 0.0f;

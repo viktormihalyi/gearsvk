@@ -65,10 +65,10 @@ void RenderGraph::CompileOperations ()
                 }
             }
 
-            if (GVK_ERROR (firstImgRes == nullptr)) {
-                op->Compile (graphSettings, 500, 500);
+            if (firstImgRes == nullptr) {
+                op->Compile (graphSettings);
             } else {
-                op->Compile (graphSettings, firstImgRes->GetImages ()[0]->GetWidth (), firstImgRes->GetImages ()[0]->GetHeight ());
+                op->CompileWithExtent (graphSettings, firstImgRes->GetImages ()[0]->GetWidth (), firstImgRes->GetImages ()[0]->GetHeight ());
             }
         }
     }

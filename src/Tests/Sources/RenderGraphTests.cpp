@@ -828,6 +828,42 @@ void main()
     )");
 }
 
+
+TEST_F (HeadlessTestEnvironment, ComputeShader_RenderGraph)
+{
+    std::unique_ptr<GVK::ShaderModule> shaderModule = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Compute, R"(
+#version 450
+layout (local_size_x = 256) in;
+
+layout(set = 0, binding = 0) uniform Config{
+    mat4 transform;
+    int matrixCount;
+} opData;
+
+layout(set = 0, binding = 1) readonly buffer  InputBuffer{
+    mat4 matrices[];
+} sourceData;
+
+layout(set = 0, binding = 2) buffer  OutputBuffer{
+    mat4 matrices[];
+} outputData;
+
+
+void main()
+{
+    //grab global ID
+	uint gID = gl_GlobalInvocationID.x;
+    //make sure we don't access past the buffer size
+    if(gID < opData.matrixCount)
+    {
+        // do math
+        outputData.matrices[gID] = sourceData.matrices[gID] * opData.transform;
+    }
+}
+    )");
+
+
+}
 TEST_F (HeadlessTestEnvironment, RenderGraph_TwoOperationsRenderingToOutput)
 {
     /*
