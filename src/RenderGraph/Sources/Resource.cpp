@@ -148,9 +148,6 @@ VkImageView WritableImageResource::GetImageViewForFrame (uint32_t resourceIndex,
 VkSampler   WritableImageResource::GetSampler () { return *sampler; }
 
 
-void WritableImageResource::Visit (IResourceVisitor& visitor) { visitor.Visit (*this); }
-
-
 void SingleWritableImageResource::Compile (const GraphSettings& graphSettings)
 {
     readWriteSync = std::make_unique<VW::Event> (graphSettings.GetDevice ());
@@ -195,9 +192,6 @@ void SingleWritableImageResource::OnPostWrite (uint32_t resourceIndex, GVK::Comm
 }
 
 
-void SingleWritableImageResource::Visit (IResourceVisitor& visitor) { visitor.Visit (*this); }
-
-
 GPUBufferResource::GPUBufferResource (const uint32_t size)
     : size (size)
 {
@@ -229,9 +223,6 @@ void GPUBufferResource::CopyAndTransfer (const void* data, size_t size) const
 {
     buffer->CopyAndTransfer (data, size);
 }
-
-
-void GPUBufferResource::Visit (IResourceVisitor& visitor) { visitor.Visit (*this); }
 
 
 ReadOnlyImageResource::ReadOnlyImageResource (VkFormat format, VkFilter filter, uint32_t width, uint32_t height, uint32_t depth, uint32_t layerCount)
@@ -313,9 +304,6 @@ VkImageView ReadOnlyImageResource::GetImageViewForFrame (uint32_t, uint32_t) { r
 VkSampler   ReadOnlyImageResource::GetSampler () { return *sampler; }
 
 
-void ReadOnlyImageResource::Visit (IResourceVisitor& visitor) { visitor.Visit (*this); }
-
-
 SwapchainImageResource::SwapchainImageResource (GVK::SwapchainProvider& swapchainProv)
     : swapchainProv (swapchainProv)
 {
@@ -393,9 +381,6 @@ VkImageView SwapchainImageResource::GetImageViewForFrame (uint32_t resourceIndex
 VkSampler   SwapchainImageResource::GetSampler () { return VK_NULL_HANDLE; }
 
 
-void SwapchainImageResource::Visit (IResourceVisitor& visitor) { visitor.Visit (*this); }
-
-
 CPUBufferResource::CPUBufferResource (uint32_t size)
     : size (size)
 {
@@ -425,7 +410,5 @@ uint32_t CPUBufferResource::GetBufferSize () { return size; }
 
 GVK::MemoryMapping& CPUBufferResource::GetMapping (uint32_t resourceIndex) { return *mappings[resourceIndex]; }
 
-
-void CPUBufferResource::Visit (IResourceVisitor& visitor) { visitor.Visit (*this); }
 
 } // namespace RG

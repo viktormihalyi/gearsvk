@@ -7,18 +7,9 @@
 
 namespace RG {
 
-void ConnectionSet::VisitOutputsOf (const Node* node, IResourceVisitor& visitor) const
-{
-    for (const NodeConnection& c : connections) {
-        if (c.from.get () == node) {
-            if (std::shared_ptr<Resource> asResource = std::dynamic_pointer_cast<Resource> (c.to)) {
-                asResource->Visit (visitor);
-            } else {
-                GVK_BREAK_STR ("???");
-            }
-        }
-    }
-}
+
+ConnectionSet::~ConnectionSet () = default;
+
 
 GraphSettings::GraphSettings (const GVK::DeviceExtra& device, ConnectionSet&& connectionSet, uint32_t framesInFlight)
     : device (&device)

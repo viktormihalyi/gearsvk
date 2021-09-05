@@ -278,14 +278,9 @@ void RenderOperation::CompileWithExtent (const GraphSettings& graphSettings, uin
 void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
 {
     uint32_t outputCount = 0;
-
-    IResourceVisitorFn outputCounter ([&] (ReadOnlyImageResource&) {},
-                                      [&] (WritableImageResource& res) { outputCount += res.GetLayerCount (); },
-                                      [&] (SwapchainImageResource& res) { outputCount += res.GetLayerCount (); },
-                                      [&] (GPUBufferResource&) {},
-                                      [&] (CPUBufferResource&) {});
-
-    connectionSet.VisitOutputsOf (this, outputCounter);
+    for (const auto& output : GetShaderPipeline ()->fragmentShader->GetReflection ().outputs) {
+        outputCount += output.arraySize;
+    }
 
     VkClearValue clearColor     = {};
     clearColor.color.float32[0] = 0.0f;

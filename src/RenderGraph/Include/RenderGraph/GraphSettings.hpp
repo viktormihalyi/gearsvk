@@ -13,8 +13,6 @@
 
 namespace RG {
 
-class IResourceVisitor;
-
 class GVK_RENDERER_API NodeConnection {
 public:
     std::shared_ptr<Node> from;
@@ -45,7 +43,7 @@ public:
     ConnectionSet (ConnectionSet&&);
     ConnectionSet& operator= (ConnectionSet&&);
 
-    void VisitOutputsOf (const Node* node, IResourceVisitor& visitor) const;
+    virtual ~ConnectionSet () override;
 
     template<typename T>
     std::vector<std::shared_ptr<T>> GetPointingTo (const Node* node) const
