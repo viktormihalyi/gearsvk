@@ -161,35 +161,35 @@ public:
 
 
 // constructing a spirv_cross::Compiler is expensive
-class VULKANWRAPPER_API ReflCompiler {
+class VULKANWRAPPER_API SpirvParser {
 public:
 
     struct Impl; // hide spirv_cross::Compiler
 
     std::unique_ptr<Impl> impl;
 
-    ReflCompiler (const std::vector<uint32_t>& binary);
-    ~ReflCompiler ();
+    SpirvParser (const std::vector<uint32_t>& binary);
+    ~SpirvParser ();
 };
 
 
 VULKANWRAPPER_API
-std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler);
+std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (SpirvParser& compiler);
 
 VULKANWRAPPER_API
-std::vector<std::shared_ptr<UBO>> GetStorageBuffersFromBinary (ReflCompiler& compiler);
+std::vector<std::shared_ptr<UBO>> GetStorageBuffersFromBinary (SpirvParser& compiler);
 
 VULKANWRAPPER_API
-std::vector<Sampler> GetSamplersFromBinary (ReflCompiler& compiler);
+std::vector<Sampler> GetSamplersFromBinary (SpirvParser& compiler);
 
 VULKANWRAPPER_API
-std::vector<SubpassInput> GetSubpassInputsFromBinary (ReflCompiler& compiler);
+std::vector<SubpassInput> GetSubpassInputsFromBinary (SpirvParser& compiler);
 
 VULKANWRAPPER_API
-std::vector<Input> GetInputsFromBinary (ReflCompiler& compiler);
+std::vector<Input> GetInputsFromBinary (SpirvParser& compiler);
 
 VULKANWRAPPER_API
-std::vector<Output> GetOutputsFromBinary (ReflCompiler& compiler);
+std::vector<Output> GetOutputsFromBinary (SpirvParser& compiler);
 
 VULKANWRAPPER_API
 VkFormat FieldTypeToVkFormat (FieldType fieldType);

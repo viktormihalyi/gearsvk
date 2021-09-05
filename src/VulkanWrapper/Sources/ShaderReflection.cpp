@@ -372,7 +372,7 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
 }
 
 
-struct ReflCompiler::Impl {
+struct SpirvParser::Impl {
     spirv_cross::Compiler compiler;
 
     Impl (const std::vector<uint32_t>& binary)
@@ -382,16 +382,16 @@ struct ReflCompiler::Impl {
 };
 
 
-ReflCompiler::ReflCompiler (const std::vector<uint32_t>& binary)
+SpirvParser::SpirvParser (const std::vector<uint32_t>& binary)
     : impl { std::make_unique<Impl> (binary) }
 {
 }
 
 
-ReflCompiler::~ReflCompiler () = default;
+SpirvParser::~SpirvParser () = default;
 
 
-static std::vector<std::shared_ptr<UBO>> GetBufferObjectsFromBinary (ReflCompiler& compiler_, const std::function<const spirv_cross::SmallVector<spirv_cross::Resource>& (const spirv_cross::ShaderResources&)> bufferResourceSelector)
+static std::vector<std::shared_ptr<UBO>> GetBufferObjectsFromBinary (SpirvParser& compiler_, const std::function<const spirv_cross::SmallVector<spirv_cross::Resource>&(const spirv_cross::ShaderResources&)> bufferResourceSelector)
 {
     spirv_cross::Compiler& compiler = compiler_.impl->compiler;
 
@@ -433,7 +433,7 @@ static std::vector<std::shared_ptr<UBO>> GetBufferObjectsFromBinary (ReflCompile
 }
 
 
-std::vector<std::shared_ptr<UBO>> GetStorageBuffersFromBinary (ReflCompiler& compiler_)
+std::vector<std::shared_ptr<UBO>> GetStorageBuffersFromBinary (SpirvParser& compiler_)
 {
     return GetBufferObjectsFromBinary (compiler_, [] (const spirv_cross::ShaderResources& shaderResources) -> const spirv_cross::SmallVector<spirv_cross::Resource>& {
         return shaderResources.storage_buffers;
@@ -441,7 +441,7 @@ std::vector<std::shared_ptr<UBO>> GetStorageBuffersFromBinary (ReflCompiler& com
 }
 
 
-std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler_)
+std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (SpirvParser& compiler_)
 {
     return GetBufferObjectsFromBinary (compiler_, [] (const spirv_cross::ShaderResources& shaderResources) -> const spirv_cross::SmallVector<spirv_cross::Resource>& {
         return shaderResources.uniform_buffers;
@@ -449,8 +449,7 @@ std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (ReflCompiler& compiler_)
 }
 
 
-
-std::vector<Output> GetOutputsFromBinary (ReflCompiler& compiler_)
+std::vector<Output> GetOutputsFromBinary (SpirvParser& compiler_)
 {
     spirv_cross::Compiler& compiler = compiler_.impl->compiler;
 
@@ -529,7 +528,7 @@ VkFormat FieldTypeToVkFormat (FieldType fieldType)
 }
 
 
-std::vector<SubpassInput> GetSubpassInputsFromBinary (ReflCompiler& compiler_)
+std::vector<SubpassInput> GetSubpassInputsFromBinary (SpirvParser& compiler_)
 {
     spirv_cross::Compiler& compiler = compiler_.impl->compiler;
 
@@ -560,7 +559,7 @@ std::vector<SubpassInput> GetSubpassInputsFromBinary (ReflCompiler& compiler_)
 }
 
 
-std::vector<Input> GetInputsFromBinary (ReflCompiler& compiler_)
+std::vector<Input> GetInputsFromBinary (SpirvParser& compiler_)
 {
     spirv_cross::Compiler& compiler = compiler_.impl->compiler;
 
@@ -606,7 +605,7 @@ static Sampler::Type SpvDimToSamplerType (spv::Dim dim)
 }
 
 
-std::vector<Sampler> GetSamplersFromBinary (ReflCompiler& compiler_)
+std::vector<Sampler> GetSamplersFromBinary (SpirvParser& compiler_)
 {
     spirv_cross::Compiler& compiler = compiler_.impl->compiler;
 

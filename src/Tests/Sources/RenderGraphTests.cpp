@@ -154,9 +154,9 @@ void main ()
 
 )");
 
-    SR::ReflCompiler reflCompiler (sm->GetBinary ());
-    auto                  ubos = SR::GetUBOsFromBinary (reflCompiler);
-    SR::ShaderUData  refl (ubos);
+    SR::SpirvParser spirvParser (sm->GetBinary ());
+    auto            ubos = SR::GetUBOsFromBinary (spirvParser);
+    SR::ShaderUData refl (ubos);
 
     refl["Quadrics"]["quadrics"][0]["WTF"] = glm::mat3x4 ();
 

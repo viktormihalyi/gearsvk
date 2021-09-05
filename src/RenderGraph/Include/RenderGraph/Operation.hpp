@@ -92,10 +92,10 @@ public:
 
     virtual ~ComputeOperation () override = default;
 
-    virtual void Compile (const GraphSettings&);
+    virtual void Compile (const GraphSettings&) override;
     virtual void CompileWithExtent (const GraphSettings&, uint32_t width, uint32_t height) override;
 
-    virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer);
+    virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) override;
     
     virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&)  override { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
     virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&)    override { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }

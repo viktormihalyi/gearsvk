@@ -466,7 +466,7 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 
 ShaderModule::Reflection::Reflection (const std::vector<uint32_t>& binary)
 {
-    SR::ReflCompiler c (binary);
+    SR::SpirvParser c (binary);
 
     ubos           = SR::GetUBOsFromBinary (c);
     samplers       = SR::GetSamplersFromBinary (c);
