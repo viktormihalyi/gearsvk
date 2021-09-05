@@ -62,15 +62,6 @@ WritableImageResource::SingleImageResource::SingleImageResource (const GVK::Devi
 }
 
 
-std::vector<GVK::ImageView2D> WritableImageResource::SingleImageResource::CreateImageViews (const GVK::DeviceExtra& device) const
-{
-    std::vector<GVK::ImageView2D> result;
-    for (uint32_t layerIndex = 0; layerIndex < image->GetArrayLayers (); ++layerIndex) {
-        result.emplace_back (device, *image, layerIndex);
-    }
-    return result;
-}
-
 WritableImageResource::WritableImageResource (VkFilter filter, uint32_t width, uint32_t height, uint32_t arrayLayers, VkFormat format)
     : filter (filter)
     , format (format)
@@ -330,18 +321,6 @@ void SwapchainImageResource::Compile (const GraphSettings& graphSettings)
             swapchainProv.GetSwapchain ().GetImageFormat (),
             1));
     }
-}
-
-
-std::vector<GVK::ImageView2D> SwapchainImageResource::CreateImageViews (const GVK::DeviceExtra& device) const
-{
-    const std::vector<VkImage> swapChainImages = swapchainProv.GetSwapchain ().GetImages ();
-
-    std::vector<GVK::ImageView2D> result;
-    for (size_t i = 0; i < swapChainImages.size (); ++i) {
-        result.emplace_back (device, swapChainImages[i], swapchainProv.GetSwapchain ().GetImageFormat ());
-    }
-    return result;
 }
 
 

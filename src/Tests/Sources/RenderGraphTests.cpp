@@ -343,62 +343,6 @@ void main () {
 }
 
 
-#if 0
-TEST_F (HeadlessTestEnvironment, RenderGraph_TransferOperation)
-{
-    const std::string fragSrc = R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout (location = 0) out vec4 outColor;
-
-void main () {
-    outColor = vec4 (1, 0, 0, 1);
-}
-    )";
-
-    std::shared_ptr<RG::RenderOperation> redFillOperation = RG::RenderOperation::Builder (GetDevice ())
-                                                                .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
-                                                                .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-                                                                .SetVertexShader (passThroughVertexShader)
-                                                                .SetFragmentShader (fragSrc)
-                                                                .Build ();
-
-    std::shared_ptr<RG::TransferOperation> transfer = std::make_unique<RG::TransferOperation> ();
-
-    std::shared_ptr<RG::WritableImageResource> red       = std::make_unique<RG::WritableImageResource> (512, 512);
-    std::shared_ptr<RG::WritableImageResource> duplicate = std::make_unique<RG::WritableImageResource> (512, 512);
-
-
-    RG::GraphSettings s (GetDeviceExtra (), 1);
-
-    s.connectionSet.Add (RG::OutputBuilder ()
-                             .SetOperation (redFillOperation)
-                             .SetTarget (red)
-                             .SetBinding (0)
-                             .SetClear ()
-                             .Build ());
-
-    s.connectionSet.Add (red, transfer);
-
-    s.connectionSet.Add (RG::OutputBuilder ()
-                             .SetOperation (transfer)
-                             .SetTarget (duplicate)
-                             .SetBinding (0)
-                             .SetClear ()
-                             .Build ());
-
-    RG::RenderGraph graph;
-    graph.Compile (std::move (s));
-    graph.Submit (0);
-
-    env->Wait ();
-
-    CompareImages ("red", *duplicate->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-}
-#endif
-
-
 TEST_F (HeadlessTestEnvironment, RenderGraph_MultipleOperations_MultipleOutputs)
 {
     std::shared_ptr<RG::WritableImageResource> presented = std::make_unique<RG::WritableImageResource> (512, 512);

@@ -177,22 +177,6 @@ private:
 };
 
 
-#if 0
-class GVK_RENDERER_API TransferOperation : public Operation {
-public:
-    TransferOperation ();
-
-    // overriding Operation
-    virtual void Compile (const GraphSettings&, uint32_t width, uint32_t height) override;
-    virtual void Record (const ConnectionSet& connectionSet, uint32_t imageIndex, GVK::CommandBuffer& commandBuffer) override;
-
-    virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL; }
-    virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL; }
-    virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; }
-    virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&) override { return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; }
-};
-#endif
-
 } // namespace RG
 
 #endif

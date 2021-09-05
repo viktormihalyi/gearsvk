@@ -104,18 +104,8 @@ protected:
 
         std::unique_ptr<GVK::Image>                    image;
         std::vector<std::unique_ptr<GVK::ImageView2D>> imageViews;
-        std::optional<VkImageLayout>                   layoutRead;
-        std::optional<VkImageLayout>                   layoutWrite;
-
-        // write always happens before read
-        // NO  read, NO  write: general
-        // YES read, NO  write: general -> read
-        // NO  read, YES write: general -> write
-        // YES read, YES write: general -> write -> read
 
         SingleImageResource (const GVK::DeviceExtra& device, uint32_t width, uint32_t height, uint32_t arrayLayers, VkFormat format = FormatRGBA, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL);
-
-        std::vector<GVK::ImageView2D> CreateImageViews (const GVK::DeviceExtra& device) const;
     };
 
 public:
@@ -125,8 +115,8 @@ public:
     const uint32_t height;
     const uint32_t arrayLayers;
 
-    VkImageLayout initialLayout;
-    VkImageLayout finalLayout;
+    VkImageLayout initialLayout; // TODO temporary
+    VkImageLayout finalLayout;   // TODO temporary
 
     std::vector<std::unique_ptr<SingleImageResource>> images;
     std::unique_ptr<GVK::Sampler>                     sampler;
@@ -260,8 +250,6 @@ public:
 
     // overriding Resource
     virtual void Compile (const GraphSettings& graphSettings) override;
-
-    std::vector<GVK::ImageView2D> CreateImageViews (const GVK::DeviceExtra& device) const;
 
     // overriding ImageResource
     virtual VkImageLayout GetInitialLayout () const override;
