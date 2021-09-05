@@ -7,7 +7,7 @@
 #include "Utils/Assert.hpp"
 
 #include "VulkanWrapper/Framebuffer.hpp"
-#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/GraphicsPipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
 #include "VulkanWrapper/ShaderModule.hpp"

@@ -24,7 +24,7 @@ class Image;
 class ImageViewBase;
 class Instance;
 class PhysicalDevice;
-class Pipeline;
+class GraphicsPipeline;
 class PipelineLayout;
 class Queue;
 class RenderPass;

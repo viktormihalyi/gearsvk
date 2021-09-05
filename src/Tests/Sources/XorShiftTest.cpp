@@ -10,7 +10,7 @@
 #include "RenderGraph/Window/Window.hpp"
 
 #include "VulkanWrapper/RenderPass.hpp"
-#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/GraphicsPipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/ShaderModule.hpp"
 #include "VulkanWrapper/DeviceExtra.hpp"

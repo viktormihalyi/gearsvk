@@ -16,7 +16,7 @@
 #include "VulkanWrapper/Framebuffer.hpp"
 #include "VulkanWrapper/Image.hpp"
 #include "VulkanWrapper/ImageView.hpp"
-#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/GraphicsPipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
 

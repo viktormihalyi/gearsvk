@@ -24,7 +24,7 @@
 #include "VulkanWrapper/ImageView.hpp"
 #include "VulkanWrapper/Instance.hpp"
 #include "VulkanWrapper/PhysicalDevice.hpp"
-#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/GraphicsPipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/Queue.hpp"
 #include "VulkanWrapper/RenderPass.hpp"

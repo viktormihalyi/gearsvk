@@ -11,7 +11,7 @@
 #include "Utils/FileSystemUtils.hpp"
 
 // from VulkanWrapper
-#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/GraphicsPipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
 #include "VulkanWrapper/DescriptorSet.hpp"

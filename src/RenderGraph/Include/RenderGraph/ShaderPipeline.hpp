@@ -18,7 +18,7 @@ namespace GVK {
 enum class ShaderKind : uint8_t;
 class ShaderModule;
 class RenderPass;
-class Pipeline;
+class GraphicsPipeline;
 class PipelineLayout;
 class DescriptorSetLayout;
 }
@@ -59,7 +59,7 @@ public:
     struct CompileResult {
         std::unique_ptr<GVK::RenderPass>     renderPass;
         std::unique_ptr<GVK::PipelineLayout> pipelineLayout;
-        std::unique_ptr<GVK::Pipeline>       pipeline;
+        std::unique_ptr<GVK::GraphicsPipeline>       pipeline;
 
         void Clear ();
     };

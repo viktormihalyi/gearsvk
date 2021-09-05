@@ -11,13 +11,13 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API Pipeline : public VulkanObject {
+class VULKANWRAPPER_API GraphicsPipeline : public VulkanObject {
 private:
     VkDevice                    device;
     GVK::MovablePtr<VkPipeline> handle;
 
 public:
-    Pipeline (VkDevice                                              device,
+    GraphicsPipeline (VkDevice                                              device,
               uint32_t                                              width,
               uint32_t                                              height,
               uint32_t                                              attachmentCount,
@@ -29,10 +29,10 @@ public:
               VkPrimitiveTopology                                   topology,
               bool                                                  blendEnabled = true);
 
-    Pipeline (Pipeline&&) = default;
-    Pipeline& operator= (Pipeline&&) = default;
+    GraphicsPipeline (GraphicsPipeline&&) = default;
+    GraphicsPipeline& operator= (GraphicsPipeline&&) = default;
 
-    virtual ~Pipeline () override
+    virtual ~GraphicsPipeline () override
     {
         vkDestroyPipeline (device, handle, nullptr);
         handle = nullptr;

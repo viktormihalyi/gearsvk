@@ -7,7 +7,7 @@
 #include "Utils/Timer.hpp"
 
 #include "VulkanWrapper/Event.hpp"
-#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/GraphicsPipeline.hpp"
 #include "VulkanWrapper/Utils/BufferTransferable.hpp"
 
 #include "RenderGraph/GraphSettings.hpp"

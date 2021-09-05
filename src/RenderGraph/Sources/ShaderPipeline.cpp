@@ -3,7 +3,7 @@
 #include "ShaderReflectionToDescriptor.hpp"
 
 #include "VulkanWrapper/ShaderModule.hpp"
-#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/GraphicsPipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
 #include "VulkanWrapper/DescriptorSetLayout.hpp"
@@ -208,7 +208,7 @@ void ShaderPipeline::Compile (CompileSettings&& settings_)
 
     compileResult.renderPass     = std::unique_ptr<GVK::RenderPass> (new GVK::RenderPass (device, compileSettings.attachmentDescriptions, { subpass }, { dependency, dependency2 }));
     compileResult.pipelineLayout = std::unique_ptr<GVK::PipelineLayout> (new GVK::PipelineLayout (device, { compileSettings.layout }));
-    compileResult.pipeline       = std::unique_ptr<GVK::Pipeline> (new GVK::Pipeline (
+    compileResult.pipeline       = std::unique_ptr<GVK::GraphicsPipeline> (new GVK::GraphicsPipeline (
         device,
         compileSettings.width,
         compileSettings.height,

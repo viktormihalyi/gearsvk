@@ -12,7 +12,7 @@
 #include "VulkanWrapper/Swapchain.hpp"
 #include "VulkanWrapper/CommandBuffer.hpp"
 #include "VulkanWrapper/Commands.hpp"
-#include "VulkanWrapper/Pipeline.hpp"
+#include "VulkanWrapper/GraphicsPipeline.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
 #include "VulkanWrapper/ShaderModule.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"

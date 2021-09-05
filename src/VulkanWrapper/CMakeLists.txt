@@ -29,7 +29,7 @@ set (Headers
     ${HeadersPath}/ImageView.hpp
     ${HeadersPath}/Instance.hpp
     ${HeadersPath}/PhysicalDevice.hpp
-    ${HeadersPath}/Pipeline.hpp
+    ${HeadersPath}/GraphicsPipeline.hpp
     ${HeadersPath}/PipelineLayout.hpp
     ${HeadersPath}/Queue.hpp
     ${HeadersPath}/RenderPass.hpp
@@ -68,7 +68,7 @@ set (SourcesGroup1
     ${SourcesPath}/ImageView.cpp
     ${SourcesPath}/Instance.cpp
     ${SourcesPath}/PhysicalDevice.cpp
-    ${SourcesPath}/Pipeline.cpp
+    ${SourcesPath}/GraphicsPipeline.cpp
     ${SourcesPath}/Queue.cpp
     ${SourcesPath}/ResourceLimits.cpp
     ${SourcesPath}/Sampler.cpp

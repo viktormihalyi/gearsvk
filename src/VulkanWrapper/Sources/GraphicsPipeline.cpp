@@ -1,10 +1,10 @@
-#include "Pipeline.hpp"
+#include "GraphicsPipeline.hpp"
 
 #include "spdlog/spdlog.h"
 
 namespace GVK {
 
-Pipeline::Pipeline (VkDevice                                              device,
+GraphicsPipeline::GraphicsPipeline (VkDevice                                              device,
                     uint32_t                                              width,
                     uint32_t                                              height,
                     uint32_t                                              attachmentCount,
