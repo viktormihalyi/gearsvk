@@ -87,10 +87,12 @@ public:
     Field ();
 
     bool IsArray () const;
+    
+    bool IsFixedSizeArray () const;
 
     bool IsStruct () const;
 
-    uint32_t GetSize () const;
+    uint32_t GetSize () const; // returns 0 for undefined size arrays
 
     virtual const std::vector<std::unique_ptr<Field>>& GetFields () const override;
 };
@@ -103,8 +105,10 @@ public:
     std::string                         name;
     std::vector<std::unique_ptr<Field>> fields;
     bool                                hasDeclaredStructSize;
+    
+    bool HasFixedSize () const; // contains an undefined size array
 
-    uint32_t GetFullSize () const;
+    uint32_t GetFullSize () const; // returns 0 for undefined sized structs
 
     virtual const std::vector<std::unique_ptr<Field>>& GetFields () const override;
 };

@@ -24,6 +24,12 @@ Field::Field ()
 
 bool Field::IsArray () const
 {
+    return arraySize != 1;
+}
+
+
+bool Field::IsFixedSizeArray () const
+{
     return arraySize > 1;
 }
 
@@ -36,7 +42,11 @@ bool Field::IsStruct () const
 
 uint32_t Field::GetSize () const
 {
-    if (IsArray ()) {
+    if (IsArray () && !IsFixedSizeArray ()) {
+        return 0;
+    }
+
+    if (IsArray () && IsFixedSizeArray ()) {
         return arrayStride * arraySize;
     }
 
@@ -59,6 +69,21 @@ const std::vector<std::unique_ptr<Field>>& Field::GetFields () const
 }
 
 
+bool UBO::HasFixedSize () const
+{
+    if (GVK_ERROR (fields.empty ())) {
+        return false;
+    }
+
+    // TODO is checking the last field enough?
+    const Field& lastField = *fields[fields.size () - 1];
+    if (lastField.IsArray () && !lastField.IsFixedSizeArray ())
+        return false;
+
+    return true;
+}
+
+
 uint32_t UBO::GetFullSize () const
 {
     if (GVK_ERROR (fields.empty ())) {
@@ -66,6 +91,11 @@ uint32_t UBO::GetFullSize () const
     }
 
     const Field& lastField = *fields[fields.size () - 1];
+
+    if (GVK_ERROR (lastField.IsArray () && !lastField.IsFixedSizeArray ())) {
+        return 0;
+    }
+
     return lastField.offset + lastField.GetSize ();
 }
 
@@ -386,7 +416,7 @@ static std::vector<std::shared_ptr<UBO>> GetBufferObjectsFromBinary (ReflCompile
         IterateTypeTree (compiler, resource.base_type_id, root->fields);
 
         const size_t declaredStructSize = compiler.get_declared_struct_size (compiler.get_type (resource.base_type_id));
-        const size_t fullSize           = root->GetFullSize ();
+        const size_t fullSize           = root->HasFixedSize () ? root->GetFullSize () : 0;
 
         root->hasDeclaredStructSize = declaredStructSize != 0;
 

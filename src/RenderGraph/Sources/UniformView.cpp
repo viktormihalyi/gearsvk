@@ -93,8 +93,7 @@ UView UView::operator[] (uint32_t index)
 
     GVK_ASSERT (type == Type::Array);
     GVK_ASSERT (currentField != nullptr);
-    GVK_ASSERT (currentField->IsArray ());
-    GVK_ASSERT (index < currentField->arraySize);
+    GVK_ASSERT ((currentField->IsFixedSizeArray () && index < currentField->arraySize) || !currentField->IsFixedSizeArray ());
 
     return UView (Type::Variable, data, index * currentField->arrayStride, size, parentContainer, currentField);
 }
