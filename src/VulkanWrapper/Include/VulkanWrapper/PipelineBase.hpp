@@ -14,6 +14,9 @@ class VULKANWRAPPER_API PipelineBase : public VulkanObject {
 public:
     virtual ~PipelineBase () override;
 
+    PipelineBase (PipelineBase&&) = default;
+    PipelineBase& operator= (PipelineBase&&) = default;
+
     virtual VkObjectType GetObjectTypeForName () const override { return VK_OBJECT_TYPE_PIPELINE; }
 
     virtual operator VkPipeline () const = 0;

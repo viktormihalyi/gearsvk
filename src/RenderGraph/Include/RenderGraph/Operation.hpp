@@ -97,10 +97,10 @@ public:
 
     virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer);
     
-    virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&)  { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
-    virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&)    { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
-    virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
-    virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&)   { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
+    virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&)  override { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
+    virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&)    override { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
+    virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) override { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
+    virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&)   override { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
 };
 
 
