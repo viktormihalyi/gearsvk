@@ -79,8 +79,8 @@ public:
     // otherwise the number of bytes a variable takes up (eg. 4 for floats)
     uint32_t size;
 
-    uint32_t arraySize;   // 1 for non-arrays, 0 for undefined size
-    uint32_t arrayStride; // 1 for non-arrays, 0 for undefined size
+    uint32_t arraySize;   // 1 for non-arrays, 0 for undefined size. multidimensional arrays are flattened
+    uint32_t arrayStride; // 1 for non-arrays, 0 for undefined size. multidimensional arrays are flattened
 
     std::vector<std::unique_ptr<Field>> structFields; // when type == FieldType::Struct
 
@@ -127,7 +127,7 @@ public:
     uint32_t    binding;
     uint32_t    descriptorSet;
     Type        type;
-    uint32_t    arraySize; // 1 for non-arrays, 0 for undefined size
+    uint32_t    arraySize; // 1 for non-arrays, 0 for undefined size. multidimensional arrays are flattened
 };
 
 
@@ -136,7 +136,7 @@ public:
     std::string   name;
     uint32_t      location;
     FieldType     type;
-    uint32_t      arraySize; // 1 for non-arrays, 0 for undefined size
+    uint32_t      arraySize; // 1 for non-arrays, 0 for undefined size. multidimensional arrays are flattened
 };
 
 
@@ -145,7 +145,7 @@ public:
     std::string   name;
     uint32_t      location;
     FieldType     type;
-    uint32_t      arraySize; // 1 for non-arrays, 0 for undefined size
+    uint32_t      arraySize; // 1 for non-arrays, 0 for undefined size. multidimensional arrays are flattened
     uint32_t      sizeInBytes;
 };
 
@@ -156,7 +156,7 @@ public:
     uint32_t    binding;
     uint32_t    subpassIndex;
     FieldType   type;
-    uint32_t    arraySize; // 1 for non-arrays, 0 for undefined size
+    uint32_t    arraySize; // 1 for non-arrays, 0 for undefined size. multidimensional arrays are flattened
 };
 
 

@@ -361,7 +361,13 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
         f->size                  = (Mtype.width * Mtype.vecsize * Mtype.columns) / 8;
         f->type                  = BaseTypeNMToSRFieldType (Mtype.basetype, Mtype.vecsize, Mtype.columns);
 
-        GVK_ASSERT (Mtype.array.empty () || Mtype.array.size () == 1);
+        // TODO proper multidimensional array support
+        if (Mtype.array.size () > 1) {
+            for (uint32_t i = 1; i < Mtype.array.size (); ++i) {
+                f->arraySize *= Mtype.array[i];
+                f->arrayStride /= Mtype.array[i];
+            }
+        }
 
         auto& structFields = f->structFields;
 

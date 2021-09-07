@@ -775,39 +775,173 @@ void main()
 
 TEST_F (HeadlessTestEnvironment, ComputeShader_RenderGraph)
 {
-    std::unique_ptr<GVK::ShaderModule> shaderModule = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Compute, R"(
+    const std::string compSrc = R"(
 #version 450
-layout (local_size_x = 256) in;
+#extension GL_EXT_shader_explicit_arithmetic_types : enable
 
-layout(set = 0, binding = 0) uniform Config{
-    mat4 transform;
-    int matrixCount;
-} opData;
+layout (local_size_x = 32, local_size_y = 32) in;
 
-layout(set = 0, binding = 1) readonly buffer  InputBuffer{
-    mat4 matrices[];
-} sourceData;
-
-layout(set = 0, binding = 2) buffer  OutputBuffer{
-    mat4 matrices[];
-} outputData;
-
+layout (set = 0, binding = 0) buffer OutputBuffer {
+    uint64_t randomsBuffer[32][32];
+};
 
 void main()
 {
-    //grab global ID
-	uint gID = gl_GlobalInvocationID.x;
-    //make sure we don't access past the buffer size
-    if(gID < opData.matrixCount)
-    {
-        // do math
-        outputData.matrices[gID] = sourceData.matrices[gID] * opData.transform;
+    uint gIDx = gl_GlobalInvocationID.x;
+    uint gIDy = gl_GlobalInvocationID.y;
+
+    if (gIDx < 32 && gIDy < 32) {
+        randomsBuffer[gIDy][gIDx] = gIDy * 32 + gIDx;
     }
 }
-    )");
+    )";
 
+    std::shared_ptr<RG::ComputeOperation> randomGenerator = std::make_unique<RG::ComputeOperation> (32, 32, 1);
 
+    std::shared_ptr<RG::CPUBufferResource> randomsBuffer = std::make_unique<RG::CPUBufferResource> (32 * 32 * 8);
+
+    randomGenerator->compileSettings.descriptorWriteProvider->bufferInfos.push_back ({ "OutputBuffer", GVK::ShaderKind::Compute, randomsBuffer->GetBufferForFrameProvider (), 0, randomsBuffer->GetBufferSize () });
+
+    randomGenerator->compileSettings.computeShaderPipeline = std::make_unique<RG::ComputeShaderPipeline> (GetDevice (), compSrc);
+
+    RG::ConnectionSet connectionSet;
+    connectionSet.Add (randomGenerator, randomsBuffer);
+
+    RG::GraphSettings s;
+    s.connectionSet = std::move (connectionSet);
+    s.device        = &GetDeviceExtra ();
+    s.framesInFlight = 1;
+
+    RG::RenderGraph graph;
+    graph.Compile (std::move (s));
+    
+    env->Wait ();
+    graph.Submit (0);
+    env->Wait ();
+
+    std::vector<uint64_t> randomData;
+    randomData.resize (32 * 32, 0);
+
+    memcpy (randomData.data (), randomsBuffer->GetMapping (0).Get (), 32 * 32 * 8);
+
+    for (uint64_t i = 0; i < 32 * 32; ++i) {
+        EXPECT_EQ (i, randomData[i]);
+    }
 }
+
+
+TEST_F (HeadlessTestEnvironment, DISABLED_ComputeShader_RenderGraph_RandomGenerator_XorShift)
+{
+    const std::string compSrc = R"(
+#version 450
+
+layout (local_size_x = 32, local_size_y = 32) in;
+
+layout (set = 0, binding = 0) uniform RandomGeneratorConfig {
+    uint nextElementIndex;
+    uint frame;
+};
+
+layout (set = 0, binding = 0) buffer OutputBuffer {
+    uvec4 randomsBuffer[32][32][5];
+};
+
+void main()
+{
+    uint gIDx = gl_GlobalInvocationID.x;
+    uint gIDy = gl_GlobalInvocationID.y;
+    
+    if (gIDx >= 32 || gIDy >= 32) {
+        return;
+    }
+
+    uvec4 nextElement = uvec4 (0);
+
+    uint seed = 7;
+
+    if(frame == 1) {
+        nextElement.r = gIDx * 1341593453u ^ gIDy *  971157919u ^ seed * 2883500843u;
+        nextElement.g = gIDx * 1790208463u ^ gIDy * 1508561443u ^ seed * 2321036227u;
+        nextElement.b = gIDx * 2659567811u ^ gIDy * 2918034323u ^ seed * 2244239747u;
+        nextElement.a = gIDx * 3756158669u ^ gIDy * 1967864287u ^ seed * 1275070309u;
+    } else if (frame == 2) {
+        nextElement.r = gIDx * 2771446331u ^ gIDy * 3030392353u ^ seed *  395945089u;
+        nextElement.g = gIDx * 3459812197u ^ gIDy * 2853318569u ^ seed * 1233582347u;
+        nextElement.b = gIDx * 2926663697u ^ gIDy * 2265556091u ^ seed * 3073622047u;
+        nextElement.a = gIDx * 3459811891u ^ gIDy * 1756462801u ^ seed * 2805899363u;
+    } else if (frame == 3) {
+        nextElement.r = gIDx * 1470939049u ^ gIDy * 2244239737u ^ seed * 2056949767u;
+        nextElement.g = gIDx * 1584004207u ^ gIDy * 1630196153u ^ seed * 2965533797u;
+        nextElement.b = gIDx * 2248501561u ^ gIDy * 2728389799u ^ seed * 2099451241u;
+        nextElement.a = gIDx *  715964407u ^ gIDy * 1735392947u ^ seed * 1496011453u;
+    } else if (frame == 4) {
+        nextElement.r = gIDx * 1579813297u ^ gIDy *  890180033u ^ seed * 1760681059u;
+        nextElement.g = gIDx * 4132540697u ^ gIDy * 1362405383u ^ seed * 3052005647u;
+        nextElement.b = gIDx * 3155894689u ^ gIDy * 1883169037u ^ seed * 2870559073u;
+        nextElement.a = gIDx * 1883169037u ^ gIDy * 2278336279u ^ seed * 2278336133u;
+    } else {
+	    uvec4 x = randomsBuffer[(nextElementIndex + 1) % 5][gIDy][gIDx];
+	    uvec4 y = randomsBuffer[(nextElementIndex + 2) % 5][gIDy][gIDx];
+	    uvec4 z = randomsBuffer[(nextElementIndex + 3) % 5][gIDy][gIDx];
+	    uvec4 w = randomsBuffer[(nextElementIndex + 4) % 5][gIDy][gIDx];
+        // 128-bit xorshift algorithm
+        uvec4 t = x ^ (x << 11u);
+        nextElement = w ^ (w >> 19u) ^ t ^ (t >> 8u);
+    }
+
+    if(frame < 5)
+    {
+        uvec4 n = (nextElement << 13) ^ nextElement;
+        nextElement = n * (n*n*31069u+154933u) + 2935297931u;
+    }
+
+    randomsBuffer[nextElementIndex][gIDy][gIDx] = nextElement;
+}
+    )";
+
+    const size_t arrayCount = 5;
+    const size_t elementSize = sizeof (uint32_t) * 4; // uvec4
+    
+    std::shared_ptr<RG::ComputeOperation> randomGenerator = std::make_unique<RG::ComputeOperation> (32, 32, 1);
+
+    std::shared_ptr<RG::CPUBufferResource> randomsBuffer = std::make_unique<RG::CPUBufferResource> (arrayCount * 32 * 32 * elementSize);
+    std::shared_ptr<RG::CPUBufferResource> randomsConfig = std::make_unique<RG::CPUBufferResource> (sizeof (uint32_t) + sizeof (uint32_t));
+
+    randomGenerator->compileSettings.descriptorWriteProvider->bufferInfos.push_back ({ "OutputBuffer", GVK::ShaderKind::Compute, randomsBuffer->GetBufferForFrameProvider (), 0, randomsBuffer->GetBufferSize () });
+    randomGenerator->compileSettings.descriptorWriteProvider->bufferInfos.push_back ({ "RandomGeneratorConfig", GVK::ShaderKind::Compute, randomsConfig->GetBufferForFrameProvider (), 0, randomsConfig->GetBufferSize () });
+
+    randomGenerator->compileSettings.computeShaderPipeline = std::make_unique<RG::ComputeShaderPipeline> (GetDevice (), compSrc);
+
+    RG::ConnectionSet connectionSet;
+    connectionSet.Add (randomGenerator, randomsBuffer);
+    connectionSet.Add (randomGenerator, randomsConfig);
+
+    RG::GraphSettings s;
+    s.connectionSet  = std::move (connectionSet);
+    s.device         = &GetDeviceExtra ();
+    s.framesInFlight = 1;
+
+    RG::RenderGraph graph;
+    graph.Compile (std::move (s));
+
+    struct RandomsConfigData {
+        uint32_t nextElementIndex;
+        uint32_t frame;
+    };
+
+    randomsConfig->GetMapping (0).Copy (RandomsConfigData { 0, 0 });
+
+    env->Wait ();
+    graph.Submit (0);
+    env->Wait ();
+    
+    std::vector<glm::uvec4> randomsBufferOut;
+    randomsBufferOut.resize (32 * 32 * 5);
+
+    memcpy (randomsBufferOut.data (), randomsBuffer->GetMapping (0).Get (), randomsBuffer->GetBufferSize ());
+}
+
+
 TEST_F (HeadlessTestEnvironment, RenderGraph_TwoOperationsRenderingToOutput)
 {
     /*

@@ -365,6 +365,8 @@ ComputeOperation::ComputeOperation (uint32_t groupCountX, uint32_t groupCountY, 
     , groupCountY (groupCountY)
     , groupCountZ (groupCountZ)
 {
+    compileSettings.descriptorWriteProvider = std::make_unique<RG::FromShaderReflection::DescriptorWriteInfoTable> ();
+    compileSettings.attachmentProvider      = std::make_unique<RG::FromShaderReflection::AttachmentDataTable> ();
 }
 
 

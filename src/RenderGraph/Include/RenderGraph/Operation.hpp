@@ -73,6 +73,7 @@ private:
     uint32_t groupCountY;
     uint32_t groupCountZ;
 
+public:
     struct GVK_RENDERER_API CompileSettings {
         std::unique_ptr<ComputeShaderPipeline> computeShaderPipeline;
 

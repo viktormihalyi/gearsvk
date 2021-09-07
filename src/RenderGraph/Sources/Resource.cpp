@@ -375,7 +375,7 @@ void CPUBufferResource::Compile (const GraphSettings& graphSettings)
     buffers.clear ();
 
     for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
-        buffers.push_back (std::make_unique<GVK::UniformBuffer> (graphSettings.GetDevice ().GetAllocator (), size, 0, GVK::Buffer::MemoryLocation::CPU));
+        buffers.push_back (std::make_unique<GVK::UniformBuffer> (graphSettings.GetDevice ().GetAllocator (), size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, GVK::Buffer::MemoryLocation::CPU));
         mappings.push_back (std::make_unique<GVK::MemoryMapping> (graphSettings.GetDevice ().GetAllocator (), *buffers[buffers.size () - 1]));
     }
 }

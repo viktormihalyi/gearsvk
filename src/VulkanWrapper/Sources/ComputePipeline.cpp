@@ -7,7 +7,6 @@ namespace GVK {
 
 ComputePipeline::ComputePipeline (VkDevice            device,
                                   VkPipelineLayout    pipelineLayout,
-                                  VkRenderPass        renderPass,
                                   const ShaderModule& shaderModule)
     : device (device)
 {

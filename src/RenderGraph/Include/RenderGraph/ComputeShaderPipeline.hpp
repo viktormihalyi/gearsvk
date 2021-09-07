@@ -41,7 +41,6 @@ public:
     };
 
     struct GVK_RENDERER_API CompileResult {
-        std::unique_ptr<GVK::RenderPass>      renderPass;
         std::unique_ptr<GVK::PipelineLayout>  pipelineLayout;
         std::unique_ptr<GVK::ComputePipeline> pipeline;
 

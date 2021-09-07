@@ -301,6 +301,16 @@ std::vector<VkDescriptorSetLayoutBinding> GetLayout (const GVK::ShaderModule::Re
         result.push_back (bin);
     }
 
+    for (const std::shared_ptr<SR::UBO>& storageBuffer : reflection.storageBuffers) {
+        VkDescriptorSetLayoutBinding bin = {};
+        bin.binding                      = storageBuffer->binding;
+        bin.descriptorType               = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bin.descriptorCount              = 1;
+        bin.stageFlags                   = GetShaderStageFromShaderKind (shaderKind);
+        bin.pImmutableSamplers           = nullptr;
+        result.push_back (bin);
+    }
+
     for (const SR::SubpassInput& subpassInput : reflection.subpassInputs) {
         VkDescriptorSetLayoutBinding bin = {};
         bin.binding                      = subpassInput.binding;

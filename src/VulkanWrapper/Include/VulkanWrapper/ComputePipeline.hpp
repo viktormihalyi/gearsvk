@@ -22,7 +22,6 @@ private:
 public:
     ComputePipeline (VkDevice            device,
                      VkPipelineLayout    pipelineLayout,
-                     VkRenderPass        renderPass,
                      const ShaderModule& shaderModule);
 
     ComputePipeline (ComputePipeline&&) = default;
