@@ -113,7 +113,7 @@ static void UpdateDescriptorSetsFromUBOs (const GVK::ShaderModule::Reflection& r
     bufferInfos.reserve (1024);
     result.reserve (1024);
 
-    for (const std::shared_ptr<SR::UBO>& ubo : reflection.ubos) {
+    for (const std::shared_ptr<SR::BufferObject>& ubo : reflection.ubos) {
         const std::vector<VkDescriptorBufferInfo> tempBufferInfos = infoProvider.GetDescriptorBufferInfos (ubo->name, shaderKind, frameIndex);
         if (GVK_ERROR (tempBufferInfos.empty ())) {
             spdlog::error ("Uniform block \"{}\" has no descriptor bound.", ubo->name);
@@ -161,7 +161,7 @@ static void UpdateDescriptorSetsFromStorageBuffers (const GVK::ShaderModule::Ref
     bufferInfos.reserve (1024);
     result.reserve (1024);
 
-    for (const std::shared_ptr<SR::UBO>& storageBuffer : reflection.storageBuffers) {
+    for (const std::shared_ptr<SR::BufferObject>& storageBuffer : reflection.storageBuffers) {
         const std::vector<VkDescriptorBufferInfo> tempBufferInfos = infoProvider.GetDescriptorBufferInfos (storageBuffer->name, shaderKind, frameIndex);
         if (GVK_ERROR (tempBufferInfos.empty ())) {
             spdlog::error ("Uniform block \"{}\" has no descriptor bound.", storageBuffer->name);
@@ -291,7 +291,7 @@ std::vector<VkDescriptorSetLayoutBinding> GetLayout (const GVK::ShaderModule::Re
         result.push_back (bin);
     }
 
-    for (const std::shared_ptr<SR::UBO>& ubo : reflection.ubos) {
+    for (const std::shared_ptr<SR::BufferObject>& ubo : reflection.ubos) {
         VkDescriptorSetLayoutBinding bin = {};
         bin.binding                      = ubo->binding;
         bin.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -301,7 +301,7 @@ std::vector<VkDescriptorSetLayoutBinding> GetLayout (const GVK::ShaderModule::Re
         result.push_back (bin);
     }
 
-    for (const std::shared_ptr<SR::UBO>& storageBuffer : reflection.storageBuffers) {
+    for (const std::shared_ptr<SR::BufferObject>& storageBuffer : reflection.storageBuffers) {
         VkDescriptorSetLayoutBinding bin = {};
         bin.binding                      = storageBuffer->binding;
         bin.descriptorType               = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;

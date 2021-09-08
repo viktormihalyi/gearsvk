@@ -8,7 +8,7 @@
 #include "RenderGraph/Resource.hpp"
 #include "RenderGraph/ShaderPipeline.hpp"
 #include "RenderGraph/UniformReflection.hpp"
-#include "RenderGraph/UniformView.hpp"
+#include "RenderGraph/BufferView.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "RenderGraph/Window/GLFWWindow.hpp"
 
@@ -156,7 +156,7 @@ void main ()
 
     SR::SpirvParser spirvParser (sm->GetBinary ());
     auto            ubos = SR::GetUBOsFromBinary (spirvParser);
-    SR::ShaderUData refl (ubos);
+    SR::ShaderBufferData refl (ubos);
 
     refl["Quadrics"]["quadrics"][0]["WTF"] = glm::mat3x4 ();
 
@@ -184,9 +184,9 @@ void main ()
 
     SR::SpirvParser spirvParser (sm->GetBinary ());
     auto            ubos = SR::GetUBOsFromBinary (spirvParser);
-    SR::ShaderUData refl (ubos);
+    SR::ShaderBufferData refl (ubos);
 
-    SR::UView v = refl["Values"]["dddddddddddd"][1][2][3];
+    SR::BufferView v = refl["Values"]["dddddddddddd"][1][2][3];
     v = static_cast<float> (3.4f);
 
     EXPECT_EQ (944, v.GetOffset ());
@@ -214,9 +214,9 @@ void main ()
 
     SR::SpirvParser spirvParser (sm->GetBinary ());
     auto            ubos = SR::GetUBOsFromBinary (spirvParser);
-    SR::ShaderUData refl (ubos);
+    SR::ShaderBufferData refl (ubos);
 
-    SR::UView v = refl["Values"]["dddddddddddd"][1];
+    SR::BufferView v = refl["Values"]["dddddddddddd"][1];
     v[2][3]     = static_cast<float> (3.4f);
 
     EXPECT_EQ (3360, refl["Values"].GetSize ());
@@ -470,7 +470,7 @@ TEST_F (HeadlessTestEnvironment, InputAttachment_ShaderModule_Compile)
 layout (input_attachment_index = 0, binding = 0) uniform subpassInput inputColor;
 layout (input_attachment_index = 1, binding = 1) uniform subpassInput inputDepth;
 
-layout (binding = 2) uniform UBO {
+layout (binding = 2) uniform BufferObject {
         vec2 brightnessContrast;
         vec2 range;
         int attachmentIndex;

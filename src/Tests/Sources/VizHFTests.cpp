@@ -10,7 +10,7 @@
 #include "RenderGraph/RenderGraph.hpp"
 #include "RenderGraph/Resource.hpp"
 #include "RenderGraph/UniformReflection.hpp"
-#include "RenderGraph/UniformView.hpp"
+#include "RenderGraph/BufferView.hpp"
 #include "RenderGraph/ShaderPipeline.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "RenderGraph/Window/GLFWWindow.hpp"

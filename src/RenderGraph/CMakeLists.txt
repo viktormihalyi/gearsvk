@@ -24,7 +24,7 @@ set (Headers
 
     ${HeadersPath}/Font.hpp
     ${HeadersPath}/RenderGraphAPI.hpp
-    ${HeadersPath}/UniformView.hpp
+    ${HeadersPath}/BufferView.hpp
     ${HeadersPath}/VulkanEnvironment.hpp
 
     ${HeadersPath}/ShaderReflectionToVertexAttribute.hpp
@@ -52,7 +52,7 @@ set (Sources
 
     ${SourcesPath}/Font.cpp
     ${SourcesPath}/SpdlogInitializer.cpp
-    ${SourcesPath}/UniformView.cpp
+    ${SourcesPath}/BufferView.cpp
     ${SourcesPath}/VulkanEnvironment.cpp
     
     ${SourcesPath}/ShaderReflectionToVertexAttribute.cpp

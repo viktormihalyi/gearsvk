@@ -50,9 +50,9 @@ public:
     };
 
     struct VULKANWRAPPER_API Reflection {
-        std::vector<std::shared_ptr<SR::UBO>> ubos;
+        std::vector<std::shared_ptr<SR::BufferObject>> ubos;
         std::vector<SR::Sampler>              samplers;
-        std::vector<std::shared_ptr<SR::UBO>> storageBuffers;
+        std::vector<std::shared_ptr<SR::BufferObject>> storageBuffers;
         std::vector<SR::Input>                inputs;
         std::vector<SR::Output>               outputs;
         std::vector<SR::SubpassInput>         subpassInputs;

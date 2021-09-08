@@ -35,7 +35,7 @@ UniformReflection::UniformReflection (RG::ConnectionSet& connectionSet, const Fi
 void UniformReflection::Flush (uint32_t frameIndex)
 {
     Utils::ForEach<RG::CPUBufferResource> (uboResources, [&] (const std::shared_ptr<RG::CPUBufferResource>& uboRes) {
-        const std::shared_ptr<SR::IUData> uboData = udatas.at (uboRes->GetUUID ());
+        const std::shared_ptr<SR::IBufferData> uboData = udatas.at (uboRes->GetUUID ());
 
         uboRes->GetMapping (frameIndex).Copy (uboData->GetData (), uboData->GetSize ());
     });
@@ -51,7 +51,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
 
         renderOp->GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
             UboSelector ubosel;
-            for (std::shared_ptr<SR::UBO> ubo : shaderModule.GetReflection ().ubos) {
+            for (std::shared_ptr<SR::BufferObject> ubo : shaderModule.GetReflection ().ubos) {
                 if (filter (renderOp, shaderModule, ubo)) {
                     continue;
                 }
@@ -64,7 +64,7 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
                 uboRes->SetName (ubo->name);
                 uboRes->SetDebugInfo ("Made by UniformReflection.");
 
-                std::shared_ptr<SR::UDataInternal> uboData = std::make_unique<SR::UDataInternal> (ubo);
+                std::shared_ptr<SR::BufferDataInternal> uboData = std::make_unique<SR::BufferDataInternal> (ubo);
                 ubosel.Set (ubo->name, uboData);
 
                 uboConnections.push_back (std::make_tuple (renderOp, ubo, uboRes, shaderModule.GetShaderKind ()));

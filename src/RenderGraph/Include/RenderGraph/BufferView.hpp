@@ -24,16 +24,16 @@ namespace SR {
 
 class FieldContainer;
 class Field;
-class UBO;
+class BufferObject;
 
 // view (size and offset) to a single variable (could be primitive, struct, array) in a uniform block
 // we can walk down the struct hierarchy with operator[](std::string_view)
 // we can select an element in an array with operator[](uint32_t)
 // we can set the variable with operator=(T)
 
-class GVK_RENDERER_API UView final {
+class GVK_RENDERER_API BufferView final {
 public:
-    static const UView invalidUview;
+    static const BufferView invalidUview;
 
 private:
     enum class Type {
@@ -51,7 +51,7 @@ private:
     const std::unique_ptr<Field>& currentField;
 
 public:
-    UView (Type                           type,
+    BufferView (Type                           type,
            uint8_t*                       data,
            uint32_t                       offset,
            uint32_t                       size,
@@ -60,9 +60,9 @@ public:
            const FieldContainer&          parentContainer,
            const std::unique_ptr<Field>&  currentField = nullptr);
 
-    UView (const std::shared_ptr<UBO>& root, uint8_t* data);
+    BufferView (const std::shared_ptr<BufferObject>& root, uint8_t* data);
 
-    UView (const UView&);
+    BufferView (const BufferView&);
 
     template<typename T>
     void operator= (const T& other)
@@ -81,18 +81,18 @@ public:
 
     uint32_t GetOffset () const;
 
-    UView operator[] (std::string_view str);
+    BufferView operator[] (std::string_view str);
 
-    UView operator[] (uint32_t index);
+    BufferView operator[] (uint32_t index);
 
     std::vector<std::string> GetFieldNames () const;
 };
 
 
-// view to a single UBO + properly sized byte array for it
-class GVK_RENDERER_API IUData {
+// view to a single BufferObject + properly sized byte array for it
+class GVK_RENDERER_API IBufferData {
 public:
-    virtual ~IUData () = default;
+    virtual ~IBufferData () = default;
 
     template<typename T>
     void operator= (const T& other)
@@ -141,19 +141,19 @@ public:
         return true;
     }
 
-    virtual UView                    operator[] (std::string_view str) = 0;
+    virtual BufferView                    operator[] (std::string_view str) = 0;
     virtual std::vector<std::string> GetNames ()                       = 0;
     virtual uint8_t*                 GetData ()                        = 0;
     virtual uint32_t                 GetSize () const                  = 0;
 };
 
 
-// view to a single UBO + properly sized byte array for it
-class GVK_RENDERER_API DummyUData final : public IUData {
+// view to a single BufferObject + properly sized byte array for it
+class GVK_RENDERER_API DummyBufferData final : public IBufferData {
 public:
-    virtual UView operator[] (std::string_view str) override
+    virtual BufferView operator[] (std::string_view str) override
     {
-        return UView::invalidUview;
+        return BufferView::invalidUview;
     }
 
     virtual std::vector<std::string> GetNames () override
@@ -173,19 +173,19 @@ public:
 };
 
 
-extern GVK_RENDERER_API DummyUData dummyUData;
+extern GVK_RENDERER_API DummyBufferData dummyBufferData;
 
 
-class GVK_RENDERER_API UDataExternal final : public IUData, public Noncopyable {
+class GVK_RENDERER_API BufferDataExternal final : public IBufferData, public Noncopyable {
 private:
-    UView    root;
+    BufferView    root;
     uint8_t* bytes;
     uint32_t size;
 
 public:
-    UDataExternal (const std::shared_ptr<UBO>& ubo, uint8_t* bytes, uint32_t size);
+    BufferDataExternal (const std::shared_ptr<BufferObject>& ubo, uint8_t* bytes, uint32_t size);
 
-    virtual UView operator[] (std::string_view str) override;
+    virtual BufferView operator[] (std::string_view str) override;
 
     virtual std::vector<std::string> GetNames () override;
 
@@ -195,15 +195,15 @@ public:
 };
 
 
-class GVK_RENDERER_API UDataInternal final : public IUData, public Noncopyable {
+class GVK_RENDERER_API BufferDataInternal final : public IBufferData, public Noncopyable {
 private:
     std::vector<uint8_t> bytes;
-    UView                root;
+    BufferView                root;
 
 public:
-    UDataInternal (const std::shared_ptr<UBO>& ubo);
+    BufferDataInternal (const std::shared_ptr<BufferObject>& ubo);
 
-    virtual UView operator[] (std::string_view str) override;
+    virtual BufferView operator[] (std::string_view str) override;
 
     virtual std::vector<std::string> GetNames () override;
 
@@ -214,20 +214,20 @@ public:
 
 
 // view and byte array for _all_ UBOs in a shader
-// we can select a single UBO with operator[](std::string_view)
+// we can select a single BufferObject with operator[](std::string_view)
 
-class GVK_RENDERER_API ShaderUData final : public Noncopyable {
+class GVK_RENDERER_API ShaderBufferData final : public Noncopyable {
 private:
-    std::vector<std::unique_ptr<IUData>>  udatas;
+    std::vector<std::unique_ptr<IBufferData>>  udatas;
     std::vector<std::string>              uboNames;
-    std::vector<std::shared_ptr<UBO>> ubos;
+    std::vector<std::shared_ptr<BufferObject>> ubos;
 
 public:
-    ShaderUData (const std::vector<std::shared_ptr<UBO>>& ubos);
+    ShaderBufferData (const std::vector<std::shared_ptr<BufferObject>>& ubos);
 
-    IUData& operator[] (std::string_view str);
+    IBufferData& operator[] (std::string_view str);
 
-    std::shared_ptr<UBO> GetUbo (std::string_view str);
+    std::shared_ptr<BufferObject> GetUbo (std::string_view str);
 };
 
 

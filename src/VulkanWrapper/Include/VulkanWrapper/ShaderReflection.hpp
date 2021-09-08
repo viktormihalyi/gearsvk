@@ -12,8 +12,6 @@
 #include <vulkan/vulkan.h>
 
 
-// NOTE: SSBOs are not supported
-
 namespace SR {
 
 
@@ -100,7 +98,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API UBO final : public FieldContainer, public Noncopyable {
+class VULKANWRAPPER_API BufferObject final : public FieldContainer, public Noncopyable {
 public:
     uint32_t                            binding;
     uint32_t                            descriptorSet;
@@ -176,10 +174,10 @@ public:
 
 
 VULKANWRAPPER_API
-std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (SpirvParser& compiler);
+std::vector<std::shared_ptr<BufferObject>> GetUBOsFromBinary (SpirvParser& compiler);
 
 VULKANWRAPPER_API
-std::vector<std::shared_ptr<UBO>> GetStorageBuffersFromBinary (SpirvParser& compiler);
+std::vector<std::shared_ptr<BufferObject>> GetStorageBuffersFromBinary (SpirvParser& compiler);
 
 VULKANWRAPPER_API
 std::vector<Sampler> GetSamplersFromBinary (SpirvParser& compiler);

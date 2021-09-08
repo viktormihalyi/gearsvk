@@ -84,7 +84,7 @@ const std::vector<std::unique_ptr<Field>>& Field::GetFields () const
 }
 
 
-bool UBO::HasFixedSize () const
+bool BufferObject::HasFixedSize () const
 {
     if (GVK_ERROR (fields.empty ())) {
         return false;
@@ -97,7 +97,7 @@ bool UBO::HasFixedSize () const
 }
 
 
-uint32_t UBO::GetFullSize () const
+uint32_t BufferObject::GetFullSize () const
 {
     if (GVK_ERROR (fields.empty ())) {
         return 0;
@@ -113,7 +113,7 @@ uint32_t UBO::GetFullSize () const
 }
 
 
-const std::vector<std::unique_ptr<Field>>& UBO::GetFields () const
+const std::vector<std::unique_ptr<Field>>& BufferObject::GetFields () const
 {
     return fields;
 }
@@ -420,13 +420,13 @@ SpirvParser::SpirvParser (const std::vector<uint32_t>& binary)
 SpirvParser::~SpirvParser () = default;
 
 
-static std::vector<std::shared_ptr<UBO>> GetBufferObjectsFromBinary (SpirvParser& compiler_, const std::function<const spirv_cross::SmallVector<spirv_cross::Resource>&(const spirv_cross::ShaderResources&)> bufferResourceSelector)
+static std::vector<std::shared_ptr<BufferObject>> GetBufferObjectsFromBinary (SpirvParser& compiler_, const std::function<const spirv_cross::SmallVector<spirv_cross::Resource>&(const spirv_cross::ShaderResources&)> bufferResourceSelector)
 {
     spirv_cross::Compiler& compiler = compiler_.impl->compiler;
 
     const spirv_cross::ShaderResources resources = compiler.get_shader_resources ();
 
-    std::vector<std::shared_ptr<UBO>> ubos;
+    std::vector<std::shared_ptr<BufferObject>> ubos;
 
     for (auto& resource : bufferResourceSelector (resources)) {
         AllDecorations decorations (compiler, resource.id);
@@ -437,7 +437,7 @@ static std::vector<std::shared_ptr<UBO>> GetBufferObjectsFromBinary (SpirvParser
         // eg. array of 4 on binding 2 will create 4 different bindings: 2, 3, 4, 5
         GVK_ASSERT (arraySize == 1);
 
-        std::shared_ptr<UBO> root = std::make_unique<UBO> ();
+        std::shared_ptr<BufferObject> root = std::make_unique<BufferObject> ();
         root->name                = resource.name;
         root->binding             = *decorations.Binding;
         root->descriptorSet       = *decorations.DescriptorSet;
@@ -454,7 +454,7 @@ static std::vector<std::shared_ptr<UBO>> GetBufferObjectsFromBinary (SpirvParser
         ubos.push_back (root);
     }
 
-    std::sort (ubos.begin (), ubos.end (), [] (const std::shared_ptr<UBO>& first, const std::shared_ptr<UBO>& second) {
+    std::sort (ubos.begin (), ubos.end (), [] (const std::shared_ptr<BufferObject>& first, const std::shared_ptr<BufferObject>& second) {
         return first->binding < second->binding;
     });
 
@@ -462,7 +462,7 @@ static std::vector<std::shared_ptr<UBO>> GetBufferObjectsFromBinary (SpirvParser
 }
 
 
-std::vector<std::shared_ptr<UBO>> GetStorageBuffersFromBinary (SpirvParser& compiler_)
+std::vector<std::shared_ptr<BufferObject>> GetStorageBuffersFromBinary (SpirvParser& compiler_)
 {
     return GetBufferObjectsFromBinary (compiler_, [] (const spirv_cross::ShaderResources& shaderResources) -> const spirv_cross::SmallVector<spirv_cross::Resource>& {
         return shaderResources.storage_buffers;
@@ -470,7 +470,7 @@ std::vector<std::shared_ptr<UBO>> GetStorageBuffersFromBinary (SpirvParser& comp
 }
 
 
-std::vector<std::shared_ptr<UBO>> GetUBOsFromBinary (SpirvParser& compiler_)
+std::vector<std::shared_ptr<BufferObject>> GetUBOsFromBinary (SpirvParser& compiler_)
 {
     return GetBufferObjectsFromBinary (compiler_, [] (const spirv_cross::ShaderResources& shaderResources) -> const spirv_cross::SmallVector<spirv_cross::Resource>& {
         return shaderResources.uniform_buffers;

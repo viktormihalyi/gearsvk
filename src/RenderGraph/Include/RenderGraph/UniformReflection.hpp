@@ -2,7 +2,7 @@
 #define RENDERGRAPH_UNIFORM_REFLECTION_HPP
 
 #include "RenderGraph/RenderGraphAPI.hpp"
-#include "RenderGraph/UniformView.hpp"
+#include "RenderGraph/BufferView.hpp"
 #include "RenderGraph/Operation.hpp"
 #include "RenderGraph/Resource.hpp"
 
@@ -54,12 +54,12 @@ class GVK_RENDERER_API UniformReflection final : public GVK::EventObserver {
 private:
     class GVK_RENDERER_API UboSelector {
     private:
-        std::map<std::string, std::shared_ptr<SR::IUData>, std::less<>> udatas;
+        std::map<std::string, std::shared_ptr<SR::IBufferData>, std::less<>> udatas;
 
     public:
-        SR::IUData& operator[] (std::string_view uboName);
+        SR::IBufferData& operator[] (std::string_view uboName);
         
-        void Set (const std::string& uboName, const std::shared_ptr<SR::IUData>& uboData);
+        void Set (const std::string& uboName, const std::shared_ptr<SR::IBufferData>& uboData);
         
         bool Contains (std::string_view uboName) const;
 
@@ -90,25 +90,25 @@ public:
 
     //
     std::vector<std::shared_ptr<RG::InputBufferBindableResource>>                                                                              uboResources;
-    std::vector<std::tuple<std::shared_ptr<RG::RenderOperation>, std::shared_ptr<SR::UBO>, std::shared_ptr<RG::InputBufferBindableResource>, GVK::ShaderKind>> uboConnections;
-    std::unordered_map<GVK::UUID, std::shared_ptr<SR::IUData>>                                                                            udatas;
+    std::vector<std::tuple<std::shared_ptr<RG::RenderOperation>, std::shared_ptr<SR::BufferObject>, std::shared_ptr<RG::InputBufferBindableResource>, GVK::ShaderKind>> uboConnections;
+    std::unordered_map<GVK::UUID, std::shared_ptr<SR::IBufferData>>                                                                            udatas;
 
 public:
-    using Filter          = std::function<bool (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::UBO>&)>;
-    using ResourceCreator = std::function<std::shared_ptr<RG::InputBufferBindableResource> (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::UBO>&)>;
+    using Filter          = std::function<bool (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>&)>;
+    using ResourceCreator = std::function<std::shared_ptr<RG::InputBufferBindableResource> (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>&)>;
 
 public:
-    static bool DefaultFilter (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::UBO>&)
+    static bool DefaultFilter (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>&)
     {
         return false;
     }
 
-    static std::shared_ptr<RG::InputBufferBindableResource> DefaultResourceCreator (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::UBO>& ubo)
+    static std::shared_ptr<RG::InputBufferBindableResource> DefaultResourceCreator (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& ubo)
     {
         return std::make_unique<RG::CPUBufferResource> (ubo->GetFullSize ());
     }
 
-    static std::shared_ptr<RG::InputBufferBindableResource> GPUBufferResourceCreator (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::UBO>& ubo)
+    static std::shared_ptr<RG::InputBufferBindableResource> GPUBufferResourceCreator (const std::shared_ptr<RG::RenderOperation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& ubo)
     {
         return std::make_unique<RG::GPUBufferResource> (ubo->GetFullSize ());
     }
@@ -134,18 +134,18 @@ public:
 };
 
 
-inline SR::IUData& UniformReflection::UboSelector::operator[] (std::string_view uboName)
+inline SR::IBufferData& UniformReflection::UboSelector::operator[] (std::string_view uboName)
 {
     auto it = udatas.find (uboName);
     if (GVK_VERIFY (it != udatas.end ())) {
         return *it->second;
     }
 
-    return SR::dummyUData;
+    return SR::dummyBufferData;
 }
 
 
-inline void UniformReflection::UboSelector::Set (const std::string& uboName, const std::shared_ptr<SR::IUData>& uboData)
+inline void UniformReflection::UboSelector::Set (const std::string& uboName, const std::shared_ptr<SR::IBufferData>& uboData)
 {
     udatas[uboName] = uboData;
 }

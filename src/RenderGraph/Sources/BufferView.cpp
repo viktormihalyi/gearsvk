@@ -1,4 +1,4 @@
-#include "UniformView.hpp"
+#include "BufferView.hpp"
 
 #include "VulkanWrapper/ShaderModule.hpp"
 #include "VulkanWrapper/ShaderReflection.hpp"
@@ -18,12 +18,12 @@ public:
 
 const std::array<uint32_t, 8> emptyArraySizeIndexArray { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-const UView UView::invalidUview (UView::Type::Variable, nullptr, 777, 777, 777, emptyArraySizeIndexArray, emptyFields, nullptr);
+const BufferView BufferView::invalidUview (BufferView::Type::Variable, nullptr, 777, 777, 777, emptyArraySizeIndexArray, emptyFields, nullptr);
 
-DummyUData dummyUData;
+DummyBufferData dummyBufferData;
 
 
-UView::UView (Type                           type,
+BufferView::BufferView (Type                           type,
               uint8_t*                       data,
               uint32_t                       offset,
               uint32_t                       size,
@@ -43,13 +43,13 @@ UView::UView (Type                           type,
 }
 
 
-UView::UView (const std::shared_ptr<UBO>& root, uint8_t* data)
-    : UView (Type::Variable, data, 0, root->GetFullSize (), 0, emptyArraySizeIndexArray, *root, nullptr)
+BufferView::BufferView (const std::shared_ptr<BufferObject>& root, uint8_t* data)
+    : BufferView (Type::Variable, data, 0, root->GetFullSize (), 0, emptyArraySizeIndexArray, *root, nullptr)
 {
 }
 
 
-UView::UView (const UView& other)
+BufferView::BufferView (const BufferView& other)
     : type (other.type)
     , data (other.data)
     , offset (other.offset)
@@ -62,13 +62,13 @@ UView::UView (const UView& other)
 }
 
 
-uint32_t UView::GetOffset () const
+uint32_t BufferView::GetOffset () const
 {
     return offset;
 }
 
 
-UView UView::operator[] (std::string_view str)
+BufferView BufferView::operator[] (std::string_view str)
 {
     if (GVK_ERROR (data == nullptr)) {
         return invalidUview;
@@ -79,9 +79,9 @@ UView UView::operator[] (std::string_view str)
     for (const std::unique_ptr<Field>& f : parentContainer.GetFields ()) {
         if (str == f->name) {
             if (f->IsArray ()) {
-                return UView (Type::Array, data, offset + f->offset, f->size, 0, emptyArraySizeIndexArray, * f, f);
+                return BufferView (Type::Array, data, offset + f->offset, f->size, 0, emptyArraySizeIndexArray, * f, f);
             } else {
-                return UView (Type::Variable, data, offset + f->offset, f->size, 0, emptyArraySizeIndexArray, * f, f);
+                return BufferView (Type::Variable, data, offset + f->offset, f->size, 0, emptyArraySizeIndexArray, * f, f);
             }
         }
     }
@@ -93,7 +93,7 @@ UView UView::operator[] (std::string_view str)
 }
 
 
-UView UView::operator[] (uint32_t index)
+BufferView BufferView::operator[] (uint32_t index)
 {
     if (GVK_ERROR (data == nullptr)) {
         return invalidUview;
@@ -108,7 +108,7 @@ UView UView::operator[] (uint32_t index)
         const uint32_t newOffset = offset + index * currentField->arrayStride[nextArraySizeIndex];
         const uint32_t newSize   = size;
 
-        UView resultView (Type::Array,
+        BufferView resultView (Type::Array,
                           data,
                           newOffset,
                           newSize,
@@ -123,11 +123,11 @@ UView UView::operator[] (uint32_t index)
     }
 
     // TODO
-    return UView (Type::Variable, data, offset + index * currentField->arrayStride[nextArraySizeIndex], size, 0, arraySizeIndices, parentContainer, currentField);
+    return BufferView (Type::Variable, data, offset + index * currentField->arrayStride[nextArraySizeIndex], size, 0, arraySizeIndices, parentContainer, currentField);
 }
 
 
-std::vector<std::string> UView::GetFieldNames () const
+std::vector<std::string> BufferView::GetFieldNames () const
 {
     std::vector<std::string> result;
 
@@ -139,7 +139,7 @@ std::vector<std::string> UView::GetFieldNames () const
 }
 
 
-UDataInternal::UDataInternal (const std::shared_ptr<UBO>& ubo)
+BufferDataInternal::BufferDataInternal (const std::shared_ptr<BufferObject>& ubo)
     : bytes (ubo->GetFullSize (), 0)
     , root (ubo, bytes.data ())
 {
@@ -148,31 +148,31 @@ UDataInternal::UDataInternal (const std::shared_ptr<UBO>& ubo)
 }
 
 
-UView UDataInternal::operator[] (std::string_view str)
+BufferView BufferDataInternal::operator[] (std::string_view str)
 {
     return root[str];
 }
 
 
-std::vector<std::string> UDataInternal::GetNames ()
+std::vector<std::string> BufferDataInternal::GetNames ()
 {
     return root.GetFieldNames ();
 }
 
 
-uint8_t* UDataInternal::GetData ()
+uint8_t* BufferDataInternal::GetData ()
 {
     return bytes.data ();
 }
 
 
-uint32_t UDataInternal::GetSize () const
+uint32_t BufferDataInternal::GetSize () const
 {
     return bytes.size ();
 }
 
 
-UDataExternal::UDataExternal (const std::shared_ptr<UBO>& ubo, uint8_t* bytes, uint32_t size)
+BufferDataExternal::BufferDataExternal (const std::shared_ptr<BufferObject>& ubo, uint8_t* bytes, uint32_t size)
     : root (ubo, bytes)
     , bytes (bytes)
     , size (size)
@@ -182,48 +182,48 @@ UDataExternal::UDataExternal (const std::shared_ptr<UBO>& ubo, uint8_t* bytes, u
 }
 
 
-UView UDataExternal::operator[] (std::string_view str)
+BufferView BufferDataExternal::operator[] (std::string_view str)
 {
     return root[str];
 }
 
 
-std::vector<std::string> UDataExternal::GetNames ()
+std::vector<std::string> BufferDataExternal::GetNames ()
 {
     return root.GetFieldNames ();
 }
 
 
-uint8_t* UDataExternal::GetData ()
+uint8_t* BufferDataExternal::GetData ()
 {
     return bytes;
 }
 
 
-uint32_t UDataExternal::GetSize () const
+uint32_t BufferDataExternal::GetSize () const
 {
     return size;
 }
 
 
-ShaderUData::ShaderUData (const std::vector<std::shared_ptr<UBO>>& ubos)
+ShaderBufferData::ShaderBufferData (const std::vector<std::shared_ptr<BufferObject>>& ubos)
     : ubos (ubos)
 {
     for (auto& a : ubos) {
-        udatas.push_back (std::make_unique<UDataInternal> (a));
+        udatas.push_back (std::make_unique<BufferDataInternal> (a));
         uboNames.push_back (a->name);
     }
 }
 
 
-IUData& ShaderUData::operator[] (std::string_view str)
+IBufferData& ShaderBufferData::operator[] (std::string_view str)
 {
     const uint32_t index = std::distance (uboNames.begin (), std::find (uboNames.begin (), uboNames.end (), str));
     return *udatas[index];
 }
 
 
-std::shared_ptr<UBO> ShaderUData::GetUbo (std::string_view str)
+std::shared_ptr<BufferObject> ShaderBufferData::GetUbo (std::string_view str)
 {
     const uint32_t index = std::distance (uboNames.begin (), std::find (uboNames.begin (), uboNames.end (), str));
     return ubos[index];
