@@ -16,29 +16,35 @@ public:
     virtual const std::vector<std::unique_ptr<Field>>& GetFields () const { return emptyFieldVector; }
 } emptyFields;
 
-const UView UView::invalidUview (UView::Type::Variable, nullptr, 0, 0, emptyFields, nullptr);
+const std::array<uint32_t, 8> emptyArraySizeIndexArray { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+const UView UView::invalidUview (UView::Type::Variable, nullptr, 777, 777, 777, emptyArraySizeIndexArray, emptyFields, nullptr);
 
 DummyUData dummyUData;
 
 
-UView::UView (Type                              type,
-              uint8_t*                          data,
-              uint32_t                          offset,
-              uint32_t                          size,
-              const FieldContainer&         parentContainer,
-              const std::unique_ptr<Field>& currentField)
+UView::UView (Type                           type,
+              uint8_t*                       data,
+              uint32_t                       offset,
+              uint32_t                       size,
+              uint32_t                       nextArraySizeIndex,
+              const std::array<uint32_t, 8>& arraySizeIndices,
+              const FieldContainer&          parentContainer,
+              const std::unique_ptr<Field>&  currentField)
     : type (type)
     , data (data)
     , offset (offset)
     , size (size)
+    , nextArraySizeIndex (nextArraySizeIndex)
     , parentContainer (parentContainer)
     , currentField (currentField)
+    , arraySizeIndices (arraySizeIndices)
 {
 }
 
 
 UView::UView (const std::shared_ptr<UBO>& root, uint8_t* data)
-    : UView (Type::Variable, data, 0, root->GetFullSize (), *root, nullptr)
+    : UView (Type::Variable, data, 0, root->GetFullSize (), 0, emptyArraySizeIndexArray, *root, nullptr)
 {
 }
 
@@ -49,7 +55,9 @@ UView::UView (const UView& other)
     , offset (other.offset)
     , size (other.size)
     , parentContainer (other.parentContainer)
+    , nextArraySizeIndex (other.nextArraySizeIndex)
     , currentField (other.currentField)
+    , arraySizeIndices (other.arraySizeIndices)
 {
 }
 
@@ -71,9 +79,9 @@ UView UView::operator[] (std::string_view str)
     for (const std::unique_ptr<Field>& f : parentContainer.GetFields ()) {
         if (str == f->name) {
             if (f->IsArray ()) {
-                return UView (Type::Array, data, offset + f->offset, f->size, *f, f);
+                return UView (Type::Array, data, offset + f->offset, f->size, 0, emptyArraySizeIndexArray, * f, f);
             } else {
-                return UView (Type::Variable, data, offset + f->offset, f->size, *f, f);
+                return UView (Type::Variable, data, offset + f->offset, f->size, 0, emptyArraySizeIndexArray, * f, f);
             }
         }
     }
@@ -93,9 +101,29 @@ UView UView::operator[] (uint32_t index)
 
     GVK_ASSERT (type == Type::Array);
     GVK_ASSERT (currentField != nullptr);
-    GVK_ASSERT ((currentField->IsFixedSizeArray () && index < currentField->arraySize) || !currentField->IsFixedSizeArray ());
+    //GVK_ASSERT ((currentField->IsFixedSizeArray () && index < currentField->arraySize) || !currentField->IsFixedSizeArray ());
 
-    return UView (Type::Variable, data, index * currentField->arrayStride, size, parentContainer, currentField);
+    const uint32_t maxArraySizeIndex = currentField->arraySize.size () - 1;
+    if (currentField->IsMultiDimensionalArray () && nextArraySizeIndex < maxArraySizeIndex) {
+        const uint32_t newOffset = offset + index * currentField->arrayStride[nextArraySizeIndex];
+        const uint32_t newSize   = size;
+
+        UView resultView (Type::Array,
+                          data,
+                          newOffset,
+                          newSize,
+                          nextArraySizeIndex + 1,
+                          arraySizeIndices,
+                          parentContainer,
+                          currentField);
+
+        resultView.arraySizeIndices[nextArraySizeIndex] = index;
+
+        return resultView;
+    }
+
+    // TODO
+    return UView (Type::Variable, data, offset + index * currentField->arrayStride[nextArraySizeIndex], size, 0, arraySizeIndices, parentContainer, currentField);
 }
 
 

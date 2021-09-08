@@ -165,6 +165,64 @@ void main ()
 }
 
 
+TEST_F (HeadlessTestEnvironment, UniformReflection_MultiDimensionalArray)
+{
+    std::unique_ptr<GVK::ShaderModule> sm = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Fragment, R"(#version 450
+
+layout (std140, binding = 2) uniform Values {
+    float dddddddddddd[5][6][7];
+};
+
+layout (location = 0) out vec4 presented;
+
+void main ()
+{
+    presented = vec4 (vec3 (1), dddddddddddd[1][2][3]);
+}
+
+)");
+
+    SR::SpirvParser spirvParser (sm->GetBinary ());
+    auto            ubos = SR::GetUBOsFromBinary (spirvParser);
+    SR::ShaderUData refl (ubos);
+
+    SR::UView v = refl["Values"]["dddddddddddd"][1][2][3];
+    v = static_cast<float> (3.4f);
+
+    EXPECT_EQ (944, v.GetOffset ());
+    EXPECT_EQ (3360, refl["Values"].GetSize ());
+}
+
+
+
+TEST_F (HeadlessTestEnvironment, UniformReflection_MultiDimensionalArray_RenderGraph)
+{
+    std::unique_ptr<GVK::ShaderModule> sm = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Fragment, R"(#version 450
+
+layout (std140, binding = 2) uniform Values {
+    float dddddddddddd[5][6][7];
+};
+
+layout (location = 0) out vec4 presented;
+
+void main ()
+{
+    presented = vec4 (vec3 (1), dddddddddddd[1][2][3]);
+}
+
+)");
+
+    SR::SpirvParser spirvParser (sm->GetBinary ());
+    auto            ubos = SR::GetUBOsFromBinary (spirvParser);
+    SR::ShaderUData refl (ubos);
+
+    SR::UView v = refl["Values"]["dddddddddddd"][1];
+    v[2][3]     = static_cast<float> (3.4f);
+
+    EXPECT_EQ (3360, refl["Values"].GetSize ());
+}
+
+
 TEST_F (HeadlessTestEnvironment, ShaderPipeline_CompileTest)
 {
     GVK::DeviceExtra& device = GetDeviceExtra ();
@@ -830,7 +888,7 @@ void main()
 }
 
 
-TEST_F (HeadlessTestEnvironment, DISABLED_ComputeShader_RenderGraph_RandomGenerator_XorShift)
+TEST_F (HeadlessTestEnvironment, ComputeShader_RenderGraph_RandomGenerator_XorShift)
 {
     const std::string compSrc = R"(
 #version 450
@@ -842,7 +900,7 @@ layout (set = 0, binding = 0) uniform RandomGeneratorConfig {
     uint frame;
 };
 
-layout (set = 0, binding = 0) buffer OutputBuffer {
+layout (set = 0, binding = 1) buffer OutputBuffer {
     uvec4 randomsBuffer[32][32][5];
 };
 
@@ -899,8 +957,8 @@ void main()
 }
     )";
 
-    const size_t arrayCount = 5;
-    const size_t elementSize = sizeof (uint32_t) * 4; // uvec4
+    const uint32_t arrayCount = 5;
+    const uint32_t elementSize = sizeof (glm::uvec4);
     
     std::shared_ptr<RG::ComputeOperation> randomGenerator = std::make_unique<RG::ComputeOperation> (32, 32, 1);
 
@@ -929,7 +987,7 @@ void main()
         uint32_t frame;
     };
 
-    randomsConfig->GetMapping (0).Copy (RandomsConfigData { 0, 0 });
+    randomsConfig->GetMapping (0).Copy (RandomsConfigData { 0, 1 });
 
     env->Wait ();
     graph.Submit (0);

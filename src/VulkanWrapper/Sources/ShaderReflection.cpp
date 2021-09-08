@@ -4,9 +4,14 @@
 
 #include <optional>
 #include <sstream>
+#include <numeric>
 
 // from SPRIV-Cross
 #include "spirv_cross.hpp"
+
+// from spdlog
+#include "spdlog/spdlog.h"
+
 
 namespace SR {
 
@@ -24,13 +29,19 @@ Field::Field ()
 
 bool Field::IsArray () const
 {
-    return arraySize != 1;
+    return !arraySize.empty ();
 }
 
 
 bool Field::IsFixedSizeArray () const
 {
-    return arraySize > 1;
+    return !arraySize.empty () && arraySize[0] != 0;
+}
+
+
+bool Field::IsMultiDimensionalArray () const
+{
+    return arraySize.size () > 1;
 }
 
 
@@ -46,8 +57,12 @@ uint32_t Field::GetSize () const
         return 0;
     }
 
-    if (IsArray () && IsFixedSizeArray ()) {
-        return arrayStride * arraySize;
+    if (IsArray () && IsFixedSizeArray () && !IsMultiDimensionalArray ()) {
+        return arrayStride[0] * arraySize[0];
+    }
+
+    if (IsArray () && IsFixedSizeArray () && IsMultiDimensionalArray ()) {
+        return arrayStride[0] * arraySize.back ();
     }
 
     if (IsStruct ()) {
@@ -77,10 +92,8 @@ bool UBO::HasFixedSize () const
 
     // TODO is checking the last field enough?
     const Field& lastField = *fields[fields.size () - 1];
-    if (lastField.IsArray () && !lastField.IsFixedSizeArray ())
-        return false;
 
-    return true;
+    return !lastField.IsArray () || (lastField.IsArray () && lastField.IsFixedSizeArray ());
 }
 
 
@@ -356,19 +369,29 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
         std::unique_ptr<Field> f = std::make_unique<Field> ();
         f->name                  = typeMemDecor.name;
         f->offset                = *typeMemDecor.Offset;
-        f->arrayStride           = typeMemDecorA.ArrayStride ? *typeMemDecorA.ArrayStride : 0;
-        f->arraySize             = !Mtype.array.empty () ? Mtype.array[0] : 1;
         f->size                  = (Mtype.width * Mtype.vecsize * Mtype.columns) / 8;
         f->type                  = BaseTypeNMToSRFieldType (Mtype.basetype, Mtype.vecsize, Mtype.columns);
 
-        // TODO proper multidimensional array support
-        if (Mtype.array.size () > 1) {
-            for (uint32_t i = 1; i < Mtype.array.size (); ++i) {
-                f->arraySize *= Mtype.array[i];
-                f->arrayStride /= Mtype.array[i];
+
+        for (size_t i = 0; i < Mtype.array.size (); ++i) {
+            f->arraySize.push_back (Mtype.array[i]);
+        }
+
+        if (typeMemDecorA.ArrayStride) {
+            f->arrayStride.push_back (*typeMemDecorA.ArrayStride);
+            uint32_t nextParantTypeId = Mtype.parent_type;
+            while (nextParantTypeId != 0) {
+                AllDecorations parDec (compiler, nextParantTypeId);
+                if (parDec.ArrayStride.has_value ()) {
+                    f->arrayStride.push_back (*parDec.ArrayStride);
+                }
+                nextParantTypeId = compiler.get_type (nextParantTypeId).parent_type;
             }
         }
 
+        GVK_ASSERT (f->arraySize.size () == f->arrayStride.size ());
+        GVK_ASSERT (f->arraySize.size () <= 8);
+        
         auto& structFields = f->structFields;
 
         parentFields.push_back (std::move (f));

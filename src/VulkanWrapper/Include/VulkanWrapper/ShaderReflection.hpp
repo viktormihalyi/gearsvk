@@ -79,8 +79,8 @@ public:
     // otherwise the number of bytes a variable takes up (eg. 4 for floats)
     uint32_t size;
 
-    uint32_t arraySize;   // 1 for non-arrays, 0 for undefined size. multidimensional arrays are flattened
-    uint32_t arrayStride; // 1 for non-arrays, 0 for undefined size. multidimensional arrays are flattened
+    std::vector<uint32_t> arraySize;
+    std::vector<uint32_t> arrayStride;
 
     std::vector<std::unique_ptr<Field>> structFields; // when type == FieldType::Struct
 
@@ -89,6 +89,8 @@ public:
     bool IsArray () const;
     
     bool IsFixedSizeArray () const;
+
+    bool IsMultiDimensionalArray () const;
 
     bool IsStruct () const;
 

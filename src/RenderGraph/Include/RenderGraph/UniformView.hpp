@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <cstring>
 #include <vector>
+#include <array>
 #include <string_view>
 
 
@@ -40,20 +41,24 @@ private:
         Array,
     };
 
-    const Type                        type;
-    uint8_t*                          data;
-    const uint32_t                    offset;
-    const uint32_t                    size;
+    Type                          type;
+    uint8_t*                      data;
+    uint32_t                      offset;
+    uint32_t                      size;
+    uint32_t                      nextArraySizeIndex;
+    std::array<uint32_t, 8>       arraySizeIndices;
     const FieldContainer&         parentContainer;
     const std::unique_ptr<Field>& currentField;
 
 public:
-    UView (Type                              type,
-           uint8_t*                          data,
-           uint32_t                          offset,
-           uint32_t                          size,
-           const FieldContainer&         parentContainer,
-           const std::unique_ptr<Field>& currentField = nullptr);
+    UView (Type                           type,
+           uint8_t*                       data,
+           uint32_t                       offset,
+           uint32_t                       size,
+           uint32_t                       nextArraySizeIndex,
+           const std::array<uint32_t, 8>& arraySizeIndices,
+           const FieldContainer&          parentContainer,
+           const std::unique_ptr<Field>&  currentField = nullptr);
 
     UView (const std::shared_ptr<UBO>& root, uint8_t* data);
 
