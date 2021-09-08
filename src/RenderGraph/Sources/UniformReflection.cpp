@@ -22,13 +22,12 @@
 namespace RG {
 
 
-UniformReflection::UniformReflection (RG::ConnectionSet& connectionSet, const Filter& filter, const ResourceCreator& resourceCreator)
-    : connectionSet (connectionSet)
+UniformReflection::UniformReflection (RG::ConnectionSet& connectionSet, const ResourceCreator& resourceCreator)
 {
     // TODO properly handle swapchain recreate
 
-    CreateGraphResources (filter, resourceCreator);
-    CreateGraphConnections ();
+    CreateGraphResources (connectionSet, resourceCreator);
+    CreateGraphConnections (connectionSet);
 }
 
 
@@ -42,18 +41,13 @@ void UniformReflection::Flush (uint32_t frameIndex)
 }
 
 
-void UniformReflection::CreateGraphResources (const Filter& filter, const ResourceCreator& resourceCreator)
+void UniformReflection::CreateGraphResources (const RG::ConnectionSet& connectionSet, const ResourceCreator& resourceCreator)
 {
     // GVK_ASSERT (!graph.operations.empty ());
 
     const auto CreateBufferObjectResource = [&] (const std::shared_ptr<RG::Operation>& op, const GVK::ShaderModule& shaderModule, const std::shared_ptr<SR::BufferObject>& bufferObject, BufferObjectSelector& bufferObjectsel) {
-        if (filter (op, shaderModule, bufferObject)) {
-            return;
-        }
-
         std::shared_ptr<RG::InputBufferBindableResource> bufferObjectRes = resourceCreator (op, shaderModule, bufferObject);
 
-        // graph.AddResource (bufferObjectRes);
         GVK_ASSERT (bufferObjectRes != nullptr);
 
         bufferObjectRes->SetName (bufferObject->name);
@@ -67,54 +61,41 @@ void UniformReflection::CreateGraphResources (const Filter& filter, const Resour
         udatas.insert ({ bufferObjectRes->GetUUID (), bufferObjectData });
     };
 
-    const auto CreateBufferObjectsFromShader = [&] (const GVK::ShaderModule& shaderModule, ShaderKindSelector& newsel, const std::shared_ptr<Operation>& op) {
-        BufferObjectSelector bufferObjectsel;
+    const auto CreateBufferObjectsFromShader = [&] (const std::shared_ptr<Operation>& op, const GVK::ShaderModule& shaderModule, ShaderKindSelector& newShaderKindSelector) {
+        BufferObjectSelector newBufferObjectSelector;
         for (const std::shared_ptr<SR::BufferObject>& ubo : shaderModule.GetReflection ().ubos) {
-            CreateBufferObjectResource (op, shaderModule, ubo, bufferObjectsel);
+            CreateBufferObjectResource (op, shaderModule, ubo, newBufferObjectSelector);
         }
         for (const std::shared_ptr<SR::BufferObject>& storageBuffer : shaderModule.GetReflection ().storageBuffers) {
-            CreateBufferObjectResource (op, shaderModule, storageBuffer, bufferObjectsel);
+            CreateBufferObjectResource (op, shaderModule, storageBuffer, newBufferObjectSelector);
         }
-        newsel.Set (shaderModule.GetShaderKind (), std::move (bufferObjectsel));
+        newShaderKindSelector.Set (shaderModule.GetShaderKind (), std::move (newBufferObjectSelector));
     };
 
-    Utils::ForEach<RG::RenderOperation> (connectionSet.insertionOrder, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
-        ShaderKindSelector newsel;
+    Utils::ForEach<RG::RenderOperation> (connectionSet.GetNodesByInsertionOrder (), [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
+        ShaderKindSelector newShaderKindSelector;
         renderOp->GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
-            CreateBufferObjectsFromShader (shaderModule, newsel, renderOp);
+            CreateBufferObjectsFromShader (renderOp, shaderModule, newShaderKindSelector);
         });
-        selectors.emplace (renderOp->GetUUID (), std::move (newsel));
+        selectors.emplace (renderOp->GetUUID (), std::move (newShaderKindSelector));
     });
 
-    Utils::ForEach<RG::ComputeOperation> (connectionSet.insertionOrder, [&] (const std::shared_ptr<RG::ComputeOperation>& computeOp) {
-        ShaderKindSelector newsel;
+    Utils::ForEach<RG::ComputeOperation> (connectionSet.GetNodesByInsertionOrder (), [&] (const std::shared_ptr<RG::ComputeOperation>& computeOp) {
+        ShaderKindSelector newShaderKindSelector;
         computeOp->compileSettings.computeShaderPipeline->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
-            CreateBufferObjectsFromShader (shaderModule, newsel, computeOp);
+            CreateBufferObjectsFromShader (computeOp, shaderModule, newShaderKindSelector);
         });
-        selectors.emplace (computeOp->GetUUID (), std::move (newsel));
+        selectors.emplace (computeOp->GetUUID (), std::move (newShaderKindSelector));
     });
 }
 
 
-void UniformReflection::CreateGraphConnections ()
+void UniformReflection::CreateGraphConnections (RG::ConnectionSet& connectionSet)
 {
     GVK_ASSERT (!bufferObjectConnections.empty ());
 
-    const auto shaderKindToShaderStage = [] (GVK::ShaderKind shaderKind) -> VkShaderStageFlags {
-        switch (shaderKind) {
-            case GVK::ShaderKind::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
-            case GVK::ShaderKind::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
-            case GVK::ShaderKind::Geometry: return VK_SHADER_STAGE_GEOMETRY_BIT;
-            case GVK::ShaderKind::TessellationControl: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-            case GVK::ShaderKind::TessellationEvaluation: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-            case GVK::ShaderKind::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
-            default: GVK_BREAK_STR ("unexpected shaderkind type"); return VK_SHADER_STAGE_ALL;
-        }
-    };
-
     for (auto& [operation, bufferObject, resource, shaderKind] : bufferObjectConnections) {
-        connectionSet.Add (operation);
-        connectionSet.Add (resource);
+        connectionSet.Add (resource, operation);
         
         if (auto renderOp = std::dynamic_pointer_cast<RG::RenderOperation> (operation)) {
             auto& table = renderOp->compileSettings.descriptorWriteProvider;
@@ -179,7 +160,7 @@ ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const Exte
 {
     ImageMap result;
 
-    const auto nodes = connectionSet.insertionOrder;
+    const auto nodes = connectionSet.GetNodesByInsertionOrder ();
     Utils::ForEach<RG::RenderOperation> (nodes, [&] (const std::shared_ptr<RG::RenderOperation>& renderOp) {
         renderOp->GetShaderPipeline ()->IterateShaders ([&] (const GVK::ShaderModule& shaderModule) {
             for (const SR::Sampler& sampler : shaderModule.GetReflection ().samplers) {

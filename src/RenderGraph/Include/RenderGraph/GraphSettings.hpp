@@ -27,23 +27,29 @@ public:
 };
 
 class GVK_RENDERER_API ConnectionSet final : public Noncopyable {
-public:
-
 private:
+
     std::vector<NodeConnection> connections;
     
     std::set<std::shared_ptr<Node>> nodeSet;
-
-public:
+    
     std::vector<std::shared_ptr<Node>> insertionOrder;
 
-
 public:
+    
     ConnectionSet ();
     ConnectionSet (ConnectionSet&&);
     ConnectionSet& operator= (ConnectionSet&&);
 
     virtual ~ConnectionSet () override;
+
+    std::shared_ptr<Node> GetNodeByName (std::string_view name) const;
+
+    template <typename T>
+    std::shared_ptr<T> GetByName (std::string_view name) const
+    {
+        return std::dynamic_pointer_cast<T> (GetNodeByName (name));
+    }
 
     template<typename T>
     std::vector<std::shared_ptr<T>> GetPointingTo (const Node* node) const
@@ -60,7 +66,6 @@ public:
 
         return result;
     }
-
     template<typename T>
     std::vector<std::shared_ptr<T>> GetPointingHere (const Node* node) const
     {
@@ -95,6 +100,12 @@ public:
         if (nodeSet.insert (node).second)
             insertionOrder.push_back (node);
     }
+
+    const std::vector<std::shared_ptr<Node>>& GetNodesByInsertionOrder () const
+    {
+        return insertionOrder;
+    }
+
 };
 
 

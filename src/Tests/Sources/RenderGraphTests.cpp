@@ -893,25 +893,19 @@ TEST_F (HeadlessTestEnvironment, ComputeShader_RenderGraph_RandomGenerator_XorSh
     const std::string compSrc = R"(
 #version 450
 
-layout (local_size_x = 32, local_size_y = 32) in;
-
 layout (set = 0, binding = 0) uniform RandomGeneratorConfig {
     uint nextElementIndex;
     uint frame;
 };
 
 layout (set = 0, binding = 1) buffer OutputBuffer {
-    uvec4 randomsBuffer[32][32][5];
+    uvec4 randomsBuffer[4][4][5];
 };
 
 void main()
 {
     uint gIDx = gl_GlobalInvocationID.x;
     uint gIDy = gl_GlobalInvocationID.y;
-    
-    if (gIDx >= 32 || gIDy >= 32) {
-        return;
-    }
 
     uvec4 nextElement = uvec4 (0);
 
@@ -953,28 +947,29 @@ void main()
         nextElement = n * (n*n*31069u+154933u) + 2935297931u;
     }
 
-    randomsBuffer[nextElementIndex][gIDy][gIDx] = nextElement;
+    randomsBuffer[0][gIDy][gIDx] = nextElement;
 }
     )";
 
-    const uint32_t arrayCount = 5;
-    const uint32_t elementSize = sizeof (glm::uvec4);
-    
-    std::shared_ptr<RG::ComputeOperation> randomGenerator = std::make_unique<RG::ComputeOperation> (32, 32, 1);
+    std::shared_ptr<RG::ComputeOperation> randomGenerator = std::make_unique<RG::ComputeOperation> (4, 4, 1);
+    randomGenerator->compileSettings.computeShaderPipeline = std::make_unique<RG::ComputeShaderPipeline> (GetDevice (), compSrc);
 
+    /*
     std::shared_ptr<RG::CPUBufferResource> randomsBuffer = std::make_unique<RG::CPUBufferResource> (arrayCount * 32 * 32 * elementSize);
     std::shared_ptr<RG::CPUBufferResource> randomsConfig = std::make_unique<RG::CPUBufferResource> (sizeof (uint32_t) + sizeof (uint32_t));
 
     randomGenerator->compileSettings.descriptorWriteProvider->bufferInfos.push_back ({ "OutputBuffer", GVK::ShaderKind::Compute, randomsBuffer->GetBufferForFrameProvider (), 0, randomsBuffer->GetBufferSize () });
     randomGenerator->compileSettings.descriptorWriteProvider->bufferInfos.push_back ({ "RandomGeneratorConfig", GVK::ShaderKind::Compute, randomsConfig->GetBufferForFrameProvider (), 0, randomsConfig->GetBufferSize () });
 
-    randomGenerator->compileSettings.computeShaderPipeline = std::make_unique<RG::ComputeShaderPipeline> (GetDevice (), compSrc);
 
-    RG::ConnectionSet connectionSet;
     connectionSet.Add (randomGenerator, randomsBuffer);
     connectionSet.Add (randomGenerator, randomsConfig);
+    */
+    
+    RG::ConnectionSet connectionSet;
+    connectionSet.Add (randomGenerator);
 
-    // RG::UniformReflection refl (connectionSet);
+    RG::UniformReflection refl (connectionSet);
 
     RG::GraphSettings s;
     s.connectionSet  = std::move (connectionSet);
@@ -984,19 +979,20 @@ void main()
     RG::RenderGraph graph;
     graph.Compile (std::move (s));
 
-    struct RandomsConfigData {
-        uint32_t nextElementIndex;
-        uint32_t frame;
-    };
+    std::shared_ptr<RG::CPUBufferResource> randomsBuffer = graph.GetConnectionSet ().GetByName<RG::CPUBufferResource> ("OutputBuffer");
+    std::shared_ptr<RG::CPUBufferResource> randomsConfig = graph.GetConnectionSet ().GetByName<RG::CPUBufferResource> ("RandomGeneratorConfig");
 
-    randomsConfig->GetMapping (0).Copy (RandomsConfigData { 0, 1 });
+    refl[randomGenerator][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["nextElementIndex"] = 0;
+    refl[randomGenerator][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["frame"] = 1;
+
+    refl.Flush (0);
 
     env->Wait ();
     graph.Submit (0);
     env->Wait ();
     
     std::vector<glm::uvec4> randomsBufferOut;
-    randomsBufferOut.resize (32 * 32 * 5);
+    randomsBufferOut.resize (randomsBuffer->GetBufferSize ());
 
     memcpy (randomsBufferOut.data (), randomsBuffer->GetMapping (0).Get (), randomsBuffer->GetBufferSize ());
 }

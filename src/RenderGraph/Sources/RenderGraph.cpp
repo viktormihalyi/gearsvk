@@ -36,7 +36,7 @@ RenderGraph::RenderGraph ()
 
 void RenderGraph::CompileResources ()
 {
-    Utils::ForEach<Resource> (graphSettings.connectionSet.insertionOrder, [&] (std::shared_ptr<Resource>& res) {
+    Utils::ForEach<Resource> (graphSettings.connectionSet.GetNodesByInsertionOrder (), [&] (std::shared_ptr<Resource>& res) {
         res->Compile (graphSettings);
     });
 }
@@ -108,7 +108,7 @@ Pass RenderGraph::GetFirstPass () const
     std::set<Operation*>    allOpSet;
     std::vector<Operation*> allOp;
 
-    Utils::ForEach<Operation> (graphSettings.connectionSet.insertionOrder, [&] (const std::shared_ptr<Operation>& op) {
+    Utils::ForEach<Operation> (graphSettings.connectionSet.GetNodesByInsertionOrder (), [&] (const std::shared_ptr<Operation>& op) {
         const std::vector<std::shared_ptr<Resource>> opInputs = graphSettings.connectionSet.GetPointingHere<Resource> (op.get ());
 
         const bool allInputsAreFirstWrittenByThisOp = std::all_of (opInputs.begin (), opInputs.end (), [&] (const std::shared_ptr<Resource>& res) {

@@ -107,4 +107,15 @@ ConnectionSet& ConnectionSet::operator= (ConnectionSet&& other)
 }
 
 
+std::shared_ptr<Node> ConnectionSet::GetNodeByName (std::string_view name) const
+{
+    for (const auto& node : insertionOrder) {
+        if (node->GetName () == name) {
+            return node;
+        }
+    }
+
+    return nullptr;
+}
+
 } // namespace RG

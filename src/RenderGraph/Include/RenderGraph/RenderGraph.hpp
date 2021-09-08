@@ -49,6 +49,8 @@ public:
 
     uint32_t GetPassCount () const;
 
+    RG::ConnectionSet& GetConnectionSet () { return graphSettings.connectionSet; }
+
 private:
     void CompileResources ();
     void CompileOperations ();

@@ -50,7 +50,7 @@ GVK_RENDERER_API
 ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const ExtentProviderForImageCreate& extentProvider);
 
 
-class GVK_RENDERER_API UniformReflection final : public GVK::EventObserver {
+class GVK_RENDERER_API UniformReflection {
 private:
     class GVK_RENDERER_API BufferObjectSelector {
     private:
@@ -78,32 +78,13 @@ private:
         friend class UniformReflection;
     };
 
-public:
-    using ShaderUniforms   = BufferObjectSelector;
-    using PipelineUniforms = ShaderKindSelector;
-
-public:
-    // operation uuid
     std::unordered_map<GVK::UUID, ShaderKindSelector> selectors;
 
-    RG::ConnectionSet& connectionSet;
-
-    std::vector<std::shared_ptr<RG::InputBufferBindableResource>> bufferObjectResources;
-
-    using BufferObjectConnection = std::tuple<std::shared_ptr<RG::Operation>, std::shared_ptr<SR::BufferObject>, std::shared_ptr<RG::InputBufferBindableResource>, GVK::ShaderKind>;
-    std::vector<BufferObjectConnection> bufferObjectConnections;
-
-    std::unordered_map<GVK::UUID, std::shared_ptr<SR::IBufferData>> udatas;
-
 public:
-    using Filter          = std::function<bool (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>&)>;
+
     using ResourceCreator = std::function<std::shared_ptr<RG::InputBufferBindableResource> (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>&)>;
 
-public:
-    static bool DefaultFilter (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>&)
-    {
-        return false;
-    }
+private:
 
     static std::shared_ptr<RG::InputBufferBindableResource> DefaultResourceCreator (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject)
     {
@@ -116,8 +97,8 @@ public:
     }
 
 public:
+
     UniformReflection (RG::ConnectionSet&     connectionSet,
-                       const Filter&          filter          = &DefaultFilter,
                        const ResourceCreator& resourceCreator = &DefaultResourceCreator);
 
     void Flush (uint32_t frameIndex);
@@ -126,13 +107,22 @@ public:
     ShaderKindSelector& operator[] (const std::shared_ptr<RG::Operation>& op);
     ShaderKindSelector& operator[] (const GVK::UUID& opId);
 
-private:
-    void CreateGraphResources (const Filter& filter, const ResourceCreator& resourceCreator);
-
-    void CreateGraphConnections ();
-
-public:
     void PrintDebugInfo ();
+
+private:
+
+    // for transfering data between the two member functions
+    std::vector<std::shared_ptr<RG::InputBufferBindableResource>> bufferObjectResources;
+
+    using BufferObjectConnection = std::tuple<std::shared_ptr<RG::Operation>, std::shared_ptr<SR::BufferObject>, std::shared_ptr<RG::InputBufferBindableResource>, GVK::ShaderKind>;
+    std::vector<BufferObjectConnection> bufferObjectConnections;
+
+    std::unordered_map<GVK::UUID, std::shared_ptr<SR::IBufferData>> udatas;
+
+    void CreateGraphResources (const RG::ConnectionSet& connectionSet, const ResourceCreator& resourceCreator);
+
+    void CreateGraphConnections (RG::ConnectionSet& connectionSet);
+
 };
 
 

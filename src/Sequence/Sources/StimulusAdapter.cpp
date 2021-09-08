@@ -193,8 +193,8 @@ void StimulusAdapter::SetConstantUniforms ()
 
 void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t frameIndex)
 {
-    RG::UniformReflection::ShaderUniforms& vertexShaderUniforms   = (*reflection)[renderOperationId][GVK::ShaderKind::Vertex];
-    RG::UniformReflection::ShaderUniforms& fragmentShaderUniforms = (*reflection)[renderOperationId][GVK::ShaderKind::Fragment];
+    auto& vertexShaderUniforms   = (*reflection)[renderOperationId][GVK::ShaderKind::Vertex];
+    auto& fragmentShaderUniforms = (*reflection)[renderOperationId][GVK::ShaderKind::Fragment];
 
     const double deviceRefreshRateDefault = 60.0;
     const double deviceRefreshRate        = presentable->GetRefreshRate ().value_or (deviceRefreshRateDefault);

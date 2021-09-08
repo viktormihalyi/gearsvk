@@ -143,8 +143,6 @@ BufferDataInternal::BufferDataInternal (const std::shared_ptr<BufferObject>& ubo
     : bytes (ubo->GetFullSize (), 0)
     , root (ubo, bytes.data ())
 {
-    bytes.resize (ubo->GetFullSize ());
-    std::fill (bytes.begin (), bytes.end (), 0);
 }
 
 
