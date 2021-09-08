@@ -974,6 +974,8 @@ void main()
     connectionSet.Add (randomGenerator, randomsBuffer);
     connectionSet.Add (randomGenerator, randomsConfig);
 
+    // RG::UniformReflection refl (connectionSet);
+
     RG::GraphSettings s;
     s.connectionSet  = std::move (connectionSet);
     s.device         = &GetDeviceExtra ();
