@@ -196,7 +196,7 @@ void GPUBufferResource::Compile (const GraphSettings& settings)
 {
     buffers.reserve (settings.framesInFlight);
     for (uint32_t i = 0; i < settings.framesInFlight; ++i) {
-        buffers.push_back (std::make_unique<GVK::BufferTransferable> (settings.GetDevice (), size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT));
+        buffers.push_back (std::make_unique<GVK::BufferTransferable> (settings.GetDevice (), size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT));
     }
 }
 
@@ -384,7 +384,7 @@ void CPUBufferResource::Compile (const GraphSettings& graphSettings)
     buffers.clear ();
 
     for (uint32_t i = 0; i < graphSettings.framesInFlight; ++i) {
-        buffers.push_back (std::make_unique<GVK::UniformBuffer> (graphSettings.GetDevice ().GetAllocator (), size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, GVK::Buffer::MemoryLocation::CPU));
+        buffers.push_back (std::make_unique<GVK::UniformBuffer> (graphSettings.GetDevice ().GetAllocator (), size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, GVK::Buffer::MemoryLocation::CPU));
         mappings.push_back (std::make_unique<GVK::MemoryMapping> (graphSettings.GetDevice ().GetAllocator (), *buffers[buffers.size () - 1]));
     }
 }

@@ -13,7 +13,6 @@ set (Sources
     ${SourcesPath}/RenderGraphAbstractionTest.cpp
     ${SourcesPath}/RenderGraphTests.cpp
     ${SourcesPath}/VizHFTests.cpp
-    ${SourcesPath}/XorShiftTest.cpp
     ${SourcesPath}/FontRenderingTests.cpp
     ${SourcesPath}/GearsTests.cpp
 )

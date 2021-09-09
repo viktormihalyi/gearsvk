@@ -27,7 +27,7 @@ public:
         : device (device)
         , bufferSize (bufferSize)
         , bufferGPU (device.GetAllocator (), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags, Buffer::MemoryLocation::GPU)
-        , bufferCPU (device.GetAllocator (), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, Buffer::MemoryLocation::CPU)
+        , bufferCPU (device.GetAllocator (), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | usageFlags, Buffer::MemoryLocation::CPU)
         , bufferCPUMapping (device.GetAllocator (), bufferCPU)
     {
     }
