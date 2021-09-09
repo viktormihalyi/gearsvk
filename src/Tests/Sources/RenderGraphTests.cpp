@@ -894,8 +894,10 @@ TEST_F (HeadlessTestEnvironment, ComputeShader_RenderGraph_RandomGenerator_XorSh
 #version 450
 
 layout (set = 0, binding = 0) uniform RandomGeneratorConfig {
+    uint seed;
+    uint framesInFlight;
+    uint startFrameIndex;
     uint nextElementIndex;
-    uint frame;
 };
 
 layout (set = 0, binding = 1) buffer OutputBuffer {
@@ -907,94 +909,97 @@ void main()
     uint gIDx = gl_GlobalInvocationID.x;
     uint gIDy = gl_GlobalInvocationID.y;
 
-    uvec4 nextElement = uvec4 (0);
+    uint framesToGenerate = min (startFrameIndex, framesInFlight);
 
-    uint seed = 7;
-
-    if(frame == 1) {
-        nextElement.r = gIDx * 1341593453u ^ gIDy *  971157919u ^ seed * 2883500843u;
-        nextElement.g = gIDx * 1790208463u ^ gIDy * 1508561443u ^ seed * 2321036227u;
-        nextElement.b = gIDx * 2659567811u ^ gIDy * 2918034323u ^ seed * 2244239747u;
-        nextElement.a = gIDx * 3756158669u ^ gIDy * 1967864287u ^ seed * 1275070309u;
-    } else if (frame == 2) {
-        nextElement.r = gIDx * 2771446331u ^ gIDy * 3030392353u ^ seed *  395945089u;
-        nextElement.g = gIDx * 3459812197u ^ gIDy * 2853318569u ^ seed * 1233582347u;
-        nextElement.b = gIDx * 2926663697u ^ gIDy * 2265556091u ^ seed * 3073622047u;
-        nextElement.a = gIDx * 3459811891u ^ gIDy * 1756462801u ^ seed * 2805899363u;
-    } else if (frame == 3) {
-        nextElement.r = gIDx * 1470939049u ^ gIDy * 2244239737u ^ seed * 2056949767u;
-        nextElement.g = gIDx * 1584004207u ^ gIDy * 1630196153u ^ seed * 2965533797u;
-        nextElement.b = gIDx * 2248501561u ^ gIDy * 2728389799u ^ seed * 2099451241u;
-        nextElement.a = gIDx *  715964407u ^ gIDy * 1735392947u ^ seed * 1496011453u;
-    } else if (frame == 4) {
-        nextElement.r = gIDx * 1579813297u ^ gIDy *  890180033u ^ seed * 1760681059u;
-        nextElement.g = gIDx * 4132540697u ^ gIDy * 1362405383u ^ seed * 3052005647u;
-        nextElement.b = gIDx * 3155894689u ^ gIDy * 1883169037u ^ seed * 2870559073u;
-        nextElement.a = gIDx * 1883169037u ^ gIDy * 2278336279u ^ seed * 2278336133u;
-    } else {
-	    uvec4 x = randomsBuffer[(nextElementIndex + 1) % 5][gIDy][gIDx];
-	    uvec4 y = randomsBuffer[(nextElementIndex + 2) % 5][gIDy][gIDx];
-	    uvec4 z = randomsBuffer[(nextElementIndex + 3) % 5][gIDy][gIDx];
-	    uvec4 w = randomsBuffer[(nextElementIndex + 4) % 5][gIDy][gIDx];
-        // 128-bit xorshift algorithm
-        uvec4 t = x ^ (x << 11u);
-        nextElement = w ^ (w >> 19u) ^ t ^ (t >> 8u);
+    for (uint frame = startFrameIndex; frame < startFrameIndex + framesToGenerate; ++frame) {
+        uvec4 nextElement = uvec4 (0);
+        if(frame == 1) {
+            nextElement.r = gIDx * 1341593453u ^ gIDy *  971157919u ^ seed * 2883500843u;
+            nextElement.g = gIDx * 1790208463u ^ gIDy * 1508561443u ^ seed * 2321036227u;
+            nextElement.b = gIDx * 2659567811u ^ gIDy * 2918034323u ^ seed * 2244239747u;
+            nextElement.a = gIDx * 3756158669u ^ gIDy * 1967864287u ^ seed * 1275070309u;
+        } else if (frame == 2) {
+            nextElement.r = gIDx * 2771446331u ^ gIDy * 3030392353u ^ seed *  395945089u;
+            nextElement.g = gIDx * 3459812197u ^ gIDy * 2853318569u ^ seed * 1233582347u;
+            nextElement.b = gIDx * 2926663697u ^ gIDy * 2265556091u ^ seed * 3073622047u;
+            nextElement.a = gIDx * 3459811891u ^ gIDy * 1756462801u ^ seed * 2805899363u;
+        } else if (frame == 3) {
+            nextElement.r = gIDx * 1470939049u ^ gIDy * 2244239737u ^ seed * 2056949767u;
+            nextElement.g = gIDx * 1584004207u ^ gIDy * 1630196153u ^ seed * 2965533797u;
+            nextElement.b = gIDx * 2248501561u ^ gIDy * 2728389799u ^ seed * 2099451241u;
+            nextElement.a = gIDx *  715964407u ^ gIDy * 1735392947u ^ seed * 1496011453u;
+        } else if (frame == 4) {
+            nextElement.r = gIDx * 1579813297u ^ gIDy *  890180033u ^ seed * 1760681059u;
+            nextElement.g = gIDx * 4132540697u ^ gIDy * 1362405383u ^ seed * 3052005647u;
+            nextElement.b = gIDx * 3155894689u ^ gIDy * 1883169037u ^ seed * 2870559073u;
+            nextElement.a = gIDx * 1883169037u ^ gIDy * 2278336279u ^ seed * 2278336133u;
+        } else {
+	        uvec4 x = randomsBuffer[(nextElementIndex + 1) % 5][gIDy][gIDx];
+	        uvec4 y = randomsBuffer[(nextElementIndex + 2) % 5][gIDy][gIDx];
+	        uvec4 z = randomsBuffer[(nextElementIndex + 3) % 5][gIDy][gIDx];
+	        uvec4 w = randomsBuffer[(nextElementIndex + 4) % 5][gIDy][gIDx];
+            // 128-bit xorshift algorithm
+            uvec4 t = x ^ (x << 11u);
+            nextElement = w ^ (w >> 19u) ^ t ^ (t >> 8u);
+        }
+        randomsBuffer[(nextElementIndex + frame - 1) % framesInFlight][gIDy][gIDx] = nextElement;
     }
-
-    if(frame < 5)
-    {
-        uvec4 n = (nextElement << 13) ^ nextElement;
-        nextElement = n * (n*n*31069u+154933u) + 2935297931u;
-    }
-
-    randomsBuffer[0][gIDy][gIDx] = nextElement;
 }
     )";
 
     std::shared_ptr<RG::ComputeOperation> randomGenerator = std::make_unique<RG::ComputeOperation> (4, 4, 1);
     randomGenerator->compileSettings.computeShaderPipeline = std::make_unique<RG::ComputeShaderPipeline> (GetDevice (), compSrc);
 
-    /*
-    std::shared_ptr<RG::CPUBufferResource> randomsBuffer = std::make_unique<RG::CPUBufferResource> (arrayCount * 32 * 32 * elementSize);
-    std::shared_ptr<RG::CPUBufferResource> randomsConfig = std::make_unique<RG::CPUBufferResource> (sizeof (uint32_t) + sizeof (uint32_t));
-
-    randomGenerator->compileSettings.descriptorWriteProvider->bufferInfos.push_back ({ "OutputBuffer", GVK::ShaderKind::Compute, randomsBuffer->GetBufferForFrameProvider (), 0, randomsBuffer->GetBufferSize () });
-    randomGenerator->compileSettings.descriptorWriteProvider->bufferInfos.push_back ({ "RandomGeneratorConfig", GVK::ShaderKind::Compute, randomsConfig->GetBufferForFrameProvider (), 0, randomsConfig->GetBufferSize () });
-
-
-    connectionSet.Add (randomGenerator, randomsBuffer);
-    connectionSet.Add (randomGenerator, randomsConfig);
-    */
-    
     RG::ConnectionSet connectionSet;
     connectionSet.Add (randomGenerator);
 
-    RG::UniformReflection refl (connectionSet);
+    auto creator = [&] (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject) -> std::shared_ptr<RG::InputBufferBindableResource> {
+        if (bufferObject->name == "OutputBuffer")
+            return std::make_unique<RG::GPUBufferResource> (bufferObject->GetFullSize ());
+      
+        return std::make_unique<RG::CPUBufferResource> (bufferObject->GetFullSize ());
+    };
+
+    RG::UniformReflection refl (connectionSet, creator);
+
+    constexpr uint32_t framesInFlight = 3;
 
     RG::GraphSettings s;
     s.connectionSet  = std::move (connectionSet);
     s.device         = &GetDeviceExtra ();
-    s.framesInFlight = 1;
+    s.framesInFlight = framesInFlight;
 
     RG::RenderGraph graph;
     graph.Compile (std::move (s));
 
-    std::shared_ptr<RG::CPUBufferResource> randomsBuffer = graph.GetConnectionSet ().GetByName<RG::CPUBufferResource> ("OutputBuffer");
+    std::shared_ptr<RG::GPUBufferResource> randomsBuffer = graph.GetConnectionSet ().GetByName<RG::GPUBufferResource> ("OutputBuffer");
     std::shared_ptr<RG::CPUBufferResource> randomsConfig = graph.GetConnectionSet ().GetByName<RG::CPUBufferResource> ("RandomGeneratorConfig");
 
-    refl[randomGenerator][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["nextElementIndex"] = 0;
-    refl[randomGenerator][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["frame"] = 1;
+    for (uint32_t i = 0; i < 3; ++i) {
 
-    refl.Flush (0);
+        const uint32_t frameIndex    = i;
+        const uint32_t resourceIndex = i % framesInFlight;
 
-    env->Wait ();
-    graph.Submit (0);
-    env->Wait ();
+        refl[randomGenerator][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["seed"]             = static_cast<uint32_t> (7);
+        refl[randomGenerator][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["framesInFlight"]   = static_cast<uint32_t> (framesInFlight);
+        refl[randomGenerator][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["nextElementIndex"] = static_cast<uint32_t> (frameIndex % 5);
+        refl[randomGenerator][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["startFrameIndex"]  = static_cast<uint32_t> (frameIndex + 1);
+
+        refl.Flush (resourceIndex);
+
+        env->Wait ();
+        graph.Submit (resourceIndex);
+        env->Wait ();
+    }
     
-    std::vector<glm::uvec4> randomsBufferOut;
-    randomsBufferOut.resize (randomsBuffer->GetBufferSize ());
+    constexpr uint32_t checkedResourceIndex = 2;
 
-    memcpy (randomsBufferOut.data (), randomsBuffer->GetMapping (0).Get (), randomsBuffer->GetBufferSize ());
+    randomsBuffer->TransferFromGPUToCPU (checkedResourceIndex);
+
+    std::vector<glm::uvec4> randomsBufferOut;
+    randomsBufferOut.resize (randomsBuffer->GetBufferSize () / sizeof (glm::uvec4));
+
+    memcpy (randomsBufferOut.data (), randomsBuffer->buffers[checkedResourceIndex]->bufferCPUMapping.Get (), randomsBuffer->GetBufferSize ());
 }
 
 

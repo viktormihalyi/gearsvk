@@ -194,13 +194,16 @@ GPUBufferResource::~GPUBufferResource () = default;
 
 void GPUBufferResource::Compile (const GraphSettings& settings)
 {
-    buffer = std::make_unique<GVK::BufferTransferable> (settings.GetDevice (), size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    buffers.reserve (settings.framesInFlight);
+    for (uint32_t i = 0; i < settings.framesInFlight; ++i) {
+        buffers.push_back (std::make_unique<GVK::BufferTransferable> (settings.GetDevice (), size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT));
+    }
 }
 
 
-VkBuffer GPUBufferResource::GetBufferForFrame (uint32_t)
+VkBuffer GPUBufferResource::GetBufferForFrame (uint32_t resourceIndex)
 {
-    return buffer->bufferGPU;
+    return buffers[resourceIndex]->bufferGPU;
 }
 
 
@@ -210,9 +213,15 @@ uint32_t GPUBufferResource::GetBufferSize ()
 }
 
 
-void GPUBufferResource::CopyAndTransfer (const void* data, size_t size) const
+void GPUBufferResource::TransferFromCPUToGPU (uint32_t resourceIndex, const void* data, size_t size) const
 {
-    buffer->CopyAndTransfer (data, size);
+    buffers[resourceIndex]->TransferFromCPUToGPU (data, size);
+}
+
+
+void GPUBufferResource::TransferFromGPUToCPU (uint32_t resourceIndex) const
+{
+    buffers[resourceIndex]->TransferFromGPUToCPU ();
 }
 
 

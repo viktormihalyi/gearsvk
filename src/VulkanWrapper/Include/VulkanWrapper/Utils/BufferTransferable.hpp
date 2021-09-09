@@ -32,7 +32,9 @@ public:
     {
     }
 
-    void CopyAndTransfer (const void* data, size_t size) const;
+    void TransferFromCPUToGPU (const void* data, size_t size) const;
+
+    void TransferFromGPUToCPU () const;
 
     VkBuffer GetBufferToBind () const
     {
@@ -131,7 +133,7 @@ public:
 
     void Flush () const
     {
-        buffer.CopyAndTransfer (data.data (), data.size ());
+        buffer.TransferFromCPUToGPU (data.data (), data.size ());
     }
 
     void Bind (VkCommandBuffer commandBuffer) const
@@ -177,7 +179,7 @@ public:
 
     void Flush () const
     {
-        buffer.CopyAndTransfer (data.data (), sizeof (IndexType) * data.size ());
+        buffer.TransferFromCPUToGPU (data.data (), sizeof (IndexType) * data.size ());
     }
 
     void operator= (const std::vector<IndexType>& copiedData)

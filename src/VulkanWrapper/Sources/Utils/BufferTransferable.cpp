@@ -81,11 +81,17 @@ VertexInputInfo::VertexInputInfo (const std::vector<VkFormat>& vertexInputFormat
 }
 
 
-void BufferTransferable::CopyAndTransfer (const void* data, size_t size) const
+void BufferTransferable::TransferFromCPUToGPU (const void* data, size_t size) const
 {
     GVK_ASSERT (size == bufferSize);
     bufferCPUMapping.Copy (data, size);
     CopyBuffer (device, bufferCPU, bufferGPU, bufferSize);
+}
+
+
+void BufferTransferable::TransferFromGPUToCPU () const
+{
+    CopyBuffer (device, bufferGPU, bufferCPU, bufferSize);
 }
 
 

@@ -84,8 +84,6 @@ public:
 
     using ResourceCreator = std::function<std::shared_ptr<RG::InputBufferBindableResource> (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>&)>;
 
-private:
-
     static std::shared_ptr<RG::InputBufferBindableResource> DefaultResourceCreator (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject)
     {
         return std::make_unique<RG::CPUBufferResource> (bufferObject->GetFullSize ());

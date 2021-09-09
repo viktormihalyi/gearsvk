@@ -166,14 +166,15 @@ public:
 
 
 class GVK_RENDERER_API GPUBufferResource : public InputBufferBindableResource {
-private:
-    std::unique_ptr<GVK::BufferTransferable> buffer;
-    const uint32_t                           size;
+public:
+    uint32_t size;
+    
+    std::vector<std::unique_ptr<GVK::BufferTransferable>> buffers;
 
 public:
-    GPUBufferResource (const uint32_t size);
+    GPUBufferResource (uint32_t size);
 
-    virtual ~GPUBufferResource ();
+    virtual ~GPUBufferResource () override;
 
     virtual void Compile (const GraphSettings& settings) override;
 
@@ -182,7 +183,9 @@ public:
 
     virtual uint32_t GetBufferSize () override;
 
-    void CopyAndTransfer (const void* data, size_t size) const;
+    void TransferFromCPUToGPU (uint32_t resourceIndex, const void* data, size_t size) const;
+
+    void TransferFromGPUToCPU (uint32_t resourceIndex) const;
 };
 
 
