@@ -46,7 +46,10 @@ void UniformReflection::CreateGraphResources (const RG::ConnectionSet& connectio
     // GVK_ASSERT (!graph.operations.empty ());
 
     const auto CreateBufferObjectResource = [&] (const std::shared_ptr<RG::Operation>& op, const GVK::ShaderModule& shaderModule, const std::shared_ptr<SR::BufferObject>& bufferObject, BufferObjectSelector& bufferObjectsel) {
-        std::shared_ptr<RG::DescriptorBindableBufferResource> bufferObjectRes = resourceCreator (op, shaderModule, bufferObject);
+
+        bool treatAsOutput = false;
+
+        std::shared_ptr<RG::DescriptorBindableBufferResource> bufferObjectRes = resourceCreator (op, shaderModule, bufferObject, treatAsOutput);
 
         if (bufferObjectRes == nullptr)
             return;
@@ -62,7 +65,7 @@ void UniformReflection::CreateGraphResources (const RG::ConnectionSet& connectio
         std::shared_ptr<SR::BufferDataInternal> bufferObjectData = std::make_unique<SR::BufferDataInternal> (bufferObject);
         bufferObjectsel.Set (bufferObject->name, bufferObjectData);
 
-        bufferObjectConnections.push_back (std::make_tuple (op, bufferObject, bufferObjectRes, shaderModule.GetShaderKind ()));
+        bufferObjectConnections.push_back (std::make_tuple (op, bufferObject, bufferObjectRes, shaderModule.GetShaderKind (), treatAsOutput));
         bufferObjectResources.push_back (bufferObjectRes);
         udatas.insert ({ bufferObjectRes->GetUUID (), bufferObjectData });
     };
@@ -100,9 +103,14 @@ void UniformReflection::CreateGraphConnections (RG::ConnectionSet& connectionSet
 {
     GVK_ASSERT (!bufferObjectConnections.empty ());
 
-    for (auto& [operation, bufferObject, resource, shaderKind] : bufferObjectConnections) {
-        connectionSet.Add (resource, operation);
-        
+    for (auto& [operation, bufferObject, resource, shaderKind, treatAsOutput] : bufferObjectConnections) {
+
+        if (treatAsOutput) {
+            connectionSet.Add (operation, resource);
+        } else {
+            connectionSet.Add (resource, operation);
+        }
+
         if (auto renderOp = std::dynamic_pointer_cast<RG::RenderOperation> (operation)) {
             auto& table = renderOp->compileSettings.descriptorWriteProvider;
             table->bufferInfos.push_back ({ bufferObject->name, shaderKind, resource->GetBufferForFrameProvider (), 0, resource->GetBufferSize () });

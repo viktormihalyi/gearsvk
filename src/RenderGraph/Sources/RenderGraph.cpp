@@ -324,8 +324,8 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
                 auto allInputs  = graphSettings.connectionSet.GetPointingHere<Resource> (op);
                 auto allOutputs = graphSettings.connectionSet.GetPointingTo<Resource> (op);
 
-                std::unique_ptr<GVK::CommandPipelineBarrier> barrier = std::make_unique<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,  // TODO maybe VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT?
-                                                                                                            VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT); // TODO maybe VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT?
+                std::unique_ptr<GVK::CommandPipelineBarrier> barrier = std::make_unique<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,  // TODO maybe VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT?
+                                                                                                                      VK_PIPELINE_STAGE_ALL_COMMANDS_BIT); // TODO maybe VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT?
                 barrier->AddMemoryBarrier (flushAllMemory);
                 Utils::ForEach<ImageResource> (allInputs, [&] (const std::shared_ptr<ImageResource>& img) {
                     for (GVK::Image* image : img->GetImages (frameIndex)) {
@@ -367,8 +367,8 @@ void RenderGraph::Compile (GraphSettings&& graphSettings_)
         }
 
         {
-            std::unique_ptr<GVK::CommandPipelineBarrier> barrier = std::make_unique<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,  // TODO maybe VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT?
-                                                                                                        VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT); // TODO maybe VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT?
+            std::unique_ptr<GVK::CommandPipelineBarrier> barrier = std::make_unique<GVK::CommandPipelineBarrier> (VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,  // TODO maybe VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT?
+                                                                                                                  VK_PIPELINE_STAGE_ALL_COMMANDS_BIT); // TODO maybe VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT?
             barrier->AddMemoryBarrier (flushAllMemory);
             for (Pass& p : passes) {
                 Utils::ForEach<ImageResource*> (p.GetAllInputs (), [&] (ImageResource* img) {

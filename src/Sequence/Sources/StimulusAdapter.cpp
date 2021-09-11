@@ -131,15 +131,16 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
 
         rngGen->compileSettings.computeShaderPipeline = std::make_unique<RG::ComputeShaderPipeline> (*environment.device, preProcessedShaderSource);
 
-        auto randomBufferCreator = [&] (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject) -> std::shared_ptr<RG::DescriptorBindableBufferResource> {
-            if (bufferObject->name == "OutputBuffer")
+        auto randomBufferCreator = [&] (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject, bool& treatAsOutput) -> std::shared_ptr<RG::DescriptorBindableBufferResource> {
+            if (bufferObject->name == "OutputBuffer") {
+                treatAsOutput = true;
                 return std::make_unique<RG::GPUBufferResource> (bufferObject->GetFullSize ());
+            }
 
             return nullptr;
         };
 
         s.connectionSet.Add (rngGen);
-
         RG::UniformReflection refl (s.connectionSet, randomBufferCreator);
 
         auto outputBuffer = s.connectionSet.GetByName<RG::GPUBufferResource> ("OutputBuffer");
@@ -152,6 +153,7 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
         
         auto& table = std::dynamic_pointer_cast<RG::RenderOperation> (rngUserOperation)->compileSettings.descriptorWriteProvider;
         table->bufferInfos.push_back ({ "RandomBuffer", GVK::ShaderKind::Fragment, outputBuffer->GetBufferForFrameProvider (), 0, outputBuffer->GetBufferSize () });
+
     
     }
 
@@ -167,9 +169,17 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
         for (int i = 0; i < 64; i++)
             gammaAndTemporalWeights[128 + i] = stimulus->temporalWeights[i];
         gammaTexture->CopyTransitionTransfer (gammaAndTemporalWeights);
+    }
+
+    auto randomBufferSkipper = [&] (const std::shared_ptr<RG::Operation>& op, const GVK::ShaderModule& sm, const std::shared_ptr<SR::BufferObject>& bufferObject, bool& treatAsOutput) -> std::shared_ptr<RG::DescriptorBindableBufferResource> {
+        if (bufferObject->name == "RandomBuffer") {
+            return nullptr;
         }
 
-    reflection = std::make_unique<RG::UniformReflection> (s.connectionSet);
+        return RG::UniformReflection::DefaultResourceCreator (op, sm, bufferObject, treatAsOutput);
+    };
+
+    reflection = std::make_unique<RG::UniformReflection> (s.connectionSet, randomBufferSkipper);
 
     renderGraph->Compile (std::move (s));
 
