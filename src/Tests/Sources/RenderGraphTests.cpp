@@ -462,6 +462,19 @@ TEST_F (HeadlessTestEnvironment, RenderGraph_MultipleOperations_MultipleOutputs)
 }
 
 
+TEST_F (HeadlessTestEnvironment, DebugPrintf_ShaderModule_Compile)
+{
+    std::unique_ptr<GVK::ShaderModule> shaderModule = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Compute, R"(
+#version 450
+#extension GL_EXT_debug_printf : enable
+void main() {
+    float myfloat = 3.1415f;
+    debugPrintfEXT("My float is %f", myfloat);
+}
+)");
+}
+
+
 TEST_F (HeadlessTestEnvironment, InputAttachment_ShaderModule_Compile)
 {
     std::unique_ptr<GVK::ShaderModule> shaderModule = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Fragment, R"(
@@ -1108,7 +1121,7 @@ protected:
 
 void HeadlessTestEnvironmentWithExt::SetUp ()
 {
-    env = std::make_unique<RG::VulkanEnvironment> (testDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+    env = std::make_unique<RG::VulkanEnvironment> (testDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME });
 }
 
 

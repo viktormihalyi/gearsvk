@@ -6,8 +6,8 @@ glm/0.9.9.8
 stb/20200203
 freetype/2.10.4
 spirv-cross/20210115
-spirv-tools/v2020.5
-glslang/8.13.3559
+spirv-tools/2021.2
+glslang/11.5.0
 vulkan-memory-allocator/2.3.0
 spdlog/1.8.5
 cereal/1.3.0

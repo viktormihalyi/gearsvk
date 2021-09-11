@@ -67,17 +67,17 @@ static VkInstance CreateInstance (const std::vector<const char*>& instanceExtens
     }
 
 
-    // VkApplicationInfo appInfo  = {};
-    // appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    // appInfo.pApplicationName   = "Hello Triangle";
-    // appInfo.applicationVersion = VK_MAKE_VERSION (1, 0, 0);
-    // appInfo.pEngineName        = "No Engine";
-    // appInfo.engineVersion      = VK_MAKE_VERSION (1, 0, 0);
-    // appInfo.apiVersion         = VK_API_VERSION_1_1;
+    VkApplicationInfo appInfo  = {};
+    appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appInfo.pApplicationName   = "GearsVk";
+    appInfo.applicationVersion = VK_MAKE_VERSION (1, 0, 0);
+    appInfo.pEngineName        = "No Engine";
+    appInfo.engineVersion      = VK_MAKE_VERSION (1, 0, 0);
+    appInfo.apiVersion         = VK_API_VERSION_1_2;
 
     VkInstanceCreateInfo createInfo    = {};
     createInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pApplicationInfo        = nullptr; // &appInfo
+    createInfo.pApplicationInfo        = &appInfo;
     createInfo.enabledExtensionCount   = static_cast<uint32_t> (instanceExtensions.size ());
     createInfo.ppEnabledExtensionNames = instanceExtensions.data ();
     createInfo.enabledLayerCount       = static_cast<uint32_t> (instanceLayers.size ());

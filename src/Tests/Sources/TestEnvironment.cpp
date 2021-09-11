@@ -157,7 +157,7 @@ void HeadlessTestEnvironment::TearDown ()
 void ShownWindowTestEnvironment::SetUp ()
 {
     window      = std::make_unique<RG::GLFWWindow> ();
-    env         = std::make_unique<RG::VulkanEnvironment> (testDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+    env         = std::make_unique<RG::VulkanEnvironment> (testDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME });
     presentable = std::make_unique<RG::Presentable> (*env, *window, std::make_unique<GVK::DefaultSwapchainSettings> ());
 }
 
@@ -173,7 +173,7 @@ void ShownWindowTestEnvironment::TearDown ()
 void HiddenWindowTestEnvironment::SetUp ()
 {
     window      = std::make_unique<RG::HiddenGLFWWindow> ();
-    env         = std::make_unique<RG::VulkanEnvironment> (testDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+    env         = std::make_unique<RG::VulkanEnvironment> (testDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME });
     presentable = std::make_unique<RG::Presentable> (*env, *window, std::make_unique<GVK::DefaultSwapchainSettings> ());
 }
 

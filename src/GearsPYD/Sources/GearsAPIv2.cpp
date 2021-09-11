@@ -218,7 +218,7 @@ static std::unique_ptr<RG::VulkanEnvironment> env_ = nullptr;
 static RG::VulkanEnvironment& GetVkEnvironment ()
 {
     if (env_ == nullptr) {
-        env_ = std::make_unique<RG::VulkanEnvironment> (RG::defaultDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+        env_ = std::make_unique<RG::VulkanEnvironment> (RG::defaultDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME });
     }
 
     return *env_;

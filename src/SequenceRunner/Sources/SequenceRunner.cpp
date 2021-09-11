@@ -33,7 +33,7 @@ int main (int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    std::unique_ptr<RG::VulkanEnvironment> env = std::make_unique<RG::VulkanEnvironment> (RG::defaultDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+    std::unique_ptr<RG::VulkanEnvironment> env = std::make_unique<RG::VulkanEnvironment> (RG::defaultDebugCallback, RG::GetGLFWInstanceExtensions (), std::vector<const char*> { VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME });
 
     std::unique_ptr<SequenceAdapter> sequenceAdapter = Gears::GetSequenceAdapterFromPyx (*env, sequencePath);
     if (GVK_ERROR (sequenceAdapter == nullptr)) {

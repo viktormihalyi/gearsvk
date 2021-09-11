@@ -14,7 +14,7 @@
 #include <array>
 
 // from glslang
-#include <SPIRV/GlslangToSpv.h>
+#include "glslang/SPIRV/GlslangToSpv.h"
 
 // from spdlog
 #include "spdlog/spdlog.h"
@@ -264,9 +264,9 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 
     const char* const                       sourceCstr                  = sourceCode.c_str ();
     const int                               ClientInputSemanticsVersion = 100;
-    const glslang::EShTargetClientVersion   VulkanClientVersion         = glslang::EShTargetVulkan_1_0;
-    const glslang::EShTargetLanguageVersion TargetVersion               = glslang::EShTargetSpv_1_0;
-    const EShMessages                       messages                    = (EShMessages) (EShMsgSpvRules | EShMsgVulkanRules);
+    const glslang::EShTargetClientVersion   VulkanClientVersion         = glslang::EShTargetVulkan_1_2;
+    const glslang::EShTargetLanguageVersion TargetVersion               = glslang::EShTargetSpv_1_5;
+    const EShMessages                       messages                    = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules | EShMsgSuppressWarnings);
     const TBuiltInResource                  resources                   = GetDefaultResourceLimits (); // TODO use DefaultTBuiltInResource ?
 
     glslang::TShader shader (shaderKind.esh);
