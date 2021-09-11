@@ -312,16 +312,20 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 
 static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindAdapter& shaderKind)
 {
+#if 0
     ShaderCache& shaderCache = IsDebugBuild ? debugShaderCache : releaseShaderCache;
 
     std::optional<std::vector<uint32_t>> cachedBinary = shaderCache.Load (shaderSource);
     if (cachedBinary.has_value ()) {
         return *cachedBinary;
     }
+#endif
 
     try {
         const std::vector<uint32_t> result = CompileWithGlslangCppInterface (shaderSource, shaderKind);
+#if 0
         shaderCache.Save (shaderSource, result);
+#endif
         return result;
 
     } catch (ShaderCompileException& ex) {

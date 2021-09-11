@@ -83,11 +83,15 @@ public:
 
     std::shared_ptr<SpatialFilter> spatialFilter;
 
-    std::string randomGeneratorShaderSource; //< Prng.
-    uint32_t        randomGridWidth;             //<	Number of cells per row in 2D random grid array for random number generation.
-    uint32_t        randomGridHeight;            //<	Number of cells per column in of 2D random grid array for random number generation.
-    uint32_t        randomSeed;                  //< Initial number for random number generation. The same seed always produces the same randoms.
-    uint32_t        freezeRandomsAfterFrame;
+#pragma region RNG_Compute
+
+    std::string rngCompute_shaderSource;
+    uint32_t    rngCompute_workGroupSizeX;
+    uint32_t    rngCompute_workGroupSizeY;
+    uint32_t    rngCompute_seed;
+    bool        rngCompute_multiLayer;
+
+#pragma region RNG_Compute
 
     std::string particleShaderSource; //< Particle system.
     uint32_t        particleGridWidth;    //<	Number of cells per row in 2D grid array.

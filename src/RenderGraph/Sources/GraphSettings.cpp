@@ -113,6 +113,9 @@ std::shared_ptr<Node> ConnectionSet::GetNodeByName (std::string_view name) const
     if constexpr (IsDebugBuild) {
         std::unordered_set<std::string> nameSet;
         for (const auto& node : insertionOrder) {
+            if (node->GetName ().empty ())
+                continue;
+
             GVK_ASSERT (nameSet.count (node->GetName ()) == 0);
             nameSet.insert (node->GetName ());
         }

@@ -12,7 +12,8 @@ class SaturatedColorRandomGrid(Base) :
         stimulus.enableColorMode()
         spass.setShaderFunction(name = functionName, src = self.glslEsc(gears.GetGLSLResourcesForRandoms() + '''
             vec3 @<X>@ (vec2 x, float time){ 
-                uvec3 v = texelFetch(randoms, ivec2( (x + randomGridSize * cellSize*0.5) / cellSize), 0).xyz;
+                ivec2 iv = ivec2 ((x + randomGridSize * cellSize * 0.5) / cellSize);
+                uvec3 v = randoms[randoms_layerIndex][iv.y][iv.x].xyz;
                 return vec3(
                     (v.x >> 31u == 0u)?0.0:1.0,
                     (v.y >> 31u == 0u)?0.0:1.0,

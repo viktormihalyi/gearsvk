@@ -28,7 +28,7 @@ class Brownian(Component) :
             void main() 
             {
                 uvec4 oldParticle = texelFetch(previousParticles, ivec2(gl_FragCoord.xy), 0);
-                uvec4 random = texelFetch(randoms, ivec2(gl_FragCoord.xy), 0);
+                uvec4 random = randoms[randoms_layerIndex][gl_FragCoord.y][gl_FragCoord.x];
                 if(frame == 1)
                     newParticle = uvec4(0x80000000, 0x80000000, 0x80000000, 0x80000000);
                 else

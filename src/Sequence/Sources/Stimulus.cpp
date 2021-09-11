@@ -20,10 +20,6 @@ Stimulus::Stimulus ()
     , duration (1)
     , startingFrame (0)
     , spatialFilter (nullptr)
-    , randomGridWidth (0)
-    , randomGridHeight (0)
-    , randomSeed (0)
-    , freezeRandomsAfterFrame (0)
     , particleGridWidth (0)
     , particleGridHeight (0)
     , gammaSamplesCount (2)
@@ -43,6 +39,10 @@ Stimulus::Stimulus ()
     , stretchFactor (1.f)
     , meanOffset (0.f)
     , histogramMeasurementImpedance (0.95f)
+    , rngCompute_workGroupSizeX (0)
+    , rngCompute_workGroupSizeY (0)
+    , rngCompute_seed (0)
+    , rngCompute_multiLayer (false)
 {
     measuredToneRangeMin = std::numeric_limits<float>::quiet_NaN ();
     measuredToneRangeMax = std::numeric_limits<float>::quiet_NaN ();
@@ -59,15 +59,6 @@ Stimulus::Stimulus ()
     temporalProcessingStateCount = 0;
     temporalWeightMax            = 1.0f;
     temporalWeightMin            = 0.0f;
-
-    randomGeneratorShaderSource = R"(
-layout (location = 0) out uvec4 nextElement;
-
-void main ()
-{
-    nextElement = uvec4 (0u, 0u, 0u, 0u);
-}
-)";
 
     temporalFilterFuncSource =
         "float temporalWeight(int i) { if(i==0) return 1.0; else return 0.0; } \n";
@@ -476,35 +467,6 @@ uint32_t Stimulus::getDuration () const
 }
 
 
-std::string Stimulus::getRandomGeneratorShaderSource () const
-{
-    std::string s ("#version 450\n");
-    s += "layout (binding = 200) uniform ubo_patternSizeOnRetina { vec2 patternSizeOnRetina; };\n";
-    s += "layout (binding = 201) uniform ubo_swizzleForFft { bool swizzleForFft; };\n";
-    s += "layout (binding = 202) uniform ubo_frame { int frame; };\n";
-    s += "layout (binding = 203) uniform ubo_time { float time; };\n";
-
-    //for(auto& svar : shaderColors)
-    //{
-    //	s += "uniform vec3 ";
-    //	s += svar.first;
-    //	s += ";\n";
-    //}
-    //for(auto& svar : shaderVectors)
-    //{
-    //	s += "uniform vec2 ";
-    //	s += svar.first;
-    //	s += ";\n";
-    //}
-    //for(auto& svar : shaderVariables)
-    //{
-    //	s += "uniform float ";
-    //	s += svar.first;
-    //	s += ";\n";
-    //}
-    return s + randomGeneratorShaderSource;
-}
-
 std::string Stimulus::getParticleShaderSource () const
 {
     std::string s ("#version 450\n");
@@ -635,6 +597,8 @@ bool Stimulus::doesErfToneMapping () const
 
 bool Stimulus::IsEquivalent (const Stimulus& other) const
 {
+    return false; // TODO RNG
+
     if (passes.size () != other.passes.size ()) {
         return false;
     }
@@ -676,13 +640,9 @@ bool Stimulus::IsEquivalent (const Stimulus& other) const
         }
     }
 
-    return sequence->maxRandomGridWidth == other.sequence->maxRandomGridWidth &&
-           sequence->maxRandomGridHeight == other.sequence->maxRandomGridHeight &&
-           requiresClearing == other.requiresClearing &&
+    return requiresClearing == other.requiresClearing &&
            clearColor == other.clearColor &&
            usesForwardRendering == other.usesForwardRendering &&
-           randomGridWidth == other.randomGridWidth &&
-           randomGridHeight == other.randomGridHeight &&
 
            toneMappingMode == other.toneMappingMode &&
            toneRangeMin == other.toneRangeMin &&
@@ -690,12 +650,17 @@ bool Stimulus::IsEquivalent (const Stimulus& other) const
            toneRangeMean == other.toneRangeMean &&
            toneRangeVar == other.toneRangeVar &&
 
+           rngCompute_shaderSource == other.rngCompute_shaderSource &&
+           rngCompute_workGroupSizeX == other.rngCompute_workGroupSizeX &&
+           rngCompute_workGroupSizeY == other.rngCompute_workGroupSizeY &&
+           rngCompute_seed == other.rngCompute_seed &&
+           rngCompute_multiLayer == other.rngCompute_multiLayer && 
+
            mono == other.mono &&
            sequence->fieldWidth_um == other.sequence->fieldWidth_um &&
            sequence->fieldHeight_um == other.sequence->fieldHeight_um &&
            doesDynamicToneMapping == other.doesDynamicToneMapping &&
            gammaSamplesCount == other.gammaSamplesCount &&
            memcmp (gamma, other.gamma, gammaSamplesCount) == 0 &&
-           memcmp (temporalWeights, other.temporalWeights, 64) == 0 &&
-           getRandomGeneratorShaderSource () == other.getRandomGeneratorShaderSource ();
+           memcmp (temporalWeights, other.temporalWeights, 64) == 0;
 }

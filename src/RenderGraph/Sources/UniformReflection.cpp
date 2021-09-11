@@ -48,7 +48,13 @@ void UniformReflection::CreateGraphResources (const RG::ConnectionSet& connectio
     const auto CreateBufferObjectResource = [&] (const std::shared_ptr<RG::Operation>& op, const GVK::ShaderModule& shaderModule, const std::shared_ptr<SR::BufferObject>& bufferObject, BufferObjectSelector& bufferObjectsel) {
         std::shared_ptr<RG::InputBufferBindableResource> bufferObjectRes = resourceCreator (op, shaderModule, bufferObject);
 
-        GVK_ASSERT (bufferObjectRes != nullptr);
+        if (bufferObjectRes == nullptr)
+            return;
+
+        if (connectionSet.GetNodeByName (bufferObject->name) != nullptr) {
+            spdlog::warn ("Skipping buffer object named \"{}\" because it already exists.", bufferObject->name);
+            return;
+        }
 
         bufferObjectRes->SetName (bufferObject->name);
         bufferObjectRes->SetDebugInfo ("Made by UniformReflection.");
@@ -115,15 +121,16 @@ void UniformReflection::CreateGraphConnections (RG::ConnectionSet& connectionSet
 void UniformReflection::PrintDebugInfo ()
 {
     for (auto& [uuid, selector] : selectors) {
-        spdlog::info ("{}", uuid.GetValue ());
+        printf ("%s\n", uuid.GetValue ().c_str ());
         for (auto& [shaderKind, bufferObjectSelector] : selector.bufferObjectSelectors) {
-            spdlog::info ("\t{}", ShaderKindToString (shaderKind));
+            printf ("\t%s\n", ShaderKindToString (shaderKind).c_str ());
             for (auto& [name, bufferObject] : bufferObjectSelector.udatas) {
-                spdlog::info ("\t\t{} ({})", name, bufferObject->GetSize ());
+                printf ("\t\t%s (%d) - ", name.c_str (), bufferObject->GetSize ());
 
                 for (int32_t i = bufferObject->GetSize () - 1; i >= 0; --i) {
-                    spdlog::info ("%02x ", bufferObject->GetData ()[i]); // TODO
+                    printf ("%02x ", bufferObject->GetData ()[i]); // TODO
                 }
+                printf ("\n");
             }
         }
     }

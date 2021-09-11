@@ -15,7 +15,7 @@ class ColorRandomGrid(Base) :
         spass.setShaderFunction( name = functionName, src = self.glslEsc( gears.GetGLSLResourcesForRandoms () + '''
             vec3 @<X>@ (vec2 x, float time){ 
                 ivec2 iv = ivec2((x + randomGridSize * cellSize * 0.5) / cellSize);
-                vec3 v = vec3(texelFetch(randoms, iv , 0).xyz) / float(0xffff) / float(0xffff);
+                vec3 v = vec3(randoms[randoms_layerIndex][iv.y][iv.x].xyz) / float(0xffff) / float(0xffff);
                 return v;
             }
         ''').format( X=functionName )  ) 

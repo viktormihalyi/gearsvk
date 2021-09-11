@@ -142,17 +142,22 @@ void DestroySurface (intptr_t surfaceHandle)
 
 std::string GetGLSLResourcesForRandoms ()
 {
+    // TODO RNG
     return R"(
 #ifndef GEARS_RANDOMS_RESOURCES
 #define GEARS_RANDOMS_RESOURCES
-    layout (binding = 201) uniform usampler2D randoms;
-    layout (binding = 202) uniform randomUniformBlock {
-        vec2    cellSize;
-        ivec2   randomGridSize;
-        uint    randomsIndex;
-    };
-#endif
 
+layout (binding = 201) readonly buffer RandomBuffer {
+    uvec4 randoms[38][38][1];
+};
+
+layout (binding = 202) uniform RandomBufferConfig {
+    uint  randoms_layerIndex;
+    ivec2 randomGridSize;
+    vec2  cellSize;
+};
+
+#endif
     )";
 }
 
@@ -187,8 +192,8 @@ std::shared_ptr<Sequence> GetSequenceFromPyx (const std::filesystem::path& fileP
         return sequenceCpp;
 
     } catch (std::exception& e) {
-        GVK_BREAK_STR ("Failed to load sequence.");
         spdlog::error ("Failed to load sequence: {}", e.what ());
+        GVK_BREAK_STR ("Failed to load sequence.");
         return nullptr;
     }
 }

@@ -19,7 +19,7 @@ class RandomRect(Component) :
         patch.setShaderFunction(name = 'shape', src = '''
                 uniform usampler2D randoms;
                 vec3 shape(vec2 x){ 
-                    float r = float(texelFetch(randoms, ivec2(0, 0), 0).x) * 6.28 / 0xffffffff;
+                    float r = float(randoms[randoms_layerIndex][0][0].x) * 6.28 / 0xffffffff;
                     vec2 facing = vec2(cos(r), sin(r));
                     vec2 rotatedX = vec2( x.x * facing.x + x.y * facing.y, x.x * facing.y - x.y * facing.x);
                     rotatedX = mod(rotatedX + repetitionDistance*0.5 , repetitionDistance) - repetitionDistance * 0.5;

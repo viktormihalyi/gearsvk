@@ -7,7 +7,37 @@
 
 
 Sequence::Sequence (std::string name)
-    : name (name), brief ("<no description>"), duration (0), measurementStartOffset (0), measurementEndOffset (0), fieldWidth_um (2000), fieldHeight_um (2000), fieldLeft_px (0), fieldBottom_px (0), fieldWidth_px (1024), fieldHeight_px (1024), fftWidth_px (1024), fftHeight_px (1024), maxKernelHeight_um (0), maxKernelWidth_um (0), maxRandomGridWidth (0), maxRandomGridHeight (0), maxParticleGridWidth (0), maxParticleGridHeight (0), maxMemoryLength (0), maxTemporalProcessingStateCount (0), exportRandomsWithHashmark (true), exportRandomsChannelCount (1), exportRandomsAsReal (false), exportRandomsAsBinary (true), frameRateDivisor (1), deviceFrameRate (59.94f), tickInterval (0.00834167500834167500834167500834f), hasFft (false), hasSpatialDomainConvolution (false), shortestStimulusDuration (1000000), greyscale (false), usesForwardRendering (false), usesBusyWaitingThreadForSingals (false), mono (true), temp_r (nullptr), usesDynamicToneMapping (false)
+    : name (name)
+    , brief ("<no description>")
+    , duration (0)
+    , measurementStartOffset (0)
+    , measurementEndOffset (0)
+    , fieldWidth_um (2000)
+    , fieldHeight_um (2000)
+    , fieldLeft_px (0)
+    , fieldBottom_px (0)
+    , fieldWidth_px (1024)
+    , fieldHeight_px (1024)
+    , fftWidth_px (1024)
+    , fftHeight_px (1024)
+    , maxKernelHeight_um (0)
+    , maxKernelWidth_um (0)
+    , maxParticleGridWidth (0)
+    , maxParticleGridHeight (0)
+    , maxMemoryLength (0)
+    , maxTemporalProcessingStateCount (0)
+    , frameRateDivisor (1)
+    , deviceFrameRate (59.94f)
+    , tickInterval (0.00834167500834167500834167500834f)
+    , hasFft (false)
+    , hasSpatialDomainConvolution (false)
+    , shortestStimulusDuration (1000000)
+    , greyscale (false)
+    , usesForwardRendering (false)
+    , usesBusyWaitingThreadForSingals (false)
+    , mono (true)
+    , temp_r (nullptr)
+    , usesDynamicToneMapping (false)
 {
 }
 
@@ -57,10 +87,6 @@ void Sequence::addStimulus (std::shared_ptr<Stimulus> stimulus)
         maxKernelHeight_um = std::max (maxKernelHeight_um, stimulus->spatialFilter->height_um);
         hasFft |= stimulus->spatialFilter->useFft;
         hasSpatialDomainConvolution |= !stimulus->spatialFilter->useFft;
-    }
-    if (stimulus->randomSeed != 0) {
-        maxRandomGridWidth  = std::max (maxRandomGridWidth, stimulus->randomGridWidth);
-        maxRandomGridHeight = std::max (maxRandomGridHeight, stimulus->randomGridHeight);
     }
     maxParticleGridWidth  = std::max (maxParticleGridWidth, stimulus->particleGridWidth);
     maxParticleGridHeight = std::max (maxParticleGridHeight, stimulus->particleGridHeight);
@@ -138,7 +164,7 @@ void Sequence::raiseAndClearSignal (std::string channel, uint32_t holdFor)
 
 bool Sequence::usesRandoms ()
 {
-    return maxRandomGridWidth > 0 && maxRandomGridHeight > 0;
+    return false; // TODO RNG
 }
 
 bool Sequence::usesParticles ()

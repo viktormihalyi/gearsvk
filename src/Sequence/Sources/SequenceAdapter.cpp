@@ -185,9 +185,11 @@ void SequenceAdapter::CreateStimulusAdapterViews ()
 
         if (equivalentAdapter != nullptr) {
             views[stim] = equivalentAdapter;
+            spdlog::warn ("Reusing StimulusAdapter.");
         } else {
             views[stim]   = std::make_unique<StimulusAdapterView> (environment, stim);
             created[stim] = views[stim];
+            spdlog::warn ("Created new StimulusAdapter.");
         }
 
         ++stindex;

@@ -46,7 +46,7 @@ public:
 
     virtual ~Renderer () = default;
 
-    virtual uint32_t GetNextRenderResourceIndex () = 0;
+    virtual uint32_t GetNextRenderResourceIndex () const = 0;
     virtual uint32_t RenderNextFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) = 0;
 
     Window::DrawCallback GetInfiniteDrawCallback (std::function<RenderGraph&()> graphProvider);
@@ -78,7 +78,7 @@ private:
 public:
     BlockingGraphRenderer (const GVK::DeviceExtra& device, GVK::Swapchain& swapchain);
 
-    virtual uint32_t GetNextRenderResourceIndex () override { return 0; }
+    virtual uint32_t GetNextRenderResourceIndex () const override { return 0; }
     uint32_t         RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;
 };
 
@@ -118,7 +118,7 @@ public:
 
     void Wait ();
 
-    virtual uint32_t GetNextRenderResourceIndex () override { return currentResourceIndex; }
+    virtual uint32_t GetNextRenderResourceIndex () const override { return currentResourceIndex; }
     uint32_t         GetFramesInFlight () { return framesInFlight; }
 
     uint32_t         RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& observer = noOpFrameDisplayObserver) override;

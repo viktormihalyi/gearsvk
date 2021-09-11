@@ -93,6 +93,10 @@ public:
 
     virtual ~ComputeOperation () override = default;
 
+    uint32_t GetWorkGroupSizeX () const { return groupCountX; }
+    uint32_t GetWorkGroupSizeY () const { return groupCountY; }
+    uint32_t GetWorkGroupSizeZ () const { return groupCountZ; }
+
     virtual void Compile (const GraphSettings&) override;
     virtual void CompileWithExtent (const GraphSettings&, uint32_t width, uint32_t height) override;
 

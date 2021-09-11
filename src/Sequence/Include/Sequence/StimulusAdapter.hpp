@@ -47,9 +47,9 @@ public:
 
 class SEQUENCE_API StimulusAdapter : public Noncopyable {
 private:
-    const RG::VulkanEnvironment&           environment;
+    const RG::VulkanEnvironment& environment;
 
-    const std::shared_ptr<Stimulus const>   stimulus;
+    const std::shared_ptr<Stimulus const>  stimulus;
     const std::shared_ptr<RG::Presentable> presentable;
 
     std::shared_ptr<RG::RenderGraph>                                renderGraph;
@@ -57,22 +57,20 @@ private:
     std::map<std::shared_ptr<Pass>, std::shared_ptr<RG::Operation>> passToOperation;
     std::shared_ptr<RG::Operation>                                  randomGeneratorOperation;
 
-    std::shared_ptr<RG::WritableImageResource> randomTexture;
-
 public:
     StimulusAdapter (const RG::VulkanEnvironment& environment, std::shared_ptr<RG::Presentable>& presentable, const std::shared_ptr<Stimulus const>& stimulus);
 
-    void RenderFrameIndex (RG::Renderer&                     renderer,
+    void RenderFrameIndex (RG::Renderer&                          renderer,
                            const std::shared_ptr<Stimulus const>& stimulus,
                            const uint32_t                         frameIndex,
-                           RG::IFrameDisplayObserver&        frameDisplayObserver,
+                           RG::IFrameDisplayObserver&             frameDisplayObserver,
                            IRandomExporter&                       randomExporter);
 
     void Wait ();
 
 private:
     void SetConstantUniforms ();
-    void SetUniforms (const GVK::UUID& renderOperationId, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t frameIndex);
+    void SetUniforms (const GVK::UUID& renderOperationId, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t resourceIndex, const uint32_t frameIndex);
 };
 
 

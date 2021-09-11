@@ -13,7 +13,8 @@ class ColorRandomGrid(Component) :
             uniform usampler2D randoms;
             uniform vec2 cellSize;
 		    vec3 shape(vec2 x){ 
-                vec3 v = vec3(texelFetch(randoms, ivec2( (x + patternSizeOnRetina*0.5) / cellSize), 0).xyz) / 0xffffffff;
+                ivec2 iv = ivec2( (x + patternSizeOnRetina*0.5) / cellSize), 0);
+                vec3 v = vec3(randoms[randoms_layerIndex][iv.y][iv.x].xyz) / 0xffffffff;
                 return v;
             }
         '''  )

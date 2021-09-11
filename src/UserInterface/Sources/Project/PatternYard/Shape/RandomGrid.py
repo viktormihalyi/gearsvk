@@ -12,7 +12,8 @@ class RandomGrid(Component) :
             uniform usampler2D randoms;
             uniform vec2 cellSize;
 		    vec3 shape(vec2 x){ 
-                if(texelFetch(randoms, ivec2( (x + patternSizeOnRetina*0.5 ) / cellSize ) , 0).x >> 31u == 0u)
+                ivec2 iv = ivec2 ((x + patternSizeOnRetina*0.5 ) / cellSize ) , 0);
+                if(randoms[randoms_layerIndex][iv.y][iv.x].x >> 31u == 0u)
         		    return vec3(0, 0, 0);
 	            else
 		            return vec3(1, 1, 1);

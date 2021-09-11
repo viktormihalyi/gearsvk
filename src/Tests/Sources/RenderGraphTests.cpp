@@ -947,7 +947,7 @@ void main()
 }
     )";
 
-    std::shared_ptr<RG::ComputeOperation> randomGenerator = std::make_unique<RG::ComputeOperation> (4, 4, 1);
+    std::shared_ptr<RG::ComputeOperation> randomGenerator  = std::make_unique<RG::ComputeOperation> (4, 4, 1);
     randomGenerator->compileSettings.computeShaderPipeline = std::make_unique<RG::ComputeShaderPipeline> (GetDevice (), compSrc);
 
     RG::ConnectionSet connectionSet;

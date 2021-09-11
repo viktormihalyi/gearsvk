@@ -43,7 +43,7 @@ class ShiftingBarcode(SingleShape) :
                     color=color2,
                     ),
                 prng =  Prng.LCG(
-                    # TODO randomSeed = randomSeed,
+                    randomSeed = randomSeed,
                     randomGridSize = randomGridSize,
                     ),
                 spatialFilter = spatialFilter,

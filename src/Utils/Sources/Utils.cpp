@@ -67,13 +67,13 @@ std::string ReplaceAll (const std::string& str, const std::string& substringToRe
 
     std::string result;
 
-    for (const std::string& s : split) {
-        if (s == substringToReplace) {
+    for (size_t i = 0; i < split.size (); ++i) {
+        result += split[i];
+        if (i != split.size () - 1) {
             result += replacementSubstring ();
-        } else {
-            result += s;
         }
     }
+
 
     return result;
 }

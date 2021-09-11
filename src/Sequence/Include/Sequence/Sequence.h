@@ -94,14 +94,6 @@ public:
     bool useOpenCL         = false;
     bool useHighFreqRender = false;
 
-    // random generation
-    uint32_t maxRandomGridWidth;        //<	Number of cells per row in 2D random grid array for random number generation.
-    uint32_t maxRandomGridHeight;       //<	Number of cells per column in of 2D random grid array for random number generation.
-    bool exportRandomsWithHashmark; //< Use Python-style comments when exporting random numbers.
-    uint32_t exportRandomsChannelCount; //<	How many randoms to export per cell of 2D random grid array.
-    bool exportRandomsAsReal;       //<	If true, export random numbers as floating point numbers, mapped to [0, 1]. If false, and exportRandomsAsBinary is also false, export them as integers.
-    bool exportRandomsAsBinary;     //< If true, export random numbers as 0 or 1. If false, and exportRandomsAsReal is also false, export them as integers.
-
     uint32_t maxParticleGridWidth;  //<	Number of cells per row in 2D random grid array for random number generation.
     uint32_t maxParticleGridHeight; //<	Number of cells per column in of 2D random grid array for random number generation.
 

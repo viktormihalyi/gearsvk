@@ -9,6 +9,7 @@
 #include "Utils/CommandLineFlag.hpp"
 #include "Utils/Assert.hpp"
 #include "Utils/FileSystemUtils.hpp"
+#include "Utils/Utils.hpp"
 
 // from VulkanWrapper
 #include "VulkanWrapper/GraphicsPipeline.hpp"
@@ -38,8 +39,8 @@
 #include <iostream>
 
 
-constexpr bool LogDebugInfo = false;
-constexpr bool LogUniformDebugInfo = false;
+constexpr bool LogDebugInfo = true;
+constexpr bool LogUniformDebugInfo = true;
 
 
 StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environment,
@@ -110,65 +111,63 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
         passToOperation[pass] = passOperation;
     }
 
-    std::optional<uint32_t> randomBinding;
-
     RG::ImageMap imgMap = RG::CreateEmptyImageResources (s.connectionSet, [&] (const SR::Sampler& sampler) -> std::optional<RG::CreateParams> {
         if (sampler.name == "gamma") {
             return std::make_tuple (glm::uvec3 { 256, 0, 0 }, VK_FORMAT_R32_SFLOAT, VK_FILTER_NEAREST);
         }
 
-        if (sampler.name == "randoms") {
-            randomBinding = sampler.binding;
-            return std::nullopt;
-        }
-
         return std::nullopt;
     });
 
-    // TODO 0 means viewport size
-    if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0 && randomBinding.has_value ()) {
-        randomTexture = std::make_unique<RG::WritableImageResource> (
-            VK_FILTER_NEAREST,
-            stimulus->sequence->maxRandomGridWidth,
-            stimulus->sequence->maxRandomGridHeight,
-            1,
-            VK_FORMAT_R32G32B32A32_UINT);
+    std::shared_ptr<RG::ComputeOperation> rngGen;
+    if (!stimulus->rngCompute_shaderSource.empty ()) {
 
-        randomTexture->SetName ("RandomTexture");
-        randomTexture->SetDebugInfo ("Made by StimulusAdapter.");
+        const std::string preProcessedShaderSource = Utils::ReplaceAll (stimulus->rngCompute_shaderSource, "FRAMESINFLIGHT", [&] () -> std::string {
+            return std::to_string (stimulus->rngCompute_multiLayer ? s.framesInFlight : 1);
+        });
 
-        std::unique_ptr<RG::ShaderPipeline> randoSeqPipeline = std::make_unique<RG::ShaderPipeline> (*environment.device);
-        randoSeqPipeline->SetVertexShaderFromString (*Utils::ReadTextFile (std::filesystem::current_path () / "Project" / "Shaders" / "quad.vert"));
-        randoSeqPipeline->SetFragmentShaderFromString (stimulus->getRandomGeneratorShaderSource ());
+        rngGen = std::make_shared<RG::ComputeOperation> (stimulus->rngCompute_workGroupSizeX, stimulus->rngCompute_workGroupSizeY, 1);
+        rngGen->SetName ("RNG_Compute");
 
-        randomGeneratorOperation = std::make_unique<RG::RenderOperation> (std::make_unique<RG::DrawRecordableInfo> (1, 4), std::move (randoSeqPipeline), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        rngGen->compileSettings.computeShaderPipeline = std::make_unique<RG::ComputeShaderPipeline> (*environment.device, preProcessedShaderSource);
 
-        std::static_pointer_cast<RG::RenderOperation> (randomGeneratorOperation)->compileSettings.blendEnabled = false;
+        auto randomBufferCreator = [&] (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject) -> std::shared_ptr<RG::InputBufferBindableResource> {
+            if (bufferObject->name == "OutputBuffer")
+                return std::make_unique<RG::GPUBufferResource> (bufferObject->GetFullSize ());
 
-        auto& aTable2 = std::dynamic_pointer_cast<RG::RenderOperation> (randomGeneratorOperation)->compileSettings.attachmentProvider;
-        aTable2->table.push_back ({ "nextElement", GVK::ShaderKind::Fragment, { randomTexture->GetFormatProvider (), VK_ATTACHMENT_LOAD_OP_CLEAR, randomTexture->GetImageViewForFrameProvider (), randomTexture->GetInitialLayout (), randomTexture->GetFinalLayout () } });
+            return nullptr;
+        };
 
-        s.connectionSet.Add (randomGeneratorOperation, randomTexture);
+        s.connectionSet.Add (rngGen);
 
-        GVK_ASSERT (randomBinding.has_value ());
-        s.connectionSet.Add (randomTexture, passToOperation[passes[0]]);
-        auto& table = std::dynamic_pointer_cast<RG::RenderOperation> (passToOperation[passes[0]])->compileSettings.descriptorWriteProvider;
-        table->imageInfos.push_back ({ "randoms", GVK::ShaderKind::Fragment, randomTexture->GetSamplerProvider (), randomTexture->GetImageViewForFrameProvider (), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+        RG::UniformReflection refl (s.connectionSet, randomBufferCreator);
+
+        auto outputBuffer = s.connectionSet.GetByName<RG::GPUBufferResource> ("OutputBuffer");
+        GVK_ASSERT (outputBuffer != nullptr);
+        
+        s.connectionSet.Add (rngGen, outputBuffer);
+
+        auto rngUserOperation = passToOperation[passes[0]];
+        s.connectionSet.Add (outputBuffer, rngUserOperation);
+        
+        auto& table = std::dynamic_pointer_cast<RG::RenderOperation> (rngUserOperation)->compileSettings.descriptorWriteProvider;
+        table->bufferInfos.push_back ({ "RandomBuffer", GVK::ShaderKind::Fragment, outputBuffer->GetBufferForFrameProvider (), 0, outputBuffer->GetBufferSize () });
+    
     }
 
-
     std::shared_ptr<RG::ReadOnlyImageResource> gammaTexture = imgMap.FindByName ("gamma");
-    GVK_ASSERT (gammaTexture != nullptr);
 
-    // this is a one time compile resource, which doesnt use framesinflight attrib
-    gammaTexture->Compile (RG::GraphSettings (*environment.deviceExtra, 0));
+    if (GVK_VERIFY (gammaTexture != nullptr)) {
+        // this is a one time compile resource, which doesnt use framesinflight attrib
+        gammaTexture->Compile (RG::GraphSettings (*environment.deviceExtra, 0));
 
-    std::vector<float> gammaAndTemporalWeights (256, 0.f);
-    for (int i = 0; i < 101; i++)
-        gammaAndTemporalWeights[i] = stimulus->gamma[i];
-    for (int i = 0; i < 64; i++)
-        gammaAndTemporalWeights[128 + i] = stimulus->temporalWeights[i];
-    gammaTexture->CopyTransitionTransfer (gammaAndTemporalWeights);
+        std::vector<float> gammaAndTemporalWeights (256, 0.f);
+        for (int i = 0; i < 101; i++)
+            gammaAndTemporalWeights[i] = stimulus->gamma[i];
+        for (int i = 0; i < 64; i++)
+            gammaAndTemporalWeights[128 + i] = stimulus->temporalWeights[i];
+        gammaTexture->CopyTransitionTransfer (gammaAndTemporalWeights);
+        }
 
     reflection = std::make_unique<RG::UniformReflection> (s.connectionSet);
 
@@ -188,10 +187,16 @@ void StimulusAdapter::SetConstantUniforms ()
         for (auto& [name, value] : pass->shaderColors)
             (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment]["commonUniformBlock"][name] = static_cast<glm::vec3> (value);
     }
+
+    auto rngComputeOp = renderGraph->GetConnectionSet ().GetByName<RG::ComputeOperation> ("RNG_Compute");
+    if (rngComputeOp != nullptr) {
+        (*reflection)[rngComputeOp][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["seed"] = 7; // TODO RNG
+        (*reflection)[rngComputeOp][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["framesInFlight"] = 0; // TODO RNG
+    }
 }
 
 
-void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t frameIndex)
+void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t resourceIndex, const uint32_t frameIndex)
 {
     auto& vertexShaderUniforms   = (*reflection)[renderOperationId][GVK::ShaderKind::Vertex];
     auto& fragmentShaderUniforms = (*reflection)[renderOperationId][GVK::ShaderKind::Fragment];
@@ -211,14 +216,19 @@ void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std
 
     fragmentShaderUniforms["commonUniformBlock"]["swizzleForFft"] = 0xffffffff;
 
-    if (stimulus->sequence->maxRandomGridWidth > 0 && stimulus->sequence->maxRandomGridHeight > 0) {
-        if (fragmentShaderUniforms.Contains ("randomUniformBlock")) {
-            fragmentShaderUniforms["randomUniformBlock"]["cellSize"] = glm::vec2 (
-                stimulus->sequence->fieldWidth_um / stimulus->randomGridWidth,
-                stimulus->sequence->fieldHeight_um / stimulus->randomGridHeight);
-            fragmentShaderUniforms["randomUniformBlock"]["randomGridSize"] = glm::ivec2 (
-                stimulus->sequence->maxRandomGridWidth,
-                stimulus->sequence->maxRandomGridHeight);
+    if (!stimulus->rngCompute_shaderSource.empty ()) {
+        auto& computeRefl = (*reflection)[renderOperationId][GVK::ShaderKind::Fragment];
+        if (GVK_VERIFY (computeRefl.Contains ("RandomBufferConfig"))) {
+            auto rngComputeOp = renderGraph->GetConnectionSet ().GetByName<RG::ComputeOperation> ("RNG_Compute");
+            GVK_ASSERT (rngComputeOp != nullptr);
+
+            computeRefl["RandomBufferConfig"]["randoms_layerIndex"] = 0; // TODO RNG
+
+            computeRefl["RandomBufferConfig"]["randomGridSize"] = glm::ivec2 (rngComputeOp->GetWorkGroupSizeX (), rngComputeOp->GetWorkGroupSizeX ());
+
+            computeRefl["RandomBufferConfig"]["cellSize"] = glm::vec2 (
+                stimulus->sequence->fieldWidth_um / rngComputeOp->GetWorkGroupSizeX (),
+                stimulus->sequence->fieldHeight_um / rngComputeOp->GetWorkGroupSizeX ());
         }
     }
 
@@ -241,10 +251,10 @@ void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std
 }
 
 
-void StimulusAdapter::RenderFrameIndex (RG::Renderer&                     renderer,
+void StimulusAdapter::RenderFrameIndex (RG::Renderer&                          renderer,
                                         const std::shared_ptr<Stimulus const>& stimulus,
                                         const uint32_t                         frameIndex,
-                                        RG::IFrameDisplayObserver&        frameDisplayObserver,
+                                        RG::IFrameDisplayObserver&             frameDisplayObserver,
                                         IRandomExporter&                       randomExporter)
 {
     const uint32_t stimulusStartingFrame = stimulus->getStartingFrame ();
@@ -257,19 +267,16 @@ void StimulusAdapter::RenderFrameIndex (RG::Renderer&                     render
     GVK::EventObserver obs;
     obs.Observe (renderer.preSubmitEvent, [&] (RG::RenderGraph& graph, uint32_t swapchainImageIndex, uint64_t timeNs) {
         for (auto& [pass, renderOp] : passToOperation) {
-            SetUniforms (renderOp->GetUUID (), stimulus, frameIndex);
+            SetUniforms (renderOp->GetUUID (), stimulus, renderer.GetNextRenderResourceIndex (), frameIndex);
         }
 
-        if (randomGeneratorOperation != nullptr) {
-            auto& fragmentShaderUniforms = (*reflection)[randomGeneratorOperation->GetUUID ()][GVK::ShaderKind::Fragment];
-            if (fragmentShaderUniforms.Contains ("ubo_seed")) {
-                fragmentShaderUniforms["ubo_seed"] = static_cast<uint32_t> (frameIndex);
-            }
-            if (fragmentShaderUniforms.Contains ("ubo_lcg")) {
-                fragmentShaderUniforms["ubo_lcg"]["frameIndex"] = static_cast<uint32_t> (frameIndex);
-                fragmentShaderUniforms["ubo_lcg"]["seed"]       = static_cast<uint32_t> (89236738);
-                fragmentShaderUniforms["ubo_lcg"]["gridSizeX"]  = static_cast<uint32_t> (stimulus->sequence->maxRandomGridWidth);
-                fragmentShaderUniforms["ubo_lcg"]["gridSizeY"]  = static_cast<uint32_t> (stimulus->sequence->maxRandomGridHeight);
+        auto rngComputeOp = renderGraph->GetConnectionSet ().GetByName<RG::ComputeOperation> ("RNG_Compute");
+        if (rngComputeOp != nullptr) {
+            auto& uniforms = (*reflection)[rngComputeOp][GVK::ShaderKind::Compute];
+
+            if (GVK_VERIFY (uniforms.Contains ("RandomGeneratorConfig"))) {
+                uniforms["RandomGeneratorConfig"]["startFrameIndex"]  = static_cast<uint32_t> (frameIndex);
+                uniforms["RandomGeneratorConfig"]["nextElementIndex"] = static_cast<uint32_t> (frameIndex - 1) % renderGraph->graphSettings.framesInFlight;
             }
         }
 
@@ -283,9 +290,5 @@ void StimulusAdapter::RenderFrameIndex (RG::Renderer&                     render
     const uint32_t resFrameIndex = renderer.RenderNextFrame (*renderGraph, frameDisplayObserver);
 
     if (randomExporter.IsEnabled ()) {
-        if (randomTexture != nullptr) {
-            environment.Wait ();
-            randomExporter.OnRandomTextureDrawn (*randomTexture, resFrameIndex, frameIndex);
-        }
     }
 }
