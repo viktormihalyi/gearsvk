@@ -11,6 +11,8 @@ namespace RG {
 
 class DescriptorBindableBuffer {
 public:
+    virtual ~DescriptorBindableBuffer () = default;
+
     virtual VkBuffer GetBufferForFrame (uint32_t frameIndex) = 0;
     
     std::function<VkBuffer (uint32_t)> GetBufferForFrameProvider ()
@@ -25,6 +27,8 @@ public:
 
 class DescriptorBindableImage {
 public:
+    virtual ~DescriptorBindableImage () = default;
+
     virtual VkImageView GetImageViewForFrame (uint32_t resourceIndex, uint32_t layerIndex) = 0;
     virtual VkSampler   GetSampler ()                                                   = 0;
 
