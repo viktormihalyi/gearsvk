@@ -46,7 +46,7 @@ void UniformReflection::CreateGraphResources (const RG::ConnectionSet& connectio
     // GVK_ASSERT (!graph.operations.empty ());
 
     const auto CreateBufferObjectResource = [&] (const std::shared_ptr<RG::Operation>& op, const GVK::ShaderModule& shaderModule, const std::shared_ptr<SR::BufferObject>& bufferObject, BufferObjectSelector& bufferObjectsel) {
-        std::shared_ptr<RG::InputBufferBindableResource> bufferObjectRes = resourceCreator (op, shaderModule, bufferObject);
+        std::shared_ptr<RG::DescriptorBindableBufferResource> bufferObjectRes = resourceCreator (op, shaderModule, bufferObject);
 
         if (bufferObjectRes == nullptr)
             return;

@@ -1,5 +1,5 @@
-#ifndef INPUTBINDABLE_HPPc
-#define INPUTBINDABLE_HPPc
+#ifndef RENDERGRAPH_DESCRIPTORBINDABLE_HPP
+#define RENDERGRAPH_DESCRIPTORBINDABLE_HPP
 
 #include <cstdint>
 #include <functional>

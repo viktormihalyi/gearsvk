@@ -953,7 +953,7 @@ void main()
     RG::ConnectionSet connectionSet;
     connectionSet.Add (randomGenerator);
 
-    auto creator = [&] (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject) -> std::shared_ptr<RG::InputBufferBindableResource> {
+    auto creator = [&] (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject) -> std::shared_ptr<RG::DescriptorBindableBufferResource> {
         if (bufferObject->name == "OutputBuffer")
             return std::make_unique<RG::GPUBufferResource> (bufferObject->GetFullSize ());
       

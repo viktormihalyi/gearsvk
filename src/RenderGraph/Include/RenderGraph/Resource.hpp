@@ -56,9 +56,9 @@ public:
 };
 
 
-class GVK_RENDERER_API InputBufferBindableResource : public Resource, public InputBufferBindable {
+class GVK_RENDERER_API DescriptorBindableBufferResource : public Resource, public DescriptorBindableBuffer {
 public:
-    virtual ~InputBufferBindableResource () = default;
+    virtual ~DescriptorBindableBufferResource () = default;
 };
 
 
@@ -95,7 +95,7 @@ public:
 };
 
 
-class GVK_RENDERER_API WritableImageResource : public ImageResource, public InputImageBindable {
+class GVK_RENDERER_API WritableImageResource : public ImageResource, public DescriptorBindableImage {
 protected:
     class GVK_RENDERER_API SingleImageResource final {
     public:
@@ -142,7 +142,7 @@ public:
 
     virtual std::vector<GVK::Image*> GetImages (uint32_t resourceIndex) const override;
 
-    // overriding InputImageBindable
+    // overriding DescriptorBindableImage
     virtual VkImageView GetImageViewForFrame (uint32_t resourceIndex, uint32_t layerIndex) override;
     virtual VkSampler   GetSampler () override;
 };
@@ -165,7 +165,7 @@ public:
 };
 
 
-class GVK_RENDERER_API GPUBufferResource : public InputBufferBindableResource {
+class GVK_RENDERER_API GPUBufferResource : public DescriptorBindableBufferResource {
 public:
     uint32_t size;
     
@@ -178,7 +178,7 @@ public:
 
     virtual void Compile (const GraphSettings& settings) override;
 
-    // overriding InputImageBindable
+    // overriding DescriptorBindableImage
     virtual VkBuffer GetBufferForFrame (uint32_t) override;
 
     virtual uint32_t GetBufferSize () override;
@@ -189,7 +189,7 @@ public:
 };
 
 
-class GVK_RENDERER_API ReadOnlyImageResource : public OneTimeCompileResource, public InputImageBindable {
+class GVK_RENDERER_API ReadOnlyImageResource : public OneTimeCompileResource, public DescriptorBindableImage {
 public:
     std::unique_ptr<GVK::ImageTransferable> image;
     std::unique_ptr<GVK::ImageViewBase>     imageView;
@@ -222,7 +222,7 @@ public:
 
     virtual std::vector<GVK::Image*> GetImages (uint32_t) const override;
 
-    // overriding InputImageBindable
+    // overriding DescriptorBindableImage
     virtual VkImageView GetImageViewForFrame (uint32_t, uint32_t) override;
     virtual VkSampler   GetSampler () override;
 
@@ -240,7 +240,7 @@ public:
 };
 
 
-class GVK_RENDERER_API SwapchainImageResource : public ImageResource, public InputImageBindable {
+class GVK_RENDERER_API SwapchainImageResource : public ImageResource, public DescriptorBindableImage {
 public:
     std::vector<std::unique_ptr<GVK::ImageView2D>>    imageViews;
     GVK::SwapchainProvider&                           swapchainProv;
@@ -264,13 +264,13 @@ public:
 
     virtual std::vector<GVK::Image*> GetImages (uint32_t resourceIndex) const override;
 
-    // overriding InputImageBindable
+    // overriding DescriptorBindableImage
     virtual VkImageView GetImageViewForFrame (uint32_t resourceIndex, uint32_t) override;
     virtual VkSampler   GetSampler () override;
 };
 
 
-class GVK_RENDERER_API CPUBufferResource : public InputBufferBindableResource {
+class GVK_RENDERER_API CPUBufferResource : public DescriptorBindableBufferResource {
 public:
     const uint32_t                                   size;
     std::vector<std::unique_ptr<GVK::Buffer>>        buffers;
@@ -285,7 +285,7 @@ public:
     // overriding Resource
     virtual void Compile (const GraphSettings& graphSettings) override;
 
-    // overriding InputBufferBindable
+    // overriding DescriptorBindableBuffer
     virtual VkBuffer GetBufferForFrame (uint32_t resourceIndex) override;
     virtual uint32_t GetBufferSize () override;
 

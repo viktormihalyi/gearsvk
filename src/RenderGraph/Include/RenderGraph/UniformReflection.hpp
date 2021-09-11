@@ -82,14 +82,14 @@ private:
 
 public:
 
-    using ResourceCreator = std::function<std::shared_ptr<RG::InputBufferBindableResource> (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>&)>;
+    using ResourceCreator = std::function<std::shared_ptr<RG::DescriptorBindableBufferResource> (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>&)>;
 
-    static std::shared_ptr<RG::InputBufferBindableResource> DefaultResourceCreator (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject)
+    static std::shared_ptr<RG::DescriptorBindableBufferResource> DefaultResourceCreator (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject)
     {
         return std::make_unique<RG::CPUBufferResource> (bufferObject->GetFullSize ());
     }
 
-    static std::shared_ptr<RG::InputBufferBindableResource> GPUBufferResourceCreator (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject)
+    static std::shared_ptr<RG::DescriptorBindableBufferResource> GPUBufferResourceCreator (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject)
     {
         return std::make_unique<RG::GPUBufferResource> (bufferObject->GetFullSize ());
     }
@@ -110,9 +110,9 @@ public:
 private:
 
     // for transfering data between the two member functions
-    std::vector<std::shared_ptr<RG::InputBufferBindableResource>> bufferObjectResources;
+    std::vector<std::shared_ptr<RG::DescriptorBindableBufferResource>> bufferObjectResources;
 
-    using BufferObjectConnection = std::tuple<std::shared_ptr<RG::Operation>, std::shared_ptr<SR::BufferObject>, std::shared_ptr<RG::InputBufferBindableResource>, GVK::ShaderKind>;
+    using BufferObjectConnection = std::tuple<std::shared_ptr<RG::Operation>, std::shared_ptr<SR::BufferObject>, std::shared_ptr<RG::DescriptorBindableBufferResource>, GVK::ShaderKind>;
     std::vector<BufferObjectConnection> bufferObjectConnections;
 
     std::unordered_map<GVK::UUID, std::shared_ptr<SR::IBufferData>> udatas;

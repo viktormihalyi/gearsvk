@@ -8,7 +8,7 @@ set (Headers
 
     ${HeadersPath}/GraphRenderer.hpp
     ${HeadersPath}/GraphSettings.hpp
-    ${HeadersPath}/InputBindable.hpp
+    ${HeadersPath}/DescriptorBindable.hpp
     ${HeadersPath}/Node.hpp
     ${HeadersPath}/Operation.hpp
     ${HeadersPath}/RenderGraph.hpp

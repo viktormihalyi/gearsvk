@@ -39,8 +39,8 @@
 #include <iostream>
 
 
-constexpr bool LogDebugInfo = true;
-constexpr bool LogUniformDebugInfo = true;
+constexpr bool LogDebugInfo = false;
+constexpr bool LogUniformDebugInfo = false;
 
 
 StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environment,
@@ -131,7 +131,7 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
 
         rngGen->compileSettings.computeShaderPipeline = std::make_unique<RG::ComputeShaderPipeline> (*environment.device, preProcessedShaderSource);
 
-        auto randomBufferCreator = [&] (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject) -> std::shared_ptr<RG::InputBufferBindableResource> {
+        auto randomBufferCreator = [&] (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject) -> std::shared_ptr<RG::DescriptorBindableBufferResource> {
             if (bufferObject->name == "OutputBuffer")
                 return std::make_unique<RG::GPUBufferResource> (bufferObject->GetFullSize ());
 
