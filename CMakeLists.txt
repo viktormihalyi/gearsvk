@@ -24,6 +24,10 @@ endif ()
 
 # ========== CONAN ==========
 
+# FindPython takes ages on Windows after including all those conan folders
+# this is a workaround by calling it earlier
+find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
+
 if (UNIX)
 set (WHICH_COMMAND which)
 else ()
