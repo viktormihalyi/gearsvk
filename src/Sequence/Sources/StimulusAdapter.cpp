@@ -300,5 +300,10 @@ void StimulusAdapter::RenderFrameIndex (RG::Renderer&                          r
     const uint32_t resFrameIndex = renderer.RenderNextFrame (*renderGraph, frameDisplayObserver);
 
     if (randomExporter.IsEnabled ()) {
+        std::shared_ptr<RG::GPUBufferResource> outputBuffer = renderGraph->GetConnectionSet ().GetByName<RG::GPUBufferResource> ("OutputBuffer");
+        if (outputBuffer != nullptr) {
+            environment.Wait ();
+            randomExporter.OnRandomTextureDrawn (*outputBuffer, resFrameIndex, frameIndex);
+        }
     }
 }

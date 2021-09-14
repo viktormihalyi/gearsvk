@@ -49,8 +49,8 @@ public:
 
 GVK_RENDERER_API
 void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
-                        VkDebugUtilsMessageTypeFlagsEXT,
-                        const VkDebugUtilsMessengerCallbackDataEXT* callbackData);
+                           VkDebugUtilsMessageTypeFlagsEXT,
+                           const VkDebugUtilsMessengerCallbackDataEXT*);
 
 class GVK_RENDERER_API VulkanEnvironment {
 public:

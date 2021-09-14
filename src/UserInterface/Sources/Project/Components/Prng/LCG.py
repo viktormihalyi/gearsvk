@@ -14,6 +14,9 @@ class LCG(Component):
         stimulus.rngCompute_shaderSource = f"""
 #version 450
 #extension GL_EXT_shader_explicit_arithmetic_types : enable
+#extension GL_EXT_debug_printf : enable
+
+layout(local_size_x = 1, local_size_y = 1) in;
 
 layout (binding = 6) uniform RandomGeneratorConfig {{
     uint seed;
@@ -24,7 +27,7 @@ layout (binding = 6) uniform RandomGeneratorConfig {{
 }};
 
 layout (binding = 7) buffer OutputBuffer {{
-    uvec4 randomsBuffer[{stimulus.rngCompute_workGroupSizeY}][{stimulus.rngCompute_workGroupSizeX}][FRAMESINFLIGHT];
+    uvec4 randomsBuffer[1][{stimulus.rngCompute_workGroupSizeY}][{stimulus.rngCompute_workGroupSizeX}];
 }};
 
 uint64_t Forrest_C (const uint64_t k, const uint64_t seed, const uint64_t g, const uint64_t c, const uint64_t m)
@@ -48,11 +51,14 @@ uint64_t Forrest_C (const uint64_t k, const uint64_t seed, const uint64_t g, con
 
 void main ()
 {{
-    uint gridWidth  = gl_WorkGroupSize.x;
-    uint gridHeight = gl_WorkGroupSize.y;
-    
+    uint gridWidth  = gl_NumWorkGroups.x;
+    uint gridHeight = gl_NumWorkGroups.y;
+
+    // IGY JO SORREND const uint64_t frameOffset = gridWidth * gridHeight * 4 * startFrameIndex;
+    // IGY JO SORREND const uint64_t pxOffset = uint (gl_GlobalInvocationID.y * gridWidth + gl_GlobalInvocationID.x) * 4;
+
     const uint64_t frameOffset = gridWidth * gridHeight * 4 * startFrameIndex;
-    const uint64_t pxOffset = uint (gl_GlobalInvocationID.y * gridWidth * gridHeight + gl_GlobalInvocationID.x * gridHeight) * 4;
+    const uint64_t pxOffset = uint (gl_GlobalInvocationID.y * gridWidth + gl_GlobalInvocationID.x) * 4;
     
     const float perc1 = float (Forrest_C (frameOffset + pxOffset + 0, seed, 48271, 0, 2147483647)) / float (2147483647);
     const float perc2 = float (Forrest_C (frameOffset + pxOffset + 1, seed, 48271, 0, 2147483647)) / float (2147483647);
@@ -60,7 +66,13 @@ void main ()
     const float perc4 = float (Forrest_C (frameOffset + pxOffset + 3, seed, 48271, 0, 2147483647)) / float (2147483647);
     
     uvec4 nextElement = uvec4 (perc1 * uint (-1), perc2 * uint (-1), perc3 * uint (-1), perc4 * uint (-1));
-    
+    nextElement = uvec4 (
+        uint (Forrest_C (frameOffset + pxOffset + 0, seed, 48271, 0, 4294967295)),
+        uint (Forrest_C (frameOffset + pxOffset + 1, seed, 48271, 0, 4294967295)),
+        uint (Forrest_C (frameOffset + pxOffset + 2, seed, 48271, 0, 4294967295)),
+        uint (Forrest_C (frameOffset + pxOffset + 3, seed, 48271, 0, 4294967295))
+    );
+
     randomsBuffer[0][gl_GlobalInvocationID.y][gl_GlobalInvocationID.x] = nextElement;
 
     //const uint perc1 = uint(frameOffset) + uint(pxOffset) + 0;

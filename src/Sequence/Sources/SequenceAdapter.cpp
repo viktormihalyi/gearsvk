@@ -40,31 +40,37 @@ private:
 
     std::vector<uint32_t> values;
     std::vector<uint32_t> histogram;
+    bool                  exported;
 
 public:
     RandomExporter (GVK::DeviceExtra& device, size_t randomValueLimit, size_t histogramBins)
         : device { device }
         , randomValueLimit { randomValueLimit }
         , histogramBins { histogramBins }
+        , exported { false }
     {
         values.reserve (randomValueLimit);
         histogram.resize (histogramBins, 0);
     }
 
-    virtual ~RandomExporter () override = default;
+    virtual ~RandomExporter () override
+    {
+        if (!exported)
+            Export ();
+    }
 
     virtual bool IsEnabled () override
     {
         return values.size () < randomValueLimit;
     }
 
-    virtual void OnRandomTextureDrawn (RG::ImageResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) override
+    virtual void OnRandomTextureDrawn (RG::GPUBufferResource& randomsBuffer, uint32_t resourceIndex, uint32_t frameIndex) override
     {
-        GVK::ImageData randomImage (device, *randomTexture.GetImages (resourceIndex)[0], 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        randomsBuffer.TransferFromGPUToCPU (resourceIndex);
 
         std::vector<uint32_t> as32BitUint;
-        as32BitUint.resize (randomImage.width * randomImage.height * randomImage.componentByteSize / 4);
-        memcpy (as32BitUint.data (), randomImage.data.data (), as32BitUint.size () * sizeof (uint32_t));
+        as32BitUint.resize (randomsBuffer.GetBufferSize () / sizeof (uint32_t));
+        memcpy (as32BitUint.data (), randomsBuffer.buffers[resourceIndex]->bufferCPUMapping.Get (), randomsBuffer.GetBufferSize ());
 
         const int64_t overshoot = values.size () + as32BitUint.size () - randomValueLimit;
         if (overshoot > 0) {
@@ -85,12 +91,17 @@ public:
 
     void Export ()
     {
-        spdlog::info ("Exporting randoms...");
+        GVK_ASSERT (!exported);
+
+        spdlog::warn ("Exporting randoms...");
 
         const std::filesystem::path dir = std::filesystem::temp_directory_path () / "GearsVk" / "RandomExport";
 
         {
             const std::filesystem::path valuesFilePath = dir / "values.txt";
+            
+            spdlog::warn ("Exporting values to {} ...", valuesFilePath.string ());
+            
             Utils::EnsureParentFolderExists (valuesFilePath);
             std::ofstream valuesFile { valuesFilePath.string (), std::fstream::out };
             if (GVK_VERIFY (valuesFile.is_open ())) {
@@ -101,7 +112,12 @@ public:
         }
 
         {
-            std::ofstream histogramFile { (dir / "histogram.txt").string (), std::fstream::out };
+            const std::filesystem::path histogramFilePath = dir / "histogram.txt";
+
+            std::ofstream histogramFile { histogramFilePath.string (), std::fstream::out };
+            
+            spdlog::warn ("Exporting histogram to {} ...", histogramFilePath.string ());
+            
             if (GVK_VERIFY (histogramFile.is_open ())) {
                 for (size_t i = 0; i < histogram.size (); ++i) {
                     histogramFile << i << " " << histogram[i] << std::endl;
@@ -109,7 +125,9 @@ public:
             }
         }
 
-        spdlog::info ("Exporting randoms... Done!");
+        exported = true;
+
+        spdlog::warn ("Exporting randoms... Done!");
     }
 };
 
@@ -118,7 +136,7 @@ class NoRandomExporter : public IRandomExporter {
 public:
     virtual ~NoRandomExporter () override = default;
     virtual bool IsEnabled () override { return false; }
-    virtual void OnRandomTextureDrawn (RG::ImageResource&, uint32_t, uint32_t) override {}
+    virtual void OnRandomTextureDrawn (RG::GPUBufferResource&, uint32_t, uint32_t) override {}
 };
 
 
@@ -185,11 +203,9 @@ void SequenceAdapter::CreateStimulusAdapterViews ()
 
         if (equivalentAdapter != nullptr) {
             views[stim] = equivalentAdapter;
-            spdlog::warn ("Reusing StimulusAdapter.");
         } else {
             views[stim]   = std::make_unique<StimulusAdapterView> (environment, stim);
             created[stim] = views[stim];
-            spdlog::warn ("Created new StimulusAdapter.");
         }
 
         ++stindex;

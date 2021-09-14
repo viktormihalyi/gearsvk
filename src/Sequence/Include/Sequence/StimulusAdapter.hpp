@@ -29,8 +29,7 @@ class UniformReflection;
 class Operation;
 class SynchronizedSwapchainGraphRenderer;
 class Renderer;
-class ImageResource;
-class WritableImageResource;
+class GPUBufferResource;
 class IFrameDisplayObserver;
 class VulkanEnvironment;
 } // namespace RG
@@ -41,7 +40,7 @@ public:
     virtual ~IRandomExporter () = default;
 
     virtual bool IsEnabled () = 0;
-    virtual void OnRandomTextureDrawn (RG::ImageResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) = 0;
+    virtual void OnRandomTextureDrawn (RG::GPUBufferResource& randomTexture, uint32_t resourceIndex, uint32_t frameIndex) = 0;
 };
 
 

@@ -597,8 +597,6 @@ bool Stimulus::doesErfToneMapping () const
 
 bool Stimulus::IsEquivalent (const Stimulus& other) const
 {
-    return false; // TODO RNG
-
     if (passes.size () != other.passes.size ()) {
         return false;
     }

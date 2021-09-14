@@ -181,11 +181,11 @@ uint32_t SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderG
     frameDisplayObserver.OnPresentStarted (currentResourceIndex);
     graph.Present (currentImageIndex, swapchain, presentWaitSemaphores);
 
-    const uint32_t usedFrameIndex = currentResourceIndex;
+    const uint32_t usedResourceIndex = currentResourceIndex;
 
-    currentResourceIndex= (currentResourceIndex+ 1) % framesInFlight;
+    currentResourceIndex = (currentResourceIndex + 1) % framesInFlight;
 
-    return usedFrameIndex;
+    return usedResourceIndex;
 }
 
 

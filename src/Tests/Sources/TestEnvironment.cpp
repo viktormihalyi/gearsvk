@@ -6,6 +6,8 @@
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
 
+#include <optional>
+
 
 const std::filesystem::path ReferenceImagesFolder = std::filesystem::current_path () / "TestData" / "ReferenceImages";
 const std::filesystem::path TempFolder            = std::filesystem::current_path () / "temp";
@@ -48,7 +50,7 @@ void testDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSever
 {
     RG::defaultDebugCallback (messageSeverity, messageType, callbackData);
 
-    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
         EXPECT_TRUE (false);
     }
 }
@@ -116,27 +118,36 @@ void TestEnvironmentBase::CompareImages (const std::string& imageName, const GVK
 
 void TestEnvironmentBase::CompareImages (const std::string& name, const GVK::ImageData& actualImage)
 {
-    GVK_ASSERT (std::filesystem::exists (ReferenceImagesFolder / (name + ".png")));
+    std::optional<GVK::ImageData> referenceImage;
+    if (std::filesystem::exists (ReferenceImagesFolder / (name + ".png")))
+        referenceImage.emplace (ReferenceImagesFolder / (name + ".png"));
 
-    const GVK::ImageData referenceImage (ReferenceImagesFolder / (name + ".png"));
+    std::optional<GVK::ImageData::ComparisonResult> comparison;
+    if (referenceImage.has_value ())
+        comparison = referenceImage->CompareTo (actualImage);
 
-    const GVK::ImageData::ComparisonResult comparison = referenceImage.CompareTo (actualImage);
+    EXPECT_TRUE (comparison.has_value ());
+    if (comparison.has_value ())
+        EXPECT_TRUE (comparison->equal);
 
-    EXPECT_TRUE (comparison.equal);
+    if (!comparison.has_value () || !comparison->equal) {
 
-    if (!comparison.equal) {
-        const std::filesystem::path outPathRef = TempFolder / (name + "_Reference.png");
-        std::cout << "Saving " << outPathRef.string () << "..." << std::endl;
-        referenceImage.SaveTo (outPathRef);
+        if (referenceImage.has_value ()) {
+            const std::filesystem::path outPathRef = TempFolder / (name + "_Reference.png");
+            std::cout << "Saving " << outPathRef.string () << "..." << std::endl;
+            referenceImage->SaveTo (outPathRef);
+        }
 
         const std::filesystem::path outPath = TempFolder / (name + "_Actual.png");
         std::cout << "Saving " << outPath.string () << "..." << std::endl;
         actualImage.SaveTo (outPath);
 
-        if (GVK_VERIFY (comparison.diffImage != nullptr)) {
-            const std::filesystem::path outPathDiff = TempFolder / (name + "_Diff.png");
-            std::cout << "Saving " << outPathDiff.string () << "..." << std::endl;
-            comparison.diffImage->SaveTo (outPathDiff);
+        if (comparison.has_value ()) {
+            if (GVK_VERIFY (comparison->diffImage != nullptr)) {
+                const std::filesystem::path outPathDiff = TempFolder / (name + "_Diff.png");
+                std::cout << "Saving " << outPathDiff.string () << "..." << std::endl;
+                comparison->diffImage->SaveTo (outPathDiff);
+            }
         }
     }
 }

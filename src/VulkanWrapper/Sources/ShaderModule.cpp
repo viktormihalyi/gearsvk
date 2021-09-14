@@ -19,14 +19,14 @@
 // from spdlog
 #include "spdlog/spdlog.h"
 
-
+#if 0
 static Utils::CommandLineOnOffFlag disableShaderCacheFlag ("--disableShaderCache");
-
+#endif
 
 namespace GVK {
 
 
-class ShaderKindAdapter final {
+class ShaderKindDescriptor final {
 public:
     const char*           extension;
     VkShaderStageFlagBits vkflag;
@@ -35,27 +35,27 @@ public:
     const char*           displayName;
 
 private:
-    ShaderKindAdapter (const char*           extension,
+    ShaderKindDescriptor (const char*           extension,
                        VkShaderStageFlagBits vkflag,
                        ShaderKind            shaderKind,
                        EShLanguage           esh,
                        const char*           displayName);
 
 public:
-    static const ShaderKindAdapter FromExtension (const std::string&);
-    static const ShaderKindAdapter FromVk (VkShaderStageFlagBits);
-    static const ShaderKindAdapter FromShaderKind (ShaderKind);
-    static const ShaderKindAdapter FromEsh (EShLanguage);
+    static std::optional<ShaderKindDescriptor> FromExtension (const std::string&);
+    static std::optional<ShaderKindDescriptor> FromVk (VkShaderStageFlagBits);
+    static std::optional<ShaderKindDescriptor> FromShaderKind (ShaderKind);
+    static std::optional<ShaderKindDescriptor> FromEsh (EShLanguage);
 
 private:
-    static const ShaderKindAdapter Find (const std::function<bool (const ShaderKindAdapter&)>&);
-    static const ShaderKindAdapter vert, tesc, tese, geom, frag, comp;
+    static std::optional<ShaderKindDescriptor> Find (const std::function<bool (const ShaderKindDescriptor&)>&);
+    static const ShaderKindDescriptor vert, tesc, tese, geom, frag, comp;
 
-    static const std::array<ShaderKindAdapter, 6> allShaderKinds;
+    static const std::array<ShaderKindDescriptor, 6> allShaderKinds;
 };
 
 
-ShaderKindAdapter::ShaderKindAdapter (const char*           extension,
+ShaderKindDescriptor::ShaderKindDescriptor (const char*           extension,
                                       VkShaderStageFlagBits vkflag,
                                       ShaderKind            shaderKind,
                                       EShLanguage           esh,
@@ -69,7 +69,7 @@ ShaderKindAdapter::ShaderKindAdapter (const char*           extension,
 }
 
 
-const ShaderKindAdapter ShaderKindAdapter::vert {
+const ShaderKindDescriptor ShaderKindDescriptor::vert {
     ".vert",
     VK_SHADER_STAGE_VERTEX_BIT,
     ShaderKind::Vertex,
@@ -77,7 +77,8 @@ const ShaderKindAdapter ShaderKindAdapter::vert {
     "Vertex Shader"
 };
 
-const ShaderKindAdapter ShaderKindAdapter::tesc {
+
+const ShaderKindDescriptor ShaderKindDescriptor::tesc {
     ".tesc",
     VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
     ShaderKind::TessellationControl,
@@ -85,7 +86,8 @@ const ShaderKindAdapter ShaderKindAdapter::tesc {
     "Tessellation Control Shader"
 };
 
-const ShaderKindAdapter ShaderKindAdapter::tese {
+
+const ShaderKindDescriptor ShaderKindDescriptor::tese {
     ".tese",
     VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
     ShaderKind::TessellationEvaluation,
@@ -93,7 +95,8 @@ const ShaderKindAdapter ShaderKindAdapter::tese {
     "Tessellation Evaluation Shader"
 };
 
-const ShaderKindAdapter ShaderKindAdapter::geom {
+
+const ShaderKindDescriptor ShaderKindDescriptor::geom {
     ".geom",
     VK_SHADER_STAGE_GEOMETRY_BIT,
     ShaderKind::Geometry,
@@ -101,7 +104,8 @@ const ShaderKindAdapter ShaderKindAdapter::geom {
     "Geometry Shader"
 };
 
-const ShaderKindAdapter ShaderKindAdapter::frag {
+
+const ShaderKindDescriptor ShaderKindDescriptor::frag {
     ".frag",
     VK_SHADER_STAGE_FRAGMENT_BIT,
     ShaderKind::Fragment,
@@ -109,7 +113,8 @@ const ShaderKindAdapter ShaderKindAdapter::frag {
     "Fragment Shader"
 };
 
-const ShaderKindAdapter ShaderKindAdapter::comp {
+
+const ShaderKindDescriptor ShaderKindDescriptor::comp {
     ".comp",
     VK_SHADER_STAGE_COMPUTE_BIT,
     ShaderKind::Compute,
@@ -118,54 +123,57 @@ const ShaderKindAdapter ShaderKindAdapter::comp {
 };
 
 
-const std::array<ShaderKindAdapter, 6> ShaderKindAdapter::allShaderKinds ({
-    ShaderKindAdapter::vert,
-    ShaderKindAdapter::tese,
-    ShaderKindAdapter::tesc,
-    ShaderKindAdapter::geom,
-    ShaderKindAdapter::frag,
-    ShaderKindAdapter::comp,
+const std::array<ShaderKindDescriptor, 6> ShaderKindDescriptor::allShaderKinds ({
+    ShaderKindDescriptor::vert,
+    ShaderKindDescriptor::tese,
+    ShaderKindDescriptor::tesc,
+    ShaderKindDescriptor::geom,
+    ShaderKindDescriptor::frag,
+    ShaderKindDescriptor::comp,
 });
 
 
-const ShaderKindAdapter ShaderKindAdapter::Find (const std::function<bool (const ShaderKindAdapter&)>& callback)
+std::optional<ShaderKindDescriptor> ShaderKindDescriptor::Find (const std::function<bool (const ShaderKindDescriptor&)>& callback)
 {
     for (auto& s : allShaderKinds) {
         if (callback (s)) {
             return s;
         }
     }
-    throw std::runtime_error ("couldnt find shader info");
+
+    return std::nullopt;
 }
 
-const ShaderKindAdapter ShaderKindAdapter::FromExtension (const std::string& ext)
+std::optional<ShaderKindDescriptor> ShaderKindDescriptor::FromExtension (const std::string& ext)
 {
     return Find ([&] (auto& s) {
         return s.extension == ext;
     });
 }
 
-const ShaderKindAdapter ShaderKindAdapter::FromVk (VkShaderStageFlagBits flag)
+std::optional<ShaderKindDescriptor> ShaderKindDescriptor::FromVk (VkShaderStageFlagBits flag)
 {
     return Find ([&] (auto& s) {
         return s.vkflag == flag;
     });
 }
 
-const ShaderKindAdapter ShaderKindAdapter::FromShaderKind (ShaderKind sk)
+std::optional<ShaderKindDescriptor> ShaderKindDescriptor::FromShaderKind (ShaderKind sk)
 {
     return Find ([&] (auto& s) {
         return s.shaderKind == sk;
     });
 }
 
-const ShaderKindAdapter ShaderKindAdapter::FromEsh (EShLanguage e)
+std::optional<ShaderKindDescriptor> ShaderKindDescriptor::FromEsh (EShLanguage e)
 {
     return Find ([&] (auto& s) {
         return s.esh == e;
     });
 }
 
+
+#if 0
 
 class ShaderCache {
 private:
@@ -253,8 +261,10 @@ public:
 ShaderCache debugShaderCache ("Debug");
 ShaderCache releaseShaderCache ("Release");
 
+#endif
 
-static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindAdapter& shaderKind)
+
+static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindDescriptor& shaderKind)
 {
     static bool init = false;
     if (!init) {
@@ -266,7 +276,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
     const int                               ClientInputSemanticsVersion = 100;
     const glslang::EShTargetClientVersion   VulkanClientVersion         = glslang::EShTargetVulkan_1_2;
     const glslang::EShTargetLanguageVersion TargetVersion               = glslang::EShTargetSpv_1_5;
-    const EShMessages                       messages                    = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules | EShMsgSuppressWarnings);
+    const EShMessages                       messages                    = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules | EShMsgDebugInfo); // TODO remove debug info from release builds
     const TBuiltInResource                  resources                   = GetDefaultResourceLimits (); // TODO use DefaultTBuiltInResource ?
 
     glslang::TShader shader (shaderKind.esh);
@@ -296,8 +306,12 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 
     spv::SpvBuildLogger logger;
     glslang::SpvOptions spvOptions;
-    spvOptions.disableOptimizer = false;
-    spvOptions.validate         = true;
+    spvOptions.generateDebugInfo = false;
+    spvOptions.stripDebugInfo    = false;
+    spvOptions.disableOptimizer  = true;
+    spvOptions.optimizeSize      = false;
+    spvOptions.disassemble       = false;
+    spvOptions.validate          = false;
 
     std::vector<uint32_t> spirvBinary;
     glslang::GlslangToSpv (*program.getIntermediate (shaderKind.esh), spirvBinary, &logger, &spvOptions);
@@ -310,7 +324,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 }
 
 
-static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindAdapter& shaderKind)
+static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindDescriptor& shaderKind)
 {
 #if 0
     ShaderCache& shaderCache = IsDebugBuild ? debugShaderCache : releaseShaderCache;
@@ -409,10 +423,15 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
 {
     std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
     if (GVK_ERROR (!fileContents.has_value ())) {
-        throw std::runtime_error ("failed to read shader");
+        throw std::runtime_error ("Failed to read file.");
     }
 
-    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (*fileContents, ShaderKindAdapter::FromExtension (fileLocation.extension ().string ()));
+    std::optional<ShaderKindDescriptor> shaderKindDescriptor = ShaderKindDescriptor::FromExtension (fileLocation.extension ().string ());
+    if (GVK_ERROR (!shaderKindDescriptor.has_value ())) {
+        throw std::runtime_error ("Unknown shader file extension.");
+    }
+
+    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (*fileContents, *shaderKindDescriptor);
     if (GVK_ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }
@@ -420,7 +439,7 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
     VkShaderModule handle = CreateShaderModuleImpl (device, *binary);
     
     return std::unique_ptr<ShaderModule> (new ShaderModule (
-        ShaderKindAdapter::FromExtension (fileLocation.extension ().string ()).shaderKind,
+        shaderKindDescriptor->shaderKind,
         ReadMode::GLSLFilePath,
         device,
         handle,
@@ -432,7 +451,12 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
 
 std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource)
 {
-    std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, ShaderKindAdapter::FromShaderKind (shaderKind));
+    std::optional<ShaderKindDescriptor> shaderKindDescriptor = ShaderKindDescriptor::FromShaderKind (shaderKind);
+    if (GVK_ERROR (!shaderKindDescriptor.has_value ())) {
+        throw std::runtime_error ("Unknown shaderkind.");
+    }
+
+    std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, *shaderKindDescriptor);
 
     VkShaderModule handle = CreateShaderModuleImpl (device, binary);
     
@@ -460,7 +484,7 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
     result.sType                           = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     result.pNext                           = nullptr;
     result.flags                           = 0;
-    result.stage                           = ShaderKindAdapter::FromShaderKind (shaderKind).vkflag;
+    result.stage                           = ShaderKindDescriptor::FromShaderKind (shaderKind)->vkflag;
     result.module                          = handle;
     result.pName                           = "main";
     result.pSpecializationInfo             = nullptr;
@@ -491,7 +515,12 @@ void ShaderModule::Reload ()
             throw std::runtime_error ("failed to read shader");
         }
 
-        std::optional<std::vector<uint32_t>> newBinary = CompileFromSourceCode (*fileContents, ShaderKindAdapter::FromExtension (fileLocation.extension ().string ()));
+        std::optional<ShaderKindDescriptor> shaderKindDescriptor = ShaderKindDescriptor::FromExtension (fileLocation.extension ().string ());
+        if (GVK_ERROR (!shaderKindDescriptor.has_value ())) {
+            return;
+        }
+
+        std::optional<std::vector<uint32_t>> newBinary = CompileFromSourceCode (*fileContents, *shaderKindDescriptor);
         if (GVK_ERROR (!newBinary.has_value ())) {
             throw std::runtime_error ("failed to compile shader");
         }

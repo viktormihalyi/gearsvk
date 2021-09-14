@@ -16,6 +16,7 @@
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
 
+#include "fmt/format.h"
 
 #include <iomanip>
 #include <iostream>
@@ -36,7 +37,7 @@ Presentable::Presentable (VulkanEnvironment& env, std::unique_ptr<GVK::Surface>&
     // but we create a physicaldevice first and create the swapchains later
     // so we _hope_ it is supported
 
-    GVK_ASSERT (env.CheckForPhsyicalDeviceSupport (*this));
+    GVK_VERIFY (env.CheckForPhsyicalDeviceSupport (*this));
 
     swapchain = std::make_unique<GVK::RealSwapchain> (*env.physicalDevice, *env.device, *this->surface, std::move (settingsProvider));
 }
@@ -150,78 +151,63 @@ void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSe
                            VkDebugUtilsMessageTypeFlagsEXT             messageType,
                            const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
-    if (messageSeverity <= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
+    if (messageSeverity <= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) { // enable info bit for shader printf
         return;
     }
 
-    char  prefix[64];
-    char* message = (char*)malloc (strlen (callbackData->pMessage) + 500);
-    if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-        strcpy (prefix, "VERBOSE : ");
-    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-        strcpy (prefix, "INFO : ");
-    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-        strcpy (prefix, "WARNING : ");
-    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        strcpy (prefix, "ERROR : ");
-    }
-    if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) {
-        strcat (prefix, "GENERAL");
-    } else {
-#if 0
-        if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_SPECIFICATION_BIT_EXT) {
-            strcat (prefix, "SPEC");
-            // validation_error = 1;
-        }
-        if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) {
-            if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_SPECIFICATION_BIT_EXT) {
-                strcat (prefix, "|");
-            }
-        }
-#endif
+    const auto SeverityFlagBitsToString = [] (VkDebugUtilsMessageSeverityFlagBitsEXT value) -> const char* {
+        if (value & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
+            return "VERBOSE";
+        if (value & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+            return "INFO";
+        if (value & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+            return "WARNING";
+        if (value & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+            return "ERROR";
+
+        GVK_BREAK ();
+        return "unknown";
+    };
+
+    const auto MessageTypeToString = [] (VkDebugUtilsMessageTypeFlagsEXT value) -> const char* {
+        if (value & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT)
+            return "GENERAL";
+        if (value & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)
+            return "VALIDATION";
+        if (value & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT)
+            return "PERFORMANCE";
+
+        GVK_BREAK ();
+        return "unknown";
+    };
+    
+    std::string message = fmt::format ("Vulkan Debug Callback: [{}] [{}] (id: {}) (id name: {})\n\t{}",
+                                       SeverityFlagBitsToString (messageSeverity),
+                                       MessageTypeToString (messageType),
+                                       reinterpret_cast<void*> (callbackData->messageIdNumber),
+                                       callbackData->pMessageIdName,
+                                       callbackData->pMessage);
+
+    if (callbackData->objectCount > 0) {
+        message += fmt::format ("\n\n\tObjects - {}", callbackData->objectCount);
     }
 
-    sprintf (message,
-             "\n%sMessage ID Number %d, Message ID String : %s\n\t%s",
-             prefix,
-             callbackData->messageIdNumber,
-             callbackData->pMessageIdName,
-             callbackData->pMessage);
-    if (callbackData->objectCount > 0) {
-        char tmp_message[500];
-        sprintf (tmp_message, "\n\n\tObjects - %d\n", callbackData->objectCount);
-        strcat (message, tmp_message);
-        for (uint32_t object = 0; object < callbackData->objectCount; ++object) {
-            sprintf (tmp_message,
-                     "\t\tObject[%d] - Type %s, Value %#p, Name \"%s\"\n",
-                     object,
-                     VkObjectTypeToString (callbackData->pObjects[object].objectType),
-                     (void*)(callbackData->pObjects[object].objectHandle),
-                     callbackData->pObjects[object].pObjectName == nullptr ? "[UNNAMED]" : callbackData->pObjects[object].pObjectName);
-            strcat (message, tmp_message);
+    for (size_t i = 0; i < callbackData->objectCount; ++i) {
+        message += fmt::format ("\n\t\tObject[{}] - type: \"{}\", handle: \"{}\"",
+                                i,
+                                VkObjectTypeToString (callbackData->pObjects[i].objectType),
+                                reinterpret_cast<void*> (callbackData->pObjects[i].objectHandle));
+
+        if (callbackData->pObjects[i].pObjectName != nullptr) {
+            message += fmt::format (", name: \"{}\"", callbackData->pObjects[i].pObjectName);
         }
+
+        message += "\n";
     }
-    if (callbackData->cmdBufLabelCount > 0) {
-        char tmp_message[500];
-        sprintf (tmp_message,
-                 "\n\n\tCommand Buffer Labels - %d\n",
-                 callbackData->cmdBufLabelCount);
-        strcat (message, tmp_message);
-        for (uint32_t label = 0; label < callbackData->cmdBufLabelCount; ++label) {
-            sprintf (tmp_message,
-                     "\t\tLabel[%d] - %s { %f, %f, %f, %f}\n",
-                     label,
-                     callbackData->pCmdBufLabels[label].pLabelName,
-                     callbackData->pCmdBufLabels[label].color[0],
-                     callbackData->pCmdBufLabels[label].color[1],
-                     callbackData->pCmdBufLabels[label].color[2],
-                     callbackData->pCmdBufLabels[label].color[3]);
-            strcat (message, tmp_message);
-        }
-    }
-    printf ("%s\n", message);
-    fflush (stdout);
-    free (message);
+
+    GVK_ASSERT (callbackData->cmdBufLabelCount == 0);
+
+    std::cout << message << std::endl;
 }
 
 

@@ -75,8 +75,19 @@ static VkInstance CreateInstance (const std::vector<const char*>& instanceExtens
     appInfo.engineVersion      = VK_MAKE_VERSION (1, 0, 0);
     appInfo.apiVersion         = VK_API_VERSION_1_2;
 
+    const std::vector<VkValidationFeatureEnableEXT> enabledValidationFeatures = {
+        VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT,
+    };
+
+    VkValidationFeaturesEXT validationFeatures       = {};
+    validationFeatures.pNext                         = nullptr;
+    validationFeatures.sType                         = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+    validationFeatures.enabledValidationFeatureCount = enabledValidationFeatures.size ();
+    validationFeatures.pEnabledValidationFeatures    = enabledValidationFeatures.data ();
+
     VkInstanceCreateInfo createInfo    = {};
     createInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    createInfo.pNext                   = &validationFeatures;
     createInfo.pApplicationInfo        = &appInfo;
     createInfo.enabledExtensionCount   = static_cast<uint32_t> (instanceExtensions.size ());
     createInfo.ppEnabledExtensionNames = instanceExtensions.data ();

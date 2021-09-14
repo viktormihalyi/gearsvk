@@ -5,7 +5,7 @@ namespace GVK {
 
 const DebugUtilsMessenger::Settings DebugUtilsMessenger::defaultSettings {
     true,
-    false,
+    true,
     true,
     true,
 
@@ -17,7 +17,7 @@ const DebugUtilsMessenger::Settings DebugUtilsMessenger::defaultSettings {
 
 const DebugUtilsMessenger::Settings DebugUtilsMessenger::noPerformance {
     true,
-    false,
+    true,
     true,
     true,
 
@@ -57,7 +57,6 @@ DebugUtilsMessenger::DebugUtilsMessenger (VkInstance instance, const Callback& c
     , handle (VK_NULL_HANDLE)
     , callback (callback)
 {
-
     VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
