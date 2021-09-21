@@ -914,7 +914,7 @@ layout (set = 0, binding = 0) uniform RandomGeneratorConfig {
 };
 
 layout (set = 0, binding = 1) buffer OutputBuffer {
-    uvec4 randomsBuffer[4][4][5];
+    uvec4 randomsBuffer[5][4][4];
 };
 
 void main()

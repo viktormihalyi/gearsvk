@@ -70,6 +70,9 @@ private:
     std::filesystem::path fileLocation;
     std::vector<uint32_t> binary;
 
+    std::vector<std::string> defines;
+    std::vector<std::string> undefines;
+
     Reflection reflection;
 
 private:
@@ -80,15 +83,30 @@ private:
                   VkShaderModule               handle,
                   const std::filesystem::path& fileLocation,
                   const std::vector<uint32_t>& binary,
-                  const std::string&           sourceCode);
+                  const std::string&              sourceCode,
+                  const std::vector<std::string>& defines,
+                  const std::vector<std::string>& undefines);
 
     ShaderModule (ShaderModule&&) = default;
     ShaderModule& operator= (ShaderModule&&) = default;
 
 public:
-    static std::unique_ptr<ShaderModule> CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource);
-    static std::unique_ptr<ShaderModule> CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation);
-    static std::unique_ptr<ShaderModule> CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation);
+    static std::unique_ptr<ShaderModule> CreateFromGLSLString (VkDevice                        device,
+                                                               ShaderKind                      shaderKind,
+                                                               const std::string&              shaderSource,
+                                                               const std::vector<std::string>& defines   = {},
+                                                               const std::vector<std::string>& undefines = {});
+
+    static std::unique_ptr<ShaderModule> CreateFromGLSLFile (VkDevice                        device,
+                                                             const std::filesystem::path&    fileLocation,
+                                                             const std::vector<std::string>& defines   = {},
+                                                             const std::vector<std::string>& undefines = {});
+
+    static std::unique_ptr<ShaderModule> CreateFromSPVFile (VkDevice                        device,
+                                                            ShaderKind                      shaderKind,
+                                                            const std::filesystem::path&    fileLocation,
+                                                            const std::vector<std::string>& defines   = {},
+                                                            const std::vector<std::string>& undefines = {});
 
     virtual ~ShaderModule () override;
 

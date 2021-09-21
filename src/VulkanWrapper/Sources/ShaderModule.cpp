@@ -264,7 +264,82 @@ ShaderCache releaseShaderCache ("Release");
 #endif
 
 
-static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& sourceCode, const ShaderKindDescriptor& shaderKind)
+namespace {
+
+// from https://github.com/KhronosGroup/glslang/blob/master/StandAlone/StandAlone.cpp
+class TPreamble {
+private:
+    std::string              text;
+    std::vector<std::string> processes; 
+
+public:
+    TPreamble () = default;
+
+    bool IsSet () const { return !text.empty (); }
+
+    const char* GetText () const { return text.c_str (); }
+
+    const std::vector<std::string>& GetProcesses () const { return processes; }
+
+    void AddDef (const std::string& def_)
+    {
+        std::string def = def_;
+
+        text.append ("#define ");
+        FixLine (def);
+
+        processes.push_back ("define-macro ");
+        processes.back ().append (def);
+
+        // The first "=" needs to turn into a space
+        const size_t equal = def.find_first_of ("=");
+        if (equal != def.npos)
+            def[equal] = ' ';
+
+        text.append (def);
+        text.append ("\n");
+    }
+
+    void AddUndef (const std::string& undef_)
+    {
+        std::string undef = undef_;
+
+        text.append ("#undef ");
+        FixLine (undef);
+
+        processes.push_back ("undef-macro ");
+        processes.back ().append (undef);
+
+        text.append (undef);
+        text.append ("\n");
+    }
+
+private:
+    void FixLine (std::string& line)
+    {
+        // Can't go past a newline in the line
+        const size_t end = line.find_first_of ("\n");
+        if (end != line.npos)
+            line = line.substr (0, end);
+    }
+};
+
+} // namespace
+
+
+struct CompileParameters {
+    std::string                         sourceCode;
+    std::optional<ShaderKindDescriptor> shaderKindDescriptor;
+    std::vector<std::string>            defines;
+    std::vector<std::string>            undefines;
+};
+
+
+// TODO ennek nem kene itt lennie
+extern Utils::CommandLineOnOffFlag enableShaderPrintfFlag;
+
+
+static std::vector<uint32_t> CompileWithGlslangCppInterface (CompileParameters params)
 {
     static bool init = false;
     if (!init) {
@@ -272,23 +347,43 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
         glslang::InitializeProcess ();
     }
 
-    const char* const                       sourceCstr                  = sourceCode.c_str ();
+    if (enableShaderPrintfFlag.IsFlagOn ())
+        params.defines.push_back ("SHADERPRINTF");
+
+    if (GVK_ERROR (params.sourceCode.empty ()))
+        throw ShaderCompileException ("No shader source provided.");
+
+    if (GVK_ERROR (!params.shaderKindDescriptor.has_value ()))
+        throw ShaderCompileException ("No shader kind provided.");
+
+    const char* const                       sourceCstr                  = params.sourceCode.c_str ();
     const int                               ClientInputSemanticsVersion = 100;
     const glslang::EShTargetClientVersion   VulkanClientVersion         = glslang::EShTargetVulkan_1_2;
     const glslang::EShTargetLanguageVersion TargetVersion               = glslang::EShTargetSpv_1_5;
     const EShMessages                       messages                    = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules | EShMsgDebugInfo); // TODO remove debug info from release builds
     const TBuiltInResource                  resources                   = GetDefaultResourceLimits (); // TODO use DefaultTBuiltInResource ?
 
-    glslang::TShader shader (shaderKind.esh);
+    TPreamble preamble;
+    for (const std::string& def : params.defines)
+        preamble.AddDef (def);
+    for (const std::string& undef : params.undefines)
+        preamble.AddUndef (undef);
+
+
+    glslang::TShader shader (params.shaderKindDescriptor->esh);
     shader.setStrings (&sourceCstr, 1);
-    shader.setEnvInput (glslang::EShSourceGlsl, shaderKind.esh, glslang::EShClientVulkan, ClientInputSemanticsVersion);
+    shader.setEnvInput (glslang::EShSourceGlsl, params.shaderKindDescriptor->esh, glslang::EShClientVulkan, ClientInputSemanticsVersion);
     shader.setEnvClient (glslang::EShClientVulkan, VulkanClientVersion);
     shader.setEnvTarget (glslang::EShTargetSpv, TargetVersion);
 
+    if (preamble.IsSet ())
+        shader.setPreamble (preamble.GetText ());
+    shader.addProcesses (preamble.GetProcesses ());
+
     if (!shader.parse (&resources, 100, false, messages)) {
-        throw ShaderCompileException (std::string { "Failed to parse " } + shaderKind.displayName + ":\n"
+        throw ShaderCompileException (std::string { "Failed to parse " } + params.shaderKindDescriptor->displayName + ":\n"
                                      + "================================== GLSL CODE BEGIN ==================================\n"
-                                     + sourceCode + "\n"
+                                     + params.sourceCode + "\n"
                                      + "================================== GLSL CODE END ====================================\n"
                                      + shader.getInfoLog ());
     }
@@ -297,24 +392,24 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
     program.addShader (&shader);
 
     if (!program.link (EShMsgDefault)) {
-        throw ShaderCompileException (std::string { "Failed to link " } + shaderKind.displayName + ":\n"
+        throw ShaderCompileException (std::string { "Failed to link " } + params.shaderKindDescriptor->displayName + ":\n"
                                      + "================================== GLSL CODE BEGIN ==================================\n"
-                                     + sourceCode + "\n"
+                                     + params.sourceCode + "\n"
                                      + "================================== GLSL CODE END ====================================\n"
                                      + shader.getInfoLog ());
     }
 
     spv::SpvBuildLogger logger;
     glslang::SpvOptions spvOptions;
-    spvOptions.generateDebugInfo = false;
-    spvOptions.stripDebugInfo    = false;
-    spvOptions.disableOptimizer  = true;
+    spvOptions.generateDebugInfo = IsDebugBuild;
+    spvOptions.stripDebugInfo    = IsReleaseBuild;
+    spvOptions.disableOptimizer  = IsDebugBuild;
     spvOptions.optimizeSize      = false;
     spvOptions.disassemble       = false;
-    spvOptions.validate          = false;
+    spvOptions.validate          = IsDebugBuild;
 
     std::vector<uint32_t> spirvBinary;
-    glslang::GlslangToSpv (*program.getIntermediate (shaderKind.esh), spirvBinary, &logger, &spvOptions);
+    glslang::GlslangToSpv (*program.getIntermediate (params.shaderKindDescriptor->esh), spirvBinary, &logger, &spvOptions);
 
     const std::string loggerMessages = logger.getAllMessages ();
     if (GVK_ERROR (!loggerMessages.empty ()))
@@ -324,7 +419,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (const std::string& 
 }
 
 
-static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSource, const ShaderKindDescriptor& shaderKind)
+static std::vector<uint32_t> CompileFromSourceCode (const CompileParameters& params)
 {
 #if 0
     ShaderCache& shaderCache = IsDebugBuild ? debugShaderCache : releaseShaderCache;
@@ -336,7 +431,7 @@ static std::vector<uint32_t> CompileFromSourceCode (const std::string& shaderSou
 #endif
 
     try {
-        const std::vector<uint32_t> result = CompileWithGlslangCppInterface (shaderSource, shaderKind);
+        const std::vector<uint32_t> result = CompileWithGlslangCppInterface (params);
 #if 0
         shaderCache.Save (shaderSource, result);
 #endif
@@ -382,13 +477,15 @@ static VkShaderModule CreateShaderModuleImpl (VkDevice device, const std::vector
 }
 
 
-ShaderModule::ShaderModule (ShaderKind                   shaderKind,
-                            ReadMode                     readMode,
-                            VkDevice                     device,
-                            VkShaderModule               handle,
-                            const std::filesystem::path& fileLocation,
-                            const std::vector<uint32_t>& binary,
-                            const std::string&           sourceCode)
+ShaderModule::ShaderModule (ShaderKind                      shaderKind,
+                            ReadMode                        readMode,
+                            VkDevice                        device,
+                            VkShaderModule                  handle,
+                            const std::filesystem::path&    fileLocation,
+                            const std::vector<uint32_t>&    binary,
+                            const std::string&              sourceCode,
+                            const std::vector<std::string>& defines,
+                            const std::vector<std::string>& undefines)
     : readMode (readMode)
     , shaderKind (shaderKind)
     , device (device)
@@ -397,12 +494,14 @@ ShaderModule::ShaderModule (ShaderKind                   shaderKind,
     , binary (binary)
     , reflection (binary)
     , sourceCode (sourceCode)
+    , defines (defines)
+    , undefines (undefines)
 {
     spdlog::trace ("VkShaderModule created: {}, uuid: {}.", this->handle, GetUUID ().GetValue ());
 }
 
 
-std::unique_ptr<ShaderModule> ShaderModule::CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation)
+std::unique_ptr<ShaderModule> ShaderModule::CreateFromSPVFile (VkDevice device, ShaderKind shaderKind, const std::filesystem::path& fileLocation, const std::vector<std::string>& defines, const std::vector<std::string>& undefines)
 {
     std::optional<std::vector<char>> binaryC = Utils::ReadBinaryFile (fileLocation);
     if (GVK_ERROR (!binaryC.has_value ())) {
@@ -415,11 +514,11 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromSPVFile (VkDevice device, 
 
     VkShaderModule handle = CreateShaderModuleImpl (device, *binaryC);
 
-    return std::unique_ptr<ShaderModule> (new ShaderModule (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, ""));
+    return std::unique_ptr<ShaderModule> (new ShaderModule (shaderKind, ReadMode::SPVFilePath, device, handle, fileLocation, code, "", defines, undefines));
 }
 
 
-std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation)
+std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device, const std::filesystem::path& fileLocation, const std::vector<std::string>& defines, const std::vector<std::string>& undefines)
 {
     std::optional<std::string> fileContents = Utils::ReadTextFile (fileLocation);
     if (GVK_ERROR (!fileContents.has_value ())) {
@@ -431,7 +530,13 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
         throw std::runtime_error ("Unknown shader file extension.");
     }
 
-    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (*fileContents, *shaderKindDescriptor);
+    CompileParameters parameters;
+    parameters.sourceCode           = *fileContents;
+    parameters.shaderKindDescriptor = *shaderKindDescriptor;
+    parameters.defines              = {};
+    parameters.undefines            = {};
+
+    std::optional<std::vector<uint32_t>> binary = CompileFromSourceCode (parameters);
     if (GVK_ERROR (!binary.has_value ())) {
         throw std::runtime_error ("failed to compile shader");
     }
@@ -445,18 +550,26 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLFile (VkDevice device,
         handle,
         fileLocation,
         *binary,
-        *fileContents));
+        *fileContents,
+        defines,
+        undefines));
 }
 
 
-std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource)
+std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice device, ShaderKind shaderKind, const std::string& shaderSource, const std::vector<std::string>& defines, const std::vector<std::string>& undefines)
 {
     std::optional<ShaderKindDescriptor> shaderKindDescriptor = ShaderKindDescriptor::FromShaderKind (shaderKind);
     if (GVK_ERROR (!shaderKindDescriptor.has_value ())) {
         throw std::runtime_error ("Unknown shaderkind.");
     }
 
-    std::vector<uint32_t> binary = CompileFromSourceCode (shaderSource, *shaderKindDescriptor);
+    CompileParameters parameters;
+    parameters.sourceCode           = shaderSource;
+    parameters.shaderKindDescriptor = *shaderKindDescriptor;
+    parameters.defines              = defines;
+    parameters.undefines            = undefines;
+
+    std::vector<uint32_t> binary = CompileFromSourceCode (parameters);
 
     VkShaderModule handle = CreateShaderModuleImpl (device, binary);
     
@@ -467,7 +580,9 @@ std::unique_ptr<ShaderModule> ShaderModule::CreateFromGLSLString (VkDevice devic
         handle,
         "",
         binary,
-        shaderSource));
+        shaderSource,
+        defines,
+        undefines));
 }
 
 
@@ -520,7 +635,13 @@ void ShaderModule::Reload ()
             return;
         }
 
-        std::optional<std::vector<uint32_t>> newBinary = CompileFromSourceCode (*fileContents, *shaderKindDescriptor);
+        CompileParameters parameters;
+        parameters.sourceCode           = *fileContents;
+        parameters.shaderKindDescriptor = *shaderKindDescriptor;
+        parameters.defines              = defines;
+        parameters.undefines            = undefines;
+
+        std::optional<std::vector<uint32_t>> newBinary = CompileFromSourceCode (parameters);
         if (GVK_ERROR (!newBinary.has_value ())) {
             throw std::runtime_error ("failed to compile shader");
         }

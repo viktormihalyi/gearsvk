@@ -23,6 +23,7 @@ set (Headers
     ${HeadersPath}/Utils.hpp
     ${HeadersPath}/FileSystemUtils.hpp
     ${HeadersPath}/UUID.hpp
+    ${HeadersPath}/SetupLogger.hpp
 )
 
 set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
@@ -35,6 +36,7 @@ set (Sources
     ${SourcesPath}/Utils.cpp
     ${SourcesPath}/FileSystemUtils.cpp
     ${SourcesPath}/UUID.cpp
+    ${SourcesPath}/SetupLogger.cpp
 )
 
 add_library (Utils SHARED ${Headers} ${Sources})

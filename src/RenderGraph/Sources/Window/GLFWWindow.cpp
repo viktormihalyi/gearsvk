@@ -9,12 +9,14 @@
 #include "Utils/Timer.hpp"
 #include <iostream>
 
+#include "spdlog/spdlog.h"
+
 namespace RG {
 
 
 static void error_callback (int error, const char *description)
 {
-    std::cout << "GLFW ERROR " << error << ": " << description << std::endl;
+    spdlog::error ("GLFW ERROR: {}, {}", error, description);
 }
 
 
@@ -91,17 +93,13 @@ struct GLFWWindowBase::Impl {
 };
 
 
-GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
+GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints, bool useFullscreen, bool hideMouse)
     : impl (std::make_unique<Impl> ())
 {
     impl->width  = InitialWindowWidth;
     impl->height = InitialWindowHeight;
 
     globalGLFWInitializer.EnsureInitialized ();
-
-    // settings
-    const bool useFullscreen = false;
-    const bool hideMouse     = false;
 
     GVK_ASSERT (glfwVulkanSupported () == GLFW_TRUE);
 
@@ -162,11 +160,7 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     glfwSetKeyCallback (impl->window, [] (GLFWwindow* window, int key, int scancode, int action, int mods) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
-        const char* keyName = glfwGetKeyName (key, 0);
-
-        if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-            glfwSetWindowShouldClose (window, GLFW_TRUE);
-        }
+        //const char* keyName = glfwGetKeyName (key, 0);
 
         if (action == GLFW_PRESS) {
             self->events.keyPressed (key);
@@ -213,7 +207,8 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
         self->impl->width  = width;
         self->impl->height = height;
 
-        std::cout << "window resized to (" << self->impl->width << ", " << self->impl->height << ")" << std::endl;
+        spdlog::info ("window resized to ({}, {}", width, height);
+
         self->events.resized (width, height);
     });
 
@@ -227,10 +222,10 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         if (focused) {
-            std::cout << "window focus gained " << std::endl;
+            spdlog::trace ("window focus gained ");
             self->events.focused ();
         } else {
-            std::cout << "window focus lost " << std::endl;
+            spdlog::trace ("window focus lost ");
             self->events.focusLost ();
         }
     });
@@ -243,16 +238,14 @@ GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints)
     glfwSetFramebufferSizeCallback (impl->window, [] (GLFWwindow* window, int width, int height) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
-        std::cout << "framebuffer resized" << std::endl;
+        spdlog::trace ("framebuffer resized");
     });
 }
 
 
 GLFWWindowBase::~GLFWWindowBase ()
 {
-    impl->surface = VK_NULL_HANDLE;
-    glfwDestroyWindow (impl->window);
-    impl->window = nullptr;
+    Close ();
 }
 
 
@@ -289,15 +282,22 @@ double GLFWWindowBase::GetRefreshRate () const
 void GLFWWindowBase::PollEvents ()
 {
     glfwPollEvents ();
-    if (glfwWindowShouldClose (impl->window)) {
-        throw std::runtime_error ("window closing");
-    }
 }
 
 
 void GLFWWindowBase::Close ()
 {
-    glfwSetWindowShouldClose (impl->window, GLFW_TRUE);
+    if (impl->window == nullptr)
+        return;
+    
+    spdlog::trace ("Destroying window");
+
+    glfwDestroyWindow (impl->window);
+
+    glfwPollEvents ();
+    
+    impl->surface = VK_NULL_HANDLE;
+    impl->window = nullptr;
 }
 
 
@@ -307,16 +307,18 @@ void GLFWWindowBase::DoEventLoop (const DrawCallback& drawCallback)
         return;
     }
 
+    bool stop = false;
     while (!glfwWindowShouldClose (impl->window)) {
-        glfwPollEvents ();
-
-        bool stop = false;
 
         drawCallback (stop);
 
         if (stop) {
             glfwSetWindowShouldClose (impl->window, GLFW_TRUE);
+            glfwPollEvents ();
+            break;
         }
+   
+        glfwPollEvents ();
     }
 }
 
@@ -388,9 +390,9 @@ void GLFWWindowBase::SetWindowMode (Mode mode)
     }
 
     if (mode == Window::Mode::Fullscreen) {
-        glfwSetWindowMonitor (impl->window, primaryMonitor, 0, 0, primaryMonitorMode->width, primaryMonitorMode->height, primaryMonitorMode->refreshRate);
+        glfwSetWindowMonitor (impl->window, primaryMonitor, 0, 0, primaryMonitorMode->width, primaryMonitorMode->height, GLFW_DONT_CARE);
     } else if (mode == Window::Mode::Windowed) {
-        glfwSetWindowMonitor (impl->window, nullptr, 0, 0, 800, 600, primaryMonitorMode->refreshRate);
+        glfwSetWindowMonitor (impl->window, nullptr, 0, 0, 800, 600, GLFW_DONT_CARE);
         glfwSetWindowPos (impl->window, impl->posXWindowed, impl->posYWindowed);
     } else {
         GVK_BREAK_STR ("unexpected window mode type");
@@ -407,7 +409,7 @@ Window::Mode GLFWWindowBase::GetWindowMode ()
 
 
 GLFWWindow::GLFWWindow ()
-    : GLFWWindowBase ({})
+    : GLFWWindowBase ({}, false, false)
 {
 }
 
@@ -415,7 +417,13 @@ GLFWWindow::GLFWWindow ()
 HiddenGLFWWindow::HiddenGLFWWindow ()
     : GLFWWindowBase ({
           { GLFW_VISIBLE, GLFW_FALSE },
-      })
+      }, false, false)
+{
+}
+
+
+FullscreenGLFWWindow::FullscreenGLFWWindow ()
+    : GLFWWindowBase ({}, true, true)
 {
 }
 

@@ -15,6 +15,8 @@
 #include <map>
 #include <vector>
 
+#include "glm/glm.hpp"
+
 class Pass;
 class Stimulus;
 
@@ -49,7 +51,9 @@ private:
     const RG::VulkanEnvironment& environment;
 
     const std::shared_ptr<Stimulus const>  stimulus;
-    const std::shared_ptr<RG::Presentable> presentable;
+
+    const glm::vec2 patternSizeOnRetina;
+    const double    deviceRefreshRate;
 
     std::shared_ptr<RG::RenderGraph>                                renderGraph;
     std::shared_ptr<RG::UniformReflection>                          reflection;
@@ -57,7 +61,7 @@ private:
     std::shared_ptr<RG::Operation>                                  randomGeneratorOperation;
 
 public:
-    StimulusAdapter (const RG::VulkanEnvironment& environment, std::shared_ptr<RG::Presentable>& presentable, const std::shared_ptr<Stimulus const>& stimulus);
+    StimulusAdapter (const RG::VulkanEnvironment& environment, RG::Presentable& presentable, const std::shared_ptr<Stimulus const>& stimulus);
 
     void RenderFrameIndex (RG::Renderer&                          renderer,
                            const std::shared_ptr<Stimulus const>& stimulus,
@@ -68,7 +72,6 @@ public:
     void Wait ();
 
 private:
-    void SetConstantUniforms ();
     void SetUniforms (const GVK::UUID& renderOperationId, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t resourceIndex, const uint32_t frameIndex);
 };
 

@@ -17,6 +17,7 @@
 #include "VulkanWrapper/VulkanWrapper.hpp"
 
 #include "fmt/format.h"
+#include "spdlog/spdlog.h"
 
 #include <iomanip>
 #include <iostream>
@@ -85,10 +86,6 @@ std::optional<double> Presentable::GetRefreshRate () const
 }
 
 
-
-constexpr uint32_t LogColumnWidth = 36;
-
-
 const std::unordered_map<VkObjectType, const char*> VkObjectTypeToStringMap {
     { VK_OBJECT_TYPE_UNKNOWN, "VK_OBJECT_TYPE_UNKNOWN" },
     { VK_OBJECT_TYPE_INSTANCE, "VK_OBJECT_TYPE_INSTANCE" },
@@ -151,7 +148,9 @@ void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSe
                            VkDebugUtilsMessageTypeFlagsEXT             messageType,
                            const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
-    if (messageSeverity <= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) { // enable info bit for shader printf
+    const bool allow = messageSeverity > VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT || std::string (callbackData->pMessageIdName) == std::string ("UNASSIGNED-DEBUG-PRINTF");
+
+    if (!allow) {
         return;
     }
 
@@ -184,7 +183,7 @@ void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSe
     std::string message = fmt::format ("Vulkan Debug Callback: [{}] [{}] (id: {}) (id name: {})\n\t{}",
                                        SeverityFlagBitsToString (messageSeverity),
                                        MessageTypeToString (messageType),
-                                       reinterpret_cast<void*> (callbackData->messageIdNumber),
+                                       callbackData->messageIdNumber,
                                        callbackData->pMessageIdName,
                                        callbackData->pMessage);
 
@@ -207,7 +206,7 @@ void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSe
 
     GVK_ASSERT (callbackData->cmdBufLabelCount == 0);
 
-    std::cout << message << std::endl;
+    spdlog::info (message);
 }
 
 
@@ -219,9 +218,11 @@ void VulkanEnvironment::Wait () const
 
 
 DebugOnlyStaticInit apiVersionLogger ([] () {
-    uint32_t apiVersion;
-    vkEnumerateInstanceVersion (&apiVersion);
-    std::cout << std::left << std::setw (LogColumnWidth) << "vulkan api version:" << GVK::GetVersionString (apiVersion) << std::endl;
+    if (logVulkanVersionFlag.IsFlagOn ()) {
+        uint32_t apiVersion;
+        vkEnumerateInstanceVersion (&apiVersion);
+        spdlog::info ("vulkan api version: {}", GVK::GetVersionString (apiVersion));
+    }
 });
 
 
@@ -256,13 +257,13 @@ VulkanEnvironment::VulkanEnvironment (std::optional<GVK::DebugUtilsMessenger::Ca
             }
         };
 
-        std::cout << std::left << std::setw (LogColumnWidth) << "physical device api version:" << GVK::GetVersionString (properties.apiVersion) << std::endl;
-        std::cout << std::left << std::setw (LogColumnWidth) << "physical device driver version:" << GVK::GetVersionString (properties.driverVersion) << " (" << properties.driverVersion << ")" << std::endl;
-        std::cout << std::left << std::setw (LogColumnWidth) << "device name:" << properties.deviceName << std::endl;
-        std::cout << std::left << std::setw (LogColumnWidth) << "device type:" << DeviceTypeToString (properties.deviceType) << std::endl;
-        std::cout << std::left << std::setw (LogColumnWidth) << "device id:" << properties.deviceID << std::endl;
-        std::cout << std::left << std::setw (LogColumnWidth) << "vendor id:" << properties.vendorID << std::endl;
-        std::cout << std::endl;
+
+        spdlog::info ("physical device api version: {}", GVK::GetVersionString (properties.apiVersion));
+        spdlog::info ("physical device driver version: {} ({})", GVK::GetVersionString (properties.driverVersion), properties.driverVersion);
+        spdlog::info ("device name: {}", properties.deviceName);
+        spdlog::info ("device type: {}", DeviceTypeToString (properties.deviceType));
+        spdlog::info ("device id: {}", properties.deviceID);
+        spdlog::info ("vendor id: {}", properties.vendorID);
 
         VkFormatProperties props;
         vkGetPhysicalDeviceFormatProperties (*physicalDevice, VK_FORMAT_R32_SFLOAT, &props);
@@ -287,8 +288,8 @@ VulkanEnvironment::VulkanEnvironment (std::optional<GVK::DebugUtilsMessenger::Ca
         VkPhysicalDeviceProperties deviceProperties;
         vkGetPhysicalDeviceProperties (*physicalDevice, &deviceProperties);
 
-        std::cout << "physical device api version: " << GVK::GetVersionString (deviceProperties.apiVersion) << std::endl;
-        std::cout << "physical device driver version: " << GVK::GetVersionString (deviceProperties.driverVersion) << std::endl;
+        spdlog::info ("physical device api version: {}", GVK::GetVersionString (deviceProperties.apiVersion));
+        spdlog::info ("physical device driver version: {}", GVK::GetVersionString (deviceProperties.driverVersion));
     }
 }
 

@@ -43,8 +43,6 @@ void Wait ();
 
 std::string GetGLSLResourcesForRandoms ();
 
-void SetCurrentPresentable (std::shared_ptr<RG::Presentable>&);
-
 GEARS_API_TEST
 std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (RG::VulkanEnvironment&, const std::filesystem::path&);
 

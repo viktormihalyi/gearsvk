@@ -34,6 +34,8 @@ set (Sources
     ${SourcesPath}/core/PyStimulus.cpp
     ${SourcesPath}/core/PySequence.cpp
     ${SourcesPath}/core/PyResponse.cpp
+ 
+    ${SourcesPath}/LogInitializer.cpp
 )
 
 add_library (Sequence SHARED ${Headers} ${Sources})

@@ -51,7 +51,7 @@ set (Sources
     ${SourcesPath}/Window/SDLWindow.cpp
 
     ${SourcesPath}/Font.cpp
-    ${SourcesPath}/SpdlogInitializer.cpp
+    ${SourcesPath}/LogInitializer.cpp
     ${SourcesPath}/BufferView.cpp
     ${SourcesPath}/VulkanEnvironment.cpp
     

@@ -14,6 +14,7 @@ from .FullfieldGradient import *
 from .FullfieldLinearModulation import *
 from .FullfieldOscillation import *
 from .RandomGrid import *
+from .RandomGrid_XorShift128 import *
 from .ShiftingBarcode import *
 from .GreyscaleRandomGrid import *
 from .ColorRandomGrid import *

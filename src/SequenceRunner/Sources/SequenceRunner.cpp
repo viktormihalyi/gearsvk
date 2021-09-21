@@ -8,11 +8,16 @@
 
 #include "Utils/BuildType.hpp"
 #include "Utils/CommandLineFlag.hpp"
+#include "Utils/SetupLogger.hpp"
+
+#include "spdlog/spdlog.h"
 
 #include <iostream>
 
 int main (int argc, char** argv)
 {
+    Utils::SetupLogger ();
+
     if (argc < 2) {
         std::cout << "Fist argument must be an absolute path of a sequence .pyx file." << std::endl;
         return EXIT_FAILURE;
@@ -37,15 +42,14 @@ int main (int argc, char** argv)
 
     std::unique_ptr<SequenceAdapter> sequenceAdapter = Gears::GetSequenceAdapterFromPyx (*env, sequencePath);
     if (GVK_ERROR (sequenceAdapter == nullptr)) {
-        std::cout << "Failed to load sequence." << std::endl;
+        spdlog::error ("Failed to load sequence.");
         return EXIT_FAILURE;
     }
 
     try {
         sequenceAdapter->RenderFullOnExternalWindow ();
     } catch (std::exception& ex) {
-        std::cout << "Error occurred during display." << std::endl;
-        std::cout << ex.what () << std::endl;
+        spdlog::error ("Error occurred during display.\n{}", ex.what ());
         return EXIT_FAILURE;
     }
 

@@ -81,6 +81,7 @@ set (SourcesGroup1
     ${SourcesPath}/Surface.cpp
     ${SourcesPath}/Swapchain.cpp
     ${SourcesPath}/VulkanObject.cpp
+    ${SourcesPath}/LogInitializer.cpp
 )
 set (SourcesGroup2 ${SourcesPath}/Utils/STBImpl.cpp)
 set (SourcesGroup3 ${SourcesPath}/VulkanMemoryAllocatorImpl.cpp)

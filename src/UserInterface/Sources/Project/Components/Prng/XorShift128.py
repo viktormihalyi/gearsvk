@@ -6,13 +6,16 @@ class XorShift128(Component) :
     def applyWithArgs(self,
             stimulus,
             *,
-            randomSeed: 'Number used to initialize the PRNG. The same seed always produces the same randoms.'=3773623027,
-            randomGridSize: 'The dimensions of the 2D array of randoms generated, as an x,y pair.'=(41, 41)) :
+            randomSeed: int = 3773623027,
+            randomGridSize: tuple[int, int] = (41, 41)) :
         stimulus.rngCompute_workGroupSizeX = randomGridSize[0]
         stimulus.rngCompute_workGroupSizeY = randomGridSize[1]
         stimulus.rngCompute_seed = randomSeed
+        stimulus.rngCompute_multiLayer = True
         stimulus.rngCompute_shaderSource = f"""
 #version 450
+
+#extension GL_EXT_debug_printf : enable
 
 layout (set = 0, binding = 0) uniform RandomGeneratorConfig {{
     uint seed;
@@ -23,7 +26,7 @@ layout (set = 0, binding = 0) uniform RandomGeneratorConfig {{
 }};
 
 layout (set = 0, binding = 1) buffer OutputBuffer {{
-    uvec4 randomsBuffer[{stimulus.rngCompute_workGroupSizeY}][{stimulus.rngCompute_workGroupSizeX}][FRAMESINFLIGHT];
+    uvec4 randomsBuffer[FRAMESINFLIGHT][{stimulus.rngCompute_workGroupSizeY}][{stimulus.rngCompute_workGroupSizeX}];
 }};
 
 void main()
@@ -36,11 +39,13 @@ void main()
     for (uint frame = startFrameIndex; frame < startFrameIndex + framesToGenerate; ++frame) {{
         uvec4 nextElement = uvec4 (0);
         if(frame == 1) {{
+        if (gIDx == 0 && gIDy == 0) debugPrintfEXT ("hello1.");
             nextElement.r = gIDx * 1341593453u ^ gIDy *  971157919u ^ seed * 2883500843u;
             nextElement.g = gIDx * 1790208463u ^ gIDy * 1508561443u ^ seed * 2321036227u;
             nextElement.b = gIDx * 2659567811u ^ gIDy * 2918034323u ^ seed * 2244239747u;
             nextElement.a = gIDx * 3756158669u ^ gIDy * 1967864287u ^ seed * 1275070309u;
         }} else if (frame == 2) {{
+            if (gIDx == 0 && gIDy == 0) debugPrintfEXT ("hello2.");
             nextElement.r = gIDx * 2771446331u ^ gIDy * 3030392353u ^ seed *  395945089u;
             nextElement.g = gIDx * 3459812197u ^ gIDy * 2853318569u ^ seed * 1233582347u;
             nextElement.b = gIDx * 2926663697u ^ gIDy * 2265556091u ^ seed * 3073622047u;

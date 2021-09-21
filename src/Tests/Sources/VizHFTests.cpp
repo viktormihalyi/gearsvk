@@ -435,7 +435,7 @@ void main ()
     bool quit = false;
 
     GVK::EventObserver obs;
-    obs.Observe (window->events.keyPressed, [&] (uint32_t key) {
+    obs.Observe (window->events.keyPressed, [&] (int32_t key) {
         constexpr uint8_t ESC_CODE = 27;
         if (key == ESC_CODE) {
             // window->ToggleFullscreen ();
@@ -853,7 +853,7 @@ void main ()
     bool quit = false;
 
     GVK::EventObserver obs;
-    obs.Observe (window->events.keyPressed, [&] (uint32_t key) {
+    obs.Observe (window->events.keyPressed, [&] (int32_t key) {
         constexpr uint8_t ESC_CODE = 27;
         if (key == ESC_CODE) {
             // window->ToggleFullscreen ();

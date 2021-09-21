@@ -679,25 +679,25 @@ class LauncherWindow(QWidget):
         self.stimulusChanged()
 
         self.sequenceTimelineBox.setTitle(self.exp.name) # + ' ' + path)
-        if(self.exp.exportRandomsWithHashmarkComments) :
-            self.ecrHashmark.setChecked(True)
-        else :
-            self.ecrNone.setChecked(True)
-        if(self.exp.exportRandomsChannelCount < 2) :
-            self.echr1.setChecked(True)
-        if(self.exp.exportRandomsChannelCount == 2) :
-            self.echr2.setChecked(True)
-        if(self.exp.exportRandomsChannelCount == 3) :
-            self.echr3.setChecked(True)
-        if(self.exp.exportRandomsChannelCount > 3) :
-            self.echr4.setChecked(True)
+        #if(self.exp.exportRandomsWithHashmarkComments) :
+        #    self.ecrHashmark.setChecked(True)
+        #else :
+        self.ecrNone.setChecked(True)
+        #if(self.exp.exportRandomsChannelCount < 2) :
+        #    self.echr1.setChecked(True)
+        #if(self.exp.exportRandomsChannelCount == 2) :
+        #    self.echr2.setChecked(True)
+        #if(self.exp.exportRandomsChannelCount == 3) :
+        #    self.echr3.setChecked(True)
+        #if(self.exp.exportRandomsChannelCount > 3) :
+        #    self.echr4.setChecked(True)
 
-        if(self.exp.exportRandomsAsReal) :
-            self.efrReal.setChecked(True)
-        elif(self.exp.exportRandomsAsBinary) :
-            self.efrBinary.setChecked(True)
-        else :
-            self.efrInteger.setChecked(True)
+        #if(self.exp.exportRandomsAsReal) :
+        #    self.efrReal.setChecked(True)
+        #elif(self.exp.exportRandomsAsBinary) :
+        #    self.efrBinary.setChecked(True)
+        #else :
+        #    self.efrInteger.setChecked(True)
 
         if self.exp.usesRandoms() :
             self.optionsTabber.addTab(self.managePanel, 'Randoms')
@@ -860,6 +860,7 @@ class LauncherWindow(QWidget):
                 self.warn(e.message)
         #self.mediaWindow.start(self)
         self.sleep()
+        print ("Ending rendering")
 
     def launchCalibration(self):
         sequence = gears.getSequence()

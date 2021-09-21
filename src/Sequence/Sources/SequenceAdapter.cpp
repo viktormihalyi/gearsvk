@@ -34,6 +34,7 @@
 class RandomExporter : public IRandomExporter {
 private:
     GVK::DeviceExtra& device;
+    std::shared_ptr<Sequence> sequence;
 
     size_t randomValueLimit;
     size_t histogramBins;
@@ -43,8 +44,9 @@ private:
     bool                  exported;
 
 public:
-    RandomExporter (GVK::DeviceExtra& device, size_t randomValueLimit, size_t histogramBins)
+    RandomExporter (GVK::DeviceExtra& device, const std::shared_ptr<Sequence>& sequence, size_t randomValueLimit, size_t histogramBins)
         : device { device }
+        , sequence { sequence }
         , randomValueLimit { randomValueLimit }
         , histogramBins { histogramBins }
         , exported { false }
@@ -66,6 +68,12 @@ public:
 
     virtual void OnRandomTextureDrawn (RG::GPUBufferResource& randomsBuffer, uint32_t resourceIndex, uint32_t frameIndex) override
     {
+        auto stimulus = sequence->getStimulusAtFrame (frameIndex);
+
+        if (stimulus->rngCompute_multiLayer) {
+            // TODO only export one 'layer'
+        }
+
         randomsBuffer.TransferFromGPUToCPU (resourceIndex);
 
         std::vector<uint32_t> as32BitUint;
@@ -142,10 +150,10 @@ public:
 
 Utils::CommandLineOnOffFlag saveRandomsFlag { "--saveRandoms", "Saves random textures to %temp%/GearsVk/" };
 
-static std::unique_ptr<IRandomExporter> GetRandomExporterImpl (GVK::DeviceExtra& device)
+static std::unique_ptr<IRandomExporter> GetRandomExporterImpl (GVK::DeviceExtra& device, const std::shared_ptr<Sequence>& sequence)
 {
     if (saveRandomsFlag.IsFlagOn ()) {
-        return std::make_unique<RandomExporter> (device, 500'000, 20);
+        return std::make_unique<RandomExporter> (device, sequence, 500'000, 20);
     }
 
     return std::make_unique<NoRandomExporter> ();
@@ -157,7 +165,7 @@ Utils::CommandLineOnOffFlag printSignalsFlag { "--printSignals", "Prints signals
 SequenceAdapter::SequenceAdapter (RG::VulkanEnvironment& environment, const std::shared_ptr<Sequence>& sequence, const std::string& sequenceNameInTitle)
     : sequence { sequence }
     , environment { environment }
-    , randomExporter { GetRandomExporterImpl (*environment.deviceExtra) }
+    , randomExporter { GetRandomExporterImpl (*environment.deviceExtra, sequence) }
     , sequenceNameInTitle { sequenceNameInTitle }
 {
     CreateStimulusAdapterViews ();
@@ -327,50 +335,77 @@ void SequenceAdapter::SetCurrentPresentable (std::shared_ptr<RG::Presentable> pr
 }
 
 
-std::shared_ptr<RG::Presentable> SequenceAdapter::GetCurrentPresentable ()
-{
-    return currentPresentable;
-}
+class OnScopeExit {
+private:
+    std::function<void ()> func;
+
+public:
+    OnScopeExit (const std::function<void ()>& func)
+        : func (func)
+    {
+    }
+
+    ~OnScopeExit ()
+    {
+        func ();
+    }
+};
 
 
 void SequenceAdapter::RenderFullOnExternalWindow ()
 {
-    std::unique_ptr<RG::Presentable> presentable = std::make_unique<RG::Presentable> (environment, std::make_unique<RG::HiddenGLFWWindow> (), std::make_unique<GVK::DefaultSwapchainSettings> ());
+    std::shared_ptr<RG::Presentable> presentable = std::make_unique<RG::Presentable> (environment, std::make_unique<RG::FullscreenGLFWWindow> (), std::make_unique<GVK::DefaultSwapchainSettings> ());
 
     RG::Window& window = presentable->GetWindow ();
 
-    //window->SetWindowMode (RG::Window::Mode::Fullscreen);
+    bool escPressed = false;
 
     GVK::SingleEventObserver kobs;
-    kobs.Observe (window.events.keyPressed, [&] (uint32_t key) {
+    kobs.Observe (window.events.keyPressed, [&] (int32_t key) {
+        spdlog::trace ("PRESSED {}", key);
+
         // F11
         if (key == 300) {
             window.SetWindowMode (window.GetWindowMode () == RG::Window::Mode::Windowed
                                       ? RG::Window::Mode::Fullscreen
                                       : RG::Window::Mode::Windowed);
         }
-        std::cout << key << std::endl;
+        
+        // esc or q
+        if (key == 256 || key == 81) {
+            escPressed = true;
+        }
     });
 
     SetCurrentPresentable (std::move (presentable));
-
+    
     window.Show ();
 
     uint32_t frameIndex = 1; // TODO do all sequences start at frame 1?
 
     window.DoEventLoop ([&] (bool& shouldStop) {
-        if (window.GetWidth () == 0 && window.GetHeight () == 0) {
-            return;
-        }
+        spdlog::trace ("DoEventLoop called");
 
         RenderFrameIndex (frameIndex);
-
+        
         frameIndex++;
 
-        if (frameIndex == sequence->getDuration ()) {
+        if (frameIndex == sequence->getDuration () || escPressed) {
             shouldStop = true;
+            spdlog::trace ("Should stop pressed");
         }
     });
 
-    window.Close ();
+    spdlog::trace ("DoEventLoop ended, env.Wait ()");
+
+    environment.Wait ();
+
+    for (auto& [stim, view] : views) {
+        view->DestroyForPresentable (currentPresentable);
+    }
+
+    spdlog::trace ("Closing window ");
+
+    currentPresentable = nullptr; 
+
 }

@@ -15,6 +15,8 @@ set (Sources
     ${SourcesPath}/VizHFTests.cpp
     ${SourcesPath}/FontRenderingTests.cpp
     ${SourcesPath}/GearsTests.cpp
+
+    ${SourcesPath}/LogInitializer.cpp
 )
 
 add_executable (GVKTest ${Sources})

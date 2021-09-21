@@ -23,7 +23,7 @@
 namespace Gears {
 
 
-static std::unique_ptr<SequenceAdapter>               currentSeq;
+static std::unique_ptr<SequenceAdapter>              currentSeq;
 static std::vector<std::shared_ptr<RG::Presentable>> createdSurfaces;
 
 static RG::VulkanEnvironment& GetVkEnvironment ();
@@ -61,6 +61,8 @@ void StartRendering ()
     } catch (...) {
         GVK_BREAK_STR ("rendering failed!!");
     }
+
+    spdlog::info ("RenderFullOnExternalWindow ended");
 }
 
 
@@ -98,6 +100,7 @@ static std::shared_ptr<RG::Presentable> GetSurfaceFromHandle (intptr_t surfaceHa
             return createdSurface;
         }
     }
+
     return nullptr;
 }
 

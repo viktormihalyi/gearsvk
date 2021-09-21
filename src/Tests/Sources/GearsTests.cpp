@@ -91,10 +91,15 @@ protected:
         }
     }
 
-    void RenderAndCompare (uint32_t frameIndex, const std::string& checkName)
+    void Render (uint32_t frameIndex)
     {
         sequenceAdapter->RenderFrameIndex (frameIndex);
         sequenceAdapter->Wait ();
+    }
+
+    void RenderAndCompare (uint32_t frameIndex, const std::string& checkName)
+    {
+        Render (frameIndex);
 
         std::vector<std::unique_ptr<GVK::InheritedImage>> imgs = pres->GetSwapchain ().GetImageObjects ();
 
@@ -138,6 +143,22 @@ TEST_F (GearsTests, 2_chess_30Hz)
     RenderAndCompare (480, "2_chess_30Hz_480");
     RenderAndCompare (780, "2_chess_30Hz_780");
     RenderAndCompare (1200, "2_chess_30Hz_1200");
+}
+
+
+TEST_F (GearsTests, 2_chess_30Hz_XorShift128)
+{
+    LoadFromFile (SequencesFolder / "5_Randoms" / "2_Checkerboards" / "1_Binary" / "2_chess_30Hz_XorShift128.pyx");
+
+    Render (1);
+    Render (2);
+    Render (3);
+    Render (4);
+    Render (5);
+    RenderAndCompare (122, "2_chess_30Hz_XorShift128_122");
+    RenderAndCompare (480, "2_chess_30Hz_XorShift128_480");
+    RenderAndCompare (780, "2_chess_30Hz_XorShift128_780");
+    RenderAndCompare (1200, "2_chess_30Hz_XorShift128_1200");
 }
 
 

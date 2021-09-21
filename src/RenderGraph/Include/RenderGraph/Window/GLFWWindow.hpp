@@ -17,7 +17,7 @@ private:
     std::unique_ptr<Impl> impl;
 
 protected:
-    GLFWWindowBase (const std::vector<std::pair<int, int>>& hints);
+    GLFWWindowBase (const std::vector<std::pair<int, int>>& hints, bool useFullscreen, bool hideMouse);
 
 public:
     virtual ~GLFWWindowBase () override;
@@ -51,6 +51,12 @@ public:
     virtual ~GLFWWindow () = default;
 };
 
+
+class GVK_RENDERER_API FullscreenGLFWWindow : public GLFWWindowBase {
+public:
+    FullscreenGLFWWindow ();
+    virtual ~FullscreenGLFWWindow () = default;
+};
 
 class GVK_RENDERER_API HiddenGLFWWindow : public GLFWWindowBase {
 public:

@@ -10,6 +10,7 @@ set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
     ${SourcesPath}/GearsAPIv2.cpp
     ${SourcesPath}/GearsModule.cpp
+    ${SourcesPath}/LogInitializer.cpp
 )
 
 add_library (GearsModule SHARED ${Headers} ${Sources})

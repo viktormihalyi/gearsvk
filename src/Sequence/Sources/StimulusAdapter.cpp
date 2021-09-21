@@ -42,18 +42,23 @@
 constexpr bool LogDebugInfo = false;
 constexpr bool LogUniformDebugInfo = false;
 
+constexpr double deviceRefreshRateDefault = 60.0;
 
-StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environment,
-                                  std::shared_ptr<RG::Presentable>&     presentable,
+
+StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&           environment,
+                                  RG::Presentable&                       presentable,
                                   const std::shared_ptr<Stimulus const>& stimulus)
     : environment { environment }
-    , presentable { presentable }
+    , patternSizeOnRetina { presentable.GetSwapchain ().GetWidth (), presentable.GetSwapchain ().GetHeight () }
+    , deviceRefreshRate { presentable.GetRefreshRate ().value_or (deviceRefreshRateDefault) }
 {
     renderGraph = std::make_unique<RG::RenderGraph> ();
 
-    RG::GraphSettings s (*environment.deviceExtra, presentable->GetSwapchain ().GetImageCount ());
+    const uint32_t framesInFlight = presentable.GetSwapchain ().GetImageCount ();
 
-    std::shared_ptr<RG::SwapchainImageResource> presented = std::make_unique<RG::SwapchainImageResource> (*presentable);
+    RG::GraphSettings s (*environment.deviceExtra, framesInFlight);
+
+    std::shared_ptr<RG::SwapchainImageResource> presented = std::make_unique<RG::SwapchainImageResource> (presentable);
 
     presented->SetName ("Swapchain");
     presented->SetDebugInfo ("Made by StimulusAdapter.");
@@ -123,7 +128,7 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
     if (!stimulus->rngCompute_shaderSource.empty ()) {
 
         const std::string preProcessedShaderSource = Utils::ReplaceAll (stimulus->rngCompute_shaderSource, "FRAMESINFLIGHT", [&] () -> std::string {
-            return std::to_string (stimulus->rngCompute_multiLayer ? s.framesInFlight : 1);
+            return std::to_string (stimulus->rngCompute_multiLayer ? framesInFlight : 1);
         });
 
         rngGen = std::make_shared<RG::ComputeOperation> (stimulus->rngCompute_workGroupSizeX, stimulus->rngCompute_workGroupSizeY, 1);
@@ -183,25 +188,22 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&          environm
 
     renderGraph->Compile (std::move (s));
 
-    SetConstantUniforms ();
-}
+    // set constant uniform values
+    {
+        for (auto& [pass, op] : passToOperation) {
+            for (auto& [name, value] : pass->shaderVariables)
+                (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment]["commonUniformBlock"][name] = static_cast<float> (value);
+            for (auto& [name, value] : pass->shaderVectors)
+                (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment]["commonUniformBlock"][name] = static_cast<glm::vec2> (value);
+            for (auto& [name, value] : pass->shaderColors)
+                (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment]["commonUniformBlock"][name] = static_cast<glm::vec3> (value);
+        }
 
-
-void StimulusAdapter::SetConstantUniforms ()
-{
-    for (auto& [pass, op] : passToOperation) {
-        for (auto& [name, value] : pass->shaderVariables)
-            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment]["commonUniformBlock"][name] = static_cast<float> (value);
-        for (auto& [name, value] : pass->shaderVectors)
-            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment]["commonUniformBlock"][name] = static_cast<glm::vec2> (value);
-        for (auto& [name, value] : pass->shaderColors)
-            (*reflection)[op->GetUUID ()][GVK::ShaderKind::Fragment]["commonUniformBlock"][name] = static_cast<glm::vec3> (value);
-    }
-
-    auto rngComputeOp = renderGraph->GetConnectionSet ().GetByName<RG::ComputeOperation> ("RNG_Compute");
-    if (rngComputeOp != nullptr) {
-        (*reflection)[rngComputeOp][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["seed"] = 7; // TODO RNG
-        (*reflection)[rngComputeOp][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["framesInFlight"] = 0; // TODO RNG
+        auto rngComputeOp = renderGraph->GetConnectionSet ().GetByName<RG::ComputeOperation> ("RNG_Compute");
+        if (rngComputeOp != nullptr) {
+            (*reflection)[rngComputeOp][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["seed"] = 7; // TODO RNG
+            (*reflection)[rngComputeOp][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["framesInFlight"] = framesInFlight; // TODO RNG
+        }
     }
 }
 
@@ -211,12 +213,7 @@ void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std
     auto& vertexShaderUniforms   = (*reflection)[renderOperationId][GVK::ShaderKind::Vertex];
     auto& fragmentShaderUniforms = (*reflection)[renderOperationId][GVK::ShaderKind::Fragment];
 
-    const double deviceRefreshRateDefault = 60.0;
-    const double deviceRefreshRate        = presentable->GetRefreshRate ().value_or (deviceRefreshRateDefault);
-
     const double timeInSeconds = frameIndex / deviceRefreshRate;
-
-    const glm::vec2 patternSizeOnRetina (presentable->GetSwapchain ().GetWidth (), presentable->GetSwapchain ().GetHeight ());
 
     vertexShaderUniforms["PatternSizeOnRetina"] = patternSizeOnRetina;
 
@@ -232,7 +229,7 @@ void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std
             auto rngComputeOp = renderGraph->GetConnectionSet ().GetByName<RG::ComputeOperation> ("RNG_Compute");
             GVK_ASSERT (rngComputeOp != nullptr);
 
-            computeRefl["RandomBufferConfig"]["randoms_layerIndex"] = 0; // TODO RNG
+            computeRefl["RandomBufferConfig"]["randoms_layerIndex"] = stimulus->rngCompute_multiLayer ? resourceIndex : 0;
 
             computeRefl["RandomBufferConfig"]["randomGridSize"] = glm::ivec2 (rngComputeOp->GetWorkGroupSizeX (), rngComputeOp->GetWorkGroupSizeX ());
 

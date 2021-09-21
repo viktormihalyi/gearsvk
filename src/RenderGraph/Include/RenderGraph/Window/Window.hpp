@@ -14,7 +14,7 @@
 
 namespace RG {
 
-class GVK_RENDERER_API Window : public Noncopyable {
+class GVK_RENDERER_API Window : public Noncopyable, public Nonmovable {
 public:
     struct Events {
         // window events
@@ -28,8 +28,8 @@ public:
         GVK::Event<>                   refresh;
 
         // user input
-        GVK::Event<uint32_t>           keyPressed;
-        GVK::Event<uint32_t>           keyReleased;
+        GVK::Event<int32_t>           keyPressed;
+        GVK::Event<int32_t>           keyReleased;
         GVK::Event<int32_t, int32_t>   mouseMove;
         GVK::Event<uint32_t, uint32_t> leftMouseButtonPressed;
         GVK::Event<uint32_t, uint32_t> leftMouseButtonReleased;

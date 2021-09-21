@@ -24,7 +24,7 @@ void StimulusAdapterView::CreateForPresentable (std::shared_ptr<RG::Presentable>
         return;
     }
 
-    compiledAdapters[presentable] = std::make_unique<StimulusAdapter> (environment, presentable, stimulus);
+    compiledAdapters[presentable] = std::make_unique<StimulusAdapter> (environment, *presentable, stimulus);
 }
 
 
@@ -32,7 +32,7 @@ void StimulusAdapterView::DestroyForPresentable (const std::shared_ptr<RG::Prese
 {
     // TODO use
     auto adapter = std::find_if (compiledAdapters.begin (), compiledAdapters.end (), [&] (const auto& x) { return x.first == presentable; });
-    if (GVK_ERROR (adapter != compiledAdapters.end ())) {
+    if (adapter == compiledAdapters.end ()) {
         return;
     }
 
