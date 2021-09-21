@@ -45,6 +45,12 @@ void DestroyEnvironment ()
 }
 
 
+std::string GetSpecs ()
+{
+    return GetVkEnvironment ().physicalDevice->GetProperties ().deviceName;
+}
+
+
 void SetRenderGraphFromSequence (std::shared_ptr<Sequence> seq, const std::string& name)
 {
     currentSeq = std::make_unique<SequenceAdapter> (GetVkEnvironment (), seq, name);

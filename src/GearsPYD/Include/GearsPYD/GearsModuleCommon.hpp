@@ -346,12 +346,6 @@ void makePath (std::string path)
 }
 
 
-std::string getSpecs ()
-{
-    return "[specs]";
-}
-
-
 void makeCurrent ()
 {
     //    if (!stimulusWindow)
@@ -713,7 +707,7 @@ void FillModule (pybind11::module_& m)
     m.def ("setText", setText);
     m.def ("showText", showText);
     m.def ("createStimulusWindow", createStimulusWindow);
-    m.def ("getSpecs", getSpecs);
+    m.def ("getSpecs", Gears::GetSpecs);
     m.def ("makeCurrent", makeCurrent);
     m.def ("shareCurrent", shareCurrent);
     m.def ("run", run);

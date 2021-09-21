@@ -25,6 +25,8 @@ void InitializeEnvironment ();
 
 void DestroyEnvironment ();
 
+std::string GetSpecs ();
+
 void SetRenderGraphFromSequence (std::shared_ptr<Sequence>, const std::string& name);
 
 void StartRendering ();

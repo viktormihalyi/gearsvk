@@ -283,14 +283,6 @@ VulkanEnvironment::VulkanEnvironment (std::optional<GVK::DebugUtilsMessenger::Ca
 
     commandPool->SetName (*deviceExtra, "VulkanEnvironment CommandPool");
     static_cast<GVK::DeviceObject*> (device.get ())->SetName (*deviceExtra, "VulkanEnvironment DeviceObject");
-
-    if (logVulkanVersionFlag.IsFlagOn ()) {
-        VkPhysicalDeviceProperties deviceProperties;
-        vkGetPhysicalDeviceProperties (*physicalDevice, &deviceProperties);
-
-        spdlog::info ("physical device api version: {}", GVK::GetVersionString (deviceProperties.apiVersion));
-        spdlog::info ("physical device driver version: {}", GVK::GetVersionString (deviceProperties.driverVersion));
-    }
 }
 
 
