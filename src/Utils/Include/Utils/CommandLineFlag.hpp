@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 #include <optional>
 
 namespace Utils {
@@ -50,9 +51,24 @@ public:
 
     virtual std::string GVK_UTILS_API GetHelpText () override;
 
-private:
+protected:
     virtual void Match (int argc, char** argv, Utils::Matcher& matcher) override;
     virtual void MatchParameters (int argc, char** argv, Utils::Matcher& matcher, size_t matched) {}
+};
+
+
+class CommandLineOnOffCallbackFlag : public CommandLineOnOffFlag {
+private:
+    
+    std::function<void ()> onCallback;
+
+public:
+
+    GVK_UTILS_API CommandLineOnOffCallbackFlag (const std::string& flag, const std::string& helpText, const std::function<void ()>& onCallback);
+    GVK_UTILS_API CommandLineOnOffCallbackFlag (const std::vector<std::string>& flags, const std::string& helpText, const std::function<void ()>& onCallback);
+
+private:
+    virtual void Match (int argc, char** argv, Utils::Matcher& matcher) override;
 };
 
 

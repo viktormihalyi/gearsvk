@@ -1,12 +1,11 @@
 #include "SetupLogger.hpp"
 #include "StaticInit.hpp"
+#include "Assert.hpp"
+#include "CommandLineFlag.hpp"
 
 #include <stdio.h>
 #include <time.h>
-
 #include <optional>
-
-#include "Utils/Assert.hpp"
 
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -15,7 +14,16 @@
 
 namespace Utils {
 
-void SetupLogger ()
+static CommandLineOnOffCallbackFlag logTraceFlag { "--logTrace", "Set logger to trace level.", [] () { GetLogger ()->set_level (spdlog::level::trace); } };
+static CommandLineOnOffCallbackFlag logDebugFlag { "--logDebug", "Set logger to debug level.", [] () { GetLogger ()->set_level (spdlog::level::debug); } };
+static CommandLineOnOffCallbackFlag logInfoFlag { "--logInfo", "Set logger to info level.", [] () { GetLogger ()->set_level (spdlog::level::info); } };
+static CommandLineOnOffCallbackFlag logWarnFlag { "--logWarn", "Set logger to warn level.", [] () { GetLogger ()->set_level (spdlog::level::warn); } };
+static CommandLineOnOffCallbackFlag logErrFlag { "--logErr", "Set logger to err level.", [] () { GetLogger ()->set_level (spdlog::level::err); } };
+static CommandLineOnOffCallbackFlag logCriticalFlag { "--logCritical", "Set logger to critical level.", [] () { GetLogger ()->set_level (spdlog::level::critical); } };
+static CommandLineOnOffCallbackFlag logOffFlag { "--logOff", "Turns off logger.", [] () { GetLogger ()->set_level (spdlog::level::off); } };
+
+
+std::shared_ptr<spdlog::logger> GetLogger ()
 {
     static std::shared_ptr<spdlog::logger> logger;
     
@@ -24,7 +32,7 @@ void SetupLogger ()
         struct tm tstruct;
         tstruct = *localtime (&now);
 
-        const std::string logFileName = fmt::format ("GearsVk_{}-{}-{}_{}-{}-{}.txt", tstruct.tm_year, tstruct.tm_mon, tstruct.tm_mday, tstruct.tm_hour, tstruct.tm_min, tstruct.tm_sec);
+        const std::string logFileName = fmt::format ("GearsVk_{}-{}-{}_{}-{}-{}.txt", tstruct.tm_year + 1900, tstruct.tm_mon, tstruct.tm_mday, tstruct.tm_hour, tstruct.tm_min, tstruct.tm_sec);
 
         const size_t maxFileSize = 1024 * 1024 * 10;
         const size_t maxFiles    = 1000;
@@ -34,15 +42,14 @@ void SetupLogger ()
         sinks.push_back (std::make_shared<spdlog::sinks::rotating_file_sink_mt> (logFileName, maxFileSize, maxFiles));
 
         logger = std::make_shared<spdlog::logger> ("GearsVk", std::begin (sinks), std::end (sinks));
-    }
-    
-    spdlog::set_default_logger (logger);
 
-    spdlog::set_level (spdlog::level::trace);
-    spdlog::set_pattern ("[%T] [%^%l%$] [t %t] %v");
+        logger->set_pattern ("[%T] [%^%l%$] [t %t] %v");
+    }
+
+    return logger;
 }
 
 } // namespace Utils
 
 
-StaticInit utilsLogInitializer (Utils::SetupLogger);
+StaticInit utilsLogInitializer (std::bind (spdlog::set_default_logger, Utils::GetLogger ()));

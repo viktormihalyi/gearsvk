@@ -180,6 +180,27 @@ void CommandLineOnOffFlag::Match (int argc, char** argv, Utils::Matcher& matcher
 }
 
 
+CommandLineOnOffCallbackFlag::CommandLineOnOffCallbackFlag (const std::string& flag, const std::string& helpText, const std::function<void ()>& onCallback)
+    : CommandLineOnOffFlag (std::vector<std::string> { flag }, helpText)
+    , onCallback (onCallback)
+{
+}
+
+
+CommandLineOnOffCallbackFlag::CommandLineOnOffCallbackFlag (const std::vector<std::string>& flags, const std::string& helpText, const std::function<void ()>& onCallback)
+    : CommandLineOnOffFlag (flags, helpText)
+    , onCallback (onCallback)
+{
+}
+
+
+void CommandLineOnOffCallbackFlag::Match (int argc, char** argv, Utils::Matcher& matcher)
+{
+    CommandLineOnOffFlag::Match (argc, argv, matcher);
+
+    if (on)
+        onCallback ();
+}
 
 
 namespace {

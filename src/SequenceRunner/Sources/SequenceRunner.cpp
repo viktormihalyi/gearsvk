@@ -16,7 +16,7 @@
 
 int main (int argc, char** argv)
 {
-    Utils::SetupLogger ();
+    spdlog::set_default_logger (Utils::GetLogger ());
 
     if (argc < 2) {
         std::cout << "Fist argument must be an absolute path of a sequence .pyx file." << std::endl;

@@ -3,11 +3,12 @@
 
 #include "GVKUtilsAPI.hpp"
 
+#include "spdlog/spdlog.h"
 
 namespace Utils {
 
 GVK_UTILS_API
-void SetupLogger ();
+std::shared_ptr<spdlog::logger> GetLogger ();
 
 } // namespace Utils
 
