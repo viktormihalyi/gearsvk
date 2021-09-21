@@ -148,9 +148,28 @@ void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT      messageSe
                            VkDebugUtilsMessageTypeFlagsEXT             messageType,
                            const VkDebugUtilsMessengerCallbackDataEXT* callbackData)
 {
-    const bool allow = messageSeverity > VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT || std::string (callbackData->pMessageIdName) == std::string ("UNASSIGNED-DEBUG-PRINTF");
+    const bool isShaderPrintf = std::string (callbackData->pMessageIdName) == std::string ("UNASSIGNED-DEBUG-PRINTF");
+
+    const bool allow = messageSeverity > VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT || isShaderPrintf;
 
     if (!allow) {
+        return;
+    }
+
+    if (isShaderPrintf) {
+        const std::string messageStr (callbackData->pMessage);
+        
+        const size_t firstDividerPos = messageStr.find ("|");
+        GVK_ASSERT (firstDividerPos != std::string::npos);
+
+        const std::string postFirstDivider = messageStr.substr (firstDividerPos + 2);
+
+        const size_t secondDividerPos = postFirstDivider.find ("|");
+        GVK_ASSERT (secondDividerPos != std::string::npos);
+
+        const std::string postSecondDivider = postFirstDivider.substr (secondDividerPos + 2);
+
+        spdlog::info ("SHADER PRINTF: {}", postSecondDivider);
         return;
     }
 

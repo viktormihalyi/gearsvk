@@ -55,7 +55,7 @@ void UniformReflection::CreateGraphResources (const RG::ConnectionSet& connectio
             return;
 
         if (connectionSet.GetNodeByName (bufferObject->name) != nullptr) {
-            spdlog::warn ("Skipping buffer object named \"{}\" because it already exists.", bufferObject->name);
+            spdlog::trace ("[UniformReflection] Skipping buffer object named \"{}\" because it already exists.", bufferObject->name);
             return;
         }
 

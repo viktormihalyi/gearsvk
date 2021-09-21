@@ -63,6 +63,9 @@ std::vector<std::string> SplitString (const std::string& str, const std::string&
 
 std::string ReplaceAll (const std::string& str, const std::string& substringToReplace, const std::function<std::string ()>& replacementSubstring)
 {
+    if (str.empty ())
+        return str;
+
     const std::vector<std::string> split = SplitString (str, substringToReplace, true);
 
     std::string result;

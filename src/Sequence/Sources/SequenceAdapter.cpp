@@ -101,14 +101,14 @@ public:
     {
         GVK_ASSERT (!exported);
 
-        spdlog::warn ("Exporting randoms...");
+        spdlog::info ("Exporting randoms...");
 
         const std::filesystem::path dir = std::filesystem::temp_directory_path () / "GearsVk" / "RandomExport";
 
         {
             const std::filesystem::path valuesFilePath = dir / "values.txt";
             
-            spdlog::warn ("Exporting values to {} ...", valuesFilePath.string ());
+            spdlog::info ("Exporting values to {} ...", valuesFilePath.string ());
             
             Utils::EnsureParentFolderExists (valuesFilePath);
             std::ofstream valuesFile { valuesFilePath.string (), std::fstream::out };
@@ -124,7 +124,7 @@ public:
 
             std::ofstream histogramFile { histogramFilePath.string (), std::fstream::out };
             
-            spdlog::warn ("Exporting histogram to {} ...", histogramFilePath.string ());
+            spdlog::info ("Exporting histogram to {} ...", histogramFilePath.string ());
             
             if (GVK_VERIFY (histogramFile.is_open ())) {
                 for (size_t i = 0; i < histogram.size (); ++i) {
@@ -135,7 +135,7 @@ public:
 
         exported = true;
 
-        spdlog::warn ("Exporting randoms... Done!");
+        spdlog::info ("Exporting randoms... Done!");
     }
 };
 

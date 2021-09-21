@@ -17,6 +17,7 @@ class VulkanEnvironment;
 
 class SequenceAdapter;
 class Sequence;
+class Stimulus;
 
 
 namespace Gears {
@@ -43,7 +44,7 @@ void RenderFrame (uint32_t frameIndex);
 
 void Wait ();
 
-std::string GetGLSLResourcesForRandoms ();
+std::string GetGLSLResourcesForRandoms (const std::shared_ptr<Stimulus>& stimulus);
 
 GEARS_API_TEST
 std::unique_ptr<SequenceAdapter> GetSequenceAdapterFromPyx (RG::VulkanEnvironment&, const std::filesystem::path&);

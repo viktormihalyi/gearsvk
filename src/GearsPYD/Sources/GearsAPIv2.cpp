@@ -13,6 +13,7 @@
 #include "Sequence/SequenceAdapter.hpp"
 #include "Sequence/StimulusAdapter.hpp"
 #include "PySequence/core/PySequence.h"
+#include "Sequence/Stimulus.h"
 
 // from pybind11
 #include <pybind11/embed.h>
@@ -149,25 +150,23 @@ void DestroySurface (intptr_t surfaceHandle)
 }
 
 
-std::string GetGLSLResourcesForRandoms ()
+std::string GetGLSLResourcesForRandoms (const std::shared_ptr<Stimulus>& stimulus)
 {
-    // TODO RNG
-    return R"(
+    return fmt::format (R"(
 #ifndef GEARS_RANDOMS_RESOURCES
 #define GEARS_RANDOMS_RESOURCES
 
-layout (binding = 201) readonly buffer RandomBuffer {
-    uvec4 randoms[38][38][1];
-};
+layout (binding = 201) readonly buffer RandomBuffer {{
+    uvec4 randoms[FRAMESINFLIGHT][{}][{}];
+}};
 
-layout (binding = 202) uniform RandomBufferConfig {
+layout (binding = 202) uniform RandomBufferConfig {{
     uint  randoms_layerIndex;
     ivec2 randomGridSize;
     vec2  cellSize;
-};
+}};
 
-#endif
-    )";
+#endif)", stimulus->rngCompute_workGroupSizeX, stimulus->rngCompute_workGroupSizeY);
 }
 
 

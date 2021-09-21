@@ -45,6 +45,14 @@ constexpr bool LogUniformDebugInfo = false;
 constexpr double deviceRefreshRateDefault = 60.0;
 
 
+static std::string PreprocessShaderString (const std::string& source, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t framesInFlight)
+{
+    return Utils::ReplaceAll (source, "FRAMESINFLIGHT", [&] () -> std::string {
+        return std::to_string (stimulus->rngCompute_multiLayer ? framesInFlight : 1);
+    });
+}
+
+
 StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&           environment,
                                   RG::Presentable&                       presentable,
                                   const std::shared_ptr<Stimulus const>& stimulus)
@@ -77,9 +85,9 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&           environ
 
         GVK_ASSERT (pass->rasterizationMode == Pass::RasterizationMode::fullscreen);
 
-        const std::string vert = pass->getStimulusGeneratorVertexShaderSource (pass->rasterizationMode);
-        const std::string geom = pass->getStimulusGeneratorGeometryShaderSource (pass->rasterizationMode);
-        const std::string frag = pass->getStimulusGeneratorShaderSource ();
+        const std::string vert = PreprocessShaderString (pass->getStimulusGeneratorVertexShaderSource (pass->rasterizationMode), stimulus, framesInFlight);
+        const std::string geom = PreprocessShaderString (pass->getStimulusGeneratorGeometryShaderSource (pass->rasterizationMode), stimulus, framesInFlight);
+        const std::string frag = PreprocessShaderString (pass->getStimulusGeneratorShaderSource (), stimulus, framesInFlight);
 
         std::unique_ptr<RG::ShaderPipeline> sequencePip = std::make_unique<RG::ShaderPipeline> (*environment.device);
 
@@ -127,9 +135,7 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&           environ
     std::shared_ptr<RG::ComputeOperation> rngGen;
     if (!stimulus->rngCompute_shaderSource.empty ()) {
 
-        const std::string preProcessedShaderSource = Utils::ReplaceAll (stimulus->rngCompute_shaderSource, "FRAMESINFLIGHT", [&] () -> std::string {
-            return std::to_string (stimulus->rngCompute_multiLayer ? framesInFlight : 1);
-        });
+        const std::string preProcessedShaderSource = PreprocessShaderString (stimulus->rngCompute_shaderSource, stimulus, framesInFlight);
 
         rngGen = std::make_shared<RG::ComputeOperation> (stimulus->rngCompute_workGroupSizeX, stimulus->rngCompute_workGroupSizeY, 1);
         rngGen->SetName ("RNG_Compute");
@@ -202,7 +208,7 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&           environ
         auto rngComputeOp = renderGraph->GetConnectionSet ().GetByName<RG::ComputeOperation> ("RNG_Compute");
         if (rngComputeOp != nullptr) {
             (*reflection)[rngComputeOp][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["seed"] = 7; // TODO RNG
-            (*reflection)[rngComputeOp][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["framesInFlight"] = framesInFlight; // TODO RNG
+            (*reflection)[rngComputeOp][GVK::ShaderKind::Compute]["RandomGeneratorConfig"]["framesInFlight"] = framesInFlight;
         }
     }
 }

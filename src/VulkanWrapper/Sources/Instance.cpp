@@ -16,7 +16,7 @@ const InstanceSettings instanceDebugMode { { VK_EXT_DEBUG_UTILS_EXTENSION_NAME }
 const InstanceSettings instanceReleaseMode { {}, {} };
 
 
-Utils::CommandLineOnOffFlag enableShaderPrintfFlag { "--enableShaderPrintf", "Enables debugPrintfEXT in shaders." };
+Utils::CommandLineOnOffFlag enableShaderPrintfFlag { "--enableShaderPrintf", "Enables debugPrintfEXT in shaders. (And turns off GPU validation.)" };
 
 
 static VkInstance CreateInstance (const std::vector<const char*>& instanceExtensions, const std::vector<const char*>& instanceLayers)
