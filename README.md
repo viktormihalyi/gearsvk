@@ -1,12 +1,12 @@
 # Building
 
-**Dependencies**
+## Dependencies
 
 * Vulkan SDK - https://vulkan.lunarg.com/sdk/home
 * Python 3 (64 bit)
 * conan - for package management https://conan.io/index.html (`pip install conan`)
 
-**Windows MSVC**
+## Windows MSVC
 
 Open Developer Command Prompt for VS
 
@@ -17,7 +17,13 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
 ```
 
-**Linux**
+### Creating an .msi installer
+
+```
+python setup.py bdist_msi
+```
+
+## Linux
 
 Make sure to set `settings.compiler.libcxx=libstdc++11` in a conan profile.
 
