@@ -402,7 +402,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (CompileParameters p
     spv::SpvBuildLogger logger;
     glslang::SpvOptions spvOptions;
     spvOptions.generateDebugInfo = IsDebugBuild;
-    spvOptions.stripDebugInfo    = IsReleaseBuild;
+    spvOptions.stripDebugInfo    = false; // this is needed for shader resource names
     spvOptions.disableOptimizer  = IsDebugBuild;
     spvOptions.optimizeSize      = false;
     spvOptions.disassemble       = false;
