@@ -15,11 +15,7 @@ namespace GVK {
 
 std::string GetVersionString (uint32_t version)
 {
-    std::stringstream ss;
-    ss << VK_VERSION_MAJOR (version) << "."
-       << VK_VERSION_MINOR (version) << "."
-       << VK_VERSION_PATCH (version);
-    return ss.str ();
+    return fmt::format ("{}.{}.{}", VK_VERSION_MAJOR (version), VK_VERSION_MINOR (version), VK_VERSION_PATCH (version));
 }
 
 

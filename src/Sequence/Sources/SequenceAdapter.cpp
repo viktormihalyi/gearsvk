@@ -257,11 +257,11 @@ void SequenceAdapter::OnImageAcquisitionFenceSignaled (uint32_t resourceIndex)
     const size_t stimulusFrameIndex = finishedFrameIndex - stimulus->getStartingFrame ();
 
     if (currentPresentable->HasWindow ()) {
-        std::stringstream ss;
-        ss << "GearsVk - " << sequenceNameInTitle;
-        ss << " [stimulus: frame " << stimulusFrameIndex << " / " << stimulus->getDuration () << " (" << std::floor (static_cast<double> (stimulusFrameIndex) / stimulus->getDuration () * 100.0) << "%) ";
-        ss << ", sequence: frame " << finishedFrameIndex << " / " << sequence->getDuration () << " (" << std::floor (static_cast<double> (finishedFrameIndex) / sequence->getDuration () * 100.0) << "%)] ";
-        currentPresentable->GetWindow ().SetTitle (ss.str ());
+        const std::string titleString = fmt::format ("GearsVk - {} [stimulus frame: {} / {} ({}), sequence frame: {} / {} ({})",
+                                                     sequenceNameInTitle,
+                                                     stimulusFrameIndex, stimulus->getDuration (), std::floor (static_cast<double> (stimulusFrameIndex) / stimulus->getDuration () * 100.0),
+                                                     finishedFrameIndex, sequence->getDuration (), std::floor (static_cast<double> (finishedFrameIndex) / sequence->getDuration () * 100.0));
+        currentPresentable->GetWindow ().SetTitle (titleString);
     }
 
     auto sequenceSignals = sequence->getSignals ().equal_range (finishedFrameIndex);

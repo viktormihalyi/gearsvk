@@ -33,9 +33,7 @@ static void DebugBreak ()
 
 static std::string SourceLocationToString (const SourceLocation& sourceLocation)
 {
-    std::stringstream ss;
-    ss << sourceLocation.file << ":" << sourceLocation.line << " (" << sourceLocation.function << ")";
-    return ss.str ();
+    return fmt::format ("{}: {} ({})", sourceLocation.file, sourceLocation.line, sourceLocation.function);
 }
 
 
