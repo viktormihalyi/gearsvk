@@ -256,7 +256,7 @@ void SequenceAdapter::OnImageAcquisitionFenceSignaled (uint32_t resourceIndex)
     GVK_ASSERT (finishedFrameIndex + 1 /* TODO why +1 */ >= stimulus->getStartingFrame ());
     const size_t stimulusFrameIndex = finishedFrameIndex - stimulus->getStartingFrame ();
 
-    {
+    if (currentPresentable->HasWindow ()) {
         std::stringstream ss;
         ss << "GearsVk - " << sequenceNameInTitle;
         ss << " [stimulus: frame " << stimulusFrameIndex << " / " << stimulus->getDuration () << " (" << std::floor (static_cast<double> (stimulusFrameIndex) / stimulus->getDuration () * 100.0) << "%) ";
@@ -288,7 +288,7 @@ void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
         return;
     }
 
-    if (currentPresentable->GetWindow ().GetWidth () == 0 && currentPresentable->GetWindow ().GetHeight () == 0) {
+    if (currentPresentable->HasWindow () && currentPresentable->GetWindow ().GetWidth () == 0 && currentPresentable->GetWindow ().GetHeight () == 0) {
         return;
     }
 
@@ -300,7 +300,7 @@ void SequenceAdapter::RenderFrameIndex (const uint32_t frameIndex)
             views[stim]->RenderFrameIndex (*renderer, currentPresentable, stim, frameIndex, *this, *randomExporter);
         }
     } catch (GVK::OutOfDateSwapchain&) {
-        if (currentPresentable->GetWindow ().GetWidth () == 0 && currentPresentable->GetWindow ().GetHeight () == 0) {
+        if (currentPresentable->HasWindow () && currentPresentable->GetWindow ().GetWidth () == 0 && currentPresentable->GetWindow ().GetHeight () == 0) {
             return;
         }
         environment.Wait ();

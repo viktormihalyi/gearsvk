@@ -69,6 +69,12 @@ const GVK::Surface& Presentable::GetSurface () const
 }
 
 
+bool Presentable::HasWindow () const
+{
+    return window != nullptr;
+}
+
+
 Window& Presentable::GetWindow ()
 {
     GVK_ASSERT (window != nullptr);

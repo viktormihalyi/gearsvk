@@ -41,6 +41,8 @@ public:
     virtual GVK::Swapchain& GetSwapchain () override;
 
     const GVK::Surface& GetSurface () const;
+
+    bool HasWindow () const;
     Window& GetWindow ();
 
     std::optional<double> GetRefreshRate () const;
