@@ -758,7 +758,7 @@ class LauncherWindow(QWidget):
         self.stimulusTimelineZoomSlider.setValue(minStimulusDuration)
 
         #self.outputStream.clear()
-        self.outputStream.cursor().setPos(QTextCursor.End, QTextCursor.MoveAnchor)
+        #self.outputStream.cursor().setPos(QTextCursor.End, QTextCursor.MoveAnchor)
         self.outputStream.insertHtml('Sequence open.<BR>')
 
         self.update()
@@ -766,7 +766,7 @@ class LauncherWindow(QWidget):
 
     def wake(self):
         nSkipped = gears.getSkippedFrameCount()
-        self.outputStream.cursor().setPos(QTextCursor.End, QTextCursor.MoveAnchor)
+        #self.outputStream.cursor().setPos(QTextCursor.End, QTextCursor.MoveAnchor)
         self.outputStream.insertHtml('Sequence finished!<BR>')
         ILog.log.close()
         #TODO: report skips
@@ -842,7 +842,7 @@ class LauncherWindow(QWidget):
         #print("Logs printed.")
         #print(datetime.datetime.now().time())
 
-        self.outputStream.cursor().setPos(QTextCursor.End, QTextCursor.MoveAnchor)
+        #self.outputStream.cursor().setPos(QTextCursor.End, QTextCursor.MoveAnchor)
         self.outputStream.insertHtml('Launching sequence! (log:' + logFilePath + ')<BR>')
 
         #TODO: format log as .pyx, insert signal info
@@ -1210,7 +1210,7 @@ class LauncherWindow(QWidget):
         self.saveToneMapSettingsButton.setText('Save (last saved ' + timestr + ' )')
 
     def warn(self, message):
-        self.outputStream.cursor().setPos(QTextCursor.End, QTextCursor.MoveAnchor)
+        #self.outputStream.cursor().setPos(QTextCursor.End, QTextCursor.MoveAnchor)
         self.outputStream.insertHtml('<table bgcolor=#ff0000><td bgcolor=#ff0000><font size=20 color=#000000>{message}</font></td></table>'.format(message = message))
 
     def openIde(self):

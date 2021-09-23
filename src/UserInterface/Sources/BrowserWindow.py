@@ -367,7 +367,7 @@ class BrowserWindow(QWidget):
 
         self.setWindowTitle('GearsUI')
 #        self.setWindowIcon(QIcon('web.png'))
-        self.show()
+        self.showFullScreen()
         
         #Full size window not working on linux because of this line
         #self.setFixedSize(self.size())

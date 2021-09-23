@@ -67,7 +67,7 @@ class StimulusWindow(QGLWidget):
 
         self.handle = None
         self.dllref = None
-            
+
     def initializeGL(self):
         try:
             print("Initializing stimulus window.")
