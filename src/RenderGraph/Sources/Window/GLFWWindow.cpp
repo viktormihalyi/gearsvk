@@ -94,10 +94,16 @@ struct GLFWWindowBase::Impl {
 
 
 GLFWWindowBase::GLFWWindowBase (const std::vector<std::pair<int, int>>& hints, bool useFullscreen, bool hideMouse)
+    : GLFWWindowBase (InitialWindowWidth, InitialWindowHeight, hints, useFullscreen, hideMouse)
+{
+}
+
+
+GLFWWindowBase::GLFWWindowBase (size_t width, size_t height, const std::vector<std::pair<int, int>>& hints, bool useFullscreen, bool hideMouse)
     : impl (std::make_unique<Impl> ())
 {
-    impl->width  = InitialWindowWidth;
-    impl->height = InitialWindowHeight;
+    impl->width  = width;
+    impl->height = height;
 
     globalGLFWInitializer.EnsureInitialized ();
 
@@ -418,6 +424,12 @@ HiddenGLFWWindow::HiddenGLFWWindow ()
     : GLFWWindowBase ({
           { GLFW_VISIBLE, GLFW_FALSE },
       }, false, false)
+{
+}
+
+
+HiddenGLFWWindow::HiddenGLFWWindow (size_t width, size_t height)
+    : GLFWWindowBase (width, height, { { GLFW_VISIBLE, GLFW_FALSE } }, false, false)
 {
 }
 

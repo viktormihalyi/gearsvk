@@ -128,6 +128,7 @@ CommandLineOnOffFlag::CommandLineOnOffFlag (const std::string& flag, const std::
 CommandLineOnOffFlag::CommandLineOnOffFlag (const std::vector<std::string>& flags, const std::string& helpText)
     : flags (flags)
     , helpText (helpText)
+    , on (false)
 {
     if (GVK_ERROR (flags.empty ())) {
         throw std::runtime_error ("no flags provided");

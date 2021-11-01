@@ -32,6 +32,8 @@ public:
 
     ImageData (const DeviceExtra& device, const Image& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout = std::nullopt);
     ImageData (const std::filesystem::path& path, const uint32_t components = 4);
+    
+    static void FillBuffer (const DeviceExtra& device, const Image& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout, uint8_t* buffer, size_t bufferSize);
 
     static ImageData FromDataUint (const std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t components);
     static ImageData FromDataFloat (const std::vector<float>& data, uint32_t width, uint32_t height, uint32_t components);

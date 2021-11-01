@@ -1,0 +1,28 @@
+title Sequence felépítés
+
+UI->+.pyx: create ()
+.pyx->+Sequence: setAgenda ()
+
+Sequence->+Sequence: addStimulus ()
+Sequence->+Stimulus: join ()
+Stimulus->Stimulus: addPass ()
+activate Stimulus
+deactivate Stimulus
+Stimulus->-Sequence:
+
+Sequence->+Sequence: addSignal ()
+Sequence->+Stimulus: join ()
+Stimulus->Stimulus: clearSignal ()
+activate Stimulus
+deactivate Stimulus
+Stimulus->-Sequence:
+
+Sequence->+Sequence: addStimulus ()
+Sequence->+Stimulus: join ()
+Stimulus->Stimulus: addPass ()
+activate Stimulus
+deactivate Stimulus
+Stimulus->-Sequence:
+
+Sequence->-.pyx:
+.pyx->-UI:

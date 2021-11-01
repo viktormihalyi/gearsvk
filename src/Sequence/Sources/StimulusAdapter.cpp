@@ -216,13 +216,12 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&           environ
 
 void StimulusAdapter::SetUniforms (const GVK::UUID& renderOperationId, const std::shared_ptr<Stimulus const>& stimulus, const uint32_t resourceIndex, const uint32_t frameIndex)
 {
+    const double timeInSeconds          = frameIndex / deviceRefreshRate;
+
     auto& vertexShaderUniforms   = (*reflection)[renderOperationId][GVK::ShaderKind::Vertex];
     auto& fragmentShaderUniforms = (*reflection)[renderOperationId][GVK::ShaderKind::Fragment];
 
-    const double timeInSeconds = frameIndex / deviceRefreshRate;
-
-    vertexShaderUniforms["PatternSizeOnRetina"] = patternSizeOnRetina;
-
+    vertexShaderUniforms["PatternSizeOnRetina"]                         = patternSizeOnRetina;
     fragmentShaderUniforms["commonUniformBlock"]["time"]                = static_cast<float> (timeInSeconds - stimulus->getStartingFrame () / deviceRefreshRate);
     fragmentShaderUniforms["commonUniformBlock"]["patternSizeOnRetina"] = patternSizeOnRetina;
     fragmentShaderUniforms["commonUniformBlock"]["frame"]               = static_cast<int32_t> (frameIndex);

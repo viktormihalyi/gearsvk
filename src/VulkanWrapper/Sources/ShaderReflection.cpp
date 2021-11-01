@@ -226,7 +226,7 @@ static uint32_t BaseTypeNMToByteSize (spirv_cross::SPIRType::BaseType b, uint32_
 }
 
 
-static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uint32_t vecSize, uint32_t columns)
+static std::optional<FieldType> BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uint32_t vecSize, uint32_t columns)
 {
     using BaseType = spirv_cross::SPIRType::BaseType;
 
@@ -239,28 +239,28 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
                         case 2: return FieldType::Vec2;
                         case 3: return FieldType::Vec3;
                         case 4: return FieldType::Vec4;
-                        default: throw std::runtime_error ("wtf");
+                        default: std::nullopt;
                     }
                 case 2:
                     switch (vecSize) {
                         case 2: return FieldType::Mat2x2;
                         case 3: return FieldType::Mat2x3;
                         case 4: return FieldType::Mat2x4;
-                        default: throw std::runtime_error ("wtf");
+                        default: std::nullopt;
                     }
                 case 3:
                     switch (vecSize) {
                         case 2: return FieldType::Mat3x2;
                         case 3: return FieldType::Mat3x3;
                         case 4: return FieldType::Mat3x4;
-                        default: throw std::runtime_error ("wtf");
+                        default: std::nullopt;
                     }
                 case 4:
                     switch (vecSize) {
                         case 2: return FieldType::Mat4x2;
                         case 3: return FieldType::Mat4x3;
                         case 4: return FieldType::Mat4x4;
-                        default: throw std::runtime_error ("wtf");
+                        default: std::nullopt;
                     }
             }
 
@@ -272,28 +272,28 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
                         case 2: return FieldType::Dvec2;
                         case 3: return FieldType::Dvec3;
                         case 4: return FieldType::Dvec4;
-                        default: throw std::runtime_error ("wtf");
+                        default: std::nullopt;
                     }
                 case 2:
                     switch (vecSize) {
                         case 2: return FieldType::Dmat2x2;
                         case 3: return FieldType::Dmat2x3;
                         case 4: return FieldType::Dmat2x4;
-                        default: throw std::runtime_error ("wtf");
+                        default: std::nullopt;
                     }
                 case 3:
                     switch (vecSize) {
                         case 2: return FieldType::Dmat3x2;
                         case 3: return FieldType::Dmat3x3;
                         case 4: return FieldType::Dmat3x4;
-                        default: throw std::runtime_error ("wtf");
+                        default: std::nullopt;
                     }
                 case 4:
                     switch (vecSize) {
                         case 2: return FieldType::Dmat4x2;
                         case 3: return FieldType::Dmat4x3;
                         case 4: return FieldType::Dmat4x4;
-                        default: throw std::runtime_error ("wtf");
+                        default: std::nullopt;
                     }
             }
 
@@ -303,7 +303,7 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
                 case 2: return FieldType::Bvec2;
                 case 3: return FieldType::Bvec3;
                 case 4: return FieldType::Bvec4;
-                default: throw std::runtime_error ("wtf");
+                default: std::nullopt;
             }
 
         case BaseType::Int:
@@ -312,7 +312,7 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
                 case 2: return FieldType::Ivec2;
                 case 3: return FieldType::Ivec3;
                 case 4: return FieldType::Ivec4;
-                default: throw std::runtime_error ("wtf");
+                default: std::nullopt;
             }
 
         case BaseType::UInt:
@@ -321,7 +321,7 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
                 case 2: return FieldType::Uvec2;
                 case 3: return FieldType::Uvec3;
                 case 4: return FieldType::Uvec4;
-                default: throw std::runtime_error ("wtf");
+                default: std::nullopt;
             }
 
         case BaseType::Struct:
@@ -336,7 +336,7 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
                 case 2: return FieldType::i64_vec2;
                 case 3: return FieldType::i64_vec3;
                 case 4: return FieldType::i64_vec4;
-                default: throw std::runtime_error ("wtf");
+                default: std::nullopt;
             }
 
         case BaseType::UInt64:
@@ -345,7 +345,7 @@ static FieldType BaseTypeNMToSRFieldType (spirv_cross::SPIRType::BaseType b, uin
                 case 2: return FieldType::u64_vec2;
                 case 3: return FieldType::u64_vec3;
                 case 4: return FieldType::u64_vec4;
-                default: throw std::runtime_error ("wtf");
+                default: std::nullopt;
             }
 
         default:
@@ -370,7 +370,12 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
         f->name                  = typeMemDecor.name;
         f->offset                = *typeMemDecor.Offset;
         f->size                  = (Mtype.width * Mtype.vecsize * Mtype.columns) / 8;
-        f->type                  = BaseTypeNMToSRFieldType (Mtype.basetype, Mtype.vecsize, Mtype.columns);
+
+        const std::optional<FieldType> fieldType = BaseTypeNMToSRFieldType (Mtype.basetype, Mtype.vecsize, Mtype.columns);
+        if (GVK_ERROR (!fieldType.has_value ()))
+            continue;
+
+        f->type = *fieldType;
 
 
         for (size_t i = 0; i < Mtype.array.size (); ++i) {
@@ -496,8 +501,14 @@ std::vector<Output> GetOutputsFromBinary (SpirvParser& compiler_)
 
         output.name      = resource.name;
         output.location  = *decorations.Location;
-        output.type      = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
         output.arraySize = !type.array.empty () ? type.array[0] : 1;
+
+        const std::optional<FieldType> fieldType = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
+        if (GVK_ERROR (!fieldType.has_value ()))
+            continue;
+
+        output.type = *fieldType;
+
 
         result.push_back (output);
     }
@@ -576,8 +587,13 @@ std::vector<SubpassInput> GetSubpassInputsFromBinary (SpirvParser& compiler_)
         inp.name         = resource.name;
         inp.binding      = *decorations.Binding;
         inp.subpassIndex = *decorations.InputAttachmentIndex;
-        inp.type         = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
         inp.arraySize    = !type.array.empty () ? type.array[0] : 1;
+
+        const std::optional<FieldType> fieldType = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
+        if (GVK_ERROR (!fieldType.has_value ()))
+            continue;
+
+        inp.type = *fieldType;
 
         result.push_back (inp);
     }
@@ -606,9 +622,14 @@ std::vector<Input> GetInputsFromBinary (SpirvParser& compiler_)
 
         inp.name        = resource.name;
         inp.location    = *decorations.Location;
-        inp.type        = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
         inp.arraySize   = !type.array.empty () ? type.array[0] : 1;
         inp.sizeInBytes = BaseTypeNMToByteSize (type.basetype, type.vecsize, type.columns);
+
+        const std::optional<FieldType> fieldType = BaseTypeNMToSRFieldType (type.basetype, type.vecsize, type.columns);
+        if (GVK_ERROR (!fieldType.has_value ()))
+            continue;
+
+        inp.type = *fieldType;
 
         result.push_back (inp);
     }

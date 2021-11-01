@@ -31,6 +31,35 @@ ImageData::ImageData (size_t                      components,
 }
 
 
+void ImageData::FillBuffer (const DeviceExtra& device, const Image& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout, uint8_t* buffer, size_t bufferSize)
+{
+    if (currentLayout)
+        TransitionImageLayout (device, image, *currentLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+    const size_t components        = 4;
+    const size_t componentByteSize = (GetEachCompontentSizeFromFormat (image.GetFormat ()));
+    const size_t width             = (image.GetWidth ());
+    const size_t height            = (image.GetHeight ());
+
+    GVK_ASSERT (bufferSize >= width * height * components * componentByteSize);
+
+    {
+        Buffer dstBuffer (device.GetAllocator (), width * height * components * componentByteSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT, Buffer::MemoryLocation::CPU);
+
+        {
+            SingleTimeCommand single (device);
+            image.CmdCopyLayerToBuffer (single, layerIndex, dstBuffer);
+        }
+
+        MemoryMapping mapping (device.GetAllocator (), dstBuffer);
+        memcpy (buffer, mapping.Get (), width * height * components * componentByteSize);
+    }
+
+    if (currentLayout)
+        TransitionImageLayout (device, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, *currentLayout);
+}
+
+
 ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t layerIndex, std::optional<VkImageLayout> currentLayout)
     : components (4)
     , componentByteSize (GetEachCompontentSizeFromFormat (image.GetFormat ()))
@@ -40,7 +69,7 @@ ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t la
     if (currentLayout)
         TransitionImageLayout (device, image, *currentLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
-    auto dataCopy = data;
+    auto& dataCopy = data;
     dataCopy.resize (width * height * components * componentByteSize);
 
     {
@@ -55,6 +84,10 @@ ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t la
         memcpy (dataCopy.data (), mapping.Get (), width * height * components * componentByteSize);
     }
 
+    if (currentLayout)
+        TransitionImageLayout (device, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, *currentLayout);
+
+    /*
     Image2D dst (device.GetAllocator (), Image::MemoryLocation::CPU,
                  image.GetWidth (), image.GetHeight (),
                  image.GetFormat (),
@@ -93,6 +126,7 @@ ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t la
     }
 
     data = dataCopy;
+    */
 }
 
 

@@ -17,6 +17,7 @@ private:
     std::unique_ptr<Impl> impl;
 
 protected:
+    GLFWWindowBase (size_t width, size_t height, const std::vector<std::pair<int, int>>& hints, bool useFullscreen, bool hideMouse);
     GLFWWindowBase (const std::vector<std::pair<int, int>>& hints, bool useFullscreen, bool hideMouse);
 
 public:
@@ -61,6 +62,7 @@ public:
 class GVK_RENDERER_API HiddenGLFWWindow : public GLFWWindowBase {
 public:
     HiddenGLFWWindow ();
+    HiddenGLFWWindow (size_t width, size_t height);
     virtual ~HiddenGLFWWindow () = default;
 };
 
