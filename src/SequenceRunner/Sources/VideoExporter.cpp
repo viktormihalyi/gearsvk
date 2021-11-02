@@ -1,10 +1,9 @@
-#include "MovieExporter.hpp"
+#include "VideoExporter.hpp"
 
 #include "Utils/Assert.hpp"
 
 #include <cstdint>
 #include <stdexcept>
-#include <iostream>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -15,28 +14,29 @@ extern "C" {
 #include <x264.h>
 }
 
+#include "spdlog/spdlog.h"
 
-struct MovieExporter::Impl {
+struct VideoExporter::Impl {
     std::filesystem::path exportFilePath;
-    VideoSettings videoSettings;
-    size_t frameCounter;
+    VideoSettings         videoSettings;
+    size_t                frameCounter;
 
-    AVOutputFormat* outputFormat;
+    AVOutputFormat*  outputFormat;
     AVFormatContext* formatContext;
-    AVCodec* codec;
-    AVStream* stream;
-    AVCodecContext* codecContext;
-    AVFrame* videoFrame;
-    SwsContext* swsContext;
+    AVCodec*         codec;
+    AVStream*        stream;
+    AVCodecContext*  codecContext;
+    AVFrame*         videoFrame;
+    SwsContext*      swsContext;
 };
 
 
-MovieExporter::MovieExporter (const std::filesystem::path& exportFilePath, VideoSettings videoSettings)
+VideoExporter::VideoExporter (const std::filesystem::path& exportFilePath, VideoSettings videoSettings)
     : impl { std::make_unique<Impl> () }
 {
     impl->exportFilePath = exportFilePath;
-    impl->videoSettings = videoSettings;
-    impl->frameCounter = 0;
+    impl->videoSettings  = videoSettings;
+    impl->frameCounter   = 0;
 
     const std::string filename = exportFilePath.filename ().string ();
 
@@ -75,8 +75,8 @@ MovieExporter::MovieExporter (const std::filesystem::path& exportFilePath, Video
     impl->codecContext->gop_size     = 12;
     impl->codecContext->framerate    = AVRational { static_cast<int> (impl->videoSettings.fps), 1 };
 
-    //must remove the following
-    //codecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+    // must remove the following
+    // impl->codecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
     if (impl->stream->codecpar->codec_id == AV_CODEC_ID_H264) {
         GVK_VERIFY (av_opt_set (impl->codecContext->priv_data, "preset", "ultrafast", 0) == 0);
@@ -98,27 +98,27 @@ MovieExporter::MovieExporter (const std::filesystem::path& exportFilePath, Video
         throw std::runtime_error ("");
 
     av_dump_format (impl->formatContext, 0, filename.c_str (), 1);
-        
+
     impl->videoFrame = av_frame_alloc ();
     if GVK_ERROR (impl->videoFrame == nullptr)
         throw std::runtime_error ("");
-        
+
     impl->videoFrame->format = AV_PIX_FMT_YUV420P;
     impl->videoFrame->width  = impl->codecContext->width;
     impl->videoFrame->height = impl->codecContext->height;
     if GVK_ERROR (av_frame_get_buffer (impl->videoFrame, 32) < 0)
         throw std::runtime_error ("");
 
-    impl->swsContext = sws_getContext (impl->codecContext->width, impl->codecContext->height, AV_PIX_FMT_RGB24,
+    impl->swsContext = sws_getContext (impl->codecContext->width, impl->codecContext->height, AV_PIX_FMT_RGBA,
                                        impl->codecContext->width, impl->codecContext->height, AV_PIX_FMT_YUV420P,
                                        SWS_BICUBIC, 0, 0, 0);
-        
+
     if GVK_ERROR (impl->swsContext == nullptr)
         throw std::runtime_error ("");
 }
 
 
-MovieExporter::~MovieExporter ()
+VideoExporter::~VideoExporter ()
 {
     AVPacket pkt;
     av_init_packet (&pkt);
@@ -148,25 +148,24 @@ MovieExporter::~MovieExporter ()
 }
 
 
-void MovieExporter::PushFrame (std::vector<uint8_t> frame)
+void VideoExporter::PushFrame (std::vector<uint8_t> frame)
 {
-    uint8_t* data = frame.data ();
-    int inLinesize = 3 * impl->codecContext->width;
+    const uint8_t* inData = frame.data ();
+    
+    const int inLineSize = 4 * impl->codecContext->width;
+
     sws_scale (impl->swsContext,
-               (const uint8_t* const*)&data,
-               &inLinesize,
+               &inData,
+               &inLineSize,
                0,
                impl->codecContext->height,
                impl->videoFrame->data,
                impl->videoFrame->linesize);
 
-    impl->videoFrame->pts = (1.0 / impl->videoSettings.fps) * 90000 * (impl->frameCounter++);
+    constexpr size_t magic = 90000; // WHAT IS THIS
+    impl->videoFrame->pts  = (1.0 / static_cast<double> (impl->videoSettings.fps)) * magic * (impl->frameCounter++);
 
-    std::cout
-        << impl->videoFrame->pts << " "
-        << impl->codecContext->time_base.num << " "
-        << impl->codecContext->time_base.den << " "
-        << impl->frameCounter << std::endl;
+    spdlog::info ("pts: {}, time_base: {}/{}, frameCounter: {}", impl->videoFrame->pts, impl->codecContext->time_base.num, impl->codecContext->time_base.den, impl->frameCounter);
 
     if GVK_ERROR (avcodec_send_frame (impl->codecContext, impl->videoFrame) != 0)
         return;
@@ -186,10 +185,16 @@ void MovieExporter::PushFrame (std::vector<uint8_t> frame)
             fwrite (pkt.data, pkt.size, 1, fp);
             GVK_VERIFY (fclose (fp) == 0);
         }
-        std::cout << "pkt key: " << (pkt.flags & AV_PKT_FLAG_KEY) << " " << pkt.size << " " << (counter++) << std::endl;
+
+        spdlog::info ("pkt key flags: {}, size: {}, counter: {}", pkt.flags, pkt.size, counter);
+
         uint8_t* size = ((uint8_t*)pkt.data);
-        std::cout << "first: " << (int)size[0] << " " << (int)size[1] << " " << (int)size[2] << " " << (int)size[3] << " " << (int)size[4] << " " << (int)size[5] << " " << (int)size[6] << " " << (int)size[7] << std::endl;
+        spdlog::info ("first: {} {} {} {} {} {} {} {}",
+                      static_cast<int> (size[0]), static_cast<int> (size[1]), static_cast<int> (size[2]), static_cast<int> (size[3]),
+                      static_cast<int> (size[4]), static_cast<int> (size[5]), static_cast<int> (size[6]), static_cast<int> (size[7]));
+
         GVK_VERIFY (av_interleaved_write_frame (impl->formatContext, &pkt) == 0);
         av_packet_unref (&pkt);
+        counter++;
     }
 }

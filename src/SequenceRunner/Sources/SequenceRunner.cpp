@@ -1,4 +1,4 @@
-#include "MovieExporter.hpp"
+#include "VideoExporter.hpp"
 
 #include "RenderGraph/Window/GLFWWindow.hpp"
 #include "GearsPYD/GearsAPIv2.hpp"
@@ -67,10 +67,10 @@ int main (int argc, char* argv[])
 
         sequenceAdapter->SetCurrentPresentable (pres);
         
-        const char* filename = "test.mp4";
+        const std::string filename = sequencePath.stem ().string () + ".mp4";
         
         {
-            MovieExporter movie { std::filesystem::current_path () / filename, { videoWidth, videoHeight, 60, 2 } };
+            VideoExporter movie { std::filesystem::current_path () / filename, { videoWidth, videoHeight, 60, 2 } };
 
             std::vector<uint8_t> framerawRGBA (videoWidth * videoHeight * 4, 0);
             std::vector<uint8_t> framerawRGB (videoWidth * videoHeight * 3, 0);
@@ -82,14 +82,7 @@ int main (int argc, char* argv[])
 
                 GVK::ImageData::FillBuffer (*env->deviceExtra, *imgs[0], 0, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, framerawRGBA.data (), framerawRGBA.size ());
 
-                size_t indexer = 0;
-                for (size_t i = 0; i < framerawRGBA.size (); i += 4) {
-                    framerawRGB[indexer++] = framerawRGBA[i + 0];
-                    framerawRGB[indexer++] = framerawRGBA[i + 1];
-                    framerawRGB[indexer++] = framerawRGBA[i + 2];
-                }
-
-                movie.PushFrame (framerawRGB);
+                movie.PushFrame (framerawRGBA);
             }
         }
 

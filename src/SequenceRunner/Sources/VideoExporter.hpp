@@ -1,11 +1,11 @@
-#ifndef SEQUENCERUNNER_MOVIEEXPORTER_HPP
-#define SEQUENCERUNNER_MOVIEEXPORTER_HPP
+#ifndef SEQUENCERUNNER_VIDEOEXPORTER_HPP
+#define SEQUENCERUNNER_VIDEOEXPORTER_HPP
 
 #include <vector>
 #include <filesystem>
 #include <memory>
 
-class MovieExporter {
+class VideoExporter {
 private:
     struct Impl;
     std::unique_ptr<Impl> impl;
@@ -19,9 +19,9 @@ public:
     };
 
 public:
-    MovieExporter (const std::filesystem::path& exportFilePath, VideoSettings videoSettings);
+    VideoExporter (const std::filesystem::path& exportFilePath, VideoSettings videoSettings);
 
-    ~MovieExporter ();
+    ~VideoExporter ();
 
     void PushFrame (std::vector<uint8_t> frame);
 

@@ -1,7 +1,7 @@
 
 add_executable (SequenceRunner
     Sources/SequenceRunner.cpp
-    Sources/MovieExporter.cpp
+    Sources/VideoExporter.cpp
 )
 
 find_package (ffmpeg REQUIRED)
