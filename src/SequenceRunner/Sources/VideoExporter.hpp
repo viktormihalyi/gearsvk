@@ -23,7 +23,7 @@ public:
 
     ~VideoExporter ();
 
-    void PushFrame (std::vector<uint8_t> frame);
+    void PushFrame (const std::vector<uint8_t>& frame);
 
 };
 

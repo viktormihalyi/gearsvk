@@ -5,10 +5,15 @@
 
 #include "spdlog/spdlog.h"
 
+#include <string>
+
 namespace Utils {
 
 GVK_UTILS_API
 std::shared_ptr<spdlog::logger> GetLogger ();
+
+GVK_UTILS_API
+std::shared_ptr<spdlog::logger> GetLogger (const std::string& customFileName);
 
 } // namespace Utils
 

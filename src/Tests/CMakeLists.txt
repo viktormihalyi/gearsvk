@@ -24,6 +24,8 @@ add_executable (GVKTest ${Sources})
 find_package (GTest REQUIRED)
 find_package (stb REQUIRED)
 
+target_precompile_headers (GVKTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeader.hpp)
+
 target_include_directories (GVKTest
     PRIVATE ${SourcesPath}
 

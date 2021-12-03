@@ -27,8 +27,11 @@ VkSurfaceFormatKHR DefaultSwapchainSettings::SelectSurfaceFormat (const std::vec
 
 VkPresentModeKHR DefaultSwapchainSettings::SelectPresentMode (const std::vector<VkPresentModeKHR>& modes)
 {
+
     for (VkPresentModeKHR availablePresentMode : modes) {
-        if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
+        spdlog::info (availablePresentMode);
+        //if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
+        if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
             return availablePresentMode;
         }
     }
@@ -140,6 +143,11 @@ RealSwapchain::CreateResult RealSwapchain::CreateForResult (const CreateSettings
         spdlog::critical ("VkSwapchainKHR creation failed.");
         throw std::runtime_error ("failed to create swapchain");
     }
+
+    spdlog::info ("Created VkSwapchainKHR with surfaceFormat: format: {}, colorSpace: {}", createResult.surfaceFormat.format, createResult.surfaceFormat.colorSpace);
+    spdlog::info ("Created VkSwapchainKHR with presentMode: {}", createResult.presentMode);
+    spdlog::info ("Created VkSwapchainKHR with extent: {} x {}", createResult.extent.width, createResult.extent.height);
+    spdlog::info ("Created VkSwapchainKHR with imageCount: {} ", createResult.imageCount);
 
     uint32_t imageCount;
     GVK_ASSERT (vkGetSwapchainImagesKHR (createSettings.device, createResult.handle, &imageCount, nullptr) == VK_SUCCESS);

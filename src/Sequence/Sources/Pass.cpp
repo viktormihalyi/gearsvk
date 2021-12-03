@@ -506,27 +506,33 @@ std::string Pass::ToDebugString () const
 
 void Pass::setShaderImage (std::string varName, std::string file)
 {
+    spdlog::trace ("setting shader image \"{}\" file = \"{}\"", varName, file);
     shaderImages[varName] = file;
 }
 
 
 void Pass::setShaderVariable (std::string varName, float value)
 {
+    spdlog::trace ("setting shader variable \"{}\" value = {}", varName, value);
     shaderVariables[varName] = value;
 }
 
 
 void Pass::setShaderColor (std::string varName, float all, float r, float g, float b)
 {
-    if (all >= -1)
+    if (all >= -1) {
+        spdlog::trace ("setting shader color \"{}\" all {} ", varName, all);
         shaderColors[varName] = glm::vec3 (all, all, all);
-    else
+    } else {
+        spdlog::trace ("setting shader color \"{}\" r = {}, g = {}, b = {}", varName, r, g, b);
         shaderColors[varName] = glm::vec3 (r, g, b);
+    }
 }
 
 
 void Pass::setShaderVector (std::string varName, float x, float y)
 {
+    spdlog::trace ("setting shader vector \"{}\" x = {}, y = {}", varName, x, y);
     shaderVectors[varName] = glm::vec2 (x, y);
 }
 

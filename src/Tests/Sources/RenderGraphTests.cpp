@@ -170,14 +170,14 @@ TEST_F (HeadlessTestEnvironment, UniformReflection_MultiDimensionalArray)
     std::unique_ptr<GVK::ShaderModule> sm = GVK::ShaderModule::CreateFromGLSLString (GetDevice (), GVK::ShaderKind::Fragment, R"(#version 450
 
 layout (std140, binding = 2) uniform Values {
-    float dddddddddddd[5][6][7];
+    float multiDim[5][6][7];
 };
 
 layout (location = 0) out vec4 presented;
 
 void main ()
 {
-    presented = vec4 (vec3 (1), dddddddddddd[1][2][3]);
+    presented = vec4 (vec3 (1), multiDim[1][2][3]);
 }
 
 )");
@@ -186,7 +186,7 @@ void main ()
     auto            ubos = SR::GetUBOsFromBinary (spirvParser);
     SR::ShaderBufferData refl (ubos);
 
-    SR::BufferView v = refl["Values"]["dddddddddddd"][1][2][3];
+    SR::BufferView v = refl["Values"]["multiDim"][1][2][3];
     v = static_cast<float> (3.4f);
 
     EXPECT_EQ (944, v.GetOffset ());

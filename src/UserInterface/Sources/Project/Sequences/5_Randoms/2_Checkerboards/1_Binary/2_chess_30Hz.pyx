@@ -7,7 +7,7 @@ def create(mediaWindow):
         StartMeasurement(),
         Stimulus.Blank(duration_s=2),
         Stimulus.RandomGrid(
-            duration_s=480,
+            duration_s=30,
             randomSeed=35436546,
         ),
         ClearSignal("Exp sync"),

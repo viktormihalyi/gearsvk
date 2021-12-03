@@ -22,7 +22,10 @@ class Rect(Base) :
             c = math.cos(facing)
             facing = (c,s)
         
+        spass.setShaderVector(name=functionName + '_rect',    x = size_um[0], y= size_um[1])
+        spass.setShaderVector(name=functionName + '_facing', x=c, y=s)
         spass.setShaderVector(name=functionName + '_repetitionDistance', x=follow_distance_um, y=wingmen_distance_um)
+        spass.setShaderVariable( name= functionName+'_filterRadius', value = filterRadius_um )
         spass.setShaderFunction(name = functionName, src = self.glslEsc('''
                 vec3 @<X>@ (vec2 x, float time){ 
                     vec2 rotatedX = vec2( x.x * `facing.x + x.y * `facing.y, x.x * `facing.y - x.y * `facing.x);

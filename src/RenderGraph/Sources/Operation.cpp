@@ -361,9 +361,9 @@ VkImageLayout RenderOperation::GetImageLayoutAtEndForOutputs (Resource& res)
 
 
 ComputeOperation::ComputeOperation (uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
-    : groupCountX (groupCountX)
-    , groupCountY (groupCountY)
-    , groupCountZ (groupCountZ)
+    : groupCountX { groupCountX }
+    , groupCountY { groupCountY }
+    , groupCountZ { groupCountZ }
 {
     compileSettings.descriptorWriteProvider = std::make_unique<RG::FromShaderReflection::DescriptorWriteInfoTable> ();
     compileSettings.attachmentProvider      = std::make_unique<RG::FromShaderReflection::AttachmentDataTable> ();

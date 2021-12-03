@@ -43,6 +43,8 @@ add_library (Sequence SHARED ${Headers} ${Sources})
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 find_package (pybind11 REQUIRED)
 
+target_precompile_headers (Sequence PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeader.hpp)
+
 target_include_directories (Sequence
     PRIVATE
         ${IncludePath}

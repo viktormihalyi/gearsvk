@@ -107,6 +107,8 @@ target_compile_definitions (VulkanWrapper
     PUBLIC SPDLOG_FMT_EXTERNAL
 )
 
+target_precompile_headers (VulkanWrapper PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeader.hpp)
+
 target_include_directories (VulkanWrapper
     PRIVATE ${IncludePath}
     PRIVATE ${HeadersPath}

@@ -21,13 +21,13 @@ struct VideoExporter::Impl {
     VideoSettings         videoSettings;
     size_t                frameCounter;
 
-    AVOutputFormat*  outputFormat;
-    AVFormatContext* formatContext;
-    AVCodec*         codec;
-    AVStream*        stream;
-    AVCodecContext*  codecContext;
-    AVFrame*         videoFrame;
-    SwsContext*      swsContext;
+    AVOutputFormat*  outputFormat;          // libavformat
+    AVFormatContext* formatContext;         // libavformat
+    AVCodec*         codec;                 // libavcodec
+    AVStream*        stream;                // libavformat
+    AVCodecContext*  codecContext;          // libavcodec
+    AVFrame*         videoFrame;            // libavutil
+    SwsContext*      swsContext;            // libswscale
 };
 
 
@@ -78,10 +78,18 @@ VideoExporter::VideoExporter (const std::filesystem::path& exportFilePath, Video
     // must remove the following
     // impl->codecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
+    std::string crf = "23";
+    if (const char* envVar = std::getenv ("GVK_CRF")) {
+        crf = std::string (envVar);
+        //spdlog::info ("Using CRF value from environment: {}", crf);
+    }
+
     if (impl->stream->codecpar->codec_id == AV_CODEC_ID_H264) {
         GVK_VERIFY (av_opt_set (impl->codecContext->priv_data, "preset", "ultrafast", 0) == 0);
+        GVK_VERIFY (av_opt_set (impl->codecContext->priv_data, "crf", crf.c_str (), AV_OPT_SEARCH_CHILDREN) == 0);
     } else if (impl->stream->codecpar->codec_id == AV_CODEC_ID_H265) {
         GVK_VERIFY (av_opt_set (impl->codecContext->priv_data, "preset", "ultrafast", 0) == 0);
+        GVK_VERIFY (av_opt_set (impl->codecContext->priv_data, "crf", crf.c_str (), AV_OPT_SEARCH_CHILDREN) == 0);
     }
 
     if GVK_ERROR (avcodec_parameters_from_context (impl->stream->codecpar, impl->codecContext) < 0)
@@ -148,7 +156,7 @@ VideoExporter::~VideoExporter ()
 }
 
 
-void VideoExporter::PushFrame (std::vector<uint8_t> frame)
+void VideoExporter::PushFrame (const std::vector<uint8_t>& frame)
 {
     const uint8_t* inData = frame.data ();
     
@@ -165,7 +173,7 @@ void VideoExporter::PushFrame (std::vector<uint8_t> frame)
     constexpr size_t magic = 90000; // WHAT IS THIS
     impl->videoFrame->pts  = (1.0 / static_cast<double> (impl->videoSettings.fps)) * magic * (impl->frameCounter++);
 
-    spdlog::info ("pts: {}, time_base: {}/{}, frameCounter: {}", impl->videoFrame->pts, impl->codecContext->time_base.num, impl->codecContext->time_base.den, impl->frameCounter);
+    //spdlog::info ("pts: {}, time_base: {}/{}, frameCounter: {}", impl->videoFrame->pts, impl->codecContext->time_base.num, impl->codecContext->time_base.den, impl->frameCounter);
 
     if GVK_ERROR (avcodec_send_frame (impl->codecContext, impl->videoFrame) != 0)
         return;
@@ -186,12 +194,12 @@ void VideoExporter::PushFrame (std::vector<uint8_t> frame)
             GVK_VERIFY (fclose (fp) == 0);
         }
 
-        spdlog::info ("pkt key flags: {}, size: {}, counter: {}", pkt.flags, pkt.size, counter);
+        //spdlog::info ("pkt key flags: {}, size: {}, counter: {}", pkt.flags, pkt.size, counter);
 
         uint8_t* size = ((uint8_t*)pkt.data);
-        spdlog::info ("first: {} {} {} {} {} {} {} {}",
-                      static_cast<int> (size[0]), static_cast<int> (size[1]), static_cast<int> (size[2]), static_cast<int> (size[3]),
-                      static_cast<int> (size[4]), static_cast<int> (size[5]), static_cast<int> (size[6]), static_cast<int> (size[7]));
+        //spdlog::info ("first: {} {} {} {} {} {} {} {}",
+        //              static_cast<int> (size[0]), static_cast<int> (size[1]), static_cast<int> (size[2]), static_cast<int> (size[3]),
+        //              static_cast<int> (size[4]), static_cast<int> (size[5]), static_cast<int> (size[6]), static_cast<int> (size[7]));
 
         GVK_VERIFY (av_interleaved_write_frame (impl->formatContext, &pkt) == 0);
         av_packet_unref (&pkt);

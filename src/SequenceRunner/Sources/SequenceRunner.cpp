@@ -19,6 +19,9 @@
 #include "spdlog/spdlog.h"
 
 #include <iostream>
+#include <cstdlib>
+
+#include <fmt/format.h>
 
 
 static const Utils::CommandLineOnOffFlag exportMovieFlag { "--exportVideo" };
@@ -44,7 +47,7 @@ int main (int argc, char* argv[])
     const std::filesystem::path sequencePath (sequencePathStr);
 
     if (GVK_ERROR (!std::filesystem::exists (sequencePath))) {
-        std::cout << "File does not exist." << std::endl;
+        std::cout << "File does not exist: " << sequencePath.string () << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -57,33 +60,67 @@ int main (int argc, char* argv[])
     }
 
     if (exportMovieFlag.IsFlagOn ()) {
+        
+        std::chrono::nanoseconds start;
+        {
+            const std::chrono::nanoseconds ns = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now ().time_since_epoch ());
+            spdlog::info ("Exporting video...");
+            spdlog::info ("AT {} ms", ns.count () / 1e6);
+            spdlog::info ("sequence duration: {}", sequenceAdapter->GetSequence ()->getDuration ());
+            start = ns;
+        }
 
-        spdlog::info ("Exporting video...");
+        size_t videoWidth  = 1280;
+        size_t videoHeight = 720;
 
-        const size_t videoWidth  = 1280;
-        const size_t videoHeight = 720;
+        if (const char* envVar = std::getenv ("GVK_VIDEO_WIDTH")) {
+            videoWidth = std::stoi (envVar);
+        }
+        if (const char* envVar = std::getenv ("GVK_VIDEO_HEIGHT")) {
+            videoHeight = std::stoi (envVar);
+        }
+
+        std::string crf = "23";
+        if (const char* envVar = std::getenv ("GVK_CRF")) {
+            crf = std::string (envVar);
+        }
 
         std::shared_ptr<RG::Presentable> pres = std::make_unique<RG::Presentable> (*env, std::make_unique<RG::HiddenGLFWWindow> (videoWidth, videoHeight), std::make_unique<GVK::DefaultSwapchainSettingsSingleImage> ());
 
         sequenceAdapter->SetCurrentPresentable (pres);
         
-        const std::string filename = sequencePath.stem ().string () + ".mp4";
-        
+        const std::string filename = fmt::format ("{}_{}_{}_crf{}.mp4", sequencePath.stem ().string (), videoWidth, videoHeight, crf);
+
+        spdlog::info ("Using video width from environment: {}", videoWidth);
+        spdlog::info ("Using video height from environment: {}", videoHeight);
+        spdlog::info ("Using CRF value from environment: {}", crf);
+
+        const std::filesystem::path videoPath = std::filesystem::current_path () / filename;
+
         {
-            VideoExporter movie { std::filesystem::current_path () / filename, { videoWidth, videoHeight, 60, 2 } };
+            VideoExporter movie { videoPath, { videoWidth, videoHeight, 60, 2 } };
 
             std::vector<uint8_t> framerawRGBA (videoWidth * videoHeight * 4, 0);
-            std::vector<uint8_t> framerawRGB (videoWidth * videoHeight * 3, 0);
+            
+            std::vector<std::unique_ptr<GVK::InheritedImage>> imgs = pres->GetSwapchain ().GetImageObjects ();
 
-            for (size_t frameIndex = 1; frameIndex < 10*60; ++frameIndex) {
+            for (size_t frameIndex = 1; frameIndex < sequenceAdapter->GetSequence ()->getDuration (); ++frameIndex) {
                 sequenceAdapter->RenderFrameIndex (frameIndex);
                 sequenceAdapter->Wait ();
-                std::vector<std::unique_ptr<GVK::InheritedImage>> imgs = pres->GetSwapchain ().GetImageObjects ();
 
                 GVK::ImageData::FillBuffer (*env->deviceExtra, *imgs[0], 0, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, framerawRGBA.data (), framerawRGBA.size ());
 
                 movie.PushFrame (framerawRGBA);
             }
+        }
+        
+        spdlog::info ("FILENAME {} FILESIZE {} bytes", videoPath.string (), std::filesystem::file_size (videoPath));
+
+        {
+            const std::chrono::nanoseconds ns = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now ().time_since_epoch ());
+            spdlog::info ("Exported video");
+            spdlog::info ("AT {} ms", ns.count () / 1e6);
+            spdlog::info ("DIFF {} ms", (ns.count () - start.count ()) / 1e6);
         }
 
         return 0;

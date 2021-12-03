@@ -160,7 +160,43 @@ static std::unique_ptr<IRandomExporter> GetRandomExporterImpl (GVK::DeviceExtra&
 }
 
 
-Utils::CommandLineOnOffFlag printSignalsFlag { "--printSignals", "Prints signals to stdout." };
+Utils::CommandLineOnOffFlag printSignalsFlag { "--printSignals", "Prints Sequence and Stimulus signals to stdout." };
+
+
+template <typename SignalEventType>
+static void PrintSignal (const Sequence&                        sequence,
+                         const std::shared_ptr<const Stimulus>& stimulus,
+                         const size_t                           frameIndex,
+                         const SignalEventType&                 signal)
+{
+    const std::string channelPort = sequence.getChannels ().find (signal.channel)->second.portName;
+    spdlog::info ("Global frame index {} (local: {}) on channel: \"{}\", port: \"{}\", clear: {}",
+                  stimulus ? frameIndex + stimulus->getStartingFrame () : frameIndex,
+                  stimulus ? std::to_string (frameIndex) : "-",
+                  signal.channel,
+                  channelPort,
+                  signal.clear);
+}
+
+
+static void PrintSignals (const Sequence& sequence)
+{
+    spdlog::info ("======= Sequence signals BEGIN =======");
+
+    for (const auto& [frameIndex, signal] : sequence.getSignals ())
+        PrintSignal (sequence, nullptr, frameIndex, signal);
+
+    spdlog::info ("======= Sequence signals END =========");
+
+    for (const auto& stimulus : sequence.getStimuli ()) {
+        spdlog::info ("======= Stimulus signals BEGIN - \"{}\" (starting frame: {}, duration: {}) =======", stimulus.second->name, stimulus.second->getStartingFrame (), stimulus.second->getDuration ());
+        for (const auto& [frameIndex, signal] : stimulus.second->getSignals ()) {
+            PrintSignal (sequence, stimulus.second, frameIndex, signal);
+        }
+        spdlog::info ("======= Stimulus signals END =======", stimulus.second->name, stimulus.second->getStartingFrame (), stimulus.second->getDuration ());
+    }
+}
+
 
 SequenceAdapter::SequenceAdapter (RG::VulkanEnvironment& environment, const std::shared_ptr<Sequence>& sequence, const std::string& sequenceNameInTitle)
     : sequence { sequence }
@@ -170,27 +206,8 @@ SequenceAdapter::SequenceAdapter (RG::VulkanEnvironment& environment, const std:
 {
     CreateStimulusAdapterViews ();
 
-    if (printSignalsFlag.IsFlagOn ()) {
-        spdlog::info ("======= Sequence signals =======");
-        for (auto& signal : sequence->getSignals ()) {
-            const size_t      frameIndex  = signal.first;
-            const bool        clear       = signal.second.clear;
-            const std::string channelName = signal.second.channel;
-            const std::string channelPort = sequence->getChannels ().find (channelName)->second.portName;
-            spdlog::info ("Signal at frame index %d on channel: %d, port: %d, clear: %d", frameIndex, channelName, channelPort, clear);
-        }
-        for (auto& stimulus : sequence->getStimuli ()) {
-            std::cout << "======= Stimulus signals - \"" << stimulus.second->name << "\" (starting frame: " << stimulus.second->getStartingFrame () << ", duration: " << stimulus.second->getDuration () << ") =======" << std::endl;
-            for (auto& signal : stimulus.second->getSignals ()) {
-                const size_t      frameIndex  = signal.first;
-                const bool        clear       = signal.second.clear;
-                const std::string channelName = signal.second.channel;
-                const std::string channelPort = sequence->getChannels ().find (channelName)->second.portName;
-                std::cout << "Signal at frame index " << frameIndex << " (global: " << frameIndex + stimulus.second->getStartingFrame () << ") on channel: \"" << channelName << "\", port: \"" << channelPort << "\", clear: " << std::boolalpha << clear << std::endl; 
-            }
-        }
-        std::cout << "======= Signals end =======" << std::endl;
-    }
+    if (printSignalsFlag.IsFlagOn ())
+        PrintSignals (*sequence);
 }
 
 
@@ -248,6 +265,10 @@ void SequenceAdapter::OnImageAcquisitionFenceSignaled (uint32_t resourceIndex)
 
     resourceIndexToRenderedFrameMapping[previousResourceIndex] = 0;
     
+    const std::chrono::nanoseconds ns = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now ().time_since_epoch ());
+
+    spdlog::info ("DISPLAYED AT {} ms", ns.count () / 1e6);
+
     // TODO check if signal's frame index and finishedFrameIndex are the same
 
     const std::shared_ptr<Stimulus const> stimulus = sequence->getStimulusAtFrame (finishedFrameIndex);
@@ -333,23 +354,6 @@ void SequenceAdapter::SetCurrentPresentable (std::shared_ptr<RG::Presentable> pr
     resourceIndexToRenderedFrameMapping.clear ();
     resourceIndexToRenderedFrameMapping.resize (renderer->GetFramesInFlight (), 0);
 }
-
-
-class OnScopeExit {
-private:
-    std::function<void ()> func;
-
-public:
-    OnScopeExit (const std::function<void ()>& func)
-        : func (func)
-    {
-    }
-
-    ~OnScopeExit ()
-    {
-        func ();
-    }
-};
 
 
 void SequenceAdapter::RenderFullOnExternalWindow ()

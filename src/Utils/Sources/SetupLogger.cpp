@@ -23,17 +23,11 @@ static CommandLineOnOffCallbackFlag logCriticalFlag { "--logCritical", "Set logg
 static CommandLineOnOffCallbackFlag logOffFlag { "--logOff", "Turns off logger.", [] () { GetLogger ()->set_level (spdlog::level::off); } };
 
 
-std::shared_ptr<spdlog::logger> GetLogger ()
+std::shared_ptr<spdlog::logger> GetLogger (const std::string& logFileName)
 {
     static std::shared_ptr<spdlog::logger> logger;
-    
+
     if (logger == nullptr) {
-        time_t    now = time (0);
-        struct tm tstruct;
-        tstruct = *localtime (&now);
-
-        const std::string logFileName = fmt::format ("GearsVk_{}-{}-{}_{}-{}-{}.txt", tstruct.tm_year + 1900, tstruct.tm_mon, tstruct.tm_mday, tstruct.tm_hour, tstruct.tm_min, tstruct.tm_sec);
-
         const size_t maxFileSize = 1024 * 1024 * 10;
         const size_t maxFiles    = 1000;
 
@@ -47,6 +41,18 @@ std::shared_ptr<spdlog::logger> GetLogger ()
     }
 
     return logger;
+}
+
+
+std::shared_ptr<spdlog::logger> GetLogger ()
+{
+    time_t    now = time (0);
+    struct tm tstruct;
+    tstruct = *localtime (&now);
+
+    const std::string defaultLogFileName = fmt::format ("GearsVk_{}-{}-{}_{}-{}-{}.txt", tstruct.tm_year + 1900, tstruct.tm_mon, tstruct.tm_mday, tstruct.tm_hour, tstruct.tm_min, tstruct.tm_sec);
+
+    return GetLogger (defaultLogFileName);
 }
 
 } // namespace Utils

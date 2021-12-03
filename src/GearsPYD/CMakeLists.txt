@@ -15,6 +15,8 @@ set (Sources
 
 add_library (GearsModule SHARED ${Headers} ${Sources})
 
+target_precompile_headers (GearsModule PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeader.hpp)
+
 target_include_directories (GearsModule
     PRIVATE ${HeadersPath}
 

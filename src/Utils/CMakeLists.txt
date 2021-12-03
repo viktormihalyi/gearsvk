@@ -47,6 +47,8 @@ target_compile_definitions (Utils
     PUBLIC SPDLOG_FMT_EXTERNAL
 )
 
+target_precompile_headers (Utils PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeader.hpp)
+
 target_include_directories (Utils
     PRIVATE ${HeadersPath}
     PUBLIC  ${IncludePath}

@@ -239,28 +239,28 @@ static std::optional<FieldType> BaseTypeNMToSRFieldType (spirv_cross::SPIRType::
                         case 2: return FieldType::Vec2;
                         case 3: return FieldType::Vec3;
                         case 4: return FieldType::Vec4;
-                        default: std::nullopt;
+                        default: return std::nullopt;
                     }
                 case 2:
                     switch (vecSize) {
                         case 2: return FieldType::Mat2x2;
                         case 3: return FieldType::Mat2x3;
                         case 4: return FieldType::Mat2x4;
-                        default: std::nullopt;
+                        default: return std::nullopt;
                     }
                 case 3:
                     switch (vecSize) {
                         case 2: return FieldType::Mat3x2;
                         case 3: return FieldType::Mat3x3;
                         case 4: return FieldType::Mat3x4;
-                        default: std::nullopt;
+                        default: return std::nullopt;
                     }
                 case 4:
                     switch (vecSize) {
                         case 2: return FieldType::Mat4x2;
                         case 3: return FieldType::Mat4x3;
                         case 4: return FieldType::Mat4x4;
-                        default: std::nullopt;
+                        default: return std::nullopt;
                     }
             }
 
@@ -272,28 +272,28 @@ static std::optional<FieldType> BaseTypeNMToSRFieldType (spirv_cross::SPIRType::
                         case 2: return FieldType::Dvec2;
                         case 3: return FieldType::Dvec3;
                         case 4: return FieldType::Dvec4;
-                        default: std::nullopt;
+                        default: return std::nullopt;
                     }
                 case 2:
                     switch (vecSize) {
                         case 2: return FieldType::Dmat2x2;
                         case 3: return FieldType::Dmat2x3;
                         case 4: return FieldType::Dmat2x4;
-                        default: std::nullopt;
+                        default: return std::nullopt;
                     }
                 case 3:
                     switch (vecSize) {
                         case 2: return FieldType::Dmat3x2;
                         case 3: return FieldType::Dmat3x3;
                         case 4: return FieldType::Dmat3x4;
-                        default: std::nullopt;
+                        default: return std::nullopt;
                     }
                 case 4:
                     switch (vecSize) {
                         case 2: return FieldType::Dmat4x2;
                         case 3: return FieldType::Dmat4x3;
                         case 4: return FieldType::Dmat4x4;
-                        default: std::nullopt;
+                        default: return std::nullopt;
                     }
             }
 
@@ -303,7 +303,7 @@ static std::optional<FieldType> BaseTypeNMToSRFieldType (spirv_cross::SPIRType::
                 case 2: return FieldType::Bvec2;
                 case 3: return FieldType::Bvec3;
                 case 4: return FieldType::Bvec4;
-                default: std::nullopt;
+                default: return std::nullopt;
             }
 
         case BaseType::Int:
@@ -312,7 +312,7 @@ static std::optional<FieldType> BaseTypeNMToSRFieldType (spirv_cross::SPIRType::
                 case 2: return FieldType::Ivec2;
                 case 3: return FieldType::Ivec3;
                 case 4: return FieldType::Ivec4;
-                default: std::nullopt;
+                default: return std::nullopt;
             }
 
         case BaseType::UInt:
@@ -321,7 +321,7 @@ static std::optional<FieldType> BaseTypeNMToSRFieldType (spirv_cross::SPIRType::
                 case 2: return FieldType::Uvec2;
                 case 3: return FieldType::Uvec3;
                 case 4: return FieldType::Uvec4;
-                default: std::nullopt;
+                default: return std::nullopt;
             }
 
         case BaseType::Struct:
@@ -336,7 +336,7 @@ static std::optional<FieldType> BaseTypeNMToSRFieldType (spirv_cross::SPIRType::
                 case 2: return FieldType::i64_vec2;
                 case 3: return FieldType::i64_vec3;
                 case 4: return FieldType::i64_vec4;
-                default: std::nullopt;
+                default: return std::nullopt;
             }
 
         case BaseType::UInt64:
@@ -345,7 +345,7 @@ static std::optional<FieldType> BaseTypeNMToSRFieldType (spirv_cross::SPIRType::
                 case 2: return FieldType::u64_vec2;
                 case 3: return FieldType::u64_vec3;
                 case 4: return FieldType::u64_vec4;
-                default: std::nullopt;
+                default: return std::nullopt;
             }
 
         default:
