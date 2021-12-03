@@ -42,23 +42,23 @@ VideoExporter::VideoExporter (const std::filesystem::path& exportFilePath, Video
 
     impl->outputFormat = av_guess_format (nullptr, filename.c_str (), nullptr);
     if GVK_ERROR (impl->outputFormat == nullptr)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("av_guess_format failed");
 
     impl->formatContext = nullptr;
     if GVK_ERROR (avformat_alloc_output_context2 (&impl->formatContext, impl->outputFormat, nullptr, filename.c_str ()) < 0 || impl->formatContext == nullptr)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("avformat_alloc_output_context2 failed");
 
     impl->codec = avcodec_find_encoder (impl->outputFormat->video_codec);
     if GVK_ERROR (impl->codec == nullptr)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("avcodec_find_encoder failed");
 
     impl->stream = avformat_new_stream (impl->formatContext, impl->codec);
     if GVK_ERROR (impl->stream == nullptr)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("avformat_new_stream failed");
 
     impl->codecContext = avcodec_alloc_context3 (impl->codec);
     if GVK_ERROR (impl->codecContext == nullptr)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("avcodec_alloc_context3 failed");
 
     impl->stream->codecpar->codec_id   = impl->outputFormat->video_codec;
     impl->stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
@@ -68,7 +68,7 @@ VideoExporter::VideoExporter (const std::filesystem::path& exportFilePath, Video
     impl->stream->codecpar->bit_rate   = impl->videoSettings.bitrate * 1000;
 
     if GVK_ERROR (avcodec_parameters_to_context (impl->codecContext, impl->stream->codecpar) < 0)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("avcodec_parameters_to_context failed");
 
     impl->codecContext->time_base    = AVRational { 1, 1 };
     impl->codecContext->max_b_frames = 2;
@@ -93,36 +93,45 @@ VideoExporter::VideoExporter (const std::filesystem::path& exportFilePath, Video
     }
 
     if GVK_ERROR (avcodec_parameters_from_context (impl->stream->codecpar, impl->codecContext) < 0)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("avcodec_parameters_from_context failed");
 
     if GVK_ERROR (avcodec_open2 (impl->codecContext, impl->codec, NULL) < 0)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("avcodec_open2 failed");
 
     if (!(impl->outputFormat->flags & AVFMT_NOFILE))
         if GVK_ERROR (avio_open (&impl->formatContext->pb, filename.c_str (), AVIO_FLAG_WRITE) < 0)
-            throw std::runtime_error ("");
+            throw std::runtime_error ("avio_open failed");
 
     if GVK_ERROR (avformat_write_header (impl->formatContext, NULL) < 0)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("avformat_write_header failed");
 
-    av_dump_format (impl->formatContext, 0, filename.c_str (), 1);
+    const int index = 0;
+    const int isOutput = 1;
+    av_dump_format (impl->formatContext, index, filename.c_str (), isOutput);
 
     impl->videoFrame = av_frame_alloc ();
     if GVK_ERROR (impl->videoFrame == nullptr)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("av_frame_alloc failed");
 
     impl->videoFrame->format = AV_PIX_FMT_YUV420P;
     impl->videoFrame->width  = impl->codecContext->width;
     impl->videoFrame->height = impl->codecContext->height;
     if GVK_ERROR (av_frame_get_buffer (impl->videoFrame, 32) < 0)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("av_frame_get_buffer failed");
 
-    impl->swsContext = sws_getContext (impl->codecContext->width, impl->codecContext->height, AV_PIX_FMT_RGBA,
-                                       impl->codecContext->width, impl->codecContext->height, AV_PIX_FMT_YUV420P,
-                                       SWS_BICUBIC, 0, 0, 0);
+    impl->swsContext = sws_getContext (impl->codecContext->width,  /* srcW */
+                                       impl->codecContext->height, /* srcH */
+                                       AV_PIX_FMT_BGRA,            /* srcFormat */
+                                       impl->codecContext->width,  /* dstW */
+                                       impl->codecContext->height, /* dstH */
+                                       AV_PIX_FMT_YUV420P,         /* dstFormat */
+                                       SWS_BICUBIC,                /* flags */
+                                       nullptr,                    /* srcFilter */
+                                       nullptr,                    /* dstFilter */
+                                       nullptr);                   /* param */
 
     if GVK_ERROR (impl->swsContext == nullptr)
-        throw std::runtime_error ("");
+        throw std::runtime_error ("sws_getContext");
 }
 
 
@@ -163,17 +172,15 @@ void VideoExporter::PushFrame (const std::vector<uint8_t>& frame)
     const int inLineSize = 4 * impl->codecContext->width;
 
     sws_scale (impl->swsContext,
-               &inData,
-               &inLineSize,
-               0,
-               impl->codecContext->height,
-               impl->videoFrame->data,
-               impl->videoFrame->linesize);
+               &inData,                     /* srcSlice */
+               &inLineSize,                 /* srcStride */
+               0,                           /* srcSliceY */
+               impl->codecContext->height,  /* srcSliceH */
+               impl->videoFrame->data,      /* dst */
+               impl->videoFrame->linesize); /* dstStride */
 
     constexpr size_t magic = 90000; // WHAT IS THIS
     impl->videoFrame->pts  = (1.0 / static_cast<double> (impl->videoSettings.fps)) * magic * (impl->frameCounter++);
-
-    //spdlog::info ("pts: {}, time_base: {}/{}, frameCounter: {}", impl->videoFrame->pts, impl->codecContext->time_base.num, impl->codecContext->time_base.den, impl->frameCounter);
 
     if GVK_ERROR (avcodec_send_frame (impl->codecContext, impl->videoFrame) != 0)
         return;
@@ -185,6 +192,7 @@ void VideoExporter::PushFrame (const std::vector<uint8_t>& frame)
     pkt.flags |= AV_PKT_FLAG_KEY;
 
     if (avcodec_receive_packet (impl->codecContext, &pkt) == 0) {
+#if DUMP_FIRST_FRAME
         static int counter = 0;
         if (counter == 0) {
             FILE* fp = fopen ("dump_first_frame1.dat", "wb");
@@ -193,16 +201,10 @@ void VideoExporter::PushFrame (const std::vector<uint8_t>& frame)
             fwrite (pkt.data, pkt.size, 1, fp);
             GVK_VERIFY (fclose (fp) == 0);
         }
-
-        //spdlog::info ("pkt key flags: {}, size: {}, counter: {}", pkt.flags, pkt.size, counter);
-
-        uint8_t* size = ((uint8_t*)pkt.data);
-        //spdlog::info ("first: {} {} {} {} {} {} {} {}",
-        //              static_cast<int> (size[0]), static_cast<int> (size[1]), static_cast<int> (size[2]), static_cast<int> (size[3]),
-        //              static_cast<int> (size[4]), static_cast<int> (size[5]), static_cast<int> (size[6]), static_cast<int> (size[7]));
+        counter++;
+#endif
 
         GVK_VERIFY (av_interleaved_write_frame (impl->formatContext, &pkt) == 0);
         av_packet_unref (&pkt);
-        counter++;
     }
 }
