@@ -18,5 +18,10 @@ ffmpeg/4.4
 cmake_find_package
 cmake_paths
 
+[options]
+ffmpeg:shared=True
+
 [imports]
 ., license* -> ./licenses @ folder=True, ignore_case=True
+bin, *.dll -> ./bin # Copies all dll files from packages bin folder to my "bin" folder
+lib, *.dylib* -> ./bin # Copies all dylib files from packages lib folder to my "bin" folder
