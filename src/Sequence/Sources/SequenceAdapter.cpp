@@ -267,7 +267,7 @@ void SequenceAdapter::OnImageAcquisitionFenceSignaled (uint32_t resourceIndex)
     
     const std::chrono::nanoseconds ns = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now ().time_since_epoch ());
 
-    spdlog::info ("DISPLAYED AT {} ms", ns.count () / 1e6);
+    //spdlog::info ("DISPLAYED AT {} ms", ns.count () / 1e6);
 
     // TODO check if signal's frame index and finishedFrameIndex are the same
 

@@ -61,17 +61,16 @@ int main (int argc, char* argv[])
 
     if (exportMovieFlag.IsFlagOn ()) {
         
-        std::chrono::nanoseconds start;
+        std::chrono::nanoseconds startNs;
         {
-            const std::chrono::nanoseconds ns = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now ().time_since_epoch ());
-            spdlog::info ("Exporting video...");
-            spdlog::info ("AT {} ms", ns.count () / 1e6);
-            spdlog::info ("sequence duration: {}", sequenceAdapter->GetSequence ()->getDuration ());
-            start = ns;
+            const std::chrono::nanoseconds currentNs = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now ().time_since_epoch ());
+            spdlog::info ("[VideExporter] Exporting video...");
+            spdlog::info ("[VideExporter] Sequence duration: {} frames", sequenceAdapter->GetSequence ()->getDuration ());
+            startNs = currentNs;
         }
 
-        size_t videoWidth  = 1280;
-        size_t videoHeight = 720;
+        uint32_t videoWidth  = 1280;
+        uint32_t videoHeight = 720;
 
         if (const char* envVar = std::getenv ("GVK_VIDEO_WIDTH")) {
             videoWidth = std::stoi (envVar);
@@ -91,20 +90,31 @@ int main (int argc, char* argv[])
         
         const std::string filename = fmt::format ("{}_{}_{}_crf{}.mp4", sequencePath.stem ().string (), videoWidth, videoHeight, crf);
 
-        spdlog::info ("Using video width from environment: {}", videoWidth);
-        spdlog::info ("Using video height from environment: {}", videoHeight);
-        spdlog::info ("Using CRF value from environment: {}", crf);
+        spdlog::info ("[VideExporter] Video width: {}, height: {}, CRF value: {}", videoWidth, videoHeight, crf);
 
         const std::filesystem::path videoPath = std::filesystem::current_path () / filename;
 
         {
-            VideoExporter movie { videoPath, { videoWidth, videoHeight, 60, 2 } };
+            const uint32_t fps     = 60;
+            const uint32_t bitrate = 2000;
+
+            VideoExporter movie { videoPath, VideoExporter::VideoSettings { videoWidth, videoHeight, fps, bitrate } };
 
             std::vector<uint8_t> framerawRGBA (videoWidth * videoHeight * 4, 0);
             
             std::vector<std::unique_ptr<GVK::InheritedImage>> imgs = pres->GetSwapchain ().GetImageObjects ();
 
+            uint32_t lastPercentageLogged = 0;
+
             for (size_t frameIndex = 1; frameIndex < sequenceAdapter->GetSequence ()->getDuration (); ++frameIndex) {
+                const double donePercentage = static_cast<double> (frameIndex) / sequenceAdapter->GetSequence ()->getDuration () * 100;
+                const uint32_t donePercentageInt = static_cast<uint32_t> (donePercentage);
+
+                if (donePercentageInt % 10 == 0 && lastPercentageLogged != donePercentageInt) {
+                    spdlog::info ("[VideExporter] Exported {}%", donePercentageInt);
+                    lastPercentageLogged = donePercentageInt;
+                }
+
                 sequenceAdapter->RenderFrameIndex (frameIndex);
                 sequenceAdapter->Wait ();
 
@@ -113,14 +123,13 @@ int main (int argc, char* argv[])
                 movie.PushFrame (framerawRGBA);
             }
         }
-        
-        spdlog::info ("FILENAME {} FILESIZE {} bytes", videoPath.string (), std::filesystem::file_size (videoPath));
 
         {
-            const std::chrono::nanoseconds ns = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now ().time_since_epoch ());
-            spdlog::info ("Exported video");
-            spdlog::info ("AT {} ms", ns.count () / 1e6);
-            spdlog::info ("DIFF {} ms", (ns.count () - start.count ()) / 1e6);
+            const std::chrono::nanoseconds currentNs = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now ().time_since_epoch ());
+            spdlog::info ("[VideExporter] Exported file: \"{}\", size: {} bytes, took {} seconds",
+                          videoPath.string (),
+                          std::filesystem::file_size (videoPath),
+                          (currentNs.count () - startNs.count ()) / 1e9);
         }
 
         return 0;

@@ -40,6 +40,8 @@ VideoExporter::VideoExporter (const std::filesystem::path& exportFilePath, Video
 
     const std::string filename = exportFilePath.filename ().string ();
 
+    av_log_set_level (AV_LOG_WARNING);
+
     impl->outputFormat = av_guess_format (nullptr, filename.c_str (), nullptr);
     if GVK_ERROR (impl->outputFormat == nullptr)
         throw std::runtime_error ("av_guess_format failed");
@@ -65,7 +67,7 @@ VideoExporter::VideoExporter (const std::filesystem::path& exportFilePath, Video
     impl->stream->codecpar->width      = impl->videoSettings.width;
     impl->stream->codecpar->height     = impl->videoSettings.height;
     impl->stream->codecpar->format     = AV_PIX_FMT_YUV420P;
-    impl->stream->codecpar->bit_rate   = impl->videoSettings.bitrate * 1000;
+    impl->stream->codecpar->bit_rate   = impl->videoSettings.bitrate;
 
     if GVK_ERROR (avcodec_parameters_to_context (impl->codecContext, impl->stream->codecpar) < 0)
         throw std::runtime_error ("avcodec_parameters_to_context failed");
@@ -81,7 +83,7 @@ VideoExporter::VideoExporter (const std::filesystem::path& exportFilePath, Video
     std::string crf = "23";
     if (const char* envVar = std::getenv ("GVK_CRF")) {
         crf = std::string (envVar);
-        //spdlog::info ("Using CRF value from environment: {}", crf);
+        //spdlog::info ("[VideExporter] Using CRF value from environment: {}", crf);
     }
 
     if (impl->stream->codecpar->codec_id == AV_CODEC_ID_H264) {
@@ -179,8 +181,8 @@ void VideoExporter::PushFrame (const std::vector<uint8_t>& frame)
                impl->videoFrame->data,      /* dst */
                impl->videoFrame->linesize); /* dstStride */
 
-    constexpr size_t magic = 90000; // WHAT IS THIS
-    impl->videoFrame->pts  = (1.0 / static_cast<double> (impl->videoSettings.fps)) * magic * (impl->frameCounter++);
+    const size_t mpegClockResolution = 90000;
+    impl->videoFrame->pts  = (1.0 / static_cast<double> (impl->videoSettings.fps)) * mpegClockResolution * (impl->frameCounter++);
 
     if GVK_ERROR (avcodec_send_frame (impl->codecContext, impl->videoFrame) != 0)
         return;

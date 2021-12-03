@@ -12,10 +12,10 @@ private:
 
 public:
     struct VideoSettings {
-        size_t width;
-        size_t height;
-        size_t fps;
-        size_t bitrate;
+        uint32_t width;
+        uint32_t height;
+        uint32_t fps;
+        uint32_t bitrate;
     };
 
 public:
