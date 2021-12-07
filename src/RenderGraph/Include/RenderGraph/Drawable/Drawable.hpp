@@ -1,6 +1,9 @@
 #ifndef DRAWRECORDABLE_HPP
 #define DRAWRECORDABLE_HPP
 
+#include "RenderGraph/RenderGraphAPI.hpp"
+
+
 namespace GVK {
 class CommandBuffer;
 }
@@ -8,9 +11,9 @@ class CommandBuffer;
 
 namespace RG {
 
-class DrawRecordable {
+class GVK_RENDERER_API Drawable {
 public:
-    virtual ~DrawRecordable () = default;
+    virtual ~Drawable ();
 
     virtual void Record (GVK::CommandBuffer&) const = 0;
 };

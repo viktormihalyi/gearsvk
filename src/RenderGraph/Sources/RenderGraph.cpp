@@ -2,7 +2,7 @@
 
 #include "GraphSettings.hpp"
 #include "Operation.hpp"
-#include "DrawRecordable.hpp"
+#include "Drawable.hpp"
 #include "Resource.hpp"
 #include "ShaderPipeline.hpp"
 

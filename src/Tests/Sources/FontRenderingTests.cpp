@@ -327,7 +327,7 @@ void main ()
     vbs.Add (vbb);
     vbs.Add (instanceBuffer);
 
-    std::shared_ptr<RG::RenderOperation> renderOp = graph.CreateOperation<RG::RenderOperation> (std::make_unique<DrawRecordableInfo> (5, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
+    std::shared_ptr<RG::RenderOperation> renderOp = graph.CreateOperation<RG::RenderOperation> (std::make_unique<DrawableInfo> (5, 4, vbs, 6, ib.buffer.GetBufferToBind ()), sp);
 
     RG::WritableImageResourceP outputImage = graph.CreateResource<RG::WritableImageResource> (512, 512);
     RG::ReadOnlyImageResourceP glyphs      = graph.CreateResource<RG::ReadOnlyImageResource> (VK_FORMAT_R32_SFLOAT, glyphWidthHeight, glyphWidthHeight, 1, 512);

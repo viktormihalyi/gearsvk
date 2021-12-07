@@ -35,6 +35,9 @@ VULKANWRAPPER_API
 void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
 VULKANWRAPPER_API
+void CopyBufferPart (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset);
+
+VULKANWRAPPER_API
 bool AreImagesEqual (const DeviceExtra& device, const Image& image, const std::filesystem::path& expectedImage, uint32_t layerIndex = 0);
 
 VULKANWRAPPER_API

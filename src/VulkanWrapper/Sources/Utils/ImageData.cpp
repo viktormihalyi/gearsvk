@@ -86,47 +86,6 @@ ImageData::ImageData (const DeviceExtra& device, const Image& image, uint32_t la
 
     if (currentLayout)
         TransitionImageLayout (device, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, *currentLayout);
-
-    /*
-    Image2D dst (device.GetAllocator (), Image::MemoryLocation::CPU,
-                 image.GetWidth (), image.GetHeight (),
-                 image.GetFormat (),
-                 //VK_FORMAT_R8G8B8A8_SRGB,
-                 VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_DST_BIT, 1);
-
-    TransitionImageLayout (device, dst, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-    {
-        SingleTimeCommand single (device);
-
-        VkImageCopy imageCopyRegion                   = {};
-        imageCopyRegion.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-        imageCopyRegion.srcSubresource.layerCount     = 1;
-        imageCopyRegion.srcSubresource.baseArrayLayer = layerIndex;
-        imageCopyRegion.dstSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-        imageCopyRegion.dstSubresource.layerCount     = 1;
-        imageCopyRegion.extent.width                  = image.GetWidth ();
-        imageCopyRegion.extent.height                 = image.GetHeight ();
-        imageCopyRegion.extent.depth                  = 1;
-
-        single.Record<CommandCopyImage> (
-            image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            std::vector<VkImageCopy> { imageCopyRegion });
-    }
-
-    if (currentLayout)
-        TransitionImageLayout (device, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, *currentLayout);
-
-    data.resize (width * height * components * componentByteSize);
-
-    {
-        MemoryMapping mapping (device.GetAllocator (), dst);
-        memcpy (data.data (), mapping.Get (), width * height * components * componentByteSize);
-    }
-
-    data = dataCopy;
-    */
 }
 
 
@@ -145,8 +104,6 @@ ImageData::ImageData (const std::filesystem::path& path, const uint32_t componen
 
     width  = w;
     height = h;
-
-    // GVK_ASSERT (readComponents == components);
 
     data.resize (width * height * components);
     memcpy (data.data (), stbiData, width * height * components);

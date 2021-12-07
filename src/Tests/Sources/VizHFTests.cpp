@@ -2,8 +2,8 @@
 #include "CameraControl.hpp"
 #include "TestEnvironment.hpp"
 
-#include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
-#include "RenderGraph/DrawRecordable/FullscreenQuad.hpp"
+#include "RenderGraph/Drawable/Drawable.hpp"
+#include "RenderGraph/Drawable/FullscreenQuad.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
 #include "RenderGraph/GraphSettings.hpp"
 #include "RenderGraph/Operation.hpp"

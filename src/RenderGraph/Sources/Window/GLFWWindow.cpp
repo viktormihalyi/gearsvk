@@ -133,11 +133,6 @@ GLFWWindowBase::GLFWWindowBase (size_t width, size_t height, const std::vector<s
     int virtual_xpos, virtual_ypos;
     glfwGetMonitorPos (primaryMonitor, &virtual_xpos, &virtual_ypos);
 
-    //int xpos, ypos, width, height;
-    //glfwGetMonitorWorkarea (primaryMonitor, &xpos, &ypos, &width, &height);
-
-    //const GLFWgammaramp* gammaRamp = glfwGetGammaRamp (primaryMonitor);
-
     GLFWmonitor* usedMonitor = nullptr;
 
     const GLFWvidmode* mode = glfwGetVideoMode (primaryMonitor);

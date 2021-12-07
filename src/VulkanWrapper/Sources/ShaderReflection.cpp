@@ -394,8 +394,6 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
             }
         }
 
-        //std::reverse (f->arrayStride.begin (), f->arrayStride.end ());
-
         GVK_ASSERT (f->arraySize.size () == f->arrayStride.size ());
         GVK_ASSERT (f->arraySize.size () <= 8);
         

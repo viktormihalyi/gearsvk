@@ -186,6 +186,8 @@ public:
     void TransferFromCPUToGPU (uint32_t resourceIndex, const void* data, size_t size) const;
 
     void TransferFromGPUToCPU (uint32_t resourceIndex) const;
+
+    void TransferFromGPUToCPU (uint32_t resourceIndex, VkDeviceSize size, VkDeviceSize offset) const;
 };
 
 

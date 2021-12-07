@@ -1,6 +1,6 @@
 #include "TestEnvironment.hpp"
 
-#include "RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
+#include "RenderGraph/Drawable/DrawableInfo.hpp"
 #include "RenderGraph/GraphSettings.hpp"
 #include "RenderGraph/Operation.hpp"
 #include "RenderGraph/RenderGraph.hpp"
@@ -242,14 +242,14 @@ void main () {
     )";
 
     std::shared_ptr<RG::RenderOperation> renderOp = RG::RenderOperation::Builder (GetDevice ())
-                                                        .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                        .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                         .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
                                                         .SetVertexShader (passThroughVertexShader)
                                                         .SetFragmentShader (frag1)
                                                         .Build ();
 
     std::shared_ptr<RG::RenderOperation> renderOp2 = RG::RenderOperation::Builder (GetDevice ())
-                                                         .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                         .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                          .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
                                                          .SetVertexShader (passThroughVertexShader)
                                                          .SetFragmentShader (frag2)
@@ -389,14 +389,14 @@ void main () {
     std::shared_ptr<RG::WritableImageResource> renderTarget = std::make_shared<RG::WritableImageResource> (VK_FILTER_LINEAR, 512, 512, 1, VK_FORMAT_R8G8B8A8_SRGB);
 
     std::shared_ptr<RG::RenderOperation> renderOp = RG::RenderOperation::Builder (GetDevice ())
-                                                        .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                        .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                         .SetVertexShader (passThroughVertexShader)
                                                         .SetFragmentShader (frag1)
                                                         .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
                                                         .Build ();
 
     std::shared_ptr<RG::RenderOperation> renderOp2 = RG::RenderOperation::Builder (GetDevice ())
-                                                         .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                         .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                          .SetVertexShader (passThroughVertexShader)
                                                          .SetFragmentShader (frag2)
                                                          .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
@@ -522,8 +522,8 @@ void main () {
 
     std::shared_ptr<RG::WritableImageResource> renderTarget = std::make_shared<RG::WritableImageResource> (VK_FILTER_LINEAR, 512, 512, 1, VK_FORMAT_R8G8B8A8_SRGB);
 
-    std::shared_ptr<RG::RenderOperation> renderOp  = std::make_shared<RG::RenderOperation> (std::make_unique<RG::DrawRecordableInfo> (1, 6), std::move (sp));
-    std::shared_ptr<RG::RenderOperation> renderOp2 = std::make_shared<RG::RenderOperation> (std::make_unique<RG::DrawRecordableInfo> (1, 6), std::move (sp2));
+    std::shared_ptr<RG::RenderOperation> renderOp  = std::make_shared<RG::RenderOperation> (std::make_unique<RG::DrawableInfo> (1, 6), std::move (sp));
+    std::shared_ptr<RG::RenderOperation> renderOp2 = std::make_shared<RG::RenderOperation> (std::make_unique<RG::DrawableInfo> (1, 6), std::move (sp2));
 
     RG::GraphSettings s;
 

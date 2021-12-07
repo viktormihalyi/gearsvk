@@ -81,9 +81,10 @@ VideoExporter::VideoExporter (const std::filesystem::path& exportFilePath, Video
     // impl->codecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
     std::string crf = "23";
+    
+    // read from envrionment variable
     if (const char* envVar = std::getenv ("GVK_CRF")) {
         crf = std::string (envVar);
-        //spdlog::info ("[VideExporter] Using CRF value from environment: {}", crf);
     }
 
     if (impl->stream->codecpar->codec_id == AV_CODEC_ID_H264) {

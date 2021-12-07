@@ -1,26 +1,25 @@
 #include "Operation.hpp"
 #include "ShaderReflectionToDescriptor.hpp"
 
+#include "ComputeShaderPipeline.hpp"
+#include "Drawable.hpp"
 #include "GraphSettings.hpp"
 #include "Resource.hpp"
 #include "ShaderPipeline.hpp"
-#include "ComputeShaderPipeline.hpp"
-#include "DrawRecordable.hpp"
 
 #include "VulkanWrapper/CommandBuffer.hpp"
 #include "VulkanWrapper/Commands.hpp"
+#include "VulkanWrapper/ComputePipeline.hpp"
 #include "VulkanWrapper/DescriptorSet.hpp"
-#include "VulkanWrapper/DescriptorSetLayout.hpp"
-#include "VulkanWrapper/ShaderModule.hpp"
 #include "VulkanWrapper/DescriptorSetLayout.hpp"
 #include "VulkanWrapper/Event.hpp"
 #include "VulkanWrapper/Framebuffer.hpp"
+#include "VulkanWrapper/GraphicsPipeline.hpp"
 #include "VulkanWrapper/Image.hpp"
 #include "VulkanWrapper/ImageView.hpp"
-#include "VulkanWrapper/GraphicsPipeline.hpp"
-#include "VulkanWrapper/ComputePipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
+#include "VulkanWrapper/ShaderModule.hpp"
 
 #include "spdlog/spdlog.h"
 
@@ -74,9 +73,9 @@ RenderOperation::Builder& RenderOperation::Builder::SetFragmentShader (const std
 }
 
 
-RenderOperation::Builder& RenderOperation::Builder::SetVertices (std::unique_ptr<DrawRecordable>&& value)
+RenderOperation::Builder& RenderOperation::Builder::SetVertices (std::unique_ptr<Drawable>&& value)
 {
-    drawRecordable = std::move (value);
+    drawable = std::move (value);
     return *this;
 }
 
@@ -104,12 +103,12 @@ RenderOperation::Builder& RenderOperation::Builder::SetClearColor (const glm::ve
 
 std::shared_ptr<RenderOperation> RenderOperation::Builder::Build ()
 {
-    GVK_ASSERT (drawRecordable != nullptr);
+    GVK_ASSERT (drawable != nullptr);
     GVK_ASSERT (shaderPipiline != nullptr);
 
-    std::shared_ptr<RenderOperation> op = std::make_shared<RenderOperation> (std::move (drawRecordable), std::move (shaderPipiline), *topology);
+    std::shared_ptr<RenderOperation> op = std::make_shared<RenderOperation> (std::move (drawable), std::move (shaderPipiline), *topology);
 
-    drawRecordable                   = nullptr;
+    drawable                         = nullptr;
     shaderPipiline                   = nullptr;
     op->compileSettings.blendEnabled = blendEnabled;
 
@@ -128,8 +127,8 @@ void RenderOperation::Builder::EnsurePipelineCreated ()
 }
 
 
-RenderOperation::RenderOperation (std::unique_ptr<DrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
-    : compileSettings ({ std::move (drawRecordable), std::move (shaderPipeline), topology })
+RenderOperation::RenderOperation (std::unique_ptr<Drawable>&& drawable, std::unique_ptr<ShaderPipeline>&& shaderPipeline, VkPrimitiveTopology topology)
+    : compileSettings ({ std::move (drawable), std::move (shaderPipeline), topology })
 {
     compileSettings.descriptorWriteProvider = std::make_unique<RG::FromShaderReflection::DescriptorWriteInfoTable> ();
     compileSettings.attachmentProvider      = std::make_unique<RG::FromShaderReflection::AttachmentDataTable> ();
@@ -230,7 +229,6 @@ static Operation::Descriptors CompileOperationDescriptors (const GraphSettings& 
 } // namespace
 
 
-
 void RenderOperation::Compile (const GraphSettings& graphSettings)
 {
     GVK_BREAK ();
@@ -321,8 +319,8 @@ void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resou
             .SetName ("RenderOperation - DescriptionSet");
     }
 
-    GVK_ASSERT (compileSettings.drawRecordable != nullptr);
-    compileSettings.drawRecordable->Record (commandBuffer);
+    GVK_ASSERT (compileSettings.drawable != nullptr);
+    compileSettings.drawable->Record (commandBuffer);
 
     commandBuffer.Record<GVK::CommandEndRenderPass> ().SetName ("RenderOperation - Renderpass End");
 }

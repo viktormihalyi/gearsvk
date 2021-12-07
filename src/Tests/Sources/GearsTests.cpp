@@ -1,7 +1,7 @@
 #include "TestEnvironment.hpp"
 
 // from RenderGraph
-#include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
+#include "RenderGraph/Drawable/Drawable.hpp"
 #include "RenderGraph/Window/GLFWWindow.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
 #include "RenderGraph/RenderGraph.hpp"

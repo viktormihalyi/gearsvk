@@ -20,8 +20,8 @@
 #include "VulkanWrapper/DescriptorSetLayout.hpp"
 
 // from RenderGraph
-#include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
-#include "RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
+#include "RenderGraph/Drawable/Drawable.hpp"
+#include "RenderGraph/Drawable/DrawableInfo.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
 #include "RenderGraph/GraphSettings.hpp"
 #include "RenderGraph/Operation.hpp"
@@ -98,7 +98,7 @@ StimulusAdapter::StimulusAdapter (const RG::VulkanEnvironment&           environ
         sequencePip->SetFragmentShaderFromString (frag);
 
         std::shared_ptr<RG::RenderOperation> passOperation = std::make_unique<RG::RenderOperation> (
-            std::make_unique<RG::DrawRecordableInfo> (1, 6), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+            std::make_unique<RG::DrawableInfo> (1, 6), std::move (sequencePip), VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
         passOperation->SetName (pass->name);
         passOperation->SetDebugInfo (pass->brief);

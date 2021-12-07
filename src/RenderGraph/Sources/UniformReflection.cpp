@@ -1,5 +1,5 @@
 #include "UniformReflection.hpp"
-#include "DrawRecordable.hpp"
+#include "Drawable.hpp"
 #include "ShaderPipeline.hpp"
 #include "ComputeShaderPipeline.hpp"
 #include "Operation.hpp"
@@ -136,7 +136,7 @@ void UniformReflection::PrintDebugInfo ()
                 printf ("\t\t%s (%d) - ", name.c_str (), bufferObject->GetSize ());
 
                 for (int32_t i = bufferObject->GetSize () - 1; i >= 0; --i) {
-                    printf ("%02x ", bufferObject->GetData ()[i]); // TODO
+                    printf ("%02x ", bufferObject->GetData ()[i]);
                 }
                 printf ("\n");
             }

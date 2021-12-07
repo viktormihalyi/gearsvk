@@ -2,10 +2,10 @@
 #include "ShaderPipeline.hpp"
 #include "GraphSettings.hpp"
 #include "Operation.hpp"
-#include "DrawRecordable.hpp"
+#include "Drawable.hpp"
 #include "RenderGraph.hpp"
 #include "Resource.hpp"
-#include "DrawRecordable.hpp"
+#include "Drawable.hpp"
 
 #include "VulkanWrapper/DescriptorSet.hpp"
 #include "VulkanWrapper/DescriptorSetLayout.hpp"
@@ -116,8 +116,6 @@ void RecreatableGraphRenderer::Recreate (RenderGraph& graph)
 
     settings.framesInFlight = swapchain.GetImageCount ();
 
-    //graph.CompileResources (settings);
-
     graph.Compile (std::move (settings));
 }
 
@@ -128,7 +126,6 @@ uint32_t RecreatableGraphRenderer::RenderNextFrame (RenderGraph& graph, IFrameDi
         return RenderNextRecreatableFrame (graph, observer);
     } catch (GVK::OutOfDateSwapchain&) {
         throw;
-        //Recreate (graph);
     }
 }
 
@@ -136,13 +133,10 @@ uint32_t RecreatableGraphRenderer::RenderNextFrame (RenderGraph& graph, IFrameDi
 uint32_t SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderGraph& graph, IFrameDisplayObserver& frameDisplayObserver)
 {
     frameDisplayObserver.OnImageFenceWaitStarted (currentResourceIndex);
-    //inFlightFences[currentResourceIndex]->Wait ();
-    //std::cout << "render ended for " << currentResourceIndex<< " at " << std::fixed << GVK::TimePoint::SinceEpoch ().AsMilliseconds () << std::endl;
     frameDisplayObserver.OnImageFenceWaitEnded (currentResourceIndex);
 
     frameDisplayObserver.OnImageAcquisitionStarted ();
     const uint32_t currentImageIndex = swapchain.GetNextImageIndex (*imageAvailableSemaphore[currentResourceIndex], *presentationEngineFence);
-    //std::cout << "got img for      " << currentResourceIndex<< " at " << std::fixed << GVK::TimePoint::SinceEpoch ().AsMilliseconds () << std::endl;
     frameDisplayObserver.OnImageAcquisitionReturned (currentResourceIndex);
 
     presentationEngineFence->Wait ();
@@ -174,7 +168,6 @@ uint32_t SynchronizedSwapchainGraphRenderer::RenderNextRecreatableFrame (RenderG
 
     frameDisplayObserver.OnRenderStarted (currentResourceIndex);
     graph.Submit (currentResourceIndex, submitWaitSemaphores, submitSignalSemaphores, *inFlightFences[currentResourceIndex]);
-    //graph.Submit (currentResourceIndex, submitWaitSemaphores, submitSignalSemaphores);
 
     GVK_ASSERT (swapchain.SupportsPresenting ());
 

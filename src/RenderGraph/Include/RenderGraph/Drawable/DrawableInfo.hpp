@@ -1,14 +1,14 @@
 #ifndef DRAWRECORDABLEINFO_HPP
 #define DRAWRECORDABLEINFO_HPP
 
+#include "RenderGraph/Drawable/Drawable.hpp"
 #include "RenderGraph/RenderGraphAPI.hpp"
-#include "RenderGraph/DrawRecordable/DrawRecordable.hpp"
 
-#include "VulkanWrapper/Utils/BufferTransferable.hpp"
 #include "VulkanWrapper/CommandBuffer.hpp"
+#include "VulkanWrapper/Utils/BufferTransferable.hpp"
 
-#include <memory>
 #include <functional>
+#include <memory>
 
 #include <vulkan/vulkan.h>
 
@@ -65,23 +65,23 @@ public:
 };
 
 
-class GVK_RENDERER_API DrawRecordableInfo : public DrawRecordable {
+class GVK_RENDERER_API DrawableInfo : public Drawable {
 public:
     const uint32_t instanceCount;
 
-    const uint32_t                                       vertexCount;
-    const std::vector<VkBuffer>                          vertexBuffer;
+    const uint32_t              vertexCount;
+    const std::vector<VkBuffer> vertexBuffer;
 
     const uint32_t indexCount;
     const VkBuffer indexBuffer;
 
-    DrawRecordableInfo (const uint32_t                                        instanceCount,
-                        uint32_t                                              vertexCount,
-                        VkBuffer                                              vertexBuffer          = VK_NULL_HANDLE,
-                        const std::vector<VkVertexInputBindingDescription>&   vertexInputBindings   = {},
-                        const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributes = {},
-                        uint32_t                                              indexCount            = 0,
-                        VkBuffer                                              indexBuffer           = VK_NULL_HANDLE)
+    DrawableInfo (const uint32_t                                        instanceCount,
+                  uint32_t                                              vertexCount,
+                  VkBuffer                                              vertexBuffer          = VK_NULL_HANDLE,
+                  const std::vector<VkVertexInputBindingDescription>&   vertexInputBindings   = {},
+                  const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributes = {},
+                  uint32_t                                              indexCount            = 0,
+                  VkBuffer                                              indexBuffer           = VK_NULL_HANDLE)
         : instanceCount (instanceCount)
         , vertexCount (vertexCount)
         , vertexBuffer ((vertexBuffer == VK_NULL_HANDLE) ? std::vector<VkBuffer> {} : std::vector<VkBuffer> { vertexBuffer })
@@ -90,9 +90,9 @@ public:
     {
     }
 
-    DrawRecordableInfo (const uint32_t                         instanceCount,
-                        const GVK::VertexBufferTransferableUntyped& vertexBuffer,
-                        const GVK::IndexBufferTransferable&         indexBuffer)
+    DrawableInfo (const uint32_t                              instanceCount,
+                  const GVK::VertexBufferTransferableUntyped& vertexBuffer,
+                  const GVK::IndexBufferTransferable&         indexBuffer)
         : instanceCount (instanceCount)
         , vertexCount (vertexBuffer.data.size ())
         , vertexBuffer ({ vertexBuffer.buffer.GetBufferToBind () })
@@ -101,8 +101,8 @@ public:
     {
     }
 
-    DrawRecordableInfo (const uint32_t                         instanceCount,
-                        const GVK::VertexBufferTransferableUntyped& vertexBuffer)
+    DrawableInfo (const uint32_t                              instanceCount,
+                  const GVK::VertexBufferTransferableUntyped& vertexBuffer)
         : instanceCount (instanceCount)
         , vertexCount (vertexBuffer.data.size ())
         , vertexBuffer ({ vertexBuffer.buffer.GetBufferToBind () })
@@ -111,11 +111,11 @@ public:
     {
     }
 
-    DrawRecordableInfo (const uint32_t   instanceCount,
-                        uint32_t         vertexCount,
-                        VertexBufferList vertexBuffers,
-                        uint32_t         indexCount,
-                        VkBuffer         indexBuffer)
+    DrawableInfo (const uint32_t   instanceCount,
+                  uint32_t         vertexCount,
+                  VertexBufferList vertexBuffers,
+                  uint32_t         indexCount,
+                  VkBuffer         indexBuffer)
         : instanceCount (instanceCount)
         , vertexCount (vertexCount)
         , vertexBuffer (vertexBuffers.GetHandles ())
@@ -124,17 +124,17 @@ public:
     {
     }
 
-    virtual ~DrawRecordableInfo () override = default;
+    virtual ~DrawableInfo () override = default;
 
     void Record (GVK::CommandBuffer& commandBuffer) const override;
 };
 
-class DrawRecordableInfoProvider : public DrawRecordable {
+class DrawableInfoProvider : public Drawable {
 public:
     virtual void Record (GVK::CommandBuffer& commandBuffer) const override { GetDrawRecordableInfo ().Record (commandBuffer); }
 
 private:
-    virtual const DrawRecordableInfo& GetDrawRecordableInfo () const = 0;
+    virtual const DrawableInfo& GetDrawRecordableInfo () const = 0;
 };
 
 } // namespace RG

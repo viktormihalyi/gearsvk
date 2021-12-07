@@ -2,9 +2,9 @@
 set (IncludePath ${CMAKE_CURRENT_SOURCE_DIR}/Include)
 set (HeadersPath ${CMAKE_CURRENT_SOURCE_DIR}/Include/RenderGraph)
 set (Headers
-    ${HeadersPath}/DrawRecordable/DrawRecordable.hpp
-    ${HeadersPath}/DrawRecordable/DrawRecordableInfo.hpp
-    ${HeadersPath}/DrawRecordable/FullscreenQuad.hpp
+    ${HeadersPath}/Drawable/Drawable.hpp
+    ${HeadersPath}/Drawable/DrawableInfo.hpp
+    ${HeadersPath}/Drawable/FullscreenQuad.hpp
 
     ${HeadersPath}/GraphRenderer.hpp
     ${HeadersPath}/GraphSettings.hpp
@@ -35,7 +35,8 @@ set (Headers
 
 set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
-    ${SourcesPath}/DrawRecordable/DrawRecordableInfo.cpp
+    ${SourcesPath}/Drawable/Drawable.cpp
+    ${SourcesPath}/Drawable/DrawableInfo.cpp
 
     ${SourcesPath}/GraphRenderer.cpp
     ${SourcesPath}/GraphSettings.cpp
@@ -84,7 +85,7 @@ target_precompile_headers (RenderGraph PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Preco
 target_include_directories (RenderGraph
     PRIVATE ${IncludePath}
     PRIVATE ${HeadersPath}
-    PRIVATE ${HeadersPath}/DrawRecordable
+    PRIVATE ${HeadersPath}/Drawable
     PRIVATE ${HeadersPath}/Window
     
     PUBLIC ${IncludePath}

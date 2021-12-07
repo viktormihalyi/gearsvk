@@ -360,7 +360,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (CompileParameters p
     const int                               ClientInputSemanticsVersion = 100;
     const glslang::EShTargetClientVersion   VulkanClientVersion         = glslang::EShTargetVulkan_1_2;
     const glslang::EShTargetLanguageVersion TargetVersion               = glslang::EShTargetSpv_1_5;
-    const EShMessages                       messages                    = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules | EShMsgDebugInfo); // TODO remove debug info from release builds
+    const EShMessages                       messages                    = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules | EShMsgDebugInfo); // debug info is required for release builds as well for variable names
     const TBuiltInResource                  resources                   = GetDefaultResourceLimits (); // TODO use DefaultTBuiltInResource ?
 
     TPreamble preamble;
@@ -401,7 +401,7 @@ static std::vector<uint32_t> CompileWithGlslangCppInterface (CompileParameters p
 
     spv::SpvBuildLogger logger;
     glslang::SpvOptions spvOptions;
-    spvOptions.generateDebugInfo = IsDebugBuild;
+    spvOptions.generateDebugInfo = IsDebugBuild; // why is this not needef for release builds?
     spvOptions.stripDebugInfo    = false; // this is needed for shader resource names
     spvOptions.disableOptimizer  = IsDebugBuild;
     spvOptions.optimizeSize      = false;

@@ -73,12 +73,19 @@ public:
         if (stimulus->rngCompute_multiLayer) {
             // TODO only export one 'layer'
         }
-
+        
         randomsBuffer.TransferFromGPUToCPU (resourceIndex);
 
         std::vector<uint32_t> as32BitUint;
         as32BitUint.resize (randomsBuffer.GetBufferSize () / sizeof (uint32_t));
-        memcpy (as32BitUint.data (), randomsBuffer.buffers[resourceIndex]->bufferCPUMapping.Get (), randomsBuffer.GetBufferSize ());
+        
+        const void* const source      = randomsBuffer.buffers[resourceIndex]->bufferCPUMapping.Get ();
+        void* const       destination = as32BitUint.data ();
+
+        const size_t bufferOffset = 0;
+        const size_t copySize     = randomsBuffer.GetBufferSize ();
+
+        memcpy (destination, source, copySize);
 
         const int64_t overshoot = values.size () + as32BitUint.size () - randomValueLimit;
         if (overshoot > 0) {
@@ -278,7 +285,7 @@ void SequenceAdapter::OnImageAcquisitionFenceSignaled (uint32_t resourceIndex)
     const size_t stimulusFrameIndex = finishedFrameIndex - stimulus->getStartingFrame ();
 
     if (currentPresentable->HasWindow ()) {
-        const std::string titleString = fmt::format ("GearsVk - {} [stimulus frame: {} / {} ({}), sequence frame: {} / {} ({})",
+        const std::string titleString = fmt::format ("GearsVk - {} [stimulus frame: {} / {} ({}), sequence frame: {} / {} ({})]",
                                                      sequenceNameInTitle,
                                                      stimulusFrameIndex, stimulus->getDuration (), std::floor (static_cast<double> (stimulusFrameIndex) / stimulus->getDuration () * 100.0),
                                                      finishedFrameIndex, sequence->getDuration (), std::floor (static_cast<double> (finishedFrameIndex) / sequence->getDuration () * 100.0));

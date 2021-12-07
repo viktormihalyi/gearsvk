@@ -31,7 +31,6 @@ VkPresentModeKHR DefaultSwapchainSettings::SelectPresentMode (const std::vector<
     for (VkPresentModeKHR availablePresentMode : modes) {
         spdlog::info (availablePresentMode);
         if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
-        //if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
             return availablePresentMode;
         }
     }

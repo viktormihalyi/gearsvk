@@ -1,7 +1,7 @@
 #include "RenderGraphPass.hpp"
 #include "Operation.hpp"
 #include "Resource.hpp"
-#include "DrawRecordable.hpp"
+#include "Drawable.hpp"
 #include "ShaderPipeline.hpp"
 #include "ComputeShaderPipeline.hpp"
 

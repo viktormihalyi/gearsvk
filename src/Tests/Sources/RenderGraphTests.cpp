@@ -1,6 +1,6 @@
 #include "TestEnvironment.hpp"
 
-#include "RenderGraph/DrawRecordable/FullscreenQuad.hpp"
+#include "RenderGraph/Drawable/FullscreenQuad.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
 #include "RenderGraph/GraphSettings.hpp"
 #include "RenderGraph/Operation.hpp"
@@ -92,7 +92,7 @@ void main ()
     )";
 
     std::shared_ptr<RG::RenderOperation> redFillOperation = RG::RenderOperation::Builder (GetDevice ())
-                                                                .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                                .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                                 .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
                                                                 .SetVertexShader (passThroughVertexShader)
                                                                 .SetFragmentShader (fragSrc)
@@ -227,7 +227,7 @@ TEST_F (HeadlessTestEnvironment, ShaderPipeline_CompileTest)
 {
     GVK::DeviceExtra& device = GetDeviceExtra ();
 
-    RG::RenderOperation op (std::make_unique<RG::DrawRecordableInfo> (1, 3),
+    RG::RenderOperation op (std::make_unique<RG::DrawableInfo> (1, 3),
                             std::make_unique<RG::ShaderPipeline> (device, std::vector<std::filesystem::path> {
                                                                               ShadersFolder / "test.vert",
                                                                               ShadersFolder / "test.frag",
@@ -302,7 +302,7 @@ void main () {
     )";
 
     std::shared_ptr<RG::RenderOperation> redFillOperation = RG::RenderOperation::Builder (GetDevice ())
-                                                                .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                                .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                                 .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
                                                                 .SetVertexShader (passThroughVertexShader)
                                                                 .SetFragmentShader (fragSrc)
@@ -372,7 +372,7 @@ void main () {
     )";
 
     std::shared_ptr<RG::RenderOperation> redFillOperation = RG::RenderOperation::Builder (GetDevice ())
-                                                                .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                                .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                                 .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
                                                                 .SetVertexShader (passThroughVertexShader)
                                                                 .SetFragmentShader (fragSrc)
@@ -417,14 +417,14 @@ TEST_F (HeadlessTestEnvironment, RenderGraph_MultipleOperations_MultipleOutputs)
 
     std::shared_ptr<RG::RenderOperation> dummyPass = RG::RenderOperation::Builder (GetDevice ())
                                                          .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-                                                         .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 3))
+                                                         .SetVertices (std::make_unique<RG::DrawableInfo> (1, 3))
                                                          .SetVertexShader (ShadersFolder / "test.vert")
                                                          .SetVertexShader (ShadersFolder / "test.frag")
                                                          .Build ();
 
     std::shared_ptr<RG::RenderOperation> secondPass = RG::RenderOperation::Builder (GetDevice ())
                                                           .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-                                                          .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 3))
+                                                          .SetVertices (std::make_unique<RG::DrawableInfo> (1, 3))
                                                           .SetVertexShader (ShadersFolder / "fullscreenquad.vert")
                                                           .SetVertexShader (ShadersFolder / "fullscreenquad.frag")
                                                           .Build ();
@@ -533,7 +533,7 @@ void main()
 
     std::shared_ptr<RG::RenderOperation> firstPass = RG::RenderOperation::Builder (GetDevice ())
                                                          .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-                                                         .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                         .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                          .SetVertexShader (passThroughVertexShader)
                                                          .SetFragmentShader (fragSrc)
                                                          .SetBlendEnabled (false)
@@ -624,7 +624,7 @@ void main()
 
     std::shared_ptr<RG::RenderOperation> firstPass = RG::RenderOperation::Builder (GetDevice ())
                                                          .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-                                                         .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                         .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                          .SetVertexShader (passThroughVertexShader)
                                                          .SetFragmentShader (fragSrc)
                                                          .SetBlendEnabled (false)
@@ -750,7 +750,7 @@ void main () {
 
     std::shared_ptr<RG::RenderOperation> firstPass = RG::RenderOperation::Builder (GetDevice ())
                                                          .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-                                                         .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                         .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                          .SetVertexShader (passThroughVertexShader)
                                                          .SetFragmentShader (frag1)
                                                          .SetName ("FIRST")
@@ -1053,7 +1053,7 @@ void main () {
 
     std::shared_ptr<RG::RenderOperation> firstPass = RG::RenderOperation::Builder (GetDevice ())
                                                          .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-                                                         .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                         .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                          .SetVertexShader (passThroughVertexShader)
                                                          .SetFragmentShader (frag1)
                                                          .SetBlendEnabled (false)
@@ -1062,7 +1062,7 @@ void main () {
 
     std::shared_ptr<RG::RenderOperation> secondPass = RG::RenderOperation::Builder (GetDevice ())
                                                           .SetPrimitiveTopology (VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-                                                          .SetVertices (std::make_unique<RG::DrawRecordableInfo> (1, 6))
+                                                          .SetVertices (std::make_unique<RG::DrawableInfo> (1, 6))
                                                           .SetVertexShader (passThroughVertexShader)
                                                           .SetFragmentShader (frag2)
                                                           .SetBlendEnabled (true)
@@ -1173,7 +1173,7 @@ void main () {
 }
     )");
 
-    std::shared_ptr<RG::RenderOperation> redFillOperation = std::make_unique<RG::RenderOperation> (std::make_unique<RG::DrawRecordableInfo> (1, 6), std::move (sp));
+    std::shared_ptr<RG::RenderOperation> redFillOperation = std::make_unique<RG::RenderOperation> (std::make_unique<RG::DrawableInfo> (1, 6), std::move (sp));
 
     std::shared_ptr<RG::WritableImageResource> presentedCopy = std::make_unique<RG::WritableImageResource> (800, 600);
     std::shared_ptr<RG::SwapchainImageResource> presented     = std::make_unique<RG::SwapchainImageResource> (*presentable);
@@ -1260,7 +1260,7 @@ void main () {
     ib.data = { 0, 1, 2, 0, 3, 2 };
     ib.Flush ();
 
-    std::shared_ptr<RG::RenderOperation> redFillOperation = std::make_unique<RG::RenderOperation> (std::make_unique<RG::DrawRecordableInfo> (1, static_cast<uint32_t> (vbb.data.size ()), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, static_cast<uint32_t> (ib.data.size ()), ib.buffer.GetBufferToBind ()),
+    std::shared_ptr<RG::RenderOperation> redFillOperation = std::make_unique<RG::RenderOperation> (std::make_unique<RG::DrawableInfo> (1, static_cast<uint32_t> (vbb.data.size ()), vbb.buffer.GetBufferToBind (), vbb.info.bindings, vbb.info.attributes, static_cast<uint32_t> (ib.data.size ()), ib.buffer.GetBufferToBind ()),
                                                                                                    std::move (sp));
 
     std::shared_ptr<RG::WritableImageResource>  presentedCopy = std::make_unique<RG::WritableImageResource> (800, 600);
@@ -1357,7 +1357,7 @@ void main () {
     ib.data = { 0, 1, 2, 0, 3, 2 };
     ib.Flush ();
 
-    std::shared_ptr<RG::RenderOperation> redFillOperation = std::make_unique<RG::RenderOperation> (std::make_unique<RG::DrawRecordableInfo> (1, *vbb, ib), std::move (sp));
+    std::shared_ptr<RG::RenderOperation> redFillOperation = std::make_unique<RG::RenderOperation> (std::make_unique<RG::DrawableInfo> (1, *vbb, ib), std::move (sp));
 
     std::shared_ptr<RG::SwapchainImageResource> presented     = std::make_unique<RG::SwapchainImageResource> (*presentable);
     std::shared_ptr<RG::WritableImageResource>  presentedCopy = std::make_unique<RG::WritableImageResource> (VK_FILTER_LINEAR, 800, 600, 2);

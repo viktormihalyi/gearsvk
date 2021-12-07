@@ -2,13 +2,13 @@
 #define DR_FULLSCREENQUAD_HPP
 
 #include "VulkanWrapper/DeviceExtra.hpp"
-#include "RenderGraph/DrawRecordable/DrawRecordableInfo.hpp"
+#include "RenderGraph/Drawable/DrawableInfo.hpp"
 
 #include <glm/glm.hpp>
 
 namespace RG {
 
-class FullscreenQuad : public DrawRecordableInfoProvider {
+class FullscreenQuad : public DrawableInfoProvider {
 private:
     struct Vertex {
         glm::vec2 pos;
@@ -18,7 +18,7 @@ private:
     GVK::VertexBufferTransferable<Vertex> vertexBuffer;
     GVK::IndexBufferTransferable          indexBuffer;
 
-    std::unique_ptr<DrawRecordableInfo> info;
+    std::unique_ptr<DrawableInfo> info;
 
 public:
     FullscreenQuad (const GVK::DeviceExtra& device)
@@ -37,11 +37,11 @@ public:
         vertexBuffer.Flush ();
         indexBuffer.Flush ();
 
-        info = std::make_unique<DrawRecordableInfo> (1, vertexBuffer, indexBuffer);
+        info = std::make_unique<DrawableInfo> (1, vertexBuffer, indexBuffer);
     }
 
 private:
-    virtual const DrawRecordableInfo& GetDrawRecordableInfo () const override
+    virtual const DrawableInfo& GetDrawRecordableInfo () const override
     {
         return *info;
     }

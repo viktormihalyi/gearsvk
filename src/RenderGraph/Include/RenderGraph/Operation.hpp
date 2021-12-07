@@ -3,21 +3,21 @@
 
 #include "RenderGraph/RenderGraphAPI.hpp"
 
+#include "RenderGraph/ComputeShaderPipeline.hpp"
 #include "RenderGraph/Node.hpp"
 #include "RenderGraph/ShaderPipeline.hpp"
-#include "RenderGraph/ComputeShaderPipeline.hpp"
-#include "RenderGraph/ShaderReflectionToDescriptor.hpp"
 #include "RenderGraph/ShaderReflectionToAttachment.hpp"
+#include "RenderGraph/ShaderReflectionToDescriptor.hpp"
 
 #include "VulkanWrapper/ShaderModule.hpp"
 
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
 
-#include <optional>
 #include <filesystem>
-#include <vector>
 #include <memory>
+#include <optional>
+#include <vector>
 
 
 namespace GVK {
@@ -34,15 +34,14 @@ namespace RG {
 class Resource;
 class GraphSettings;
 class ConnectionSet;
-class DrawRecordable;
-class DrawRecordableInfo;
+class Drawable;
+class DrawableInfo;
 } // namespace RG
 
 namespace RG {
 
 class GVK_RENDERER_API Operation : public Node {
 public:
-    
     struct GVK_RENDERER_API Descriptors {
         std::unique_ptr<GVK::DescriptorPool>             descriptorPool;
         std::unique_ptr<GVK::DescriptorSetLayout>        descriptorSetLayout;
@@ -51,7 +50,7 @@ public:
 
     virtual ~Operation () override = default;
 
-    virtual void Compile (const GraphSettings&) = 0;
+    virtual void Compile (const GraphSettings&)                                                          = 0;
     virtual void CompileWithExtent (const GraphSettings& graphSettings, uint32_t width, uint32_t height) = 0;
 
     virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) = 0;
@@ -101,22 +100,36 @@ public:
     virtual void CompileWithExtent (const GraphSettings&, uint32_t width, uint32_t height) override;
 
     virtual void Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer) override;
-    
-    virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&)  override { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
-    virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&)    override { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
-    virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) override { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
-    virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&)   override { GVK_BREAK (); throw std::runtime_error ("Compute shaders do not operate on images."); }
-};
 
+    virtual VkImageLayout GetImageLayoutAtStartForInputs (Resource&) override
+    {
+        GVK_BREAK ();
+        throw std::runtime_error ("Compute shaders do not operate on images.");
+    }
+    virtual VkImageLayout GetImageLayoutAtEndForInputs (Resource&) override
+    {
+        GVK_BREAK ();
+        throw std::runtime_error ("Compute shaders do not operate on images.");
+    }
+    virtual VkImageLayout GetImageLayoutAtStartForOutputs (Resource&) override
+    {
+        GVK_BREAK ();
+        throw std::runtime_error ("Compute shaders do not operate on images.");
+    }
+    virtual VkImageLayout GetImageLayoutAtEndForOutputs (Resource&) override
+    {
+        GVK_BREAK ();
+        throw std::runtime_error ("Compute shaders do not operate on images.");
+    }
+};
 
 
 class GVK_RENDERER_API RenderOperation : public Operation {
 public:
-
     class GVK_RENDERER_API Builder {
     private:
         VkDevice                           device;
-        std::unique_ptr<DrawRecordable>    drawRecordable;
+        std::unique_ptr<Drawable>          drawable;
         std::unique_ptr<ShaderPipeline>    shaderPipiline;
         std::optional<VkPrimitiveTopology> topology;
         std::optional<glm::vec4>           clearColor;
@@ -131,7 +144,7 @@ public:
         Builder& SetFragmentShader (const std::string& value);
         Builder& SetVertexShader (const std::filesystem::path& value);
         Builder& SetFragmentShader (const std::filesystem::path& value);
-        Builder& SetVertices (std::unique_ptr<DrawRecordable>&& value);
+        Builder& SetVertices (std::unique_ptr<Drawable>&& value);
         Builder& SetBlendEnabled (bool value = true);
         Builder& SetClearColor (const glm::vec4& value);
         Builder& SetName (const std::string& value);
@@ -143,7 +156,7 @@ public:
     };
 
     struct GVK_RENDERER_API CompileSettings {
-        std::unique_ptr<DrawRecordable> drawRecordable;
+        std::unique_ptr<Drawable>       drawable;
         std::unique_ptr<ShaderPipeline> pipeline;
         VkPrimitiveTopology             topology;
 
@@ -155,16 +168,16 @@ public:
     };
 
     struct GVK_RENDERER_API CompileResult {
-        uint32_t                                         width;
-        uint32_t                                         height;
-        Descriptors                                      descriptors;
-        std::vector<std::unique_ptr<GVK::Framebuffer>>   framebuffers;
+        uint32_t                                       width;
+        uint32_t                                       height;
+        Descriptors                                    descriptors;
+        std::vector<std::unique_ptr<GVK::Framebuffer>> framebuffers;
     };
 
     CompileSettings compileSettings;
     CompileResult   compileResult;
 
-    RenderOperation (std::unique_ptr<DrawRecordable>&& drawRecordable, std::unique_ptr<ShaderPipeline>&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    RenderOperation (std::unique_ptr<Drawable>&& drawable, std::unique_ptr<ShaderPipeline>&& shaderPipiline, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
     virtual ~RenderOperation () override = default;
 

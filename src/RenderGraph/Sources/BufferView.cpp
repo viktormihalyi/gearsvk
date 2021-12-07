@@ -101,7 +101,6 @@ BufferView BufferView::operator[] (uint32_t index)
 
     GVK_ASSERT (type == Type::Array);
     GVK_ASSERT (currentField != nullptr);
-    //GVK_ASSERT ((currentField->IsFixedSizeArray () && index < currentField->arraySize) || !currentField->IsFixedSizeArray ());
 
     const uint32_t maxArraySizeIndex = currentField->arraySize.size () - 1;
     if (currentField->IsMultiDimensionalArray () && nextArraySizeIndex < maxArraySizeIndex) {

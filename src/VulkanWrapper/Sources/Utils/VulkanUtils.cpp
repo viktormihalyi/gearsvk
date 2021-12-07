@@ -58,11 +58,17 @@ void CopyBufferToImage (CommandBuffer& commandBuffer, VkBuffer buffer, VkImage i
 
 void CopyBuffer (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
+    CopyBufferPart (device, srcBuffer, dstBuffer, size, 0);
+}
+
+
+void CopyBufferPart (const DeviceExtra& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset)
+{
     SingleTimeCommand commandBuffer (device);
-    commandBuffer.SetName (device, "CopyBuffer - SingleTimeCommandBuffer");
+    commandBuffer.SetName (device, "CopyBufferPart - SingleTimeCommandBuffer");
 
     VkBufferCopy copyRegion = {};
-    copyRegion.srcOffset    = 0;
+    copyRegion.srcOffset    = offset;
     copyRegion.dstOffset    = 0;
     copyRegion.size         = size;
 

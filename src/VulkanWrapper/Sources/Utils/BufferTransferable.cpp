@@ -95,6 +95,12 @@ void BufferTransferable::TransferFromGPUToCPU () const
 }
 
 
+void BufferTransferable::TransferFromGPUToCPU (VkDeviceSize size, VkDeviceSize offset) const
+{
+    CopyBufferPart (device, bufferGPU, bufferCPU, size, offset);
+}
+
+
 void ImageTransferable::CopyLayer (VkImageLayout currentImageLayout, const void* data, size_t size, uint32_t layerIndex, std::optional<VkImageLayout> nextLayout) const
 {
     bufferCPUMapping.Copy (data, size);

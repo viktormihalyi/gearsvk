@@ -35,6 +35,7 @@ public:
     void TransferFromCPUToGPU (const void* data, size_t size) const;
 
     void TransferFromGPUToCPU () const;
+    void TransferFromGPUToCPU (VkDeviceSize size, VkDeviceSize offset) const;
 
     VkBuffer GetBufferToBind () const
     {
