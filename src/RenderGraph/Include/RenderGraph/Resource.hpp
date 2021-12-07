@@ -11,8 +11,8 @@
 #include "VulkanWrapper/Utils/BufferTransferable.hpp"
 
 #include "RenderGraph/GraphSettings.hpp"
-#include "RenderGraph/InputBindable.hpp"
 #include "RenderGraph/Node.hpp"
+#include "RenderGraph/DescriptorBindable.hpp"
 
 #include <vulkan/vulkan.h>
 
