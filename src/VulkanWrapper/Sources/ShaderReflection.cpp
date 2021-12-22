@@ -2,9 +2,9 @@
 
 #include "Utils/Assert.hpp"
 
+#include <numeric>
 #include <optional>
 #include <sstream>
-#include <numeric>
 
 // from SPRIV-Cross
 #include "spirv_cross.hpp"
@@ -119,7 +119,7 @@ const std::vector<std::unique_ptr<Field>>& BufferObject::GetFields () const
 }
 
 
-class AllDecorations {
+class DecorationExtractor {
 public:
     std::string             name;
     std::optional<uint32_t> ArrayStride;
@@ -158,41 +158,41 @@ private:
         return compiler.get_fallback_name (resId);
     }
 
-#define AllDecorations_INITIALIZE_DECORATION(DecorName) \
+#define DecorationExtractor_INITIALIZE_DECORATION(DecorName) \
     DecorName (GetDecor (compiler, resId, spv::Decoration##DecorName))
 
-#define AllDecorations_INITIALIZE_MEMBER_DECORATION(DecorName) \
+#define DecorationExtractor_INITIALIZE_MEMBER_DECORATION(DecorName) \
     DecorName (GetMemberDecor (compiler, resId, spv::Decoration##DecorName, memberIdx))
 
 public:
-    AllDecorations (const spirv_cross::Compiler& compiler, const spirv_cross::SPIRType& type)
-        : AllDecorations (compiler, type.self)
+    DecorationExtractor (const spirv_cross::Compiler& compiler, const spirv_cross::SPIRType& type)
+        : DecorationExtractor (compiler, type.self)
     {
     }
 
-    AllDecorations (const spirv_cross::Compiler& compiler, const spirv_cross::SPIRType& type, uint32_t memberIdx)
-        : AllDecorations (compiler, type.self, memberIdx)
+    DecorationExtractor (const spirv_cross::Compiler& compiler, const spirv_cross::SPIRType& type, uint32_t memberIdx)
+        : DecorationExtractor (compiler, type.self, memberIdx)
     {
     }
 
-    AllDecorations (const spirv_cross::Compiler& compiler, spirv_cross::ID resId)
+    DecorationExtractor (const spirv_cross::Compiler& compiler, spirv_cross::ID resId)
         : name (GetName (compiler, resId))
-        , AllDecorations_INITIALIZE_DECORATION (ArrayStride)
-        , AllDecorations_INITIALIZE_DECORATION (Binding)
-        , AllDecorations_INITIALIZE_DECORATION (DescriptorSet)
-        , AllDecorations_INITIALIZE_DECORATION (Offset)
-        , AllDecorations_INITIALIZE_DECORATION (Location)
-        , AllDecorations_INITIALIZE_DECORATION (InputAttachmentIndex)
+        , DecorationExtractor_INITIALIZE_DECORATION (ArrayStride)
+        , DecorationExtractor_INITIALIZE_DECORATION (Binding)
+        , DecorationExtractor_INITIALIZE_DECORATION (DescriptorSet)
+        , DecorationExtractor_INITIALIZE_DECORATION (Offset)
+        , DecorationExtractor_INITIALIZE_DECORATION (Location)
+        , DecorationExtractor_INITIALIZE_DECORATION (InputAttachmentIndex)
     {
     }
 
-    AllDecorations (const spirv_cross::Compiler& compiler, spirv_cross::ID resId, uint32_t memberIdx)
+    DecorationExtractor (const spirv_cross::Compiler& compiler, spirv_cross::ID resId, uint32_t memberIdx)
         : name (compiler.get_member_name (resId, memberIdx))
-        , AllDecorations_INITIALIZE_MEMBER_DECORATION (ArrayStride)
-        , AllDecorations_INITIALIZE_MEMBER_DECORATION (Binding)
-        , AllDecorations_INITIALIZE_MEMBER_DECORATION (DescriptorSet)
-        , AllDecorations_INITIALIZE_MEMBER_DECORATION (Offset)
-        , AllDecorations_INITIALIZE_MEMBER_DECORATION (InputAttachmentIndex)
+        , DecorationExtractor_INITIALIZE_MEMBER_DECORATION (ArrayStride)
+        , DecorationExtractor_INITIALIZE_MEMBER_DECORATION (Binding)
+        , DecorationExtractor_INITIALIZE_MEMBER_DECORATION (DescriptorSet)
+        , DecorationExtractor_INITIALIZE_MEMBER_DECORATION (Offset)
+        , DecorationExtractor_INITIALIZE_MEMBER_DECORATION (InputAttachmentIndex)
     {
     }
 };
@@ -362,8 +362,8 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
     const uint32_t memberCount = type.member_types.size ();
 
     for (uint32_t i = 0; i < memberCount; ++i) {
-        AllDecorations               typeMemDecorA (compiler, type.member_types[i]);
-        AllDecorations               typeMemDecor (compiler, type.self, i);
+        DecorationExtractor          typeMemDecorA (compiler, type.member_types[i]);
+        DecorationExtractor          typeMemDecor (compiler, type.self, i);
         const spirv_cross::SPIRType& Mtype = compiler.get_type (type.member_types[i]);
 
         std::unique_ptr<Field> f = std::make_unique<Field> ();
@@ -386,7 +386,7 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
             f->arrayStride.push_back (*typeMemDecorA.ArrayStride);
             uint32_t nextParantTypeId = Mtype.parent_type;
             while (nextParantTypeId != 0) {
-                AllDecorations parDec (compiler, nextParantTypeId);
+                DecorationExtractor parDec (compiler, nextParantTypeId);
                 if (parDec.ArrayStride.has_value ()) {
                     f->arrayStride.push_back (*parDec.ArrayStride);
                 }
@@ -396,7 +396,7 @@ static void IterateTypeTree (spirv_cross::Compiler& compiler, spirv_cross::TypeI
 
         GVK_ASSERT (f->arraySize.size () == f->arrayStride.size ());
         GVK_ASSERT (f->arraySize.size () <= 8);
-        
+
         auto& structFields = f->structFields;
 
         parentFields.push_back (std::move (f));
@@ -434,18 +434,18 @@ static std::vector<std::shared_ptr<BufferObject>> GetBufferObjectsFromBinary (Sp
     std::vector<std::shared_ptr<BufferObject>> ubos;
 
     for (auto& resource : bufferResourceSelector (resources)) {
-        AllDecorations decorations (compiler, resource.id);
-        auto           resType   = compiler.get_type (resource.type_id);
-        const uint32_t arraySize = !resType.array.empty () ? resType.array[0] : 1;
+        DecorationExtractor decorations (compiler, resource.id);
+        auto                resType   = compiler.get_type (resource.type_id);
+        const uint32_t      arraySize = !resType.array.empty () ? resType.array[0] : 1;
 
         // using arrays on ubos will create seperate bindings,
         // eg. array of 4 on binding 2 will create 4 different bindings: 2, 3, 4, 5
         GVK_ASSERT (arraySize == 1);
 
         std::shared_ptr<BufferObject> root = std::make_unique<BufferObject> ();
-        root->name                = resource.name;
-        root->binding             = *decorations.Binding;
-        root->descriptorSet       = *decorations.DescriptorSet;
+        root->name                         = resource.name;
+        root->binding                      = *decorations.Binding;
+        root->descriptorSet                = *decorations.DescriptorSet;
 
         IterateTypeTree (compiler, resource.base_type_id, root->fields);
 
@@ -492,8 +492,8 @@ std::vector<Output> GetOutputsFromBinary (SpirvParser& compiler_)
     std::vector<Output> result;
 
     for (auto& resource : resources.stage_outputs) {
-        AllDecorations decorations (compiler, resource.id);
-        auto           type = compiler.get_type (resource.type_id);
+        DecorationExtractor decorations (compiler, resource.id);
+        auto                type = compiler.get_type (resource.type_id);
 
         Output output;
 
@@ -577,8 +577,8 @@ std::vector<SubpassInput> GetSubpassInputsFromBinary (SpirvParser& compiler_)
     std::vector<SubpassInput> result;
 
     for (auto& resource : resources.subpass_inputs) {
-        AllDecorations decorations (compiler, resource.id);
-        auto           type = compiler.get_type (resource.type_id);
+        DecorationExtractor decorations (compiler, resource.id);
+        auto                type = compiler.get_type (resource.type_id);
 
         SubpassInput inp;
 
@@ -613,8 +613,8 @@ std::vector<Input> GetInputsFromBinary (SpirvParser& compiler_)
     std::vector<Input> result;
 
     for (auto& resource : resources.stage_inputs) {
-        AllDecorations decorations (compiler, resource.id);
-        auto           type = compiler.get_type (resource.type_id);
+        DecorationExtractor decorations (compiler, resource.id);
+        auto                type = compiler.get_type (resource.type_id);
 
         Input inp;
 
@@ -664,8 +664,8 @@ std::vector<Sampler> GetSamplersFromBinary (SpirvParser& compiler_)
     std::vector<Sampler> result;
 
     for (auto& resource : resources.sampled_images) {
-        AllDecorations decorations (compiler, resource.id);
-        auto           type = compiler.get_type (resource.type_id);
+        DecorationExtractor decorations (compiler, resource.id);
+        auto                type = compiler.get_type (resource.type_id);
 
         Sampler sampler;
         sampler.name          = resource.name;

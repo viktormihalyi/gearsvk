@@ -22,7 +22,7 @@ public:
         };
     }
 
-    virtual uint32_t GetBufferSize () = 0;
+    virtual size_t GetBufferSize () = 0;
 };
 
 class DescriptorBindableImage {

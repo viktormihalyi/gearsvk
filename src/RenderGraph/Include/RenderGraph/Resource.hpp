@@ -167,12 +167,12 @@ public:
 
 class GVK_RENDERER_API GPUBufferResource : public DescriptorBindableBufferResource {
 public:
-    uint32_t size;
+    size_t size;
     
     std::vector<std::unique_ptr<GVK::BufferTransferable>> buffers;
 
 public:
-    GPUBufferResource (uint32_t size);
+    GPUBufferResource (size_t size);
 
     virtual ~GPUBufferResource () override;
 
@@ -181,7 +181,7 @@ public:
     // overriding DescriptorBindableImage
     virtual VkBuffer GetBufferForFrame (uint32_t) override;
 
-    virtual uint32_t GetBufferSize () override;
+    virtual size_t GetBufferSize () override;
 
     void TransferFromCPUToGPU (uint32_t resourceIndex, const void* data, size_t size) const;
 
@@ -289,7 +289,7 @@ public:
 
     // overriding DescriptorBindableBuffer
     virtual VkBuffer GetBufferForFrame (uint32_t resourceIndex) override;
-    virtual uint32_t GetBufferSize () override;
+    virtual size_t GetBufferSize () override;
 
     GVK::MemoryMapping& GetMapping (uint32_t resourceIndex);
 };

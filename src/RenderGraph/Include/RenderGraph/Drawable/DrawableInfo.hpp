@@ -28,19 +28,6 @@ private:
         return result;
     }
 
-    template<typename T>
-    std::vector<T> GetFromVector (std::function<std::vector<T> (const std::shared_ptr<GVK::VertexBufferTransferableUntyped>&)> getterFunc) const
-    {
-        std::vector<T> result;
-
-        for (auto& vb : vertexBuffers) {
-            std::vector<T> res = getterFunc (vb);
-            result.insert (result.end (), res.begin (), res.end ());
-        }
-
-        return result;
-    }
-
 public:
     std::vector<std::shared_ptr<GVK::VertexBufferTransferableUntyped>> vertexBuffers;
 

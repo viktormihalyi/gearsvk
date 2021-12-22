@@ -51,6 +51,8 @@ public:
         , histogramBins { histogramBins }
         , exported { false }
     {
+        spdlog::info ("RandomExported initialized with limit: {}, bins: {}", randomValueLimit, histogramBins);
+
         values.reserve (randomValueLimit);
         histogram.resize (histogramBins, 0);
     }
@@ -118,7 +120,7 @@ public:
             spdlog::info ("Exporting values to {} ...", valuesFilePath.string ());
             
             Utils::EnsureParentFolderExists (valuesFilePath);
-            std::ofstream valuesFile { valuesFilePath.string (), std::fstream::out };
+            std::ofstream valuesFile { valuesFilePath.string (), std::ios::out };
             if (GVK_VERIFY (valuesFile.is_open ())) {
                 for (uint32_t rndval : values) {
                     valuesFile << rndval << std::endl;
@@ -127,9 +129,23 @@ public:
         }
 
         {
+            const std::filesystem::path valuesFilePath = dir / "values.bin";
+
+            spdlog::info ("Exporting values to {} ...", valuesFilePath.string ());
+
+            Utils::EnsureParentFolderExists (valuesFilePath);
+            std::ofstream valuesFile { valuesFilePath.string (), std::ios::binary | std::ios::out };
+            if (GVK_VERIFY (valuesFile.is_open ())) {
+                for (uint32_t rndval : values) {
+                    valuesFile.write (reinterpret_cast<const char*> (&rndval), sizeof (uint32_t));
+                }
+            }
+        }
+
+        {
             const std::filesystem::path histogramFilePath = dir / "histogram.txt";
 
-            std::ofstream histogramFile { histogramFilePath.string (), std::fstream::out };
+            std::ofstream histogramFile { histogramFilePath.string (), std::ios::out };
             
             spdlog::info ("Exporting histogram to {} ...", histogramFilePath.string ());
             
@@ -155,12 +171,12 @@ public:
 };
 
 
-Utils::CommandLineOnOffFlag saveRandomsFlag { "--saveRandoms", "Saves random textures to %temp%/GearsVk/" };
+Utils::CommandLineOnOffFlag saveRandomsFlag { "--saveRandoms", "Saves random buffers to %temp%/GearsVk/" };
 
 static std::unique_ptr<IRandomExporter> GetRandomExporterImpl (GVK::DeviceExtra& device, const std::shared_ptr<Sequence>& sequence)
 {
     if (saveRandomsFlag.IsFlagOn ()) {
-        return std::make_unique<RandomExporter> (device, sequence, 500'000, 20);
+        return std::make_unique<RandomExporter> (device, sequence, 50'000'000, 20);
     }
 
     return std::make_unique<NoRandomExporter> ();

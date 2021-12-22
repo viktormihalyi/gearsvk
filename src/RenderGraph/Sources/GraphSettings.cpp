@@ -20,7 +20,6 @@ GraphSettings::GraphSettings (const GVK::DeviceExtra& device, ConnectionSet&& co
 }
 
 
-
 GraphSettings::GraphSettings (const GVK::DeviceExtra& device, uint32_t framesInFlight)
     : device (&device)
     , framesInFlight (framesInFlight)

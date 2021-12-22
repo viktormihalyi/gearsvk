@@ -183,7 +183,7 @@ void SingleWritableImageResource::OnPostWrite (uint32_t resourceIndex, GVK::Comm
 }
 
 
-GPUBufferResource::GPUBufferResource (const uint32_t size)
+GPUBufferResource::GPUBufferResource (const size_t size)
     : size (size)
 {
 }
@@ -207,7 +207,7 @@ VkBuffer GPUBufferResource::GetBufferForFrame (uint32_t resourceIndex)
 }
 
 
-uint32_t GPUBufferResource::GetBufferSize ()
+size_t GPUBufferResource::GetBufferSize ()
 {
     return size;
 }
@@ -393,7 +393,7 @@ void CPUBufferResource::Compile (const GraphSettings& graphSettings)
 VkBuffer CPUBufferResource::GetBufferForFrame (uint32_t resourceIndex) { return *buffers[resourceIndex]; }
 
 
-uint32_t CPUBufferResource::GetBufferSize () { return size; }
+size_t CPUBufferResource::GetBufferSize () { return size; }
 
 
 GVK::MemoryMapping& CPUBufferResource::GetMapping (uint32_t resourceIndex) { return *mappings[resourceIndex]; }

@@ -124,9 +124,8 @@ Instance::Instance (const std::vector<const char*>& instanceExtensions, const st
 
 
 Instance::Instance (const InstanceSettings& settings)
-    : handle (CreateInstance (settings.extensions, settings.layers))
+    : Instance (settings.extensions, settings.layers)
 {
-    spdlog::trace ("VkInstance created: {}, uuid: {}.", handle, GetUUID ().GetValue ());
 }
 
 
