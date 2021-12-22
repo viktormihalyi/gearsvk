@@ -1,27 +1,26 @@
+add_library (GearsModule SHARED)
 
-set (IncludePath ${CMAKE_CURRENT_SOURCE_DIR}/Include)
-set (HeadersPath ${CMAKE_CURRENT_SOURCE_DIR}/Include/GearsPYD)
 set (Headers
-    ${HeadersPath}/GearsModuleCommon.hpp
-    ${HeadersPath}/GearsAPIv2.hpp
+    Include/GearsPYD/GearsModuleCommon.hpp
+    Include/GearsPYD/GearsAPIv2.hpp
 )
 
-set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
-    ${SourcesPath}/GearsAPIv2.cpp
-    ${SourcesPath}/GearsModule.cpp
-    ${SourcesPath}/LogInitializer.cpp
+    Sources/GearsAPIv2.cpp
+    Sources/GearsModule.cpp
+    Sources/LogInitializer.cpp
 )
 
-add_library (GearsModule SHARED ${Headers} ${Sources})
+target_sources (GearsModule PRIVATE ${Headers} ${Sources})
 
-target_precompile_headers (GearsModule PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeader.hpp)
+target_precompile_headers (GearsModule PRIVATE PrecompiledHeader.hpp)
 
 target_include_directories (GearsModule
-    PRIVATE ${HeadersPath}
+    PRIVATE
+        Include/GearsPYD
 
     PUBLIC 
-        ${IncludePath}
+        Include
 
         $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
@@ -29,9 +28,10 @@ target_include_directories (GearsModule
 )
 
 target_link_libraries (GearsModule
-    PUBLIC Sequence
-    PUBLIC RenderGraph
-    PUBLIC Utils
+    PUBLIC
+        Sequence
+        RenderGraph
+        Utils
 )
 
 if (WIN32)

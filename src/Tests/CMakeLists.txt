@@ -1,22 +1,21 @@
 enable_testing ()
 
-set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
-    ${SourcesPath}/Camera.cpp
-    ${SourcesPath}/Frustum.cpp
-    ${SourcesPath}/TestEnvironment.cpp
-    ${SourcesPath}/TestEnvironment.hpp
-    ${SourcesPath}/TestMain.cpp
+    Sources/Camera.cpp
+    Sources/Frustum.cpp
+    Sources/TestEnvironment.cpp
+    Sources/TestEnvironment.hpp
+    Sources/TestMain.cpp
 
-    ${SourcesPath}/LCGTest.cpp
-    ${SourcesPath}/RenderGraphPassTest.cpp
-    ${SourcesPath}/RenderGraphAbstractionTest.cpp
-    ${SourcesPath}/RenderGraphTests.cpp
-    ${SourcesPath}/VizHFTests.cpp
-    ${SourcesPath}/FontRenderingTests.cpp
-    ${SourcesPath}/GearsTests.cpp
+    Sources/LCGTest.cpp
+    Sources/RenderGraphPassTest.cpp
+    Sources/RenderGraphAbstractionTest.cpp
+    Sources/RenderGraphTests.cpp
+    Sources/VizHFTests.cpp
+    Sources/FontRenderingTests.cpp
+    Sources/GearsTests.cpp
 
-    ${SourcesPath}/LogInitializer.cpp
+    Sources/LogInitializer.cpp
 )
 
 add_executable (GVKTest ${Sources})
@@ -24,27 +23,28 @@ add_executable (GVKTest ${Sources})
 find_package (GTest REQUIRED)
 find_package (stb REQUIRED)
 
-target_precompile_headers (GVKTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeader.hpp)
+target_precompile_headers (GVKTest PRIVATE PrecompiledHeader.hpp)
 
 target_include_directories (GVKTest
-    PRIVATE ${SourcesPath}
+    PRIVATE
+        Sources
 
-    PRIVATE ${GTest_INCLUDE_DIRS}
-    PRIVATE ${stb_INCLUDE_DIRS}
+        ${GTest_INCLUDE_DIRS}
+        ${stb_INCLUDE_DIRS}
 
-    PRIVATE $<TARGET_PROPERTY:GearsModule,INTERFACE_INCLUDE_DIRECTORIES>
-    PRIVATE $<TARGET_PROPERTY:Sequence,INTERFACE_INCLUDE_DIRECTORIES>
-    PRIVATE $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
-    PRIVATE $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
-
+        $<TARGET_PROPERTY:GearsModule,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Sequence,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries (GVKTest
-    PUBLIC ${GTest_LIBRARIES}
-    PRIVATE Sequence
-    PRIVATE GearsModule
-    PRIVATE RenderGraph
-    PRIVATE Utils
+    PUBLIC
+        Sequence
+        GearsModule
+        RenderGraph
+        Utils
+        ${GTest_LIBRARIES}
 )
 
 add_test (NAME GVKTest

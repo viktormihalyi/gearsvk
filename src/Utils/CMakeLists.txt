@@ -1,45 +1,43 @@
+add_library (Utils SHARED)
 
-set (IncludePath ${CMAKE_CURRENT_SOURCE_DIR}/Include)
-set (HeadersPath ${CMAKE_CURRENT_SOURCE_DIR}/Include/Utils)
 set (Headers
-    ${HeadersPath}/Assert.hpp
-    ${HeadersPath}/BuildType.hpp
-    ${HeadersPath}/CommandLineFlag.hpp
-    ${HeadersPath}/CompilerDefinitions.hpp
-    ${HeadersPath}/Event.hpp
-    ${HeadersPath}/GVKUtilsAPI.hpp
-    ${HeadersPath}/Lazy.hpp
-    ${HeadersPath}/MessageBox.hpp
-    ${HeadersPath}/MovablePtr.hpp
-    ${HeadersPath}/MultithreadedFunction.hpp
-    ${HeadersPath}/NoInline.hpp
-    ${HeadersPath}/Noncopyable.hpp
-    ${HeadersPath}/Platform.hpp
-    ${HeadersPath}/SourceLocation.hpp
-    ${HeadersPath}/StaticInit.hpp
-    ${HeadersPath}/TerminalColors.hpp
-    ${HeadersPath}/Time.hpp
-    ${HeadersPath}/Timer.hpp
-    ${HeadersPath}/Utils.hpp
-    ${HeadersPath}/FileSystemUtils.hpp
-    ${HeadersPath}/UUID.hpp
-    ${HeadersPath}/SetupLogger.hpp
+    Include/Utils/Assert.hpp
+    Include/Utils/BuildType.hpp
+    Include/Utils/CommandLineFlag.hpp
+    Include/Utils/CompilerDefinitions.hpp
+    Include/Utils/Event.hpp
+    Include/Utils/GVKUtilsAPI.hpp
+    Include/Utils/Lazy.hpp
+    Include/Utils/MessageBox.hpp
+    Include/Utils/MovablePtr.hpp
+    Include/Utils/MultithreadedFunction.hpp
+    Include/Utils/NoInline.hpp
+    Include/Utils/Noncopyable.hpp
+    Include/Utils/Platform.hpp
+    Include/Utils/SourceLocation.hpp
+    Include/Utils/StaticInit.hpp
+    Include/Utils/TerminalColors.hpp
+    Include/Utils/Time.hpp
+    Include/Utils/Timer.hpp
+    Include/Utils/Utils.hpp
+    Include/Utils/FileSystemUtils.hpp
+    Include/Utils/UUID.hpp
+    Include/Utils/SetupLogger.hpp
 )
 
-set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
-    ${SourcesPath}/Assert.cpp
-    ${SourcesPath}/CommandLineFlag.cpp
-    ${SourcesPath}/MessageBox.cpp
-    ${SourcesPath}/SourceLocation.cpp
-    ${SourcesPath}/Time.cpp
-    ${SourcesPath}/Utils.cpp
-    ${SourcesPath}/FileSystemUtils.cpp
-    ${SourcesPath}/UUID.cpp
-    ${SourcesPath}/SetupLogger.cpp
+    Sources/Assert.cpp
+    Sources/CommandLineFlag.cpp
+    Sources/MessageBox.cpp
+    Sources/SourceLocation.cpp
+    Sources/Time.cpp
+    Sources/Utils.cpp
+    Sources/FileSystemUtils.cpp
+    Sources/UUID.cpp
+    Sources/SetupLogger.cpp
 )
 
-add_library (Utils SHARED ${Headers} ${Sources})
+target_sources (Utils PRIVATE ${Headers} ${Sources})
 
 find_package (spdlog REQUIRED)
 
@@ -47,14 +45,16 @@ target_compile_definitions (Utils
     PUBLIC SPDLOG_FMT_EXTERNAL
 )
 
-target_precompile_headers (Utils PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeader.hpp)
+target_precompile_headers (Utils PRIVATE PrecompiledHeader.hpp)
 
 target_include_directories (Utils
-    PRIVATE ${HeadersPath}
-    PUBLIC  ${IncludePath}
+    PRIVATE
+        Include/Utils
+        ${fmt_INCLUDE_DIRS}
+        ${spdlog_INCLUDE_DIRS}
 
-    PRIVATE ${fmt_INCLUDE_DIRS}
-    PRIVATE ${spdlog_INCLUDE_DIRS}
+    PUBLIC
+        Include
 )
 
 if (WIN32)
@@ -64,7 +64,8 @@ elseif (UNIX)
 endif ()
 
 target_link_libraries (Utils
-    PRIVATE ${UUID_LIB}
-    PRIVATE ${fmt_LIBRARIES}
-    PRIVATE ${spdlog_LIBRARIES}
+    PRIVATE
+        ${UUID_LIB}
+        ${fmt_LIBRARIES}
+        ${spdlog_LIBRARIES}
 )

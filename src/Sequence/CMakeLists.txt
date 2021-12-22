@@ -1,60 +1,58 @@
+add_library (Sequence SHARED)
 
-set (IncludePath ${CMAKE_CURRENT_SOURCE_DIR}/Include)
 set (Headers
-    ${IncludePath}/Sequence/Pass.h
-    ${IncludePath}/Sequence/Response.h
-    ${IncludePath}/Sequence/Sequence.h
-    ${IncludePath}/Sequence/SequenceAdapter.hpp
-    ${IncludePath}/Sequence/SequenceAPI.hpp
-    ${IncludePath}/Sequence/SpatialFilter.h
-    ${IncludePath}/Sequence/Stimulus.h
-    ${IncludePath}/Sequence/StimulusAdapter.hpp
-    ${IncludePath}/Sequence/StimulusAdapterView.hpp
+    Include/Sequence/Pass.h
+    Include/Sequence/Response.h
+    Include/Sequence/Sequence.h
+    Include/Sequence/SequenceAdapter.hpp
+    Include/Sequence/SequenceAPI.hpp
+    Include/Sequence/SpatialFilter.h
+    Include/Sequence/Stimulus.h
+    Include/Sequence/StimulusAdapter.hpp
+    Include/Sequence/StimulusAdapterView.hpp
     
-    ${IncludePath}/PySequence/core/PyPass.h
-    ${IncludePath}/PySequence/core/PyStimulus.h
-    ${IncludePath}/PySequence/core/PySequence.h
-    ${IncludePath}/PySequence/core/PyResponse.h
-    ${IncludePath}/PySequence/PyExtract.hpp
+    Include/PySequence/core/PyPass.h
+    Include/PySequence/core/PyStimulus.h
+    Include/PySequence/core/PySequence.h
+    Include/PySequence/core/PyResponse.h
+    Include/PySequence/PyExtract.hpp
 )
 
-set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
-    ${SourcesPath}/Pass.cpp
-    ${SourcesPath}/Response.cpp
-    ${SourcesPath}/Sequence.cpp
-    ${SourcesPath}/SequenceAdapter.cpp
-    ${SourcesPath}/SpatialFilter.cpp
-    ${SourcesPath}/Stimulus.cpp
-    ${SourcesPath}/StimulusAdapter.cpp
-    ${SourcesPath}/StimulusAdapterView.cpp
+    Sources/Pass.cpp
+    Sources/Response.cpp
+    Sources/Sequence.cpp
+    Sources/SequenceAdapter.cpp
+    Sources/SpatialFilter.cpp
+    Sources/Stimulus.cpp
+    Sources/StimulusAdapter.cpp
+    Sources/StimulusAdapterView.cpp
     
-    ${SourcesPath}/event/events.cpp
-    ${SourcesPath}/core/PyPass.cpp
-    ${SourcesPath}/core/PyStimulus.cpp
-    ${SourcesPath}/core/PySequence.cpp
-    ${SourcesPath}/core/PyResponse.cpp
+    Sources/event/events.cpp
+    Sources/core/PyPass.cpp
+    Sources/core/PyStimulus.cpp
+    Sources/core/PySequence.cpp
+    Sources/core/PyResponse.cpp
  
-    ${SourcesPath}/LogInitializer.cpp
+    Sources/LogInitializer.cpp
 )
 
-add_library (Sequence SHARED ${Headers} ${Sources})
+target_sources (Sequence PRIVATE ${Headers} ${Sources})
 
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 find_package (pybind11 REQUIRED)
 
-target_precompile_headers (Sequence PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeader.hpp)
+target_precompile_headers (Sequence PRIVATE PrecompiledHeader.hpp)
 
 target_include_directories (Sequence
     PRIVATE
-        ${IncludePath}
-        ${IncludePath}/Sequence
-        ${IncludePath}/PySequence
-        ${IncludePath}/PySequence/core
-        ${IncludePath}/PySequence/event
+        Include/Sequence
+        Include/PySequence
+        Include/PySequence/core
+        Include/PySequence/event
 
     PUBLIC
-        ${IncludePath}
+        Include
 
         ${Python3_INCLUDE_DIRS}
         ${pybind11_INCLUDE_DIRS}
@@ -64,8 +62,9 @@ target_include_directories (Sequence
 )
 
 target_link_libraries (Sequence
-    PUBLIC ${Python3_LIBRARY_RELEASE}
-    PUBLIC ${pybind11_LIBRARIES}
-    PUBLIC RenderGraph
-    PUBLIC Utils
+    PUBLIC
+        ${Python3_LIBRARY_RELEASE}
+        ${pybind11_LIBRARIES}
+        RenderGraph
+        Utils
 )

@@ -1,67 +1,64 @@
+add_library (RenderGraph SHARED)
 
-set (IncludePath ${CMAKE_CURRENT_SOURCE_DIR}/Include)
-set (HeadersPath ${CMAKE_CURRENT_SOURCE_DIR}/Include/RenderGraph)
 set (Headers
-    ${HeadersPath}/Drawable/Drawable.hpp
-    ${HeadersPath}/Drawable/DrawableInfo.hpp
-    ${HeadersPath}/Drawable/FullscreenQuad.hpp
+    Include/RenderGraph/Drawable/Drawable.hpp
+    Include/RenderGraph/Drawable/DrawableInfo.hpp
+    Include/RenderGraph/Drawable/FullscreenQuad.hpp
 
-    ${HeadersPath}/GraphRenderer.hpp
-    ${HeadersPath}/GraphSettings.hpp
-    ${HeadersPath}/DescriptorBindable.hpp
-    ${HeadersPath}/Node.hpp
-    ${HeadersPath}/Operation.hpp
-    ${HeadersPath}/RenderGraph.hpp
-    ${HeadersPath}/RenderGraphPass.hpp
-    ${HeadersPath}/Resource.hpp
-    ${HeadersPath}/ShaderPipeline.hpp
-    ${HeadersPath}/ComputeShaderPipeline.hpp
-    ${HeadersPath}/UniformReflection.hpp
+    Include/RenderGraph/GraphRenderer.hpp
+    Include/RenderGraph/GraphSettings.hpp
+    Include/RenderGraph/DescriptorBindable.hpp
+    Include/RenderGraph/Node.hpp
+    Include/RenderGraph/Operation.hpp
+    Include/RenderGraph/RenderGraph.hpp
+    Include/RenderGraph/RenderGraphPass.hpp
+    Include/RenderGraph/Resource.hpp
+    Include/RenderGraph/ShaderPipeline.hpp
+    Include/RenderGraph/ComputeShaderPipeline.hpp
+    Include/RenderGraph/UniformReflection.hpp
     
-    ${HeadersPath}/Window/GLFWWindow.hpp
-    ${HeadersPath}/Window/SDLWindow.hpp
-    ${HeadersPath}/Window/Window.hpp
+    Include/RenderGraph/Window/GLFWWindow.hpp
+    Include/RenderGraph/Window/SDLWindow.hpp
+    Include/RenderGraph/Window/Window.hpp
 
-    ${HeadersPath}/Font.hpp
-    ${HeadersPath}/RenderGraphAPI.hpp
-    ${HeadersPath}/BufferView.hpp
-    ${HeadersPath}/VulkanEnvironment.hpp
+    Include/RenderGraph/Font.hpp
+    Include/RenderGraph/RenderGraphAPI.hpp
+    Include/RenderGraph/BufferView.hpp
+    Include/RenderGraph/VulkanEnvironment.hpp
 
-    ${HeadersPath}/ShaderReflectionToVertexAttribute.hpp
-    ${HeadersPath}/ShaderReflectionToDescriptor.hpp
-    ${HeadersPath}/ShaderReflectionToAttachment.hpp
-
+    Include/RenderGraph/ShaderReflectionToVertexAttribute.hpp
+    Include/RenderGraph/ShaderReflectionToDescriptor.hpp
+    Include/RenderGraph/ShaderReflectionToAttachment.hpp
 )
 
-set (SourcesPath ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set (Sources
-    ${SourcesPath}/Drawable/Drawable.cpp
-    ${SourcesPath}/Drawable/DrawableInfo.cpp
+    Sources/Drawable/Drawable.cpp
+    Sources/Drawable/DrawableInfo.cpp
 
-    ${SourcesPath}/GraphRenderer.cpp
-    ${SourcesPath}/GraphSettings.cpp
-    ${SourcesPath}/Operation.cpp
-    ${SourcesPath}/RenderGraph.cpp
-    ${SourcesPath}/RenderGraphPass.cpp
-    ${SourcesPath}/Resource.cpp
-    ${SourcesPath}/ShaderPipeline.cpp
-    ${SourcesPath}/ComputeShaderPipeline.cpp
-    ${SourcesPath}/UniformReflection.cpp
+    Sources/GraphRenderer.cpp
+    Sources/GraphSettings.cpp
+    Sources/Operation.cpp
+    Sources/RenderGraph.cpp
+    Sources/RenderGraphPass.cpp
+    Sources/Resource.cpp
+    Sources/ShaderPipeline.cpp
+    Sources/ComputeShaderPipeline.cpp
+    Sources/UniformReflection.cpp
 
-    ${SourcesPath}/Window/GLFWWindow.cpp
-    ${SourcesPath}/Window/SDLWindow.cpp
+    Sources/Window/GLFWWindow.cpp
+    Sources/Window/SDLWindow.cpp
 
-    ${SourcesPath}/Font.cpp
-    ${SourcesPath}/LogInitializer.cpp
-    ${SourcesPath}/BufferView.cpp
-    ${SourcesPath}/VulkanEnvironment.cpp
+    Sources/Font.cpp
+    Sources/LogInitializer.cpp
+    Sources/BufferView.cpp
+    Sources/VulkanEnvironment.cpp
     
-    ${SourcesPath}/ShaderReflectionToVertexAttribute.cpp
-    ${SourcesPath}/ShaderReflectionToDescriptor.cpp
-    ${SourcesPath}/ShaderReflectionToAttachment.cpp
+    Sources/ShaderReflectionToVertexAttribute.cpp
+    Sources/ShaderReflectionToDescriptor.cpp
+    Sources/ShaderReflectionToAttachment.cpp
 )
 
-add_library (RenderGraph SHARED ${Headers} ${Sources})
+target_sources (RenderGraph PRIVATE ${Headers} ${Sources})
 
 find_package (Vulkan REQUIRED)
 find_package (glfw3 REQUIRED)
@@ -80,41 +77,47 @@ target_compile_definitions (RenderGraph
     PUBLIC GLM_FORCE_DEPTH_ZERO_TO_ONE
 )
 
-target_precompile_headers (RenderGraph PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeader.hpp)
+target_precompile_headers (RenderGraph PRIVATE PrecompiledHeader.hpp)
 
 target_include_directories (RenderGraph
-    PRIVATE ${IncludePath}
-    PRIVATE ${HeadersPath}
-    PRIVATE ${HeadersPath}/Drawable
-    PRIVATE ${HeadersPath}/Window
+    PRIVATE
+        Include/RenderGraph
+        Include/RenderGraph/Drawable
+        Include/RenderGraph/Window
+        
+        ${glfw_INCLUDE_DIRS}
+        ${stb_INCLUDE_DIRS}
+        ${glslang_INCLUDE_DIRS}
+        ${spirv-cross_INCLUDE_DIRS}
+        ${msdfgen_INCLUDE_DIRS}
     
-    PUBLIC ${IncludePath}
-    PUBLIC $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
-    PUBLIC $<TARGET_PROPERTY:VulkanWrapper,INTERFACE_INCLUDE_DIRECTORIES>
-    
-    PUBLIC ${Vulkan_INCLUDE_DIRS}
-    PUBLIC ${glm_INCLUDE_DIRS}
-    PRIVATE ${glfw_INCLUDE_DIRS}
-    PUBLIC ${vulkan-memory-allocator_INCLUDE_DIRS}
-    PUBLIC ${fmt_INCLUDE_DIRS}
-    PUBLIC ${spdlog_INCLUDE_DIRS}
-    PRIVATE ${stb_INCLUDE_DIRS}
-    PRIVATE ${glslang_INCLUDE_DIRS}
-    PRIVATE ${spirv-cross_INCLUDE_DIRS}
-    PRIVATE ${msdfgen_INCLUDE_DIRS}
+    PUBLIC
+        Include
+        
+        $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:VulkanWrapper,INTERFACE_INCLUDE_DIRECTORIES>
+        
+        ${Vulkan_INCLUDE_DIRS}
+        ${glm_INCLUDE_DIRS}
+        ${vulkan-memory-allocator_INCLUDE_DIRS}
+        ${fmt_INCLUDE_DIRS}
+        ${spdlog_INCLUDE_DIRS}
 )
 
 target_link_libraries (RenderGraph
-    PUBLIC ${Vulkan_LIBRARIES}
-    PUBLIC ${glm_LIBRARIES}
-    PRIVATE ${glfw_LIBRARIES}
-    PUBLIC ${vulkan-memory-allocator_LIBRARIES}
-    PUBLIC ${fmt_LIBRARIES}
-    PUBLIC ${spdlog_LIBRARIES}
-    PRIVATE ${stb_LIBRARIES}
-    PRIVATE ${glslang_LIBRARIES}
-    PRIVATE ${spirv-cross_LIBRARIES}
-    PRIVATE ${msdfgen_LIBRARIES}
-    PUBLIC Utils
-    PUBLIC VulkanWrapper
+    PRIVATE
+        ${glfw_LIBRARIES}
+        ${stb_LIBRARIES}
+        ${glslang_LIBRARIES}
+        ${spirv-cross_LIBRARIES}
+        ${msdfgen_LIBRARIES}
+
+    PUBLIC
+        Utils
+        VulkanWrapper
+        ${Vulkan_LIBRARIES}
+        ${glm_LIBRARIES}
+        ${vulkan-memory-allocator_LIBRARIES}
+        ${fmt_LIBRARIES}
+        ${spdlog_LIBRARIES}
 )
