@@ -40,9 +40,16 @@ set (Sources
 target_sources (Sequence PRIVATE ${Headers} ${Sources})
 
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
-find_package (pybind11 REQUIRED)
 
 target_precompile_headers (Sequence PRIVATE PrecompiledHeader.hpp)
+
+FetchContent_Declare (
+    pybind11
+    GIT_REPOSITORY https://github.com/pybind/pybind11.git
+    GIT_TAG        f7b499615e14d70ab098a20deb0cdb3889998a1a # v2.8.1
+)
+
+FetchContent_MakeAvailable (pybind11)
 
 target_include_directories (Sequence
     PRIVATE
@@ -54,17 +61,18 @@ target_include_directories (Sequence
     PUBLIC
         Include
 
-        ${Python3_INCLUDE_DIRS}
-        ${pybind11_INCLUDE_DIRS}
-
-        $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
+ 
+        $<TARGET_PROPERTY:pybind11::pybind11,INTERFACE_INCLUDE_DIRECTORIES>
+        ${Python3_INCLUDE_DIRS}
+
 )
 
 target_link_libraries (Sequence
     PUBLIC
-        ${Python3_LIBRARY_RELEASE}
-        ${pybind11_LIBRARIES}
-        RenderGraph
         Utils
+        RenderGraph
+        pybind11::pybind11
+        ${Python3_LIBRARY_RELEASE}
 )

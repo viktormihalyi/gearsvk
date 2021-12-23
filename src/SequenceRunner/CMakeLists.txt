@@ -29,3 +29,5 @@ target_link_libraries (SequenceRunner
 
         ${ffmpeg_LIBRARIES}
 )
+
+set_target_properties (SequenceRunner PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")

@@ -1,4 +1,9 @@
 cmake_minimum_required (VERSION 3.16)
+
+include (FetchContent)
+set (FETCHCONTENT_FULLY_DISCONNECTED OFF CACHE BOOL "" FORCE)
+set (FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE BOOL "" FORCE)
+
 project (GearsVk)
 
 set (CMAKE_CXX_STANDARD 17)
@@ -16,11 +21,14 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin>)
 
 
 if (MSVC)
-    add_compile_options (/bigobj)
-    add_compile_options (/MP)
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4099")
-    set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4099")
-    set (CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /ignore:4099")
+    if (CMAKE_UNITY_BUILD)
+        add_compile_options (/bigobj)   # increase number of sections in .obj file
+    endif ()
+    add_compile_options (/MP)           # build with multiple processes
+
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4099")           # .pdb was not found with .lib
+    set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4099")     # .pdb was not found with .lib
+    set (CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /ignore:4099")     # .pdb was not found with .lib
 endif ()
 
 # ========== CONAN ==========
@@ -62,7 +70,3 @@ add_subdirectory (src/GearsPYD)
 add_subdirectory (src/Tests)
 add_subdirectory (src/SequenceRunner)
 add_subdirectory (src/UserInterface)
-
-set_property (TARGET GVKTest PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-set_property (TARGET SequenceRunner PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-

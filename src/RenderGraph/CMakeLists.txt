@@ -61,23 +61,34 @@ set (Sources
 target_sources (RenderGraph PRIVATE ${Headers} ${Sources})
 
 find_package (Vulkan REQUIRED)
-find_package (glfw3 REQUIRED)
-find_package (glm REQUIRED)
-find_package (vulkan-memory-allocator REQUIRED)
-find_package (fmt REQUIRED)
-find_package (spdlog REQUIRED)
-find_package (stb REQUIRED)
 find_package (glslang REQUIRED)
 find_package (spirv-cross REQUIRED)
 find_package (msdfgen REQUIRED)
 
 target_compile_definitions (RenderGraph
-    PUBLIC SPDLOG_FMT_EXTERNAL
     PUBLIC GLM_FORCE_RADIANS
     PUBLIC GLM_FORCE_DEPTH_ZERO_TO_ONE
 )
 
 target_precompile_headers (RenderGraph PRIVATE PrecompiledHeader.hpp)
+
+set (GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set (GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set (GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare (
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG        bf71a834948186f4097caa076cd2663c69a10e1e # 0.9.9.8
+)
+
+FetchContent_Declare (
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG        7d5a16ce714f0b5f4efa3262de22e4d948851525 # 3.3.6
+)
+
+FetchContent_MakeAvailable (glm glfw)
 
 target_include_directories (RenderGraph
     PRIVATE
@@ -85,8 +96,7 @@ target_include_directories (RenderGraph
         Include/RenderGraph/Drawable
         Include/RenderGraph/Window
         
-        ${glfw_INCLUDE_DIRS}
-        ${stb_INCLUDE_DIRS}
+        $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>
         ${glslang_INCLUDE_DIRS}
         ${spirv-cross_INCLUDE_DIRS}
         ${msdfgen_INCLUDE_DIRS}
@@ -98,16 +108,12 @@ target_include_directories (RenderGraph
         $<TARGET_PROPERTY:VulkanWrapper,INTERFACE_INCLUDE_DIRECTORIES>
         
         ${Vulkan_INCLUDE_DIRS}
-        ${glm_INCLUDE_DIRS}
-        ${vulkan-memory-allocator_INCLUDE_DIRS}
-        ${fmt_INCLUDE_DIRS}
-        ${spdlog_INCLUDE_DIRS}
+        $<TARGET_PROPERTY:glm,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries (RenderGraph
     PRIVATE
-        ${glfw_LIBRARIES}
-        ${stb_LIBRARIES}
+        glfw
         ${glslang_LIBRARIES}
         ${spirv-cross_LIBRARIES}
         ${msdfgen_LIBRARIES}
@@ -116,8 +122,4 @@ target_link_libraries (RenderGraph
         Utils
         VulkanWrapper
         ${Vulkan_LIBRARIES}
-        ${glm_LIBRARIES}
-        ${vulkan-memory-allocator_LIBRARIES}
-        ${fmt_LIBRARIES}
-        ${spdlog_LIBRARIES}
 )

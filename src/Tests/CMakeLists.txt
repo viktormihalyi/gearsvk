@@ -20,22 +20,28 @@ set (Sources
 
 add_executable (GVKTest ${Sources})
 
-find_package (GTest REQUIRED)
-find_package (stb REQUIRED)
-
 target_precompile_headers (GVKTest PRIVATE PrecompiledHeader.hpp)
+
+set (BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare (
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG        e2239ee6043f73722e7aa812a459f54a28552929 # release-1.11.0
+)
+
+FetchContent_MakeAvailable (googletest)
 
 target_include_directories (GVKTest
     PRIVATE
         Sources
 
-        ${GTest_INCLUDE_DIRS}
-        ${stb_INCLUDE_DIRS}
-
         $<TARGET_PROPERTY:GearsModule,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:Sequence,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
+
+        $<TARGET_PROPERTY:gtest,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries (GVKTest
@@ -44,8 +50,11 @@ target_link_libraries (GVKTest
         GearsModule
         RenderGraph
         Utils
-        ${GTest_LIBRARIES}
+
+        gtest
 )
+
+set_target_properties (GVKTest PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 add_test (NAME GVKTest
           COMMAND GVKTest
@@ -56,3 +65,4 @@ add_custom_target (GVKTest_CopyTestFiles ALL
         ${CMAKE_CURRENT_SOURCE_DIR}/Sources/TestData
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TestData
 )
+

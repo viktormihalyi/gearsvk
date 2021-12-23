@@ -39,22 +39,34 @@ set (Sources
 
 target_sources (Utils PRIVATE ${Headers} ${Sources})
 
-find_package (spdlog REQUIRED)
-
 target_compile_definitions (Utils
     PUBLIC SPDLOG_FMT_EXTERNAL
 )
 
 target_precompile_headers (Utils PRIVATE PrecompiledHeader.hpp)
 
+FetchContent_Declare (
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG        eb3220622e73a4889eee355ffa37972b3cac3df5 # v1.9.2
+)
+
+FetchContent_Declare (
+    fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+    GIT_TAG        d141cdbeb0fb422a3fb7173b285fd38e0d1772dc # 8.0.1
+)
+
+FetchContent_MakeAvailable (fmt spdlog)
+
 target_include_directories (Utils
     PRIVATE
         Include/Utils
-        ${fmt_INCLUDE_DIRS}
-        ${spdlog_INCLUDE_DIRS}
 
     PUBLIC
         Include
+        $<TARGET_PROPERTY:fmt::fmt,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:spdlog::spdlog,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 if (WIN32)
@@ -66,6 +78,6 @@ endif ()
 target_link_libraries (Utils
     PRIVATE
         ${UUID_LIB}
-        ${fmt_LIBRARIES}
-        ${spdlog_LIBRARIES}
+    PUBLIC
+        fmt::fmt
 )

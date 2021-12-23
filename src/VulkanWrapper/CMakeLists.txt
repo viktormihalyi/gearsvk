@@ -89,10 +89,6 @@ set (Sources ${SourcesGroup1} ${SourcesGroup2} ${SourcesGroup3})
 target_sources (VulkanWrapper PRIVATE ${Headers} ${Sources})
 
 find_package (Vulkan REQUIRED)
-find_package (vulkan-memory-allocator REQUIRED)
-find_package (fmt REQUIRED)
-find_package (spdlog REQUIRED)
-find_package (stb REQUIRED)
 find_package (glslang REQUIRED)
 find_package (spirv-cross REQUIRED)
 
@@ -101,20 +97,28 @@ set_source_files_properties (${SourcesGroup1} PROPERTIES UNITY_GROUP "bucket1")
 set_source_files_properties (${SourcesGroup2} PROPERTIES UNITY_GROUP "bucket2")
 set_source_files_properties (${SourcesGroup3} PROPERTIES UNITY_GROUP "bucket3")
 
-target_compile_definitions (VulkanWrapper
-    PUBLIC SPDLOG_FMT_EXTERNAL
+target_precompile_headers (VulkanWrapper PRIVATE PrecompiledHeader.hpp)
+
+FetchContent_Declare (
+    VulkanMemoryAllocator
+    GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+    GIT_TAG        e9bfb539d853607172f9a1a272dacab60a86e529 # v2.3.0
 )
 
-target_precompile_headers (VulkanWrapper PRIVATE PrecompiledHeader.hpp)
+FetchContent_Declare (
+    stb
+    GIT_REPOSITORY https://github.com/nothings/stb.git
+    GIT_TAG        af1a5bc352164740c1cc1354942b1c6b72eacb8a
+)
+
+FetchContent_MakeAvailable (VulkanMemoryAllocator stb)
 
 target_include_directories (VulkanWrapper
     PRIVATE
         Include
         Include/VulkanWrapper
         Include/VulkanWrapper/Utils
-        ${fmt_INCLUDE_DIRS}
-        ${spdlog_INCLUDE_DIRS}
-        ${stb_INCLUDE_DIRS}
+        ${stb_SOURCE_DIR}
         ${glslang_INCLUDE_DIRS}
         ${spirv-cross_INCLUDE_DIRS}
     
@@ -122,19 +126,15 @@ target_include_directories (VulkanWrapper
         Include
         $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
         ${Vulkan_INCLUDE_DIRS}
-        ${vulkan-memory-allocator_INCLUDE_DIRS}
+        ${vulkanmemoryallocator_SOURCE_DIR}/src
 )
 
 target_link_libraries (VulkanWrapper
     PRIVATE
-        ${fmt_LIBRARIES}
-        ${spdlog_LIBRARIES}
-        ${stb_LIBRARIES}
         ${glslang_LIBRARIES}
         ${spirv-cross_LIBRARIES}
 
     PUBLIC
         ${Vulkan_LIBRARIES}
-        ${vulkan-memory-allocator_LIBRARIES}
         Utils
 )

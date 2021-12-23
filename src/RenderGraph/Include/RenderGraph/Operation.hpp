@@ -38,6 +38,7 @@ class Drawable;
 class DrawableInfo;
 } // namespace RG
 
+
 namespace RG {
 
 class GVK_RENDERER_API Operation : public Node {
