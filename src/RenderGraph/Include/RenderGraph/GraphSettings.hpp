@@ -1,7 +1,7 @@
 #ifndef GRAPHSETTINGS_HPP
 #define GRAPHSETTINGS_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "RenderGraph/Node.hpp"
 #include "VulkanWrapper/DeviceExtra.hpp"
@@ -13,7 +13,7 @@
 
 namespace RG {
 
-class GVK_RENDERER_API NodeConnection {
+class RENDERGRAPH_DLL_EXPORT NodeConnection {
 public:
     std::shared_ptr<Node> from;
     std::shared_ptr<Node> to;
@@ -26,7 +26,7 @@ public:
     }
 };
 
-class GVK_RENDERER_API ConnectionSet final : public Noncopyable {
+class RENDERGRAPH_DLL_EXPORT ConnectionSet final : public Noncopyable {
 private:
 
     std::vector<NodeConnection> connections;
@@ -109,7 +109,7 @@ public:
 };
 
 
-class GVK_RENDERER_API GraphSettings {
+class RENDERGRAPH_DLL_EXPORT GraphSettings {
 public:
     ConnectionSet           connectionSet;
     const GVK::DeviceExtra* device;

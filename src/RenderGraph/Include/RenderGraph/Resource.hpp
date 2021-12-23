@@ -1,7 +1,7 @@
 #ifndef RESOURCE_HPP
 #define RESOURCE_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "Utils/Event.hpp"
 #include "Utils/Timer.hpp"
@@ -42,7 +42,7 @@ class GraphSettings;
 class Operation;
 
 
-class GVK_RENDERER_API Resource : public Node {
+class RENDERGRAPH_DLL_EXPORT Resource : public Node {
 public:
     virtual ~Resource () = default;
 
@@ -56,13 +56,13 @@ public:
 };
 
 
-class GVK_RENDERER_API DescriptorBindableBufferResource : public Resource, public DescriptorBindableBuffer {
+class RENDERGRAPH_DLL_EXPORT DescriptorBindableBufferResource : public Resource, public DescriptorBindableBuffer {
 public:
     virtual ~DescriptorBindableBufferResource () = default;
 };
 
 
-class GVK_RENDERER_API ImageResource : public Resource {
+class RENDERGRAPH_DLL_EXPORT ImageResource : public Resource {
 public:
     virtual ~ImageResource ();
 
@@ -79,7 +79,7 @@ public:
 };
 
 
-class GVK_RENDERER_API OneTimeCompileResource : public ImageResource {
+class RENDERGRAPH_DLL_EXPORT OneTimeCompileResource : public ImageResource {
 private:
     bool compiled;
 
@@ -95,9 +95,9 @@ public:
 };
 
 
-class GVK_RENDERER_API WritableImageResource : public ImageResource, public DescriptorBindableImage {
+class RENDERGRAPH_DLL_EXPORT WritableImageResource : public ImageResource, public DescriptorBindableImage {
 protected:
-    class GVK_RENDERER_API SingleImageResource final {
+    class RENDERGRAPH_DLL_EXPORT SingleImageResource final {
     public:
         static const VkFormat FormatRGBA;
         static const VkFormat FormatRGB;
@@ -148,7 +148,7 @@ public:
 };
 
 
-class GVK_RENDERER_API SingleWritableImageResource : public WritableImageResource {
+class RENDERGRAPH_DLL_EXPORT SingleWritableImageResource : public WritableImageResource {
 private:
     std::unique_ptr<VW::Event> readWriteSync;
 
@@ -165,7 +165,7 @@ public:
 };
 
 
-class GVK_RENDERER_API GPUBufferResource : public DescriptorBindableBufferResource {
+class RENDERGRAPH_DLL_EXPORT GPUBufferResource : public DescriptorBindableBufferResource {
 public:
     size_t size;
     
@@ -191,7 +191,7 @@ public:
 };
 
 
-class GVK_RENDERER_API ReadOnlyImageResource : public OneTimeCompileResource, public DescriptorBindableImage {
+class RENDERGRAPH_DLL_EXPORT ReadOnlyImageResource : public OneTimeCompileResource, public DescriptorBindableImage {
 public:
     std::unique_ptr<GVK::ImageTransferable> image;
     std::unique_ptr<GVK::ImageViewBase>     imageView;
@@ -242,7 +242,7 @@ public:
 };
 
 
-class GVK_RENDERER_API SwapchainImageResource : public ImageResource, public DescriptorBindableImage {
+class RENDERGRAPH_DLL_EXPORT SwapchainImageResource : public ImageResource, public DescriptorBindableImage {
 public:
     std::vector<std::unique_ptr<GVK::ImageView2D>>    imageViews;
     GVK::SwapchainProvider&                           swapchainProv;
@@ -272,7 +272,7 @@ public:
 };
 
 
-class GVK_RENDERER_API CPUBufferResource : public DescriptorBindableBufferResource {
+class RENDERGRAPH_DLL_EXPORT CPUBufferResource : public DescriptorBindableBufferResource {
 public:
     const uint32_t                                   size;
     std::vector<std::unique_ptr<GVK::Buffer>>        buffers;

@@ -1,7 +1,7 @@
 #ifndef WINDOWB_HPP
 #define WINDOWB_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "Utils/Event.hpp"
 #include "Utils/Noncopyable.hpp"
@@ -14,7 +14,7 @@
 
 namespace RG {
 
-class GVK_RENDERER_API Window : public Noncopyable, public Nonmovable {
+class RENDERGRAPH_DLL_EXPORT Window : public Noncopyable, public Nonmovable {
 public:
     struct Events {
         // window events

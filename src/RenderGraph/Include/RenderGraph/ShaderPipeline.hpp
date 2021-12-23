@@ -1,7 +1,7 @@
 #ifndef SHADERPIPELINE2_HPP
 #define SHADERPIPELINE2_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "Utils/MovablePtr.hpp"
 
@@ -25,7 +25,7 @@ class DescriptorSetLayout;
 
 namespace RG {
 
-class GVK_RENDERER_API ShaderPipeline {
+class RENDERGRAPH_DLL_EXPORT ShaderPipeline {
 private:
     const VkDevice device;
 

@@ -1,7 +1,7 @@
 #ifndef RG_NODE_HPP
 #define RG_NODE_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "Utils/Noncopyable.hpp"
 #include "Utils/UUID.hpp"
@@ -9,7 +9,7 @@
 
 namespace RG {
 
-class GVK_RENDERER_API Node : public Noncopyable {
+class RENDERGRAPH_DLL_EXPORT Node : public Noncopyable {
 private:
     GVK::UUID   uuid;
     std::string name;

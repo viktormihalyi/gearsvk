@@ -1,7 +1,7 @@
 #ifndef VULKANTESTENVIRONMENT_HPP
 #define VULKANTESTENVIRONMENT_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "VulkanWrapper/DebugUtilsMessenger.hpp"
 #include "VulkanWrapper/Swapchain.hpp"
@@ -27,7 +27,7 @@ namespace RG {
 class Window;
 class VulkanEnvironment;
 
-class GVK_RENDERER_API Presentable : public GVK::SwapchainProvider {
+class RENDERGRAPH_DLL_EXPORT Presentable : public GVK::SwapchainProvider {
 private:
     std::unique_ptr<Window>    window;
     std::unique_ptr<GVK::Surface>   surface;
@@ -49,12 +49,12 @@ public:
 };
 
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 void defaultDebugCallback (VkDebugUtilsMessageSeverityFlagBitsEXT,
                            VkDebugUtilsMessageTypeFlagsEXT,
                            const VkDebugUtilsMessengerCallbackDataEXT*);
 
-class GVK_RENDERER_API VulkanEnvironment {
+class RENDERGRAPH_DLL_EXPORT VulkanEnvironment {
 public:
     std::unique_ptr<GVK::Instance>            instance;
     std::unique_ptr<GVK::DebugUtilsMessenger> messenger;

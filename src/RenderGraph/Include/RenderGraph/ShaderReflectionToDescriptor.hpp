@@ -1,7 +1,7 @@
 #ifndef RENDERGRAPH_SHADERREFLECTIONTODESCRIPTOR_HPP
 #define RENDERGRAPH_SHADERREFLECTIONTODESCRIPTOR_HPP
 
-#include "RenderGraphAPI.hpp"
+#include "RenderGraphExport.hpp"
 
 #include "VulkanWrapper/ShaderModule.hpp"
 
@@ -16,7 +16,7 @@
 namespace RG {
 namespace FromShaderReflection {
 
-class GVK_RENDERER_API IDescriptorWriteInfoProvider {
+class RENDERGRAPH_DLL_EXPORT IDescriptorWriteInfoProvider {
 public:
     virtual ~IDescriptorWriteInfoProvider ();
 
@@ -25,7 +25,7 @@ public:
 };
 
 
-class GVK_RENDERER_API DescriptorWriteInfoTable : public IDescriptorWriteInfoProvider {
+class RENDERGRAPH_DLL_EXPORT DescriptorWriteInfoTable : public IDescriptorWriteInfoProvider {
 public:
     struct ImageEntry {
         std::string                                     name;
@@ -54,7 +54,7 @@ public:
 };
 
 
-class GVK_RENDERER_API IUpdateDescriptorSets {
+class RENDERGRAPH_DLL_EXPORT IUpdateDescriptorSets {
 public:
     virtual ~IUpdateDescriptorSets ();
 
@@ -62,7 +62,7 @@ public:
 };
 
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 void WriteDescriptors (const GVK::ShaderModule::Reflection& reflection,
                        VkDescriptorSet                      dstSet,
                        uint32_t                             frameIndex,
@@ -71,7 +71,7 @@ void WriteDescriptors (const GVK::ShaderModule::Reflection& reflection,
                        IUpdateDescriptorSets&               updateInterface);
 
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 std::vector<VkDescriptorSetLayoutBinding> GetLayout (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind);
 
 } // namespace FromShaderReflection

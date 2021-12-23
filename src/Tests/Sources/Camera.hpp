@@ -1,7 +1,7 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "Utils/Event.hpp"
 #include "Frustum.hpp"

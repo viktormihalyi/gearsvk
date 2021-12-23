@@ -2,7 +2,7 @@
 #define DRAWRECORDABLEINFO_HPP
 
 #include "RenderGraph/Drawable/Drawable.hpp"
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "VulkanWrapper/CommandBuffer.hpp"
 #include "VulkanWrapper/Utils/BufferTransferable.hpp"
@@ -52,7 +52,7 @@ public:
 };
 
 
-class GVK_RENDERER_API DrawableInfo : public Drawable {
+class RENDERGRAPH_DLL_EXPORT DrawableInfo : public Drawable {
 public:
     const uint32_t instanceCount;
 

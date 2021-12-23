@@ -1,7 +1,7 @@
 #ifndef RG_RENDERGRAPHPASS_HPP
 #define RG_RENDERGRAPHPASS_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include <vector>
 
@@ -10,7 +10,7 @@ namespace RG {
 class Operation;
 class Resource;
 
-class GVK_RENDERER_API Pass {
+class RENDERGRAPH_DLL_EXPORT Pass {
 public:
     struct OperationIO {
         Operation*          op;

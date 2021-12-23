@@ -1,7 +1,7 @@
 #ifndef COMPUTE_SHADERPIPELINE_HPP
 #define COMPUTE_SHADERPIPELINE_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "Utils/MovablePtr.hpp"
 
@@ -25,7 +25,7 @@ class DescriptorSetLayout;
 
 namespace RG {
 
-class GVK_RENDERER_API ComputeShaderPipeline {
+class RENDERGRAPH_DLL_EXPORT ComputeShaderPipeline {
 private:
     const VkDevice device;
 
@@ -33,14 +33,14 @@ public:
     std::unique_ptr<GVK::ShaderModule> computeShader;
 
 public:
-    struct GVK_RENDERER_API CompileSettings {
+    struct RENDERGRAPH_DLL_EXPORT CompileSettings {
         GVK::MovablePtr<VkDescriptorSetLayout> layout;
         std::vector<VkAttachmentReference>     attachmentReferences;
         std::vector<VkAttachmentReference>     inputAttachmentReferences;
         std::vector<VkAttachmentDescription>   attachmentDescriptions;
     };
 
-    struct GVK_RENDERER_API CompileResult {
+    struct RENDERGRAPH_DLL_EXPORT CompileResult {
         std::unique_ptr<GVK::PipelineLayout>  pipelineLayout;
         std::unique_ptr<GVK::ComputePipeline> pipeline;
 

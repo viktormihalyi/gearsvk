@@ -1,7 +1,7 @@
 #ifndef RENDERGRAPH_SHADERREFLECTIONTOATTACHMENT_HPP
 #define RENDERGRAPH_SHADERREFLECTIONTOATTACHMENT_HPP
 
-#include "RenderGraphAPI.hpp"
+#include "RenderGraphExport.hpp"
 
 #include "VulkanWrapper/ShaderModule.hpp"
 
@@ -14,7 +14,7 @@
 namespace RG {
 namespace FromShaderReflection {
 
-class GVK_RENDERER_API IAttachmentProvider {
+class RENDERGRAPH_DLL_EXPORT IAttachmentProvider {
 public:
     virtual ~IAttachmentProvider ();
 
@@ -29,7 +29,7 @@ public:
     virtual std::optional<AttachmentData> GetAttachmentData (const std::string& name, GVK::ShaderKind shaderKind) = 0;
 };
 
-class GVK_RENDERER_API AttachmentDataTable : public IAttachmentProvider {
+class RENDERGRAPH_DLL_EXPORT AttachmentDataTable : public IAttachmentProvider {
 public:
     struct AttachmentDataEntry {
         std::string     name;
@@ -45,19 +45,19 @@ public:
 };
 
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 std::vector<VkImageView> GetImageViews (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, uint32_t resourceIndex, IAttachmentProvider& attachmentProvider);
 
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 std::vector<VkAttachmentReference> GetAttachmentReferences (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider);
 
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 std::vector<VkAttachmentReference> GetInputAttachmentReferences (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider, uint32_t startIndex);
 
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider);
 
 

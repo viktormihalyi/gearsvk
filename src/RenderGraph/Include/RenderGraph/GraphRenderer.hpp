@@ -1,7 +1,7 @@
 #ifndef GRAPHRENDERER_HPP
 #define GRAPHRENDERER_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "RenderGraph/Window/Window.hpp"
 
@@ -23,7 +23,7 @@ class RenderGraph;
 class GraphSettings;
 
 
-class GVK_RENDERER_API IFrameDisplayObserver {
+class RENDERGRAPH_DLL_EXPORT IFrameDisplayObserver {
 public:
     virtual ~IFrameDisplayObserver () = default;
 
@@ -37,10 +37,10 @@ public:
     virtual void OnPresentStarted (uint32_t) {}
 };
 
-extern GVK_RENDERER_API IFrameDisplayObserver noOpFrameDisplayObserver;
+extern RENDERGRAPH_DLL_EXPORT IFrameDisplayObserver noOpFrameDisplayObserver;
 
 
-class GVK_RENDERER_API Renderer {
+class RENDERGRAPH_DLL_EXPORT Renderer {
 public:
     GVK::Event<RenderGraph&, uint32_t, uint64_t> preSubmitEvent;
 
@@ -55,7 +55,7 @@ public:
 };
 
 
-class GVK_RENDERER_API RecreatableGraphRenderer : public Renderer {
+class RENDERGRAPH_DLL_EXPORT RecreatableGraphRenderer : public Renderer {
 protected:
     GVK::Swapchain& swapchain;
 
@@ -70,7 +70,7 @@ public:
 };
 
 
-class GVK_RENDERER_API BlockingGraphRenderer final : public RecreatableGraphRenderer {
+class RENDERGRAPH_DLL_EXPORT BlockingGraphRenderer final : public RecreatableGraphRenderer {
 private:
     std::unique_ptr<GVK::Semaphore> s;
     GVK::TimePoint                  lastDrawTime;
@@ -83,7 +83,7 @@ public:
 };
 
 
-class GVK_RENDERER_API SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
+class RENDERGRAPH_DLL_EXPORT SynchronizedSwapchainGraphRenderer final : public RecreatableGraphRenderer {
 private:
     // number of render operations able to run simultaneously
     // optimally equal to imageCount, but may be lower.

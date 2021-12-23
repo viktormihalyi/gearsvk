@@ -1,7 +1,7 @@
 #ifndef GLFWWINDOW_HPP
 #define GLFWWINDOW_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "Window.hpp"
 
@@ -11,7 +11,7 @@
 
 namespace RG {
 
-class GVK_RENDERER_API GLFWWindowBase : public Window {
+class RENDERGRAPH_DLL_EXPORT GLFWWindowBase : public Window {
 private:
     struct Impl;
     std::unique_ptr<Impl> impl;
@@ -46,20 +46,20 @@ public:
 };
 
 
-class GVK_RENDERER_API GLFWWindow : public GLFWWindowBase {
+class RENDERGRAPH_DLL_EXPORT GLFWWindow : public GLFWWindowBase {
 public:
     GLFWWindow ();
     virtual ~GLFWWindow () = default;
 };
 
 
-class GVK_RENDERER_API FullscreenGLFWWindow : public GLFWWindowBase {
+class RENDERGRAPH_DLL_EXPORT FullscreenGLFWWindow : public GLFWWindowBase {
 public:
     FullscreenGLFWWindow ();
     virtual ~FullscreenGLFWWindow () = default;
 };
 
-class GVK_RENDERER_API HiddenGLFWWindow : public GLFWWindowBase {
+class RENDERGRAPH_DLL_EXPORT HiddenGLFWWindow : public GLFWWindowBase {
 public:
     HiddenGLFWWindow ();
     HiddenGLFWWindow (size_t width, size_t height);
@@ -67,7 +67,7 @@ public:
 };
 
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 std::vector<const char*> GetGLFWInstanceExtensions ();
 
 } // namespace RG

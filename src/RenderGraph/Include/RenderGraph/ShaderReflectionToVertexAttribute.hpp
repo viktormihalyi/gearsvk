@@ -1,7 +1,7 @@
 #ifndef RENDERGRAPH_SHADERREFLECTIONTOVERTEXATTRIBUE_HPP
 #define RENDERGRAPH_SHADERREFLECTIONTOVERTEXATTRIBUE_HPP
 
-#include "RenderGraphAPI.hpp"
+#include "RenderGraphExport.hpp"
 
 #include "VulkanWrapper/ShaderModule.hpp"
 
@@ -15,10 +15,10 @@
 namespace RG {
 namespace FromShaderReflection {
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 std::vector<VkVertexInputAttributeDescription> GetVertexAttributes (const GVK::ShaderModule::Reflection& reflection, const std::function<bool (const std::string&)>& instanceNameProvider);
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 std::vector<VkVertexInputBindingDescription> GetVertexBindings (const GVK::ShaderModule::Reflection& reflection, const std::function<bool (const std::string&)>& instanceNameProvider);
 
 } // namespace FromShaderReflection

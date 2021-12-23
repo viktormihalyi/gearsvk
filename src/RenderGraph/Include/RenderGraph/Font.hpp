@@ -8,7 +8,7 @@
 
 #include "Utils/Assert.hpp"
 #include "Utils/Event.hpp"
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 #include "Utils/Noncopyable.hpp"
 #include <memory>
 
@@ -49,7 +49,7 @@ struct GlyphData {
 };
 
 
-class GVK_RENDERER_API Font : public Noncopyable {
+class RENDERGRAPH_DLL_EXPORT Font : public Noncopyable {
 public:
     // hide font handle
     struct Impl;

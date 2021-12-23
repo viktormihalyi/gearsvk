@@ -1,7 +1,7 @@
 #ifndef RENDERGRAPH_UNIFORM_REFLECTION_HPP
 #define RENDERGRAPH_UNIFORM_REFLECTION_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 #include "RenderGraph/BufferView.hpp"
 #include "RenderGraph/Operation.hpp"
 #include "RenderGraph/Resource.hpp"
@@ -27,7 +27,7 @@ namespace RG {
 // modifying uniforms takes place in a staging cpu memory, calling Flush will copy these to the actual uniform memory
 // accessing a uniforms is available with operator[] eg.: reflection[std::shared_ptr<RG::Operation>][ShaderKind][std::string][std::string]...
 
-class GVK_RENDERER_API ImageMap {
+class RENDERGRAPH_DLL_EXPORT ImageMap {
 private:
     std::vector<std::pair<SR::Sampler, std::shared_ptr<ReadOnlyImageResource>>> images;
 
@@ -43,16 +43,16 @@ using CreateParams                 = std::tuple<glm::uvec3, VkFormat, VkFilter>;
 using ExtentProviderForImageCreate = std::function<std::optional<CreateParams> (const SR::Sampler& sampler)>;
 
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet);
 
-GVK_RENDERER_API
+RENDERGRAPH_DLL_EXPORT
 ImageMap CreateEmptyImageResources (RG::ConnectionSet& connectionSet, const ExtentProviderForImageCreate& extentProvider);
 
 
-class GVK_RENDERER_API UniformReflection {
+class RENDERGRAPH_DLL_EXPORT UniformReflection {
 private:
-    class GVK_RENDERER_API BufferObjectSelector {
+    class RENDERGRAPH_DLL_EXPORT BufferObjectSelector {
     private:
         std::map<std::string, std::shared_ptr<SR::IBufferData>, std::less<>> udatas;
 
@@ -66,7 +66,7 @@ private:
         friend class UniformReflection;
     };
 
-    class GVK_RENDERER_API ShaderKindSelector {
+    class RENDERGRAPH_DLL_EXPORT ShaderKindSelector {
     private:
         std::unordered_map<GVK::ShaderKind, BufferObjectSelector> bufferObjectSelectors;
 

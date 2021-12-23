@@ -5,7 +5,7 @@
 #include "Utils/Noncopyable.hpp"
 #include <memory>
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include <cstdint>
 #include <cstring>
@@ -31,7 +31,7 @@ class BufferObject;
 // we can select an element in an array with operator[](uint32_t)
 // we can set the variable with operator=(T)
 
-class GVK_RENDERER_API BufferView final {
+class RENDERGRAPH_DLL_EXPORT BufferView final {
 public:
     static const BufferView invalidUview;
 
@@ -90,7 +90,7 @@ public:
 
 
 // view to a single BufferObject + properly sized byte array for it
-class GVK_RENDERER_API IBufferData {
+class RENDERGRAPH_DLL_EXPORT IBufferData {
 public:
     virtual ~IBufferData () = default;
 
@@ -149,7 +149,7 @@ public:
 
 
 // view to a single BufferObject + properly sized byte array for it
-class GVK_RENDERER_API DummyBufferData final : public IBufferData {
+class RENDERGRAPH_DLL_EXPORT DummyBufferData final : public IBufferData {
 public:
     virtual BufferView operator[] (std::string_view str) override
     {
@@ -173,10 +173,10 @@ public:
 };
 
 
-extern GVK_RENDERER_API DummyBufferData dummyBufferData;
+extern RENDERGRAPH_DLL_EXPORT DummyBufferData dummyBufferData;
 
 
-class GVK_RENDERER_API BufferDataExternal final : public IBufferData, public Noncopyable {
+class RENDERGRAPH_DLL_EXPORT BufferDataExternal final : public IBufferData, public Noncopyable {
 private:
     BufferView    root;
     uint8_t* bytes;
@@ -195,7 +195,7 @@ public:
 };
 
 
-class GVK_RENDERER_API BufferDataInternal final : public IBufferData, public Noncopyable {
+class RENDERGRAPH_DLL_EXPORT BufferDataInternal final : public IBufferData, public Noncopyable {
 private:
     std::vector<uint8_t> bytes;
     BufferView                root;
@@ -216,7 +216,7 @@ public:
 // view and byte array for _all_ UBOs in a shader
 // we can select a single BufferObject with operator[](std::string_view)
 
-class GVK_RENDERER_API ShaderBufferData final : public Noncopyable {
+class RENDERGRAPH_DLL_EXPORT ShaderBufferData final : public Noncopyable {
 private:
     std::vector<std::unique_ptr<IBufferData>>  udatas;
     std::vector<std::string>              uboNames;

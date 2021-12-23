@@ -1,7 +1,7 @@
 #ifndef RENDERGRAPH_HPP
 #define RENDERGRAPH_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "Utils/Event.hpp"
 #include "VulkanWrapper/Utils/VulkanUtils.hpp"
@@ -28,7 +28,7 @@ class GraphSettings;
 
 namespace RG {
 
-class GVK_RENDERER_API RenderGraph final : public Noncopyable {
+class RENDERGRAPH_DLL_EXPORT RenderGraph final : public Noncopyable {
 public:// TODO
     bool                       compiled;
     std::vector<Pass>          passes;

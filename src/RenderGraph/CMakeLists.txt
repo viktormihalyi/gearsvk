@@ -22,7 +22,7 @@ set (Headers
     Include/RenderGraph/Window/Window.hpp
 
     Include/RenderGraph/Font.hpp
-    Include/RenderGraph/RenderGraphAPI.hpp
+    Include/RenderGraph/RenderGraphExport.hpp
     Include/RenderGraph/BufferView.hpp
     Include/RenderGraph/VulkanEnvironment.hpp
 

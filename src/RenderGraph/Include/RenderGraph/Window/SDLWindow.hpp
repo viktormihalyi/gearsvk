@@ -1,7 +1,7 @@
 #ifndef SDLWINDOW_HPP
 #define SDLWINDOW_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "Window.hpp"
 
@@ -10,7 +10,7 @@
 
 namespace RG {
 
-class GVK_RENDERER_API SDLWindowBase : public Window {
+class RENDERGRAPH_DLL_EXPORT SDLWindowBase : public Window {
 private:
     static uint32_t windowCount;
 

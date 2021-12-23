@@ -1,7 +1,7 @@
 #ifndef OPERATION_HPP
 #define OPERATION_HPP
 
-#include "RenderGraph/RenderGraphAPI.hpp"
+#include "RenderGraph/RenderGraphExport.hpp"
 
 #include "RenderGraph/ComputeShaderPipeline.hpp"
 #include "RenderGraph/Node.hpp"
@@ -41,9 +41,9 @@ class DrawableInfo;
 
 namespace RG {
 
-class GVK_RENDERER_API Operation : public Node {
+class RENDERGRAPH_DLL_EXPORT Operation : public Node {
 public:
-    struct GVK_RENDERER_API Descriptors {
+    struct RENDERGRAPH_DLL_EXPORT Descriptors {
         std::unique_ptr<GVK::DescriptorPool>             descriptorPool;
         std::unique_ptr<GVK::DescriptorSetLayout>        descriptorSetLayout;
         std::vector<std::unique_ptr<GVK::DescriptorSet>> descriptorSets;
@@ -67,21 +67,21 @@ public:
 };
 
 
-class GVK_RENDERER_API ComputeOperation : public Operation {
+class RENDERGRAPH_DLL_EXPORT ComputeOperation : public Operation {
 private:
     uint32_t groupCountX;
     uint32_t groupCountY;
     uint32_t groupCountZ;
 
 public:
-    struct GVK_RENDERER_API CompileSettings {
+    struct RENDERGRAPH_DLL_EXPORT CompileSettings {
         std::unique_ptr<ComputeShaderPipeline> computeShaderPipeline;
 
         std::unique_ptr<RG::FromShaderReflection::DescriptorWriteInfoTable> descriptorWriteProvider;
         std::unique_ptr<RG::FromShaderReflection::AttachmentDataTable>      attachmentProvider;
     };
 
-    struct GVK_RENDERER_API CompileResult {
+    struct RENDERGRAPH_DLL_EXPORT CompileResult {
         Descriptors descriptors;
     };
 
@@ -125,9 +125,9 @@ public:
 };
 
 
-class GVK_RENDERER_API RenderOperation : public Operation {
+class RENDERGRAPH_DLL_EXPORT RenderOperation : public Operation {
 public:
-    class GVK_RENDERER_API Builder {
+    class RENDERGRAPH_DLL_EXPORT Builder {
     private:
         VkDevice                           device;
         std::unique_ptr<Drawable>          drawable;
@@ -156,7 +156,7 @@ public:
         void EnsurePipelineCreated ();
     };
 
-    struct GVK_RENDERER_API CompileSettings {
+    struct RENDERGRAPH_DLL_EXPORT CompileSettings {
         std::unique_ptr<Drawable>       drawable;
         std::unique_ptr<ShaderPipeline> pipeline;
         VkPrimitiveTopology             topology;
@@ -168,7 +168,7 @@ public:
         std::unique_ptr<RG::FromShaderReflection::AttachmentDataTable>      attachmentProvider;
     };
 
-    struct GVK_RENDERER_API CompileResult {
+    struct RENDERGRAPH_DLL_EXPORT CompileResult {
         uint32_t                                       width;
         uint32_t                                       height;
         Descriptors                                    descriptors;
