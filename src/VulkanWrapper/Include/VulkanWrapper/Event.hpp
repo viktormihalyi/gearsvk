@@ -1,14 +1,14 @@
 #ifndef VULKANWRAPPER_EVENT_HPP
 #define VULKANWRAPPER_EVENT_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 #include "VulkanWrapper/VulkanObject.hpp"
 
 #include "Utils/MovablePtr.hpp"
 
 namespace VW {
 
-class VULKANWRAPPER_API Event : public GVK::VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT Event : public GVK::VulkanObject {
 private:
     VkDevice                 device;
     GVK::MovablePtr<VkEvent> handle;

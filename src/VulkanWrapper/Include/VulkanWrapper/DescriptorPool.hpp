@@ -9,7 +9,7 @@
 
 namespace GVK {
 
-class /* VULKANWRAPPER_API */ DescriptorPool : public VulkanObject {
+class /* VULKANWRAPPER_DLL_EXPORT */ DescriptorPool : public VulkanObject {
 private:
     VkDevice         device;
     VkDescriptorPool handle;

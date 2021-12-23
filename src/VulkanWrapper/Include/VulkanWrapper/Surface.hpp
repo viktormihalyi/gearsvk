@@ -1,7 +1,7 @@
 #ifndef SURFACE_HPP
 #define SURFACE_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 #include "Utils/MovablePtr.hpp"
 #include "VulkanObject.hpp"
 
@@ -9,7 +9,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API Surface : public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT Surface : public VulkanObject {
 private:
     VkInstance                    instance;
     GVK::MovablePtr<VkSurfaceKHR> handle;

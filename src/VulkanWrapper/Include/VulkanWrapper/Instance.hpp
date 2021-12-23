@@ -1,7 +1,7 @@
 #ifndef INSTANCE_HPP
 #define INSTANCE_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 #include "Utils/MovablePtr.hpp"
 #include "VulkanObject.hpp"
 
@@ -10,17 +10,17 @@
 
 namespace GVK {
 
-struct VULKANWRAPPER_API InstanceSettings {
+struct VULKANWRAPPER_DLL_EXPORT InstanceSettings {
     std::vector<const char*> extensions;
     std::vector<const char*> layers;
 };
 
 
-extern VULKANWRAPPER_API const InstanceSettings instanceDebugMode;
-extern VULKANWRAPPER_API const InstanceSettings instanceReleaseMode;
+extern VULKANWRAPPER_DLL_EXPORT const InstanceSettings instanceDebugMode;
+extern VULKANWRAPPER_DLL_EXPORT const InstanceSettings instanceReleaseMode;
 
 
-class VULKANWRAPPER_API Instance : public VulkanObject, public Nonmovable {
+class VULKANWRAPPER_DLL_EXPORT Instance : public VulkanObject, public Nonmovable {
 private:
     GVK::MovablePtr<VkInstance> handle;
 

@@ -607,7 +607,7 @@ VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStageCreateInfo () const
 }
 
 
-ShaderModule::Reflection::Reflection (const std::vector<uint32_t>& binary)
+ShaderModuleReflection::ShaderModuleReflection (const std::vector<uint32_t>& binary)
 {
     SR::SpirvParser c (binary);
 
@@ -650,7 +650,7 @@ void ShaderModule::Reload ()
 
         binary = *newBinary;
 
-        reflection = Reflection (binary);
+        reflection = ShaderModuleReflection (binary);
 
         sourceCode = *fileContents;
 
@@ -668,7 +668,7 @@ void ShaderModule::Reload ()
 
         handle = CreateShaderModuleImpl (device, *binaryC);
 
-        reflection = Reflection (binary);
+        reflection = ShaderModuleReflection (binary);
 
         binary = code;
 

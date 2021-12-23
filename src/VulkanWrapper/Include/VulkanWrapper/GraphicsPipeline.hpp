@@ -13,7 +13,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API GraphicsPipeline : public PipelineBase {
+class VULKANWRAPPER_DLL_EXPORT GraphicsPipeline : public PipelineBase {
 private:
     VkDevice                    device;
     GVK::MovablePtr<VkPipeline> handle;

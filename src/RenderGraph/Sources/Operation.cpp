@@ -242,12 +242,12 @@ void RenderOperation::CompileWithExtent (const GraphSettings& graphSettings, uin
 
     std::vector<std::vector<VkImageView>> imageViews;
     for (uint32_t resourceIndex = 0; resourceIndex < graphSettings.framesInFlight; ++resourceIndex) {
-        imageViews.push_back (RG::FromShaderReflection::GetImageViews (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, resourceIndex, *compileSettings.attachmentProvider));
+        imageViews.push_back (RG::FromShaderReflection::GetImageViews (GetShaderPipeline ()->GetReflection (GVK::ShaderKind::Fragment), GVK::ShaderKind::Fragment, resourceIndex, *compileSettings.attachmentProvider));
     }
 
-    const std::vector<VkAttachmentReference>   attachmentReferences      = RG::FromShaderReflection::GetAttachmentReferences (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
-    const std::vector<VkAttachmentReference>   inputAttachmentReferences = RG::FromShaderReflection::GetInputAttachmentReferences (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider, attachmentReferences.size ());
-    const std::vector<VkAttachmentDescription> attachmentDescriptions    = RG::FromShaderReflection::GetAttachmentDescriptions (GetShaderPipeline ()->fragmentShader->GetReflection (), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
+    const std::vector<VkAttachmentReference>   attachmentReferences      = RG::FromShaderReflection::GetAttachmentReferences (GetShaderPipeline ()->GetReflection (GVK::ShaderKind::Fragment), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
+    const std::vector<VkAttachmentReference>   inputAttachmentReferences = RG::FromShaderReflection::GetInputAttachmentReferences (GetShaderPipeline ()->GetReflection (GVK::ShaderKind::Fragment), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider, attachmentReferences.size ());
+    const std::vector<VkAttachmentDescription> attachmentDescriptions    = RG::FromShaderReflection::GetAttachmentDescriptions (GetShaderPipeline ()->GetReflection (GVK::ShaderKind::Fragment), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
 
     ShaderPipeline::CompileSettings pipelineSettings { width,
                                                        height,
@@ -276,7 +276,7 @@ void RenderOperation::CompileWithExtent (const GraphSettings& graphSettings, uin
 void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
 {
     uint32_t outputCount = 0;
-    for (const auto& output : GetShaderPipeline ()->fragmentShader->GetReflection ().outputs) {
+    for (const auto& output : GetShaderPipeline ()->GetReflection (GVK::ShaderKind::Fragment).outputs) {
         outputCount += output.arraySize;
     }
 

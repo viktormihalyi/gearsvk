@@ -21,7 +21,7 @@ std::optional<AttachmentDataTable::AttachmentData> AttachmentDataTable::GetAttac
 }
 
 
-std::vector<VkImageView> GetImageViews (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, uint32_t resourceIndex, IAttachmentProvider& attachmentProvider)
+std::vector<VkImageView> GetImageViews (const GVK::ShaderModuleReflection& reflection, GVK::ShaderKind shaderKind, uint32_t resourceIndex, IAttachmentProvider& attachmentProvider)
 {
     std::vector<VkImageView> imageViews;
 
@@ -59,7 +59,7 @@ std::vector<VkImageView> GetImageViews (const GVK::ShaderModule::Reflection& ref
 }
 
 
-std::vector<VkAttachmentReference> GetAttachmentReferences (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider)
+std::vector<VkAttachmentReference> GetAttachmentReferences (const GVK::ShaderModuleReflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider)
 {
     std::vector<VkAttachmentReference> result;
 
@@ -86,7 +86,7 @@ std::vector<VkAttachmentReference> GetAttachmentReferences (const GVK::ShaderMod
 }
 
 
-std::vector<VkAttachmentReference> GetInputAttachmentReferences (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider, uint32_t startIndex)
+std::vector<VkAttachmentReference> GetInputAttachmentReferences (const GVK::ShaderModuleReflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider, uint32_t startIndex)
 {
     std::vector<VkAttachmentReference> result;
 
@@ -113,7 +113,7 @@ std::vector<VkAttachmentReference> GetInputAttachmentReferences (const GVK::Shad
 }
 
 
-std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider)
+std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const GVK::ShaderModuleReflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider)
 {
     std::vector<VkAttachmentDescription> result;
 

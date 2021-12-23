@@ -10,7 +10,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API ImageViewBase : public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT ImageViewBase : public VulkanObject {
 private:
     VkDevice                     device;
     VkFormat                     format;
@@ -35,14 +35,14 @@ public:
 };
 
 
-class VULKANWRAPPER_API ImageView1D : public ImageViewBase {
+class VULKANWRAPPER_DLL_EXPORT ImageView1D : public ImageViewBase {
 public:
     ImageView1D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0);
     ImageView1D (VkDevice device, const Image& image, uint32_t layerIndex = 0);
 };
 
 
-class VULKANWRAPPER_API ImageView2D : public ImageViewBase {
+class VULKANWRAPPER_DLL_EXPORT ImageView2D : public ImageViewBase {
 public:
     ImageView2D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0, uint32_t layerCount = 1);
     ImageView2D (VkDevice device, const Image& image, uint32_t layerIndex = 0, uint32_t layerCount = 1);
@@ -51,21 +51,21 @@ public:
     ImageView2D& operator= (ImageView2D&&) = default;
 };
 
-class VULKANWRAPPER_API ImageView2DArray : public ImageViewBase {
+class VULKANWRAPPER_DLL_EXPORT ImageView2DArray : public ImageViewBase {
 public:
     ImageView2DArray (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0, uint32_t layerCount = 1);
     ImageView2DArray (VkDevice device, const Image& image, uint32_t layerIndex = 0, uint32_t layerCount = 1);
 };
 
 
-class VULKANWRAPPER_API ImageView3D : public ImageViewBase {
+class VULKANWRAPPER_DLL_EXPORT ImageView3D : public ImageViewBase {
 public:
     ImageView3D (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0);
     ImageView3D (VkDevice device, const Image& image, uint32_t layerIndex = 0);
 };
 
 
-class VULKANWRAPPER_API ImageViewCube : public ImageViewBase {
+class VULKANWRAPPER_DLL_EXPORT ImageViewCube : public ImageViewBase {
 public:
     ImageViewCube (VkDevice device, VkImage image, VkFormat format, uint32_t layerIndex = 0);
     ImageViewCube (VkDevice device, const Image& image, uint32_t layerIndex = 0);

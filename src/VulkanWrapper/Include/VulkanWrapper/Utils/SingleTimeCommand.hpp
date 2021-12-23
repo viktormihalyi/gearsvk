@@ -10,7 +10,7 @@
 
 namespace GVK {
 
-class /* VULKANWRAPPER_API */ SingleTimeCommand final : public CommandBuffer {
+class /* VULKANWRAPPER_DLL_EXPORT */ SingleTimeCommand final : public CommandBuffer {
 private:
     const Queue& queue;
 

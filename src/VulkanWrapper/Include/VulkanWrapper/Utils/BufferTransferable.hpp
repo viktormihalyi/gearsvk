@@ -1,7 +1,7 @@
 #ifndef BUFFER_TRANSFERABLE_HPP
 #define BUFFER_TRANSFERABLE_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 
 #include "VulkanWrapper/Buffer.hpp"
 #include "VulkanWrapper/Device.hpp"
@@ -13,7 +13,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API BufferTransferable final {
+class VULKANWRAPPER_DLL_EXPORT BufferTransferable final {
 public:
     const DeviceExtra& device;
 
@@ -44,7 +44,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API ImageTransferable {
+class VULKANWRAPPER_DLL_EXPORT ImageTransferable {
 private:
     const DeviceExtra& device;
 
@@ -79,35 +79,35 @@ public:
 };
 
 
-class VULKANWRAPPER_API Image1DTransferable final : public ImageTransferable {
+class VULKANWRAPPER_DLL_EXPORT Image1DTransferable final : public ImageTransferable {
 public:
     Image1DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, VkImageUsageFlags usageFlags);
     virtual ~Image1DTransferable () override = default;
 };
 
 
-class VULKANWRAPPER_API Image2DTransferable final : public ImageTransferable {
+class VULKANWRAPPER_DLL_EXPORT Image2DTransferable final : public ImageTransferable {
 public:
     Image2DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1);
     virtual ~Image2DTransferable () override = default;
 };
 
 
-class VULKANWRAPPER_API Image2DTransferableLinear final : public ImageTransferable {
+class VULKANWRAPPER_DLL_EXPORT Image2DTransferableLinear final : public ImageTransferable {
 public:
     Image2DTransferableLinear (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags, uint32_t arrayLayers = 1);
     virtual ~Image2DTransferableLinear () override = default;
 };
 
 
-class VULKANWRAPPER_API Image3DTransferable final : public ImageTransferable {
+class VULKANWRAPPER_DLL_EXPORT Image3DTransferable final : public ImageTransferable {
 public:
     Image3DTransferable (const DeviceExtra& device, VkFormat format, uint32_t width, uint32_t height, uint32_t depth, VkImageUsageFlags usageFlags);
     virtual ~Image3DTransferable () override = default;
 };
 
 
-class VULKANWRAPPER_API VertexInputInfo final {
+class VULKANWRAPPER_DLL_EXPORT VertexInputInfo final {
 public:
     uint32_t                                       size;
     std::vector<VkVertexInputAttributeDescription> attributes;
@@ -117,7 +117,7 @@ public:
 };
 
 
-class /* VULKANWRAPPER_API */ VertexBufferTransferableUntyped {
+class /* VULKANWRAPPER_DLL_EXPORT */ VertexBufferTransferableUntyped {
 public:
     std::vector<uint8_t>     data;
     const VertexInputInfo    info;
@@ -147,7 +147,7 @@ public:
 
 
 template<typename VertexType>
-class /* VULKANWRAPPER_API */ VertexBufferTransferable : public VertexBufferTransferableUntyped {
+class /* VULKANWRAPPER_DLL_EXPORT */ VertexBufferTransferable : public VertexBufferTransferableUntyped {
 public:
     VertexBufferTransferable (const DeviceExtra&           device,
                               uint32_t                     maxVertexCount,
@@ -167,7 +167,7 @@ public:
 
 
 template<typename IndexType, VkIndexType VulkanIndexType>
-class /* VULKANWRAPPER_API */ IndexBufferTransferableBase {
+class /* VULKANWRAPPER_DLL_EXPORT */ IndexBufferTransferableBase {
 public:
     std::vector<IndexType>   data;
     const BufferTransferable buffer;

@@ -6,7 +6,7 @@
 namespace RG {
 namespace FromShaderReflection {
 
-std::vector<VkVertexInputAttributeDescription> GetVertexAttributes (const GVK::ShaderModule::Reflection& reflection, const std::function<bool (const std::string&)>& IsInputInstanced)
+std::vector<VkVertexInputAttributeDescription> GetVertexAttributes (const GVK::ShaderModuleReflection& reflection, const std::function<bool (const std::string&)>& IsInputInstanced)
 {
     std::vector<VkVertexInputAttributeDescription> result;
 
@@ -34,7 +34,7 @@ std::vector<VkVertexInputAttributeDescription> GetVertexAttributes (const GVK::S
 }
 
 
-std::vector<VkVertexInputBindingDescription> GetVertexBindings (const GVK::ShaderModule::Reflection& reflection, const std::function<bool (const std::string&)>& IsInputInstanced)
+std::vector<VkVertexInputBindingDescription> GetVertexBindings (const GVK::ShaderModuleReflection& reflection, const std::function<bool (const std::string&)>& IsInputInstanced)
 {
     if (reflection.inputs.empty ()) {
         return {};

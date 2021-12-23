@@ -14,7 +14,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API DeviceExtra : public Device {
+class VULKANWRAPPER_DLL_EXPORT DeviceExtra : public Device {
 public:
     Instance&    instance;
     Device&      device;

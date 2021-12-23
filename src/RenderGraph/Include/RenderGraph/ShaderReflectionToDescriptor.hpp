@@ -63,7 +63,7 @@ public:
 
 
 RENDERGRAPH_DLL_EXPORT
-void WriteDescriptors (const GVK::ShaderModule::Reflection& reflection,
+void WriteDescriptors (const GVK::ShaderModuleReflection& reflection,
                        VkDescriptorSet                      dstSet,
                        uint32_t                             frameIndex,
                        GVK::ShaderKind                      shaderKind,
@@ -72,7 +72,7 @@ void WriteDescriptors (const GVK::ShaderModule::Reflection& reflection,
 
 
 RENDERGRAPH_DLL_EXPORT
-std::vector<VkDescriptorSetLayoutBinding> GetLayout (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind);
+std::vector<VkDescriptorSetLayoutBinding> GetLayout (const GVK::ShaderModuleReflection& reflection, GVK::ShaderKind shaderKind);
 
 } // namespace FromShaderReflection
 } // namespace RG

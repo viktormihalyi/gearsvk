@@ -1,7 +1,7 @@
 #ifndef VULKANOBJECT_HPP
 #define VULKANOBJECT_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 #include "Utils/UUID.hpp"
 #include "Utils/Noncopyable.hpp"
 
@@ -12,7 +12,7 @@ namespace GVK {
 
 class DeviceExtra;
 
-class VULKANWRAPPER_API VulkanObject : public Noncopyable {
+class VULKANWRAPPER_DLL_EXPORT VulkanObject : public Noncopyable {
 private:
     GVK::UUID   uuid;
     std::string name;

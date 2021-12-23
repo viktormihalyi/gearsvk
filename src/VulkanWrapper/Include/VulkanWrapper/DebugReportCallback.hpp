@@ -5,11 +5,11 @@
 
 #include "VulkanWrapper/VulkanObject.hpp"
 #include "Utils/Noncopyable.hpp"
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 
 namespace GVK {
 
-class VULKANWRAPPER_API DebugReportCallback : public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT DebugReportCallback : public VulkanObject {
 private:
     VkInstance               instance;
     VkDebugReportCallbackEXT handle;

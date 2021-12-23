@@ -9,7 +9,7 @@
 
 namespace GVK {
 
-class /* VULKANWRAPPER_API */ PipelineLayout : public VulkanObject {
+class /* VULKANWRAPPER_DLL_EXPORT */ PipelineLayout : public VulkanObject {
 private:
     VkDevice                          device;
     GVK::MovablePtr<VkPipelineLayout> handle;

@@ -9,7 +9,7 @@
 
 namespace GVK {
 
-class /* VULKANWRAPPER_API */ RenderPass : public VulkanObject {
+class /* VULKANWRAPPER_DLL_EXPORT */ RenderPass : public VulkanObject {
 private:
     VkDevice                      device;
     GVK::MovablePtr<VkRenderPass> handle;

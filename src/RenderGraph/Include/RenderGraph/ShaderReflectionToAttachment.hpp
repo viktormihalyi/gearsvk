@@ -46,19 +46,19 @@ public:
 
 
 RENDERGRAPH_DLL_EXPORT
-std::vector<VkImageView> GetImageViews (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, uint32_t resourceIndex, IAttachmentProvider& attachmentProvider);
+std::vector<VkImageView> GetImageViews (const GVK::ShaderModuleReflection& reflection, GVK::ShaderKind shaderKind, uint32_t resourceIndex, IAttachmentProvider& attachmentProvider);
 
 
 RENDERGRAPH_DLL_EXPORT
-std::vector<VkAttachmentReference> GetAttachmentReferences (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider);
+std::vector<VkAttachmentReference> GetAttachmentReferences (const GVK::ShaderModuleReflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider);
 
 
 RENDERGRAPH_DLL_EXPORT
-std::vector<VkAttachmentReference> GetInputAttachmentReferences (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider, uint32_t startIndex);
+std::vector<VkAttachmentReference> GetInputAttachmentReferences (const GVK::ShaderModuleReflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider, uint32_t startIndex);
 
 
 RENDERGRAPH_DLL_EXPORT
-std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider);
+std::vector<VkAttachmentDescription> GetAttachmentDescriptions (const GVK::ShaderModuleReflection& reflection, GVK::ShaderKind shaderKind, IAttachmentProvider& attachmentProvider);
 
 
 } // namespace FromShaderReflection

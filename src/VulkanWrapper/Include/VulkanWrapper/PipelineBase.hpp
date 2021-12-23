@@ -1,7 +1,7 @@
 #ifndef VULKANWRAPPER_PIPELINEBASE_HPP
 #define VULKANWRAPPER_PIPELINEBASE_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 #include <vulkan/vulkan.h>
 
 #include "Utils/Assert.hpp"
@@ -10,7 +10,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API PipelineBase : public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT PipelineBase : public VulkanObject {
 public:
     PipelineBase () = default;
 

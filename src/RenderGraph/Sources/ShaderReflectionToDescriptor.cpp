@@ -49,7 +49,7 @@ std::vector<VkDescriptorBufferInfo> DescriptorWriteInfoTable::GetDescriptorBuffe
 IUpdateDescriptorSets::~IUpdateDescriptorSets () = default;
 
 
-static void UpdateDescriptorSetsFromSamplers (const GVK::ShaderModule::Reflection& reflection,
+static void UpdateDescriptorSetsFromSamplers (const GVK::ShaderModuleReflection& reflection,
                                               VkDescriptorSet                      dstSet,
                                               uint32_t                             frameIndex,
                                               GVK::ShaderKind                      shaderKind,
@@ -100,7 +100,7 @@ static void UpdateDescriptorSetsFromSamplers (const GVK::ShaderModule::Reflectio
 }
 
 
-static void UpdateDescriptorSetsFromUBOs (const GVK::ShaderModule::Reflection& reflection,
+static void UpdateDescriptorSetsFromUBOs (const GVK::ShaderModuleReflection& reflection,
                                           VkDescriptorSet                      dstSet,
                                           uint32_t                             frameIndex,
                                           GVK::ShaderKind                      shaderKind,
@@ -148,7 +148,7 @@ static void UpdateDescriptorSetsFromUBOs (const GVK::ShaderModule::Reflection& r
 }
 
 
-static void UpdateDescriptorSetsFromStorageBuffers (const GVK::ShaderModule::Reflection& reflection,
+static void UpdateDescriptorSetsFromStorageBuffers (const GVK::ShaderModuleReflection& reflection,
                                                      VkDescriptorSet                      dstSet,
                                                      uint32_t                             frameIndex,
                                                      GVK::ShaderKind                      shaderKind,
@@ -196,7 +196,7 @@ static void UpdateDescriptorSetsFromStorageBuffers (const GVK::ShaderModule::Ref
 }
 
 
-static void UpdateDescriptorSetsFromInputAttachments (const GVK::ShaderModule::Reflection& reflection,
+static void UpdateDescriptorSetsFromInputAttachments (const GVK::ShaderModuleReflection& reflection,
                                                       VkDescriptorSet                      dstSet,
                                                       uint32_t                             frameIndex,
                                                       GVK::ShaderKind                      shaderKind,
@@ -249,7 +249,7 @@ static void UpdateDescriptorSetsFromInputAttachments (const GVK::ShaderModule::R
 }
 
 
-void WriteDescriptors (const GVK::ShaderModule::Reflection& reflection,
+void WriteDescriptors (const GVK::ShaderModuleReflection& reflection,
                        VkDescriptorSet                      dstSet,
                        uint32_t                             frameIndex,
                        GVK::ShaderKind                      shaderKind,
@@ -277,7 +277,7 @@ static VkShaderStageFlags GetShaderStageFromShaderKind (GVK::ShaderKind shaderKi
 }
 
 
-std::vector<VkDescriptorSetLayoutBinding> GetLayout (const GVK::ShaderModule::Reflection& reflection, GVK::ShaderKind shaderKind)
+std::vector<VkDescriptorSetLayoutBinding> GetLayout (const GVK::ShaderModuleReflection& reflection, GVK::ShaderKind shaderKind)
 {
     std::vector<VkDescriptorSetLayoutBinding> result;
 

@@ -78,34 +78,20 @@ static void ShowAssertPopup (const std::string&    dialogTitle,
 static CommandLineOnOffFlag disableAssertsFlag (std::vector<std::string> { "--disableAsserts", "-a" }, "Disables asserts.");
 
 
-bool DebugBreakAssertFunc (bool condition, const bool shouldBe, const char* dialogTitle, const char* conditionString, const SourceLocation& location)
-{
-    if (condition != shouldBe) {
-        if (disableAssertsFlag.IsFlagOn ()) {
-            spdlog::error ("[{}] {} - {}", dialogTitle, SourceLocationToString (location), conditionString);
-        } else {
-            ShowAssertPopup (dialogTitle, conditionString, location);
-        }
-    }
-    return condition;
-}
-
-
 void DebugBreakFunc (const char* dialogTitle, const char* conditionString, const SourceLocation& location)
 {
     if (disableAssertsFlag.IsFlagOn ()) {
-        spdlog::error ("[{}] {} - {}", dialogTitle, SourceLocationToString (location), conditionString);
+        LogDebugBreakFunc (dialogTitle, conditionString, location);
     } else {
         ShowAssertPopup (dialogTitle, conditionString, location);
     }
 }
 
 
-
 bool LogAssertFunc (bool condition, const bool shouldBe, const char* dialogTitle, const char* conditionString, const SourceLocation& location)
 {
     if (condition != shouldBe) {
-        spdlog::error ("[{}] {} - {}", dialogTitle, SourceLocationToString (location), conditionString);
+        LogDebugBreakFunc (dialogTitle, conditionString, location);
     }
     return condition;
 }

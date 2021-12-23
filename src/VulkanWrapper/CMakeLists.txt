@@ -44,7 +44,7 @@ set (Headers
     Include/VulkanWrapper/VulkanWrapper.hpp
     Include/VulkanWrapper/VulkanWrapperFwd.hpp
 
-    Include/VulkanWrapper/VulkanWrapperAPI.hpp
+    Include/VulkanWrapper/VulkanWrapperExport.hpp
 )
 
 set (SourcesGroup1

@@ -3,7 +3,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 
 #include "Utils/Assert.hpp"
 #include "Utils/MovablePtr.hpp"
@@ -15,7 +15,7 @@ namespace GVK {
 
 class CommandBuffer;
 
-class VULKANWRAPPER_API Queue : public Noncopyable, public Nonmovable {
+class VULKANWRAPPER_DLL_EXPORT Queue : public Noncopyable, public Nonmovable {
 private:
     GVK::MovablePtr<VkQueue> handle;
 
@@ -58,7 +58,7 @@ public:
                  VkFence                                  fenceToSignal) const;
 };
 
-VULKANWRAPPER_API extern Queue dummyQueue;
+VULKANWRAPPER_DLL_EXPORT extern Queue dummyQueue;
 
 } // namespace GVK
 

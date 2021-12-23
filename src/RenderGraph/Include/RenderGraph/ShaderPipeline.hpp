@@ -17,6 +17,7 @@
 namespace GVK {
 enum class ShaderKind : uint8_t;
 class ShaderModule;
+class ShaderModuleReflection;
 class RenderPass;
 class GraphicsPipeline;
 class PipelineLayout;
@@ -29,14 +30,12 @@ class RENDERGRAPH_DLL_EXPORT ShaderPipeline {
 private:
     const VkDevice device;
 
-public:
     std::unique_ptr<GVK::ShaderModule> vertexShader;
     std::unique_ptr<GVK::ShaderModule> fragmentShader;
     std::unique_ptr<GVK::ShaderModule> geometryShader;
     std::unique_ptr<GVK::ShaderModule> tessellationEvaluationShader;
     std::unique_ptr<GVK::ShaderModule> tessellationControlShader;
     std::unique_ptr<GVK::ShaderModule> computeShader;
-
 
     std::unique_ptr<GVK::ShaderModule>& GetShaderByIndex (uint32_t index);
     std::unique_ptr<GVK::ShaderModule>& GetShaderByExtension (const std::string& extension);
@@ -91,6 +90,8 @@ public:
     std::vector<VkPipelineShaderStageCreateInfo> GetShaderStages () const;
 
     std::unique_ptr<GVK::DescriptorSetLayout> CreateDescriptorSetLayout (VkDevice device) const;
+
+    const GVK::ShaderModuleReflection& GetReflection (GVK::ShaderKind kind);
 };
 
 } // namespace RG

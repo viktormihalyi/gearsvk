@@ -1,7 +1,7 @@
 #ifndef VULKANWRAPPER_COMMANDS_HPP
 #define VULKANWRAPPER_COMMANDS_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 #include "VulkanWrapper/CommandBuffer.hpp"
 #include "VulkanWrapper/Image.hpp"
 
@@ -11,7 +11,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API CommandBindVertexBuffers : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandBindVertexBuffers : public Command {
 private:
     const uint32_t                  firstBinding;
     const uint32_t                  bindingCount;
@@ -48,7 +48,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandPipelineBarrier : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandPipelineBarrier : public Command {
 private:
     VkPipelineStageFlags               srcStageMask;
     VkPipelineStageFlags               dstStageMask;
@@ -148,7 +148,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandPipelineBarrierFull : public CommandPipelineBarrier {
+class VULKANWRAPPER_DLL_EXPORT CommandPipelineBarrierFull : public CommandPipelineBarrier {
 private:
     static const VkAccessFlags flushAll;
 
@@ -164,7 +164,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandTranstionImage : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandTranstionImage : public Command {
 private:
     VkImageMemoryBarrier imageMemoryBarrier;
 
@@ -196,7 +196,7 @@ public:
     }
 };
 
-class VULKANWRAPPER_API CommandGeneric : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandGeneric : public Command {
 private:
     std::function<void (VkCommandBuffer)> recordCallback;
 
@@ -222,7 +222,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandDrawIndexed : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandDrawIndexed : public Command {
 private:
     uint32_t indexCount;
     uint32_t instanceCount;
@@ -260,7 +260,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandDraw : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandDraw : public Command {
 private:
     uint32_t vertexCount;
     uint32_t instanceCount;
@@ -295,7 +295,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandBindIndexBuffer : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandBindIndexBuffer : public Command {
 private:
     VkBuffer     buffer;
     VkDeviceSize offset;
@@ -328,7 +328,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandEndRenderPass : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandEndRenderPass : public Command {
 public:
     CommandEndRenderPass () = default;
 
@@ -348,7 +348,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandBeginRenderPass : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandBeginRenderPass : public Command {
 private:
     VkRenderPassBeginInfo     renderPassBegin;
     VkSubpassContents         contents;
@@ -390,7 +390,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandBindPipeline : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandBindPipeline : public Command {
 private:
     VkPipelineBindPoint pipelineBindPoint;
     VkPipeline          pipeline;
@@ -420,7 +420,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandBindDescriptorSets : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandBindDescriptorSets : public Command {
 private:
     VkPipelineBindPoint          pipelineBindPoint;
     VkPipelineLayout             layout;
@@ -462,7 +462,7 @@ public:
     }
 };
 
-class VULKANWRAPPER_API CommandCopyImage : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandCopyImage : public Command {
 private:
     VkImage                  srcImage;
     VkImageLayout            srcImageLayout;
@@ -501,7 +501,7 @@ public:
     }
 };
 
-class VULKANWRAPPER_API CommandCopyImageToBuffer : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandCopyImageToBuffer : public Command {
 private:
     VkImage                        srcImage;
     VkImageLayout                  srcImageLayout;
@@ -542,7 +542,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandCopyBufferToImage : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandCopyBufferToImage : public Command {
 private:
     VkBuffer                       srcBuffer;
     VkImage                        dstImage;
@@ -579,7 +579,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandCopyBuffer : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandCopyBuffer : public Command {
 private:
     VkBuffer                  srcBuffer;
     VkBuffer                  dstBuffer;
@@ -612,7 +612,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandDispatch : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandDispatch : public Command {
 private:
     uint32_t groupCountX;
     uint32_t groupCountY;
@@ -646,7 +646,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandDispatchBase : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandDispatchBase : public Command {
 private:
     uint32_t baseGroupX;
     uint32_t baseGroupY;
@@ -692,7 +692,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API CommandDispatchIndirect : public Command {
+class VULKANWRAPPER_DLL_EXPORT CommandDispatchIndirect : public Command {
 private:
     VkBuffer     buffer;
     VkDeviceSize offset;

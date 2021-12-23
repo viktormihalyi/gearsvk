@@ -16,7 +16,7 @@ namespace GVK {
 
 class ImageBuilder;
 
-class VULKANWRAPPER_API Image : public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT Image : public VulkanObject {
 public:
     static const VkImageLayout INITIAL_LAYOUT;
 
@@ -97,7 +97,7 @@ public:
 
 
 // used for handling swapchain images as Image
-class VULKANWRAPPER_API InheritedImage : public Image {
+class VULKANWRAPPER_DLL_EXPORT InheritedImage : public Image {
 public:
     InheritedImage (VkImage handle, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, uint32_t arrayLayers)
         : Image (handle, VK_NULL_HANDLE, width, height, depth, format, arrayLayers)
@@ -111,7 +111,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API ImageBuilder {
+class VULKANWRAPPER_DLL_EXPORT ImageBuilder {
 public:
     const VmaAllocator allocator;
 
@@ -189,7 +189,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API Image1D : public Image {
+class VULKANWRAPPER_DLL_EXPORT Image1D : public Image {
 public:
     Image1D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
         : Image (allocator, VK_IMAGE_TYPE_1D, width, 1, 1, format, tiling, usage, arrayLayers, loc)
@@ -198,7 +198,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API Image2D : public Image {
+class VULKANWRAPPER_DLL_EXPORT Image2D : public Image {
 public:
     Image2D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0, uint32_t arrayLayers = 1)
         : Image (allocator, VK_IMAGE_TYPE_2D, width, height, 1, format, tiling, usage, arrayLayers, loc)
@@ -207,7 +207,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API Image3D : public Image {
+class VULKANWRAPPER_DLL_EXPORT Image3D : public Image {
 public:
     Image3D (VmaAllocator allocator, MemoryLocation loc, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags usage = 0)
         : Image (allocator, VK_IMAGE_TYPE_3D, width, height, depth, format, tiling, usage, 1, loc)

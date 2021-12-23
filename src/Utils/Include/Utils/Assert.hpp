@@ -32,17 +32,30 @@ namespace Utils {
 
 namespace detail {
 
-GVK_UTILS_API
-bool DebugBreakAssertFunc (const bool condition, const bool shouldBe, const char* dialogTitle, const char* conditionString, const SourceLocation& location);
+
+inline bool DebugBreakAssertFunc (bool condition, const bool shouldBe, const char* dialogTitle, const char* conditionString, const SourceLocation& location);
+
 
 GVK_UTILS_API
 void DebugBreakFunc (const char* dialogTitle, const char* conditionString, const SourceLocation& location);
 
+
 GVK_UTILS_API
 bool LogAssertFunc (const bool condition, const bool shouldBe, const char* dialogTitle, const char* conditionString, const SourceLocation& location);
 
+
 GVK_UTILS_API
 void LogDebugBreakFunc (const char* dialogTitle, const char* conditionString, const SourceLocation& location);
+
+
+inline bool DebugBreakAssertFunc (bool condition, const bool shouldBe, const char* dialogTitle, const char* conditionString, const SourceLocation& location)
+{
+    if (condition != shouldBe)
+        DebugBreakFunc (dialogTitle, conditionString, location);
+
+    return condition;
+}
+
 
 } // namespace detail
 

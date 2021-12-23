@@ -1,7 +1,7 @@
 #ifndef SHADERMODULE_HPP
 #define SHADERMODULE_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 
 #include "Utils/Assert.hpp"
 #include "Utils/MovablePtr.hpp"
@@ -17,7 +17,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API ShaderCompileException : public std::runtime_error {
+class VULKANWRAPPER_DLL_EXPORT ShaderCompileException : public std::runtime_error {
 public:
     ShaderCompileException (const std::string& errorMessage)
         : std::runtime_error (errorMessage)
@@ -35,11 +35,22 @@ enum class ShaderKind : uint8_t {
 };
 
 
-VULKANWRAPPER_API
+VULKANWRAPPER_DLL_EXPORT
 std::string ShaderKindToString (ShaderKind);
 
 
-class VULKANWRAPPER_API ShaderModule : public VulkanObject {
+struct VULKANWRAPPER_DLL_EXPORT ShaderModuleReflection {
+    std::vector<std::shared_ptr<SR::BufferObject>> ubos;
+    std::vector<SR::Sampler>                       samplers;
+    std::vector<std::shared_ptr<SR::BufferObject>> storageBuffers;
+    std::vector<SR::Input>                         inputs;
+    std::vector<SR::Output>                        outputs;
+    std::vector<SR::SubpassInput>                  subpassInputs;
+
+    ShaderModuleReflection (const std::vector<uint32_t>& binary);
+};
+
+class VULKANWRAPPER_DLL_EXPORT ShaderModule : public VulkanObject {
 public:
     static constexpr uint32_t ShaderKindCount = 6;
 
@@ -47,17 +58,6 @@ public:
         GLSLFilePath,
         SPVFilePath,
         GLSLString,
-    };
-
-    struct VULKANWRAPPER_API Reflection {
-        std::vector<std::shared_ptr<SR::BufferObject>> ubos;
-        std::vector<SR::Sampler>              samplers;
-        std::vector<std::shared_ptr<SR::BufferObject>> storageBuffers;
-        std::vector<SR::Input>                inputs;
-        std::vector<SR::Output>               outputs;
-        std::vector<SR::SubpassInput>         subpassInputs;
-
-        Reflection (const std::vector<uint32_t>& binary);
     };
 
 private:
@@ -73,7 +73,7 @@ private:
     std::vector<std::string> defines;
     std::vector<std::string> undefines;
 
-    Reflection reflection;
+    ShaderModuleReflection reflection;
 
 private:
     // dont use this ctor, use factories instead
@@ -126,7 +126,7 @@ public:
 
     VkPipelineShaderStageCreateInfo GetShaderStageCreateInfo () const;
 
-    const Reflection& GetReflection () const { return reflection; }
+    const ShaderModuleReflection& GetReflection () const { return reflection; }
 
     const std::string& GetSourceCode () const { return sourceCode; }
 };

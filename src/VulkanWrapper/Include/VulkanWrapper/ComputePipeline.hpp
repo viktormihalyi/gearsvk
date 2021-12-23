@@ -1,7 +1,7 @@
 #ifndef VULKANWRAPPER_COMPUTEPIPELINE_HPP
 #define VULKANWRAPPER_COMPUTEPIPELINE_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 #include "VulkanWrapper/PipelineBase.hpp"
 
 #include <vulkan/vulkan.h>
@@ -14,7 +14,7 @@ namespace GVK {
 
 class ShaderModule;
 
-class VULKANWRAPPER_API ComputePipeline : public PipelineBase {
+class VULKANWRAPPER_DLL_EXPORT ComputePipeline : public PipelineBase {
 private:
     VkDevice                    device;
     GVK::MovablePtr<VkPipeline> handle;

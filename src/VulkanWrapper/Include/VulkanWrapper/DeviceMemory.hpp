@@ -9,7 +9,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API DeviceMemory : public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT DeviceMemory : public VulkanObject {
 public:
     static constexpr VkMemoryPropertyFlags GPU = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     static constexpr VkMemoryPropertyFlags CPU = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;

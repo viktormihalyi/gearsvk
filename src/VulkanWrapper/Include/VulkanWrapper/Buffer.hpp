@@ -13,7 +13,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API Buffer : public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT Buffer : public VulkanObject {
 private:
     VmaAllocator                   allocator;
     GVK::MovablePtr<VkBuffer>      handle;
@@ -42,7 +42,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API UniformBuffer : public Buffer {
+class VULKANWRAPPER_DLL_EXPORT UniformBuffer : public Buffer {
 public:
     UniformBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
         : Buffer (allocator, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | usageFlags, loc)
@@ -51,7 +51,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API StorageBuffer : public Buffer {
+class VULKANWRAPPER_DLL_EXPORT StorageBuffer : public Buffer {
 public:
     StorageBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
         : Buffer (allocator, bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | usageFlags, loc)
@@ -60,7 +60,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API IndexBuffer : public Buffer {
+class VULKANWRAPPER_DLL_EXPORT IndexBuffer : public Buffer {
 public:
     IndexBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
         : Buffer (allocator, bufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | usageFlags, loc)
@@ -69,7 +69,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API VertexBuffer : public Buffer {
+class VULKANWRAPPER_DLL_EXPORT VertexBuffer : public Buffer {
 public:
     VertexBuffer (VmaAllocator allocator, size_t bufferSize, VkBufferUsageFlags usageFlags, MemoryLocation loc)
         : Buffer (allocator, bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | usageFlags, loc)

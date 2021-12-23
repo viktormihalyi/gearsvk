@@ -9,7 +9,7 @@
 
 namespace GVK {
 
-class /* VULKANWRAPPER_API */ DescriptorSetLayout : public VulkanObject {
+class /* VULKANWRAPPER_DLL_EXPORT */ DescriptorSetLayout : public VulkanObject {
 private:
     VkDevice                               device;
     GVK::MovablePtr<VkDescriptorSetLayout> handle;

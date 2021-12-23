@@ -2,6 +2,7 @@
 
 #include "ImageData.hpp"
 #include "Commands.hpp"
+#include "SingleTimeCommand.hpp"
 
 #include <array>
 #include <cstring>

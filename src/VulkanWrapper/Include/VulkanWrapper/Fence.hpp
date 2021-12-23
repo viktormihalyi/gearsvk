@@ -9,7 +9,7 @@
 namespace GVK {
 
 
-class VULKANWRAPPER_API Fence : public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT Fence : public VulkanObject {
 private:
     VkDevice                 device;
     GVK::MovablePtr<VkFence> handle;

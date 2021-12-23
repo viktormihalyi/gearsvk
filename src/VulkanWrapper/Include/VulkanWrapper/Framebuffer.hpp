@@ -10,7 +10,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API Framebuffer final : public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT Framebuffer final : public VulkanObject {
 private:
     VkDevice                       device;
     GVK::MovablePtr<VkFramebuffer> handle;

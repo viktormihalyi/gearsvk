@@ -3,7 +3,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 
 #include "Utils/Assert.hpp"
 #include "Utils/MovablePtr.hpp"
@@ -20,7 +20,7 @@ namespace GVK {
 
 class DeviceMemory;
 
-class VULKANWRAPPER_API MemoryMapping {
+class VULKANWRAPPER_DLL_EXPORT MemoryMapping {
 private:
     GVK::MovablePtr<VkDevice>       device;
     GVK::MovablePtr<VkDeviceMemory> memory;

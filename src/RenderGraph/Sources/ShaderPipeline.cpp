@@ -1,17 +1,17 @@
 #include "ShaderPipeline.hpp"
-#include "ShaderReflectionToVertexAttribute.hpp"
 #include "ShaderReflectionToDescriptor.hpp"
+#include "ShaderReflectionToVertexAttribute.hpp"
 
-#include "VulkanWrapper/ShaderModule.hpp"
+#include "VulkanWrapper/DescriptorSetLayout.hpp"
 #include "VulkanWrapper/GraphicsPipeline.hpp"
 #include "VulkanWrapper/PipelineLayout.hpp"
 #include "VulkanWrapper/RenderPass.hpp"
-#include "VulkanWrapper/DescriptorSetLayout.hpp"
+#include "VulkanWrapper/ShaderModule.hpp"
 
+#include "Utils/Assert.hpp"
+#include "Utils/BuildType.hpp"
 #include "Utils/MultithreadedFunction.hpp"
 #include "Utils/Timer.hpp"
-#include "Utils/BuildType.hpp"
-#include "Utils/Assert.hpp"
 
 #include <stdexcept>
 
@@ -66,6 +66,12 @@ std::unique_ptr<GVK::ShaderModule>& ShaderPipeline::GetShaderByExtension (const 
 
     GVK_BREAK ();
     throw std::runtime_error ("bad shader extension");
+}
+
+
+const GVK::ShaderModuleReflection& ShaderPipeline::GetReflection (GVK::ShaderKind kind)
+{
+    return GetShaderByKind (kind)->GetReflection ();
 }
 
 
@@ -209,7 +215,7 @@ void ShaderPipeline::Compile (CompileSettings&& settings_)
     const std::vector<VkVertexInputAttributeDescription> attribs  = RG::FromShaderReflection::GetVertexAttributes (vertexShader->GetReflection (), instancedVertexProvider);
     const std::vector<VkVertexInputBindingDescription>   bindings = RG::FromShaderReflection::GetVertexBindings (vertexShader->GetReflection (), instancedVertexProvider);
 
-    compileResult.pipeline       = std::unique_ptr<GVK::GraphicsPipeline> (new GVK::GraphicsPipeline (
+    compileResult.pipeline = std::unique_ptr<GVK::GraphicsPipeline> (new GVK::GraphicsPipeline (
         device,
         compileSettings.width,
         compileSettings.height,
@@ -228,36 +234,9 @@ void ShaderPipeline::Reload ()
 {
     MultithreadedFunction reloader (5, [&] (uint32_t, uint32_t threadIndex) {
         std::unique_ptr<GVK::ShaderModule>& currentShader = GetShaderByIndex (threadIndex);
-        std::unique_ptr<GVK::ShaderModule>  newShader;
 
         if (currentShader != nullptr) {
-            switch (currentShader->GetReadMode ()) {
-                case GVK::ShaderModule::ReadMode::GLSLFilePath:
-                    try {
-                        newShader = GVK::ShaderModule::CreateFromGLSLFile (device, currentShader->GetLocation ());
-                    } catch (GVK::ShaderCompileException&) {
-                    }
-                    break;
-
-                case GVK::ShaderModule::ReadMode::SPVFilePath:
-                    try {
-                        newShader = GVK::ShaderModule::CreateFromSPVFile (device, currentShader->GetShaderKind (), currentShader->GetLocation ());
-                    } catch (GVK::ShaderCompileException&) {
-                    }
-                    break;
-
-                case GVK::ShaderModule::ReadMode::GLSLString:
-                    // cannot reload string shaders
-                    break;
-
-                default:
-                    GVK_ASSERT ("unknown shader read mode");
-                    break;
-            }
-
-            if (newShader != nullptr) {
-                currentShader = std::move (newShader);
-            }
+            currentShader->Reload ();
         }
     });
 }
@@ -298,7 +277,7 @@ std::unique_ptr<GVK::DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLay
     }
 
     IterateShaders ([&] (GVK::ShaderModule& shaderModule) {
-        auto layoutPart = RG::FromShaderReflection::GetLayout (shaderModule.GetReflection (), shaderModule.GetShaderKind ());
+        const std::vector<VkDescriptorSetLayoutBinding> layoutPart = RG::FromShaderReflection::GetLayout (shaderModule.GetReflection (), shaderModule.GetShaderKind ());
         layout.insert (layout.end (), layoutPart.begin (), layoutPart.end ());
     });
 

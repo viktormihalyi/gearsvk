@@ -1,7 +1,7 @@
 #ifndef VULKANWRAPPER_COMMAND_HPP
 #define VULKANWRAPPER_COMMAND_HPP
 
-#include "VulkanWrapperAPI.hpp"
+#include "VulkanWrapperExport.hpp"
 
 #include <string>
 
@@ -9,7 +9,7 @@ namespace GVK {
 
 class CommandBuffer;
 
-class VULKANWRAPPER_API Command {
+class VULKANWRAPPER_DLL_EXPORT Command {
 private:
     std::string name;
 

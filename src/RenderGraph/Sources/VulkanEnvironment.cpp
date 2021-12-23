@@ -1,26 +1,23 @@
 #include "VulkanEnvironment.hpp"
 
+#include "Window.hpp"
+
 #include "Utils/BuildType.hpp"
 #include "Utils/CommandLineFlag.hpp"
 #include "Utils/StaticInit.hpp"
 #include "Utils/Timer.hpp"
-
-#include "Window.hpp"
-#include "GLFWWindow.hpp"
 
 #include "VulkanWrapper/Allocator.hpp"
 #include "VulkanWrapper/DebugUtilsMessenger.hpp"
 #include "VulkanWrapper/DeviceExtra.hpp"
 #include "VulkanWrapper/Instance.hpp"
 #include "VulkanWrapper/Surface.hpp"
-#include "VulkanWrapper/Utils/VulkanUtils.hpp"
 #include "VulkanWrapper/VulkanWrapper.hpp"
 
 #include "fmt/format.h"
 #include "spdlog/spdlog.h"
 
 #include <iomanip>
-#include <iostream>
 
 
 static Utils::CommandLineOnOffFlag disableValidationLayersFlag (std::vector<std::string> { "--disableValidationLayers", "-v" }, "Disables Vulkan validation layers.");

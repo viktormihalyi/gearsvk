@@ -15,7 +15,7 @@ namespace GVK {
 class Image;
 
 
-class VULKANWRAPPER_API CommandBuffer : public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT CommandBuffer : public VulkanObject {
 private:
     GVK::MovablePtr<VkDevice>        device;
     GVK::MovablePtr<VkCommandPool>   commandPool;

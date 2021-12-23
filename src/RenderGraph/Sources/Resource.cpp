@@ -1,5 +1,6 @@
 #include "Resource.hpp"
 
+#include "VulkanWrapper/Utils/SingleTimeCommand.hpp"
 #include "VulkanWrapper/Image.hpp"
 #include "VulkanWrapper/ImageView.hpp"
 #include "VulkanWrapper/Swapchain.hpp"

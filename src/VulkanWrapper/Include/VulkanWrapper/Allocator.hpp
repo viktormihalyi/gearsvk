@@ -12,7 +12,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API Allocator : public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT Allocator : public VulkanObject {
 private:
     GVK::MovablePtr<VmaAllocator> handle;
 

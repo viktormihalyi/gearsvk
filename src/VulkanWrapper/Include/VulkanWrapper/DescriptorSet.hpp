@@ -11,7 +11,7 @@
 
 namespace GVK {
 
-class /* VULKANWRAPPER_API */ DescriptorSet : public VulkanObject {
+class /* VULKANWRAPPER_DLL_EXPORT */ DescriptorSet : public VulkanObject {
 private:
     VkDevice                         device;
     VkDescriptorPool                 descriptorPool;

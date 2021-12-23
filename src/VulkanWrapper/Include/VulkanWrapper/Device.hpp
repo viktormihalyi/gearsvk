@@ -11,7 +11,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API Device : public Nonmovable {
+class VULKANWRAPPER_DLL_EXPORT Device : public Nonmovable {
 public:
     Device () = default;
     
@@ -25,7 +25,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API DeviceObject : public VulkanObject, public Device {
+class VULKANWRAPPER_DLL_EXPORT DeviceObject : public VulkanObject, public Device {
 private:
     VkPhysicalDevice          physicalDevice;
     GVK::MovablePtr<VkDevice> handle;

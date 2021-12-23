@@ -1,7 +1,7 @@
 #ifndef PHYSICALDEVICE_HPP
 #define PHYSICALDEVICE_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 
 #include "Utils/Assert.hpp"
 #include "Utils/MovablePtr.hpp"
@@ -17,7 +17,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API PhysicalDevice final : public Noncopyable {
+class VULKANWRAPPER_DLL_EXPORT PhysicalDevice final : public Noncopyable {
 public:
     struct QueueFamilies {
         std::optional<uint32_t> graphics;

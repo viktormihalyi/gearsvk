@@ -12,7 +12,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API ImageData {
+class VULKANWRAPPER_DLL_EXPORT ImageData {
 public:
     static const ImageData Empty;
 

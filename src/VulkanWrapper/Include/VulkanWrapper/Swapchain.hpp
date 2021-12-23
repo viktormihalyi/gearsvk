@@ -1,7 +1,7 @@
 #ifndef SWAPCHAIN_HPP
 #define SWAPCHAIN_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 
 #include "Utils/Assert.hpp"
 #include "VulkanObject.hpp"
@@ -14,7 +14,7 @@
 
 namespace GVK {
 
-class VULKANWRAPPER_API SwapchainSettingsProvider {
+class VULKANWRAPPER_DLL_EXPORT SwapchainSettingsProvider {
 public:
     virtual ~SwapchainSettingsProvider () = default;
     
@@ -25,7 +25,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API DefaultSwapchainSettings : public SwapchainSettingsProvider {
+class VULKANWRAPPER_DLL_EXPORT DefaultSwapchainSettings : public SwapchainSettingsProvider {
 public:
     virtual ~DefaultSwapchainSettings () override = default;
 
@@ -35,21 +35,21 @@ public:
     virtual uint32_t           SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities) override;
 };
 
-class VULKANWRAPPER_API DefaultSwapchainSettingsSingleImage : public DefaultSwapchainSettings {
+class VULKANWRAPPER_DLL_EXPORT DefaultSwapchainSettingsSingleImage : public DefaultSwapchainSettings {
 public:
     virtual ~DefaultSwapchainSettingsSingleImage () override = default;
 
     virtual uint32_t SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities) override;
 };
 
-class VULKANWRAPPER_API DefaultSwapchainSettingsMaxImages : public DefaultSwapchainSettings {
+class VULKANWRAPPER_DLL_EXPORT DefaultSwapchainSettingsMaxImages : public DefaultSwapchainSettings {
 public:
     virtual ~DefaultSwapchainSettingsMaxImages () override = default;
 
     virtual uint32_t SelectImageCount (const VkSurfaceCapabilitiesKHR& capabilities) override;
 };
 
-class VULKANWRAPPER_API Swapchain {
+class VULKANWRAPPER_DLL_EXPORT Swapchain {
 public:
     virtual ~Swapchain () = default;
 
@@ -67,7 +67,7 @@ public:
     virtual void     Recreate ()                                                                                        = 0;
 };
 
-class VULKANWRAPPER_API OutOfDateSwapchain : public std::runtime_error {
+class VULKANWRAPPER_DLL_EXPORT OutOfDateSwapchain : public std::runtime_error {
 public:
     const Swapchain& swapchain;
     OutOfDateSwapchain (const Swapchain& swapchain)
@@ -77,7 +77,7 @@ public:
     }
 };
 
-class VULKANWRAPPER_API RealSwapchain : public Swapchain, public VulkanObject {
+class VULKANWRAPPER_DLL_EXPORT RealSwapchain : public Swapchain, public VulkanObject {
 public:
     static const VkImageUsageFlags ImageUsage;
 
@@ -155,7 +155,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API ExtentProvider {
+class VULKANWRAPPER_DLL_EXPORT ExtentProvider {
 public:
     virtual ~ExtentProvider () = default;
 
@@ -163,7 +163,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API SwapchainProvider : public ExtentProvider {
+class VULKANWRAPPER_DLL_EXPORT SwapchainProvider : public ExtentProvider {
 public:
     virtual ~SwapchainProvider () = default;
 
@@ -177,7 +177,7 @@ private:
 };
 
 
-class VULKANWRAPPER_API FakeSwapchain : public Swapchain {
+class VULKANWRAPPER_DLL_EXPORT FakeSwapchain : public Swapchain {
 private:
     std::unique_ptr<Image>                    image;
     std::vector<std::unique_ptr<ImageView2D>> imageViews;

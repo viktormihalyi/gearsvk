@@ -1,7 +1,7 @@
 #ifndef SHADERREFLECTION_HPP
 #define SHADERREFLECTION_HPP
 
-#include "VulkanWrapper/VulkanWrapperAPI.hpp"
+#include "VulkanWrapper/VulkanWrapperExport.hpp"
 #include "Utils/Noncopyable.hpp"
 #include <memory>
 
@@ -50,13 +50,13 @@ enum class FieldType : uint16_t {
 
 // clang-format on
 
-VULKANWRAPPER_API
+VULKANWRAPPER_DLL_EXPORT
 std::string FieldTypeToString (FieldType fieldType);
 
 
 class Field;
 
-class VULKANWRAPPER_API FieldContainer {
+class VULKANWRAPPER_DLL_EXPORT FieldContainer {
 public:
     virtual ~FieldContainer () = default;
 
@@ -64,7 +64,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API Field final : public FieldContainer, public Noncopyable {
+class VULKANWRAPPER_DLL_EXPORT Field final : public FieldContainer, public Noncopyable {
 public:
     std::string name;
     FieldType   type;
@@ -98,7 +98,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API BufferObject final : public FieldContainer, public Noncopyable {
+class VULKANWRAPPER_DLL_EXPORT BufferObject final : public FieldContainer, public Noncopyable {
 public:
     uint32_t                            binding;
     uint32_t                            descriptorSet;
@@ -114,7 +114,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API Sampler final {
+class VULKANWRAPPER_DLL_EXPORT Sampler final {
 public:
     enum class Type {
         Sampler1D,
@@ -131,7 +131,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API Output {
+class VULKANWRAPPER_DLL_EXPORT Output {
 public:
     std::string   name;
     uint32_t      location;
@@ -140,7 +140,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API Input {
+class VULKANWRAPPER_DLL_EXPORT Input {
 public:
     std::string   name;
     uint32_t      location;
@@ -150,7 +150,7 @@ public:
 };
 
 
-class VULKANWRAPPER_API SubpassInput {
+class VULKANWRAPPER_DLL_EXPORT SubpassInput {
 public:
     std::string name;
     uint32_t    binding;
@@ -161,7 +161,7 @@ public:
 
 
 // constructing a spirv_cross::Compiler is expensive
-class VULKANWRAPPER_API SpirvParser {
+class VULKANWRAPPER_DLL_EXPORT SpirvParser {
 public:
 
     struct Impl; // hide spirv_cross::Compiler
@@ -173,25 +173,25 @@ public:
 };
 
 
-VULKANWRAPPER_API
+VULKANWRAPPER_DLL_EXPORT
 std::vector<std::shared_ptr<BufferObject>> GetUBOsFromBinary (SpirvParser& compiler);
 
-VULKANWRAPPER_API
+VULKANWRAPPER_DLL_EXPORT
 std::vector<std::shared_ptr<BufferObject>> GetStorageBuffersFromBinary (SpirvParser& compiler);
 
-VULKANWRAPPER_API
+VULKANWRAPPER_DLL_EXPORT
 std::vector<Sampler> GetSamplersFromBinary (SpirvParser& compiler);
 
-VULKANWRAPPER_API
+VULKANWRAPPER_DLL_EXPORT
 std::vector<SubpassInput> GetSubpassInputsFromBinary (SpirvParser& compiler);
 
-VULKANWRAPPER_API
+VULKANWRAPPER_DLL_EXPORT
 std::vector<Input> GetInputsFromBinary (SpirvParser& compiler);
 
-VULKANWRAPPER_API
+VULKANWRAPPER_DLL_EXPORT
 std::vector<Output> GetOutputsFromBinary (SpirvParser& compiler);
 
-VULKANWRAPPER_API
+VULKANWRAPPER_DLL_EXPORT
 VkFormat FieldTypeToVkFormat (FieldType fieldType);
 
 
