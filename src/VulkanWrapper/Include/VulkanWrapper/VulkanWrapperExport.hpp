@@ -8,7 +8,7 @@
 #define VULKANWRAPPER_DLL_EXPORT __declspec(dllimport)
 #endif
 #else
-#ifdef RenderGraph_EXPORTS
+#ifdef VulkanWrapper_EXPORTS
 #define VULKANWRAPPER_DLL_EXPORT __attribute__ ((__visibility__ ("default")))
 #else
 #define VULKANWRAPPER_DLL_EXPORT
