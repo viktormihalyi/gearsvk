@@ -4,8 +4,8 @@
 #include "RenderGraph/Drawable/Drawable.hpp"
 #include "RenderGraph/RenderGraphExport.hpp"
 
-#include "VulkanWrapper/CommandBuffer.hpp"
-#include "VulkanWrapper/Utils/BufferTransferable.hpp"
+#include "RenderGraph/VulkanWrapper/CommandBuffer.hpp"
+#include "RenderGraph/VulkanWrapper/Utils/BufferTransferable.hpp"
 
 #include <functional>
 #include <memory>
@@ -62,13 +62,13 @@ public:
     const uint32_t indexCount;
     const VkBuffer indexBuffer;
 
-    DrawableInfo (const uint32_t                                        instanceCount,
-                  uint32_t                                              vertexCount,
-                  VkBuffer                                              vertexBuffer          = VK_NULL_HANDLE,
-                  const std::vector<VkVertexInputBindingDescription>&   vertexInputBindings   = {},
-                  const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributes = {},
-                  uint32_t                                              indexCount            = 0,
-                  VkBuffer                                              indexBuffer           = VK_NULL_HANDLE)
+    DrawableInfo (const uint32_t instanceCount,
+                  uint32_t       vertexCount,
+                  VkBuffer       vertexBuffer                                                       = VK_NULL_HANDLE,
+                  const std::vector<VkVertexInputBindingDescription>& /* vertexInputBindings   */   = {},
+                  const std::vector<VkVertexInputAttributeDescription>& /* vertexInputAttributes */ = {},
+                  uint32_t indexCount                                                               = 0,
+                  VkBuffer indexBuffer                                                              = VK_NULL_HANDLE)
         : instanceCount (instanceCount)
         , vertexCount (vertexCount)
         , vertexBuffer ((vertexBuffer == VK_NULL_HANDLE) ? std::vector<VkBuffer> {} : std::vector<VkBuffer> { vertexBuffer })
@@ -81,9 +81,9 @@ public:
                   const GVK::VertexBufferTransferableUntyped& vertexBuffer,
                   const GVK::IndexBufferTransferable&         indexBuffer)
         : instanceCount (instanceCount)
-        , vertexCount (vertexBuffer.data.size ())
+        , vertexCount (static_cast<uint32_t> (vertexBuffer.data.size ()))
         , vertexBuffer ({ vertexBuffer.buffer.GetBufferToBind () })
-        , indexCount (indexBuffer.data.size ())
+        , indexCount (static_cast<uint32_t> (indexBuffer.data.size ()))
         , indexBuffer (indexBuffer.buffer.GetBufferToBind ())
     {
     }
@@ -91,7 +91,7 @@ public:
     DrawableInfo (const uint32_t                              instanceCount,
                   const GVK::VertexBufferTransferableUntyped& vertexBuffer)
         : instanceCount (instanceCount)
-        , vertexCount (vertexBuffer.data.size ())
+        , vertexCount (static_cast<uint32_t> (vertexBuffer.data.size ()))
         , vertexBuffer ({ vertexBuffer.buffer.GetBufferToBind () })
         , indexCount (0)
         , indexBuffer (VK_NULL_HANDLE)

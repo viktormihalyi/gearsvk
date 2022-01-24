@@ -209,7 +209,7 @@ void RenderGraph::SeparatePasses ()
             Resource*               firstResourceToSplitOn = hitCount.insertionOrder[0];
             std::vector<Operation*> operationsToSplit      = hitCount.hitCount.find (firstResourceToSplitOn)->second;
 
-            Operation* firstOperation  = operationsToSplit[0];
+            // Operation* firstOperation  = operationsToSplit[0];
             Operation* secondOperation = operationsToSplit[1];
 
             Pass::OperationIO* toMove = newPasses[i].GetOperationIO (secondOperation);
@@ -417,7 +417,7 @@ uint32_t RenderGraph::GetPassCount () const
 {
     GVK_ASSERT (compiled);
 
-    return passes.size ();
+    return static_cast<uint32_t> (passes.size ());
 }
 
 } // namespace RG

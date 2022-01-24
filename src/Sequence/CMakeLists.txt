@@ -61,7 +61,6 @@ target_include_directories (Sequence
     PUBLIC
         Include
 
-        $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
  
         $<TARGET_PROPERTY:pybind11::pybind11,INTERFACE_INCLUDE_DIRECTORIES>
@@ -71,7 +70,6 @@ target_include_directories (Sequence
 
 target_link_libraries (Sequence
     PUBLIC
-        Utils
         RenderGraph
         pybind11::pybind11
         ${Python3_LIBRARY_RELEASE}

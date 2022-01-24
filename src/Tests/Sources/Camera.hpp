@@ -3,9 +3,9 @@
 
 #include "RenderGraph/RenderGraphExport.hpp"
 
-#include "Utils/Event.hpp"
+#include "RenderGraph/Utils/Event.hpp"
 #include "Frustum.hpp"
-#include "Utils/Lazy.hpp"
+#include "RenderGraph/Utils/Lazy.hpp"
 
 #include <glm/glm.hpp>
 

@@ -52,7 +52,7 @@ const GVK::CommandPool& GraphSettings::GetCommandPool () const
 }
 
 
-GraphSettings::GraphSettings (GraphSettings&& other)
+GraphSettings::GraphSettings (GraphSettings&& other) noexcept
     : connectionSet (std::move (other.connectionSet))
     , device (other.device)
     , framesInFlight (other.framesInFlight)
@@ -62,7 +62,7 @@ GraphSettings::GraphSettings (GraphSettings&& other)
 }
 
 
-GraphSettings& GraphSettings::operator= (GraphSettings&& other)
+GraphSettings& GraphSettings::operator= (GraphSettings&& other) noexcept
 {
     if (this != &other) {
         connectionSet  = std::move (other.connectionSet);
@@ -80,7 +80,7 @@ GraphSettings& GraphSettings::operator= (GraphSettings&& other)
 ConnectionSet::ConnectionSet () = default;
 
 
-ConnectionSet::ConnectionSet (ConnectionSet&& other)
+ConnectionSet::ConnectionSet (ConnectionSet&& other) noexcept
     : connections (std::move (other.connections))
     , nodeSet (std::move (other.nodeSet))
     , insertionOrder (std::move (other.insertionOrder))
@@ -91,7 +91,7 @@ ConnectionSet::ConnectionSet (ConnectionSet&& other)
 }
 
 
-ConnectionSet& ConnectionSet::operator= (ConnectionSet&& other)
+ConnectionSet& ConnectionSet::operator= (ConnectionSet&& other) noexcept
 {
     if (this != &other) {
         connections    = std::move (other.connections);

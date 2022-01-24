@@ -39,7 +39,6 @@ target_include_directories (GVKTest
         $<TARGET_PROPERTY:GearsModule,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:Sequence,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
 
         $<TARGET_PROPERTY:gtest,INTERFACE_INCLUDE_DIRECTORIES>
 )
@@ -49,7 +48,6 @@ target_link_libraries (GVKTest
         Sequence
         GearsModule
         RenderGraph
-        Utils
 
         gtest
 )

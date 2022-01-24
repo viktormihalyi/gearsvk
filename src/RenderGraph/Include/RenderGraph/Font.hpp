@@ -6,10 +6,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Utils/Assert.hpp"
-#include "Utils/Event.hpp"
 #include "RenderGraph/RenderGraphExport.hpp"
-#include "Utils/Noncopyable.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
+#include "RenderGraph/Utils/Event.hpp"
+#include "RenderGraph/Utils/Noncopyable.hpp"
 #include <memory>
 
 #include <glm/glm.hpp>
@@ -41,11 +41,11 @@ namespace RG {
 
 struct GlyphData {
     std::vector<float> data;
-    uint32_t           width;
-    uint32_t           height;
-    glm::vec2          translation;
-    glm::vec2          scale;
-    glm::vec2          aspectRatio;
+    uint32_t           width  = 0;
+    uint32_t           height = 0;
+    glm::vec2          translation { 0.f, 0.f };
+    glm::vec2          scale { 0.f, 0.f };
+    glm::vec2          aspectRatio { 0.f, 0.f };
 };
 
 

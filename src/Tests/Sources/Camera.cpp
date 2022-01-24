@@ -1,6 +1,6 @@
 #include "Camera.hpp"
 
-#include "Utils/Assert.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
 
 #include <algorithm>
 #include <sstream>

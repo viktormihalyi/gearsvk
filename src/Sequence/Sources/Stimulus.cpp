@@ -3,7 +3,7 @@
 #include "Pass.h"
 #include "Sequence.h"
 #include "SpatialFilter.h"
-#include "Utils/Assert.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
 
 #include <algorithm>
 #include <ctime>

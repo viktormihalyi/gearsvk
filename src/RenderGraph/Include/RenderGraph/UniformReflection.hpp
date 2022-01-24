@@ -6,11 +6,11 @@
 #include "RenderGraph/Operation.hpp"
 #include "RenderGraph/Resource.hpp"
 
-#include "VulkanWrapper/ShaderModule.hpp"
-#include "VulkanWrapper/ShaderReflection.hpp"
+#include "RenderGraph/VulkanWrapper/ShaderModule.hpp"
+#include "RenderGraph/VulkanWrapper/ShaderReflection.hpp"
 
-#include "Utils/Assert.hpp"
-#include "Utils/UUID.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
+#include "RenderGraph/Utils/UUID.hpp"
 
 #include <glm/glm.hpp>
 

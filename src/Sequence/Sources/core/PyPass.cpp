@@ -10,8 +10,8 @@
 #include <limits>
 #include <sstream>
 
-#include "Utils/Utils.hpp"
-#include "Utils/Assert.hpp"
+#include "RenderGraph/Utils/Utils.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
 
 
 struct PyPass::Impl {

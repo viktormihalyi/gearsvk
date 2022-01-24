@@ -3,7 +3,7 @@
 
 #include <pybind11/pybind11.h>
 
-#include "Utils/Assert.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
 
 
 template<typename T>

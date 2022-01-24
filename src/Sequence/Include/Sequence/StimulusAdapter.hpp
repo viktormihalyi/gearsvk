@@ -2,10 +2,10 @@
 #define STIMULUSADAPTERFORPRESENTABLE_HPP
 
 // from RenderGraph
-#include "Utils/Event.hpp"
+#include "RenderGraph/Utils/Event.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
-#include "Utils/Noncopyable.hpp"
-#include "Utils/Time.hpp"
+#include "RenderGraph/Utils/Noncopyable.hpp"
+#include "RenderGraph/Utils/Time.hpp"
 
 // from Sequence
 #include "SequenceAPI.hpp"

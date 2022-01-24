@@ -34,6 +34,8 @@ RenderOperation::Builder::Builder (VkDevice device)
 }
 
 
+#pragma warning(disable : 26815)
+
 RenderOperation::Builder& RenderOperation::Builder::SetPrimitiveTopology (VkPrimitiveTopology value)
 {
     topology = value;
@@ -99,6 +101,8 @@ RenderOperation::Builder& RenderOperation::Builder::SetClearColor (const glm::ve
     clearColor = value;
     return *this;
 }
+
+#pragma warning(disable : 26815)
 
 
 std::shared_ptr<RenderOperation> RenderOperation::Builder::Build ()
@@ -186,7 +190,7 @@ public:
                 }
             }
         }
-        vkUpdateDescriptorSets (device, writes.size (), writes.data (), 0, nullptr);
+        vkUpdateDescriptorSets (device, static_cast<uint32_t> (writes.size ()), writes.data (), 0, nullptr);
     }
 };
 
@@ -229,7 +233,7 @@ static Operation::Descriptors CompileOperationDescriptors (const GraphSettings& 
 } // namespace
 
 
-void RenderOperation::Compile (const GraphSettings& graphSettings)
+void RenderOperation::Compile (const GraphSettings& /* graphSettings */)
 {
     GVK_BREAK ();
     throw std::runtime_error ("RenderOperations should be compiled with extent.");
@@ -246,7 +250,7 @@ void RenderOperation::CompileWithExtent (const GraphSettings& graphSettings, uin
     }
 
     const std::vector<VkAttachmentReference>   attachmentReferences      = RG::FromShaderReflection::GetAttachmentReferences (GetShaderPipeline ()->GetReflection (GVK::ShaderKind::Fragment), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
-    const std::vector<VkAttachmentReference>   inputAttachmentReferences = RG::FromShaderReflection::GetInputAttachmentReferences (GetShaderPipeline ()->GetReflection (GVK::ShaderKind::Fragment), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider, attachmentReferences.size ());
+    const std::vector<VkAttachmentReference>   inputAttachmentReferences = RG::FromShaderReflection::GetInputAttachmentReferences (GetShaderPipeline ()->GetReflection (GVK::ShaderKind::Fragment), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider, static_cast<uint32_t> (attachmentReferences.size ()));
     const std::vector<VkAttachmentDescription> attachmentDescriptions    = RG::FromShaderReflection::GetAttachmentDescriptions (GetShaderPipeline ()->GetReflection (GVK::ShaderKind::Fragment), GVK::ShaderKind::Fragment, *compileSettings.attachmentProvider);
 
     ShaderPipeline::CompileSettings pipelineSettings { width,
@@ -273,7 +277,7 @@ void RenderOperation::CompileWithExtent (const GraphSettings& graphSettings, uin
 }
 
 
-void RenderOperation::Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
+void RenderOperation::Record (const ConnectionSet&, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
 {
     uint32_t outputCount = 0;
     for (const auto& output : GetShaderPipeline ()->GetReflection (GVK::ShaderKind::Fragment).outputs) {
@@ -375,7 +379,7 @@ void ComputeOperation::Compile (const GraphSettings& graphSettings)
     const GVK::ShaderModule& computeShader = *compileSettings.computeShaderPipeline->computeShader;
 
     const std::vector<VkAttachmentReference>   attachmentReferences      = RG::FromShaderReflection::GetAttachmentReferences (computeShader.GetReflection (), GVK::ShaderKind::Compute, *compileSettings.attachmentProvider);
-    const std::vector<VkAttachmentReference>   inputAttachmentReferences = RG::FromShaderReflection::GetInputAttachmentReferences (computeShader.GetReflection (), GVK::ShaderKind::Compute, *compileSettings.attachmentProvider, attachmentReferences.size ());
+    const std::vector<VkAttachmentReference>   inputAttachmentReferences = RG::FromShaderReflection::GetInputAttachmentReferences (computeShader.GetReflection (), GVK::ShaderKind::Compute, *compileSettings.attachmentProvider, static_cast<uint32_t> (attachmentReferences.size ()));
     const std::vector<VkAttachmentDescription> attachmentDescriptions    = RG::FromShaderReflection::GetAttachmentDescriptions (computeShader.GetReflection (), GVK::ShaderKind::Compute, *compileSettings.attachmentProvider);
 
     ComputeShaderPipeline::CompileSettings pipelineSettings { compileResult.descriptors.descriptorSetLayout->operator VkDescriptorSetLayout (),
@@ -394,7 +398,7 @@ void ComputeOperation::CompileWithExtent (const GraphSettings&, uint32_t, uint32
 }
 
 
-void ComputeOperation::Record (const ConnectionSet& connectionSet, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
+void ComputeOperation::Record (const ConnectionSet&, uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
 {
     commandBuffer.Record<GVK::CommandBindPipeline> (VK_PIPELINE_BIND_POINT_COMPUTE, *compileSettings.computeShaderPipeline->compileResult.pipeline).SetName ("ComputeOperation - Bind");
 

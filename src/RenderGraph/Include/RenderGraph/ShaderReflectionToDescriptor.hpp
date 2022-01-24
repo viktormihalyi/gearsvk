@@ -3,7 +3,7 @@
 
 #include "RenderGraphExport.hpp"
 
-#include "VulkanWrapper/ShaderModule.hpp"
+#include "RenderGraph/VulkanWrapper/ShaderModule.hpp"
 
 #include <vulkan/vulkan.h>
 

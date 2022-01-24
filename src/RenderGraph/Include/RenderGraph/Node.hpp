@@ -3,8 +3,8 @@
 
 #include "RenderGraph/RenderGraphExport.hpp"
 
-#include "Utils/Noncopyable.hpp"
-#include "Utils/UUID.hpp"
+#include "RenderGraph/Utils/Noncopyable.hpp"
+#include "RenderGraph/Utils/UUID.hpp"
 #include <string>
 
 namespace RG {

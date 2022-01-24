@@ -164,7 +164,7 @@ void ShaderPipeline::SetShaderFromSourceFile (const std::filesystem::path& shade
 
 void ShaderPipeline::SetShadersFromSourceFiles (const std::vector<std::filesystem::path>& shaderPath)
 {
-    MultithreadedFunction d (shaderPath.size (), [&] (uint32_t threadCount, uint32_t threadIndex) {
+    MultithreadedFunction d (static_cast<uint32_t> (shaderPath.size ()), [&] (uint32_t /* threadCount */, uint32_t threadIndex) {
         SetShaderFromSourceFile (shaderPath[threadIndex]);
     });
 }
@@ -265,7 +265,7 @@ void ShaderPipeline::IterateShaders (const std::function<void (GVK::ShaderModule
 }
 
 
-std::unique_ptr<GVK::DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLayout (VkDevice device) const
+std::unique_ptr<GVK::DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLayout (VkDevice device_) const
 {
     std::vector<VkDescriptorSetLayoutBinding> layout;
 
@@ -281,7 +281,7 @@ std::unique_ptr<GVK::DescriptorSetLayout> ShaderPipeline::CreateDescriptorSetLay
         layout.insert (layout.end (), layoutPart.begin (), layoutPart.end ());
     });
 
-    return std::make_unique<GVK::DescriptorSetLayout> (device, layout);
+    return std::make_unique<GVK::DescriptorSetLayout> (device_, layout);
 }
 
 } // namespace RG

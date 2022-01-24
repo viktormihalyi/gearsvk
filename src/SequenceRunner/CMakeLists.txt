@@ -15,7 +15,6 @@ target_include_directories (SequenceRunner
         $<TARGET_PROPERTY:GearsModule,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:Sequence,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
  
         ${ffmpeg_INCLUDE_DIRS}
 )
@@ -25,7 +24,6 @@ target_link_libraries (SequenceRunner
         GearsModule
         Sequence
         RenderGraph
-        Utils
 
         ${ffmpeg_LIBRARIES}
 )

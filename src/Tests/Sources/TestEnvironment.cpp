@@ -1,10 +1,10 @@
 #include "TestEnvironment.hpp"
 
 #include "RenderGraph/Window/GLFWWindow.hpp"
-#include "VulkanWrapper/Utils/ImageData.hpp"
-#include "VulkanWrapper/Surface.hpp"
+#include "RenderGraph/VulkanWrapper/Utils/ImageData.hpp"
+#include "RenderGraph/VulkanWrapper/Surface.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
-#include "VulkanWrapper/VulkanWrapper.hpp"
+#include "RenderGraph/VulkanWrapper/VulkanWrapper.hpp"
 
 #include <optional>
 

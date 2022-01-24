@@ -3,8 +3,8 @@
 
 #include "RenderGraph/RenderGraphExport.hpp"
 
-#include "Utils/Event.hpp"
-#include "VulkanWrapper/Utils/VulkanUtils.hpp"
+#include "RenderGraph/Utils/Event.hpp"
+#include "RenderGraph/VulkanWrapper/Utils/VulkanUtils.hpp"
 #include <memory>
 
 #include "RenderGraph/GraphSettings.hpp"

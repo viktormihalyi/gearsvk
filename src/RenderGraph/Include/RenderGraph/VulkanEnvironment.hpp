@@ -3,9 +3,9 @@
 
 #include "RenderGraph/RenderGraphExport.hpp"
 
-#include "VulkanWrapper/DebugUtilsMessenger.hpp"
-#include "VulkanWrapper/Swapchain.hpp"
-#include "VulkanWrapper/Surface.hpp"
+#include "RenderGraph/VulkanWrapper/DebugUtilsMessenger.hpp"
+#include "RenderGraph/VulkanWrapper/Swapchain.hpp"
+#include "RenderGraph/VulkanWrapper/Surface.hpp"
 
 #include <memory>
 

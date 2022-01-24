@@ -4,7 +4,7 @@
 #include "RenderGraph/RenderGraphExport.hpp"
 
 #include "RenderGraph/Node.hpp"
-#include "VulkanWrapper/DeviceExtra.hpp"
+#include "RenderGraph/VulkanWrapper/DeviceExtra.hpp"
 
 #include <memory>
 #include <set>
@@ -38,8 +38,8 @@ private:
 public:
     
     ConnectionSet ();
-    ConnectionSet (ConnectionSet&&);
-    ConnectionSet& operator= (ConnectionSet&&);
+    ConnectionSet (ConnectionSet&&) noexcept;
+    ConnectionSet& operator= (ConnectionSet&&) noexcept;
 
     virtual ~ConnectionSet () override;
 
@@ -119,8 +119,8 @@ public:
     GraphSettings (const GVK::DeviceExtra& device, uint32_t framesInFlight);
 
     GraphSettings ();
-    GraphSettings (GraphSettings&&);
-    GraphSettings& operator= (GraphSettings&&);
+    GraphSettings (GraphSettings&&) noexcept;
+    GraphSettings& operator= (GraphSettings&&) noexcept;
 
     const GVK::DeviceExtra& GetDevice () const;
 

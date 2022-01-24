@@ -1,18 +1,18 @@
 #include "SequenceAdapter.hpp"
 
 // from RenderGraph
-#include "Utils/Assert.hpp"
-#include "Utils/CommandLineFlag.hpp"
-#include "Utils/FileSystemUtils.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
+#include "RenderGraph/Utils/CommandLineFlag.hpp"
+#include "RenderGraph/Utils/FileSystemUtils.hpp"
 
 #include "StimulusAdapter.hpp"
 #include "StimulusAdapterView.hpp"
 
 #include "RenderGraph/Window/GLFWWindow.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
-#include "VulkanWrapper/Surface.hpp"
+#include "RenderGraph/VulkanWrapper/Surface.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
-#include "VulkanWrapper/Utils/ImageData.hpp"
+#include "RenderGraph/VulkanWrapper/Utils/ImageData.hpp"
 #include "RenderGraph/Resource.hpp"
 
 // from Gears

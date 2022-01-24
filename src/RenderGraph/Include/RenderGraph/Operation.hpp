@@ -9,7 +9,7 @@
 #include "RenderGraph/ShaderReflectionToAttachment.hpp"
 #include "RenderGraph/ShaderReflectionToDescriptor.hpp"
 
-#include "VulkanWrapper/ShaderModule.hpp"
+#include "RenderGraph/VulkanWrapper/ShaderModule.hpp"
 
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>

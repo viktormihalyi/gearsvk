@@ -133,6 +133,7 @@ static std::vector<T> BitmapToVector (const msdfgen::Bitmap<T, N>& bitmap)
 }
 
 
+/*
 // from https://github.com/Chlumsky/msdfgen/blob/master/main.cpp#L893
 static void GetAutoFrame (const uint32_t emSize, const msdfgen::Shape::Bounds& bounds, uint32_t width, uint32_t height,
                           msdfgen::Vector2& scale, msdfgen::Vector2& translate, msdfgen::Vector2& aspectRatio, msdfgen::Vector2& actScale)
@@ -173,6 +174,8 @@ static void GetAutoFrame (const uint32_t emSize, const msdfgen::Shape::Bounds& b
         scale = frame.x / dims.x;
     }
 }
+*/
+
 
 template<size_t Components>
 using DistanceMapGeneratorFunc = std::function<void (
@@ -229,7 +232,7 @@ GlyphData Font::GetGlyphSDF (uint32_t width, uint32_t height, uint32_t unicode) 
         msdfgen::generateSDF (output, shape, msdfgen::Projection { scale, translate }, range);
     };
 
-    return GetGlyph<1> (impl->fontHandle, width, height, emSize, unicode, generator);
+    return GetGlyph<1> (impl->fontHandle, width, height, static_cast<uint32_t> (emSize), unicode, generator);
 }
 
 
@@ -243,7 +246,7 @@ GlyphData Font::GetGlyphMDF (uint32_t width, uint32_t height, uint32_t unicode) 
         msdfgen::generateMSDF (output, shape, range, scale, translate);
     };
 
-    return GetGlyph<3> (impl->fontHandle, width, height, emSize, unicode, generator);
+    return GetGlyph<3> (impl->fontHandle, width, height, static_cast<uint32_t> (emSize), unicode, generator);
 }
 
 
@@ -257,7 +260,7 @@ GlyphData Font::GetGlyphMTDF (uint32_t width, uint32_t height, uint32_t unicode)
         msdfgen::generateMTSDF (output, shape, range, scale, translate);
     };
 
-    return GetGlyph<4> (impl->fontHandle, width, height, emSize, unicode, generator);
+    return GetGlyph<4> (impl->fontHandle, width, height, static_cast<uint32_t> (emSize), unicode, generator);
 }
 
 }

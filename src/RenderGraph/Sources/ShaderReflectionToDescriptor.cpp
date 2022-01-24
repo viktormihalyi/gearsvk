@@ -71,11 +71,11 @@ static void UpdateDescriptorSetsFromSamplers (const GVK::ShaderModuleReflection&
                 continue;
             }
 
-            const int32_t currentSize = imgInfos.size ();
+            const int32_t currentSize = static_cast<uint32_t> (imgInfos.size ());
 
             imgInfos.insert (imgInfos.end (), tempImgInfos.begin (), tempImgInfos.end ());
 
-            const int32_t newSize = imgInfos.size ();
+            const int32_t newSize = static_cast<uint32_t> (imgInfos.size ());
 
             GVK_ASSERT (newSize - currentSize == tempImgInfos.size ());
             GVK_ASSERT (newSize - currentSize > 0);
@@ -120,11 +120,11 @@ static void UpdateDescriptorSetsFromUBOs (const GVK::ShaderModuleReflection& ref
             continue;
         }
 
-        const int32_t currentSize = bufferInfos.size ();
-
+        const int32_t currentSize = static_cast<uint32_t> (bufferInfos.size ());
+        
         bufferInfos.insert (bufferInfos.end (), tempBufferInfos.begin (), tempBufferInfos.end ());
 
-        const int32_t newSize = bufferInfos.size ();
+        const int32_t newSize = static_cast<uint32_t> (bufferInfos.size ());
 
         GVK_ASSERT (newSize - currentSize == tempBufferInfos.size ());
         GVK_ASSERT (newSize - currentSize > 0);
@@ -168,11 +168,11 @@ static void UpdateDescriptorSetsFromStorageBuffers (const GVK::ShaderModuleRefle
             continue;
         }
 
-        const int32_t currentSize = bufferInfos.size ();
+        const int32_t currentSize = static_cast<uint32_t> (bufferInfos.size ());
 
         bufferInfos.insert (bufferInfos.end (), tempBufferInfos.begin (), tempBufferInfos.end ());
 
-        const int32_t newSize = bufferInfos.size ();
+        const int32_t newSize = static_cast<uint32_t> (bufferInfos.size ());
 
         GVK_ASSERT (newSize - currentSize == tempBufferInfos.size ());
         GVK_ASSERT (newSize - currentSize > 0);
@@ -220,11 +220,11 @@ static void UpdateDescriptorSetsFromInputAttachments (const GVK::ShaderModuleRef
                 continue;
             }
 
-            const int32_t currentSize = imgInfos.size ();
+            const int32_t currentSize = static_cast<uint32_t> (imgInfos.size ());
 
             imgInfos.insert (imgInfos.end (), tempImgInfos.begin (), tempImgInfos.end ());
 
-            const int32_t newSize = imgInfos.size ();
+            const int32_t newSize = static_cast<uint32_t> (imgInfos.size ());
 
             GVK_ASSERT (newSize - currentSize == tempImgInfos.size ());
             GVK_ASSERT (newSize - currentSize > 0);

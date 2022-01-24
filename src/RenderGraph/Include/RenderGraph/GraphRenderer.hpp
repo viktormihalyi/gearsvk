@@ -5,8 +5,8 @@
 
 #include "RenderGraph/Window/Window.hpp"
 
-#include "Utils/Event.hpp"
-#include "Utils/Time.hpp"
+#include "RenderGraph/Utils/Event.hpp"
+#include "RenderGraph/Utils/Time.hpp"
 
 #include <memory>
 

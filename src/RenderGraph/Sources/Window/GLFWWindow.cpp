@@ -2,8 +2,13 @@
 
 #include <vulkan/vulkan.h>
 
+#pragma warning (push, 0)
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#pragma warning(pop)
 
 #include "Utils/Assert.hpp"
 #include "Utils/Timer.hpp"
@@ -64,8 +69,8 @@ struct GLFWWindowBase::Impl {
     GLFWwindow*  window;
     VkSurfaceKHR surface;
 
-    uint32_t width;
-    uint32_t height;
+    size_t   width;
+    size_t   height;
     uint32_t refreshRate;
 
     uint32_t widthWindowed;
@@ -119,7 +124,7 @@ GLFWWindowBase::GLFWWindowBase (size_t width, size_t height, const std::vector<s
     // monitor settings
 
     GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor ();
-    glfwSetMonitorCallback ([] (GLFWmonitor* monitor, int event) {
+    glfwSetMonitorCallback ([] (GLFWmonitor* /* monitor */, int /* event */) {
         // TODO
     });
 
@@ -144,7 +149,7 @@ GLFWWindowBase::GLFWWindowBase (size_t width, size_t height, const std::vector<s
         usedMonitor  = primaryMonitor;
     }
 
-    impl->window = glfwCreateWindow (impl->width, impl->height, "GearsVk", usedMonitor, nullptr);
+    impl->window = glfwCreateWindow (static_cast<int> (impl->width), static_cast<int> (impl->height), "GearsVk", usedMonitor, nullptr);
     if (GVK_ERROR (impl->window == nullptr)) {
         throw std::runtime_error ("failed to create window");
     }
@@ -158,7 +163,7 @@ GLFWWindowBase::GLFWWindowBase (size_t width, size_t height, const std::vector<s
 
     // callbacks
 
-    glfwSetKeyCallback (impl->window, [] (GLFWwindow* window, int key, int scancode, int action, int mods) {
+    glfwSetKeyCallback (impl->window, [] (GLFWwindow* window, int key, int /* scancode */, int action, int /* mods */) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         //const char* keyName = glfwGetKeyName (key, 0);
@@ -174,11 +179,11 @@ GLFWWindowBase::GLFWWindowBase (size_t width, size_t height, const std::vector<s
     glfwSetCursorPosCallback (impl->window, [] (GLFWwindow* window, double xpos, double ypos) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
-        self->events.mouseMove (xpos, ypos);
+        self->events.mouseMove (static_cast<uint32_t> (xpos), static_cast<uint32_t> (ypos));
     });
 
 
-    glfwSetMouseButtonCallback (impl->window, [] (GLFWwindow* window, int button, int action, int mods) {
+    glfwSetMouseButtonCallback (impl->window, [] (GLFWwindow* window, int button, int action, int /* mods */) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         double x, y;
@@ -199,7 +204,7 @@ GLFWWindowBase::GLFWWindowBase (size_t width, size_t height, const std::vector<s
     glfwSetScrollCallback (impl->window, [] (GLFWwindow* window, double /* xoffset */, double yoffset) {
         GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
-        self->events.scroll (yoffset);
+        self->events.scroll (static_cast<uint32_t> (yoffset));
     });
 
     glfwSetWindowSizeCallback (impl->window, [] (GLFWwindow* window, int width, int height) {
@@ -236,8 +241,8 @@ GLFWWindowBase::GLFWWindowBase (size_t width, size_t height, const std::vector<s
         self->events.refresh ();
     });
 
-    glfwSetFramebufferSizeCallback (impl->window, [] (GLFWwindow* window, int width, int height) {
-        GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
+    glfwSetFramebufferSizeCallback (impl->window, [] (GLFWwindow* /* window */, int /* width */, int /* height */) {
+        // GLFWWindowBase* self = static_cast<GLFWWindowBase*> (glfwGetWindowUserPointer (window));
 
         spdlog::trace ("framebuffer resized");
     });
@@ -258,13 +263,13 @@ void* GLFWWindowBase::GetHandle () const
 
 uint32_t GLFWWindowBase::GetWidth () const
 {
-    return impl->width;
+    return static_cast<uint32_t> (impl->width);
 }
 
 
 uint32_t GLFWWindowBase::GetHeight () const
 {
-    return impl->height;
+    return static_cast<uint32_t> (impl->height);
 }
 
 

@@ -9,15 +9,15 @@
 #include "RenderGraph/VulkanEnvironment.hpp"
 
 // from VulkanWrapper
-#include "VulkanWrapper/Utils/ImageData.hpp"
-#include "VulkanWrapper/VulkanWrapper.hpp"
+#include "RenderGraph/VulkanWrapper/Utils/ImageData.hpp"
+#include "RenderGraph/VulkanWrapper/VulkanWrapper.hpp"
 
 // from Sequence
 #include "Sequence/StimulusAdapter.hpp"
 
 // from Utils
-#include "Utils/StaticInit.hpp"
-#include "Utils/FileSystemUtils.hpp"
+#include "RenderGraph/Utils/StaticInit.hpp"
+#include "RenderGraph/Utils/FileSystemUtils.hpp"
 
 // from glm
 #include <glm/glm.hpp>

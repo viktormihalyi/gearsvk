@@ -1,11 +1,9 @@
 #ifndef SEQUENCEADAPTER_HPP
 #define SEQUENCEADAPTER_HPP
 
-// from Utils
-#include "Utils/Event.hpp"
-#include "Utils/Time.hpp"
-
 // from RenderGraph
+#include "RenderGraph/Utils/Event.hpp"
+#include "RenderGraph/Utils/Time.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
 
 // from Sequence

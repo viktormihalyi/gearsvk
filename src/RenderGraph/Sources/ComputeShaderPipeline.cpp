@@ -69,9 +69,9 @@ void ComputeShaderPipeline::IterateShaders (const std::function<void(const GVK::
 }
 
 
-std::unique_ptr<GVK::DescriptorSetLayout> ComputeShaderPipeline::CreateDescriptorSetLayout (VkDevice device) const
+std::unique_ptr<GVK::DescriptorSetLayout> ComputeShaderPipeline::CreateDescriptorSetLayout (VkDevice device_) const
 {
-    return std::make_unique<GVK::DescriptorSetLayout> (device, RG::FromShaderReflection::GetLayout (computeShader->GetReflection (), computeShader->GetShaderKind ()));
+    return std::make_unique<GVK::DescriptorSetLayout> (device_, RG::FromShaderReflection::GetLayout (computeShader->GetReflection (), computeShader->GetShaderKind ()));
 }
 
 } // namespace RG

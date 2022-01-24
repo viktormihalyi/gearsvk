@@ -2,9 +2,9 @@
 
 // from RenderGraph
 #include "RenderGraph/GraphRenderer.hpp"
-#include "VulkanWrapper/Instance.hpp"
-#include "VulkanWrapper/ShaderModule.hpp"
-#include "VulkanWrapper/Surface.hpp"
+#include "RenderGraph/VulkanWrapper/Instance.hpp"
+#include "RenderGraph/VulkanWrapper/ShaderModule.hpp"
+#include "RenderGraph/VulkanWrapper/Surface.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "RenderGraph/Window/Window.hpp"
 #include "RenderGraph/Window/GLFWWindow.hpp"

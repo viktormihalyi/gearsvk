@@ -101,8 +101,9 @@ BufferView BufferView::operator[] (uint32_t index)
 
     GVK_ASSERT (type == Type::Array);
     GVK_ASSERT (currentField != nullptr);
+    GVK_ASSERT (currentField->arraySize.size () > 0);
 
-    const uint32_t maxArraySizeIndex = currentField->arraySize.size () - 1;
+    const uint32_t maxArraySizeIndex = static_cast<uint32_t> (currentField->arraySize.size () - 1);
     if (currentField->IsMultiDimensionalArray () && nextArraySizeIndex < maxArraySizeIndex) {
         const uint32_t newOffset = offset + index * currentField->arrayStride[nextArraySizeIndex];
         const uint32_t newSize   = size;
@@ -165,7 +166,7 @@ uint8_t* BufferDataInternal::GetData ()
 
 uint32_t BufferDataInternal::GetSize () const
 {
-    return bytes.size ();
+    return static_cast<uint32_t> (bytes.size ());
 }
 
 
@@ -215,14 +216,14 @@ ShaderBufferData::ShaderBufferData (const std::vector<std::shared_ptr<BufferObje
 
 IBufferData& ShaderBufferData::operator[] (std::string_view str)
 {
-    const uint32_t index = std::distance (uboNames.begin (), std::find (uboNames.begin (), uboNames.end (), str));
+    const ptrdiff_t index = std::distance (uboNames.begin (), std::find (uboNames.begin (), uboNames.end (), str));
     return *udatas[index];
 }
 
 
 std::shared_ptr<BufferObject> ShaderBufferData::GetUbo (std::string_view str)
 {
-    const uint32_t index = std::distance (uboNames.begin (), std::find (uboNames.begin (), uboNames.end (), str));
+    const ptrdiff_t index = std::distance (uboNames.begin (), std::find (uboNames.begin (), uboNames.end (), str));
     return ubos[index];
 }
 

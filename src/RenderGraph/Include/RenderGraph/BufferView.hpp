@@ -1,8 +1,8 @@
 ﻿#ifndef UNIFORM_VIEW_HPP
 #define UNIFORM_VIEW_HPP
 
-#include "Utils/Assert.hpp"
-#include "Utils/Noncopyable.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
+#include "RenderGraph/Utils/Noncopyable.hpp"
 #include <memory>
 
 #include "RenderGraph/RenderGraphExport.hpp"
@@ -151,7 +151,7 @@ public:
 // view to a single BufferObject + properly sized byte array for it
 class RENDERGRAPH_DLL_EXPORT DummyBufferData final : public IBufferData {
 public:
-    virtual BufferView operator[] (std::string_view str) override
+    virtual BufferView operator[] (std::string_view) override
     {
         return BufferView::invalidUview;
     }

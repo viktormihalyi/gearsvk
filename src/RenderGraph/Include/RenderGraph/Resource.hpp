@@ -3,12 +3,12 @@
 
 #include "RenderGraph/RenderGraphExport.hpp"
 
-#include "Utils/Event.hpp"
-#include "Utils/Timer.hpp"
+#include "RenderGraph/Utils/Event.hpp"
+#include "RenderGraph/Utils/Timer.hpp"
 
-#include "VulkanWrapper/Event.hpp"
-#include "VulkanWrapper/GraphicsPipeline.hpp"
-#include "VulkanWrapper/Utils/BufferTransferable.hpp"
+#include "RenderGraph/VulkanWrapper/Event.hpp"
+#include "RenderGraph/VulkanWrapper/GraphicsPipeline.hpp"
+#include "RenderGraph/VulkanWrapper/Utils/BufferTransferable.hpp"
 
 #include "RenderGraph/GraphSettings.hpp"
 #include "RenderGraph/Node.hpp"
@@ -48,11 +48,11 @@ public:
 
     virtual void Compile (const GraphSettings&) = 0;
 
-    virtual void OnPreRead (uint32_t resourceIndex, GVK::CommandBuffer&) {};
-    virtual void OnPreWrite (uint32_t resourceIndex, GVK::CommandBuffer&) {};
-    virtual void OnPostWrite (uint32_t resourceIndex, GVK::CommandBuffer&) {};
-    virtual void OnGraphExecutionStarted (uint32_t resourceIndex, GVK::CommandBuffer&) {};
-    virtual void OnGraphExecutionEnded (uint32_t resourceIndex, GVK::CommandBuffer&) {};
+    virtual void OnPreRead (uint32_t /* resourceIndex */, GVK::CommandBuffer&) {};
+    virtual void OnPreWrite (uint32_t /* resourceIndex */, GVK::CommandBuffer&) {};
+    virtual void OnPostWrite (uint32_t /* resourceIndex */, GVK::CommandBuffer&) {};
+    virtual void OnGraphExecutionStarted (uint32_t /* resourceIndex */, GVK::CommandBuffer&) {};
+    virtual void OnGraphExecutionEnded (uint32_t /* resourceIndex */, GVK::CommandBuffer&) {};
 };
 
 

@@ -9,12 +9,12 @@
 #include "Sequence/SequenceAdapter.hpp"
 #include "Sequence/StimulusAdapter.hpp"
 
-#include "VulkanWrapper/Utils/ImageData.hpp"
+#include "RenderGraph/VulkanWrapper/Utils/ImageData.hpp"
 
-#include "Utils/BuildType.hpp"
-#include "Utils/CommandLineFlag.hpp"
-#include "Utils/SetupLogger.hpp"
-#include "Utils/Assert.hpp"
+#include "RenderGraph/Utils/BuildType.hpp"
+#include "RenderGraph/Utils/CommandLineFlag.hpp"
+#include "RenderGraph/Utils/SetupLogger.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
 
 #include "spdlog/spdlog.h"
 

@@ -22,7 +22,6 @@ target_include_directories (GearsModule
     PUBLIC 
         Include
 
-        $<TARGET_PROPERTY:Utils,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:RenderGraph,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:Sequence,INTERFACE_INCLUDE_DIRECTORIES>
 )
@@ -31,7 +30,6 @@ target_link_libraries (GearsModule
     PUBLIC
         Sequence
         RenderGraph
-        Utils
 )
 
 if (WIN32)

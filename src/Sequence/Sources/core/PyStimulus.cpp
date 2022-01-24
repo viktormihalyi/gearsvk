@@ -1,7 +1,7 @@
 #include "core/PyStimulus.h"
 
 #include "PyExtract.hpp"
-#include "Utils/Assert.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
 
 #include "core/PyPass.h"
 #include "core/PySequence.h"

@@ -2,15 +2,15 @@
 #define STIMULUSADAPTERVIEW_HPP
 
 // from RenderGraph
-#include "Utils/Event.hpp"
-#include "Utils/Noncopyable.hpp"
-#include <memory>
+#include "RenderGraph/Utils/Event.hpp"
+#include "RenderGraph/Utils/Noncopyable.hpp"
 
 // from Sequence
 #include "SequenceAPI.hpp"
 
 // from std
 #include <map>
+#include <memory>
 
 
 class StimulusAdapter;

@@ -1,6 +1,6 @@
 #include "VideoExporter.hpp"
 
-#include "Utils/Assert.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
 
 #include <cstdint>
 #include <stdexcept>

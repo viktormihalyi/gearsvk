@@ -150,7 +150,7 @@ void SingleWritableImageResource::Compile (const GraphSettings& graphSettings)
 }
 
 
-void SingleWritableImageResource::OnPreRead (uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
+void SingleWritableImageResource::OnPreRead (uint32_t /* resourceIndex */, GVK::CommandBuffer& commandBuffer)
 {
     commandBuffer.Record<GVK::CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
         VkEvent handle = *readWriteSync;
@@ -166,7 +166,7 @@ void SingleWritableImageResource::OnPreRead (uint32_t resourceIndex, GVK::Comman
 }
 
 
-void SingleWritableImageResource::OnPreWrite (uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
+void SingleWritableImageResource::OnPreWrite (uint32_t /* resourceIndex */, GVK::CommandBuffer& commandBuffer)
 {
     commandBuffer.Record<GVK::CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
         VkEvent handle = *readWriteSync;
@@ -175,7 +175,7 @@ void SingleWritableImageResource::OnPreWrite (uint32_t resourceIndex, GVK::Comma
 }
 
 
-void SingleWritableImageResource::OnPostWrite (uint32_t resourceIndex, GVK::CommandBuffer& commandBuffer)
+void SingleWritableImageResource::OnPostWrite (uint32_t /* resourceIndex */, GVK::CommandBuffer& commandBuffer)
 {
     commandBuffer.Record<GVK::CommandGeneric> ([&] (VkCommandBuffer commandBuffer) {
         VkEvent handle = *readWriteSync;
@@ -214,9 +214,9 @@ size_t GPUBufferResource::GetBufferSize ()
 }
 
 
-void GPUBufferResource::TransferFromCPUToGPU (uint32_t resourceIndex, const void* data, size_t size) const
+void GPUBufferResource::TransferFromCPUToGPU (uint32_t resourceIndex, const void* data, size_t dataSize) const
 {
-    buffers[resourceIndex]->TransferFromCPUToGPU (data, size);
+    buffers[resourceIndex]->TransferFromCPUToGPU (data, dataSize);
 }
 
 

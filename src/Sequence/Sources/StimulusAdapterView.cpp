@@ -1,7 +1,7 @@
 #include "StimulusAdapterView.hpp"
 
 // from RenderGraph
-#include "Utils/Assert.hpp"
+#include "RenderGraph/Utils/Assert.hpp"
 #include "RenderGraph/GraphRenderer.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
 
