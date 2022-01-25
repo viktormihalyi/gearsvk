@@ -3,15 +3,12 @@
 
 #include "RenderGraph/RenderGraphExport.hpp"
 
-#include "RenderGraph/Utils/Assert.hpp"
 #include "RenderGraph/Utils/MovablePtr.hpp"
 
 #include "ShaderReflection.hpp"
 #include "VulkanObject.hpp"
 
 #include <filesystem>
-#include <functional>
-#include <set>
 
 #include <vulkan/vulkan.h>
 
@@ -19,10 +16,7 @@ namespace GVK {
 
 class RENDERGRAPH_DLL_EXPORT ShaderCompileException : public std::runtime_error {
 public:
-    ShaderCompileException (const std::string& errorMessage)
-        : std::runtime_error (errorMessage)
-    {
-    }
+    ShaderCompileException (const std::string& errorMessage);
 };
 
 enum class ShaderKind : uint8_t {

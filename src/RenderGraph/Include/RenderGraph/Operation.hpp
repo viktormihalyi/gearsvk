@@ -1,6 +1,8 @@
 #ifndef OPERATION_HPP
 #define OPERATION_HPP
 
+#include "RenderGraph/Utils/Assert.hpp"
+
 #include "RenderGraph/RenderGraphExport.hpp"
 
 #include "RenderGraph/ComputeShaderPipeline.hpp"

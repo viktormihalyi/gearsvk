@@ -25,6 +25,11 @@ static Utils::CommandLineOnOffFlag disableShaderCacheFlag ("--disableShaderCache
 
 namespace GVK {
 
+    
+ShaderCompileException::ShaderCompileException (const std::string& errorMessage)
+    : std::runtime_error (errorMessage)
+{
+}
 
 class ShaderKindDescriptor final {
 public:

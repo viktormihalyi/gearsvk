@@ -211,4 +211,34 @@ void Image::CmdCopyBufferPartToImage (CommandBuffer& commandBuffer, VkBuffer buf
                                                     std::vector<VkBufferImageCopy> { region });
 }
 
+
+Image ImageBuilder::Build () const
+{
+    const bool allSet = imageType.has_value () &&
+                        width.has_value () &&
+                        height.has_value () &&
+                        depth.has_value () &&
+                        format.has_value () &&
+                        tiling.has_value () &&
+                        usage != 0 &&
+                        arrayLayers.has_value () &&
+                        loc.has_value ();
+
+    if (GVK_ERROR (!allSet)) {
+        throw std::runtime_error ("not all values set");
+    }
+
+    return Image (
+        allocator,
+        *imageType,
+        *width,
+        *height,
+        *depth,
+        *format,
+        *tiling,
+        usage,
+        *arrayLayers,
+        *loc);
+}
+
 } // namespace GVK

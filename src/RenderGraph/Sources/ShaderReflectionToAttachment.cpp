@@ -1,5 +1,7 @@
 #include "ShaderReflectionToAttachment.hpp"
 
+#include "RenderGraph/Utils/Assert.hpp"
+
 #include "spdlog/spdlog.h"
 
 

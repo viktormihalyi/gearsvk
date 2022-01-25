@@ -269,6 +269,8 @@ set (ENABLE_SPVREMAPPER OFF CACHE BOOL "" FORCE)
 set (ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
 set (ENABLE_HLSL OFF CACHE BOOL "" FORCE)
 
+set (SPDLOG_BUILD_SHARED ON CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable (glslang)
 FetchContent_MakeAvailable (spirv-cross)
 FetchContent_MakeAvailable (glm glfw)
@@ -313,6 +315,7 @@ target_link_libraries (RenderGraph
         glslang
         SPIRV
         spirv-cross-core
+        spdlog::spdlog
 
     PUBLIC
         ${Vulkan_LIBRARIES}

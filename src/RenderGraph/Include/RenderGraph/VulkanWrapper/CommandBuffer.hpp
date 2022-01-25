@@ -3,8 +3,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include <unordered_map>
-
 #include "RenderGraph/VulkanWrapper/DeviceExtra.hpp"
 #include "RenderGraph/Utils/MovablePtr.hpp"
 #include "RenderGraph/VulkanWrapper/VulkanObject.hpp"

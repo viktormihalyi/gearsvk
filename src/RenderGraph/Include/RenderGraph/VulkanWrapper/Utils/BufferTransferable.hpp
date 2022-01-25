@@ -4,7 +4,7 @@
 #include "RenderGraph/RenderGraphExport.hpp"
 
 #include "RenderGraph/VulkanWrapper/Buffer.hpp"
-#include "RenderGraph/VulkanWrapper/Device.hpp"
+#include "RenderGraph/VulkanWrapper/DeviceExtra.hpp"
 #include "RenderGraph/VulkanWrapper/Image.hpp"
 #include "RenderGraph/VulkanWrapper/Utils/MemoryMapping.hpp"
 #include <memory>

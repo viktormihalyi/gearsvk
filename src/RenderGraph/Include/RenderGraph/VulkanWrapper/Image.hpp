@@ -1,7 +1,6 @@
 #ifndef IMAGE_HPP
 #define IMAGE_HPP
 
-#include "CommandBuffer.hpp"
 #include "RenderGraph/Utils/MovablePtr.hpp"
 #include "VulkanObject.hpp"
 
@@ -15,6 +14,7 @@
 namespace GVK {
 
 class ImageBuilder;
+class CommandBuffer;
 
 class RENDERGRAPH_DLL_EXPORT Image : public VulkanObject {
 public:
@@ -162,34 +162,7 @@ public:
 
     // clang-format on
 
-    Image Build () const
-    {
-        const bool allSet = imageType.has_value () &&
-                            width.has_value () &&
-                            height.has_value () &&
-                            depth.has_value () &&
-                            format.has_value () &&
-                            tiling.has_value () &&
-                            usage != 0 &&
-                            arrayLayers.has_value () &&
-                            loc.has_value ();
-
-        if (GVK_ERROR (!allSet)) {
-            throw std::runtime_error ("not all values set");
-        }
-
-        return Image (
-            allocator,
-            *imageType,
-            *width,
-            *height,
-            *depth,
-            *format,
-            *tiling,
-            usage,
-            *arrayLayers,
-            *loc);
-    }
+    Image Build () const;
 };
 
 

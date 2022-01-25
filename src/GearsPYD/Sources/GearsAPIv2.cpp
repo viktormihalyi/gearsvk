@@ -5,6 +5,7 @@
 #include "RenderGraph/VulkanWrapper/Instance.hpp"
 #include "RenderGraph/VulkanWrapper/ShaderModule.hpp"
 #include "RenderGraph/VulkanWrapper/Surface.hpp"
+#include "RenderGraph/VulkanWrapper/DeviceExtra.hpp"
 #include "RenderGraph/VulkanEnvironment.hpp"
 #include "RenderGraph/Window/Window.hpp"
 #include "RenderGraph/Window/GLFWWindow.hpp"

@@ -1,11 +1,14 @@
 #ifndef ASSERT_HPP
 #define ASSERT_HPP
 
+
 #include "RenderGraph/RenderGraphExport.hpp"
 
 #include "SourceLocation.hpp"
 
+
 #define LOGASSERTS
+
 
 #ifndef NDEBUG
 #define GVK_ASSERT(condition) (::Utils::detail::DebugBreakAssertFunc (condition, true, "Assertion Failed", #condition, { __FILE__, __LINE__, __func__ }))
