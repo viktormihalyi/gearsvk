@@ -30,6 +30,8 @@ if (MSVC)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4099")           # .pdb was not found with .lib
     set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4099")     # .pdb was not found with .lib
     set (CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /ignore:4099")     # .pdb was not found with .lib
+else ()
+    add_compile_options (-fPIC)           # build with multiple processes
 endif ()
 
 # ========== CONAN ==========

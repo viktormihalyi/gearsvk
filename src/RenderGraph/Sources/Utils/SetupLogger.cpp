@@ -4,6 +4,7 @@
 #include "CommandLineFlag.hpp"
 
 #include <stdio.h>
+#define __STDC_WANT_LIB_EXT1__ 1
 #include <time.h>
 #include <optional>
 
@@ -49,7 +50,11 @@ std::shared_ptr<spdlog::logger> GetLogger ()
     time_t    now = time (0);
     struct tm tstruct;
 
-    localtime_s (&tstruct, &now);
+#if _WIN32
+    ::localtime_s (&tstruct, &now);
+#else
+    ::localtime_r (&now, &tstruct);
+#endif
 
     const std::string defaultLogFileName = fmt::format ("GearsVk_{}-{}-{}_{}-{}-{}.txt", tstruct.tm_year + 1900, tstruct.tm_mon, tstruct.tm_mday, tstruct.tm_hour, tstruct.tm_min, tstruct.tm_sec);
 
