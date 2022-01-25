@@ -1,6 +1,5 @@
 [requires]
 freetype/2.10.4
-spirv-cross/cci.20211113
 glslang/11.7.0
 msdfgen/1.9
 ffmpeg/4.4

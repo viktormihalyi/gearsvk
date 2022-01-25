@@ -196,7 +196,6 @@ set_source_files_properties (${VulkanWrapper_SourcesGroup_VMA} PROPERTIES UNITY_
 
 find_package (Vulkan REQUIRED)
 find_package (glslang REQUIRED)
-find_package (spirv-cross REQUIRED)
 find_package (msdfgen REQUIRED)
 
 
@@ -211,6 +210,12 @@ target_precompile_headers (RenderGraph PRIVATE PrecompiledHeader.hpp)
 set (GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set (GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set (GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare (
+    spirv-cross
+    GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
+    GIT_TAG        9acb9ec31f5a8ef80ea6b994bb77be787b08d3d1
+)
 
 FetchContent_Declare (
     glm
@@ -248,6 +253,17 @@ FetchContent_Declare (
     GIT_TAG        d141cdbeb0fb422a3fb7173b285fd38e0d1772dc # 8.0.1
 )
 
+set (SPIRV_CROSS_SHARED OFF CACHE BOOL "" FORCE)
+set (SPIRV_CROSS_STATIC ON CACHE BOOL "" FORCE)
+set (SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
+set (SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+
+set (SPIRV_CROSS_ENABLE_HLSL OFF CACHE BOOL "" FORCE)
+set (SPIRV_CROSS_ENABLE_MSL OFF CACHE BOOL "" FORCE)
+
+message ("SPIRV-Cross: START")
+FetchContent_MakeAvailable (spirv-cross)
+message ("SPIRV-Cross: END")
 FetchContent_MakeAvailable (glm glfw)
 FetchContent_MakeAvailable (VulkanMemoryAllocator stb)
 FetchContent_MakeAvailable (fmt spdlog)
@@ -263,7 +279,7 @@ target_include_directories (RenderGraph
         
         $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>
         ${glslang_INCLUDE_DIRS}
-        ${spirv-cross_INCLUDE_DIRS}
+        ${spirv-cross_SOURCE_DIR}
         ${msdfgen_INCLUDE_DIRS}
         ${stb_SOURCE_DIR}
     
@@ -289,8 +305,8 @@ target_link_libraries (RenderGraph
 
         glfw
         ${glslang_LIBRARIES}
-        ${spirv-cross_LIBRARIES}
         ${msdfgen_LIBRARIES}
+        spirv-cross-core
 
     PUBLIC
         ${Vulkan_LIBRARIES}
