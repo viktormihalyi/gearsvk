@@ -3,8 +3,10 @@
 
 #include <memory>
 
+#pragma warning(push, 0)
 // from gtest
 #include "gtest/gtest.h"
+#pragma warning(pop)
 
 // from std
 #include <filesystem>

@@ -51,6 +51,17 @@ target_link_libraries (RenderGraphTest
         gtest
 )
 
+if (MSVC)
+target_compile_options (RenderGraphTest PRIVATE /W4 /WX)
+target_compile_options (RenderGraphTest
+    PRIVATE
+        /wd4099     # PDB 'filename' was not found with 'object/library' or at 'path'; linking object as if no debug info
+        /wd4251     # 'type' : class 'type1' needs to have dll-interface to be used by clients of class 'type2'
+        /wd4275     # non - DLL-interface class 'class_1' used as base for DLL-interface class 'class_2'
+        /wd26812    # The enum type type-name is unscoped. Prefer 'enum class' over 'enum' (Enum.3)
+)
+endif ()
+
 set_target_properties (RenderGraphTest PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 add_test (NAME RenderGraphTest

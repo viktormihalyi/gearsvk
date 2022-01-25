@@ -104,6 +104,9 @@ private:
         CreateResult ()
             : handle (VK_NULL_HANDLE)
             , imageCount (0)
+            , extent (VkExtent2D { 0, 0 } )
+            , presentMode (VK_PRESENT_MODE_IMMEDIATE_KHR)
+            , surfaceFormat (VkSurfaceFormatKHR {})
         {
         }
 

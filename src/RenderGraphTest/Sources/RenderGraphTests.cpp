@@ -582,10 +582,10 @@ void main()
         mapping.Copy (pixelData);
 
         {
-            GVK::SingleTimeCommand s (GetDevice (), GetCommandPool (), GetGraphicsQueue ());
-            s.Record<GVK::CommandTranstionImage> (*inputColor->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-            s.Record<GVK::CommandCopyBufferToImage> (buff, *inputColor->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, std::vector<VkBufferImageCopy> { inputColor->GetImages ()[0]->GetFullBufferImageCopy () });
-            s.Record<GVK::CommandTranstionImage> (*inputColor->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            GVK::SingleTimeCommand single (GetDevice (), GetCommandPool (), GetGraphicsQueue ());
+            single.Record<GVK::CommandTranstionImage> (*inputColor->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            single.Record<GVK::CommandCopyBufferToImage> (buff, *inputColor->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, std::vector<VkBufferImageCopy> { inputColor->GetImages ()[0]->GetFullBufferImageCopy () });
+            single.Record<GVK::CommandTranstionImage> (*inputColor->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
     }
 
@@ -688,10 +688,10 @@ void main()
         mapping.Copy (pixelData);
 
         {
-            GVK::SingleTimeCommand s (GetDevice (), GetCommandPool (), GetGraphicsQueue ());
-            s.Record<GVK::CommandTranstionImage> (*inputColor1->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-            s.Record<GVK::CommandCopyBufferToImage> (buff, *inputColor1->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, std::vector<VkBufferImageCopy> { inputColor1->GetImages ()[0]->GetFullBufferImageCopy () });
-            s.Record<GVK::CommandTranstionImage> (*inputColor1->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            GVK::SingleTimeCommand single (GetDevice (), GetCommandPool (), GetGraphicsQueue ());
+            single.Record<GVK::CommandTranstionImage> (*inputColor1->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            single.Record<GVK::CommandCopyBufferToImage> (buff, *inputColor1->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, std::vector<VkBufferImageCopy> { inputColor1->GetImages ()[0]->GetFullBufferImageCopy () });
+            single.Record<GVK::CommandTranstionImage> (*inputColor1->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
     }
 
@@ -710,10 +710,10 @@ void main()
         mapping.Copy (pixelData);
 
         {
-            GVK::SingleTimeCommand s (GetDevice (), GetCommandPool (), GetGraphicsQueue ());
-            s.Record<GVK::CommandTranstionImage> (*inputColor2->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-            s.Record<GVK::CommandCopyBufferToImage> (buff, *inputColor2->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, std::vector<VkBufferImageCopy> { inputColor2->GetImages ()[0]->GetFullBufferImageCopy () });
-            s.Record<GVK::CommandTranstionImage> (*inputColor2->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            GVK::SingleTimeCommand single (GetDevice (), GetCommandPool (), GetGraphicsQueue ());
+            single.Record<GVK::CommandTranstionImage> (*inputColor2->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            single.Record<GVK::CommandCopyBufferToImage> (buff, *inputColor2->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, std::vector<VkBufferImageCopy> { inputColor2->GetImages ()[0]->GetFullBufferImageCopy () });
+            single.Record<GVK::CommandTranstionImage> (*inputColor2->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
     }
 
@@ -790,10 +790,10 @@ void main () {
         mapping.Copy (pixelData);
 
         {
-            GVK::SingleTimeCommand s (GetDevice (), GetCommandPool (), GetGraphicsQueue ());
-            s.Record<GVK::CommandTranstionImage> (*presented->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-            s.Record<GVK::CommandCopyBufferToImage> (buff, *presented->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, std::vector<VkBufferImageCopy> { presented->GetImages ()[0]->GetFullBufferImageCopy () });
-            s.Record<GVK::CommandTranstionImage> (*presented->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+            GVK::SingleTimeCommand single (GetDevice (), GetCommandPool (), GetGraphicsQueue ());
+            single.Record<GVK::CommandTranstionImage> (*presented->GetImages ()[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            single.Record<GVK::CommandCopyBufferToImage> (buff, *presented->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, std::vector<VkBufferImageCopy> { presented->GetImages ()[0]->GetFullBufferImageCopy () });
+            single.Record<GVK::CommandTranstionImage> (*presented->GetImages ()[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
         }
     }
 
@@ -966,7 +966,7 @@ void main()
     RG::ConnectionSet connectionSet;
     connectionSet.Add (randomGenerator);
 
-    auto creator = [&] (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject, bool& treatAsOutput) -> std::shared_ptr<RG::DescriptorBindableBufferResource> {
+    auto creator = [&] (const std::shared_ptr<RG::Operation>&, const GVK::ShaderModule&, const std::shared_ptr<SR::BufferObject>& bufferObject, bool& /* treatAsOutput */) -> std::shared_ptr<RG::DescriptorBindableBufferResource> {
         if (bufferObject->name == "OutputBuffer")
             return std::make_unique<RG::GPUBufferResource> (bufferObject->GetFullSize ());
       
@@ -1133,9 +1133,9 @@ void HeadlessTestEnvironmentWithExt::TearDown ()
 
 TEST_F (HeadlessTestEnvironmentWithExt, Swapchain_Create)
 {
-    RG::GLFWWindow window;
+    RG::GLFWWindow glfwWindow;
 
-    GVK::Surface surface (*env->instance, window.GetSurface (*env->instance));
+    GVK::Surface surface (*env->instance, glfwWindow.GetSurface (*env->instance));
 
     GVK_ASSERT (env->physicalDevice->CheckSurfaceSupported (surface));
 
@@ -1146,8 +1146,6 @@ TEST_F (HeadlessTestEnvironmentWithExt, Swapchain_Create)
 TEST_F (HiddenWindowTestEnvironment, RenderGraph_RenderingToSwapchain)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
-    GVK::CommandPool& commandPool   = GetCommandPool ();
-    GVK::Queue&       graphicsQueue = GetGraphicsQueue ();
     GVK::Swapchain&   swapchain     = GetSwapchain ();
 
 
@@ -1197,8 +1195,6 @@ void main () {
 TEST_F (HiddenWindowTestEnvironment, RenderGraph_VertexAndIndexBuffer)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
-    GVK::CommandPool& commandPool   = GetCommandPool ();
-    GVK::Queue&       graphicsQueue = GetGraphicsQueue ();
     GVK::Swapchain&   swapchain     = GetSwapchain ();
 
     RG::GraphSettings s (device, swapchain.GetImageCount ());
@@ -1287,8 +1283,6 @@ void main () {
 TEST_F (HiddenWindowTestEnvironment, RenderGraph_BasicUniformBuffer)
 {
     GVK::DeviceExtra& device        = GetDeviceExtra ();
-    GVK::CommandPool& commandPool   = GetCommandPool ();
-    GVK::Queue&       graphicsQueue = GetGraphicsQueue ();
     GVK::Swapchain&   swapchain     = GetSwapchain ();
 
     RG::GraphSettings s (device, swapchain.GetImageCount ());

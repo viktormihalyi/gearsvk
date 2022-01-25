@@ -1,8 +1,10 @@
 #include "Frustum.hpp"
 
+#pragma warning(push, 0)
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#pragma warning(pop)
 
 namespace GVK {
 

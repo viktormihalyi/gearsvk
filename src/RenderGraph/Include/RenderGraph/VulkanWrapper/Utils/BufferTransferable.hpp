@@ -159,7 +159,7 @@ public:
 
     void operator= (const std::vector<VertexType>& copiedData)
     {
-        const uint32_t copiedBytes = copiedData.size () * sizeof (VertexType);
+        const size_t copiedBytes = copiedData.size () * sizeof (VertexType);
         GVK_ASSERT (copiedBytes <= data.size ());
         memcpy (data.data (), copiedData.data (), copiedBytes);
     }

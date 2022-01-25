@@ -29,9 +29,11 @@
 #include "RenderGraph/VulkanWrapper/Utils/ImageData.hpp"
 #include "RenderGraph/VulkanWrapper/VulkanWrapper.hpp"
 
+#pragma warning(push, 0)
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#pragma warning(pop)
 
 #include <array>
 #include <cstdint>
@@ -52,8 +54,6 @@ using VizHFTests = HiddenWindowTestEnvironment;
 TEST_F (VizHFTests, HF1)
 {
     GVK::DeviceExtra& device        = *env->deviceExtra;
-    GVK::CommandPool& commandPool   = *env->commandPool;
-    GVK::Queue&       graphicsQueue = *env->graphicsQueue;
 
     GVK::Swapchain& swapchain = presentable->GetSwapchain ();
 
@@ -442,11 +442,13 @@ void main ()
             quit = true;
         }
         if (key == 'R') {
+            #if 0
+            // TODO use of moved
             std::cout << "waiting for device... " << std::endl;
             vkDeviceWaitIdle (s.GetDevice ());
             vkQueueWaitIdle (s.GetDevice ().GetGraphicsQueue ());
-            sp->Reload ();
             renderer.Recreate (graph);
+            #endif
         }
         switch (key) {
             case '1': currentDisplayMode = DisplayMode::Feladat1; break;
@@ -463,7 +465,7 @@ void main ()
     obs.Observe (renderer.preSubmitEvent, [&] (RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
         GVK::TimePoint delta (deltaNs);
 
-        const float dt = delta.AsSeconds ();
+        const float dt = static_cast<float> (delta.AsSeconds ());
 
         cameraControl.UpdatePosition (dt);
 
@@ -542,10 +544,10 @@ private:
 struct Quadric {
     QuadricMat4 surface;
     QuadricMat4 clipper;
-    glm::vec4   kd;
-    glm::vec4   reflectance;
-    glm::vec4   ks;
-    glm::vec4   transmittace;
+    glm::vec4   kd { 0.0 };
+    glm::vec4   reflectance { 0.0 };
+    glm::vec4   ks { 0.0 };
+    glm::vec4   transmittace { 0.0 };
 };
 
 
@@ -553,8 +555,6 @@ TEST_F (VizHFTests, HF2)
 {
     GVK::DeviceExtra& device        = *env->deviceExtra;
     GVK::DeviceExtra& deviceExtra   = device;
-    GVK::CommandPool& commandPool   = *env->commandPool;
-    GVK::Queue&       graphicsQueue = *env->graphicsQueue;
 
     GVK::Swapchain& swapchain = presentable->GetSwapchain ();
 
@@ -860,11 +860,14 @@ void main ()
             quit = true;
         }
         if (key == 'R') {
+            #if 0
+            // TODO use of moved
             std::cout << "waiting for device... " << std::endl;
             vkDeviceWaitIdle (*graph.graphSettings.device);
             vkQueueWaitIdle (graph.graphSettings.device->GetGraphicsQueue ());
             sp->Reload ();
             renderer.Recreate (graph);
+            #endif
         }
     });
 
@@ -988,7 +991,7 @@ void main ()
     obs.Observe (renderer.preSubmitEvent, [&] (RG::RenderGraph&, uint32_t frameIndex, uint64_t deltaNs) {
         GVK::TimePoint delta (deltaNs);
 
-        const float dt = delta.AsSeconds ();
+        const float dt = static_cast<float> (delta.AsSeconds ());
 
         cameraControl.UpdatePosition (dt);
 

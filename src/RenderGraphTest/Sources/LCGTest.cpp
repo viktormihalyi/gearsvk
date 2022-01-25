@@ -54,11 +54,11 @@ TEST_F (Empty, ArbitraryStrideLCG)
     int      count   = 0;
     uint64_t modolus = 2147483647; //(static_cast<uint64_t> (1) << 31) - 1; // 2^31 - 1
     uint64_t mul_a   = 48271;      // minstd_rand
-    uint64_t inc_c   = 0;
+    // uint64_t inc_c   = 0;
 
     for (int i = 10; i < 100000; ++i) {
         double val  = static_cast<double> (Forrest_G (i, 634, mul_a, modolus));
-        double val2 = static_cast<double> (Forrest_C (i, 634, mul_a, 0, modolus));
+        // double val2 = static_cast<double> (Forrest_C (i, 634, mul_a, 0, modolus));
         const double perc = val / modolus;
         sum += perc;
         ++count;
@@ -78,10 +78,10 @@ TEST_F (Empty, ArbitraryStrideLCG_TESTWITHACTUAl)
     std::linear_congruential_engine<uint32_t, mul_a, inc_c, modolus> e1 (seed);
     std::uniform_int_distribution<uint32_t> uniform_dist (0, std::numeric_limits<uint32_t>::max ());
     
-    std::vector<uint32_t> fromstd;
-    std::vector<uint32_t> fromfor;
+    std::vector<size_t> fromstd;
+    std::vector<size_t> fromfor;
 
-    for (int i = 1; i < 24; ++i) {
+    for (size_t i = 1; i < 24; ++i) {
         fromfor.push_back (Forrest_G (i, seed, mul_a, modolus));
         fromstd.push_back (uniform_dist (e1));
     }
