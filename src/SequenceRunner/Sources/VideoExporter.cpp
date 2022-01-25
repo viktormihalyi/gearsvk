@@ -140,17 +140,15 @@ VideoExporter::VideoExporter (const std::filesystem::path& exportFilePath, Video
 
 VideoExporter::~VideoExporter ()
 {
-    AVPacket pkt;
-    av_init_packet (&pkt);
-    pkt.data = NULL;
-    pkt.size = 0;
+    AVPacket* pkt = av_packet_alloc ();
+    GVK_ASSERT (pkt != nullptr);
 
     while (true) {
         int err = avcodec_send_frame (impl->codecContext, NULL);
         GVK_VERIFY (err == 0 || err == AVERROR_EOF);
-        if (avcodec_receive_packet (impl->codecContext, &pkt) == 0) {
-            GVK_VERIFY (av_interleaved_write_frame (impl->formatContext, &pkt) == 0);
-            av_packet_unref (&pkt);
+        if (avcodec_receive_packet (impl->codecContext, pkt) == 0) {
+            GVK_VERIFY (av_interleaved_write_frame (impl->formatContext, pkt) == 0);
+            av_packet_unref (pkt);
         } else {
             break;
         }
@@ -161,6 +159,7 @@ VideoExporter::~VideoExporter ()
     if (!(impl->outputFormat->flags & AVFMT_NOFILE))
         GVK_VERIFY (avio_close (impl->formatContext->pb) == 0);
 
+    av_packet_free (&pkt);
     sws_freeContext (impl->swsContext);
     av_frame_free (&impl->videoFrame);
     avcodec_free_context (&impl->codecContext);
@@ -188,26 +187,29 @@ void VideoExporter::PushFrame (const std::vector<uint8_t>& frame)
     if GVK_ERROR (avcodec_send_frame (impl->codecContext, impl->videoFrame) != 0)
         return;
 
-    AVPacket pkt;
-    av_init_packet (&pkt);
-    pkt.data = nullptr;
-    pkt.size = 0;
-    pkt.flags |= AV_PKT_FLAG_KEY;
+    AVPacket* pkt = av_packet_alloc ();
+    GVK_ASSERT (pkt != nullptr);
 
-    if (avcodec_receive_packet (impl->codecContext, &pkt) == 0) {
+    pkt->flags |= AV_PKT_FLAG_KEY;
+
+    if (avcodec_receive_packet (impl->codecContext, pkt) == 0) {
 #if DUMP_FIRST_FRAME
         static int counter = 0;
         if (counter == 0) {
             FILE* fp = fopen ("dump_first_frame1.dat", "wb");
-            if GVK_ERROR (fp == nullptr)
+            if GVK_ERROR (fp == nullptr) {
+                av_packet_free (&pkt);
                 return;
+            }
             fwrite (pkt.data, pkt.size, 1, fp);
             GVK_VERIFY (fclose (fp) == 0);
         }
         counter++;
 #endif
 
-        GVK_VERIFY (av_interleaved_write_frame (impl->formatContext, &pkt) == 0);
-        av_packet_unref (&pkt);
+        GVK_VERIFY (av_interleaved_write_frame (impl->formatContext, pkt) == 0);
+        av_packet_unref (pkt);
     }
+
+    av_packet_free (&pkt);
 }
