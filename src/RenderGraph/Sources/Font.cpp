@@ -1,3 +1,4 @@
+#if 0
 #include "Font.hpp"
 
 #pragma warning(push, 0)
@@ -264,3 +265,4 @@ GlyphData Font::GetGlyphMTDF (uint32_t width, uint32_t height, uint32_t unicode)
 }
 
 }
+#endif

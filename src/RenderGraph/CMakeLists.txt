@@ -195,9 +195,6 @@ set_source_files_properties (${VulkanWrapper_SourcesGroup_STB} PROPERTIES UNITY_
 set_source_files_properties (${VulkanWrapper_SourcesGroup_VMA} PROPERTIES UNITY_GROUP "bucket_VMA")
 
 find_package (Vulkan REQUIRED)
-find_package (glslang REQUIRED)
-find_package (msdfgen REQUIRED)
-
 
 target_compile_definitions (RenderGraph
     PUBLIC SPDLOG_FMT_EXTERNAL
@@ -207,9 +204,11 @@ target_compile_definitions (RenderGraph
 
 target_precompile_headers (RenderGraph PRIVATE PrecompiledHeader.hpp)
 
-set (GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set (GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set (GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+FetchContent_Declare (
+    glslang
+    GIT_REPOSITORY https://github.com/KhronosGroup/glslang.git
+    GIT_TAG        925503088e2bcd76921b1e102c37fc320bace254
+)
 
 FetchContent_Declare (
     spirv-cross
@@ -253,6 +252,10 @@ FetchContent_Declare (
     GIT_TAG        d141cdbeb0fb422a3fb7173b285fd38e0d1772dc # 8.0.1
 )
 
+set (GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set (GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set (GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
 set (SPIRV_CROSS_SHARED OFF CACHE BOOL "" FORCE)
 set (SPIRV_CROSS_STATIC ON CACHE BOOL "" FORCE)
 set (SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
@@ -261,9 +264,12 @@ set (SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 set (SPIRV_CROSS_ENABLE_HLSL OFF CACHE BOOL "" FORCE)
 set (SPIRV_CROSS_ENABLE_MSL OFF CACHE BOOL "" FORCE)
 
-message ("SPIRV-Cross: START")
+set (ENABLE_SPVREMAPPER OFF CACHE BOOL "" FORCE)
+set (ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
+set (ENABLE_HLSL OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable (glslang)
 FetchContent_MakeAvailable (spirv-cross)
-message ("SPIRV-Cross: END")
 FetchContent_MakeAvailable (glm glfw)
 FetchContent_MakeAvailable (VulkanMemoryAllocator stb)
 FetchContent_MakeAvailable (fmt spdlog)
@@ -278,9 +284,8 @@ target_include_directories (RenderGraph
         Include/RenderGraph/Utils
         
         $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>
-        ${glslang_INCLUDE_DIRS}
+        ${glslang_SOURCE_DIR}
         ${spirv-cross_SOURCE_DIR}
-        ${msdfgen_INCLUDE_DIRS}
         ${stb_SOURCE_DIR}
     
     PUBLIC
@@ -304,8 +309,8 @@ target_link_libraries (RenderGraph
         ${UUID_LIB}
 
         glfw
-        ${glslang_LIBRARIES}
-        ${msdfgen_LIBRARIES}
+        glslang
+        SPIRV
         spirv-cross-core
 
     PUBLIC
