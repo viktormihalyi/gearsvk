@@ -20,7 +20,6 @@ set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/lib>)
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/lib>)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin>)
 
-
 if (MSVC)
     if (CMAKE_UNITY_BUILD)
         add_compile_options (/bigobj)   # increase number of sections in .obj file
