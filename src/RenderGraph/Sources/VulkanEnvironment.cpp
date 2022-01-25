@@ -255,9 +255,9 @@ VulkanEnvironment::VulkanEnvironment (std::optional<GVK::DebugUtilsMessenger::Ca
 
     instance = std::make_unique<GVK::Instance> (is);
 
-    if (IsDebugBuild && callback.has_value () && !disableValidationLayersFlag.IsFlagOn ()) {
-        messenger = std::make_unique<GVK::DebugUtilsMessenger> (*instance, *callback, GVK::DebugUtilsMessenger::noPerformance);
-    }
+    if constexpr (IsDebugBuild)
+        if (callback.has_value () && !disableValidationLayersFlag.IsFlagOn ())
+            messenger = std::make_unique<GVK::DebugUtilsMessenger> (*instance, *callback, GVK::DebugUtilsMessenger::noPerformance);
 
     const VkSurfaceKHR physicalDeviceSurfaceHandle = VK_NULL_HANDLE;
 
