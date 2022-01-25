@@ -129,9 +129,9 @@ VkImageMemoryBarrier Image::GetBarrier (VkImageLayout oldLayout, VkImageLayout n
     barrier.image                           = handle;
     barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseMipLevel   = 0;
-    barrier.subresourceRange.levelCount     = layerCount;
+    barrier.subresourceRange.levelCount     = 1;
     barrier.subresourceRange.baseArrayLayer = baseArrayLayer;
-    barrier.subresourceRange.layerCount     = arrayLayers;
+    barrier.subresourceRange.layerCount     = layerCount;
     barrier.srcAccessMask                   = srcAccessMask;
     barrier.dstAccessMask                   = dstAccessMask;
     return barrier;

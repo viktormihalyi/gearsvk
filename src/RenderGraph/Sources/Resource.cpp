@@ -263,7 +263,7 @@ void ReadOnlyImageResource::CompileOnce (const GraphSettings& settings)
             imageView = std::make_unique<GVK::ImageView2D> (settings.GetDevice (), *image->imageGPU, 0);
         } else {
             image     = std::make_unique<GVK::Image2DTransferable> (settings.GetDevice (), format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT, layerCount);
-            imageView = std::make_unique<GVK::ImageView2DArray> (settings.GetDevice (), *image->imageGPU, 0, layerCount);
+            imageView = std::make_unique<GVK::ImageView2DArray> (settings.GetDevice (), *image->imageGPU, 0, 1);
         }
     } else {
         image     = std::make_unique<GVK::Image3DTransferable> (settings.GetDevice (), format, width, height, depth, VK_IMAGE_USAGE_SAMPLED_BIT);

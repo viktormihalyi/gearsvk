@@ -13,14 +13,13 @@ set (Sources
     Sources/RenderGraphTests.cpp
     Sources/VizHFTests.cpp
     Sources/FontRenderingTests.cpp
-    Sources/GearsTests.cpp
 
     Sources/LogInitializer.cpp
 )
 
-add_executable (GVKTest ${Sources})
+add_executable (RenderGraphTest ${Sources})
 
-target_precompile_headers (GVKTest PRIVATE PrecompiledHeader.hpp)
+target_precompile_headers (RenderGraphTest PRIVATE PrecompiledHeader.hpp)
 
 set (BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 
@@ -32,7 +31,7 @@ FetchContent_Declare (
 
 FetchContent_MakeAvailable (googletest)
 
-target_include_directories (GVKTest
+target_include_directories (RenderGraphTest
     PRIVATE
         Sources
 
@@ -43,7 +42,7 @@ target_include_directories (GVKTest
         $<TARGET_PROPERTY:gtest,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries (GVKTest
+target_link_libraries (RenderGraphTest
     PUBLIC
         Sequence
         GearsModule
@@ -52,13 +51,13 @@ target_link_libraries (GVKTest
         gtest
 )
 
-set_target_properties (GVKTest PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+set_target_properties (RenderGraphTest PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
-add_test (NAME GVKTest
-          COMMAND GVKTest
+add_test (NAME RenderGraphTest
+          COMMAND RenderGraphTest
           WORKING_DIRECTORY bin)
 
-add_custom_target (GVKTest_CopyTestFiles ALL
+add_custom_target (RenderGraphTest_CopyTestFiles ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/Sources/TestData
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TestData
