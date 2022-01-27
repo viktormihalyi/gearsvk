@@ -28,15 +28,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-  
-    - name: Cache conan packages
-      uses: actions/cache@v2
-      env:
-        cache-name: cache-conan-packages
-      with:
-        path: ~/.conan
-        key: ${{ runner.os }}-${{ matrix.compiler.CC }}-${{ matrix.buildType }}-build-${{ env.cache-name }}-${{ hashFiles('conanfile.txt', 'conanprofile') }}
-            
+
     - name: Add Vulkan SDK package
       run: |
         wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
