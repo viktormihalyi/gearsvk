@@ -49,7 +49,14 @@ FetchContent_Declare (
     GIT_TAG        f7b499615e14d70ab098a20deb0cdb3889998a1a # v2.8.1
 )
 
+FetchContent_Declare (
+    RenderGraph
+    GIT_REPOSITORY https://github.com/viktormihalyi/RenderGraph.git
+    GIT_TAG        d12de5bb37da4ecdd62ae3a88429e018bb1e4613 # v2.8.1
+)
+
 FetchContent_MakeAvailable (pybind11)
+FetchContent_MakeAvailable (RenderGraph)
 
 target_include_directories (Sequence
     PRIVATE

@@ -64,8 +64,6 @@ include (${CMAKE_BINARY_DIR}/conan_paths.cmake)
 
 # ========== MODULES ==========
 
-add_subdirectory (src/RenderGraph)
-add_subdirectory (src/RenderGraphTest)
 add_subdirectory (src/Sequence)
 add_subdirectory (src/GearsPYD)
 add_subdirectory (src/GearsTest)
